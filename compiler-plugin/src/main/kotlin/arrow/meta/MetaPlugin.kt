@@ -2,6 +2,7 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
+import arrow.meta.plugins.dummy.eqOper
 import arrow.meta.plugins.higherkind.higherKindedTypes
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.typeclasses.typeClasses
@@ -19,6 +20,7 @@ open class MetaPlugin : Meta {
     listOf(
       higherKindedTypes,
       typeClasses,
+      eqOper,
       comprehensions,
       lenses
     )
