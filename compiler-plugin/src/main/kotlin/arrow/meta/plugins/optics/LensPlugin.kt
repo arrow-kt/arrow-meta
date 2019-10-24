@@ -34,7 +34,7 @@ val Meta.lenses: Plugin
             newDeclaration =
             if (c.companionObjects.isEmpty())
               """|
-                 |$modality $visibility data $kind $name($`(valueParameters)`) {
+                 |$kind $name $`(valueParameters)` {
                  |  
                  |  companion object {
                  |    ${lenses(this)}
@@ -43,7 +43,7 @@ val Meta.lenses: Plugin
                  |}""".`class`
             else
               """
-                 |$modality $visibility data $kind $name($`(valueParameters)`) {
+                 |$kind $name $`(valueParameters)` {
                  |  ${body.value?.addDeclarationToBody(lenses = lenses(this))}
                  |  
                  |}""".`class`
@@ -65,7 +65,7 @@ private const val maxArity: Int = 10
 
 private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> =
   classScope.run {
-    ScopedList(
+    ScopedList.withScopeList(
       separator = "\n",
       value = `(valueParameters)`.value.map { param: KtParameter ->
         lens(source = value, focus = param)

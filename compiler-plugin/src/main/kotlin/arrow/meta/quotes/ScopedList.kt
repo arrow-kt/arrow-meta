@@ -20,7 +20,7 @@ data class ScopedList<K : KtElement>(
     ) { it.text }
 
   companion object {
-    operator fun <K : KtElement> invoke(
+    fun <K : KtElement> withScopeList(
       value: List<Scope<K>>,
       prefix: String = "",
       separator: String = ", ",
@@ -32,7 +32,7 @@ data class ScopedList<K : KtElement>(
         separator =  separator,
         postfix = postfix,
         forceRenderSurroundings = forceRenderSurroundings,
-        value = value.map { it }
+        value = value.mapNotNull { it.value }
       )
   }
 }

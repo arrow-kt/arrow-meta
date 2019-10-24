@@ -15,6 +15,7 @@ dependencies {
     // testRuntimeOnly "io.arrow-kt:arrow-annotations:x.x.x"
     testRuntimeOnly "com.github.arrow-kt.arrow:arrow-annotations:rr-meta-prototype-integration-SNAPSHOT"
     testRuntimeOnly "io.arrow-kt:arrow-core-data:0.10.1"
+    testRuntimeOnly "io.arrow-kt:arrow-optics:0.10.1"
 }
 
 compileKotlin {
