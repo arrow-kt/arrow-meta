@@ -1,5 +1,6 @@
 package arrow.meta.dsl.ide.editor.lineMarker
 
+import arrow.meta.dsl.ide.utils.IdeUtils
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
@@ -10,7 +11,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
 interface LineMarkerSyntax {
@@ -20,21 +20,25 @@ interface LineMarkerSyntax {
    * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
    * TODO: Add more Techniques such as the one from Elm
    */
+  @Suppress("UNCHECKED_CAST")
   fun <A> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    message: (A) -> String,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    matchOn: (psi: PsiElement) -> A?
+    onElement: PsiElement.() -> A?,
+    matchOn: (element: A) -> Boolean,
+    message: (element: A) -> String = Noop.string1(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     addLineMarkerProvider(
-      matchOn,
-      /*{ psi: A ->
-        lineMarkerInfo(icon, psi, message, placed)
-      }*/
+      matchOn as (PsiElement) -> Boolean,
+      onElement,
+      { psi: PsiElement ->
+        lineMarkerInfo(icon, psi, message as (PsiElement) -> String, placed)
+      }
     )
 
   fun <A> IdeMetaPlugin.addLineMarkerProvider(
-    matchOn: (psi: PsiElement) -> A?,
+    matchOn: (psi: PsiElement) -> Boolean,
+    onElement: PsiElement.() -> A?,
     slowLineMarker: (psi: PsiElement) -> LineMarkerInfo<PsiElement>?,
     lineMarkerInfo: (psi: PsiElement) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
@@ -45,23 +49,23 @@ interface LineMarkerSyntax {
           lineMarkerInfo(element)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { matchOn(it)?.run { true } ?: false }) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(onElement(it)) }) {
             ProgressManager.checkCanceled()
-            slowLineMarker(element)?.let { result.add(it) }
+            if (matchOn(element))
+              slowLineMarker(element)?.let { result.add(it) }
           }
         }
       }
     )
 
-  @Suppress("UNCHECKED_CAST")
-  fun <P : PsiElement> LineMarkerSyntax.lineMarkerInfo(
+  fun LineMarkerSyntax.lineMarkerInfo(
     icon: Icon,
-    element: P,
-    message: (P) -> String,
+    element: PsiElement,
+    message: (PsiElement) -> String,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT
     // nav: GutterIconNavigationHandler<*>? = null TODO
-  ): LineMarkerInfo<P> =
-    object : LineMarkerInfo<P>(
+  ): LineMarkerInfo<PsiElement> =
+    object : LineMarkerInfo<PsiElement>(
       element,
       element.textRange,
       icon,
@@ -70,7 +74,7 @@ interface LineMarkerSyntax {
       placed
     ) {
       override fun createGutterRenderer(): GutterIconRenderer =
-        object : LineMarkerInfo.LineMarkerGutterIconRenderer<P>(this) {
+        object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = null // to place breakpoint on mouse click
         }
     }
