@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.types.UnresolvedType
 import org.junit.Assert
 import org.junit.Test
 
-class IconProviderTest : KotlinIdeBaseTest() {
+class IconProviderTest : IdeBaseTestSyntax() {
     @Test
     fun testIconProvider(): Unit {
         cli {
@@ -23,9 +23,7 @@ class IconProviderTest : KotlinIdeBaseTest() {
         class Id<out A>(val value: A)
         
         val <caret>x: IdOf<Int> = Id(1)
-        """
-
-        withEachCaret(code) { psi ->
+        """.withEachCaret { psi ->
             // most implementations of PsiElement, including the default implementation,
             // retrieve the return value of getIcon() from the registered IconProviders.
             val icon = psi.getIcon(Iconable.ICON_FLAG_VISIBILITY)
