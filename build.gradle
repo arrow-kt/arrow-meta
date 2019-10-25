@@ -22,3 +22,18 @@ allprojects {
     jcenter()
   }
 }
+
+task buildMeta {
+  dependsOn 'clean'
+  dependsOn 'build'
+  dependsOn ':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal'
+  dependsOn ':gradle-plugin:publishPluginMavenPublicationToMavenLocal'
+  tasks.findByPath(':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal').mustRunAfter 'build'
+  tasks.findByPath(':gradle-plugin:publishPluginMavenPublicationToMavenLocal').mustRunAfter 'build'
+}
+
+task publishAndRunIde {
+  dependsOn ':buildMeta'
+  dependsOn ':idea-plugin:runIde'
+  tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':buildMeta'
+}
