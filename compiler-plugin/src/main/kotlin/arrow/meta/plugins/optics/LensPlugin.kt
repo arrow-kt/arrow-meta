@@ -67,8 +67,8 @@ private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> 
   classScope.run {
     ScopedList(
       separator = "\n",
-      value = `(valueParameters)`.value.map { param: KtParameter ->
-        lens(source = value, focus = param)
+      value = `(valueParameters)`.value.mapNotNull { param: KtParameter ->
+        lens(source = value, focus = param).value
       }
     )
   }

@@ -12,7 +12,24 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import javax.swing.Icon
 
+data class LineMarker(val icon: Icon,
+                      val message: String,
+                      val placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT)
+
 interface LineMarkerSyntax {
+
+  fun IdeMetaPlugin.lineMarker(
+    matchOn: (psi: PsiElement) -> Boolean,
+    marker: (psi: PsiElement) -> LineMarker
+  ): ExtensionPhase =
+    addLineMarkerProvider(
+      matchOn,
+      { psi: PsiElement ->
+        val info = marker(psi)
+        lineMarkerInfo(info.icon, psi, info.message, info.placed)
+      }
+    )
+
   /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
    * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
