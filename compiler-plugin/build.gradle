@@ -51,3 +51,7 @@ shadowJar {
 repositories {
     maven { url "https://jitpack.io" }
 }
+
+test {
+  testLogging.showStandardStreams = true
+}
