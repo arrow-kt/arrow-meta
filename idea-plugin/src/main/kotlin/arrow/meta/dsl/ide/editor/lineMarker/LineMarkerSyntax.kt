@@ -10,46 +10,31 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
-data class LineMarker(val icon: Icon,
-                      val message: String,
-                      val placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT)
-
 interface LineMarkerSyntax {
-
-  fun IdeMetaPlugin.lineMarker(
-    matchOn: (psi: PsiElement) -> Boolean,
-    marker: (psi: PsiElement) -> LineMarker
-  ): ExtensionPhase =
-    addLineMarkerProvider(
-      matchOn,
-      { psi: PsiElement ->
-        val info = marker(psi)
-        lineMarkerInfo(info.icon, psi, info.message, info.placed)
-      }
-    )
 
   /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
    * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
    * TODO: Add more Techniques such as the one from Elm
    */
-  fun IdeMetaPlugin.addLineMarkerProvider(
+  fun <A> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    message: String,
+    message: (A) -> String,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    matchOn: (psi: PsiElement) -> Boolean
+    matchOn: (psi: PsiElement) -> A?
   ): ExtensionPhase =
     addLineMarkerProvider(
       matchOn,
-      { psi: PsiElement ->
+      /*{ psi: A ->
         lineMarkerInfo(icon, psi, message, placed)
-      }
+      }*/
     )
 
-  fun IdeMetaPlugin.addLineMarkerProvider(
-    matchOn: (psi: PsiElement) -> Boolean,
+  fun <A> IdeMetaPlugin.addLineMarkerProvider(
+    matchOn: (psi: PsiElement) -> A?,
     slowLineMarker: (psi: PsiElement) -> LineMarkerInfo<PsiElement>?,
     lineMarkerInfo: (psi: PsiElement) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
@@ -60,33 +45,32 @@ interface LineMarkerSyntax {
           lineMarkerInfo(element)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element in elements) {
+          for (element: PsiElement in elements.filter { matchOn(it)?.run { true } ?: false }) {
             ProgressManager.checkCanceled()
-            if (matchOn(element)) {
-              slowLineMarker(element)?.let { result.add(it) }
-            }
+            slowLineMarker(element)?.let { result.add(it) }
           }
         }
       }
     )
 
-  fun LineMarkerSyntax.lineMarkerInfo(
+  @Suppress("UNCHECKED_CAST")
+  fun <P : PsiElement> LineMarkerSyntax.lineMarkerInfo(
     icon: Icon,
-    element: PsiElement,
-    message: String,
+    element: P,
+    message: (P) -> String,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT
     // nav: GutterIconNavigationHandler<*>? = null TODO
-  ): LineMarkerInfo<PsiElement> =
-    object : LineMarkerInfo<PsiElement>(
+  ): LineMarkerInfo<P> =
+    object : LineMarkerInfo<P>(
       element,
       element.textRange,
       icon,
-      { message },
+      message,
       null,
       placed
     ) {
       override fun createGutterRenderer(): GutterIconRenderer =
-        object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
+        object : LineMarkerInfo.LineMarkerGutterIconRenderer<P>(this) {
           override fun getClickAction(): AnAction? = null // to place breakpoint on mouse click
         }
     }
