@@ -1,10 +1,8 @@
-package arrow.meta
+package arrow.meta.idea.test
 
 import arrow.meta.dsl.platform.cli
+import arrow.meta.idea.test.syntax.IdeBaseTestSyntax
 import com.intellij.openapi.util.Iconable
-import org.jetbrains.kotlin.nj2k.postProcessing.type
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.types.UnresolvedType
 import org.junit.Assert
 import org.junit.Test
 

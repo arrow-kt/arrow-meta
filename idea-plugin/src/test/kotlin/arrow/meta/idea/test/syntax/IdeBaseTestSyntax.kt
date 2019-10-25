@@ -1,4 +1,4 @@
-package arrow.meta
+package arrow.meta.idea.test.syntax
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile

@@ -16,22 +16,6 @@ import javax.swing.Icon
 interface LineMarkerSyntax {
 
   /**
-   * Adds a fast line provider
-   * See [com.intellij.codeInsight.daemon.LineMarkerProvider] for notes how to implement a fast provider.
-   */
-  fun IdeMetaPlugin.addFastLineMarkerProvider(
-    icon: Icon,
-    message: String,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    matchOn: (psi: PsiElement) -> Boolean
-  ): ExtensionPhase =
-    addLineMarkerProvider(
-      Noop.boolean1False,
-      Noop.nullable1(),
-      { if (matchOn(it)) lineMarkerInfo(icon, it, message, placed) else null }
-    )
-
-  /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
    * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
    * TODO: Add more Techniques such as the one from Elm

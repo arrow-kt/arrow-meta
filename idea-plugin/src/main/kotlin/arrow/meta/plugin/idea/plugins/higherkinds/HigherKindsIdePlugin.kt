@@ -9,6 +9,7 @@ import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
 import arrow.meta.quotes.FuncScope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.idea.imports.importableFqName
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -21,8 +22,10 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
       addLineMarkerProvider(
         icon = ArrowIcons.HKT,
         matchOn = {
-          KtTokens.IDENTIFIER == it.node?.elementType
-            && it.parent.safeAs<KtClass>()?.takeIf(::isHigherKindedType)
+          if (KtTokens.IDENTIFIER == it.node?.elementType)
+            it.parent.safeAs<KtClass>()?.takeIf(::isHigherKindedType)
+          else
+            null
         },
         message = { classOrInterface: KtClass ->
           """

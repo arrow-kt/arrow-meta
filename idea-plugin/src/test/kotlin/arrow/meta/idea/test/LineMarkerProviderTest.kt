@@ -1,6 +1,7 @@
-package arrow.meta
+package arrow.meta.idea.test
 
 import arrow.meta.plugin.idea.resources.ArrowIcons
+import arrow.meta.idea.test.syntax.IdeBaseTestSyntax
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement
@@ -12,7 +13,7 @@ import org.junit.Test
 
 class LineMarkerProviderTest : IdeBaseTestSyntax() {
   @Language("kotlin")
-  private val withMarkers = """
+  val withMarkers = """
     package test
     import arrow.higherKind
     
@@ -26,7 +27,7 @@ class LineMarkerProviderTest : IdeBaseTestSyntax() {
     """.trimIndent()
 
   @Language("kotlin")
-  private val withoutMarkers = """
+  val withoutMarkers = """
     package test
     import arrow.higherKind
   
@@ -87,19 +88,19 @@ class LineMarkerProviderTest : IdeBaseTestSyntax() {
   @Test
   fun testUnavailable() {
     withoutMarkers.withEachCaret { psi ->
-      assertEmpty("no fast markers exepcted for ${psi.text}", psi.fastArrowMarkers())
+      assertEmpty("no fast markers expected for ${psi.text}", psi.fastArrowMarkers())
 
-      assertEmpty("no slow markers exepcted for ${psi.text}", psi.slowArrowMarkers())
+      assertEmpty("no slow markers expected for ${psi.text}", psi.slowArrowMarkers())
     }
   }
 
-  private fun PsiElement.fastArrowMarkers(): List<LineMarkerInfo<PsiElement>> {
+  fun PsiElement.fastArrowMarkers(): List<LineMarkerInfo<PsiElement>> {
     return LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
       .mapNotNull { it.getLineMarkerInfo(this) }
       .filter { it.icon == ArrowIcons.HKT }
   }
 
-  private fun PsiElement.slowArrowMarkers(): List<LineMarkerInfo<PsiElement>> {
+  fun PsiElement.slowArrowMarkers(): List<LineMarkerInfo<PsiElement>> {
     val result = mutableListOf<LineMarkerInfo<PsiElement>>()
     LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
       .mapNotNull { it.collectSlowLineMarkers(listOf(this), result) }
