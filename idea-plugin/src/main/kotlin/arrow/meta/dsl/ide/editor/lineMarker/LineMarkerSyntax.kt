@@ -21,38 +21,36 @@ interface LineMarkerSyntax {
    * TODO: Add more Techniques such as the one from Elm
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A> IdeMetaPlugin.addLineMarkerProvider(
+  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    onElement: PsiElement.() -> A?,
-    matchOn: (element: A) -> Boolean,
+    filterOn: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     addLineMarkerProvider(
-      matchOn as (PsiElement) -> Boolean,
-      onElement,
-      { psi: PsiElement ->
-        lineMarkerInfo(icon, psi, message as (PsiElement) -> String, placed)
+      filterOn,
+      { a ->
+        lineMarkerInfo(icon, a, message as (PsiElement) -> String, placed)
       }
     )
 
-  fun <A> IdeMetaPlugin.addLineMarkerProvider(
-    matchOn: (psi: PsiElement) -> Boolean,
-    onElement: PsiElement.() -> A?,
-    slowLineMarker: (psi: PsiElement) -> LineMarkerInfo<PsiElement>?,
-    lineMarkerInfo: (psi: PsiElement) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+    filterOn: (PsiElement) -> A?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LineMarkerProviders.INSTANCE,
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          lineMarkerInfo(element)
+          filterOn(element)?.let(lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(onElement(it)) }) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(filterOn(it)) }) {
             ProgressManager.checkCanceled()
-            if (matchOn(element))
-              slowLineMarker(element)?.let { result.add(it) }
+            filterOn(element)?.let { a ->
+              slowLineMarker(a)?.let { result.add(it) }
+            }
           }
         }
       }
