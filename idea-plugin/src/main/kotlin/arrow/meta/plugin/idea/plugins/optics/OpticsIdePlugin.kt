@@ -13,7 +13,7 @@ val IdeMetaPlugin.opticsIdePlugin: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.OPTICS,
-        filterOn = { it.safeAs<KtClass>()?.takeIf(::isProductType) },
+        matchOn = { it.safeAs<KtClass>()?.takeIf(::isProductType) },
         message = { "Optics" }
       )
     )

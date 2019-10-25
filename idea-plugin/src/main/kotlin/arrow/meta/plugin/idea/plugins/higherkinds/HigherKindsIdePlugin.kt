@@ -20,7 +20,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.HKT,
-        filterOn = { it.safeAs<KtClass>()?.takeIf(::isHigherKindedType) },
+        matchOn = { it.safeAs<KtClass>()?.takeIf(::isHigherKindedType) },
         message = { classOrInterface: KtClass ->
           """
           |${classOrInterface.name} is a Higher Kinded Type that may be used in polymorphic functions expressed over [Kind<F, A>] and with the type classes.
@@ -30,7 +30,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
       ),
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
-        filterOn = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
+        matchOn = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
         message = { f: KtNamedFunction ->
           FuncScope(f).run {
             val target = ScopedList(receiver.value, transform = { it.text.escapeHTML() })

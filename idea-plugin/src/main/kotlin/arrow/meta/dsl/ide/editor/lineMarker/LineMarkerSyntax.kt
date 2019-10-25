@@ -23,19 +23,19 @@ interface LineMarkerSyntax {
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    filterOn: (PsiElement) -> A?,
+    matchOn: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     addLineMarkerProvider(
-      filterOn,
+      matchOn,
       { a ->
         lineMarkerInfo(icon, a, message as (PsiElement) -> String, placed)
       }
     )
 
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
-    filterOn: (PsiElement) -> A?,
+    matchOn: (PsiElement) -> A?,
     slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
     lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
@@ -43,12 +43,12 @@ interface LineMarkerSyntax {
       LineMarkerProviders.INSTANCE,
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          filterOn(element)?.let(lineMarkerInfo)
+          matchOn(element)?.let(lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(filterOn(it)) }) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(matchOn(it)) }) {
             ProgressManager.checkCanceled()
-            filterOn(element)?.let { a ->
+            matchOn(element)?.let { a ->
               slowLineMarker(a)?.let { result.add(it) }
             }
           }
