@@ -24,4 +24,5 @@ object Noop {
   val boolean2True: (Any?, Any?) -> Boolean = { _, _ -> true }
   val boolean2False: (Any?, Any?) -> Boolean = { _, _ -> false }
   val boolean3True: (Any?, Any?, Any?) -> Boolean = { _, _, _ -> true }
+  fun <A> string1(): (A) -> String = { _ -> "" }
 }
