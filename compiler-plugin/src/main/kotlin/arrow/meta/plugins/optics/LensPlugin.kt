@@ -65,7 +65,7 @@ private const val maxArity: Int = 10
 
 private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> =
   classScope.run {
-    ScopedList.withScopeList(
+    ScopedList(
       separator = "\n",
       value = `(valueParameters)`.value.mapNotNull { param: KtParameter ->
         lens(source = value, focus = param).value
