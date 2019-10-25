@@ -15,8 +15,9 @@ val IdeMetaPlugin.comprehensionsIdePlugin: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.BIND,
+        onElement = { safeAs() },
         message = { "Bind" },
-        matchOn = { it.safeAs<KtExpression>()?.isBinding() == true }
+        matchOn = { expression: KtExpression -> expression.isBinding() }
       )
     )
   }

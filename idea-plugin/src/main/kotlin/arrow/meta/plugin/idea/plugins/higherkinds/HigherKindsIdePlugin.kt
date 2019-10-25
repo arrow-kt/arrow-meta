@@ -13,12 +13,14 @@ import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.higherKindsIdePlugin: Plugin
   get() = "HigherKindsIdePlugin" {
     meta(
-      addLineMarkerProvider<KtClass>(
+      addLineMarkerProvider(
         icon = ArrowIcons.HKT,
+        onElement = { safeAs() },
         matchOn = ::isHigherKindedType,
         message = { classOrInterface: KtClass ->
           """
@@ -29,6 +31,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
       ),
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
+        onElement = { safeAs() },
         matchOn = { f: KtNamedFunction -> f.isKindPolymorphic() && f.hasExtensionDefaultValues() },
         message = { f: KtNamedFunction ->
           FuncScope(f).run {

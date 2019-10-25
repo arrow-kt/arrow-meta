@@ -11,8 +11,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 val IdeMetaPlugin.opticsIdePlugin: Plugin
   get() = "OpticsIdePlugin" {
     meta(
-      addLineMarkerProvider<KtClass>(
+      addLineMarkerProvider(
         icon = ArrowIcons.OPTICS,
+        onElement = { safeAs() },
         message = { "Optics" },
         matchOn = ::isProductType
       )
