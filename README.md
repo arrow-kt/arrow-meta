@@ -66,7 +66,7 @@ Quick start development environment:
 When updating:
 - compiler-plugin: Run `buildMeta` Gradle task and refresh Gradle in second IDE instance
 - gradle-plugin: Run `buildmeta` gradle task and refresh gradle in second ide instance
-- idea-plugin: Stop and run `publishAndRunIde` task (live plugin refresh may be available in 2020.1: https://twitter.com/intelliyole/status/1187715664263421953)
+- idea-plugin: Stop and run `publishAndRunIde` or `:idea-plugin:runIde` task (live plugin refresh may be available in 2020.1: https://twitter.com/intelliyole/status/1187715664263421953)
 
 Debugging:
 
@@ -80,9 +80,7 @@ Debugging:
     - Debug remote task in first IDE
 
 - idea-plugin:
-
-
-TODO: Find way to debug second IDE from first IDE
+    - Debug `:idea-plugin:runIde` gradle task in main IDE
 
 ## License
 
