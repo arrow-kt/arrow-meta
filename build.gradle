@@ -21,15 +21,25 @@ allprojects {
     mavenCentral()
     jcenter()
   }
+
+  group = 'io.arrow-kt'
+
+  //When updating version it must be also changed in ArrowKotlinGradleSubplugin#VERSION
+  version = '0.0.1'
+}
+
+task deployMeta {
+  dependsOn ':compiler-plugin:publishToMavenLocal'
+  dependsOn ':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal'
+  dependsOn ':gradle-plugin:publishPluginMavenPublicationToMavenLocal'
+  dependsOn ':gradle-plugin:publishToMavenLocal'
 }
 
 task buildMeta {
-  dependsOn 'clean'
   dependsOn 'build'
-  dependsOn ':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal'
-  dependsOn ':gradle-plugin:publishPluginMavenPublicationToMavenLocal'
-  tasks.findByPath(':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal').mustRunAfter 'build'
-  tasks.findByPath(':gradle-plugin:publishPluginMavenPublicationToMavenLocal').mustRunAfter 'build'
+  dependsOn 'deployMeta'
+
+  tasks.findByPath(':deployMeta').mustRunAfter 'build'
 }
 
 task publishAndRunIde {

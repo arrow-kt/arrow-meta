@@ -20,10 +20,5 @@ class ArrowGradlePlugin : Plugin<Project> {
 
   override fun apply(project: Project): Unit {
     project.extensions.create("arrow", ArrowExtension::class.java)
-    project.afterEvaluate { p ->
-      p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${project.rootDir}/modules/meta/arrow-meta-prototype/compiler-plugin/build/libs/compiler-plugin.jar"
-      }
-    }
   }
 }

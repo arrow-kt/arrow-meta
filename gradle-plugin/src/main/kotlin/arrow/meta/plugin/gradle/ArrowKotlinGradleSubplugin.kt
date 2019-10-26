@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
  */
 class ArrowKotlinGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
   companion object {
-    private const val GRADLE_ARTIFACT_NAME = "gradle-plugin"
+    private const val KOTLIN_ARTIFACT_NAME = "compiler-plugin"
     private const val GROUP_ID = "io.arrow-kt"
     private const val VERSION = "0.0.1"
     private const val COMPILER_PLUGIN_ID = "arrow.meta.plugin.compiler"
@@ -28,11 +28,19 @@ class ArrowKotlinGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
     variantData: Any?,
     androidProjectHandler: Any?,
     kotlinCompilation: KotlinCompilation<KotlinCommonOptions>?
-  ): List<SubpluginOption> = emptyList()
+  ): List<SubpluginOption> {
+
+    @Suppress("UNUSED_VARIABLE")
+    val extension = project.extensions.findByType(ArrowExtension::class.java)
+        ?: ArrowExtension()
+
+    return listOf()
+  }
 
   override fun getPluginArtifact(): SubpluginArtifact =
-    SubpluginArtifact(GROUP_ID, GRADLE_ARTIFACT_NAME, VERSION)
+      SubpluginArtifact(GROUP_ID, KOTLIN_ARTIFACT_NAME, VERSION)
 
   override fun getCompilerPluginId() = COMPILER_PLUGIN_ID
 }
+
 

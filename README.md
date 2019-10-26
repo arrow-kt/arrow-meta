@@ -52,18 +52,26 @@
 
 ## Contributing
 
+Arrow-meta project is split into 4 packages:
+- compiler-plugin: Kotlin compiler plugin
+- gradle-plugin: Plugin for Gradle for activating Kotlin compiler plugin
+- idea-plugin: Plugin for Intellij IDEA for IDE integration (icons, autocomplete etc.)
+- testing-plugin: Tools for testing compiler and idea plugin
+
+Quick start development environment:
+
+- Run `publishAndRunIde` Gradle task
+- Import sample project () in new IDE instance
+
+When updating:
+- compiler-plugin: Run `buildMeta` Gradle task and refresh Gradle in second IDE instance
+- gradle-plugin: Run `buildmeta` gradle task and refresh gradle in second ide instance
+- idea-plugin: Stop and run `publishAndRunIde` task (live plugin refresh may be available in 2020.1: https://twitter.com/intelliyole/status/1187715664263421953)
+
+Debugging:
+
+TODO: Find way to debug second IDE from first IDE
+
 ## License
 
 ## Credits
-
-**Build and run tests**
-
-```
-./gradlew buildMeta -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
-```
-
-**Build and run test + IDE plugin**
-
-```
-./gradlew publishAndRunIde -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
-```

@@ -6,8 +6,6 @@ plugins {
 }
 apply plugin: 'kotlin'
 
-project.group = 'io.arrow-kt'
-project.version = '0.0.1'
 def pluginId = "arrow.meta.plugin.gradle"
 
 dependencies {
@@ -15,7 +13,6 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-  compileOnly project(":compiler-plugin") { "embeddable" }
 }
 
 compileKotlin {
@@ -26,9 +23,6 @@ compileTestKotlin {
 }
 
 jar {
-  // Embed compiler plugin in jar
-  from configurations.named("compileClasspath").get().find { it.name.startsWith("compiler-plugin") }
-
   manifest {
     attributes["Specification-Title"] = project.name
     attributes["Specification-Version"] = project.version
