@@ -21,7 +21,7 @@ class ComprehensionsTest : CompilationTest {
       |   companion object {
       |     fun <A> fx(f: IO.Companion.() -> A): IO<A> = TODO()
       |     fun <A> just(a: A): IO<A> = IO(a)
-      |   n}
+      |   }
       | }
       """
   }
