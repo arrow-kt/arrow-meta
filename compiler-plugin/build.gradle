@@ -3,7 +3,6 @@ plugins {
     id 'maven-publish'
 }
 apply plugin: 'kotlin'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
@@ -45,6 +44,9 @@ shadowJar {
     configurations = [project.configurations.compile]
     relocate 'org.jetbrains.kotlin.com.intellij', 'com.intellij'
     relocate 'org.jetbrains.kotlin.load', 'kotlin.reflect.jvm.internal.impl.load'
+
+    //Required for idea-plugin tests
+    relocate 'org.apache.log4j', 'shadow.org.apache.log4j'
 }
 
 // TODO: Temporary configuration
