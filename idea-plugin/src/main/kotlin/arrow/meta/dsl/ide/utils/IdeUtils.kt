@@ -4,5 +4,6 @@ object IdeUtils {
   fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
 }
 
-fun <T> Array<T>.firstOrDefault(default: T): T =
-  firstOrNull() ?: default
+/*
+fun String.toCode(): InlineElement =
+  code(other = mapOf("lang" to "kotlin"), content = { this })*/

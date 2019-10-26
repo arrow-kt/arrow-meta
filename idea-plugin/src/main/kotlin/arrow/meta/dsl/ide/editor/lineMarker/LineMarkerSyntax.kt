@@ -1,7 +1,6 @@
 package arrow.meta.dsl.ide.editor.lineMarker
 
 import arrow.meta.dsl.ide.utils.IdeUtils
-import arrow.meta.dsl.ide.utils.firstOrDefault
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
@@ -12,6 +11,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.util.PsiTreeUtil
 import javax.swing.Icon
 
 interface LineMarkerSyntax {
@@ -31,12 +32,13 @@ interface LineMarkerSyntax {
     addLineMarkerProvider(
       transform,
       {
-        it.children.firstOrDefault(it).let { p -> lineMarkerInfo(icon, p, message as (PsiElement) -> String, placed) }
+        lineMarkerInfo(icon, (it as? PsiNameIdentifierOwner)?.identifyingElement
+          ?: PsiTreeUtil.getDeepestFirst(it), message as (PsiElement) -> String, placed)
       }
     )
 
   /**
-   * It is advised to create LineMarkerInfo for leave elements and not entire ParentElements
+   * It is advised to create LineMarkerInfo for leaf elements and not composite PsiElements
    * check [com.intellij.codeInsight.daemon.LineMarkerProvider]
    */
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
