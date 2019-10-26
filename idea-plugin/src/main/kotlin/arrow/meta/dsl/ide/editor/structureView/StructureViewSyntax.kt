@@ -13,6 +13,7 @@ import com.intellij.lang.LanguageStructureViewBuilder
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.Queryable
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewElement
 import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewModel
@@ -53,10 +54,10 @@ interface StructureViewSyntax {
     )
 
   /**
-   * Room for improvement: the function parameters should also adapt to matchOn
+   * Room for improvement: the function parameters should also adapt to transform
    */
-  fun IdeMetaPlugin.addStructureView(
-    matchOn: (psiFile: PsiFile) -> Boolean,
+  fun <A : PsiElement> IdeMetaPlugin.addStructureView(
+    transform: (psiFile: PsiFile) -> A?,
     putInfo: (info: MutableMap<String, String>) -> Unit,
     childrenBase: (file: PsiFile) -> MutableCollection<StructureViewTreeElement> =
       { KotlinStructureViewElement(it).childrenBase.toMutableList() },
@@ -69,7 +70,7 @@ interface StructureViewSyntax {
     extensionProvider(
       LanguageStructureViewBuilder.INSTANCE,
       structureViewFactory { psiFile: PsiFile ->
-        if (matchOn(psiFile))
+        transform(psiFile)?.run {
           treeBasedStructureViewBuilder { editor: Editor? ->
             structureViewModel(
               psiFile,
@@ -78,8 +79,7 @@ interface StructureViewSyntax {
               isAlwaysShowsPlus, isAlwaysLeaf, putInfo
             )
           }
-        else
-          null
+        }
       }
     )
 

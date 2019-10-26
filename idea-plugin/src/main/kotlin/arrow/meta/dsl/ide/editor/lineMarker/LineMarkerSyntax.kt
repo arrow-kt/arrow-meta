@@ -1,6 +1,7 @@
 package arrow.meta.dsl.ide.editor.lineMarker
 
 import arrow.meta.dsl.ide.utils.IdeUtils
+import arrow.meta.dsl.ide.utils.firstOrDefault
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
@@ -17,38 +18,42 @@ interface LineMarkerSyntax {
 
   /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
-   * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
+   * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
    * TODO: Add more Techniques such as the one from Elm
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    matchOn: (PsiElement) -> A?,
+    transform: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     addLineMarkerProvider(
-      matchOn,
-      { a ->
-        lineMarkerInfo(icon, a, message as (PsiElement) -> String, placed)
+      transform,
+      {
+        it.children.firstOrDefault(it).let { p -> lineMarkerInfo(icon, p, message as (PsiElement) -> String, placed) }
       }
     )
 
+  /**
+   * It is advised to create LineMarkerInfo for leave elements and not entire ParentElements
+   * check [com.intellij.codeInsight.daemon.LineMarkerProvider]
+   */
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
-    matchOn: (PsiElement) -> A?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+    transform: (PsiElement) -> A?,
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LineMarkerProviders.INSTANCE,
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          matchOn(element)?.let(lineMarkerInfo)
+          transform(element)?.let(lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(matchOn(it)) }) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
             ProgressManager.checkCanceled()
-            matchOn(element)?.let { a ->
+            transform(element)?.let { a ->
               slowLineMarker(a)?.let { result.add(it) }
             }
           }
