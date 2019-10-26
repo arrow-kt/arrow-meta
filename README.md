@@ -70,6 +70,18 @@ When updating:
 
 Debugging:
 
+- compiler and gradle plugin:
+    - Add following line to `properties.gradle` in project opened in second ide:
+       ```
+       org.gradle.jvmargs=-Dkotlin.compiler.execution.strategy="in-process" -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5006
+       ```
+    - Add `Remote` task in main IDE with host `localhost` and port `5006`
+    - Refresh Gradle in second IDE and run build (for gradle daemon to restart and open debug port)
+    - Debug remote task in first IDE
+
+- idea-plugin:
+
+
 TODO: Find way to debug second IDE from first IDE
 
 ## License

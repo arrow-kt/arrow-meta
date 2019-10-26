@@ -9,6 +9,11 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.jar.JarInputStream
 
+/**
+ * Source:
+ * https://github.com/fabianishere/kotlin-plugin-generated/commit/19fbbe9d222126b33cfe90b604473ba7e7ea371b#diff-2f347766958584e8e50469cc6bab68c9
+ * https://github.com/JetBrains/kotlin/blob/822b455/plugins/kotlin-serialization/kotlin-serialization-ide/src/org/jetbrains/kotlinx/serialization/idea/KotlinSerializationImportHandler.kt
+ */
 internal object MetaClasspathContributor {
   /**
    * The path to the IntelliJ compatible compiler plugin version.
