@@ -61,11 +61,11 @@ Arrow-meta project is split into 4 packages:
 Quick start development environment:
 
 - Run `publishAndRunIde` Gradle task
-- Import sample project () in new IDE instance
+- Import sample project (https://github.com/jereksel/arrow-meta-example) in new IDE instance
 
 When updating:
-- compiler-plugin: Run `buildMeta` Gradle task and refresh Gradle in second IDE instance
-- gradle-plugin: Run `buildmeta` gradle task and refresh gradle in second ide instance
+- compiler-plugin: Run `deployMeta` Gradle task and refresh Gradle in second IDE instance
+- gradle-plugin: Run `deployMeta` gradle task and refresh gradle in second ide instance
 - idea-plugin: Stop and run `publishAndRunIde` or `:idea-plugin:runIde` task (live plugin refresh may be available in 2020.1: https://twitter.com/intelliyole/status/1187715664263421953)
 
 Debugging:
