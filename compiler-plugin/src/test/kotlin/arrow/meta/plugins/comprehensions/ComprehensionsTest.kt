@@ -3,7 +3,7 @@ package arrow.meta.plugins.comprehensions
 import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
-import arrow.meta.plugin.testing.interpreter
+import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
 class ComprehensionsTest {
@@ -32,227 +32,272 @@ class ComprehensionsTest {
 
   @Test
   fun `simple case`() {
-    val compilerTest = CompilerTest(
+    val codeSnippet = """
+      $IO_CLASS_4_TESTS
+      |
+      | fun test(): IO<Int> =
+      |   IO.fx {
+      |     val a: Int by IO(1)
+      |     val b: Int by IO(2)
+      |     a + b
+      |   }
+      |   
+      |"""
+
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        """
-        $IO_CLASS_4_TESTS
-        |
-        | fun test(): IO<Int> =
-        |   IO.fx {
-        |     val a: Int by IO(1)
-        |     val b: Int by IO(2)
-        |     a + b
-        |   }
-        |   
-        |""".source
+        codeSnippet.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
-            $IO_CLASS_4_TESTS
-            |
-            | fun test(): IO<Int> =
-            |   IO(1).flatMap { a : Int ->
-            |     IO(2).flatMap { b : Int ->
-            |       IO.just(a + b)
-            |     }
-            |   }
-            |   
-            |""".source),
-          "test().value".source.evalsTo(3)
-        )
+        quoteOutputMatches("""
+          $IO_CLASS_4_TESTS
+          |
+          | fun test(): IO<Int> =
+          |   IO(1).flatMap { a : Int ->
+          |     IO(2).flatMap { b : Int ->
+          |       IO.just(a + b)
+          |     }
+          |   }
+          |   
+          |""".source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
+
+    assertThis(CompilerTest(
+      config = {
+        listOf(addCompilerPlugins(compilerPlugin))
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        "test().value".source.evalsTo(3)
+      }
+    ))
   }
 
   @Test
   fun `simple case with type inference`() {
-    val compilerTest = CompilerTest(
+    val codeSnippet = """
+      $IO_CLASS_4_TESTS
+      |
+      | fun test(): IO<Int> =
+      |   IO.fx {
+      |     val a by IO(1)
+      |     val b by IO(2)
+      |     a + b
+      |   }
+      |   
+      |"""
+
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        """
-        $IO_CLASS_4_TESTS
-        |
-        | fun test(): IO<Int> =
-        |   IO.fx {
-        |     val a by IO(1)
-        |     val b by IO(2)
-        |     a + b
-        |   }
-        |   
-        |""".source
+        codeSnippet.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
-            $IO_CLASS_4_TESTS
-            |
-            | fun test(): IO<Int> =
-            |   IO(1).flatMap { a  ->
-            |     IO(2).flatMap { b  ->
-            |       IO.just(a + b)
-            |     }
-            |   }
-            |   
-            |""".source),
-          "test().value".source.evalsTo(3)
-        )
+        quoteOutputMatches("""
+          $IO_CLASS_4_TESTS
+          |
+          | fun test(): IO<Int> =
+          |   IO(1).flatMap { a  ->
+          |     IO(2).flatMap { b  ->
+          |       IO.just(a + b)
+          |     }
+          |   }
+          |   
+          |""".source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
+
+    assertThis(CompilerTest(
+      config = {
+        listOf(addCompilerPlugins(compilerPlugin))
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        "test().value".source.evalsTo(3)
+      }
+    ))
   }
 
   @Test
   fun `nested case with type inference`() {
-    val compilerTest = CompilerTest(
+  val codeSnippet = """
+    $IO_CLASS_4_TESTS
+    |
+    | fun test(): IO<Int> =
+    |   IO.fx {
+    |     val a by IO.fx {
+    |       val a by IO(1)
+    |       val b by IO(2)
+    |       a + b
+    |     }
+    |     val b by IO.fx {
+    |       val a by IO(3)
+    |       val b by IO(4)
+    |       a + b
+    |     }
+    |     a + b
+    |   }
+    |   
+    |"""
+
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        """
-        $IO_CLASS_4_TESTS
-        |
-        | fun test(): IO<Int> =
-        |   IO.fx {
-        |     val a by IO.fx {
-        |       val a by IO(1)
-        |       val b by IO(2)
-        |       a + b
-        |     }
-        |     val b by IO.fx {
-        |       val a by IO(3)
-        |       val b by IO(4)
-        |       a + b
-        |     }
-        |     a + b
-        |   }
-        |   
-        |""".source
+        codeSnippet.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
-            $IO_CLASS_4_TESTS
-            |
-            | fun test(): IO<Int> = 
-            |   IO(1).flatMap { a ->
-            |     IO(2).flatMap { b ->
-            |       IO.just(a + b)
-            |     }
-            |   }.flatMap { a -> 
-            |     IO(3).flatMap { a -> 
-            |       IO(4).flatMap { b -> 
-            |         IO.just(a + b)  
-            |       }
-            |     }.flatMap { b ->
-            |       IO.just(a + b)
-            |     }
-            |   }
-            |   
-            |""".source),
-          "test().value".source.evalsTo(10)
-        )
+        quoteOutputMatches("""
+          $IO_CLASS_4_TESTS
+          |
+          | fun test(): IO<Int> = 
+          |   IO(1).flatMap { a ->
+          |     IO(2).flatMap { b ->
+          |       IO.just(a + b)
+          |     }
+          |   }.flatMap { a -> 
+          |     IO(3).flatMap { a -> 
+          |       IO(4).flatMap { b -> 
+          |         IO.just(a + b)  
+          |       }
+          |     }.flatMap { b ->
+          |       IO.just(a + b)
+          |     }
+          |   }
+          |   
+          |""".source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
+
+    assertThis(CompilerTest(
+      config = {
+        listOf(addCompilerPlugins(compilerPlugin))
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        "test().value".source.evalsTo(10)
+      }
+    ))
   }
 
   @Test
   fun `mixed properties and expressions`() {
-    val compilerTest = CompilerTest(
+    val codeSnippet = """
+      $IO_CLASS_4_TESTS
+      |
+      | fun test(): IO<Int> =
+      |   IO.fx {
+      |     val a by IO(1)
+      |     val t = a + 1
+      |     val b by IO(2)
+      |     val y = a + b
+      |     val f by IO(3)
+      |     val n = a + 1
+      |     val g by IO(4)
+      |     y + f + g + t + n
+      |   }
+      |   
+      |"""
+
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        """
-        $IO_CLASS_4_TESTS
-        |
-        | fun test(): IO<Int> =
-        |   IO.fx {
-        |     val a by IO(1)
-        |     val t = a + 1
-        |     val b by IO(2)
-        |     val y = a + b
-        |     val f by IO(3)
-        |     val n = a + 1
-        |     val g by IO(4)
-        |     y + f + g + t + n
-        |   }
-        |   
-        |""".source
+        codeSnippet.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
-            $IO_CLASS_4_TESTS
-            |
-            | fun test(): IO<Int> =
-            |   IO(1).flatMap { a -> 
-            |     val t = a + 1
-            |     IO(2).flatMap { b -> 
-            |       val y = a + b
-            |       IO(3).flatMap { f -> 
-            |         val n = a + 1
-            |         IO(4).flatMap { g -> 
-            |           IO.just(y + f + g + t + n)  
-            |         }
-            |       }
-            |     } 
-            |   }
-            |   
-            |""".source),
-          "test().value".source.evalsTo(14)
-        )
+        quoteOutputMatches("""
+          $IO_CLASS_4_TESTS
+          |
+          | fun test(): IO<Int> =
+          |   IO(1).flatMap { a -> 
+          |     val t = a + 1
+          |     IO(2).flatMap { b -> 
+          |       val y = a + b
+          |       IO(3).flatMap { f -> 
+          |         val n = a + 1
+          |         IO(4).flatMap { g -> 
+          |           IO.just(y + f + g + t + n)  
+          |         }
+          |       }
+          |     } 
+          |   }
+          |   
+          |""".source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
+
+    assertThis(CompilerTest(
+      config = {
+        listOf(addCompilerPlugins(compilerPlugin))
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        "test().value".source.evalsTo(14)
+      }
+    ))
   }
 
   @Test
   fun `just`() {
-    val compilerTest = CompilerTest(
+    val codeSnippet = """
+      $IO_CLASS_4_TESTS
+      |
+      | fun test(): IO<Int> =
+      |   IO.fx { 1 + 1 }
+      |
+      |"""
+
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        """
-        $IO_CLASS_4_TESTS
-        |
-        | fun test(): IO<Int> =
-        |   IO.fx { 1 + 1 }
-        |
-        |""".source
+        codeSnippet.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
-            $IO_CLASS_4_TESTS
-            |
-            | fun test(): IO<Int> =
-            |   IO.just(1 + 1)
-            |   
-            |""".source),
-          "test().value".source.evalsTo(2)
-        )
+        quoteOutputMatches("""
+          $IO_CLASS_4_TESTS
+          |
+          | fun test(): IO<Int> =
+          |   IO.just(1 + 1)
+          |   
+          |""".source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
+
+    assertThis(CompilerTest(
+      config = {
+        listOf(addCompilerPlugins(compilerPlugin))
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        "test().value".source.evalsTo(2)
+      }
+    ))
   }
 
   @Test
   fun `unresolved reference error`() {
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       config = {
         listOf(addCompilerPlugins(compilerPlugin))
       },
@@ -266,15 +311,14 @@ class ComprehensionsTest {
         |""".source
       },
       assert = {
-        listOf(failsWith { it.contains("Unresolved reference: a") })
+        failsWith { it.contains("Unresolved reference: a") }
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 
 //  @Test
 //  fun `Does not break other delegations`() {
-//    val compilerTest = CompilerTest(
+//    assertThis(CompilerTest(
 //      config = {
 //        listOf(addCompilerPlugins(compilerPlugin))
 //      },
@@ -292,23 +336,18 @@ class ComprehensionsTest {
 //        |""".source
 //      },
 //      assert = {
-//        listOf(
-//          quoteOutputMatches(
-//            """
-//            $IO_CLASS_4_TESTS
-//            |
-//            | fun test(): IO<Int> =
-//            |   IO(1).flatMap { a ->
-//            |     lazy { 2 }.flatMap { b : Int ->
-//            |       IO.just(a + b)
-//            |      }
-//            |   }
-//            |
-//            |""".source)
-//        )
+//        quoteOutputMatches("""
+//          $IO_CLASS_4_TESTS
+//          |
+//          | fun test(): IO<Int> =
+//          |   IO(1).flatMap { a ->
+//          |     lazy { 2 }.flatMap { b : Int ->
+//          |       IO.just(a + b)
+//          |      }
+//          |   }
+//          |
+//          |""".source)
 //      }
-//    )
-//
-//    compilerTest.run(interpreter)
+//    ))
 //  }
 }

@@ -12,7 +12,7 @@ typealias CompilerTestInterpreter = (CompilerTest) -> Unit
 data class CompilerTest(
   val config: CompilerTest.Companion.() -> List<Config> = { emptyList() },
   val code: CompilerTest.Companion.() -> Source, // TODO: Sources
-  val assert: CompilerTest.Companion.() -> List<Assert> = { emptyList() }
+  val assert: CompilerTest.Companion.() -> Assert = { Assert.emptyAssert }
 ) {
   fun run(interpret: CompilerTestInterpreter): Unit =
     interpret(this)

@@ -6,7 +6,7 @@ class ExampleTest {
 
   @Test
   fun `checks that compiles`() {
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       code = {
         """
         | fun hello(): String =
@@ -15,15 +15,14 @@ class ExampleTest {
         """.source
       },
       assert = {
-        listOf(compiles)
+        compiles
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 
   @Test
   fun `check an expression evaluation`() {
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       code = {
         """
         | fun hello(): String =
@@ -32,16 +31,14 @@ class ExampleTest {
         """.source
       },
       assert = {
-        listOf(
-          "hello()".source.evalsTo("Hello world!"))
+        "hello()".source.evalsTo("Hello world!")
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 
   @Test
   fun `check that fails`() {
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       code = {
         """
         | classsss Error
@@ -49,15 +46,14 @@ class ExampleTest {
         """.source
       },
       assert = {
-        listOf(fails)
+        fails
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 
   @Test
   fun `check that emits an error diagnostic when compilation fails`() {
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       code = {
         """
         | classsss Error
@@ -65,11 +61,9 @@ class ExampleTest {
         """.source
       },
       assert = {
-        listOf(
-          failsWith { it.contains("Expecting a top level declaration") })
+        failsWith { it.contains("Expecting a top level declaration") }
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 
   @Test
@@ -77,7 +71,7 @@ class ExampleTest {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
     val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
 
-    val compilerTest = CompilerTest(
+    assertThis(CompilerTest(
       config = {
         addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations)
       },
@@ -95,9 +89,8 @@ class ExampleTest {
         """.source
       },
       assert = {
-        listOf(
-          quoteOutputMatches(
-            """
+        quoteOutputMatches(
+          """
           | import arrow.higherkind
           | 
           | //meta: <date>
@@ -111,9 +104,8 @@ class ExampleTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source))
+          """.source)
       }
-    )
-    compilerTest.run(interpreter)
+    ))
   }
 }

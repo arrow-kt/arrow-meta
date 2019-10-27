@@ -13,7 +13,10 @@ private data class ExpressionParts(
   val property: String? = null
 )
 
-val interpreter: (CompilerTest) -> Unit = {
+fun assertThis(compilerTest: CompilerTest): Unit =
+  compilerTest.run(interpreter)
+
+private val interpreter: (CompilerTest) -> Unit = {
 
   fun runConfig(config: Config): Unit = when (config) {
     is Config.AddCompilerPlugins -> println("Plugins found: ${config.plugins}")
@@ -32,7 +35,6 @@ val interpreter: (CompilerTest) -> Unit = {
   }
 
   val configuration = it.config(CompilerTest)
-  val assertions = it.assert(CompilerTest)
 
   configuration.map(::runConfig)
 
@@ -41,7 +43,7 @@ val interpreter: (CompilerTest) -> Unit = {
   val compilationData = CompilationData(dependencies = dependencies, source = it.code(CompilerTest).text.trimMargin(), compilerPlugins = compilerPlugins)
   val compilationResult = compile(compilationData)
 
-  assertions.map { runAssert(it, compilationResult) }
+  runAssert(it.assert(CompilerTest), compilationResult)
 }
 
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
