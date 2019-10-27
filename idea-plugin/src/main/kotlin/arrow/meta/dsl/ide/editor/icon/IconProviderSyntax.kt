@@ -22,7 +22,7 @@ interface IconProviderSyntax {
       IconProvider.EXTENSION_POINT_NAME,
       object : IconProvider(), DumbAware {
         override fun getIcon(p0: PsiElement, p1: Int): Icon? =
-          (transform(p0, p1))?.run { icon }
+          transform(p0, p1)?.run { icon }
       },
       LoadingOrder.FIRST
     )

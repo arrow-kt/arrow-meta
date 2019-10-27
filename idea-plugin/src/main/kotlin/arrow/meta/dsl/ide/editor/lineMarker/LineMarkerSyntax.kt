@@ -11,8 +11,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiNameIdentifierOwner
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiVariable
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
 interface LineMarkerSyntax {
@@ -20,6 +21,7 @@ interface LineMarkerSyntax {
   /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
    * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
+   * Registration Impl may change to 2019.3 EAP
    * TODO: Add more Techniques such as the one from Elm
    */
   @Suppress("UNCHECKED_CAST")
@@ -32,8 +34,8 @@ interface LineMarkerSyntax {
     addLineMarkerProvider(
       transform,
       {
-        lineMarkerInfo(icon, (it as? PsiNameIdentifierOwner)?.identifyingElement
-          ?: PsiTreeUtil.getDeepestFirst(it), message as (PsiElement) -> String, placed)
+        lineMarkerInfo(icon, it.safeAs<PsiMethod>()?.identifyingElement
+          ?: it.safeAs<PsiVariable>()?.identifyingElement ?: it, message as (PsiElement) -> String, placed)
       }
     )
 
