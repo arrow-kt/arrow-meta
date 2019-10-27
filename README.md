@@ -52,9 +52,50 @@ function that returns Unit and prints our message.
 #### Anatomy of a Meta Plugin
 
 ### Quote Templates DSL
+
+The Kotlin DSL `func` is part of our **Quotes** system. The **Quotes** system acts as an intermediate 
+layer between PSI Elements and AST Node parsing. More namely, A declaration quasi quote matches tree 
+in the synthetic resolution and gives users the chance to transform them before they are processed 
+by the Kotlin compiler.
+
+The quote system may take the code that user writes, analyzes and detects code at the PSI Element level, and 
+with the `Transform` system, the code can be changed at the level the user
+sees the code.
+
 ##### quote
 ##### classOrObject
 ##### func
+
+You may have noticed the following function previously mentioned in our `helloWorld` plugin.  
+
+```kotlin
+val Meta.helloWorld: Plugin
+  get() =
+    "Hello World" {
+      meta(
+        func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}          Transform.replace(
+            replacing = c,
+            newDeclaration =
+            """|fun helloWorld(): Unit = 
+               |  println("Hello ΛRROW Meta!")
+               |""".function.synthetic
+          )
+        }
+      )
+    }
+```
+
+A quote extension of Meta may look like this, as shown in the
+`func` extension function:
+
+```
+fun Meta.func(
+  match: KtNamedFunction.() -> Boolean, // some KtElement predicate for matching
+  map: FuncScope.(KtNamedFunction) -> Transform<KtNamedFunction>  // applies the transformative function 
+): ExtensionPhase =
+  quote(match, map) { FuncScope(it) }
+```
+
 
 ### Compiler DSL
 
