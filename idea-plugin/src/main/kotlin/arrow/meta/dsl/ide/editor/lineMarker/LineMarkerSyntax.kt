@@ -11,44 +11,53 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiVariable
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
 interface LineMarkerSyntax {
 
   /**
    * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
-   * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider]
+   * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
+   * Registration Impl may change to 2019.3 EAP
    * TODO: Add more Techniques such as the one from Elm
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     icon: Icon,
-    matchOn: (PsiElement) -> A?,
+    transform: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     addLineMarkerProvider(
-      matchOn,
-      { a ->
-        lineMarkerInfo(icon, a, message as (PsiElement) -> String, placed)
+      transform,
+      {
+        lineMarkerInfo(icon, it.safeAs<PsiMethod>()?.identifyingElement
+          ?: it.safeAs<PsiVariable>()?.identifyingElement ?: it, message as (PsiElement) -> String, placed)
       }
     )
 
+  /**
+   * It is advised to create LineMarkerInfo for leaf elements and not composite PsiElements
+   * check [com.intellij.codeInsight.daemon.LineMarkerProvider]
+   */
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
-    matchOn: (PsiElement) -> A?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+    transform: (PsiElement) -> A?,
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LineMarkerProviders.INSTANCE,
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          matchOn(element)?.let(lineMarkerInfo)
+          transform(element)?.let(lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(matchOn(it)) }) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
             ProgressManager.checkCanceled()
-            matchOn(element)?.let { a ->
+            transform(element)?.let { a ->
               slowLineMarker(a)?.let { result.add(it) }
             }
           }

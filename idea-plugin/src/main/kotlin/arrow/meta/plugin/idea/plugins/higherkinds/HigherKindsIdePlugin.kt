@@ -9,7 +9,6 @@ import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
 import arrow.meta.quotes.FuncScope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.idea.imports.importableFqName
-import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -21,22 +20,19 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.HKT,
-        matchOn = {
-          if (KtTokens.IDENTIFIER == it.node?.elementType)
-            it.parent.safeAs<KtClass>()?.takeIf(::isHigherKindedType)
-          else
-            null
+        transform = {
+          it.safeAs<KtClass>()?.takeIf(::isHigherKindedType)?.identifyingElement
         },
-        message = { classOrInterface: KtClass ->
+        message = { identifier ->
           """
-          |${classOrInterface.name} is a Higher Kinded Type that may be used in polymorphic functions expressed over [Kind<F, A>] and with the type classes.
+          |${identifier.text} is a Higher Kinded Type that may be used in polymorphic functions expressed over [Kind<F, A>] and with the type classes.
           |For more info visit [https://arrow-kt.io/docs/patterns/glossary/#type-constructors](https://arrow-kt.io/docs/patterns/glossary/#type-constructors)
           |""".trimMargin()
         }
       ),
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
-        matchOn = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
+        transform = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
         message = { f: KtNamedFunction ->
           FuncScope(f).run {
             val target = ScopedList(receiver.value, transform = { it.text.escapeHTML() })
