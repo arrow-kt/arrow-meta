@@ -15,10 +15,46 @@
 
 ### Compiler DSL
 
+The Compiler DSL offers the low level functional API that interfaces directly with the compiler.
+In this API the user is given the chance to interface with all compiler phases and steps of compilation.
+Interfacing with the compiler alongside the compilation process allows the user to alter the compilation outcome by
+interacting with the compiler configuration, analysis, resolution and code generation phases.
+
+[Compiler video with meta]
+[Talk from LW segment where we explain this part]
+
 #### Config
+
+The configuration phase allows changing the compiler configuration prior to compilation.
+In this phase we can programmatically activate and change all compiler flags and system
+properties the compiler uses to enable/disable the different features in compilation.
+
 ##### updateConfig
+
+The [updateConfig] function provides access to the [CompilerConfiguration] which contains the map of properties used
+to enable/disable the different features in compilation.
+
 ##### storageComponent
+
+The [storageComponent] function allows access to the [StorageComponentContributor]. 
+This is the Dependency Injector and service registry the compiler uses in all phases.
+In this function you can register new services or modify existing ones before the container is composed and sealed prior to compilation.
+
+##### typeChecker
+
+The [typeChecker] function allows the user to provide a custom implementation of the [TypeChecker].
+By replacing the type checker but still having access to the default one the user can define new subtype relationships or type equality.
+
 ##### enableIr
+
+The [enableIr] function enables the Intermediate Representation Backend. 
+The IR Backend is a part of the code generation phase and emits code in the IR format.
+The IR Format is a tree structure with significant indentation that contains all the information needed to generate bytecode
+for all platforms the Kotlin programming language targets.
+
+When the IR backend is disabled which is the current default in the Kotlin Compiler, the [JVM ASM Backend] is used instead.
+
+[IR Example]
 
 #### Analysis
 ##### additionalSources
