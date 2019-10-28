@@ -4,31 +4,31 @@ import arrow.meta.plugin.testing.Source
 
 data class IdeTest(
   val code: Source,
-  val assert: Assert
+  val assert: Companion.() -> Assert
 ) {
   companion object : Assert.Syntax by Assert
 }
 
-typealias IdeTestInterpreter = (IdeTest) -> Unit
-
-
 sealed class Assert {
-  sealed class IdeResolution : Assert() {
-    object Resolves : IdeResolution()
-    object Fails : IdeResolution()
-    data class FailsWith(val f: (String) -> Boolean) : IdeResolution()
+  sealed class IdeResolution<A> : Assert() {
+    data class Resolves<A>(val f: (A) -> Boolean) : IdeResolution<A>()
+    data class FailsWith<A>(val f: (A) -> Boolean) : IdeResolution<A>()
+    object Fails : IdeResolution<Nothing>()
   }
 
   object Empty : Assert()
-  data class ElementsInCode(val elements: Int) : Assert()
+
   interface Syntax {
-    val emptyAssert: Assert
-    val resolves: Assert
+    val empty: Assert
+      get() = Empty
     val fails: Assert
-    fun failsWith(f: (String) -> Boolean): Assert = IdeResolution.FailsWith(f)
-    fun elementsInCode(elements: Int): Assert = ElementsInCode(elements)
+      get() = IdeResolution.Fails
+    val resolves: Assert
+      get() = IdeResolution.Resolves<Int> { true }
+
+    fun <A> failsWith(f: (A) -> Boolean): Assert = IdeResolution.FailsWith(f)
+    fun <A> resolves(f: (A) -> Boolean): Assert = IdeResolution.Resolves(f)
   }
 
-  companion object : Syntax {
-  }
+  companion object : Syntax
 }

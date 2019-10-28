@@ -1,7 +1,19 @@
 package arrow.meta.idea.test.syntax.utils
 
-private fun assertResolves(compilationResult: CompilationResult): Unit {
-  assertThat(compilationResult.actualStatus).isEqualTo(CompilationStatus.OK)
+import arrow.meta.idea.test.syntax.Assert
+import arrow.meta.idea.test.syntax.IdeTest
+
+fun assertThis(ideTest: IdeTest): Unit =
+  interpreter(ideTest)
+
+val interpreter: (IdeTest) -> Unit
+  get() {
+
+  }
+
+
+private fun <A> assertResolves(compilationResult: Assert.IdeResolution<A>): Unit {
+  assertThat(compilationResult.actualStatus).isEqualTo(IdeRes)
 }
 
 private fun assertFails(compilationResult: CompilationResult): Unit {

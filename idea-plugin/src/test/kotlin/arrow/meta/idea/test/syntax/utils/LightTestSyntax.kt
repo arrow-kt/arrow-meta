@@ -1,13 +1,11 @@
 package arrow.meta.idea.test.syntax.utils
 
-import arrow.meta.dsl.platform.ide
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.junit.Assert
 
-abstract class LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
+object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
   /**
    * Parses the code defined by in it's [receiver] and traverses each
    * PsiElement marked by [match] with function [f]
@@ -22,8 +20,6 @@ abstract class LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
         psiFile?.findElementAt(index)?.let(f)
       }
     }
-
-  fun ideTest(f: () -> Unit): Unit = ide(f) ?: Assert.fail("CLI is active during IDE test")
 
   tailrec fun <R> StringBuilder.filterFold(
     acc: R,
