@@ -118,12 +118,50 @@ This interface will be incomplete if your plugin is producing top level declarat
 For the above cases we would need to combine it or entirely replace it with a [packageFragmentProvider] which can provide descriptors for those top level declarations.
 
 #### Codegen
+
+The codegen phase is where the compiler emits bytecode and metadata for the different platforms the Kotlin language targets.
+In this phase by default the compiler would go into ASM codegen for the JVM or into IR codegen if IR is enabled.
+[IR] is the Intermediate Representation format the new Kotlin compiler backend targets.
+
 ##### ASM
+
+When the compiler goes to codegen and IR is not enabled by default it goes into the codegen phase for the JVM where it
+uses the ASM libs to generate bytecode using the AST and associated descriptors coming from the resolution phase.
+
 ###### codegen
+ 
+The [codegen] function allows us to interact with [applyFunction], [applyProperty] and [generateClassSyntheticParts].
+Each one of these functions are invoked as the compiled and type checked tree of [KtElement] and [DeclarationDescriptor] is processed for codegen.
+Here we can alter the bytecode emitted using the [Meta ASM DSL]. 
+This DSL mirrors the [IR DSL] offering a match + transform function that allows us to alter the codegen tree.
+
 ##### IR
-###### IrGeneration
+
+IR, The intermediate representation format is a structured text format with significant indentation that contains all the information the compiler knows about a program.
+At this point the compiler knows how a program is declared in sources, what the typed expressions are and how each of the generic type
+arguments are applied.
+The compiler emits in this phase this information which can then be further processed by interpreters and compilers targeting any platform.
+
+[IR Example]
+
+###### IR DSL
+
+The IR DSL provides a match + transform function for each one of the elements that can be intercepted in the IR phase.
+
+[Link to API docs for IR functions]
 
 ### IDE DSL
+
+The IDE DSL empowers library and compiler plugin authors to bring their features closer to the development experience.
+Arrow Meta allows sharing the compiler plugin code with the IDE code so developers can reuse their compiler plugin functions in their IDE plugin.
+
+The Arrow Meta IDE DSL models the entire set of interesting features the Kotlin IDE plugin offers and the IDEA plugin system exposes to interface with the editor.
+
+The table below showcases the currently available functions and visual examples of what each one of them may produce.
+The coding style remains cohesive around Meta always offering a match + transform function.
+This is intentional so the API is all about intercepting desired elements and transforming them into desired results.
+
+[Table of IDE DSL functions]
 
 ## Plugins
 
