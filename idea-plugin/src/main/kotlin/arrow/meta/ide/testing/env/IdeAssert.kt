@@ -3,7 +3,7 @@ package arrow.meta.ide.testing.env
 import arrow.meta.ide.testing.IdeTest
 
 fun assertThis(ideTest: IdeTest): Unit =
-  interpreter(ideTest)
+  println(ideTest)
 
 val interpreter: (IdeTest) -> Unit = {}
 

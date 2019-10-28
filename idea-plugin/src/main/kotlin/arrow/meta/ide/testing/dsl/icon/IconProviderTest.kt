@@ -8,7 +8,7 @@ object IconProviderTest {
 
   fun IdeTestTypeSyntax.test(code: String) =
     lightTest {
-      // former IdeHigherKindesTestCode.
+      // former IdeHigherKindsTestCode.
       code.sequence { psi ->
         // most implementations of PsiElement, including the default implementation,
         // retrieve the return value of getIcon() from the registered IconProviders.
