@@ -43,6 +43,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
         transform = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
+        composite = KtNamedFunction::class.java,
         message = { f: KtNamedFunction ->
           FuncScope(f).run {
             val target = ScopedList(receiver.value, transform = { it.text.escapeHTML() })

@@ -11,18 +11,21 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiVariable
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.util.PsiTreeUtil
 import javax.swing.Icon
 
+/**
+ * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
+ * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
+ * Registration Impl may change to 2019.3 EAP
+ * TODO: Add more Techniques such as the one from Elm
+ */
 interface LineMarkerSyntax {
 
   /**
-   * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
-   * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
-   * Registration Impl may change to 2019.3 EAP
-   * TODO: Add more Techniques such as the one from Elm
+   * It is advised to create LineMarkerInfo for leaf elements (e.g: Psi(Identifier)) and not composite PsiElements
+   * check [com.intellij.codeInsight.daemon.LineMarkerProvider]
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
@@ -33,16 +36,29 @@ interface LineMarkerSyntax {
   ): ExtensionPhase =
     addLineMarkerProvider(
       transform,
-      {
-        lineMarkerInfo(icon, it.safeAs<PsiMethod>()?.identifyingElement
-          ?: it.safeAs<PsiVariable>()?.identifyingElement ?: it, message as (PsiElement) -> String, placed)
-      }
+      { lineMarkerInfo(icon, it, message as (PsiElement) -> String, placed) }
     )
 
   /**
-   * It is advised to create LineMarkerInfo for leaf elements and not composite PsiElements
-   * check [com.intellij.codeInsight.daemon.LineMarkerProvider]
+   * This takes care of registration and allows the user to have the composite in Scope
    */
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addLineMarkerProvider(
+    icon: Icon,
+    transform: (PsiElement) -> A?,
+    composite: Class<A>,
+    message: (A) -> String = Noop.string1(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
+  ): ExtensionPhase =
+    addLineMarkerProvider(
+      { transform(it)?.identifyingElement },
+      { identifier: PsiElement ->
+        PsiTreeUtil.getParentOfType(identifier, composite)?.let { psi: A ->
+          lineMarkerInfo(icon, identifier, { message(psi) }, placed)
+        }
+      }
+    )
+
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     transform: (PsiElement) -> A?,
     lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
@@ -52,7 +68,8 @@ interface LineMarkerSyntax {
       LineMarkerProviders.INSTANCE,
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          transform(element)?.let(lineMarkerInfo)
+          transform(element)?.let(
+            lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
           for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
