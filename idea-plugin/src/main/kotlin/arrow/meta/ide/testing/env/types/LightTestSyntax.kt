@@ -1,4 +1,4 @@
-package arrow.meta.ide.testing.env
+package arrow.meta.ide.testing.env.types
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile

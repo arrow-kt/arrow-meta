@@ -1,6 +1,8 @@
 package arrow.meta.ide.testing.env
 
 import arrow.meta.dsl.platform.ide
+import arrow.meta.ide.testing.env.types.HeavyTestSyntax
+import arrow.meta.ide.testing.env.types.LightTestSyntax
 import junit.framework.TestCase.assertNotNull
 
 interface IdeTestTypeSyntax {

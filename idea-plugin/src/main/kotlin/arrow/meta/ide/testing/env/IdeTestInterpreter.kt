@@ -2,10 +2,12 @@ package arrow.meta.ide.testing.env
 
 import arrow.meta.ide.testing.IdeTest
 
-fun assertThis(ideTest: IdeTest): Unit =
-  println(ideTest)
+fun assertThis(ideTest: IdeTest): Unit = interpreter(ideTest)
 
-val interpreter: (IdeTest) -> Unit = {}
+val interpreter: (IdeTest) -> Unit = {
+
+
+}
 
 /*
 

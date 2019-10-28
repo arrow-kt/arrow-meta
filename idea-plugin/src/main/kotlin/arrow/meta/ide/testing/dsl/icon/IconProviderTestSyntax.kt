@@ -4,7 +4,7 @@ import arrow.meta.ide.testing.env.IdeTestTypeSyntax
 import com.intellij.openapi.util.Iconable
 import org.junit.Assert
 
-object IconProviderTest {
+interface IconProviderTestSyntax {
 
   fun IdeTestTypeSyntax.test(code: String) =
     lightTest {
