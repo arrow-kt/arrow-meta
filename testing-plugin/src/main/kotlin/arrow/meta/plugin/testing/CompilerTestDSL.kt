@@ -63,7 +63,7 @@ sealed class Assert {
     val emptyAssert: Assert
     val compiles: Assert
     val fails: Assert
-    fun failsWith(f: (String) -> Boolean): Assert = Assert.FailsWith(f)
+    fun failsWith(f: (String) -> Boolean): Assert = FailsWith(f)
     fun quoteOutputMatches(source: Source): Assert = QuoteOutputMatches(source)
     infix fun Source.evalsTo(value: Any?): Assert = EvalsTo(this, value)
     val String.source: Source get() = Source(this)
