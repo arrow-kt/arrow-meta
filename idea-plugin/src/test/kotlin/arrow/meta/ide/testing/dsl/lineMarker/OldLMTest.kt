@@ -1,6 +1,7 @@
-package arrow.meta
+package arrow.meta.ide.testing.dsl.lineMarker
 
-import arrow.meta.plugin.idea.resources.ArrowIcons
+/*
+import arrow.meta.ide.resources.ArrowIcons
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement
@@ -10,7 +11,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Test
 
-class LineMarkerProviderTest : IdeBaseTestSyntax() {
+class OldLMTest  {
   @Language("kotlin")
   private val withMarkers = """
     package test
@@ -105,4 +106,4 @@ class LineMarkerProviderTest : IdeBaseTestSyntax() {
       .mapNotNull { it.collectSlowLineMarkers(listOf(this), result) }
     return result.filter { it.icon == ArrowIcons.HKT }
   }
-}
+}*/

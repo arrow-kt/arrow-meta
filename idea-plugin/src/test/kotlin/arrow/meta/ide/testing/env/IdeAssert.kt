@@ -1,16 +1,13 @@
-package arrow.meta.idea.test.syntax.utils
+package arrow.meta.ide.testing.env
 
-import arrow.meta.idea.test.syntax.Assert
-import arrow.meta.idea.test.syntax.IdeTest
+import arrow.meta.ide.testing.IdeTest
 
 fun assertThis(ideTest: IdeTest): Unit =
   interpreter(ideTest)
 
-val interpreter: (IdeTest) -> Unit
-  get() {
+val interpreter: (IdeTest) -> Unit = {}
 
-  }
-
+/*
 
 private fun <A> assertResolves(compilationResult: Assert.IdeResolution<A>): Unit {
   assertThat(compilationResult.actualStatus).isEqualTo(IdeRes)
@@ -23,4 +20,4 @@ private fun assertFails(compilationResult: CompilationResult): Unit {
 private fun assertFailsWith(compilationResult: CompilationResult, check: (String) -> Boolean): Unit {
   assertFails(compilationResult)
   assertThat(check(compilationResult.log)).isTrue()
-}
+}*/

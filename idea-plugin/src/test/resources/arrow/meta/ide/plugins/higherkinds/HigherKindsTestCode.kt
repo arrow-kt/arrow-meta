@@ -1,6 +1,6 @@
-package arrow.meta.idea.test.code.higherkinds
+package arrow.meta.ide.plugins.higherkinds
 
-object IdeHigherKindesTestCode {
+internal object HigherKindsTestCode {
 
   val code = """
         package test

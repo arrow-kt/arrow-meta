@@ -1,6 +1,6 @@
-package arrow.meta.idea.test.syntax
+package arrow.meta.ide.testing.dsl.icon
 
-import arrow.meta.idea.test.syntax.utils.LightTestSyntax
+import arrow.meta.ide.testing.env.LightTestSyntax
 import com.intellij.openapi.util.Iconable
 import org.junit.Assert
 

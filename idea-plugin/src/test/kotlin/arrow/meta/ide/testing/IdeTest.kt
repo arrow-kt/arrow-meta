@@ -1,12 +1,13 @@
-package arrow.meta.idea.test.syntax
+package arrow.meta.ide.testing
 
+import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.plugin.testing.Source
 
 data class IdeTest(
   val code: Source,
   val assert: Companion.() -> Assert
 ) {
-  companion object : Assert.Syntax by Assert
+  companion object : Assert.Syntax, IdeTestSyntax
 }
 
 sealed class Assert {
@@ -29,6 +30,4 @@ sealed class Assert {
     fun <A> failsWith(f: (A) -> Boolean): Assert = IdeResolution.FailsWith(f)
     fun <A> resolves(f: (A) -> Boolean): Assert = IdeResolution.Resolves(f)
   }
-
-  companion object : Syntax
 }
