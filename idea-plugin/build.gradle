@@ -9,8 +9,8 @@ apply plugin: 'org.jetbrains.intellij'
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   compile "org.celtric.kotlin:kotlin-html:0.1.4"
-  compile "io.kotlintest:kotlintest-runner-junit4:3.4.2"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
+  testImplementation project(":testing-plugin")
 }
 
 compileKotlin {

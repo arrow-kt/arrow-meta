@@ -1,12 +1,20 @@
 package arrow.meta.idea.test.higherkinds
 
-import arrow.meta.idea.test.syntax.IdeTestSyntax
-import io.kotlintest.runner.junit4.KotlinTestRunner
-import org.junit.runner.RunWith
+import arrow.meta.idea.test.code.higherkinds.IdeHigherKindesTestCode
+import arrow.meta.idea.test.syntax.IdeTest
+import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugin.testing.source
+import org.junit.Test
 
-@RunWith(KotlinTestRunner::class)
-class IdeHigherKindsTest : IdeTestSyntax() {
+class IdeHigherKindsTest {
+  @Test
+  fun `LM Test`() =
+    assertThis(
+      IdeTest(
+        code = { IdeHigherKindesTestCode.code.source },
+        assert = {
 
-  fun `TestLineMarker`() =
-    assert(false == true)
+        }
+      )
+    )
 }

@@ -1,46 +1,42 @@
 package arrow.meta.idea.test.syntax
 
-import arrow.meta.idea.test.code.higherkinds.IdeHigherKindesTestCode
 import arrow.meta.idea.test.syntax.utils.LightTestSyntax
-import arrow.meta.plugin.idea.resources.ArrowIcons
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.Icon
 
-object LineMarkerProviderTest {
+object LineMarkerProviderTest : LightTestSyntax() {
 
-  fun LightTestSyntax.availableLM(icon: Icon): Unit =
+  fun availableLM(icon: Icon, code: String): Unit =
   // if possible, line marker providers should provide icons for leaf elements
   // as advised by com.intellij.codeInsight.daemon.LineMarkerProvider.getLineMarkerInfo().
     // Therefore, we retrieve the leaf element for the current element and call the icon providers on this leaf
-    IdeHigherKindesTestCode.withMarkers.traverse { psi ->
+    code.traverse { psi ->
       val leaf = if (psi.firstChild == null) psi else PsiTreeUtil.getDeepestFirst(psi)
 
-      assertEquals("expected one fast marker to be provided by arrow, element: ${leaf.text}", 1, leaf.collect(ArrowIcons.HKT).size)
+      assertEquals("expected one fast marker to be provided by arrow, element: ${leaf.text}", 1, leaf.collect(icon).size)
 
-      assertEmpty("no slow markers expected, element: ${leaf.text}", leaf.collectSlowLM(ArrowIcons.HKT))
+      assertEmpty("no slow markers expected, element: ${leaf.text}", leaf.collectSlowLM(icon))
 
       if (leaf != psi) {
         SyntaxTraverser.psiTraverser().children(psi).filter { it.firstChild != null }.forEach { e ->
-          assertEmpty("no faster markers expected, element: ${e.text}", psi.collect(ArrowIcons.HKT))
+          assertEmpty("no faster markers expected, element: ${e.text}", psi.collect(icon))
 
-          assertEmpty("no slow markers expected, element: ${e.text}", psi.collectSlowLM(ArrowIcons.HKT))
+          assertEmpty("no slow markers expected, element: ${e.text}", psi.collectSlowLM(icon))
         }
       }
 
     }
 
 
-  fun LightTestSyntax.testUnavailable(icon: Icon): Unit =
-    IdeHigherKindesTestCode.withoutMarkers.traverse { psi ->
-      assertEmpty("no LineMarkers expected for ${psi.text}", psi.collect(ArrowIcons.HKT))
-      assertEmpty("no SlowLineMarker for ${psi.text}", psi.collectSlowLM(ArrowIcons.HKT))
+  fun unavailableLM(icon: Icon, code: String): Unit =
+    code.traverse { psi ->
+      assertEmpty("no LineMarkers expected for ${psi.text}", psi.collect(icon))
+      assertEmpty("no SlowLineMarker for ${psi.text}", psi.collectSlowLM(icon))
     }
 
   fun PsiElement.collect(icon: Icon): List<LineMarkerInfo<PsiElement>> =
