@@ -5,7 +5,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
+abstract class LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
   /**
    * Parses the code defined by in it's [receiver] and traverses each
    * PsiElement marked by [match] with function [f]

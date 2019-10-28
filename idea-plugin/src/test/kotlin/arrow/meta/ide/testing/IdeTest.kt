@@ -1,7 +1,6 @@
 package arrow.meta.ide.testing
 
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
-import arrow.meta.plugin.testing.Source
 
 data class IdeTest(
   val code: Source,
@@ -31,3 +30,9 @@ sealed class Assert {
     fun <A> resolves(f: (A) -> Boolean): Assert = IdeResolution.Resolves(f)
   }
 }
+
+
+// copied from testing-plugin couldn't import the project
+data class Source(val text: String)
+
+val String.source: Source get() = Source(this)

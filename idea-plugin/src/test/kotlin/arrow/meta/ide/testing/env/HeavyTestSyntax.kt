@@ -1,4 +1,4 @@
 package arrow.meta.ide.testing.env
 
-object HeavyTestSyntax {
+abstract class HeavyTestSyntax {
 }

@@ -1,12 +1,7 @@
 package arrow.meta.ide.plugins.higherkinds
 
-import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.env.assertThis
-import arrow.meta.plugin.testing.source
-import org.junit.Test
-
 class HigherKindTest {
-  @Test
+  /*@Test
   fun `LM Test`(): Unit =
     assertThis(
       IdeTest(
@@ -16,5 +11,5 @@ class HigherKindTest {
           empty
         }
       )
-    )
+    )*/
 }
