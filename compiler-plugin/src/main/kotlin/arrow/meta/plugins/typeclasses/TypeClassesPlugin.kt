@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.mapValueParameters
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtFile
@@ -194,7 +195,11 @@ private fun PackageFragmentDescriptor.findExtensionProof(extensionType: KotlinTy
     }
 
 private fun ClassifierDescriptor?.packageFragmentDescriptor(): PackageFragmentDescriptor? =
-  this?.findPsi()?.containingFile.safeAs<KtFile>()?.let { file -> this?.module?.findPackageFragmentForFile(file) }
+  if (this?.source is KotlinJvmBinarySourceElement) {
+    this.containingDeclaration as PackageFragmentDescriptor
+  } else {
+    this?.findPsi()?.containingFile.safeAs<KtFile>()?.let { file -> this?.module?.findPackageFragmentForFile(file) }
+  }
 
 private fun KotlinType.dataTypeDescriptor(): ClassifierDescriptor? =
   arguments[0].type.constructor.declarationDescriptor
