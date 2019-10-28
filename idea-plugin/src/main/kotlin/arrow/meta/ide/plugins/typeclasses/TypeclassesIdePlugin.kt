@@ -3,10 +3,10 @@ package arrow.meta.ide.plugins.typeclasses
 import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.dsl.platform.ide
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
 import arrow.meta.quotes.get
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val arrow.meta.ide.IdeMetaPlugin.typeclassesIdePlugin: Plugin
+val IdeMetaPlugin.typeclassesIdePlugin: Plugin
   get() = "TypeclassesIdePlugin" {
     meta(
       ideSyntheticBodyResolution()

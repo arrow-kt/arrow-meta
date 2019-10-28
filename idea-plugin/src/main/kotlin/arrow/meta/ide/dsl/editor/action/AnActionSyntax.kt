@@ -2,9 +2,9 @@ package arrow.meta.ide.dsl.editor.action
 
 import arrow.meta.dsl.platform.ideRegistry
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.TimerListener
@@ -74,7 +74,7 @@ interface AnActionSyntax : AnActionExtensionProvider {
    * TODO: Add more costume attributes: ShortCuts etc.
    * [http://www.jetbrains.org/intellij/sdk/docs/tutorials/action_system/working_with_custom_actions.html
    */
-  fun arrow.meta.ide.dsl.editor.action.AnActionSyntax.addAnAction(
+  fun AnActionSyntax.addAnAction(
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -107,7 +107,7 @@ interface AnActionSyntax : AnActionExtensionProvider {
         beforeActionPerformedUpdate(e)
     }
 
-  fun arrow.meta.ide.dsl.editor.action.AnActionSyntax.addAnAction(
+  fun AnActionSyntax.addAnAction(
     icon: Icon,
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -141,7 +141,7 @@ interface AnActionSyntax : AnActionExtensionProvider {
         beforeActionPerformedUpdate(e)
     }
 
-  fun arrow.meta.ide.dsl.editor.action.AnActionSyntax.addAnAction(
+  fun AnActionSyntax.addAnAction(
     title: String,
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -175,7 +175,7 @@ interface AnActionSyntax : AnActionExtensionProvider {
         beforeActionPerformedUpdate(e)
     }
 
-  fun arrow.meta.ide.dsl.editor.action.AnActionSyntax.addAnAction(
+  fun AnActionSyntax.addAnAction(
     title: String,
     description: String,
     icon: Icon,
@@ -211,7 +211,7 @@ interface AnActionSyntax : AnActionExtensionProvider {
         beforeActionPerformedUpdate(e)
     }
 
-  fun arrow.meta.ide.dsl.editor.action.AnActionSyntax.timerListener(
+  fun AnActionSyntax.timerListener(
     modalityState: ModalityState,
     run: () -> Unit
   ): TimerListener =

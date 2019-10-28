@@ -1,8 +1,8 @@
 package arrow.meta.ide.dsl.editor.hints
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.lang.ExpressionTypeProvider
 import com.intellij.lang.LanguageExpressionTypes
@@ -48,7 +48,7 @@ interface HintingSyntax {
   /**
    * @param findElementForUpdatingParameterInfo returning null removes hint
    */
-  fun <Owner : PsiElement, Type> arrow.meta.ide.IdeMetaPlugin.addParameterInfoHandler(
+  fun <Owner : PsiElement, Type> IdeMetaPlugin.addParameterInfoHandler(
     showParameterInfo: (element: Owner, context: CreateParameterInfoContext) -> Unit,
     updateParameterInfo: (parameterOwner: Owner, context: UpdateParameterInfoContext) -> Unit,
     updateUI: (p: Type, context: ParameterInfoUIContext) -> Unit,
@@ -87,7 +87,7 @@ interface HintingSyntax {
    * Type being an Descriptor check Subtypes of [org.jetbrains.kotlin.idea.parameterInfo.KotlinTypeArgumentInfoHandlerBase]
    * or [org.jetbrains.kotlin.idea.parameterInfo.KotlinParameterInfoWithCallHandlerBase]
    */
-  fun <Owner : PsiElement, Type, ActualType : PsiElement> arrow.meta.ide.IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <Owner : PsiElement, Type, ActualType : PsiElement> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     actualParameterDelimiterType: IElementType,
     actualParametersRBraceType: IElementType,
     showParameterInfo: (element: Owner, context: CreateParameterInfoContext) -> Unit,
@@ -147,7 +147,7 @@ interface HintingSyntax {
   /**
    * This is used for [DeclarationDescriptor]'s
    */
-  fun <Type : DeclarationDescriptor> arrow.meta.ide.IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <Type : DeclarationDescriptor> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     fetchTypeParameters: (descriptor: Type) -> List<TypeParameterDescriptor>,
     findParameterOwners: (argumentList: KtTypeArgumentList) -> Collection<Type>?,
     argumentListAllowedParentClasses: MutableSet<Class<Any>>
@@ -170,7 +170,7 @@ interface HintingSyntax {
    * This is used for [FunctionDescriptor]'s
    */
   @Suppress
-  fun <ArgumentList : KtElement, Argument : KtElement> arrow.meta.ide.IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <ArgumentList : KtElement, Argument : KtElement> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     argumentList: KClass<ArgumentList>,
     argument: KClass<Argument>,
     actualParameters: (o: ArgumentList) -> Array<Argument>,

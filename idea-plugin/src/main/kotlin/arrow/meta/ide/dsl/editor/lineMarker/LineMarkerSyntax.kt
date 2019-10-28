@@ -1,9 +1,9 @@
 package arrow.meta.ide.dsl.editor.lineMarker
 
-import arrow.meta.internal.Noop
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.IdeUtils
+import arrow.meta.internal.Noop
+import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.daemon.LineMarkerProviders
@@ -61,8 +61,8 @@ interface LineMarkerSyntax {
 
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     transform: (PsiElement) -> A?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LineMarkerProviders.INSTANCE,

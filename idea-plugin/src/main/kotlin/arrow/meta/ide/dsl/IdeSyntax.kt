@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl
 
-import arrow.meta.ide.dsl.editor.action.AnActionSyntax
+import AnActionSyntax
 import arrow.meta.ide.dsl.editor.color.ColorSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
