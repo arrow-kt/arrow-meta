@@ -19,16 +19,16 @@ interface LineMarkerSyntax {
    * Adds a fast line provider
    * See [com.intellij.codeInsight.daemon.LineMarkerProvider] for notes how to implement a fast provider.
    */
-  fun IdeMetaPlugin.addFastLineMarkerProvider(
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiElement> IdeMetaPlugin.addFastLineMarkerProvider(
     icon: Icon,
     message: String,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    matchOn: (psi: PsiElement) -> Boolean
+    matchOn: (PsiElement) -> A?
   ): ExtensionPhase =
     addLineMarkerProvider(
-      Noop.boolean1False,
-      Noop.nullable1(),
-      { if (matchOn(it)) lineMarkerInfo(icon, it, message, placed) else null }
+      matchOn,
+      { lineMarkerInfo(icon, it, { message }, placed) }
     )
 
   /**
@@ -45,15 +45,13 @@ interface LineMarkerSyntax {
   ): ExtensionPhase =
     addLineMarkerProvider(
       matchOn,
-      { a ->
-        lineMarkerInfo(icon, a, message as (PsiElement) -> String, placed)
-      }
+      { lineMarkerInfo(icon, it, message as (PsiElement) -> String, placed) }
     )
 
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     matchOn: (PsiElement) -> A?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LineMarkerProviders.INSTANCE,

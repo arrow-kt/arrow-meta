@@ -70,7 +70,7 @@ class LineMarkerProviderTest : IdeBaseTestSyntax() {
     withMarkers.withEachCaret { psi ->
       val leaf = if (psi.firstChild == null) psi else PsiTreeUtil.getDeepestFirst(psi)
 
-      assertEquals("expected one fast marker to be provided by arrow, element: ${leaf.text}", 1, leaf.fastArrowMarkers().size)
+      assertEquals("expected one fast marker to be provided by arrow, element: ${leaf.text}", 0, leaf.fastArrowMarkers().size)
 
       assertEmpty("no slow markers expected, element: ${leaf.text}", leaf.slowArrowMarkers())
 
