@@ -43,3 +43,7 @@ patchPluginXml {
 runIde {
     jvmArgs '-Xmx2G'
 }
+
+test {
+  testLogging.showStandardStreams = true
+}

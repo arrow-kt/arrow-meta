@@ -18,3 +18,6 @@ open class Scope<out K : KtElement>(open val value: K?) {
 
 fun <K : KtElement> Scope<K>?.orEmpty(): Scope<K> =
   this ?: Scope.empty<K>()
+
+fun <K : KtElement> K?.scope(): Scope<K> =
+  Scope(this)
