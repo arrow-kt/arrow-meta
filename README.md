@@ -113,6 +113,9 @@ as autocompletion and code refactoring.
 
 ##### syntheticResolver [CLI, IDE]
 
+The [syntheticResolver] extension allows the user to change the top level class and nested class descriptors requested by IntelliJ and some parts of the CLI compiler.
+This interface will be incomplete if your plugin is producing top level declarations that are [typealiases], [functions] or [properties].
+For the above cases we would need to combine it or entirely replace it with a [packageFragmentProvider] which can provide descriptors for those top level declarations.
 
 #### Codegen
 ##### ASM
