@@ -10,7 +10,7 @@ object IconProviderTest {
     listOf(
       IdeLaw("") {
         // former IdeHigherKindesTestCode.
-        code.traverse { psi ->
+        code.sequence { psi ->
           // most implementations of PsiElement, including the default implementation,
           // retrieve the return value of getIcon() from the registered IconProviders.
           val icon = psi.getIcon(Iconable.ICON_FLAG_VISIBILITY)

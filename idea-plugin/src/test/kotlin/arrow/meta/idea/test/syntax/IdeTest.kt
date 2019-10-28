@@ -14,18 +14,21 @@ typealias IdeTestInterpreter = (IdeTest) -> Unit
 
 sealed class Assert {
   sealed class IdeResolution : Assert() {
-    object Resolves : Assert()
-    object Fails : Assert()
-    data class FailsWith(val f: (String) -> Boolean) : Assert()
+    object Resolves : IdeResolution()
+    object Fails : IdeResolution()
+    data class FailsWith(val f: (String) -> Boolean) : IdeResolution()
   }
 
   object Empty : Assert()
-
+  data class ElementsInCode(val elements: Int) : Assert()
   interface Syntax {
-    fun failsWith
+    val emptyAssert: Assert
+    val resolves: Assert
+    val fails: Assert
+    fun failsWith(f: (String) -> Boolean): Assert = IdeResolution.FailsWith(f)
+    fun elementsInCode(elements: Int): Assert = ElementsInCode(elements)
   }
 
   companion object : Syntax {
-
   }
 }

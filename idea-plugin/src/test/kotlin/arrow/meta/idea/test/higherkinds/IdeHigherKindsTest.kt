@@ -11,10 +11,8 @@ class IdeHigherKindsTest {
   fun `LM Test`() =
     assertThis(
       IdeTest(
-        code = { IdeHigherKindesTestCode.code.source },
-        assert = {
-
-        }
+        code = IdeHigherKindesTestCode.code.source,
+        assert =
       )
     )
 }

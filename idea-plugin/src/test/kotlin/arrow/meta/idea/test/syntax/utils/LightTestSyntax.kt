@@ -13,7 +13,7 @@ abstract class LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
    * PsiElement marked by [match] with function [f]
    * Look up is case-insensitive.
    */
-  fun <R> String.traverse(match: String = "<caret>", f: (PsiElement) -> R): Unit =
+  fun <R> String.sequence(match: String = "<caret>", f: (PsiElement) -> R): Unit =
     StringBuilder(this).run {
       filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i }).forEach { index ->
         // reparse file for each offset to allow side-effects in tests

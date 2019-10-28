@@ -15,13 +15,8 @@ object LineMarkerProviderTest : LightTestSyntax() {
   // if possible, line marker providers should provide icons for leaf elements
   // as advised by com.intellij.codeInsight.daemon.LineMarkerProvider.getLineMarkerInfo().
     // Therefore, we retrieve the leaf element for the current element and call the icon providers on this leaf
-    code.traverse { psi ->
+    code.sequence { psi ->
       val leaf = if (psi.firstChild == null) psi else PsiTreeUtil.getDeepestFirst(psi)
-
-      assertEquals("expected one fast marker to be provided by arrow, element: ${leaf.text}", 1, leaf.collect(icon).size)
-
-      assertEmpty("no slow markers expected, element: ${leaf.text}", leaf.collectSlowLM(icon))
-
       if (leaf != psi) {
         SyntaxTraverser.psiTraverser().children(psi).filter { it.firstChild != null }.forEach { e ->
           assertEmpty("no faster markers expected, element: ${e.text}", psi.collect(icon))
@@ -29,14 +24,6 @@ object LineMarkerProviderTest : LightTestSyntax() {
           assertEmpty("no slow markers expected, element: ${e.text}", psi.collectSlowLM(icon))
         }
       }
-
-    }
-
-
-  fun unavailableLM(icon: Icon, code: String): Unit =
-    code.traverse { psi ->
-      assertEmpty("no LineMarkers expected for ${psi.text}", psi.collect(icon))
-      assertEmpty("no SlowLineMarker for ${psi.text}", psi.collectSlowLM(icon))
     }
 
   fun PsiElement.collect(icon: Icon): List<LineMarkerInfo<PsiElement>> =
@@ -49,4 +36,10 @@ object LineMarkerProviderTest : LightTestSyntax() {
       LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
         .mapNotNull { it.collectSlowLineMarkers(listOf(this@collectSlowLM), this) }
     }.filter { it.icon == icon }
+
+  /*  fun unavailableLM(icon: Icon, code: String): Unit =
+    code.sequence { psi ->
+      assertEmpty("no LineMarkers expected for ${psi.text}", psi.collect(icon))
+      assertEmpty("no SlowLineMarker for ${psi.text}", psi.collectSlowLM(icon))
+    }*/
 }
