@@ -20,17 +20,17 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.plugin.idea.MetaPluginRegistrarComponent</implementation-class>
+            <implementation-class>arrow.meta.ide.idea.MetaPluginRegistrarComponent</implementation-class>
         </component>
         <component>
-            <implementation-class>arrow.meta.plugin.idea.phases.resolve.FragmentProviderComponent</implementation-class>
+            <implementation-class>arrow.meta.ide.idea.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <gradleProjectImportHandler implementation="arrow.meta.plugin.idea.gradle.ArrowGradleImportHandler"/>
-        <packageFragmentProviderExtension implementation="arrow.meta.plugin.idea.phases.resolve.MetaSyntheticPackageFragmentProvider" />
-<!--        <syntheticResolveExtension implementation="arrow.meta.plugin.idea.phases.resolve.MetaSyntheticPackageFragmentProvider" />-->
+        <gradleProjectImportHandler implementation="arrow.meta.ide.idea.gradle.ArrowGradleImportHandler"/>
+        <packageFragmentProviderExtension implementation="arrow.meta.ide.idea.phases.resolve.MetaSyntheticPackageFragmentProvider" />
+<!--        <syntheticResolveExtension implementation="arrow.meta.ide.MetaSyntheticPackageFragmentProvider" />-->
     </extensions>
 
 </idea-plugin>
