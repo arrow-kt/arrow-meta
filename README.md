@@ -43,7 +43,7 @@ In this function you can register new services or modify existing ones before th
 ##### typeChecker
 
 The [typeChecker] function allows the user to provide a custom implementation of the [TypeChecker].
-By replacing the type checker but still having access to the default one the user can define new subtype relationships or type equality.
+With a custom [TypeChecker] we can redefine what subtyping and type equality means.
 
 ##### enableIr
 
