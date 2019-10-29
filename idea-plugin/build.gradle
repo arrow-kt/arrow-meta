@@ -48,3 +48,5 @@ runIde {
 test {
   testLogging.showStandardStreams = true
 }
+
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
