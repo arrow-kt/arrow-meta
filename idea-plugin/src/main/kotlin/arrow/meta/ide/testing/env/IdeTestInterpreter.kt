@@ -2,12 +2,9 @@ package arrow.meta.ide.testing.env
 
 import arrow.meta.ide.testing.IdeTest
 
-fun assertThis(ideTest: IdeTest): Unit = interpreter(ideTest)
+fun <A> IdeTest<A>.runTest(): Unit = interpreter(this)
 
-val interpreter: (IdeTest) -> Unit = {
-
-
-}
+fun <A> interpreter(test: IdeTest<A>): Unit = TODO()
 
 /*
 

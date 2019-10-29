@@ -7,9 +7,9 @@ internal object HigherKindsTestCode {
         import arrow.higherKind
         
         @higherkind
-        class Id<out A>(val value: A)
+        class <caret>Id<out A>(val value: A)
         
-        val <caret>x: IdOf<Int> = Id(1)
+        val x: IdOf<Int> = Id(1)
         """
 
   val withoutMarkers = """

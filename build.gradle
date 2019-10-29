@@ -26,6 +26,7 @@ allprojects {
 task buildMeta {
   dependsOn 'clean'
   dependsOn 'build'
+  dependsOn 'test'
   dependsOn ':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal'
   dependsOn ':gradle-plugin:publishPluginMavenPublicationToMavenLocal'
   tasks.findByPath(':gradle-plugin:publishArrowPluginMarkerMavenPublicationToMavenLocal').mustRunAfter 'build'

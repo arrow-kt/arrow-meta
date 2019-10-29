@@ -2,37 +2,32 @@ package arrow.meta.ide.testing
 
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
 
-data class IdeTest(
+typealias Source = String
+
+data class IdeTest<A>(
   val code: Source,
-  val assert: Companion.() -> Assert
-) {
-  companion object : Assert.Syntax, IdeTestSyntax
+  val test: IdeTestEnvironment.(code: Source) -> Unit,
+  val result: IdeResolution.Companion.(A) -> IdeResolution<A>
+)
+
+object IdeTestEnvironment : IdeTestSyntax
+
+sealed class IdeResolution<A> {
+  data class Resolves<A>(val transform: (A) -> A?) : IdeResolution<A>()
+  data class FailsWith<A>(val transform: (A) -> A?) : IdeResolution<A>()
+  object Fails : IdeResolution<Unit>()
+  object Empty : IdeResolution<Nothing>()
+  companion object : IdeResolutionSyntax
 }
 
-sealed class Assert {
-  sealed class IdeResolution<A> : Assert() {
-    data class Resolves<A>(val f: (A) -> Boolean) : IdeResolution<A>()
-    data class FailsWith<A>(val f: (A) -> Boolean) : IdeResolution<A>()
-    object Fails : IdeResolution<Nothing>()
-  }
+interface IdeResolutionSyntax {
+  val empty: IdeResolution<Nothing>
+    get() = IdeResolution.Empty
+  val fails: IdeResolution<Unit>
+    get() = IdeResolution.Fails
+  val resolves: IdeResolution<Int>
+    get() = IdeResolution.Resolves { 0 }
 
-  object Empty : Assert()
-
-  interface Syntax {
-    val empty: Assert
-      get() = Empty
-    val fails: Assert
-      get() = IdeResolution.Fails
-    val resolves: Assert
-      get() = IdeResolution.Resolves<Int> { true }
-
-    fun <A> failsWith(f: (A) -> Boolean): Assert = IdeResolution.FailsWith(f)
-    fun <A> resolves(f: (A) -> Boolean): Assert = IdeResolution.Resolves(f)
-  }
+  fun <A> failsWith(transform: (A) -> A?): IdeResolution<A> = IdeResolution.FailsWith(transform)
+  fun <A> resolves(transform: (A) -> A?): IdeResolution<A> = IdeResolution.Resolves(transform)
 }
-
-
-// copied from testing-plugin couldn't import the project
-data class Source(val text: String)
-
-val String.source: Source get() = Source(this)
