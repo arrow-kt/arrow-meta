@@ -1,0 +1,29 @@
+title: Arrow Meta
+#-------------------------
+name: Λrrow Meta
+#-------------------------
+description: Arrow Meta is the functional companion to the Kotlin Compiler and its plugin ecosystem
+#-------------------------
+author: The Λrrow Authors
+keywords: functional-programming, kotlin-library, monads, monad-transformers, functional-data-structure, kotlin, fp-types, adt, free-monads, tagless-final, mtl, for-comprehension, category-theory
+#-------------------------
+url: https://meta.arrow-kt.io
+#-------------------------
+arrow_url: https://arrow-kt.io
+#-------------------------
+twitter_handle: "@arrow_kt"
+#-------------------------
+gitter_room: "arrow-kt/Lobby"
+#-------------------------
+markdown: kramdown
+sass:
+    style: compressed
+#-------------------------
+exclude: ['config.ru', 'Gemfile', 'Gemfile.lock', 'vendor', 'Procfile', 'Rakefile']
+#-------------------------
+defaults:
+  - scope:
+      path: "docs/apidocs"
+      type: "pages"
+    values:
+      layout: "docs"
