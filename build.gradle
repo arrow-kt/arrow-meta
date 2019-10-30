@@ -37,10 +37,6 @@ allprojects {
     jcenter()
   }
 
-  group = 'io.arrow-kt'
-
-  //When updating version it must be also changed in ArrowKotlinGradleSubplugin#VERSION
-  version = '0.0.1'
 }
 
 subprojects { project ->
@@ -99,9 +95,11 @@ task deployMeta {
 }
 
 task buildMeta {
+  dependsOn 'clean'
   dependsOn 'build'
   dependsOn 'deployMeta'
 
+  tasks.findByPath(':build').mustRunAfter 'clean'
   tasks.findByPath(':deployMeta').mustRunAfter 'build'
 }
 

@@ -267,7 +267,7 @@ Arrow-meta project is split into 4 packages:
 Quick start development environment:
 
 - Run `publishAndRunIde` Gradle task
-- Import sample project (https://github.com/jereksel/arrow-meta-example) in new IDE instance
+- Import sample project in new IDE instance
 
 When updating:
 - compiler-plugin: Run `deployMeta` Gradle task and refresh Gradle in second IDE instance

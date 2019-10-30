@@ -13,9 +13,9 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
  */
 class ArrowKotlinGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
   companion object {
-    private const val KOTLIN_ARTIFACT_NAME = "compiler-plugin"
+    private const val META_ARTIFACT_NAME = "compiler-plugin"
     private const val GROUP_ID = "io.arrow-kt"
-    private const val VERSION = "0.0.1"
+    private const val VERSION = "0.10.3-SNAPSHOT"
     private const val COMPILER_PLUGIN_ID = "arrow.meta.plugin.compiler"
   }
 
@@ -38,7 +38,7 @@ class ArrowKotlinGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
   }
 
   override fun getPluginArtifact(): SubpluginArtifact =
-      SubpluginArtifact(GROUP_ID, KOTLIN_ARTIFACT_NAME, VERSION)
+      SubpluginArtifact(GROUP_ID, META_ARTIFACT_NAME, VERSION)
 
   override fun getCompilerPluginId() = COMPILER_PLUGIN_ID
 }

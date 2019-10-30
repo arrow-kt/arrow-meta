@@ -1,5 +1,4 @@
 plugins {
-    id 'java-gradle-plugin'
     id 'maven-publish'
 }
 apply plugin: 'kotlin'
@@ -32,6 +31,14 @@ jar {
         attributes["Specification-Version"] = project.version
         attributes["Implementation-Title"] = "arrow.meta.plugin.compiler"
         attributes["Implementation-Version"] = project.version
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
     }
 }
 
