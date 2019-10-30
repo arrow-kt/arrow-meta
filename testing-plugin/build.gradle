@@ -63,3 +63,5 @@ jar {
         attributes["Implementation-Version"] = project.version
     }
 }
+
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'

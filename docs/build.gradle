@@ -1,0 +1,38 @@
+apply plugin: 'ank-gradle-plugin'
+apply plugin: 'kotlin-kapt'
+//apply plugin: 'org.ajoberstar.git-publish'
+
+dependencies {
+    compile project(':compiler-plugin')
+    compile project(':idea-plugin')
+//    compile project(':arrow-ank')
+//    compile group: 'io.arrow-kt', name: 'arrow-ank', version: '0.10.2'
+    compile "io.arrow-kt:arrow-ank:0.10.2"
+}
+
+task printcp {
+    doLast {
+        println sourceSets.main.runtimeClasspath.each { println it }
+    }
+}
+
+ank {
+    source = file("${projectDir}/docs")
+    target = file("${projectDir}/build/site")
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+//gitPublish {
+//    repoUri = 'git@github.com:arrow-kt/arrow.git'
+//    branch = 'gh-pages'
+//
+//    contents {
+//        from 'build/site'
+//    }
+//
+//    commitMessage = 'update site'
+//}
+
+compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
+
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'

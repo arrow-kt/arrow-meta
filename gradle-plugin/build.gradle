@@ -2,7 +2,6 @@ plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version "0.10.1"
-  id 'com.jfrog.bintray' version "1.8.4"
 }
 apply plugin: 'kotlin'
 
