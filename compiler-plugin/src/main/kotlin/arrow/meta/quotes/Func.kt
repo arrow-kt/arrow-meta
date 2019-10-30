@@ -13,12 +13,18 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
+/**
+ * A [KtNamedFunction] [Quote] with a custom template destructuring [FuncScope]
+ */
 fun Meta.func(
   match: KtNamedFunction.() -> Boolean,
   map: FuncScope.(KtNamedFunction) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
   quote(match, map) { FuncScope(it) }
 
+/**
+ * A template destructuring [Scope] for a [KtNamedFunction]
+ */
 class FuncScope(
   override val value: KtNamedFunction,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),

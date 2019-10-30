@@ -8,7 +8,6 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
 import kastree.ast.MutableVisitor
-import kastree.ast.Node
 import kastree.ast.Writer
 import kastree.ast.psi.Converter
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -23,7 +22,6 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
@@ -31,8 +29,51 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 /**
- * A declaration quasi quote matches tree in the synthetic resolution and gives
- * users the chance to transform them before they are processed by the Kotlin compiler.
+ * ### Quote Templates DSL
+ *
+ * Arrow Meta offers a high level DSL for compiler tree transformations.
+ * This DSL enables a compiler plugin to rewrite the user source code before is considered for compilation.
+ * These code transformations take the form of tree transformations.
+ *
+ * The Quote DSL accepts a filter function that will intercept any node during tree traversal based on a Boolean predicate.
+ * In the following example the Quote system matches all user declared `fun` named `"helloWorld"`.
+ * ```kotlin
+ * val Meta.helloWorld: Plugin get() =
+ *   "Hello World" {
+ *     meta(
+ *       func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}
+ *         ...
+ *       }
+ *     )
+ *   }
+ * ```
+ * Once we get a hold of the nodes that we want to intercept we can return the kind of [Transform] that we want to apply
+ * over the tree.
+ *
+ * In the example below we are using [replace] to change the intercepted function for a new declaration that when invoked prints `"Hello ΛRROW Meta!"`
+ *
+ * ```kotlin
+ * val Meta.helloWorld: Plugin get() =
+ *   "Hello World" {
+ *     meta(
+ *       func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}
+ *         Transform.replace(
+ *           replacing = c,
+ *           newDeclaration = """|fun helloWorld(): Unit =
+ *                               |  println("Hello ΛRROW Meta!")
+ *                               |""".function.synthetic
+ *         )
+ *       }
+ *     )
+ *   }
+ * ```
+ *
+ * The Quote system automatically takes care of the internal tree transformations necessary before feeding the new sources
+ * to the compiler.
+ *
+ * The [Quote] system acts as an intermediate layer between PSI Elements and AST Node type checking.
+ * More namely, A declaration quasi quote matches tree previous to the analysis and synthetic resolution and gives the
+ * compiler plugin the chance to transform the source tree before they are processed by the Kotlin compiler.
  */
 interface Quote<P : KtElement, K : KtElement, S> {
 
@@ -73,21 +114,6 @@ interface Quote<P : KtElement, K : KtElement, S> {
 
 }
 
-fun String.metaUniqueReplacementId(): String =
-  randomAlphaNumeric(length)
-
-private val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-fun randomAlphaNumeric(count: Int): String {
-  var count = count
-  val builder = StringBuilder()
-  while (count-- != 0) {
-    val character = (Math.random() * chars.length).toInt()
-    builder.append(chars[character])
-  }
-  return builder.toString()
-}
-
-
 class QuoteFactory<K : KtElement, S : Scope<K>>(
   val transform: (K) -> S
 ) : Quote.Factory<KtElement, K, S> {
@@ -124,7 +150,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
   noinline map: S.(K) -> Transform<K>
 ): ExtensionPhase =
   cli {
-    analysys(
+    analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         files as ArrayList
         println("START quote.doAnalysis: $files")
@@ -205,12 +231,6 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
       ).process(element as K)
       transformation?.let { mutations.add(it) }
     }
-//    file.accept(object : MetaTreeVisitor() {
-//      override fun visitKtElement(element: KtElement) {
-//
-//        return super.visitKtElement(element)
-//      }
-//    })
   }
   return file to mutations
 }
@@ -269,37 +289,6 @@ fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Tra
   }
   return Writer.write(dummyFile)
 }
-
-fun <K : KtElement> KtFile.sourceWithTransformations(mutations: ArrayList<Transform<K>>): String? {
-  val (taggedSource, replacements) =
-    mutations.fold(text to emptyList<Transform<K>>()) { (source, taggedReplacements), quoteResult ->
-      when (quoteResult) {
-        is Transform.Replace -> {
-          quoteResult.replacing.text?.metaUniqueReplacementId()?.let { replacementId ->
-            quoteResult.replacing.textRange?.replace(source, replacementId)?.let { newSource ->
-              val replacement = quoteResult.copy(replacementId = replacementId)
-              newSource to (taggedReplacements + replacement)
-            }
-          } ?: text to emptyList()
-        }
-        is Transform.Empty -> source to emptyList()
-      }
-    }
-  val replacedSource =
-    replacements.fold(taggedSource) { source, quoteResult ->
-      when (quoteResult) {
-        is Transform.Replace -> {
-          quoteResult.replacementId?.let { replacementId ->
-            quoteResult.replacing.textRange?.replace(text, replacementId)
-              ?.replaceFirst(replacementId, quoteResult.newDeclarations.joinToString("\n\n"))
-          }
-        }
-        is Transform.Empty -> text
-      }
-    }
-  return replacedSource
-}
-
 
 fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {
   val fileIndex = indexOf(file)
