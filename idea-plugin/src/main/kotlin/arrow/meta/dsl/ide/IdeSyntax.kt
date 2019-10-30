@@ -17,6 +17,14 @@ import arrow.meta.dsl.ide.editor.syntaxHighlighter.SyntaxHighlighterExtensionPro
 import arrow.meta.dsl.ide.editor.usage.UsageSyntax
 import arrow.meta.dsl.ide.extensions.ExtensionProviderSyntax
 
+/**
+ * The IDE DSL empowers library and compiler plugin authors to bring their features closer to the development experience.
+ * Arrow Meta allows sharing the compiler plugin code with the IDE code so developers can reuse their compiler plugin
+ * functions in their IDE plugin.
+ *
+ * The Arrow Meta IDE DSL models the entire set of interesting features the Kotlin IDE plugin offers and the IDEA plugin
+ * system exposes to interface with the editor.
+ */
 interface IdeSyntax : IntentionExtensionProviderSyntax, IconProviderSyntax,
   SyntaxHighlighterExtensionProviderSyntax, InspectionSyntax, AnActionSyntax, ColorSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,

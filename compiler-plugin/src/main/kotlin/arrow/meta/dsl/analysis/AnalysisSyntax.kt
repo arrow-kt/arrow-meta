@@ -24,7 +24,18 @@ import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
 import java.util.ArrayList
 
+/**
+ * The Analysis phase determines if the parsed AST type checks and resolves properly.
+ * As part of this phase we have access to events happening before and after resolution.
+ * Before resolution we are giving the chance to modify the compiler trees in the form of `KtElement` via
+ * the [Quote Template System].
+ */
 interface AnalysisSyntax {
+
+  /**
+   * [additionalSources] is a function that is invoked before resolution and allows us to provide an additional set of [KtFile] files.
+   * These files will be considered as part of the compilation unit alongside the user sources.
+   */
   fun additionalSources(
     collectAdditionalSourcesAndUpdateConfiguration: CompilerContext.(knownSources: Collection<KtFile>, configuration: CompilerConfiguration, project: Project) -> Collection<KtFile>
   ): CollectAdditionalSources =
@@ -33,7 +44,13 @@ interface AnalysisSyntax {
         collectAdditionalSourcesAndUpdateConfiguration(knownSources, configuration, project)
     }
 
-  fun analysys(
+  /**
+   * The [analysis] function allows us to intercept analysis before and after it happens altering the analysis input and outputs.
+   * Altering the inputs on @doAnalysis allows us to modify the compiler trees in the AST before they are considered for resolution.
+   * This allows us to build the [Quote] in this phase which is Arrow meta's higher level API.
+   * Altering the output with [analysisCompleted] allows us to modify the binding trace and all elements resulting from analysis.
+   */
+  fun analysis(
     doAnalysis: CompilerContext.(project: Project, module: ModuleDescriptor, projectContext: ProjectContext, files: Collection<KtFile>, bindingTrace: BindingTrace, componentProvider: ComponentProvider) -> AnalysisResult?,
     analysisCompleted: CompilerContext.(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>) -> AnalysisResult?
   ): AnalysisHandler =
@@ -75,16 +92,28 @@ interface AnalysisSyntax {
         createPreprocessedLightFile(file)
     }
 
+  /**
+   * The [extraImports] function allows the user to provide an additional set of [org.jetbrains.kotlin.psi.KtImportInfo] imports for
+   * each individual [KtFile] considered as sources.
+   * This additional set of imports are taken into account when resolving symbols in the resolution phase of a [KtFile].
+   */
   fun extraImports(extraImports: CompilerContext.(ktFile: KtFile) -> Collection<KtImportInfo>): ExtraImports =
     object : ExtraImports {
       override fun CompilerContext.extraImports(ktFile: KtFile): Collection<KtImportInfo> =
         extraImports(ktFile)
     }
 
+  /**
+   * The [suppressDiagnostic] function allows to selectively determine whether a diagnostic emitted by the compiler affects compilation.
+   * As the compiler performs resolution it will generate diagnostic of type [Diagnostic] with different [Severity] levels:
+   * [Severity.INFO] [Severity.ERROR] and [Severity.WARNING].
+   * When the [suppressDiagnostic] returns [true] the emitted diagnostic is suppressed and removed from the [BindingTrace].
+   * This will cause the [Diagnostic] to not be considered in further compilation phases.
+   */
   @Suppress("UNCHECKED_CAST")
   fun suppressDiagnostic(f: (Diagnostic) -> Boolean): ExtensionPhase =
     cli {
-      analysys(
+      analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
           null
         },
