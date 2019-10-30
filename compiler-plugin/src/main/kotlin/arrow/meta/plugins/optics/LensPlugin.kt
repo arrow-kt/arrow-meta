@@ -34,7 +34,7 @@ val Meta.lenses: Plugin
             newDeclaration =
             if (c.companionObjects.isEmpty())
               """|
-                 |$modality $visibility data $kind $name($`(valueParameters)`) {
+                 |$kind $name $`(valueParameters)` {
                  |  
                  |  companion object {
                  |    ${lenses(this)}
@@ -43,7 +43,7 @@ val Meta.lenses: Plugin
                  |}""".`class`
             else
               """
-                 |$modality $visibility data $kind $name($`(valueParameters)`) {
+                 |$kind $name $`(valueParameters)` {
                  |  ${body.value?.addDeclarationToBody(lenses = lenses(this))}
                  |  
                  |}""".`class`
