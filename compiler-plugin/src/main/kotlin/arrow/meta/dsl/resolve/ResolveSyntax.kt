@@ -34,6 +34,12 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import java.util.*
 
+/**
+ * The Resolve phase is in charge of providing the meaning of the Kotlin Language to the structured trees discovered by the Kotlin parser.
+ * Right up until [Analysis] we are just working with a tree structure, the AST.
+ * In resolution we proceed to type-check the AST and all its expressions associating each of them to a [DeclarationDescriptor].
+ * A [DeclarationDescriptor] is a model that contains the type and kotlin structure as it understands our sources in the AST.
+ */
 interface ResolveSyntax {
   fun declarationAttributeAlterer(
     refineDeclarationModality: CompilerContext.(modifierListOwner: KtModifierListOwner, declaration: DeclarationDescriptor?, containingDeclaration: DeclarationDescriptor?, currentModality: Modality, bindingContext: BindingContext, isImplicitModality: Boolean) -> Modality?
@@ -57,6 +63,11 @@ interface ResolveSyntax {
         )
     }
 
+  /**
+   * The [packageFragmentProvider] function allows us to provide synthetic descriptors for declarations of a [PackageFragmentDescriptor].
+   * A [PackageFragmentDescriptor] holds all the information about declared members in a package fragment such as top
+   * level typealiases, functions, properties and `class` like constructs like `object` and `interface`.
+   */
   fun packageFragmentProvider(getPackageFragmentProvider: CompilerContext.(project: Project, module: ModuleDescriptor, storageManager: StorageManager, trace: BindingTrace, moduleInfo: ModuleInfo?, lookupTracker: LookupTracker) -> PackageFragmentProvider?): PackageProvider =
     object : PackageProvider {
       override fun CompilerContext.getPackageFragmentProvider(
@@ -77,6 +88,13 @@ interface ResolveSyntax {
         )
     }
 
+  /**
+   * The [syntheticScopes] function encapsulates a powerful interface that lets you peak and modify the resolution scope of
+   * constructors, extension functions, properties and static functions.
+   * Altering the synthetic scope we can provide our own descriptors to IntelliJ.
+   * These descriptors are required for IntelliJ IDEA to enable synthetic generated code that is required by IDE features such
+   * as autocompletion and code refactoring.
+   */
   fun syntheticScopes(
     syntheticConstructor: CompilerContext.(constructor: ConstructorDescriptor) -> ConstructorDescriptor? = Noop.nullable2(),
     syntheticConstructors: CompilerContext.(scope: ResolutionScope) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
@@ -119,6 +137,14 @@ interface ResolveSyntax {
       }
     } ?: ExtensionPhase.Empty
 
+  /**
+   * The [syntheticResolver] extension allows the user to change the top level class and nested class descriptors
+   * requested by IntelliJ and some parts of the CLI compiler.
+   * This interface will be incomplete if your plugin is producing top level declarations that are typealiases,
+   * functions or properties.
+   * For the above cases we would need to combine it or entirely replace it with a [packageFragmentProvider]
+   * which can provide descriptors for those top level declarations.
+   */
   fun syntheticResolver(
     addSyntheticSupertypes: CompilerContext.(thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>) -> Unit = Noop.effect3,
     /**

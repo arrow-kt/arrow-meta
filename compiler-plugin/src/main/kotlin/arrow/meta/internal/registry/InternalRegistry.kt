@@ -591,32 +591,10 @@ interface InternalRegistry : ConfigSyntax {
   }
 
   fun registerKindAwareTypeChecker(): StorageComponentContainer =
-    storageComponent(
-      registerModuleComponents = { container, moduleDescriptor ->
-        val defaultTypeChecker = KotlinTypeChecker.DEFAULT
-        if (defaultTypeChecker !is KindAwareTypeChecker) { //nasty hack ahead to circumvent the ability to replace the Kotlin type checker
-          val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-          setFinalStatic(defaultTypeCheckerField, KindAwareTypeChecker(defaultTypeChecker))
-        }
-      },
-      check = { _, _, _ ->
-      }
-    )
-
-  /**
-   * The nastier bits
-   */
-  @Throws(Exception::class)
-  private fun setFinalStatic(field: Field, newValue: Any) {
-    field.isAccessible = true
-
-    val modifiersField = Field::class.java.getDeclaredField("modifiers")
-    modifiersField.isAccessible = true
-    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
-
-    field.set(null, newValue)
-  }
-
+    typeChecker {
+      if (it !is KindAwareTypeChecker) KindAwareTypeChecker(it)
+      else it
+    }
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(
@@ -628,4 +606,18 @@ interface InternalRegistry : ConfigSyntax {
     )
 
   fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit {}
+}
+
+/**
+ * The nastier bits
+ */
+@Throws(Exception::class)
+internal fun setFinalStatic(field: Field, newValue: Any) {
+  field.isAccessible = true
+
+  val modifiersField = Field::class.java.getDeclaredField("modifiers")
+  modifiersField.isAccessible = true
+  modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+
+  field.set(null, newValue)
 }
