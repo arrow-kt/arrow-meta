@@ -11,10 +11,8 @@ dependencies {
     testImplementation project(":testing-plugin")
     testRuntimeOnly project(":compiler-plugin")
 
-    // TODO: waiting for an Arrow release in Maven Central
-    // testRuntimeOnly "io.arrow-kt:arrow-annotations:x.x.x"
-    testRuntimeOnly "com.github.arrow-kt.arrow:arrow-annotations:rr-meta-prototype-integration-SNAPSHOT"
-    testRuntimeOnly "io.arrow-kt:arrow-core-data:0.10.2"
+    testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
+    testRuntimeOnly "io.arrow-kt:arrow-core-data:$VERSION_NAME"
 }
 
 compileKotlin {
@@ -54,6 +52,7 @@ repositories {
 
 test {
   testLogging.showStandardStreams = true
+  systemProperty "CURRENT_VERSION", "$VERSION_NAME"
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
