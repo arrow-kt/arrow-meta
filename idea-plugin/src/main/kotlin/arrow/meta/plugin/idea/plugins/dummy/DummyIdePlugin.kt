@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.util.ReturnsCheck
 
 /**
- * Unrelated to [arrow.meta.plugins.dummy.dummy]
+ * Unrelated to [arrow.meta.plugins.helloWorld.helloWorld]
  */
 val IdeMetaPlugin.dummyIdePlugin: Plugin
   get() = "DummyIdePlugin" {

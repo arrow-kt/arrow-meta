@@ -52,17 +52,18 @@ sealed class Assert {
   sealed class CompilationResult : Assert() {
     object Compiles : CompilationResult()
     object Fails : CompilationResult()
-    data class FailsWith(val f: (String) -> Boolean) : Assert()
   }
 
   object Empty : Assert()
   data class QuoteOutputMatches(val source: Source) : Assert()
   data class EvalsTo(val source: Source, val output: Any?) : Assert()
+  data class FailsWith(val f: (String) -> Boolean) : Assert()
+
   interface Syntax {
     val emptyAssert: Assert
     val compiles: Assert
     val fails: Assert
-    fun failsWith(f: (String) -> Boolean): Assert = Assert.CompilationResult.FailsWith(f)
+    fun failsWith(f: (String) -> Boolean): Assert = FailsWith(f)
     fun quoteOutputMatches(source: Source): Assert = QuoteOutputMatches(source)
     infix fun Source.evalsTo(value: Any?): Assert = EvalsTo(this, value)
     val String.source: Source get() = Source(this)
