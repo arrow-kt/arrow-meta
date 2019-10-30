@@ -3,11 +3,19 @@ plugins {
   id 'maven-publish'
   id 'com.gradle.plugin-publish' version "0.10.1"
 }
+
+repositories {
+  maven { url "https://kotlin.bintray.com/kotlinx" }
+  maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
+  mavenCentral()
+  jcenter()
+}
+
 apply plugin: 'kotlin'
 
-project.group = 'io.arrow-kt'
-project.version = '0.0.1'
-def pluginId = "arrow.meta.plugin.gradle"
+group = 'io.arrow-kt'
+version = '0.10.2'
+def pluginId = 'io.arrow-kt.arrow'
 
 dependencies {
   implementation gradleApi()
@@ -52,18 +60,17 @@ gradlePlugin {
 
 pluginBundle {
   website = "http://arrow-kt.io/"
-  vcsUrl = "https://github.com/47deg/arrow-meta-prototype.git"
+  vcsUrl = "https://github.com/arrow-kt/arrow-meta"
   description = "The Arrow compiler plugin."
   tags = ["kotlin", "compiler", "arrow", "plugin", "meta"]
 
   plugins {
     arrow {
-      id = pluginId
       displayName = "Arrow compiler plugin"
     }
   }
 
   mavenCoordinates {
-    groupId = pluginId
+    groupId = 'arrow.meta.plugin.gradle'
   }
 }
