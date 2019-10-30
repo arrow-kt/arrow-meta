@@ -13,8 +13,8 @@ interface IdeTestTypeSyntax {
   /**
    * LightTests run headless ide instances
    */
-  fun <R> lightTest(f: LightTestSyntax.() -> R): Unit =
-    assertNotNull("LightTests are run within Ide Environments", ide { f(LightTestSyntax) })
+  fun <R> lightTest(f: LightTestSyntax.() -> R): R? =
+    ide { f(LightTestSyntax) }
 
   /**
    * HeavyTests run for each Test a full idea instance, thus are very slow, but perfect to

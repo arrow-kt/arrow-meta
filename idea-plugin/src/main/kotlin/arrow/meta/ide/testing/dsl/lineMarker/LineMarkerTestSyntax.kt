@@ -9,31 +9,31 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.junit.Assert
 import javax.swing.Icon
 
-data class IconDescription(val icon: Icon, val name: String)
+data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>>?, val slowLM: List<LineMarkerInfo<PsiElement>>?)
 
 interface LineMarkerTestSyntax {
+
   fun IdeTestSyntax.testLineMarkers(
     code: Source,
-    icon: IconDescription,
+    icon: Icon,
     slowLM: (List<LineMarkerInfo<PsiElement>>) -> List<LineMarkerInfo<PsiElement>>?,
-    lm: (List<LineMarkerInfo<PsiElement>>) -> List<LineMarkerInfo<PsiElement>>?): Unit =
-    availableLM(code, icon.icon) { psi ->
-      Assert.assertNotNull("SlowLineMarkerTest for ${icon.name} failed", slowLM(psi.collectSlowLM(icon.icon)))
-      Assert.assertNotNull("LineMarkerTest for ${icon.name} failed", lm(psi.collect(icon.icon)))
+    lm: (List<LineMarkerInfo<PsiElement>>) -> List<LineMarkerInfo<PsiElement>>?): List<LineMarkerDescription> =
+    availableLM(code, icon) { psi: PsiElement ->
+      LineMarkerDescription(lm(psi.collect(icon)), slowLM(psi.collectSlowLM(icon)))
     }
 
-  fun IdeTestSyntax.availableLM(code: Source, icon: Icon, f: LineMarkerTestSyntax.(PsiElement) -> Unit): Unit =
+  fun <R> IdeTestSyntax.availableLM(code: Source, icon: Icon, f: LineMarkerTestSyntax.(PsiElement) -> R): List<R> =
     lightTest {
-      code.sequence { psi ->
-        psi.firstChild?.let { first ->
-          SyntaxTraverser.psiTraverser().children(PsiTreeUtil.getDeepestFirst(first))
-            .filter { IdeUtils.isNotNull(it.firstChild) }.forEach { f(this@LineMarkerTestSyntax, it) }
-        } ?: f(this@LineMarkerTestSyntax, psi)
-      }
-    }
+      code.traverse { psi: PsiElement ->
+        psi.firstChild?.let { first: PsiElement ->
+          SyntaxTraverser.psiTraverser().children(PsiTreeUtil.getDeepestFirst(first)).toList()
+            .filter { it != null && IdeUtils.isNotNull(it.firstChild) }
+            .map { f(this@LineMarkerTestSyntax, it) }
+        } ?: listOf(f(this@LineMarkerTestSyntax, psi))
+      }.flatten()
+    } ?: emptyList()
 
   fun PsiElement.collect(icon: Icon): List<LineMarkerInfo<PsiElement>> =
     LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)

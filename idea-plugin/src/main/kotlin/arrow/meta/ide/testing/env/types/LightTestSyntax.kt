@@ -1,5 +1,7 @@
 package arrow.meta.ide.testing.env.types
 
+import arrow.meta.ide.dsl.utils.toNotNullable
+import arrow.meta.ide.testing.Source
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
@@ -11,15 +13,15 @@ object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
    * Parses the code defined by in it's [receiver] and traverses each
    * PsiElement marked by [match] with function [f]
    * Look up is case-insensitive.
+   * Please check if the PsiFile has to be configured in each loop check out PR #6
    */
-  fun <R> String.sequence(match: String = "<caret>", f: (PsiElement) -> R): Unit =
+  fun <R> Source.traverse(match: String = "<caret>", f: (PsiElement) -> R): List<R> =
     StringBuilder(this).run {
-      filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i }).forEach { index ->
-        // reparse file for each offset to allow side-effects in tests
-        // and to keep myFixture up-to-date
-        val psiFile: PsiFile? = myFixture.configureByText(KotlinFileType.INSTANCE, toString())
+      val psiFile: PsiFile? = myFixture.configureByText(KotlinFileType.INSTANCE, toString())
+      filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i }).map { index ->
+        // reparse file for each offset keep myFixture up-to-date
         psiFile?.findElementAt(index)?.let(f)
-      }
+      }.toNotNullable()
     }
 
   tailrec fun <R> StringBuilder.filterFold(

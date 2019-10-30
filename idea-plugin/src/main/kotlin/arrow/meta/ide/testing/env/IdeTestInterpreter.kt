@@ -1,22 +1,13 @@
 package arrow.meta.ide.testing.env
 
 import arrow.meta.ide.testing.IdeTest
+import arrow.meta.ide.testing.IdeTestEnvironment
+import org.junit.Assert
 
-fun <A> IdeTest<A>.runTest(): Unit = interpreter(this)
+fun <A> IdeTest<A>.runTest(interpreter: (IdeTest<A>) -> Unit = ::interpreter): Unit =
+  interpreter(this)
 
-fun <A> interpreter(test: IdeTest<A>): Unit = TODO()
-
-/*
-
-private fun <A> assertResolves(compilationResult: Assert.IdeResolution<A>): Unit {
-  assertThat(compilationResult.actualStatus).isEqualTo(IdeRes)
+fun <A> interpreter(test: IdeTest<A>): Unit {
+  val result: A = test.test(IdeTestEnvironment, test.code)
+  Assert.assertNotNull(test.result.message, test.result.transform(result))
 }
-
-private fun assertFails(compilationResult: CompilationResult): Unit {
-  assertThat(compilationResult.actualStatus).isNotEqualTo(CompilationStatus.OK)
-}
-
-private fun assertFailsWith(compilationResult: CompilationResult, check: (String) -> Boolean): Unit {
-  assertFails(compilationResult)
-  assertThat(check(compilationResult.log)).isTrue()
-}*/

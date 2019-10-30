@@ -1,15 +1,19 @@
 package arrow.meta.ide.testing.dsl.icon
 
+import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestTypeSyntax
 import com.intellij.openapi.util.Iconable
 import org.junit.Assert
+import javax.swing.Icon
+
+data class IconDescription(val name: String, val icon: Icon)
 
 interface IconProviderTestSyntax {
 
-  fun IdeTestTypeSyntax.test(code: String) =
+  fun IdeTestTypeSyntax.test(code: Source) =
     lightTest {
       // former IdeHigherKindsTestCode.
-      code.sequence { psi ->
+      code.traverse { psi ->
         // most implementations of PsiElement, including the default implementation,
         // retrieve the return value of getIcon() from the registered IconProviders.
         val icon = psi.getIcon(Iconable.ICON_FLAG_VISIBILITY)

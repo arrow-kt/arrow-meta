@@ -2,6 +2,7 @@ package arrow.meta.ide.testing.dsl.lineMarker
 
 /*
 import arrow.meta.ide.resources.ArrowIcons
+import arrow.meta.ide.testing.env.types.LightTestSyntax
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement

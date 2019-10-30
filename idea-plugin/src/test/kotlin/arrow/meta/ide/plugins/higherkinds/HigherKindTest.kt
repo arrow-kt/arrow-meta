@@ -2,30 +2,33 @@ package arrow.meta.ide.plugins.higherkinds
 
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.dsl.lineMarker.IconDescription
 import arrow.meta.ide.testing.env.runTest
-import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.psi.PsiElement
+import arrow.meta.ide.testing.resolves
 import org.junit.Test
 
 class HigherKindTest {
   @Test
   fun `LM Test`() =
-    IdeTest<Int>(
+    IdeTest(
       code = HigherKindsTestCode.code,
       test = { code ->
-        testLineMarkers(code, IconDescription(ArrowIcons.HKT, "HKT LineMarker"),
-          slowLM = { slow: List<LineMarkerInfo<PsiElement>> ->
-            slow.takeIf { it.isEmpty() }
-          },
-          lm = { lm: List<LineMarkerInfo<PsiElement>> ->
+        testLineMarkers(
+          code,
+          ArrowIcons.HKT,
+          lm = { lm ->
             lm.takeIf { it.size == 1 }
-          })
+          },
+          slowLM = { slowLm ->
+            slowLm.takeIf { it.isEmpty() }
+          }
+        )
       },
-      result = {
-        resolves
+      result = resolves("LineMarker Test") { lmDescription ->
+        lmDescription.takeIf {
+          it.all { (line, slow) ->
+            line != null && line.isNotEmpty()
+          }
+        }
       }
     ).runTest()
-
-
 }
