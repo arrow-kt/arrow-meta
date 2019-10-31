@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
 // TODO no actual tests here, but unit testing will need to be written for the proof extensions and so on
-// focus for now is just creating an IR tree dump and seeing what gets spit out
+// TODO focus for now is just creating an IR tree dump and seeing what gets spit out
 class EqOperatorTest {
 
   companion object {
@@ -48,12 +48,11 @@ class EqOperatorTest {
   @Test
   fun `simple_case_function`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:0.10.3-SNAPSHOT")
-    val arrowCoreData = Dependency("arrow-core-data:0.10.3-SNAPSHOT")
+    val arrowCoreData = Dependency("arrow-core-data:${System.getProperty("CURRENT_VERSION")}")
 
     assertThis(CompilerTest(
       config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations + arrowCoreData)
+        addCompilerPlugins(compilerPlugin) + addDependencies(arrowCoreData)
       },
       code = {
         """
