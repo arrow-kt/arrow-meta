@@ -9,9 +9,10 @@ on:
     # When following these names for our internal branches,
     # twice executions (push and pull_request) will be avoided
     branches-ignore:
-      - fix/*
-      - feature/*
-      - doc/*
+      - 'fix*'
+      - 'feature*'
+      - 'doc*'
+      - 'release*'
 
 jobs:
   build:
