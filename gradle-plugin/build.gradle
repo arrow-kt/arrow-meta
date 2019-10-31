@@ -15,6 +15,7 @@ apply plugin: 'kotlin'
 
 group = 'io.arrow-kt'
 version = '0.10.3-rc-1'
+
 def pluginId = 'io.arrow-kt.arrow'
 
 dependencies {
