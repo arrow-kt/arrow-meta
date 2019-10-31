@@ -8,6 +8,9 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
  */
 class MetaCliProcessor : CommandLineProcessor {
 
+  /**
+   * The Arrow Meta Compiler Plugin Id
+   */
   override val pluginId: String = "arrow.meta.plugin.compiler"
 
   override val pluginOptions: Collection<CliOption> = emptyList()

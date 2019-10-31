@@ -1,4 +1,4 @@
-package kastree.ast
+package arrow.meta.internal.kastree.ast
 
 open class Writer(
   val app: Appendable = StringBuilder(),

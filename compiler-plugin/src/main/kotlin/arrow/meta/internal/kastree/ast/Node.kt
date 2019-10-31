@@ -1,4 +1,4 @@
-package kastree.ast
+package arrow.meta.internal.kastree.ast
 
 const val COMMAND_PREFIX = "//meta"
 
