@@ -10,6 +10,10 @@ import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.storage.StorageManager
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.resolve.ResolveSyntax.packageFragmentProvider]
+ */
 interface PackageProvider : ExtensionPhase {
   fun CompilerContext.getPackageFragmentProvider(
     project: Project,

@@ -7,6 +7,10 @@ import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.codegen.asm.AsmSyntax]
+ */
 interface Codegen : ExtensionPhase {
   fun CompilerContext.applyFunction(
     receiver: StackValue,

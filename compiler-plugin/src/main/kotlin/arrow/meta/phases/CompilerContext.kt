@@ -10,6 +10,10 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
+/**
+ * The Compiler Context represents the environment received by all plugins.
+ * The Compiler Context will get more services as they become relevant overtime to the development of compiler plugins.
+ */
 class CompilerContext(
   val project: Project,
   val messageCollector: MessageCollector?,
