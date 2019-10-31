@@ -1,10 +1,15 @@
 options:
-  - title: API Docs
+
+  - title: Quick Start
 
     nested_options:
 
       - title: Index
-        url: /docs/apidocs/docs/
+        url: /docs/
+
+  - title: API Docs
+
+    nested_options:
 
       - title: Compiler plugin
         url: /docs/apidocs/compiler-plugin/
