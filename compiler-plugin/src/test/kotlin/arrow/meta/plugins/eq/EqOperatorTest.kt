@@ -1,8 +1,9 @@
 package arrow.meta.plugins.eq
 
+import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.comprehensions.ComprehensionsTest
 import org.junit.Test
 
 // TODO no actual tests here, but unit testing will need to be written for the proof extensions and so on
@@ -33,15 +34,20 @@ class EqOperatorTest {
 
   @Test
   fun `simple_case_function`() {
+    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
+    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
+    val arrowCoreData = Dependency("arrow-core-data:0.10.2")
+
     assertThis(CompilerTest(
       config = {
-        listOf(addCompilerPlugins(ComprehensionsTest.compilerPlugin))
+        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
       },
       code = {
         """
-        | object Id
+        | import arrow.core.extensions.*
         | 
-        | @extension
+        | object Id
+        |
         | fun IdEq() : Eq<Id> = Id.eq().run {
         |   Id.eqv(Id)
         | }
