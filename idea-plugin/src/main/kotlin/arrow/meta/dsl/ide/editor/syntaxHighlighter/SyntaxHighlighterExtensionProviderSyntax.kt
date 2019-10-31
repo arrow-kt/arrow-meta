@@ -1,6 +1,5 @@
 package arrow.meta.dsl.ide.editor.syntaxHighlighter
 
-import arrow.meta.dsl.platform.ideRegistry
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
 import com.intellij.lexer.Lexer
