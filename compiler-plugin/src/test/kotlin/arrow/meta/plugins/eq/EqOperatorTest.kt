@@ -32,17 +32,33 @@ class EqOperatorTest {
       """
   }
 
+  /**
+   * The testing framework [CompilerTest] will require dependencies for its configurations
+   * and imports in the string source code itself. For example, in order for this test to be
+   * able to successfully compile [Eq] in Arrow, we look for the location of the file in the project:
+   *
+   *  `./modules/core/arrow-core-data/src/main/kotlin/arrow/typeclasses/Eq.kt`
+   *
+   *  The dependency needed to be added to the [CompilerTest] then is `arrow-core-data`, and
+   *  the import is `arrow.typeclasses.Eq`.
+   *
+   *  The latest versions of these dependencies can be located in gradle.properties of Arrow.
+   */
+
   @Test
   fun `simple_case_function`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
     val arrowAnnotations = Dependency("arrow-annotations:0.10.3-SNAPSHOT")
+    val arrowCoreData = Dependency("arrow-core-data:0.10.3-SNAPSHOT")
 
     assertThis(CompilerTest(
       config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations)
+        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations + arrowCoreData)
       },
       code = {
         """
+        | import arrow.typeclasses.Eq
+        |
         | object Id
         |
         | fun IdEq() : Eq<Id> = Id.eq().run {
