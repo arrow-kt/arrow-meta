@@ -1,4 +1,4 @@
-package kastree.ast
+package arrow.meta.internal.kastree.ast
 
 interface ExtrasMap {
   fun extrasBefore(v: Node): List<Node.Extra>

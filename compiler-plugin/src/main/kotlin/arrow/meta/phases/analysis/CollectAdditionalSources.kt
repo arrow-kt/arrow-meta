@@ -6,6 +6,10 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.analysis.AnalysisSyntax.additionalSources]
+ */
 interface CollectAdditionalSources : ExtensionPhase {
   fun CompilerContext.collectAdditionalSourcesAndUpdateConfiguration(
     knownSources: Collection<KtFile>,

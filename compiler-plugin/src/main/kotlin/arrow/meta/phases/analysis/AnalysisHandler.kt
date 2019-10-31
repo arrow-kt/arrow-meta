@@ -10,6 +10,10 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingTrace
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.analysis.AnalysisSyntax.analysis]
+ */
 interface AnalysisHandler : ExtensionPhase {
   fun CompilerContext.doAnalysis(
     project: Project,

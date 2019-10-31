@@ -6,6 +6,10 @@ import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.resolve.BindingContext
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.codegen.ir.IrSyntax]
+ */
 interface IRGeneration : ExtensionPhase {
 
   fun CompilerContext.generate(

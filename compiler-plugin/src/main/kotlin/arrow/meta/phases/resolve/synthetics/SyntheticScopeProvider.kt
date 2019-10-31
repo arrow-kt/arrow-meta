@@ -10,6 +10,10 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.types.KotlinType
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.resolve.ResolveSyntax.syntheticScopes]
+ */
 interface SyntheticScopeProvider : ExtensionPhase {
   fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor?
   fun CompilerContext.syntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor>

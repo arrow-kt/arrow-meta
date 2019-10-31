@@ -64,6 +64,9 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.resolve.ImportPath
 
+/**
+ * Default impl for element scopes based on the [KtPsiFactory]
+ */
 class DefaultElementScope(project: Project) : ElementScope {
 
   private val delegate = KtPsiFactory(project)

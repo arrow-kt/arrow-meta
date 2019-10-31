@@ -1,4 +1,4 @@
-package kastree.ast.psi
+package arrow.meta.internal.kastree.ast.psi
 
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment

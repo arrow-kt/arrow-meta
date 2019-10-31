@@ -44,46 +44,6 @@ class IrUtils(
   val compilerContext: CompilerContext
 ) {
 
-  private val psi2IrTranslator: Psi2IrTranslator = Psi2IrTranslator(LanguageVersionSettingsImpl.DEFAULT, Psi2IrConfiguration(ignoreErrors = true))
-  private val generatorContext: GeneratorContext =
-    psi2IrTranslator.createGeneratorContext(compilerContext.module, compilerContext.componentProvider.get<LazyClassContext>().trace.bindingContext)
-  private val declarationGenerator: DeclarationGenerator =
-    DeclarationGenerator(generatorContext)
-
-  fun irBody(ownerSymbol: IrSymbol, code: String): IrBody =
-    declarationGenerator.createBodyGenerator(ownerSymbol).generateExpressionBody(
-      compilerContext.ktPsiElementFactory.createExpression(code)
-    )
-
-  private fun packageSyntheticDeclaration(
-    packageDescriptor: PackageViewDescriptor
-  ): KtPureClassOrObject =
-    object : KtPureClassOrObject {
-      override fun getName(): String? = packageDescriptor.name.asString()
-      override fun isLocal(): Boolean = false
-
-      override fun getDeclarations(): List<KtDeclaration> = emptyList()
-      override fun getSuperTypeListEntries(): List<KtSuperTypeListEntry> = emptyList()
-      override fun getCompanionObjects(): List<KtObjectDeclaration> = emptyList()
-
-      override fun hasExplicitPrimaryConstructor(): Boolean = false
-      override fun hasPrimaryConstructor(): Boolean = false
-      override fun getPrimaryConstructor(): KtPrimaryConstructor? = null
-      override fun getPrimaryConstructorModifierList(): KtModifierList? = null
-      override fun getPrimaryConstructorParameters(): List<KtParameter> = emptyList()
-      override fun getSecondaryConstructors(): List<KtSecondaryConstructor> = emptyList()
-
-      override fun getPsiOrParent(): KtElement = (packageDescriptor.findPsi() ?: parent!!) as KtElement
-      override fun getParent(): PsiElement? = packageDescriptor.parents.first().findPsi()
-      @Suppress("USELESS_ELVIS")
-      override fun getContainingKtFile(): KtFile =
-        // in theory `containingKtFile` is `@NotNull` but in practice EA-114080
-        psiOrParent.containingKtFile
-          ?: throw IllegalStateException("containingKtFile was null for $parent of ${parent?.javaClass}")
-
-      override fun getBody(): KtClassBody? = null
-    }
-
   fun IrFunctionAccessExpression.defaultValues(): List<String> =
     symbol.descriptor.valueParameters
       .mapNotNull { it.findPsi() as? KtParameter }
