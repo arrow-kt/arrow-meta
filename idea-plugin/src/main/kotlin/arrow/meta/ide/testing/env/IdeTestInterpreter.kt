@@ -7,7 +7,9 @@ import org.junit.Assert
 fun <A> IdeTest<A>.runTest(interpreter: (IdeTest<A>) -> Unit = ::interpreter): Unit =
   interpreter(this)
 
-fun <A> interpreter(test: IdeTest<A>): Unit {
-  val result: A = test.test(IdeTestEnvironment, test.code)
-  Assert.assertNotNull(test.result.message, test.result.transform(result))
+fun <A> IdeTest<A>.testResult(): A? =
+  result.transform(test(IdeTestEnvironment, code))
+
+fun <A> interpreter(ideTest: IdeTest<A>): Unit {
+  Assert.assertNotNull(ideTest.result.message, ideTest.testResult())
 }

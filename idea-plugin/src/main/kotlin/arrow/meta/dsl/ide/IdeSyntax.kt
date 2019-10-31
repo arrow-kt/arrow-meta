@@ -1,21 +1,22 @@
 package arrow.meta.dsl.ide
 
-import arrow.meta.dsl.ide.editor.action.AnActionSyntax
-import arrow.meta.dsl.ide.editor.color.ColorSyntax
-import arrow.meta.dsl.ide.editor.hints.HintingSyntax
-import arrow.meta.dsl.ide.editor.icon.IconProviderSyntax
-import arrow.meta.dsl.ide.editor.inspection.InspectionSyntax
-import arrow.meta.dsl.ide.editor.intention.IntentionExtensionProviderSyntax
-import arrow.meta.dsl.ide.editor.language.LanguageSyntax
-import arrow.meta.dsl.ide.editor.lineMarker.LineMarkerSyntax
-import arrow.meta.dsl.ide.editor.liveTemplate.LiveTemplateSyntax
-import arrow.meta.dsl.ide.editor.navigation.NavigationSyntax
-import arrow.meta.dsl.ide.editor.refactoring.RefactoringSyntax
-import arrow.meta.dsl.ide.editor.search.SearchSyntax
-import arrow.meta.dsl.ide.editor.structureView.StructureViewSyntax
-import arrow.meta.dsl.ide.editor.syntaxHighlighter.SyntaxHighlighterExtensionProviderSyntax
-import arrow.meta.dsl.ide.editor.usage.UsageSyntax
-import arrow.meta.dsl.ide.extensions.ExtensionProviderSyntax
+import arrow.meta.ide.dsl.editor.action.AnActionSyntax
+import arrow.meta.ide.dsl.editor.color.ColorSyntax
+import arrow.meta.ide.dsl.editor.hints.HintingSyntax
+import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
+import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
+import arrow.meta.ide.dsl.editor.intention.IntentionExtensionProviderSyntax
+import arrow.meta.ide.dsl.editor.language.LanguageSyntax
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
+import arrow.meta.ide.dsl.editor.liveTemplate.LiveTemplateSyntax
+import arrow.meta.ide.dsl.editor.navigation.NavigationSyntax
+import arrow.meta.ide.dsl.editor.refactoring.RefactoringSyntax
+import arrow.meta.ide.dsl.editor.search.SearchSyntax
+import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
+import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterExtensionProviderSyntax
+import arrow.meta.ide.dsl.editor.usage.UsageSyntax
+import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
+
 
 /**
  * The IDE DSL empowers library and compiler plugin authors to bring their features closer to the development experience.

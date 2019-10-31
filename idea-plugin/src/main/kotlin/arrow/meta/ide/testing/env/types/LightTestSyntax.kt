@@ -7,7 +7,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-
 object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
   /**
    * Parses the code defined by in it's [receiver] and traverses each
@@ -15,7 +14,7 @@ object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
    * Look up is case-insensitive.
    * Please check if the PsiFile has to be configured in each loop check out PR #6
    */
-  fun <R> Source.traverse(match: String = "<caret>", f: (PsiElement) -> R): List<R> =
+  fun <A> Source.traverse(match: String = "<caret>", f: (PsiElement) -> A): List<A> =
     StringBuilder(this).run {
       val psiFile: PsiFile? = myFixture.configureByText(KotlinFileType.INSTANCE, toString())
       filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i }).map { index ->
@@ -24,10 +23,10 @@ object LightTestSyntax : LightPlatformCodeInsightFixture4TestCase() {
       }.toNotNullable()
     }
 
-  tailrec fun <R> StringBuilder.filterFold(
-    acc: R,
+  tailrec fun <A> StringBuilder.filterFold(
+    acc: A,
     str: String,
-    f: (acc: R, index: Int) -> R): R =
+    f: (acc: A, index: Int) -> A): A =
     if (!contains(str)) acc
     else {
       val i: Int = indexOf(str)

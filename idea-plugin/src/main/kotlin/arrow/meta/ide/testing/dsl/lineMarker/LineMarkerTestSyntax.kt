@@ -24,7 +24,7 @@ interface LineMarkerTestSyntax {
       LineMarkerDescription(lm(psi.collect(icon)), slowLM(psi.collectSlowLM(icon)))
     }
 
-  fun <R> IdeTestSyntax.availableLM(code: Source, icon: Icon, f: LineMarkerTestSyntax.(PsiElement) -> R): List<R> =
+  fun <A> IdeTestSyntax.availableLM(code: Source, icon: Icon, f: LineMarkerTestSyntax.(PsiElement) -> A): List<A> =
     lightTest {
       code.traverse { psi: PsiElement ->
         psi.firstChild?.let { first: PsiElement ->
