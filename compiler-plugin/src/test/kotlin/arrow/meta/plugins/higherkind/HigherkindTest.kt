@@ -8,15 +8,10 @@ import org.junit.Test
 
 class HigherkindTest {
 
-  //
-  // TODO: waiting for the arrow-annotations release which contains higherkind annotation
-  //    classpaths = listOf(classpathOf("arrow-annotations:x.x.x"))
-  //
-
   @Test
   fun `initial test`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
+    val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
 
     assertThis(CompilerTest(
       config = {

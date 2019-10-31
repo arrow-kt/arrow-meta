@@ -29,7 +29,7 @@ private val interpreter: (CompilerTest) -> Unit = {
     Assert.Empty -> println("Assertions not found")
     Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
     Assert.CompilationResult.Fails -> assertFails(compilationResult)
-    is Assert.CompilationResult.FailsWith -> assertFailsWith(compilationResult, assert.f)
+    is Assert.FailsWith -> assertFailsWith(compilationResult, assert.f)
     is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, assert.source)
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
   }

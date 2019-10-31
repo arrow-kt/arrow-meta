@@ -83,7 +83,22 @@ import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.resolve.BindingContext
 
+/**
+ * The codegen phase is where the compiler emits bytecode and metadata for the different platforms the Kotlin language targets.
+ * In this phase by default the compiler would go into ASM codegen for the JVM or into IR codegen if IR is enabled.
+ * [IR] is the Intermediate Representation format the new Kotlin compiler backend targets.
+ */
 interface IrSyntax {
+
+  /**
+   * IR, The intermediate representation format is a structured text format with significant indentation that contains
+   * all the information the compiler knows about a program.
+   * At this point the compiler knows how a program is declared in sources, what the typed expressions are and how
+   * each of the generic type arguments are applied.
+   * The compiler emits in this phase this information which can then be further processed by interpreters and compilers
+   * targeting any platform.
+   * [IR Example]
+   */
   fun IrGeneration(generate: (compilerContext: CompilerContext, file: IrFile, backendContext: BackendContext, bindingContext: BindingContext) -> Unit): IRGeneration =
     object : IRGeneration {
       override fun CompilerContext.generate(
