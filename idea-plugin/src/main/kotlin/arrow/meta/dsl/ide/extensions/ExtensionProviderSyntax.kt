@@ -1,6 +1,6 @@
 package arrow.meta.dsl.ide.extensions
 
-import arrow.meta.dsl.platform.ideRegistry
+import arrow.meta.dsl.platform.ide
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
 import arrow.meta.plugin.idea.phases.editor.ExtensionProvider
@@ -14,6 +14,10 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
 
 interface ExtensionProviderSyntax : ExtensionProvider {
+
+  fun <A> ideRegistry(f: () -> A): ExtensionPhase =
+    ide { f().run { ExtensionPhase.Empty } } ?: ExtensionPhase.Empty
+
   // Todo: Check LoadingOrder
   fun <E> IdeMetaPlugin.extensionProvider(
     EP_NAME: ExtensionPointName<E>,

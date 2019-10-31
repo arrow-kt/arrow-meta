@@ -1,6 +1,5 @@
 package arrow.meta.dsl.ide.editor.action
 
-import arrow.meta.dsl.platform.ideRegistry
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugin.idea.IdeMetaPlugin
