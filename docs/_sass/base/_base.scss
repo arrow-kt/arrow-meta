@@ -1,0 +1,69 @@
+// Base
+// -----------------------------------------------
+// -----------------------------------------------
+// Body, html
+// -----------------------------------------------
+
+html {
+  box-sizing: border-box;
+  font-size: $base-font-size;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: inherit;
+}
+
+body,
+html {
+  height: 100%;
+  transition: background-color 300ms $base-timing;
+}
+// Typography
+// -----------------------------------------------
+
+body {
+  font-family: $base-font-family;
+  line-height: $base-line-height;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: $header-font-color;
+  font-family: $header-font-family;
+  font-weight: $font-semibold;
+}
+
+a {
+  color: $brand-primary;
+  text-decoration: none;
+  transition: color $base-duration $base-timing;
+
+  &:visited {
+    color: $brand-primary;
+  }
+
+  &:hover {
+    color: $link-hover;
+    text-decoration: underline;
+  }
+
+  &:active {
+    color: $brand-primary;
+  }
+}
+
+hr {
+  display: block;
+  border: none;
+}
+
+// Gitter action bar fix
+.gitter-chat-embed-action-bar {
+  z-index: 11;
+}
