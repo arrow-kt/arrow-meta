@@ -15,6 +15,7 @@ dependencies {
     // testRuntimeOnly "io.arrow-kt:arrow-annotations:x.x.x"
     testRuntimeOnly "com.github.arrow-kt.arrow:arrow-annotations:rr-meta-prototype-integration-SNAPSHOT"
     testRuntimeOnly "io.arrow-kt:arrow-core-data:0.10.2"
+    testRuntimeOnly "io.arrow-kt:arrow-optics:0.10.2"
 }
 
 compileKotlin {
@@ -55,3 +56,5 @@ repositories {
 test {
   testLogging.showStandardStreams = true
 }
+
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
