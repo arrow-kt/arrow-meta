@@ -1,0 +1,57 @@
+name: Publish website
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-docs:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+        architecture: x64
+    - name: Dokka
+      env:
+        JAVA_OPTS: -Xms512m -Xmx1024m
+      run: |
+        set -ex
+        ./gradlew dokka
+    - name: Run Ank
+      env:
+        JAVA_OPTS: -Xms512m -Xmx1024m
+      run: |
+        set -ex
+        ./gradlew :docs:runAnk
+    - name: Deploy
+      env:
+        JAVA_OPTS: -Xms512m -Xmx1024m
+      run: |
+        #!/usr/bin/env bash
+        set -ex
+        aws --version
+        apt remove -y awscli
+        pip install awscli
+        /usr/local/bin/aws --version
+        bundle check
+        BUNDLE_CHECK_RESULT=$?
+        if [[ BUNDLE_CHECK_RESULT -eq 0 ]]; then
+            echo "All fine, all good with bundler"
+        else
+            echo "Updating bundler"
+            gem uninstall bundler --force
+            gem install bundler --force
+            echo "$( gem list | grep bundler )"
+        fi
+        bundle install --gemfile docs/Gemfile --path vendor/bundle
+        export BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll serve -s docs
+        export BUNDLE_GEMFILE=modules/docs/arrow-docs/Gemfile
+        export JEKYLL_ENV=production
+        bundle exec jekyll serve -s docs -d docs/_site
+        /usr/local/bin/aws s3 sync docs/_site s3://$S3_BUCKET > aws_sync_jekyll.log
