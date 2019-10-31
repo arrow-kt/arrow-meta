@@ -35,17 +35,14 @@ class EqOperatorTest {
   @Test
   fun `simple_case_function`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
-    val arrowCoreData = Dependency("arrow-core-data:0.10.2")
+    val arrowAnnotations = Dependency("arrow-annotations:0.10.3-SNAPSHOT")
 
     assertThis(CompilerTest(
       config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
+        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations)
       },
       code = {
         """
-        | import arrow.core.extensions.*
-        | 
         | object Id
         |
         | fun IdEq() : Eq<Id> = Id.eq().run {
