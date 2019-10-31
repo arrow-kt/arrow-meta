@@ -5,7 +5,7 @@ options:
     nested_options:
 
       - title: Index
-        url: /docs/
+        url: /
 
   - title: API Docs
 
