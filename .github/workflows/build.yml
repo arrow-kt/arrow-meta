@@ -1,18 +1,6 @@
 name: Build
 
-on:
-  push:
-    # Build is checked before publication
-    branches-ignore:
-      - master
-  pull_request:
-    # When following these names for our internal branches,
-    # twice executions (push and pull_request) will be avoided
-    branches-ignore:
-      - 'fix/**'
-      - 'feature/**'
-      - 'doc/**'
-      - 'release/**'
+on: pull_request
 
 jobs:
   build:
