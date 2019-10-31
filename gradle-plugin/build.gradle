@@ -14,7 +14,7 @@ repositories {
 apply plugin: 'kotlin'
 
 group = 'io.arrow-kt'
-version = '0.10.2'
+version = '0.10.3-rc-1'
 def pluginId = 'io.arrow-kt.arrow'
 
 dependencies {
@@ -68,9 +68,5 @@ pluginBundle {
     arrow {
       displayName = "Arrow compiler plugin"
     }
-  }
-
-  mavenCoordinates {
-    groupId = 'arrow.meta.plugin.gradle'
   }
 }
