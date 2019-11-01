@@ -15,6 +15,7 @@ dependencies {
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compileOnly "io.github.classgraph:classgraph:$class_graph_version"
+    compileOnly project(":compiler-plugin")
     implementation "org.assertj:assertj-core:$assertj_version"
 
     // TODO: temporary dependency until PR is approved and published
