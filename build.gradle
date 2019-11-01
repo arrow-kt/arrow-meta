@@ -33,10 +33,15 @@ allprojects {
 
   repositories {
     maven { url "https://kotlin.bintray.com/kotlinx" }
-    maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
-    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    maven {
+      url "https://dl.bintray.com/arrow-kt/arrow-kt/"
+      content {
+        includeGroup "io.arrow-kt"
+      }
+    }
     mavenCentral()
     jcenter()
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
   }
 }
 
@@ -101,4 +106,9 @@ task publishAndRunIde {
   dependsOn ':buildMeta'
   dependsOn ':idea-plugin:runIde'
   tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':buildMeta'
+}
+
+wrapper {
+  distributionType = Wrapper.DistributionType.ALL
+  gradleVersion = "5.6.1"
 }
