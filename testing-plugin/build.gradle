@@ -1,5 +1,6 @@
 apply plugin: 'kotlin'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 buildscript {
     ext {
@@ -15,17 +16,24 @@ dependencies {
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compileOnly "io.github.classgraph:classgraph:$class_graph_version"
-    implementation "org.assertj:assertj-core:$assertj_version"
+    compile "org.assertj:assertj-core:$assertj_version"
 
     // TODO: temporary dependency until PR is approved and published
     // implementation "com.github.tschuchortdev:kotlin-compile-testing:$kotlin_compile_testing"
-    implementation "com.github.arrow-kt:kotlin-compile-testing:$kotlin_compile_testing"
+    // implementation "com.github.arrow-kt:kotlin-compile-testing:$kotlin_compile_testing"
+    compile "com.github.tschuchortdev:kotlin-compile-testing:1.2.4-SNAPSHOT"
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$kotlin_test_version"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit_vintage_version"
     testRuntimeOnly project(":compiler-plugin")
 
     testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
+}
+
+shadowJar {
+    configurations = [project.configurations.compile]
+    relocate 'org.jetbrains.kotlin.com.intellij', 'com.intellij'
+    relocate 'org.jetbrains.kotlin.load', 'kotlin.reflect.jvm.internal.impl.load'
 }
 
 compileKotlin {
@@ -49,6 +57,7 @@ test {
 //     com.github.tschuchortdev:kotlin-compile-testing
 //   is needed until it's published with the contribution
 repositories {
+    mavenLocal()
     maven { url "https://jitpack.io" }
 }
 
