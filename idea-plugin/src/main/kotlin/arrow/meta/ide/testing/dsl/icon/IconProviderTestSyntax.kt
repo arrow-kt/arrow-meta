@@ -3,6 +3,7 @@ package arrow.meta.ide.testing.dsl.icon
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestTypeSyntax
 import com.intellij.openapi.util.Iconable
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.junit.Assert
 import javax.swing.Icon
 
@@ -10,10 +11,10 @@ data class IconDescription(val name: String, val icon: Icon)
 
 interface IconProviderTestSyntax {
 
-  fun IdeTestTypeSyntax.test(code: Source) =
+  fun IdeTestTypeSyntax.test(code: Source, myFixture: CodeInsightTestFixture) =
     lightTest {
       // former IdeHigherKindsTestCode.
-      code.traverse { psi ->
+      code.traverse(myFixture = myFixture) { psi ->
         // most implementations of PsiElement, including the default implementation,
         // retrieve the return value of getIcon() from the registered IconProviders.
         val icon = psi.getIcon(Iconable.ICON_FLAG_VISIBILITY)

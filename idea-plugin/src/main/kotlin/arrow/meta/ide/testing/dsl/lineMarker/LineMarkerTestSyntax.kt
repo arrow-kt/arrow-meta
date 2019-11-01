@@ -1,48 +1,32 @@
 package arrow.meta.ide.testing.dsl.lineMarker
 
-import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement
-import com.intellij.psi.SyntaxTraverser
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.Icon
 
-data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>>?, val slowLM: List<LineMarkerInfo<PsiElement>>?)
+data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>> = emptyList(), val slowLM: List<LineMarkerInfo<PsiElement>> = emptyList())
 
 interface LineMarkerTestSyntax {
 
-  fun IdeTestSyntax.testLineMarkers(
-    code: Source,
-    icon: Icon,
-    slowLM: (List<LineMarkerInfo<PsiElement>>) -> List<LineMarkerInfo<PsiElement>>?,
-    lm: (List<LineMarkerInfo<PsiElement>>) -> List<LineMarkerInfo<PsiElement>>?): List<LineMarkerDescription> =
-    availableLM(code, icon) { psi: PsiElement ->
-      LineMarkerDescription(lm(psi.collect(icon)), slowLM(psi.collectSlowLM(icon)))
-    }
-
-  fun <A> IdeTestSyntax.availableLM(code: Source, icon: Icon, f: LineMarkerTestSyntax.(PsiElement) -> A): List<A> =
+  fun IdeTestSyntax.collectLM(code: Source, myFixture: CodeInsightTestFixture, icon: Icon) =
     lightTest {
-      code.traverse { psi: PsiElement ->
-        psi.firstChild?.let { first: PsiElement ->
-          SyntaxTraverser.psiTraverser().children(PsiTreeUtil.getDeepestFirst(first)).toList()
-            .filter { it != null && IdeUtils.isNotNull(it.firstChild) }
-            .map { f(this@LineMarkerTestSyntax, it) }
-        } ?: listOf(f(this@LineMarkerTestSyntax, psi))
-      }.flatten()
-    } ?: emptyList()
+      code.ktFileToList(myFixture).run { LineMarkerDescription(collectLM(icon), collectSlowLM(icon)) }
+    } ?: LineMarkerDescription()
 
-  fun PsiElement.collect(icon: Icon): List<LineMarkerInfo<PsiElement>> =
+  fun List<PsiElement>.collectLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
     LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
-      .mapNotNull { it.getLineMarkerInfo(this) }
+      .mapNotNull { mapNotNull { p: PsiElement -> it.getLineMarkerInfo(p) } }.flatten()
       .filter { it.icon == icon }
 
-  fun PsiElement.collectSlowLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
-    mutableListOf<LineMarkerInfo<PsiElement>>().apply {
-      LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
-        .mapNotNull { it.collectSlowLineMarkers(listOf(this@collectSlowLM), this) }
-    }.filter { it.icon == icon }
+  fun List<PsiElement>.collectSlowLM(icon: Icon): List<LineMarkerInfo<PsiElement>> {
+    val r = mutableListOf<LineMarkerInfo<PsiElement>>()
+    LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
+      .mapNotNull { it.collectSlowLineMarkers(this@collectSlowLM, r) }
+    return r.filter { it.icon == icon }
+  }
 }

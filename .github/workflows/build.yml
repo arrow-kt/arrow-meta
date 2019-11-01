@@ -18,4 +18,4 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        ./gradlew clean build
+        ./gradlew clean build test

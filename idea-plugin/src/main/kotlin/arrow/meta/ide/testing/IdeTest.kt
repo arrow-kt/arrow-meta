@@ -1,12 +1,14 @@
 package arrow.meta.ide.testing
 
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 typealias Source = String
 
 data class IdeTest<A>(
+  val myFixture: CodeInsightTestFixture,
   val code: Source,
-  val test: IdeTestEnvironment.(code: Source) -> A,
+  val test: IdeTestEnvironment.(code: Source, myFixture: CodeInsightTestFixture) -> A,
   val result: IdeResolution<A>
 )
 
