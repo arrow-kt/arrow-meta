@@ -19,7 +19,7 @@ internal data class CompilationResult(
 
 internal fun compile(data: CompilationData): CompilationResult =
   compilationResultFrom(KotlinCompilation().apply {
-    sources = listOf(SourceFile.kotlin("Example.kt", data.source))
+    sources = data.source.map { SourceFile.kotlin("Example.kt", it) }
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
   }.compile())
