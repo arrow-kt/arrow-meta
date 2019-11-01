@@ -14,7 +14,7 @@ data class CompilationResult(
   val actualStatus: CompilationStatus,
   val log: String,
   val actualGeneratedFilePath: Path,
-  val classesDirectory: File
+  val outputDirectory: File
 )
 
 internal fun compile(data: CompilationData): CompilationResult =
@@ -30,7 +30,7 @@ private fun compilationResultFrom(internalResult: KotlinCompilation.Result): Com
     actualStatus = exitStatusFrom(internalResult.exitCode),
     log = internalResult.messages,
     actualGeneratedFilePath = Paths.get(internalResult.outputDirectory.parent, "sources", "$DEFAULT_FILENAME.meta"),
-    classesDirectory = internalResult.outputDirectory
+    outputDirectory = internalResult.outputDirectory
   )
 
 private fun exitStatusFrom(exitCode: KotlinCompilation.ExitCode): CompilationStatus =

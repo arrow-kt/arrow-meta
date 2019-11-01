@@ -50,7 +50,7 @@ fun compilationResult(c: CompilerTest): CompilationResult {
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
   assertCompiles(compilationResult)
   assertThat(source.trimMargin()).matches(EXPRESSION_PATTERN)
-  assertThat(call(source.trimMargin(), compilationResult.classesDirectory)).isEqualTo(output)
+  assertThat(call(source.trimMargin(), compilationResult.outputDirectory)).isEqualTo(output)
 }
 
 private fun assertCompiles(compilationResult: CompilationResult): Unit {
