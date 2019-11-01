@@ -7,6 +7,10 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.resolve.BindingContext
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.resolve.ResolveSyntax.declarationAttributeAlterer]
+ */
 interface DeclarationAttributeAlterer : ExtensionPhase {
   fun CompilerContext.refineDeclarationModality(
     modifierListOwner: KtModifierListOwner,

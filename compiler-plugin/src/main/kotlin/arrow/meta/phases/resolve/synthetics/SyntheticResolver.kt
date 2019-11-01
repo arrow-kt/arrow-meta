@@ -14,6 +14,10 @@ import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationPr
 import org.jetbrains.kotlin.types.KotlinType
 import java.util.ArrayList
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.resolve.ResolveSyntax.syntheticResolver]
+ */
 interface SyntheticResolver : ExtensionPhase {
   fun CompilerContext.addSyntheticSupertypes(
     thisDescriptor: ClassDescriptor,

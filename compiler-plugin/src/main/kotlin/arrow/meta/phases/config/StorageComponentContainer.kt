@@ -7,6 +7,10 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
+/**
+ * @see [ExtensionPhase]
+ * @see [arrow.meta.dsl.config.ConfigSyntax.storageComponent]
+ */
 interface StorageComponentContainer : ExtensionPhase {
   fun CompilerContext.registerModuleComponents(
     container: org.jetbrains.kotlin.container.StorageComponentContainer,

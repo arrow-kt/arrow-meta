@@ -69,7 +69,7 @@ class ExampleTest {
   @Test
   fun `checks the meta debug output given a configuration`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
+    val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
 
     assertThis(CompilerTest(
       config = {

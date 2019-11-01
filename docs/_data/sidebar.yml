@@ -1,0 +1,24 @@
+options:
+
+  - title: Quick Start
+
+    nested_options:
+
+      - title: Index
+        url: /
+
+  - title: API Docs
+
+    nested_options:
+
+      - title: Compiler plugin
+        url: /docs/apidocs/compiler-plugin/
+
+      - title: Gradle plugin
+        url: /docs/apidocs/gradle-plugin/
+
+      - title: Idea plugin
+        url: /docs/apidocs/idea-plugin/
+
+      - title: Testing plugin
+        url: /docs/apidocs/testing-plugin/

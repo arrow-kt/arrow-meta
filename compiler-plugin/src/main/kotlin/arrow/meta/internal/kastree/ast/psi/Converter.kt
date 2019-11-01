@@ -1,8 +1,8 @@
-package kastree.ast.psi
+package arrow.meta.internal.kastree.ast.psi
 
-import kastree.ast.COMMAND_PREFIX
-import kastree.ast.ExtrasMap
-import kastree.ast.Node
+import arrow.meta.internal.kastree.ast.COMMAND_PREFIX
+import arrow.meta.internal.kastree.ast.ExtrasMap
+import arrow.meta.internal.kastree.ast.Node
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment

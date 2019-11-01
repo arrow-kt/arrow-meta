@@ -11,9 +11,10 @@ class LensTest {
   @Test
   fun `Initial lens test`() {
 
+    val currentVersion = System.getProperty("CURRENT_VERSION")
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
-    val arrowOptics = Dependency("arrow-optics:0.10.2")
+    val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
+    val arrowOptics = Dependency("arrow-optics:$currentVersion")
     val codeSnippet = """
       | 
       | //metadebug

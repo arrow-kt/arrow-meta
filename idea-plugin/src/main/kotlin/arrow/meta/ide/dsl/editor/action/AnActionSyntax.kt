@@ -1,10 +1,9 @@
-package arrow.meta.ide.dsl.editor.action
+package arrow.meta.dsl.ide.editor.action
 
-import arrow.meta.dsl.platform.ideRegistry
-import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugin.idea.IdeMetaPlugin
+import arrow.meta.plugin.idea.phases.editor.AnActionExtensionProvider
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.TimerListener

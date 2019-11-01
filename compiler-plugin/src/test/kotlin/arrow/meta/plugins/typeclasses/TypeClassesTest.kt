@@ -12,9 +12,10 @@ class TypeClassesTest {
 
   @Test
   fun `simple case`() {
+    val currentVersion = System.getProperty("CURRENT_VERSION")
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:rr-meta-prototype-integration-SNAPSHOT")
-    val arrowCoreData = Dependency("arrow-core-data:0.10.2")
+    val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
+    val arrowCoreData = Dependency("arrow-core-data:$currentVersion")
     val codeSnippet = """
       | import arrow.Kind
       | import arrow.given

@@ -1,8 +1,7 @@
-package arrow.meta.ide.dsl.editor.syntaxHighlighter
+package arrow.meta.dsl.ide.editor.syntaxHighlighter
 
-import arrow.meta.dsl.platform.ideRegistry
-import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugin.idea.IdeMetaPlugin
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SingleLazyInstanceSyntaxHighlighterFactory
