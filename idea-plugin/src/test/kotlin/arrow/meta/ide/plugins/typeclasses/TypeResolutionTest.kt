@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.typeclasses
 
 import arrow.meta.ide.phases.config.buildFolders
-import arrow.meta.ide.testing.env.HeavyIdeTestSetUp
+import arrow.meta.ide.testing.env.IdeHeavyTestSetUp
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.types.ErrorType
 
-class TypeResolutionTest : HeavyIdeTestSetUp() {
+class TypeResolutionTest : IdeHeavyTestSetUp() {
     fun testSetup() {
         val codeSnippet = TypeclassesTestCode.c1
         val module = myModule
