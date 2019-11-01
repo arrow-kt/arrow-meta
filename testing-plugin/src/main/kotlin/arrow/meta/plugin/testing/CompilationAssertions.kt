@@ -17,14 +17,6 @@ fun assertThis(compilerTest: CompilerTest): Unit =
   compilerTest.run(interpreter)
 
 private val interpreter: (CompilerTest) -> Unit = {
-
-  fun runConfig(config: Config): Unit = when (config) {
-    is Config.AddCompilerPlugins -> println("Plugins found: ${config.plugins}")
-    is Config.AddDependencies -> println("Dependencies found: ${config.dependencies}")
-    is Config.Many -> config.configs.forEach(::runConfig)
-    Config.Empty -> println("Testing configuration not found")
-  }
-
   fun runAssert(assert: Assert, compilationResult: CompilationResult): Unit = when (assert) {
     Assert.Empty -> println("Assertions not found")
     Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
@@ -33,23 +25,32 @@ private val interpreter: (CompilerTest) -> Unit = {
     is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, assert.source)
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
   }
+  runAssert(it.assert(CompilerTest), compilationResult(it))
+}
 
-  val configuration = it.config(CompilerTest)
+fun compilationResult(c: CompilerTest): CompilationResult {
+  fun runConfig(config: Config): Unit = when (config) {
+    is Config.AddCompilerPlugins -> println("Plugins found: ${config.plugins}")
+    is Config.AddDependencies -> println("Dependencies found: ${config.dependencies}")
+    is Config.Many -> config.configs.forEach(::runConfig)
+    Config.Empty -> println("Testing configuration not found")
+  }
+
+  val configuration = c.config(CompilerTest)
 
   configuration.map(::runConfig)
 
   val compilerPlugins = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddCompilerPlugins>().flatMap { it.plugins }.flatMap { it.dependencies }.map { it.mavenCoordinates }
   val dependencies = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddDependencies>().flatMap { it.dependencies }.map { it.mavenCoordinates }
-  val compilationData = CompilationData(dependencies = dependencies, source = it.code(CompilerTest).text.trimMargin(), compilerPlugins = compilerPlugins)
-  val compilationResult = compile(compilationData)
-
-  runAssert(it.assert(CompilerTest), compilationResult)
+  val compilationData = CompilationData(dependencies = dependencies, source = c.code(CompilerTest).trimMargin(), compilerPlugins = compilerPlugins)
+  return compile(compilationData)
 }
+
 
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
   assertCompiles(compilationResult)
-  assertThat(source.text.trimMargin()).matches(EXPRESSION_PATTERN)
-  assertThat(call(source.text.trimMargin(), compilationResult.classesDirectory)).isEqualTo(output)
+  assertThat(source.trimMargin()).matches(EXPRESSION_PATTERN)
+  assertThat(call(source.trimMargin(), compilationResult.classesDirectory)).isEqualTo(output)
 }
 
 private fun assertCompiles(compilationResult: CompilationResult): Unit {
@@ -69,10 +70,10 @@ private fun assertQuoteOutputMatches(compilationResult: CompilationResult, expec
   assertCompiles(compilationResult)
   val actualSource = compilationResult.actualGeneratedFilePath.toFile().readText()
   val actualSourceWithoutCommands = removeCommands(actualSource)
-  val expectedSourceWithoutCommands = removeCommands(expectedSource.text.trimMargin())
+  val expectedSourceWithoutCommands = removeCommands(expectedSource.trimMargin())
 
   assertThat(actualSourceWithoutCommands)
-    .`as`("EXPECTED:${expectedSource.text.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
+    .`as`("EXPECTED:${expectedSource.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
     .isEqualToIgnoringWhitespace(expectedSourceWithoutCommands)
 }
 

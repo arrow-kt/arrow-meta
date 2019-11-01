@@ -10,7 +10,7 @@ import java.nio.file.Paths
 
 private const val DEFAULT_FILENAME = "Example.kt"
 
-internal data class CompilationResult(
+data class CompilationResult(
   val actualStatus: CompilationStatus,
   val log: String,
   val actualGeneratedFilePath: Path,
