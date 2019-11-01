@@ -10,14 +10,14 @@ import java.nio.file.Paths
 
 private const val DEFAULT_FILENAME = "Example.kt"
 
-internal data class CompilationResult(
+data class CompilationResult(
   val actualStatus: CompilationStatus,
   val log: String,
   val actualGeneratedFilePath: Path,
-  val classesDirectory: File
+  val outputDirectory: File
 )
 
-internal fun compile(data: CompilationData): CompilationResult =
+fun compile(data: CompilationData): CompilationResult =
   compilationResultFrom(KotlinCompilation().apply {
     sources = data.source.map { SourceFile.kotlin("Example.kt", it) }
     classpaths = data.dependencies.map { classpathOf(it) }
@@ -30,7 +30,7 @@ private fun compilationResultFrom(internalResult: KotlinCompilation.Result): Com
     actualStatus = exitStatusFrom(internalResult.exitCode),
     log = internalResult.messages,
     actualGeneratedFilePath = Paths.get(internalResult.outputDirectory.parent, "sources", "$DEFAULT_FILENAME.meta"),
-    classesDirectory = internalResult.outputDirectory
+    outputDirectory = internalResult.outputDirectory
   )
 
 private fun exitStatusFrom(exitCode: KotlinCompilation.ExitCode): CompilationStatus =

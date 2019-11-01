@@ -2,6 +2,10 @@ apply plugin: 'ank-gradle-plugin'
 apply plugin: 'kotlin-kapt'
 //apply plugin: 'org.ajoberstar.git-publish'
 
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
 dependencies {
     compile project(':compiler-plugin')
     compile project(':idea-plugin')
