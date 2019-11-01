@@ -1,7 +1,6 @@
 package arrow.meta.plugin.testing
 
 data class Source(val text: String)
-val String.source: Source get() = Source(this)
 data class Dependency(val mavenCoordinates: String)
 data class CompilerPlugin(
   val name: String,
@@ -67,6 +66,7 @@ sealed class Assert {
     fun failsWith(f: (String) -> Boolean): Assert = FailsWith(f)
     fun quoteOutputMatches(source: Source): Assert = QuoteOutputMatches(source)
     infix fun Source.evalsTo(value: Any?): Assert = EvalsTo(this, value)
+    val String.source: Source get() = Source(this)
   }
 
   companion object : Syntax {

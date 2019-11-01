@@ -1,9 +1,10 @@
-package arrow.meta.dsl.ide.editor.intention
+package arrow.meta.ide.dsl.editor.intention
 
+import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.ideRegistry
+import arrow.meta.ide.phases.editor.IntentionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.plugin.idea.IdeMetaPlugin
-import arrow.meta.plugin.idea.phases.editor.IntentionExtensionProvider
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.openapi.editor.Editor
