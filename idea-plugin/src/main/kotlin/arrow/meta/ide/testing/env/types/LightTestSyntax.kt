@@ -7,17 +7,22 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object LightTestSyntax {
-
+  /**
+   * Deconstructs the KtFile into a List, which we can traverse freely as all references persist
+   */
   fun Source.ktFileToList(myFixture: CodeInsightTestFixture): List<PsiElement> =
-    SyntaxTraverser.psiTraverser().children(myFixture.configureByText(KotlinFileType.INSTANCE, this)).toList()
+    toKtFile(myFixture)?.let { SyntaxTraverser.psiTraverser().children(it).toList() } ?: emptyList()
+
+  fun Source.toKtFile(myFixture: CodeInsightTestFixture): KtFile? =
+    myFixture.configureByText(KotlinFileType.INSTANCE, this).safeAs()
 
   /**
-   * Parses the code defined by in it's [receiver] and traverses each
-   * PsiElement marked by [match] with function [f]
+   * traverses each PsiElement marked by [match] with function [f]
    * Look up is case-insensitive.
-   * Please check if the PsiFile has to be configured in each loop check out PR #6
    */
   fun <A> Source.traverse(match: String = "<caret>", myFixture: CodeInsightTestFixture, f: (PsiElement) -> A): List<A> =
     StringBuilder(this).run {
