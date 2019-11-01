@@ -18,12 +18,25 @@ fun assertThis(compilerTest: CompilerTest): Unit =
 
 private val interpreter: (CompilerTest) -> Unit = {
 
-  fun runConfig(config: Config): Unit = when (config) {
-    is Config.AddCompilerPlugins -> println("Plugins found: ${config.plugins}")
-    is Config.AddDependencies -> println("Dependencies found: ${config.dependencies}")
-    is Config.Many -> config.configs.forEach(::runConfig)
-    Config.Empty -> println("Testing configuration not found")
-  }
+  tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
+    when {
+      isEmpty() -> acc
+      else -> {
+        val (config, tail) = this[0] to drop(1)
+        when (config) {
+          is Config.AddCompilerPlugins ->
+            tail.compilationData(acc.copy(compilerPlugins = acc.compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } }))
+          is Config.AddDependencies ->
+            tail.compilationData(acc.copy(dependencies = acc.dependencies + config.dependencies.map { it.mavenCoordinates }))
+          is Config.Many ->
+            (config.configs + tail).compilationData(acc)
+          Config.Empty ->
+            tail.compilationData(acc)
+          is Config.AddMetaPlugins ->
+            TODO("How do we bootstrap the Meta Plugin Quote system?")
+        }
+      }
+    }
 
   fun runAssert(assert: Assert, compilationResult: CompilationResult): Unit = when (assert) {
     Assert.Empty -> println("Assertions not found")
@@ -34,15 +47,9 @@ private val interpreter: (CompilerTest) -> Unit = {
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
   }
 
-  val configuration = it.config(CompilerTest)
-
-  configuration.map(::runConfig)
-
-  val compilerPlugins = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddCompilerPlugins>().flatMap { it.plugins }.flatMap { it.dependencies }.map { it.mavenCoordinates }
-  val dependencies = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddDependencies>().flatMap { it.dependencies }.map { it.mavenCoordinates }
-  val compilationData = CompilationData(dependencies = dependencies, source = it.code(CompilerTest).text.trimMargin(), compilerPlugins = compilerPlugins)
+  val initialCompilationData = CompilationData(source = listOf(it.code(CompilerTest).text.trimMargin()))
+  val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-
   runAssert(it.assert(CompilerTest), compilationResult)
 }
 
