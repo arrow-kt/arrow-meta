@@ -31,7 +31,7 @@ class LensTest {
           addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowOptics)
         },
         code = {
-          codeSnippet.source
+          codeSnippet
         },
         assert = {
           quoteOutputMatches(
@@ -53,7 +53,7 @@ class LensTest {
             |     )
             |   }
             | }
-        """.source)
+        """)
         }
     ))
   }

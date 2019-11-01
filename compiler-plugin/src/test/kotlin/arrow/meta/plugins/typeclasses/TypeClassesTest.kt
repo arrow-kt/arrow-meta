@@ -57,7 +57,7 @@ class TypeClassesTest {
         addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches(
@@ -96,7 +96,7 @@ class TypeClassesTest {
           |     return Some(1).addOne()
           |   }
           | }
-          |""".source)
+          |""")
       }
     ))
 
@@ -105,10 +105,10 @@ class TypeClassesTest {
         addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "foo()".source.evalsTo(Some(2))
+        "foo()".evalsTo(Some(2))
       }
     ))
   }

@@ -28,7 +28,7 @@ class HigherkindTest {
         | 
         | val x: Id2Of<Int> = Id2(1)
         | 
-        """.source
+        """
       },
       assert = {
         quoteOutputMatches(
@@ -46,7 +46,7 @@ class HigherkindTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source)
+          """)
       }
     ))
   }

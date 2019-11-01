@@ -49,7 +49,7 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches("""
@@ -62,7 +62,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
+          |""")
       }
     ))
 
@@ -71,10 +71,10 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "test().value".source.evalsTo(3)
+        "test().value".evalsTo(3)
       }
     ))
   }
@@ -98,7 +98,7 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches("""
@@ -111,7 +111,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
+          |""")
       }
     ))
 
@@ -120,10 +120,10 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "test().value".source.evalsTo(3)
+        "test().value".evalsTo(3)
       }
     ))
   }
@@ -155,7 +155,7 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches("""
@@ -176,7 +176,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
+          |""")
       }
     ))
 
@@ -185,10 +185,10 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "test().value".source.evalsTo(10)
+        "test().value".evalsTo(10)
       }
     ))
   }
@@ -217,7 +217,7 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches("""
@@ -237,7 +237,7 @@ class ComprehensionsTest {
           |     } 
           |   }
           |   
-          |""".source)
+          |""")
       }
     ))
 
@@ -246,10 +246,10 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "test().value".source.evalsTo(14)
+        "test().value".evalsTo(14)
       }
     ))
   }
@@ -269,7 +269,7 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
         quoteOutputMatches("""
@@ -278,7 +278,7 @@ class ComprehensionsTest {
           | fun test(): IO<Int> =
           |   IO.just(1 + 1)
           |   
-          |""".source)
+          |""")
       }
     ))
 
@@ -287,10 +287,10 @@ class ComprehensionsTest {
         listOf(addCompilerPlugins(compilerPlugin))
       },
       code = {
-        codeSnippet.source
+        codeSnippet
       },
       assert = {
-        "test().value".source.evalsTo(2)
+        "test().value".evalsTo(2)
       }
     ))
   }
@@ -308,7 +308,7 @@ class ComprehensionsTest {
         | fun test(): IO<Int> =
         |   IO.fx { a + 1 }
         |
-        |""".source
+        |"""
       },
       assert = {
         failsWith { it.contains("Unresolved reference: a") }
@@ -333,7 +333,7 @@ class ComprehensionsTest {
 //        |     a + b
 //        |   }
 //        |
-//        |""".source
+//        |"""
 //      },
 //      assert = {
 //        quoteOutputMatches("""
@@ -346,7 +346,7 @@ class ComprehensionsTest {
 //          |      }
 //          |   }
 //          |
-//          |""".source)
+//          |""")
 //      }
 //    ))
 //  }
