@@ -12,7 +12,7 @@ class ExampleTest {
         | fun hello(): String =
         |   "Hello world!"
         | 
-        """
+        """.source
       },
       assert = {
         compiles
@@ -28,10 +28,10 @@ class ExampleTest {
         | fun hello(): String =
         |   "Hello world!"
         | 
-        """
+        """.source
       },
       assert = {
-        "hello()".evalsTo("Hello world!")
+        "hello()".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -43,7 +43,7 @@ class ExampleTest {
         """
         | classsss Error
         | 
-        """
+        """.source
       },
       assert = {
         fails
@@ -58,7 +58,7 @@ class ExampleTest {
         """
         | classsss Error
         | 
-        """
+        """.source
       },
       assert = {
         failsWith { it.contains("Expecting a top level declaration") }
@@ -86,7 +86,7 @@ class ExampleTest {
         | 
         | val x: Id2Of<Int> = Id2(1)
         | 
-        """
+        """.source
       },
       assert = {
         quoteOutputMatches(
@@ -104,7 +104,7 @@ class ExampleTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """)
+          """.source)
       }
     ))
   }

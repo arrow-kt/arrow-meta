@@ -17,26 +17,10 @@ fun assertThis(compilerTest: CompilerTest): Unit =
   compilerTest.run(interpreter)
 
 private val interpreter: (CompilerTest) -> Unit = {
-
-  tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
-    when {
-      isEmpty() -> acc
-      else -> {
-        val (config, remaining) = this[0] to drop(1)
-        when (config) {
-          is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
-          is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
-          is Config.Many -> (config.configs + remaining).compilationData(acc)
-          Config.Empty -> remaining.compilationData(acc)
-          is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
-        }
-      }
-    }
-
   fun runAssert(assert: Assert, compilationResult: CompilationResult): Unit = when (assert) {
     Assert.Empty -> println("Assertions not found")
-    Assert.Compiles -> assertCompiles(compilationResult)
-    Assert.Fails -> assertFails(compilationResult)
+    Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
+    Assert.CompilationResult.Fails -> assertFails(compilationResult)
     is Assert.FailsWith -> assertFailsWith(compilationResult, assert.f)
     is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, assert.source)
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
@@ -47,23 +31,27 @@ private val interpreter: (CompilerTest) -> Unit = {
   val compilationResult = compile(compilationData)
   runAssert(it.assert(CompilerTest), compilationResult)
 }
-fun compilationResult(c: CompilerTest): CompilationResult {
-  fun runConfig(config: Config): Unit = when (config) {
-    is Config.AddCompilerPlugins -> println("Plugins found: ${config.plugins}")
-    is Config.AddDependencies -> println("Dependencies found: ${config.dependencies}")
-    is Config.Many -> config.configs.forEach(::runConfig)
-    Config.Empty -> println("Testing configuration not found")
-  }
 
-  val configuration = c.config(CompilerTest)
-
-  configuration.map(::runConfig)
-
-  val compilerPlugins = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddCompilerPlugins>().flatMap { it.plugins }.flatMap { it.dependencies }.map { it.mavenCoordinates }
-  val dependencies = configuration.filterIsInstance<Config.Many>().flatMap { it.configs }.filterIsInstance<Config.AddDependencies>().flatMap { it.dependencies }.map { it.mavenCoordinates }
-  val compilationData = CompilationData(dependencies = dependencies, source = c.code(CompilerTest).trimMargin(), compilerPlugins = compilerPlugins)
+fun compilationResult(source: String, config: List<Config>): CompilationResult {
+  val initialCompilationData = CompilationData(source = listOf(source.trimMargin()))
+  val compilationData = config.compilationData(initialCompilationData)
   return compile(compilationData)
 }
+
+private tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
+  when {
+    isEmpty() -> acc
+    else -> {
+      val (config, remaining) = this[0] to drop(1)
+      when (config) {
+        is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
+        is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
+        is Config.Many -> (config.configs + remaining).compilationData(acc)
+        Config.Empty -> remaining.compilationData(acc)
+        is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
+      }
+    }
+  }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
   copy(dependencies = dependencies + config.dependencies.map { it.mavenCoordinates })
@@ -74,7 +62,7 @@ private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
   assertCompiles(compilationResult)
   assertThat(source.text.trimMargin()).matches(EXPRESSION_PATTERN)
-  assertThat(call(source.text.trimMargin(), compilationResult.classesDirectory)).isEqualTo(output)
+  assertThat(call(source.text.trimMargin(), compilationResult.outputDirectory)).isEqualTo(output)
 }
 
 private fun assertCompiles(compilationResult: CompilationResult): Unit {
@@ -94,10 +82,10 @@ private fun assertQuoteOutputMatches(compilationResult: CompilationResult, expec
   assertCompiles(compilationResult)
   val actualSource = compilationResult.actualGeneratedFilePath.toFile().readText()
   val actualSourceWithoutCommands = removeCommands(actualSource)
-  val expectedSourceWithoutCommands = removeCommands(expectedSource.trimMargin())
+  val expectedSourceWithoutCommands = removeCommands(expectedSource.text.trimMargin())
 
   assertThat(actualSourceWithoutCommands)
-    .`as`("EXPECTED:${expectedSource.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
+    .`as`("EXPECTED:${expectedSource.text.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
     .isEqualToIgnoringWhitespace(expectedSourceWithoutCommands)
 }
 

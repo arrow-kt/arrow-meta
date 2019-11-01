@@ -4,6 +4,7 @@ import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugin.testing.source
 import org.junit.Test
 
 class LensTest {
@@ -31,7 +32,7 @@ class LensTest {
           addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowOptics)
         },
         code = {
-          codeSnippet
+          codeSnippet.source
         },
         assert = {
           quoteOutputMatches(
@@ -53,7 +54,7 @@ class LensTest {
             |     )
             |   }
             | }
-        """)
+        """.source)
         }
     ))
   }

@@ -1,8 +1,8 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.Plugin
-typealias Source = String
 
+data class Source(val text: String)
 data class Dependency(val mavenCoordinates: String)
 data class CompilerPlugin(
   val name: String,
@@ -66,16 +66,19 @@ interface AssertSyntax {
 }
 
 sealed class Assert {
-    object Compiles : Assert()
-    object Fails : Assert()
+  sealed class CompilationResult : Assert() {
+    object Compiles : CompilationResult()
+    object Fails : CompilationResult()
+  }
+
   object Empty : Assert()
   data class QuoteOutputMatches(val source: Source) : Assert()
   data class EvalsTo(val source: Source, val output: Any?) : Assert()
   data class FailsWith(val f: (String) -> Boolean) : Assert()
 
   companion object : AssertSyntax {
-    override val emptyAssert: Assert = Empty
-    override val compiles: Assert = Compiles
-    override val fails: Assert = Fails
+    override val emptyAssert: Assert = Assert.Empty
+    override val compiles: Assert = CompilationResult.Compiles
+    override val fails: Assert = Assert.CompilationResult.Fails
   }
 }
