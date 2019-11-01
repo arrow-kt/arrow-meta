@@ -22,18 +22,13 @@ private val interpreter: (CompilerTest) -> Unit = {
     when {
       isEmpty() -> acc
       else -> {
-        val (config, tail) = this[0] to drop(1)
+        val (config, remaining) = this[0] to drop(1)
         when (config) {
-          is Config.AddCompilerPlugins ->
-            tail.compilationData(acc.copy(compilerPlugins = acc.compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } }))
-          is Config.AddDependencies ->
-            tail.compilationData(acc.copy(dependencies = acc.dependencies + config.dependencies.map { it.mavenCoordinates }))
-          is Config.Many ->
-            (config.configs + tail).compilationData(acc)
-          Config.Empty ->
-            tail.compilationData(acc)
-          is Config.AddMetaPlugins ->
-            TODO("How do we bootstrap the Meta Plugin Quote system?")
+          is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
+          is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
+          is Config.Many -> (config.configs + remaining).compilationData(acc)
+          Config.Empty -> remaining.compilationData(acc)
+          is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
         }
       }
     }
@@ -52,6 +47,12 @@ private val interpreter: (CompilerTest) -> Unit = {
   val compilationResult = compile(compilationData)
   runAssert(it.assert(CompilerTest), compilationResult)
 }
+
+private fun CompilationData.addDependencies(config: Config.AddDependencies) =
+  copy(dependencies = dependencies + config.dependencies.map { it.mavenCoordinates })
+
+private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins) =
+  copy(compilerPlugins = compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } })
 
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
   assertCompiles(compilationResult)
