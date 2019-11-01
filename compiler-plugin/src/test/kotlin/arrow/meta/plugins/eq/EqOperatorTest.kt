@@ -48,23 +48,29 @@ class EqOperatorTest {
   @Test
   fun `simple_case_function`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowCoreData = Dependency("arrow-core-data:${System.getProperty("CURRENT_VERSION")}")
+    // val arrowCoreData = Dependency("arrow-core-data:${System.getProperty("CURRENT_VERSION")}")
 
     assertThis(CompilerTest(
       config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowCoreData)
+        listOf(addCompilerPlugins(compilerPlugin)) // + addDependencies(arrowCoreData)
       },
       code = {
         """
-        | import arrow.typeclasses.Eq
-        |
+        | interface Eq<in F> {
+        |   fun F.eqv(b: F): Boolean
+        |   fun F.neqv(b: F): Boolean = !eqv(b)
+        |   companion object {
+        |     inline operator fun <F> invoke(crossinline feqv: (F, F) -> Boolean): Eq<F> = object : Eq<F> {
+        |       override fun F.eqv(b: F): Boolean = feqv(this, b)
+        |     }
+        |   }
+        | }
+        | 
         | object Id
         |
         | fun IdEq() : Eq<Id> = Id.eq().run {
         |   Id.eqv(Id)
         | }
-        | val x = Id == Id
-        | 
         """.source
       },
       assert = {
