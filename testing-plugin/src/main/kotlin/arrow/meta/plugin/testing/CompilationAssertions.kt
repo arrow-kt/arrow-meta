@@ -19,8 +19,8 @@ fun assertThis(compilerTest: CompilerTest): Unit =
 private val interpreter: (CompilerTest) -> Unit = {
   fun runAssert(assert: Assert, compilationResult: CompilationResult): Unit = when (assert) {
     Assert.Empty -> println("Assertions not found")
-    Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
-    Assert.CompilationResult.Fails -> assertFails(compilationResult)
+    Assert.Compiles -> assertCompiles(compilationResult)
+    Assert.Fails -> assertFails(compilationResult)
     is Assert.FailsWith -> assertFailsWith(compilationResult, assert.f)
     is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, assert.source)
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)

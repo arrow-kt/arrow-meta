@@ -31,6 +31,8 @@ sealed class Config {
   object Empty : Config()
   interface Syntax {
     val emptyConfig: Config
+      get() = Empty
+
     fun addCompilerPlugins(vararg element: CompilerPlugin): Config =
       Many(listOf(AddCompilerPlugins(element.toList())))
 
@@ -44,17 +46,12 @@ sealed class Config {
       Many(this)
   }
 
-  companion object : Syntax {
-    override val emptyConfig: Config = Config.emptyConfig
-  }
+  companion object : Syntax
 }
 
 sealed class Assert {
-  sealed class CompilationResult : Assert() {
-    object Compiles : CompilationResult()
-    object Fails : CompilationResult()
-  }
-
+  object Compiles : Assert()
+  object Fails : Assert()
   object Empty : Assert()
   data class QuoteOutputMatches(val source: Source) : Assert()
   data class EvalsTo(val source: Source, val output: Any?) : Assert()
@@ -62,16 +59,16 @@ sealed class Assert {
 
   interface Syntax {
     val emptyAssert: Assert
+      get() = Empty
     val compiles: Assert
+      get() = Compiles
     val fails: Assert
+      get() = Fails
+
     fun failsWith(f: (String) -> Boolean): Assert = FailsWith(f)
     fun quoteOutputMatches(source: Source): Assert = QuoteOutputMatches(source)
     infix fun Source.evalsTo(value: Any?): Assert = EvalsTo(this, value)
   }
 
-  companion object : Syntax {
-    override val emptyAssert: Assert = Assert.Empty
-    override val compiles: Assert = CompilationResult.Compiles
-    override val fails: Assert = Assert.CompilationResult.Fails
-  }
+  companion object : Syntax
 }
