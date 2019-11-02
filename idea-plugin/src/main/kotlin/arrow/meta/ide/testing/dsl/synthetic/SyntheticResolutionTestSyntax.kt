@@ -14,14 +14,13 @@ interface SyntheticResolutionTestSyntax {
     srcFileName: String = "Source.kt",
     compilerConfig: List<Config>,
     module: Module,
-    project: Project,
     myFixture: CodeInsightTestFixture,
     srcDirName: String = "src",
     buildDirName: String = "build",
     f: (PsiElement) -> PsiElement?
   ): List<PsiElement> =
     heavyTest {
-      code.ideHeavySetup(module, project, myFixture, srcDirName, buildDirName, srcFileName, compilerConfig)?.traversable
+      code.ideHeavySetup(module, myFixture, srcDirName, buildDirName, srcFileName, compilerConfig)?.traversable
         ?.mapNotNull(f)
     } ?: emptyList()
 }

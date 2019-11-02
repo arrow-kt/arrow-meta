@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.config
 
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -16,5 +17,9 @@ fun currentProject(): Project? =
 fun Project.buildFolders(): List<VirtualFile> =
   ModuleManager.getInstance(this).modules
     .flatMap { ModuleRootManager.getInstance(it).excludeRoots.toList() }
+    .filter { it.name == "build" }
+
+fun Module.buildFolders(): List<VirtualFile> =
+  ModuleRootManager.getInstance(this).excludeRoots.toList()
     .filter { it.name == "build" }
 

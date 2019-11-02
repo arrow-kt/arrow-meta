@@ -15,6 +15,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
@@ -61,22 +62,30 @@ object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
   fun Source.copyToDir(name: String = "Source.kt", dir: VirtualFile, myFixture: CodeInsightTestFixture): KtFile? =
     toFile(name, dir)?.let { file: VirtualFile ->
       myFixture.configureFromExistingVirtualFile(file)
-      myFixture.file.fileType.safeAs()
+      myFixture.file.safeAs()
     }
 
   /**
+   * Creates a new directory "name" as sub-directory of the receiver and registers it as excluded directory.
    * @param receiver is the root file
    */
-  fun VirtualFile.addDir(name: String, module: Module): VirtualFile? =
-    WriteAction.computeAndWait<VirtualFile, Throwable> { this.createChildDirectory(this@HeavyTestSyntax, "build") }
+  fun VirtualFile.addExcludedDir(name: String, module: Module): VirtualFile? =
+    WriteAction.computeAndWait<VirtualFile, Throwable> { this.createChildDirectory(this@HeavyTestSyntax, name) }
       .also { PsiTestUtil.addExcludedRoot(module, it) }
+
+  /**
+   * Creates a new directory "name" as sub-directory of the receiver and registers it as a source root.
+   * @param receiver is the root file
+   */
+  fun VirtualFile.addSourceDir(name: String, module: Module): VirtualFile? =
+    WriteAction.computeAndWait<VirtualFile, Throwable> { this.createChildDirectory(this@HeavyTestSyntax, name) }
+      .also { PsiTestUtil.addSourceRoot(module, it) }
 
   val Module.root: VirtualFile?
     get() = ModuleRootManager.getInstance(this).contentRoots.takeIf { it.isNotEmpty() }?.firstOrNull()
 
   fun Source.ideHeavySetup(
     module: Module,
-    project: Project,
     myFixture: CodeInsightTestFixture,
     srcDirName: String = "src",
     buildDirName: String = "build",
@@ -84,9 +93,9 @@ object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
     config: List<Config>
   ): HeavyTestSetUp? =
     module.root?.let { root: VirtualFile ->
-      root.addDir(buildDirName, module)?.let { buildDir: VirtualFile ->
-        root.addDir(srcDirName, module)?.let { srcDir: VirtualFile ->
-          project.buildFolders().takeIf { it.isNotEmpty() }?.run {
+      root.addExcludedDir(buildDirName, module)?.let { buildDir: VirtualFile ->
+        root.addSourceDir(srcDirName, module)?.let { srcDir: VirtualFile ->
+          module.buildFolders().takeIf { it.isNotEmpty() }?.run {
             copyToDir(srcFileName, srcDir, myFixture)?.let { ktFile: KtFile ->
               addMetaDataToBuild(config, buildDir, myFixture)?.let { target: VirtualFile ->
                 HeavyTestSetUp(buildDir, srcDir, ktFile, ktFileToList(myFixture), target)
