@@ -14,7 +14,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   compile "org.celtric.kotlin:kotlin-html:0.1.4"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
-  compile project(":testing-plugin")
+  implementation project(":testing-plugin")
   testRuntimeOnly project(":compiler-plugin")
   testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
   testRuntimeOnly "io.arrow-kt:arrow-core-data:$VERSION_NAME"
