@@ -1,3 +1,4 @@
+
 package arrow.meta.ide.plugins.higherkinds
 
 import arrow.meta.ide.resources.ArrowIcons

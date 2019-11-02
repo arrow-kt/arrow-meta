@@ -1,35 +1,21 @@
 package arrow.meta.ide.plugins.typeclasses
 
-import arrow.meta.ide.phases.config.buildFolders
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.env.IdeHeavyTestSetUp
-import arrow.meta.ide.testing.env.ideTest
+import arrow.meta.ide.testing.env.testResult
 import arrow.meta.ide.testing.env.types.defaultConfig
 import arrow.meta.ide.testing.resolves
-import arrow.meta.plugin.testing.Assert
-import arrow.meta.plugin.testing.CompilerPlugin
-import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
-import arrow.meta.plugin.testing.Source
-import arrow.meta.plugin.testing.assertThis
-import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.SyntaxTraverser
-import com.intellij.testFramework.PsiTestUtil
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.types.ErrorType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
 
-class TypeResolutionTest : IdeHeavyTestSetUp() {
+class TypeClassResolutionTest : IdeHeavyTestSetUp() {
 
   @Test
-  fun `check SyntheticResolution`() =
-    ideTest(
-      IdeTest(
+  fun test() {
+    val d = IdeTest(
         code = TypeclassesTestCode.c1,
         myFixture = myFixture,
         test = { code, myFixture ->
@@ -46,11 +32,13 @@ class TypeResolutionTest : IdeHeavyTestSetUp() {
         result = resolves("No Unresolved KtElements") {
           it.takeIf { l -> l.isEmpty() }
         }
-      )
-    )
+    ).testResult()
+
+    assert(true)
+  }
 
 
-  fun testSetup() {
+  /*fun testSetup() {
     val code = TypeclassesTestCode.c1
     val module = myModule
 
@@ -123,5 +111,5 @@ class TypeResolutionTest : IdeHeavyTestSetUp() {
     ))
 
     return null
-  }
+  }*/
 }

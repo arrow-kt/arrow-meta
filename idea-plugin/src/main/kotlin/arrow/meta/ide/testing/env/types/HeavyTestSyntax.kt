@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -45,7 +46,7 @@ object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
     compile(config.compilationData(CompilationData(source = listOf(this.trimMargin()))))
 
   val CompilationResult.outDirFile: VirtualFile?
-    get() = TODO("::outputDirectory")
+    get() = outputDirectory.toVirtualFile()// TODO: @jansorg is that right?
 
   fun Source.addMetaDataToBuild(config: List<Config>, buildDir: VirtualFile, myFixture: CodeInsightTestFixture): VirtualFile? =
     compile(config).outDirFile?.let { myFixture.copyDirectoryToProject(it.path, buildDir.path) }
