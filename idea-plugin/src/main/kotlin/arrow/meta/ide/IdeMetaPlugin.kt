@@ -14,6 +14,10 @@ import arrow.meta.ide.plugins.typeclasses.typeclassesIdePlugin
 import kotlin.contracts.ExperimentalContracts
 
 class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
+  companion object {
+    val Instance = IdeMetaPlugin()
+  }
+
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<Plugin> =
     super.intercept(ctx) +

@@ -17,15 +17,18 @@
 
     <depends>org.jetbrains.plugins.gradle</depends>
     <depends>org.jetbrains.kotlin</depends>
-
+    
     <project-components>
-        <component>
-            <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
-        </component>
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
     </project-components>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- the central piece to bootstrap meta ide extensions,
+             it manages both application and project extensions -->
+        <applicationInitializedListener implementation="arrow.meta.ide.MetaExtensionsRegistrar" />
+    </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>
