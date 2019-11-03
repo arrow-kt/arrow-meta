@@ -16,17 +16,62 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
-import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
-import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 
+/**
+ *
+ * The Union Types Plugin allows users to define typed Unions of arbitrary arity eliminating
+ * nesting and wrappers.
+ *
+ * https://en.wikipedia.org/wiki/Union_type
+ *
+ * ```kotlin:diff
+ * - sealed class Error {
+ * -   object NotANumber : Error()
+ * -   object NoZeroReciprocal : Error()
+ * - }
+ * -
+ * - fun parse(s: String): Either<Error, Int> =
+ * -   if (s.matches(Regex("-?[0-9]+"))) Either.Right(s.toInt())
+ * -   else Either.Left(Error.NotANumber)
+ * + object NotANumber
+ * + object NoZeroReciprocal
+ * + typealias Error = Union2<NotANumber, NoZeroReciprocal>
+ * +
+ * + fun parse(s: String): Union2<Error, Int> =
+ * +  if (s.matches(Regex("-?[0-9]+"))) s.toInt()
+ * +  else NotANumber
+ * ```
+ */
 val Meta.unionTypes: Plugin
   get() =
     "Union Types" {
       meta(
+        /**
+         * A? : Union2<A, B>
+         * B? : Union2<A, B>
+         *
+         * fun proof(): Union2<String, Int> = 1
+         */
         typeChecker(::UnionTypeChecker),
+        /**
+         * fun proof(): Union2<String, Int> = 1
+         * val willBeNullButOk: String? = proof() //ok
+         * val willBeInt: Int? = proof() //ok
+         */
         suppressDiagnostic(Diagnostic::typeMismatchOnNullableReceivers),
+        /**
+         * ```kotlin:diff
+         * - val proof: Union2<String, Int> = 1
+         * + val proof: Union2<String, Int> = Union(1) //inlined class zero cost
+         * ```
+         */
         irVariable(IrUtils::applyUnion),
+        /**
+         * ```kotlin:diff
+         * - fun proof(): Union2<String, Int> = 1
+         * + fun proof(): Union2<String, Int> = Union(1) //inlined class zero cost
+         * ```
+         */
         irReturn(IrUtils::applyUnion)
       )
     }
@@ -79,39 +124,7 @@ fun IrUtils.applyUnionLift(intercepted: IrReturn, targetType: KotlinType?): IrRe
     }
   }
 
-private fun KotlinType.nullableUnionTargets(subType: KotlinType): Boolean =
-  subType.isMarkedNullable && isUnion() && arguments.contains(subType.makeNotNullable().asTypeProjection())
 
-private fun KotlinType.isUnion(): Boolean {
-  println("type: " + constructor.declarationDescriptor?.name?.asString())
-  return constructor.declarationDescriptor?.name?.asString()?.startsWith("Union") == true
-}
-
-private fun KotlinType.union(subType: KotlinType) =
-  isUnion() && arguments.contains(subType.asTypeProjection()) || nullableUnionTargets(subType)
-
-class UnionTypeChecker(val typeChecker: KotlinTypeChecker) : KotlinTypeChecker by typeChecker {
-
-  override fun isSubtypeOf(p0: KotlinType, p1: KotlinType): Boolean {
-    val underlyingResult = typeChecker.isSubtypeOf(p0, p1)
-    return if (!underlyingResult) {
-      val subType = p0.unwrap()
-      val superType = p1.unwrap()
-      val inUnion: Boolean = superType.union(subType)
-      val result = inUnion
-      println("UnionTypeChecker.isSubtypeOf: $subType <-> $superType = $result, inUnion: $inUnion")
-      result
-    } else underlyingResult
-  }
-
-  override fun equalTypes(p0: KotlinType, p1: KotlinType): Boolean {
-    //println("KindAwareTypeChecker.equalTypes: $p0 <-> $p1")
-    val result = typeChecker.equalTypes(p0, p1)
-    println("UnionTypeChecker.equalTypes: $p0 <-> $p1 = $result")
-    return result
-  }
-
-}
 
 
 
