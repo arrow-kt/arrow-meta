@@ -17,14 +17,6 @@ import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.types.KotlinType
 
-interface Union2<A, B>
-object NotANumber
-typealias `NotANumber | Int` = Union2<NotANumber, Int>
-
-fun parse(s: String): `NotANumber | Int` =
-  if (s.matches(Regex("-?[0-9]+"))) s.toInt()
-  else NotANumber
-
 /**
  *
  * The Union Types Plugin allows users to define typed Unions of arbitrary arity eliminating
