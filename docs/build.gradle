@@ -8,6 +8,10 @@ dependencies {
     compile "io.arrow-kt:arrow-ank:$VERSION_NAME"
 }
 
+repositories {
+    maven { url "https://jitpack.io" }
+}
+
 task printcp {
     doLast {
         println sourceSets.main.runtimeClasspath.each { println it }

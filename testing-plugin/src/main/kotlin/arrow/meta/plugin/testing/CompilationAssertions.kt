@@ -13,10 +13,12 @@ private data class ExpressionParts(
   val property: String? = null
 )
 
-fun assertThis(compilerTest: CompilerTest): Unit =
-  compilerTest.run(interpreter)
+data class CompilationAssertions<A>(val f: () -> A)
 
-private val interpreter: (CompilerTest) -> Unit = {
+fun assertThis(compilerTest: CompilerTest): CompilationAssertions<Unit> =
+  compilerTest.run(::interpreter)
+
+private fun interpreter(test: CompilerTest): CompilationAssertions<Unit> {
 
   tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
     when {
@@ -42,10 +44,10 @@ private val interpreter: (CompilerTest) -> Unit = {
     is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
   }
 
-  val initialCompilationData = CompilationData(source = listOf(it.code(CompilerTest).text.trimMargin()))
-  val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
+  val initialCompilationData = CompilationData(source = listOf(test.code(CompilerTest).text.trimMargin()))
+  val compilationData = test.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-  runAssert(it.assert(CompilerTest), compilationResult)
+  return CompilationAssertions { runAssert(test.assert(CompilerTest), compilationResult) }
 }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =

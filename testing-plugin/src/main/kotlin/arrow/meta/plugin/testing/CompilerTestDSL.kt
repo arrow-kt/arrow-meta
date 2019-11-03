@@ -9,14 +9,14 @@ data class CompilerPlugin(
   val dependencies: List<Dependency>
 )
 
-typealias CompilerTestInterpreter = (CompilerTest) -> Unit
+typealias CompilerTestInterpreter<A> = (CompilerTest) -> CompilationAssertions<A>
 
 data class CompilerTest(
   val config: Companion.() -> List<Config> = { emptyList() },
   val code: Companion.() -> Source, // TODO: Sources
   val assert: Companion.() -> Assert = { Assert.emptyAssert }
 ) {
-  fun run(interpret: CompilerTestInterpreter): Unit =
+  fun <A> run(interpret: CompilerTestInterpreter<A>): CompilationAssertions<A> =
     interpret(this)
 
   companion object : ConfigSyntax by Config, AssertSyntax by Assert {
