@@ -1,0 +1,8 @@
+FUN name:x1 visibility:public modality:FINAL <> () returnType:<root>.Union2<kotlin.String, kotlin.Int>
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun x1 (): <root>.Union2<kotlin.String, kotlin.Int> declared in <root>'
+        CALL 'public final fun first <A, B> (a: A of <root>.Union.Companion.first): <root>.Union2<A of <root>.Union.Companion.first, B of <root>.Union.Companion.first> declared in <root>.Union.Companion' type=<root>.Union2<kotlin.String, kotlin.Int> origin=null
+          <A>: kotlin.String
+          <B>: kotlin.Int
+          $this: GET_OBJECT 'CLASS OBJECT name:Companion modality:FINAL visibility:public [companion] superTypes:[kotlin.Any]' type=<root>.Union.Companion
+          a: CONST String type=kotlin.String value="a"
