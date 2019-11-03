@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.typeclasses
 
+import arrow.meta.plugin.testing.CompilationStatus
 import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.acquire
@@ -21,7 +22,7 @@ class TypeclassesTest : CodeInsightFixtureTestCase<EmptyModuleFixtureBuilder<*>>
       val arrowCoreData = Dependency("arrow-core-data:$currentVersion")
       addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
     }
-    return Assert.assertNotNull(result)
+    return Assert.assertTrue(result.actualStatus == CompilationStatus.OK)
   }
 
 }
