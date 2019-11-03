@@ -5,17 +5,15 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.codegen.ir.IrUtils
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
+import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
-import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
-import org.jetbrains.kotlin.ir.util.TypeTranslator
-import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
@@ -27,34 +25,34 @@ val Meta.unionTypes: Plugin
     "Union Types" {
       meta(
         typeChecker(::UnionTypeChecker),
-        suppressDiagnostic {
-          if (it.factory == Errors.TYPE_MISMATCH) {
-            val typeMismatch = Errors.TYPE_MISMATCH.cast(it)
-            val result = typeMismatch.b.nullableUnionTargets(subType = typeMismatch.a)
-            println("type mismatch suppress: ${typeMismatch.a} ${typeMismatch.b} $result")
-            result
-          } else false
-        },
-        irVariable {
-          println("irVariable:\n${it.dump()}")
-          val targetType = it.type.originalKotlinType
-          val valueType = it.initializer?.type?.originalKotlinType
-          if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-            applyUnionLift(it)
-          } else it
-        },
-        irReturn {
-          val targetType = it.returnTarget.returnType
-          val valueType = it.value.type.originalKotlinType
-          if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-            applyUnionLift(it, targetType)
-          } else it
-        },
-        IrGeneration { compilerContext, file, backendContext, bindingContext ->
-          println(file.dump())
-        }
+        suppressDiagnostic(Diagnostic::typeMismatchOnNullableReceivers),
+        irVariable(IrUtils::applyUnion),
+        irReturn(IrUtils::applyUnion)
       )
     }
+
+private fun IrUtils.applyUnion(it: IrReturn): IrExpression? {
+  val targetType = it.returnTarget.returnType
+  val valueType = it.value.type.originalKotlinType
+  return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
+    applyUnionLift(it, targetType)
+  } else it
+}
+
+private fun IrUtils.applyUnion(it: IrVariable): IrStatement? {
+  val targetType = it.type.originalKotlinType
+  val valueType = it.initializer?.type?.originalKotlinType
+  return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
+    applyUnionLift(it)
+  } else it
+}
+
+private fun Diagnostic.typeMismatchOnNullableReceivers(): Boolean =
+  if (factory == Errors.TYPE_MISMATCH)
+    Errors.TYPE_MISMATCH.cast(this).run {
+      b.nullableUnionTargets(subType = a)
+    }
+  else false
 
 fun IrUtils.applyUnionLift(intercepted: IrVariable): IrVariable? =
   intercepted.apply {
@@ -66,35 +64,20 @@ fun IrUtils.applyUnionLift(intercepted: IrVariable): IrVariable? =
 private fun IrUtils.unionClassDescriptor() =
   backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
 
-fun IrUtils.applyUnionLift(intercepted: IrReturn, targetType: KotlinType?): IrExpression? {
-  return targetType?.let { unionType ->
+fun IrUtils.applyUnionLift(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
+  targetType?.let { unionType ->
     val unionImpl = backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
     return unionImpl?.irConstructorCall()?.let { constructorCall ->
       constructorCall.putValueArgument(0, intercepted.value)
       IrReturnImpl(
         UNDEFINED_OFFSET,
         UNDEFINED_OFFSET,
-        typeTranslator().translateType(unionType),
+        typeTranslator.translateType(unionType),
         intercepted.returnTargetSymbol,
         constructorCall
       )
     }
   }
-}
-
-private fun IrUtils.typeTranslator(): TypeTranslator =
-  TypeTranslator(
-    symbolTable = backendContext.ir.symbols.externalSymbolTable,
-    languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,
-    builtIns = backendContext.builtIns
-  ).apply {
-    constantValueGenerator =
-      ConstantValueGenerator(
-        moduleDescriptor = backendContext.ir.irModule.descriptor,
-        symbolTable = backendContext.ir.symbols.externalSymbolTable
-      )
-  }
-
 
 private fun KotlinType.nullableUnionTargets(subType: KotlinType): Boolean =
   subType.isMarkedNullable && isUnion() && arguments.contains(subType.makeNotNullable().asTypeProjection())
