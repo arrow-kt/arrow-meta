@@ -1,4 +1,0 @@
-FUN name:f1 visibility:public modality:FINAL <> () returnType:<root>.Union2<kotlin.String, kotlin.Int>
-    BLOCK_BODY
-      RETURN type=kotlin.Nothing from='public final fun f1 (): <root>.Union2<kotlin.String, kotlin.Int> declared in <root>'
-        CONST String type=kotlin.String value="a"
