@@ -18,6 +18,12 @@ internal data class CompilationResult(
   val generatedFiles: List<File>
 )
 
+data class CompilationResource(
+  val actualStatus: CompilationStatus,
+  val classesDirectory: File,
+  val generatedFiles: List<File>
+)
+
 internal fun compile(data: CompilationData): CompilationResult =
   compilationResultFrom(KotlinCompilation().apply {
     sources = data.source.map { SourceFile.kotlin("Example.kt", it) }

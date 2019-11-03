@@ -18,22 +18,12 @@ data class CompilationAssertions<A>(val f: () -> A)
 fun assertThis(compilerTest: CompilerTest): CompilationAssertions<Unit> =
   compilerTest.run(::interpreter)
 
-private fun interpreter(test: CompilerTest): CompilationAssertions<Unit> {
+fun acquire(src: String, config: CompilerTest.Companion.() -> List<Config>): CompilationResource =
+  compile(config(CompilerTest.Companion).compilationData(CompilationData(source = listOf(src)))).run {
+    CompilationResource(actualStatus, classesDirectory, generatedFiles)
+  }
 
-  tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
-    when {
-      isEmpty() -> acc
-      else -> {
-        val (config, remaining) = this[0] to drop(1)
-        when (config) {
-          is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
-          is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
-          is Config.Many -> (config.configs + remaining).compilationData(acc)
-          Config.Empty -> remaining.compilationData(acc)
-          is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
-        }
-      }
-    }
+private fun interpreter(test: CompilerTest): CompilationAssertions<Unit> {
 
   fun runAssert(assert: Assert, compilationResult: CompilationResult): Unit = when (assert) {
     Assert.Empty -> println("Assertions not found")
@@ -49,6 +39,21 @@ private fun interpreter(test: CompilerTest): CompilationAssertions<Unit> {
   val compilationResult = compile(compilationData)
   return CompilationAssertions { runAssert(test.assert(CompilerTest), compilationResult) }
 }
+
+internal tailrec fun List<Config>.compilationData(acc: CompilationData = CompilationData.empty): CompilationData =
+  when {
+    isEmpty() -> acc
+    else -> {
+      val (config, remaining) = this[0] to drop(1)
+      when (config) {
+        is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
+        is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
+        is Config.Many -> (config.configs + remaining).compilationData(acc)
+        Config.Empty -> remaining.compilationData(acc)
+        is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
+      }
+    }
+  }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
   copy(dependencies = dependencies + config.dependencies.map { it.mavenCoordinates })
