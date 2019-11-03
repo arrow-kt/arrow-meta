@@ -4,10 +4,10 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.codegen.ir.IrUtils
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -16,6 +16,14 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.types.KotlinType
+
+interface Union2<A, B>
+object NotANumber
+typealias `NotANumber | Int` = Union2<NotANumber, Int>
+
+fun parse(s: String): `NotANumber | Int` =
+  if (s.matches(Regex("-?[0-9]+"))) s.toInt()
+  else NotANumber
 
 /**
  *
@@ -27,17 +35,15 @@ import org.jetbrains.kotlin.types.KotlinType
  * ```kotlin:diff
  * - sealed class Error {
  * -   object NotANumber : Error()
- * -   object NoZeroReciprocal : Error()
  * - }
  * -
  * - fun parse(s: String): Either<Error, Int> =
  * -   if (s.matches(Regex("-?[0-9]+"))) Either.Right(s.toInt())
  * -   else Either.Left(Error.NotANumber)
  * + object NotANumber
- * + object NoZeroReciprocal
- * + typealias Error = Union2<NotANumber, NoZeroReciprocal>
+ * + typealias `NotANumber | Int` = Union2<NotANumber, Int>
  * +
- * + fun parse(s: String): Union2<Error, Int> =
+ * + fun parse(s: String): `NotANumber | Int` =
  * +  if (s.matches(Regex("-?[0-9]+"))) s.toInt()
  * +  else NotANumber
  * ```
@@ -62,20 +68,28 @@ val Meta.unionTypes: Plugin
         /**
          * ```kotlin:diff
          * - val proof: Union2<String, Int> = 1
-         * + val proof: Union2<String, Int> = Union(1) //inlined class zero cost
+         * + val proof: Union2<String, Int> = Union(1) //inlined class
          * ```
          */
         irVariable(IrUtils::applyUnion),
         /**
          * ```kotlin:diff
          * - fun proof(): Union2<String, Int> = 1
-         * + fun proof(): Union2<String, Int> = Union(1) //inlined class zero cost
+         * + fun proof(): Union2<String, Int> = Union(1) //inlined class
          * ```
          */
         irReturn(IrUtils::applyUnion)
       )
     }
 
+/**
+ * Lifts a [IrReturn] of `a: A` into a [`Union<A, B>(a: A)`] value
+ * 
+ * ```kotlin:diff
+ * - fun proof(): Union2<String, Int> = 1
+ * + fun proof(): Union2<String, Int> = Union(1) //inlined class
+ * ```
+ */
 private fun IrUtils.applyUnion(it: IrReturn): IrExpression? {
   val targetType = it.returnTarget.returnType
   val valueType = it.value.type.originalKotlinType
@@ -84,7 +98,15 @@ private fun IrUtils.applyUnion(it: IrReturn): IrExpression? {
   } else it
 }
 
-private fun IrUtils.applyUnion(it: IrVariable): IrStatement? {
+/**
+ * Lifts a [IrVariable] of `a: A` into a [`Union<A, B>(a: A)`] value
+ *
+ * ```kotlin:diff
+ * - val proof: Union2<String, Int> = 1
+ * + val proof: Union2<String, Int> = Union(1) //inlined class
+ * ```
+ */
+private fun IrUtils.applyUnion(it: IrVariable): IrVariable? {
   val targetType = it.type.originalKotlinType
   val valueType = it.initializer?.type?.originalKotlinType
   return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
@@ -92,6 +114,15 @@ private fun IrUtils.applyUnion(it: IrVariable): IrStatement? {
   } else it
 }
 
+/**
+ * Suppresses diagnostics if they refer to a type mismatch on a valid union
+ *
+ * ```kotlin
+ * fun proof(): Union2<String, Int> = 1
+ * val willBeNullButOk: String? = proof() //ok
+ * val willBeInt: Int? = proof() //ok
+ * ```
+ */
 private fun Diagnostic.typeMismatchOnNullableReceivers(): Boolean =
   if (factory == Errors.TYPE_MISMATCH)
     Errors.TYPE_MISMATCH.cast(this).run {
@@ -99,6 +130,9 @@ private fun Diagnostic.typeMismatchOnNullableReceivers(): Boolean =
     }
   else false
 
+/**
+ * @see [applyUnion]
+ */
 fun IrUtils.applyUnionLift(intercepted: IrVariable): IrVariable? =
   intercepted.apply {
     initializer = unionClassDescriptor()?.irConstructorCall()?.apply {
@@ -106,9 +140,15 @@ fun IrUtils.applyUnionLift(intercepted: IrVariable): IrVariable? =
     }
   }
 
-private fun IrUtils.unionClassDescriptor() =
+/**
+ * The arrow.Union inline class value holder
+ */
+private fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
   backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
 
+/**
+ * @see [applyUnion]
+ */
 fun IrUtils.applyUnionLift(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
   targetType?.let { unionType ->
     val unionImpl = backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
