@@ -3,6 +3,9 @@ package arrow.meta.plugin.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
+import io.github.classgraph.ClassGraph
+import java.util.*
 
 /**
  * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
@@ -19,11 +22,20 @@ class ArrowGradlePlugin : Plugin<Project> {
   }
 
   override fun apply(project: Project): Unit {
+    val properties = Properties()
+    properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
+    val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
+
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
       p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${project.rootDir}/modules/meta/arrow-meta-prototype/compiler-plugin/build/libs/compiler-plugin.jar"
+        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
     }
+  }
+
+  private fun classpathOf(dependency: String): File {
+    val regex = Regex(".*${dependency.replace(':', '-')}.*")
+    return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
   }
 }
