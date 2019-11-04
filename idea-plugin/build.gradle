@@ -20,7 +20,8 @@ dependencies {
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
   }
   compile project(path: ':compiler-plugin', configuration: 'shadow')
-  implementation(project(":testing-plugin")) {
+  compileOnly "io.github.classgraph:classgraph:4.8.47"
+  implementation("com.github.arrow-kt:kotlin-compile-testing:1.3.0") {
     // already provided by the kotlin-plugin
     exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"

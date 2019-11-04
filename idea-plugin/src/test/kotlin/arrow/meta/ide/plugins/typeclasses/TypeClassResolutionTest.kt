@@ -3,7 +3,6 @@ package arrow.meta.ide.plugins.typeclasses
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.env.IdeHeavyTestSetUp
 import arrow.meta.ide.testing.env.testResult
-import arrow.meta.ide.testing.env.types.defaultConfig
 import arrow.meta.ide.testing.resolves
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -20,8 +19,7 @@ class TypeClassResolutionTest : IdeHeavyTestSetUp() {
         traverseResolution(
           code = code,
           myFixture = myFixture,
-          module = myModule,
-          compilerConfig = defaultConfig(System.getProperty("CURRENT_VERSION"))
+          module = myModule
         ) {
           it.takeIf { p -> p.safeAs<KtDeclaration>()?.type() is ErrorType }
         }
