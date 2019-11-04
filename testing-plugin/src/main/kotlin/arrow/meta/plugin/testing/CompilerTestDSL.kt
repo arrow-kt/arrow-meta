@@ -41,6 +41,13 @@ interface ConfigSyntax {
 
   fun List<Config>.toConfig(): Config =
     Config.Many(this)
+
+  val metaDependencies: List<Config>
+    get() {
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
+      val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
+      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations)
+    }
 }
 
 sealed class Config {

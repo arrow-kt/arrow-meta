@@ -1,22 +1,35 @@
 package arrow.meta.plugins.union
 
-import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
+
 
 class UnionTest {
 
   @Test
+  fun `Union uber constructor remains visible`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun x1(): Union2<String, Int> = Union(0)
+        | 
+        """.source
+      },
+      assert = {
+        "x1().value".source.evalsTo(0)
+      }
+    ))
+  }
+
+  @Test
   fun `Union values don't require lifting`() {
-    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
 
     assertThis(CompilerTest(
-      config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations)
-      },
+      config = { metaDependencies },
       code = {
         """
         |${UnionTestPrelude}
