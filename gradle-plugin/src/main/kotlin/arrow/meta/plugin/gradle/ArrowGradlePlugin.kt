@@ -5,7 +5,7 @@ import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import io.github.classgraph.ClassGraph
-import java.util.*
+import java.util.Properties
 
 /**
  * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
