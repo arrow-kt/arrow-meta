@@ -50,8 +50,7 @@ jobs:
             echo "$( gem list | grep bundler )"
         fi
         bundle install --gemfile docs/Gemfile --path vendor/bundle
-        export BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll serve -s docs
-        export BUNDLE_GEMFILE=modules/docs/arrow-docs/Gemfile
+        export BUNDLE_GEMFILE=docs/Gemfile
         export JEKYLL_ENV=production
-        bundle exec jekyll serve -s docs -d docs/_site
-        /usr/local/bin/aws s3 sync docs/_site s3://$S3_BUCKET > aws_sync_jekyll.log
+        bundle exec jekyll build -s docs -d docs/build/_site
+        /usr/local/bin/aws s3 sync docs/build/_site s3://$S3_BUCKET > aws_sync_jekyll.log
