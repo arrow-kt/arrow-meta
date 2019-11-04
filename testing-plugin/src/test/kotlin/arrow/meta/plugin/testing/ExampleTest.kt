@@ -14,8 +14,8 @@ class ExampleTest {
         | 
         """.source
       },
-      assert = {
-        compiles
+      asserts = {
+        listOf(compiles)
       }
     ))
   }
@@ -30,8 +30,8 @@ class ExampleTest {
         | 
         """.source
       },
-      assert = {
-        "hello()".source.evalsTo("Hello world!")
+      asserts = {
+        listOf("hello()".source.evalsTo("Hello world!"))
       }
     ))
   }
@@ -45,8 +45,8 @@ class ExampleTest {
         | 
         """.source
       },
-      assert = {
-        fails
+      asserts = {
+        listOf(fails)
       }
     ))
   }
@@ -60,8 +60,8 @@ class ExampleTest {
         | 
         """.source
       },
-      assert = {
-        failsWith { it.contains("Expecting a top level declaration") }
+      asserts = {
+        listOf(failsWith { it.contains("Expecting a top level declaration") })
       }
     ))
   }
@@ -104,8 +104,8 @@ class ExampleTest {
         | 
         """.source
       },
-      assert = {
-        quoteOutputMatches(
+      asserts = {
+        listOf(quoteOutputMatches(
           """
           | import arrow.higherkind
           | 
@@ -120,7 +120,7 @@ class ExampleTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source)
+          """.source))
       }
     ))
   }

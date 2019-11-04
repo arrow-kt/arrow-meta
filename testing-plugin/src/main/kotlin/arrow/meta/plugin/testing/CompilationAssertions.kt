@@ -46,7 +46,7 @@ private val interpreter: (CompilerTest) -> Unit = {
   val initialCompilationData = CompilationData(source = listOf(it.code(CompilerTest).text.trimMargin()))
   val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-  runAssert(it.assert(CompilerTest), compilationResult)
+  it.asserts(CompilerTest).map { assert -> runAssert(assert, compilationResult) }
 }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
