@@ -26,6 +26,24 @@ class UnionTest {
   }
 
   @Test
+  fun `Union implicitly converts from a typed value in the Union`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun x1(): Union2<String, Int> = 0
+        | 
+        """.source
+      },
+      assert = {
+        "x1().value".source.evalsTo(0)
+      }
+    ))
+  }
+
+  @Test
   fun `Union values don't require lifting`() {
 
     assertThis(CompilerTest(
