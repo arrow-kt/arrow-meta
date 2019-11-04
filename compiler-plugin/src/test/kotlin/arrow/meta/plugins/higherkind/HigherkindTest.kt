@@ -31,7 +31,7 @@ class HigherkindTest {
         """.source
       },
       asserts = {
-        listOf(quoteOutputMatches(
+        allOf(quoteOutputMatches(
           """
           | import arrow.higherkind
           | 

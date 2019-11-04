@@ -255,7 +255,7 @@ class ComprehensionsTest {
         |""".source
       },
       asserts = {
-        listOf(failsWith { it.contains("Unresolved reference: a") })
+        allOf(failsWith { it.contains("Unresolved reference: a") })
       }
     ))
   }
@@ -280,7 +280,7 @@ class ComprehensionsTest {
 //        |""".source
 //      },
 //      assert = {
-//        listOf(quoteOutputMatches("""
+//        allOf(quoteOutputMatches("""
 //          $IO_CLASS_4_TESTS
 //          |
 //          | fun test(): IO<Int> =
