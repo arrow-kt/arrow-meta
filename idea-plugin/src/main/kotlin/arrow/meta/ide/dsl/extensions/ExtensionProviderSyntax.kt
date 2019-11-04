@@ -13,6 +13,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
 
+
 interface ExtensionProviderSyntax : ExtensionProvider {
   // Todo: Check LoadingOrder
   fun <E> IdeMetaPlugin.extensionProvider(
