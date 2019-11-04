@@ -19,7 +19,7 @@ markdown: kramdown
 sass:
     style: compressed
 #-------------------------
-exclude: ['config.ru', 'Gemfile', 'Gemfile.lock', 'vendor', 'Procfile', 'Rakefile']
+exclude: ['config.ru', 'Gemfile', 'Gemfile.lock', 'vendor', 'Procfile', 'Rakefile', 'build', 'build.gradle', 'gradle.properties']
 #-------------------------
 defaults:
   - scope:
