@@ -96,18 +96,7 @@ class TypeClassesTest {
           |     return Some(1).addOne()
           |   }
           | }
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "foo()".source.evalsTo(Some(2))
       }
     ))
