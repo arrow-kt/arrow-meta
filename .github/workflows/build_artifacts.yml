@@ -1,9 +1,9 @@
-name: Build
+name: Build Artifacts
 
 on: pull_request
 
 jobs:
-  build:
+  build_artifacts:
 
     runs-on: ubuntu-latest
 
