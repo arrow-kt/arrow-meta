@@ -1,12 +1,7 @@
 package arrow.meta.ide.dsl.extensions
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.editor.AddClassExtension
-import arrow.meta.ide.phases.editor.AddExtension
-import arrow.meta.ide.phases.editor.AddFileTypeExtension
-import arrow.meta.ide.phases.editor.AddLanguageExtension
-import arrow.meta.ide.phases.editor.RegisterBaseExtension
-import arrow.meta.ide.phases.editor.RegisterExtension
+import arrow.meta.ide.phases.editor.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.lang.LanguageExtension
@@ -27,38 +22,38 @@ interface ExtensionProviderSyntax {
     impl: E,
     loadingOrder: LoadingOrder = LoadingOrder.ANY
   ): ExtensionPhase =
-    AddExtension(EP_NAME, impl, loadingOrder)
+    ExtensionProvider.AddExtension(EP_NAME, impl, loadingOrder)
 
   fun <E> IdeMetaPlugin.extensionProvider(
     LE: LanguageExtension<E>,
     impl: E
   ): ExtensionPhase =
-    AddLanguageExtension(LE, impl)
+    ExtensionProvider.AddLanguageExtension(LE, impl)
 
   fun <E> IdeMetaPlugin.extensionProvider(
     FE: FileTypeExtension<E>,
     impl: E
   ): ExtensionPhase =
-    AddFileTypeExtension(FE, impl)
+    ExtensionProvider.AddFileTypeExtension(FE, impl)
 
   fun <E> IdeMetaPlugin.extensionProvider(
     CE: ClassExtension<E>,
     forClass: Class<*>,
     impl: E
   ): ExtensionPhase =
-    AddClassExtension(CE, forClass, impl)
+    ExtensionProvider.AddClassExtension(CE, forClass, impl)
 
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: BaseExtensionPointName,
     aClass: Class<E>
   ): ExtensionPhase =
-    RegisterBaseExtension(EP_NAME, aClass)
+    ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass)
 
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
     aClass: Class<E>
   ): ExtensionPhase =
-    RegisterExtension(EP_NAME, aClass)
+    ExtensionProvider.RegisterExtension(EP_NAME, aClass)
 
   fun IdeMetaPlugin.addContainerProvider(f: (PsiElement) -> PsiElement?): ExtensionPhase =
     extensionProvider(

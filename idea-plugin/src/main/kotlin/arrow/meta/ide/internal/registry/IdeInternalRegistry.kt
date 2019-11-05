@@ -2,14 +2,9 @@ package arrow.meta.ide.internal.registry
 
 import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
-import arrow.meta.ide.phases.editor.AddClassExtension
-import arrow.meta.ide.phases.editor.AddExtension
-import arrow.meta.ide.phases.editor.AddFileTypeExtension
-import arrow.meta.ide.phases.editor.AddLanguageExtension
+import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.ExtensionProvider
 import arrow.meta.ide.phases.editor.IdeContext
-import arrow.meta.ide.phases.editor.RegisterBaseExtension
-import arrow.meta.ide.phases.editor.RegisterExtension
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.internal.registry.InternalRegistry
 import arrow.meta.phases.CompilerContext
@@ -29,6 +24,7 @@ import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import com.intellij.core.CoreApplicationEnvironment
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -56,23 +52,50 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
       is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
       is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
-
+      is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+    }
+
+  fun registerAnActionExtensionProvider(phase: AnActionExtensionProvider): Unit =
+    when (phase) {
+      is AnActionExtensionProvider.RegisterAction -> phase.run {
+        ActionManager.getInstance()?.registerAction(actionId, action)
+          ?: LOG.warn("Couldn't register Action:$actionId")
+      }
+      is AnActionExtensionProvider.UnregisterAction -> phase.run {
+        ActionManager.getInstance()?.unregisterAction(actionId)
+          ?: LOG.warn("Couldn't unregister Action:$actionId")
+      }
+      is AnActionExtensionProvider.ReplaceAction -> phase.run {
+        ActionManager.getInstance()?.replaceAction(actionId, newAction)
+          ?: LOG.warn("Couldn't replace Action:$actionId")
+      }
+      is AnActionExtensionProvider.AddTimerListener -> phase.run {
+        ActionManager.getInstance()?.addTimerListener(delay, listener)
+          ?: LOG.warn("Couldn't add TimerListener:$listener")
+      }
+      is AnActionExtensionProvider.AddTransparentTimerListener -> phase.run {
+        ActionManager.getInstance()?.addTransparentTimerListener(delay, listener)
+          ?: LOG.warn("Couldn't add TransparentTimerListener:$listener")
+      }
+      is AnActionExtensionProvider.RemoveTimerListener -> phase.run {
+        ActionManager.getInstance()?.removeTimerListener(listener)
+          ?: LOG.warn("Couldn't remove TimerListener:$listener")
+      }
+      is AnActionExtensionProvider.RemoveTransparentTimerListener -> phase.run {
+        ActionManager.getInstance()?.removeTransparentTimerListener(listener)
+          ?: LOG.warn("Couldn't remove TransparentTimerListener:$listener")
+      }
+      is AnActionExtensionProvider.CollectActionIds -> TODO("This should actually return List<String> not Unit")
     }
 
   fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =
     when (phase) {
-      is AddExtension -> phase.run {
-        println("ADDED ${phase.EP_NAME.name}")
-        Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose)
-      }
-      is AddLanguageExtension -> phase.run {
-        println("ADDED LanguageExtension: ${LE.name}")
-        LE.addExplicitExtension(KotlinLanguage.INSTANCE, impl)
-      }
-      is AddFileTypeExtension -> phase.run { FE.addExplicitExtension(KotlinFileType.INSTANCE, impl) }
-      is AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }
-      is RegisterBaseExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
-      is RegisterExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
+      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose) }
+      is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(KotlinLanguage.INSTANCE, impl) }
+      is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(KotlinFileType.INSTANCE, impl) }
+      is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }
+      is ExtensionProvider.RegisterBaseExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
+      is ExtensionProvider.RegisterExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
     }
 }

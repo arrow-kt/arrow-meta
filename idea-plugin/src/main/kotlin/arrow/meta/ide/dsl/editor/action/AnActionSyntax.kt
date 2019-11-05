@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.editor.action
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.ideRegistry
 import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -12,63 +11,51 @@ import com.intellij.openapi.application.ModalityState
 import javax.swing.Icon
 
 // TODO: Check Default of actionId
-interface AnActionSyntax : AnActionExtensionProvider {
+interface AnActionSyntax {
   fun IdeMetaPlugin.addAnAction(
     actionId: String,
     action: AnAction
   ): ExtensionPhase =
-    ideRegistry {
-      register(actionId, action)
-    }
+    AnActionExtensionProvider.RegisterAction(actionId, action)
 
   fun IdeMetaPlugin.replaceAnAction(
     actionId: String,
     newAction: AnAction
   ): ExtensionPhase =
-    ideRegistry {
-      replace(actionId, newAction)
-    }
+    AnActionExtensionProvider.ReplaceAction(actionId, newAction)
 
   fun IdeMetaPlugin.unregisterAnAction(
     actionId: String
   ): ExtensionPhase =
-    ideRegistry {
-      println("Unregistered $actionId")
-      unregister(actionId)
-    }
+    AnActionExtensionProvider.UnregisterAction(actionId)
 
   fun IdeMetaPlugin.addTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
   ): ExtensionPhase =
-    ideRegistry {
-      println("TimerListener is registered")
-      addTimerListener(delay, this@AnActionSyntax.timerListener(modalityState, run))
-    }
+    AnActionExtensionProvider.AddTimerListener(delay, this@AnActionSyntax.timerListener(modalityState, run))
 
   fun IdeMetaPlugin.addTransparentTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
   ): ExtensionPhase =
-    ideRegistry {
-      addTransparentTimerListener(delay, this@AnActionSyntax.timerListener(modalityState, run))
-    }
+    AnActionExtensionProvider.AddTransparentTimerListener(delay, this@AnActionSyntax.timerListener(modalityState, run))
 
   fun IdeMetaPlugin.removeTransparentTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
-    ideRegistry {
-      removeTransparentTL(listener)
-    }
+    AnActionExtensionProvider.RemoveTransparentTimerListener(listener)
+
 
   fun IdeMetaPlugin.removeTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
-    ideRegistry {
-      removeTL(listener)
-    }
+    AnActionExtensionProvider.RemoveTimerListener(listener)
+
+  // TODO: This should result into a List<String> with ActionManager.getInstance().getActionIds(prefix).toList()
+  fun IdeMetaPlugin.collectActionIds(prefix: String): ExtensionPhase = AnActionExtensionProvider.CollectActionIds(prefix)
 
   /**
    * TODO: Add more costume attributes: ShortCuts etc.
