@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  *
  * `func` is part of the [arrow.meta.quotes.Quote] DSL, a high level DSL built for tree transformations.
  * While most use cases can be covered by the Quote DSL you can also subscribe to the low level compiler phases
- * such as Configuration, Analysys, Resolution and Code generation with the Arrow Meta Compiler DSL [arrow.meta.dsl].
+ * such as Configuration, Analysis, Resolution and Code generation with the Arrow Meta Compiler DSL [arrow.meta.dsl].
  */
 data class Plugin(
   val name: String,
