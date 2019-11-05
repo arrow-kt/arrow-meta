@@ -34,19 +34,10 @@ jobs:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
         set -ex
-        sudo apt remove -y awscli
         sudo pip install awscli
         /usr/local/bin/aws --version
-        bundle check
-        BUNDLE_CHECK_RESULT=$?
-        if [[ BUNDLE_CHECK_RESULT -eq 0 ]]; then
-            echo "All fine, all good with bundler"
-        else
-            echo "Updating bundler"
-            gem uninstall bundler --force
-            gem install bundler --force
-            echo "$( gem list | grep bundler )"
-        fi
+        gem install bundler --force
+        echo "$( gem list | grep bundler )"
         bundle install --gemfile docs/Gemfile --path vendor/bundle
         export BUNDLE_GEMFILE=docs/Gemfile
         export JEKYLL_ENV=production
