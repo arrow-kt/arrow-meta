@@ -20,7 +20,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "f().value".source.evalsTo(0)
+        allOf("f().value".source.evalsTo(0))
       }
     ))
   }
@@ -38,7 +38,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "f().value".source.evalsTo(0)
+        allOf("f().value".source.evalsTo(0))
       }
     ))
   }
@@ -56,7 +56,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "f().value".source.evalsTo("a")
+        allOf("f().value".source.evalsTo("a"))
       }
     ))
   }
@@ -74,7 +74,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        failsWith { it.contains("The floating-point literal does not conform to the expected type Union2<String, Int>") }
+        allOf(failsWith { it.contains("The floating-point literal does not conform to the expected type Union2<String, Int>") })
       }
     ))
   }
@@ -92,7 +92,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "z()".source.evalsTo("a")
+        allOf("z()".source.evalsTo("a"))
       }
     ))
   }
@@ -110,7 +110,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "z()".source.evalsTo(0)
+        allOf("z()".source.evalsTo(0))
       }
     ))
   }
@@ -128,7 +128,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "z()".source.evalsTo(null)
+        allOf("z()".source.evalsTo(null))
       }
     ))
   }
@@ -147,7 +147,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "z()".source.evalsTo(0)
+        allOf("z()".source.evalsTo(0))
       }
     ))
   }
@@ -165,7 +165,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") }
+        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") })
       }
     ))
   }
@@ -193,7 +193,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        "f12().value".source.evalsTo("x")
+        allOf("f12().value".source.evalsTo("x"))
       }
     ))
   }
