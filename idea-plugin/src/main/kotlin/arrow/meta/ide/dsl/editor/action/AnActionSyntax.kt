@@ -11,7 +11,7 @@ import com.intellij.openapi.application.ModalityState
 import javax.swing.Icon
 
 // TODO: Check Default of actionId
-interface AnActionSyntax {
+interface AnActionSyntax : AnActionUtilitySyntax {
   fun IdeMetaPlugin.addAnAction(
     actionId: String,
     action: AnAction
@@ -53,9 +53,6 @@ interface AnActionSyntax {
     listener: TimerListener
   ): ExtensionPhase =
     AnActionExtensionProvider.RemoveTimerListener(listener)
-
-  // TODO: This should result into a List<String> with ActionManager.getInstance().getActionIds(prefix).toList()
-  fun IdeMetaPlugin.collectActionIds(prefix: String): ExtensionPhase = AnActionExtensionProvider.CollectActionIds(prefix)
 
   /**
    * TODO: Add more costume attributes: ShortCuts etc.

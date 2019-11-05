@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.editor.intention
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.ideRegistry
 import arrow.meta.ide.phases.editor.IntentionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -15,15 +14,11 @@ import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.psi.KtElement
 
-interface IntentionExtensionProviderSyntax : IntentionExtensionProvider {
-  fun IdeMetaPlugin.addIntention(
+interface IntentionExtensionProviderSyntax : IntentionExtensionProviderUtilitySyntax {
+  fun IdeMetaPlugin.addIntentionWithMetaData(
     intention: IntentionAction
   ): ExtensionPhase =
-    ideRegistry {
-      register(intention)?.run {
-        println("ADDED Intention")
-      }
-    }
+    IntentionExtensionProvider.RegisterIntentionWithMetaData(intention)
 
   /**
    * TODO: This Bails if there is no html and intentionDescription. Try to add them in the Function and not with the resource Folder. But this is fine for now
@@ -32,35 +27,26 @@ interface IntentionExtensionProviderSyntax : IntentionExtensionProvider {
     category: String,
     intention: IntentionAction
   ): ExtensionPhase =
-    ideRegistry {
-      register(intention, category)?.run {
-        println("ADDED Intention with MetaData")
-      }
-    }
+    IntentionExtensionProvider.RegisterIntention(intention, category)
 
   fun IdeMetaPlugin.unregisterIntention(
     intention: IntentionAction
   ): ExtensionPhase =
-    ideRegistry {
-      unregister(intention)?.run {
-        println("Unregistered Intention")
-      }
-    }
+    IntentionExtensionProvider.UnregisterIntention(intention)
 
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IdeMetaPlugin.addIntention(
+    category: String,
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
     applyTo: (element: K, editor: Editor?) -> Unit = Noop.effect2,
     priority: PriorityAction.Priority = PriorityAction.Priority.LOW
   ): ExtensionPhase =
-    addIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
+    addIntention(category, ktIntention(text, kClass, isApplicableTo, applyTo, priority))
 
-  fun IdeMetaPlugin.setIntentionAsEnabled(enabled: Boolean, intention: IntentionAction): ExtensionPhase =
-    ideRegistry {
-      intention.setEnabled(enabled)
-    }
+  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
+    IntentionExtensionProvider.SetAvailability(intention, enabled)
 
   /**
    * You can use this in [addQuickFixContributor] for @param intentions

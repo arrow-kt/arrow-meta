@@ -5,6 +5,7 @@ import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.editor.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.ExtensionProvider
 import arrow.meta.ide.phases.editor.IdeContext
+import arrow.meta.ide.phases.editor.IntentionExtensionProvider
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.internal.registry.InternalRegistry
 import arrow.meta.phases.CompilerContext
@@ -23,6 +24,8 @@ import arrow.meta.phases.resolve.DeclarationAttributeAlterer
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
+import com.intellij.codeInsight.intention.IntentionManager
+import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
@@ -53,7 +56,30 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
       is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
       is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
+      is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+    }
+
+  fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider) =
+    when (phase) {
+      is IntentionExtensionProvider.RegisterIntention -> phase.run {
+        IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category)
+          ?: LOG.warn("Couldn't register Intention:${intention.text} from $category")
+      }
+      is IntentionExtensionProvider.RegisterIntentionWithMetaData -> phase.run {
+        IntentionManager.getInstance()?.addAction(intention)
+          ?: LOG.warn("Couldn't register IntentionWithMetaData:${intention.text}. Please, check if your MetaData is added at the right path.")
+      }
+      is IntentionExtensionProvider.UnregisterIntention -> phase.run {
+        IntentionManager.getInstance()?.unregisterIntention(intention)
+          ?: LOG.warn("Couldn't unregister Intention:${intention.text}")
+      }
+      is IntentionExtensionProvider.SetAvailability -> phase.run {
+        IntentionManagerSettings.getInstance().setEnabled(intention, enabled)
+      }
+      is IntentionExtensionProvider.SetAvailabilityOnActionMetaData -> phase.run {
+        IntentionManagerSettings.getInstance().setEnabled(intention, enabled)
+      }
     }
 
   fun registerAnActionExtensionProvider(phase: AnActionExtensionProvider): Unit =
@@ -86,7 +112,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
         ActionManager.getInstance()?.removeTransparentTimerListener(listener)
           ?: LOG.warn("Couldn't remove TransparentTimerListener:$listener")
       }
-      is AnActionExtensionProvider.CollectActionIds -> TODO("This should actually return List<String> not Unit")
     }
 
   fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =

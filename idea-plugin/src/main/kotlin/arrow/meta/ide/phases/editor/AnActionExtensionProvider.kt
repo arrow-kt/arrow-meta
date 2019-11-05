@@ -12,5 +12,4 @@ sealed class AnActionExtensionProvider : ExtensionPhase {
   data class AddTransparentTimerListener(val delay: Int, val listener: TimerListener) : AnActionExtensionProvider()
   data class RemoveTimerListener(val listener: TimerListener) : AnActionExtensionProvider()
   data class RemoveTransparentTimerListener(val listener: TimerListener) : AnActionExtensionProvider()
-  data class CollectActionIds(val prefix: String) : AnActionExtensionProvider()
 }

@@ -1,26 +1,13 @@
 package arrow.meta.ide.phases.editor
 
+import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInsight.intention.IntentionManager
-import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
+import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
 
-interface IntentionExtensionProvider {
-  fun register(intention: IntentionAction, category: String): Unit? =
-    IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category)
-
-  fun register(intention: IntentionAction): Unit? =
-    IntentionManager.getInstance()?.addAction(intention)
-
-  fun unregister(intention: IntentionAction): Unit? =
-    IntentionManager.getInstance()?.unregisterIntention(intention)
-
-  fun availableIntentions(): List<IntentionAction> =
-    IntentionManager.getInstance()?.availableIntentionActions?.toList() ?: emptyList()
-
-  fun IntentionAction.isEnabled(): Boolean =
-    IntentionManagerSettings.getInstance().isEnabled(this)
-
-  fun IntentionAction.setEnabled(enabled: Boolean): Unit =
-    IntentionManagerSettings.getInstance().setEnabled(this, enabled)
+sealed class IntentionExtensionProvider : ExtensionPhase {
+  data class RegisterIntention(val intention: IntentionAction, val category: String) : IntentionExtensionProvider()
+  data class RegisterIntentionWithMetaData(val intention: IntentionAction) : IntentionExtensionProvider()
+  data class UnregisterIntention(val intention: IntentionAction) : IntentionExtensionProvider()
+  data class SetAvailability(val intention: IntentionAction, val enabled: Boolean) : IntentionExtensionProvider()
+  data class SetAvailabilityOnActionMetaData(val intention: IntentionActionMetaData, val enabled: Boolean) : IntentionExtensionProvider()
 }
-

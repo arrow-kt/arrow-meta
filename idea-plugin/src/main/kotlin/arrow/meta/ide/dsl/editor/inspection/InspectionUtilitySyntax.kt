@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.editor.inspection
 
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -20,11 +19,11 @@ interface InspectionUtilitySyntax {
     return listOf(expect) + actuals
   }
 
-  fun IdeMetaPlugin.addLocalInspectionToolToIdeRegistry(): ExtensionPhase =
-    registerExtensionPoint(
-      EP_NAME,
-      LocalInspectionTool::class.java
-    )
+  fun InspectionUtilitySyntax.addLocalInspectionToolToIdeRegistry(): ExtensionPhase = TODO("untested")
+  /*registerExtensionPoint(
+    EP_NAME,
+    LocalInspectionTool::class.java
+  )*/
 }
 
 sealed class ExtendedReturnsCheck(val name: String, val type: KotlinBuiltIns.() -> KotlinType) : Check {
