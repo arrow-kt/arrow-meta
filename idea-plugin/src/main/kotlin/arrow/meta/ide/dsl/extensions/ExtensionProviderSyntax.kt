@@ -1,56 +1,59 @@
 package arrow.meta.ide.dsl.extensions
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.ideRegistry
-import arrow.meta.ide.phases.editor.ExtensionProvider
+import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.lang.LanguageExtension
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
+import com.intellij.openapi.fileTypes.FileTypeExtension
+import com.intellij.openapi.util.ClassExtension
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
 
-interface ExtensionProviderSyntax : ExtensionProvider {
+
+interface ExtensionProviderSyntax {
   // Todo: Check LoadingOrder
   fun <E> IdeMetaPlugin.extensionProvider(
     EP_NAME: ExtensionPointName<E>,
     impl: E,
     loadingOrder: LoadingOrder = LoadingOrder.ANY
   ): ExtensionPhase =
-    ideRegistry {
-      addExtension(EP_NAME, impl, loadingOrder)
-      println("ADDED another Extension: FOR ${EP_NAME.name}")
-    }
+    ExtensionProvider.AddExtension(EP_NAME, impl, loadingOrder)
 
   fun <E> IdeMetaPlugin.extensionProvider(
     LE: LanguageExtension<E>,
     impl: E
   ): ExtensionPhase =
-    ideRegistry {
-      addLanguageExtension(LE, impl)
-      println("Adds LanguageExtension for ${LE.name}")
-    }
+    ExtensionProvider.AddLanguageExtension(LE, impl)
+
+  fun <E> IdeMetaPlugin.extensionProvider(
+    FE: FileTypeExtension<E>,
+    impl: E
+  ): ExtensionPhase =
+    ExtensionProvider.AddFileTypeExtension(FE, impl)
+
+  fun <E> IdeMetaPlugin.extensionProvider(
+    CE: ClassExtension<E>,
+    forClass: Class<*>,
+    impl: E
+  ): ExtensionPhase =
+    ExtensionProvider.AddClassExtension(CE, forClass, impl)
 
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: BaseExtensionPointName,
     aClass: Class<E>
   ): ExtensionPhase =
-    ideRegistry {
-      registerExtension(EP_NAME, aClass)
-      println("registered: ${EP_NAME.name}")
-    }
+    ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass)
 
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
     aClass: Class<E>
   ): ExtensionPhase =
-    ideRegistry {
-      registerExtension(EP_NAME, aClass)
-      println("registered: ${EP_NAME.name}")
-    }
+    ExtensionProvider.RegisterExtension(EP_NAME, aClass)
 
   fun IdeMetaPlugin.addContainerProvider(f: (PsiElement) -> PsiElement?): ExtensionPhase =
     extensionProvider(
