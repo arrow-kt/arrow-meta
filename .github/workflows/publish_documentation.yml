@@ -1,4 +1,4 @@
-name: Publish website
+name: Publish Documentation
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     - master
 
 jobs:
-  build-docs:
+  publish_documentation:
 
     runs-on: ubuntu-latest
 
@@ -36,11 +36,11 @@ jobs:
         set -ex
         sudo pip install awscli
         aws --version
-        sudo apt-get install rubygems
+        sudo apt-get install ruby-dev
         sudo gem install bundler --force
         gem --version
         echo "$( gem list | grep bundler )"
-        sudo bundle install --gemfile docs/Gemfile --path vendor/bundle
+        bundle install --gemfile docs/Gemfile --path vendor/bundle
         export BUNDLE_GEMFILE=docs/Gemfile
         export JEKYLL_ENV=production
         bundle exec jekyll build -s docs -d docs/build/_site
