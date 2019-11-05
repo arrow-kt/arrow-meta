@@ -3,7 +3,7 @@ name: Build Documentation
 on: pull_request
 
 jobs:
-  build-documentation:
+  build_documentation:
 
     runs-on: ubuntu-latest
 

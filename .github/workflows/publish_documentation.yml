@@ -6,7 +6,7 @@ on:
     - master
 
 jobs:
-  publish-documentation:
+  publish_documentation:
 
     runs-on: ubuntu-latest
 
