@@ -77,7 +77,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        "x".source.evalsTo("Hello world!")
+        allOf("x".source.evalsTo("Hello world!"))
       }
     ))
   }
