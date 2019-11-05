@@ -102,14 +102,14 @@ private fun partsFrom(expression: String): ExpressionParts {
   }
 }
 
-private fun call(expression: String, classesDirectory: File): Any {
+private fun call(expression: String, classesDirectory: File): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
   val expressionParts = partsFrom(expression)
 
-  val resultForMethodCall = classLoader.loadClass(DEFAULT_CLASSNAME).getMethod(expressionParts.method).invoke(null)
+  val resultForMethodCall: Any? = classLoader.loadClass(DEFAULT_CLASSNAME).getMethod(expressionParts.method).invoke(null)
   return when {
     expressionParts.property.isNullOrBlank() -> resultForMethodCall
-    else -> resultForMethodCall.javaClass.getField(expressionParts.property).get(resultForMethodCall)
+    else -> resultForMethodCall?.javaClass?.getField(expressionParts.property)?.get(resultForMethodCall)
   }
 }
 

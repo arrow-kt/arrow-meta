@@ -2,47 +2,40 @@ package arrow.meta.phases.codegen.ir
 
 import arrow.meta.phases.CompilerContext
 import org.jetbrains.kotlin.backend.common.BackendContext
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
+import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
+import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.psi.KtClassBody
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtPureClassOrObject
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
-import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
-import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
-import org.jetbrains.kotlin.psi2ir.generators.DeclarationGenerator
-import org.jetbrains.kotlin.psi2ir.generators.GeneratorContext
-import org.jetbrains.kotlin.psi2ir.generators.createBodyGenerator
-import org.jetbrains.kotlin.resolve.descriptorUtil.parents
-import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
 
 class IrUtils(
   val backendContext: BackendContext,
   val compilerContext: CompilerContext
-) {
+) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable {
+
+  val typeTranslator: TypeTranslator =
+    TypeTranslator(
+      symbolTable = backendContext.ir.symbols.externalSymbolTable,
+      languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,
+      builtIns = backendContext.builtIns
+    ).apply {
+      constantValueGenerator =
+        ConstantValueGenerator(
+          moduleDescriptor = backendContext.ir.irModule.descriptor,
+          symbolTable = backendContext.ir.symbols.externalSymbolTable
+        )
+    }
 
   fun IrFunctionAccessExpression.defaultValues(): List<String> =
     symbol.descriptor.valueParameters
