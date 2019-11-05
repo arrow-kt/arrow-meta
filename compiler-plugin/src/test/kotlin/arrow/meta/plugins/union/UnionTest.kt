@@ -26,7 +26,7 @@ class UnionTest {
   }
 
   @Test
-  fun `Union implicitly converts from a typed value in the Union`() {
+  fun `Union accepts typed values in the union 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -44,7 +44,7 @@ class UnionTest {
   }
 
   @Test
-  fun `Union implicitly converts from a typed value in the Union 2`() {
+  fun `Union accepts typed values in the union`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -62,7 +62,25 @@ class UnionTest {
   }
 
   @Test
-  fun `Union implicitly converts to a nullable type in the absent case`() {
+  fun `Union rejects typed values not in the union`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union2<String, Int> = 0.0
+        | 
+        """.source
+      },
+      assert = {
+        failsWith { it.contains("The floating-point literal does not conform to the expected type Union2<String, Int>") }
+      }
+    ))
+  }
+
+  @Test
+  fun `Union can convert to nullable types also present in the union 1`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -70,13 +88,47 @@ class UnionTest {
         |${UnionTestPrelude}
         |
         |fun f(): Union2<String, Int> = "a"
-        |val x1: String? = Union.toNullable(f())
-        |val x: String? = f()
-        |fun z(): String? = x
+        |fun z(): String? = f()
         """.source
       },
       assert = {
         "z()".source.evalsTo("a")
+      }
+    ))
+  }
+
+  @Test
+  fun `Union can convert to nullable types also present in the union 2`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union2<String, Int> = 0
+        |fun z(): Int? = f()
+        """.source
+      },
+      assert = {
+        "z()".source.evalsTo(0)
+      }
+    ))
+  }
+
+  @Test
+  fun `Union fails to convert nullable types not present in the union`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union2<String, Int> = 0
+        |fun z(): Double? = f()
+        """.source
+      },
+      assert = {
+        failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") }
       }
     ))
   }
