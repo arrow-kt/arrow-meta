@@ -56,7 +56,7 @@ class ComprehensionsTest {
           |   }
           |   
           |""".source) +
-          "test().value".source.evalsTo(3)
+        "test().value".source.evalsTo(3)
       }
     ))
   }
@@ -142,7 +142,8 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source) + "test().value".source.evalsTo(10)
+          |""".source) +
+        "test().value".source.evalsTo(10)
       }
     ))
   }
@@ -191,7 +192,8 @@ class ComprehensionsTest {
           |     } 
           |   }
           |   
-          |""".source) + "test().value".source.evalsTo(14)
+          |""".source) +
+        "test().value".source.evalsTo(14)
       }
     ))
   }
