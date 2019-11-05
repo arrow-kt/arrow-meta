@@ -7,6 +7,7 @@ import arrow.meta.ide.phases.editor.AddExtension
 import arrow.meta.ide.phases.editor.AddFileTypeExtension
 import arrow.meta.ide.phases.editor.AddLanguageExtension
 import arrow.meta.ide.phases.editor.ExtensionProvider
+import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.RegisterBaseExtension
 import arrow.meta.ide.phases.editor.RegisterExtension
 import arrow.meta.ide.phases.resolve.LOG
@@ -28,9 +29,7 @@ import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import com.intellij.core.CoreApplicationEnvironment
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -50,7 +49,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
       )
     } ?: ExtensionPhase.Empty
 
-  override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) =
+  override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
     when (currentPhase) {
       is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
       is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
@@ -61,12 +60,11 @@ internal interface IdeInternalRegistry : InternalRegistry {
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
     }
 
-
-  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, dispose: Disposable = Disposer.newDisposable()): Unit =
+  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =
     when (phase) {
       is AddExtension -> phase.run {
         println("ADDED ${phase.EP_NAME.name}")
-        Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, dispose)
+        Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose)
       }
       is AddLanguageExtension -> phase.run {
         println("ADDED LanguageExtension: ${LE.name}")
