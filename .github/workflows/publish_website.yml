@@ -33,11 +33,9 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        #!/usr/bin/env bash
         set -ex
-        aws --version
-        apt remove -y awscli
-        pip install awscli
+        sudo apt remove -y awscli
+        sudo pip install awscli
         /usr/local/bin/aws --version
         bundle check
         BUNDLE_CHECK_RESULT=$?
