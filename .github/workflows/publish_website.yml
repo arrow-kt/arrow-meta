@@ -38,6 +38,7 @@ jobs:
         /usr/local/bin/aws --version
         sudo apt-get install rubygems
         gem install bundler --force
+        gem --version
         echo "$( gem list | grep bundler )"
         bundle install --gemfile docs/Gemfile --path vendor/bundle
         export BUNDLE_GEMFILE=docs/Gemfile
