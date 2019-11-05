@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.extensions
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.editor.ExtensionProvider
+import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.lang.LanguageExtension

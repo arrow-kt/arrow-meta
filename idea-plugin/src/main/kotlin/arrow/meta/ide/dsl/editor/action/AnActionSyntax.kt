@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.action
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.editor.AnActionExtensionProvider
+import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.actionSystem.AnAction

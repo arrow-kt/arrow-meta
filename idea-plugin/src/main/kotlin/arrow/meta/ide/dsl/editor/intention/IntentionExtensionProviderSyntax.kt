@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.intention
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.editor.IntentionExtensionProvider
+import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction

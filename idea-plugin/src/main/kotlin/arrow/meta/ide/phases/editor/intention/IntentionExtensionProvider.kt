@@ -1,4 +1,4 @@
-package arrow.meta.ide.phases.editor
+package arrow.meta.ide.phases.editor.intention
 
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction

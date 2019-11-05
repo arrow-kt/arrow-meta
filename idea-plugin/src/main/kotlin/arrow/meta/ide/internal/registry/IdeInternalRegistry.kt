@@ -2,10 +2,11 @@ package arrow.meta.ide.internal.registry
 
 import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
-import arrow.meta.ide.phases.editor.AnActionExtensionProvider
-import arrow.meta.ide.phases.editor.ExtensionProvider
 import arrow.meta.ide.phases.editor.IdeContext
-import arrow.meta.ide.phases.editor.IntentionExtensionProvider
+import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
+import arrow.meta.ide.phases.editor.extension.ExtensionProvider
+import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
+import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.internal.registry.InternalRegistry
 import arrow.meta.phases.CompilerContext
@@ -29,6 +30,7 @@ import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -57,10 +59,19 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
       is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
       is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
+      is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
     }
 
-  fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider) =
+  fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
+    when (phase) {
+      is SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter -> phase.run {
+        SyntaxHighlighterFactory.LANGUAGE_FACTORY
+          .addExplicitExtension(KotlinLanguage.INSTANCE, factory)
+      }
+    }
+
+  fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider): Unit =
     when (phase) {
       is IntentionExtensionProvider.RegisterIntention -> phase.run {
         IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category)
