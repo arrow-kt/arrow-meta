@@ -1,9 +1,9 @@
-name: Build Docs
+name: Build Documentation
 
 on: pull_request
 
 jobs:
-  build-docs:
+  build_documentation:
 
     runs-on: ubuntu-latest
 
