@@ -89,14 +89,7 @@ class TypeClassesTest {
           |     return Some(1).addOne()
           |   }
           | }
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = { metaDependencies + addDependencies(arrowCoreData) },
-      code = { codeSnippet.source },
-      assert = {
+          |""".source) +
         "foo()".source.evalsTo(Some(2))
       }
     ))
