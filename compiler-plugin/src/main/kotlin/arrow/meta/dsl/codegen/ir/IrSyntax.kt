@@ -80,6 +80,7 @@ import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
+import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -704,4 +705,8 @@ interface IrSyntax {
           f(IrUtils(backendContext, compilerContext), expression) ?: super.visitErrorCallExpression(expression, data)
       }, Unit)
     }
+
+  fun irDump(): IRGeneration = IrGeneration { compilerContext, file, backendContext, bindingContext ->
+    println(file.dump())
+  }
 }
