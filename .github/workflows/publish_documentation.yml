@@ -36,7 +36,7 @@ jobs:
         set -ex
         sudo pip install awscli
         aws --version
-        sudo apt-get install rubygems
+        sudo apt-get install ruby-dev
         sudo gem install bundler --force
         gem --version
         echo "$( gem list | grep bundler )"
