@@ -28,7 +28,7 @@ class LensTest {
         config = { metaDependencies + addDependencies(arrowOptics) },
         code = { codeSnippet.source },
         assert = {
-          quoteOutputMatches(
+          allOf(quoteOutputMatches(
             """
             | data class TestLenses public constructor (val a: String, val b: String) {
             |
@@ -47,7 +47,7 @@ class LensTest {
             |     )
             |   }
             | }
-        """.source)
+        """.source))
         }
     ))
   }

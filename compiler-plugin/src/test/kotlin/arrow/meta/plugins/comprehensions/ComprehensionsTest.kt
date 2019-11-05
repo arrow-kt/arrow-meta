@@ -55,15 +55,8 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = { codeSnippet.source },
-      assert = {
-        "test().value".source.evalsTo(3)
+          |""".source) +
+          "test().value".source.evalsTo(3)
       }
     ))
   }
@@ -96,15 +89,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = { codeSnippet.source },
-      assert = {
-        "test().value".source.evalsTo(3)
+          |""".source) + "test().value".source.evalsTo(3)
       }
     ))
   }
@@ -157,19 +142,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        "test().value".source.evalsTo(10)
+          |""".source) + "test().value".source.evalsTo(10)
       }
     ))
   }
@@ -218,19 +191,7 @@ class ComprehensionsTest {
           |     } 
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        "test().value".source.evalsTo(14)
+          |""".source) + "test().value".source.evalsTo(14)
       }
     ))
   }
@@ -259,18 +220,7 @@ class ComprehensionsTest {
           | fun test(): IO<Int> =
           |   IO.just(1 + 1)
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "test().value".source.evalsTo(2)
       }
     ))
@@ -292,7 +242,7 @@ class ComprehensionsTest {
         |""".source
       },
       assert = {
-        failsWith { it.contains("Unresolved reference: a") }
+        allOf(failsWith { it.contains("Unresolved reference: a") })
       }
     ))
   }
@@ -317,7 +267,7 @@ class ComprehensionsTest {
 //        |""".source
 //      },
 //      assert = {
-//        quoteOutputMatches("""
+//        allOf(quoteOutputMatches("""
 //          $IO_CLASS_4_TESTS
 //          |
 //          | fun test(): IO<Int> =
@@ -327,7 +277,7 @@ class ComprehensionsTest {
 //          |      }
 //          |   }
 //          |
-//          |""".source)
+//          |""".source))
 //      }
 //    ))
 //  }

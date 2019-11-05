@@ -14,7 +14,7 @@ typealias CompilerTestInterpreter = (CompilerTest) -> Unit
 data class CompilerTest(
   val config: Companion.() -> List<Config> = { emptyList() },
   val code: Companion.() -> Source, // TODO: Sources
-  val assert: Companion.() -> Assert = { Assert.emptyAssert }
+  val assert: Companion.() -> List<Assert> = { emptyList() }
 ) {
   fun run(interpret: CompilerTestInterpreter): Unit =
     interpret(this)
@@ -70,6 +70,11 @@ interface AssertSyntax {
   fun quoteOutputMatches(source: Source): Assert = Assert.QuoteOutputMatches(source)
   infix fun Source.evalsTo(value: Any?): Assert = Assert.EvalsTo(this, value)
   val String.source: Source get() = Source(this)
+
+  operator fun Assert.plus(other: Assert): List<Assert> =
+    listOf(this, other)
+  fun allOf(vararg elements: Assert): List<Assert> =
+    if (elements.isNotEmpty()) elements.asList() else emptyList()
 }
 
 sealed class Assert {
