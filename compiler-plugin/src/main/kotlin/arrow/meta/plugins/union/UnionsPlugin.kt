@@ -71,6 +71,14 @@ val Meta.unionTypes: Plugin
          * ```
          */
         suppressDiagnostic(Diagnostic::suppressTypeMismatchOnNullableReceivers),
+        /**
+         * ```kotlin
+         * fun proof(): Union2<String, Int> = 1
+         * val willBeNullButOk: String? = proof() //ok
+         * val willBeInt: Int? = proof() //ok
+         * ```
+         */
+        irDump(),
         irTypeOperator(IrUtils::insertNullableConversion),
         /**
          * ```diff
@@ -87,36 +95,12 @@ val Meta.unionTypes: Plugin
          */
         irProperty(IrUtils::insertUnionConversion),
         /**
-         * ```kotlin
-         * fun proof(): Union2<String, Int> = 1
-         * val willBeNullButOk: String? = proof() //ok
-         * val willBeInt: Int? = proof() //ok
-         * ```
-         */
-        //irVariable(IrUtils::insertNullableConversion),
-        /**
          * ```kotlin:diff
          * - fun proof(): Union2<String, Int> = 1
          * + fun proof(): Union2<String, Int> = Union(1) //inlined class
          * ```
          */
         irReturn(IrUtils::insertUnionConversion),
-        /**
-         * ```kotlin
-         * fun proof(): Union2<String, Int> = 1
-         * val willBeNullButOk: String? = proof() //ok
-         * val willBeInt: Int? = proof() //ok
-         * ```
-         */
-        //irReturn(IrUtils::insertNullableConversion),
-        /**
-         * ```kotlin
-         * fun proof(): Union2<String, Int> = 1
-         * val willBeNullButOk: String? = proof() //ok
-         * val willBeInt: Int? = proof() //ok
-         * ```
-         */
-        //irProperty(IrUtils::insertNullableConversion),
         irDump()
       )
     }
@@ -169,22 +153,7 @@ private fun IrUtils.insertUnionConversion(it: IrProperty): IrProperty? {
   } else it
 }
 
-/**
- * Lifts a [IrVariable] of `Union<A, B>(a: A)` into a `a: A?` value
- *
- * ```kotlin
- * fun proof(): Union2<String, Int> = 1
- * val willBeNullButOk: String? = proof() //ok
- * val willBeInt: Int? = proof() //ok
- * ```
- */
-private fun IrUtils.insertNullableConversion(it: IrVariable): IrVariable? {
-  val targetType = it.type.originalKotlinType
-  val valueType = it.initializer?.type?.originalKotlinType
-  return if (targetType != null && valueType != null && targetType.nullableUnionTargets(valueType)) { //insert conversion
-    nullableConversion(it)
-  } else it
-}
+
 
 /**
  * Lifts a [IrTypeOperatorCall] implicit cast from a `Union<A, B>(a: A)` into a `a: A?` value
@@ -204,63 +173,10 @@ private fun IrUtils.insertNullableConversion(it: IrTypeOperatorCall): IrExpressi
 }
 
 /**
- * Lifts a [IrProperty] of `Union<A, B>(a: A)` into a `a: A?` value
- *
- * ```kotlin
- * fun proof(): Union2<String, Int> = 1
- * val willBeNullButOk: String? = proof() //ok
- * val willBeInt: Int? = proof() //ok
- * ```
- */
-private fun IrUtils.insertNullableConversion(it: IrProperty): IrProperty? {
-  val targetType = ((it.backingField?.initializer?.expression as? IrTypeOperatorCall)?.argument as? IrCall)?.type?.originalKotlinType
-  val valueType = it.descriptor.returnType
-  return if (targetType != null && valueType != null && targetType.nullableUnionTargets(valueType)) { //insert conversion
-    nullableConversion(it)
-  } else it
-}
-
-
-/**
- * Lifts a [IrReturn] of `Union<A, B>(a: A)` into a `a: A?` value
- *
- * ```kotlin
- * fun proof(): Union2<String, Int> = 1
- * val willBeNullButOk: String? = proof() //ok
- * val willBeInt: Int? = proof() //ok
- * ```
- */
-private fun IrUtils.insertNullableConversion(it: IrReturn): IrExpression? {
-  val targetType = it.returnTarget.returnType
-  val valueType = it.value.type.originalKotlinType
-  return if (targetType != null && valueType != null && targetType.nullableUnionTargets(valueType)) { //insert conversion
-    nullableConversion(it, targetType)
-  } else it
-}
-
-/**
  * @see [insertNullableConversion]
  */
 fun IrUtils.nullableConversion(valueType: IrType, intercepted: IrTypeOperatorCall): IrCall? =
   nullableConversionCall(valueType, intercepted.argument)
-
-/**
- * @see [insertNullableConversion]
- */
-fun IrUtils.nullableConversion(intercepted: IrVariable): IrVariable? =
-  intercepted.apply {
-    initializer = initializer?.let { nullableConversionCall(intercepted.type, it) }
-  }
-
-/**
- * @see [insertNullableConversion]
- */
-fun IrUtils.nullableConversion(intercepted: IrProperty): IrProperty? =
-  intercepted.backingField?.let { field ->
-    val replacement = field.initializer?.expression?.let { nullableConversionCall(intercepted.backingField?.type, it) }
-    replacement?.let { field.initializer?.expression = it }
-    intercepted
-  }
 
 private fun IrUtils.nullableConversionCall(typeArgument: IrType?, argument: IrExpression): IrCall? =
   unionClassDescriptor()
@@ -277,19 +193,6 @@ private fun IrUtils.nullableConversionCall(typeArgument: IrType?, argument: IrEx
     }
   }
 
-/**
- * @see [insertUnionConversion]
- */
-fun IrUtils.nullableConversion(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
-  targetType?.let { unionType ->
-    IrReturnImpl(
-      startOffset = UNDEFINED_OFFSET,
-      endOffset = UNDEFINED_OFFSET,
-      type = typeTranslator.translateType(unionType),
-      returnTargetSymbol = intercepted.returnTargetSymbol,
-      value = nullableConversionCall(intercepted.type, intercepted.value) ?: intercepted
-    )
-  }
 
 /**
  * Suppresses diagnostics if they refer to a type mismatch on a valid union

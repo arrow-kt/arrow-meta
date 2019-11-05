@@ -116,6 +116,43 @@ class UnionTest {
   }
 
   @Test
+  fun `Union converts to nullable type with null when the union value is absent`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union2<String, Int> = 0
+        |fun z(): String? = f()
+        """.source
+      },
+      assert = {
+        "z()".source.evalsTo(null)
+      }
+    ))
+  }
+
+  @Test
+  fun `Union can convert to nullable types letting inference pass through`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union2<String, Int> = 0
+        |fun x() = f()
+        |fun z(): Int? = x()
+        """.source
+      },
+      assert = {
+        "z()".source.evalsTo(0)
+      }
+    ))
+  }
+
+  @Test
   fun `Union fails to convert nullable types not present in the union`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
@@ -178,8 +215,11 @@ class UnionTest {
         |  
         |    companion object {
         |      @Suppress("UNCHECKED_CAST")
-        |      fun <A> toNullable(union: UnionSyntax): A? =
-        |        (union as Union).value as? A
+        |      inline fun <reified A> toNullable(union: UnionSyntax): A? {
+        |        val value = (union as Union).value
+        |        return if (value != null && value is A) value
+        |        else null
+        |      }
         |    }
         |}
         |""".trimMargin()
