@@ -1,7 +1,7 @@
 name: Publish website
 
 on:
-  push:
+  push_request:
     branches:
     - master
 
