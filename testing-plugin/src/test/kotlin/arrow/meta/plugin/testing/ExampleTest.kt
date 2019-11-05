@@ -14,7 +14,7 @@ class ExampleTest {
         | 
         """.source
       },
-      asserts = {
+      assert = {
         allOf(compiles)
       }
     ))
@@ -30,7 +30,7 @@ class ExampleTest {
         | 
         """.source
       },
-      asserts = {
+      assert = {
         allOf("hello()".source.evalsTo("Hello world!"))
       }
     ))
@@ -45,7 +45,7 @@ class ExampleTest {
         | 
         """.source
       },
-      asserts = {
+      assert = {
         allOf(fails)
       }
     ))
@@ -60,7 +60,7 @@ class ExampleTest {
         | 
         """.source
       },
-      asserts = {
+      assert = {
         allOf(failsWith { it.contains("Expecting a top level declaration") })
       }
     ))
@@ -104,7 +104,7 @@ class ExampleTest {
         | 
         """.source
       },
-      asserts = {
+      assert = {
         allOf(quoteOutputMatches(
           """
           | import arrow.higherkind

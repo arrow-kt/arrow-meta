@@ -59,7 +59,7 @@ class TypeClassesTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches(
           """
           | import arrow.Kind

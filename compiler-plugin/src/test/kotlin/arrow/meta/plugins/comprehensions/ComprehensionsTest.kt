@@ -51,7 +51,7 @@ class ComprehensionsTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
           |
@@ -89,7 +89,7 @@ class ComprehensionsTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
           |
@@ -134,7 +134,7 @@ class ComprehensionsTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
           |
@@ -185,7 +185,7 @@ class ComprehensionsTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
           |
@@ -226,7 +226,7 @@ class ComprehensionsTest {
       code = {
         codeSnippet.source
       },
-      asserts = {
+      assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
           |
@@ -254,7 +254,7 @@ class ComprehensionsTest {
         |
         |""".source
       },
-      asserts = {
+      assert = {
         allOf(failsWith { it.contains("Unresolved reference: a") })
       }
     ))
