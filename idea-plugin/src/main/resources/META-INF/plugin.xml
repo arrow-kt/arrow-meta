@@ -27,7 +27,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- the central piece to bootstrap meta ide extensions,
              it manages both application and project extensions -->
-        <applicationInitializedListener implementation="arrow.meta.ide.MetaExtensionsRegistrar" />
+        <applicationInitializedListener implementation="arrow.meta.ide.MetaPluginRegistrar"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

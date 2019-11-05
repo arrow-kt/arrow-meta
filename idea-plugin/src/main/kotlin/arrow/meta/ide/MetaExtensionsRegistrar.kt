@@ -7,8 +7,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
-class MetaExtensionsRegistrar : ApplicationInitializedListener {
+class MetaPluginRegistrar : ApplicationInitializedListener {
   companion object {
+    val metaPlugin = IdeMetaPlugin()
     private val LOG = Logger.getInstance("#arrow.metaRegistrar")
   }
 
@@ -28,7 +29,7 @@ class MetaExtensionsRegistrar : ApplicationInitializedListener {
         val start = System.currentTimeMillis()
         val configuration = CompilerConfiguration()
         // TODO: only register project extensions here
-        IdeMetaPlugin.Instance.registerMetaComponents(project, configuration)
+        metaPlugin.registerMetaComponents(project, configuration)
         LOG.info("beforeProjectLoaded(${project.name}) took ${System.currentTimeMillis() - start} ms")
       }
 
