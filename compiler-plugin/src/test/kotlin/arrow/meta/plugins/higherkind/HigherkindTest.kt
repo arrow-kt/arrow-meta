@@ -31,7 +31,7 @@ class HigherkindTest {
         """.source
       },
       assert = {
-        quoteOutputMatches(
+        allOf(quoteOutputMatches(
           """
           | import arrow.higherkind
           | 
@@ -46,7 +46,7 @@ class HigherkindTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source)
+          """.source))
       }
     ))
   }

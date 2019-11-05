@@ -34,7 +34,7 @@ class LensTest {
           codeSnippet.source
         },
         assert = {
-          quoteOutputMatches(
+          allOf(quoteOutputMatches(
             """
             | data class TestLenses public constructor (val a: String, val b: String) {
             |
@@ -53,7 +53,7 @@ class LensTest {
             |     )
             |   }
             | }
-        """.source)
+        """.source))
         }
     ))
   }
