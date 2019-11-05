@@ -1,9 +1,9 @@
 name: Publish Gradle Plugin
 
 on:
-  push:
+  pull_request:
     branches:
-    - release/gradle-plugin 
+    - release/gradle-plugin
 
 jobs:
   publish_gradle_plugin:

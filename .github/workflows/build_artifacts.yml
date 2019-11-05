@@ -1,9 +1,12 @@
-name: Build
+name: Build artifacts
 
-on: pull_request
+on:
+  pull_request:
+    branches-ignore:
+    - master
 
 jobs:
-  build:
+  build_artifacts:
 
     runs-on: ubuntu-latest
 

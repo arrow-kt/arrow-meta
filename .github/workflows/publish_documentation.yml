@@ -1,12 +1,12 @@
-name: Publish website
+name: Publish Documentation
 
 on:
-  push_request:
+  pull_request:
     branches:
     - master
 
 jobs:
-  build-docs:
+  publish-documentation:
 
     runs-on: ubuntu-latest
 

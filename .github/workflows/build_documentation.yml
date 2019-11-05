@@ -1,9 +1,12 @@
-name: Build Docs
+name: Build Documentation
 
-on: pull_request
+on:
+  pull_request:
+    branches-ignore:
+    - master
 
 jobs:
-  build-docs:
+  build-documentation:
 
     runs-on: ubuntu-latest
 
