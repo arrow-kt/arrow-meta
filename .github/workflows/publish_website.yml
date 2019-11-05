@@ -35,12 +35,13 @@ jobs:
       run: |
         set -ex
         sudo pip install awscli
-        /usr/local/bin/aws --version
+        aws --version
         sudo apt-get install rubygems
-        gem install bundler --force
+        sudo gem install bundler --force
+        gem --version
         echo "$( gem list | grep bundler )"
-        bundle install --gemfile docs/Gemfile --path vendor/bundle
+        sudo bundle install --gemfile docs/Gemfile --path vendor/bundle
         export BUNDLE_GEMFILE=docs/Gemfile
         export JEKYLL_ENV=production
         bundle exec jekyll build -s docs -d docs/build/_site
-        /usr/local/bin/aws s3 sync docs/build/_site s3://$S3_BUCKET > aws_sync_jekyll.log
+        aws s3 sync docs/build/_site s3://$S3_BUCKET > aws_sync_jekyll.log
