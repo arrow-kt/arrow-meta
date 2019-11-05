@@ -14,7 +14,7 @@ typealias CompilerTestInterpreter = (CompilerTest) -> Unit
 data class CompilerTest(
   val config: Companion.() -> List<Config> = { emptyList() },
   val code: Companion.() -> Source, // TODO: Sources
-  val assert: Companion.() -> Assert = { Assert.emptyAssert }
+  val assert: Companion.() -> List<Assert> = { emptyList() }
 ) {
   fun run(interpret: CompilerTestInterpreter): Unit =
     interpret(this)
@@ -41,6 +41,13 @@ interface ConfigSyntax {
 
   fun List<Config>.toConfig(): Config =
     Config.Many(this)
+
+  val metaDependencies: List<Config>
+    get() {
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
+      val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
+      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations)
+    }
 }
 
 sealed class Config {
@@ -63,6 +70,11 @@ interface AssertSyntax {
   fun quoteOutputMatches(source: Source): Assert = Assert.QuoteOutputMatches(source)
   infix fun Source.evalsTo(value: Any?): Assert = Assert.EvalsTo(this, value)
   val String.source: Source get() = Source(this)
+
+  operator fun Assert.plus(other: Assert): List<Assert> =
+    listOf(this, other)
+  fun allOf(vararg elements: Assert): List<Assert> =
+    if (elements.isNotEmpty()) elements.asList() else emptyList()
 }
 
 sealed class Assert {

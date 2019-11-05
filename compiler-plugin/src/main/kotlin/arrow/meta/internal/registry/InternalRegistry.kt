@@ -87,7 +87,6 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
 import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -95,6 +94,8 @@ import java.util.*
 interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<Plugin>
+
+  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
@@ -605,7 +606,7 @@ interface InternalRegistry : ConfigSyntax {
       }
     )
 
-  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit {}
+
 }
 
 /**
