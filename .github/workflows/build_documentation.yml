@@ -1,9 +1,6 @@
 name: Build Documentation
 
-on:
-  pull_request:
-    branches-ignore:
-    - master
+on: pull_request
 
 jobs:
   build-documentation:

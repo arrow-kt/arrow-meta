@@ -1,7 +1,7 @@
 name: Publish Documentation
 
 on:
-  pull_request:
+  push:
     branches:
     - master
 
