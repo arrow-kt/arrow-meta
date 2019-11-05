@@ -3,7 +3,7 @@ name: Publish Gradle Plugin
 on:
   push:
     branches:
-    - release/gradle-plugin 
+    - release/gradle-plugin
 
 jobs:
   publish_gradle_plugin:

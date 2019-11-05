@@ -7,6 +7,7 @@ plugins {
 repositories {
   maven { url "https://kotlin.bintray.com/kotlinx" }
   maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
+  maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
   mavenCentral()
   jcenter()
 }
@@ -14,15 +15,24 @@ repositories {
 apply plugin: 'kotlin'
 
 group = 'io.arrow-kt'
-version = '0.10.3-rc-1'
+version = '0.10.3-rc-2'
 def pluginId = 'io.arrow-kt.arrow'
+
+processResources {
+  filesMatching('**/plugin.properties') {
+    filter {
+      it.replace('%COMPILER_PLUGIN_VERSION%', VERSION_NAME)
+    }
+  }
+}
 
 dependencies {
   implementation gradleApi()
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-  compileOnly project(":compiler-plugin") { "embeddable" }
+  implementation "io.github.classgraph:classgraph:$class_graph_version"
+  runtimeOnly "io.arrow-kt:arrow-meta-compiler-plugin:$VERSION_NAME"
 }
 
 compileKotlin {
@@ -33,9 +43,6 @@ compileTestKotlin {
 }
 
 jar {
-  // Embed compiler plugin in jar
-  from configurations.named("compileClasspath").get().find { it.name.startsWith("compiler-plugin") }
-
   manifest {
     attributes["Specification-Title"] = project.name
     attributes["Specification-Version"] = project.version
