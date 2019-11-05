@@ -67,6 +67,22 @@ class ExampleTest {
   }
 
   @Test
+  fun `eval a variable`() {
+    assertThis(CompilerTest(
+      code = {
+        """
+        |
+        | val x: String = "Hello world!"
+        | 
+        """.source
+      },
+      assert = {
+        "x".source.evalsTo("Hello world!")
+      }
+    ))
+  }
+
+  @Test
   fun `checks the meta debug output given a configuration`() {
     val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
     val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
