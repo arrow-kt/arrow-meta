@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
+import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.referenceFunction
@@ -21,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 class IrUtils(
   val backendContext: BackendContext,
   val compilerContext: CompilerContext
-) {
+) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable {
 
   val typeTranslator: TypeTranslator =
     TypeTranslator(

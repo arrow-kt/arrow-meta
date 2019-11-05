@@ -31,10 +31,13 @@ class UnionTypeChecker(val typeChecker: KotlinTypeChecker) : KotlinTypeChecker b
 
 }
 
-fun KotlinType.nullableUnionTargets(subType: KotlinType): Boolean =
-  subType.isMarkedNullable && isUnion() && arguments.contains(subType.makeNotNullable().asTypeProjection())
+fun KotlinType.nullableUnionTargets(subType: KotlinType): Boolean {
+  val result: Boolean = subType.isMarkedNullable && isUnion() && arguments.contains(subType.makeNotNullable().asTypeProjection())
+  println("nullableUnionTargets: $subType : $this = $result")
+  return result
+}
 
-private fun KotlinType.isUnion(): Boolean {
+fun KotlinType.isUnion(): Boolean {
   println("type: " + constructor.declarationDescriptor?.name?.asString())
   return constructor.declarationDescriptor?.name?.asString()?.startsWith("Union") == true
 }
