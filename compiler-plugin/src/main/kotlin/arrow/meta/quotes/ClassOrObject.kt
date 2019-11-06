@@ -14,11 +14,12 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
+ * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
+ * allowing a [Transform] to change the intercepted AST tree before compilation.
+ *
  * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to to feed in
  * virtually any kind of [KtClass] predicate, followed by mapping a function that takes the desired [Scope] of our
  * [KtClass] to change whatever PSI elements desired.
- *
- * @param [match] designed to to feed in any kind of [KtClass] predicate returning a [Boolean]
  *
  * For example, the [LensPlugin] and the [HigherKindPlugin] favors enabling ad-hoc polymorphism and more for the
  * compiler by taking advantage of typeclass checks.
@@ -39,17 +40,17 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *        meta {
  *          classOrObject(::isProductOrType) { c -> ... }
  *        }
- *       }
+ *      }
  * ```
  *
  * Where the function type for [::isProductType] is written as:
  *
  * ```
  * fun isProductType(ktClass: KtClass): Boolean =
- *  ktClass.isData() &&
- *    ktClass.primaryConstructorParameters.isNotEmpty() &&
- *    ktClass.primaryConstructorParameters.all { !it.isMutable } &&
- *    ktClass.typeParameters.isEmpty()
+ *      ktClass.isData() &&
+ *        ktClass.primaryConstructorParameters.isNotEmpty() &&
+ *        ktClass.primaryConstructorParameters.all { !it.isMutable } &&
+ *        ktClass.typeParameters.isEmpty()
  * ```
  *
  * For a [KtClass] to be a product type, we check to see if the [KtClass] is an ADT, and that the cardinality of
@@ -60,21 +61,8 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * as a check for functional proofs in your compiler plugin.  It is relevant to highlight that the `match` predicate
  * written gives access to the Kotlin PSI when analyzing written code via the written compiler plugin.
  *
- * @param map // TODO discuss the transformation parameter `map`
- */
-fun Meta.classOrObject(
-  match: KtClass.() -> Boolean,
-  map: ClassScope.(KtClass) -> Transform<KtClass>
-): ExtensionPhase =
-  quote(match, map) { ClassScope(it) }
-
-/**
- * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
- * allowing a [Transform] to change the intercepted AST tree before compilation.
- *
- * The [ClassScope] is projected over the template to allow destructuring of the different parts of the
- * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
- * before it's compiled
+ * The second parameter `map` is a function that allows the resulting action from matching on the transformation at
+ * the PSI level. Let us example another example plugin:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -88,7 +76,7 @@ fun Meta.classOrObject(
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject ->
+ *         classOrObject({ name == "Test" }) { classOrObject: KtClass ->
  *           Transform.replace(
  *             replacing = classOrObject,
  *             newDeclaration =
@@ -103,6 +91,32 @@ fun Meta.classOrObject(
  *       )
  *     }
  * ```
+ *
+ * After analyzing the PSI elements available, we pass a resulting [KtClass] matching the predicate (in our case,
+ * we pass the resulting [KtClass] whose name is "Test") and replace the entire object with the string block, which is
+ * then wrapped as a [ClassScope] and wrapped so the `newDeclaration` is of the type [Scope]<[ClassScope]> to match
+ * match compatibility of the intercepted classes wrapped in some kind of [Scope]. Too see more, scroll down to
+ * [ClassScope].
+ *
+ * @param match designed to to feed in any kind of [KtClass] predicate returning a [Boolean]
+ * @param map
+ */
+fun Meta.classOrObject(
+  match: KtClass.() -> Boolean,
+  map: ClassScope.(KtClass) -> Transform<KtClass>
+): ExtensionPhase =
+  quote(match, map) { ClassScope(it) }
+
+/**
+ * The [ClassScope] is projected over the template to allow destructuring of the different parts of the
+ * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
+ * before it's compiled.
+ *
+ * @param value the PSI element being fed in for the compiler plugin.
+ * @param `@annotationEntries`
+ * @param modality
+ * @param visibility is the class public, private, protected? etc.
+ * @oaran kind denotes certain classes as sealed class types or data class types.
  */
 class ClassScope(
   override val value: KtClass,
