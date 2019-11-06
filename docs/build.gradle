@@ -3,8 +3,9 @@ apply plugin: 'kotlin-kapt'
 //apply plugin: 'org.ajoberstar.git-publish'
 
 dependencies {
-    compile project(':compiler-plugin')
+    compile project(path: ':compiler-plugin', configuration: 'shadow')
     compile project(':idea-plugin')
+    compileOnly "com.intellij:openapi:7.0.3"
     compile "io.arrow-kt:arrow-ank:$VERSION_NAME"
 }
 

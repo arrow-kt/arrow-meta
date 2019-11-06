@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.util.ReturnsCheck
 /**
  * Unrelated to [arrow.meta.plugins.helloWorld.helloWorld]
  */
-val IdeMetaPlugin.dummyIdePlugin: Plugin
+val IdeMetaPlugin.helloWorldIdePlugin: Plugin
   get() = "DummyIdePlugin" {
     meta(
       addApplicableInspection(
