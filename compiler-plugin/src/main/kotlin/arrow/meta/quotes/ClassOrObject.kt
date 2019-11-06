@@ -117,6 +117,12 @@ fun Meta.classOrObject(
  * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
  * before it's compiled
  *
+ * After analyzing the PSI elements available, we pass a resulting [KtClass] matching the predicate (in our case,
+ * we pass the resulting [KtClass] whose name is "Test") and replace the entire object with the string block, which is
+ * then wrapped as a [ClassScope] and wrapped so the `newDeclaration` is of the type [Scope]<[ClassScope]> to match
+ * match compatibility of the intercepted classes wrapped in some kind of [Scope]. Too see more, scroll down to
+ * [ClassScope].
+ *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
@@ -129,7 +135,7 @@ fun Meta.classOrObject(
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject ->
+ *         classOrObject({ name == "Test" }) { classOrObject: KtClass ->
  *           Transform.replace(
  *             replacing = classOrObject,
  *             newDeclaration =
