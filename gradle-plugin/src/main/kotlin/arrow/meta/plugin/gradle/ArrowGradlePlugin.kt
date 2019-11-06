@@ -1,11 +1,11 @@
 package arrow.meta.plugin.gradle
 
+import io.github.classgraph.ClassGraph
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
-import io.github.classgraph.ClassGraph
-import java.util.Properties
+import java.util.*
 
 /**
  * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
@@ -25,6 +25,9 @@ class ArrowGradlePlugin : Plugin<Project> {
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
+    project.buildscript.repositories.maven { m ->
+      m.setUrl("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
+    }
 
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
