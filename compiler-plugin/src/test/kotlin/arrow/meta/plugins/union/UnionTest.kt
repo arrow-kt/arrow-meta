@@ -44,6 +44,42 @@ class UnionTest {
   }
 
   @Test
+  fun `Union accepts typed values in the union 3`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union3<String, Int, Double> = 0
+        | 
+        """.source
+      },
+      assert = {
+        allOf("f().value".source.evalsTo(0))
+      }
+    ))
+  }
+
+  @Test
+  fun `Union accepts typed values in the union 4`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union4<String, Int, Double, List<Int>> = 0
+        | 
+        """.source
+      },
+      assert = {
+        allOf("f().value".source.evalsTo(0))
+      }
+    ))
+  }
+
+  @Test
   fun `Union accepts typed values in the union`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
@@ -80,7 +116,7 @@ class UnionTest {
   }
 
   @Test
-  fun `Union can convert to nullable types also present in the union 1`() {
+  fun `Union can convert to nullable types also present in the union 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -98,14 +134,14 @@ class UnionTest {
   }
 
   @Test
-  fun `Union can convert to nullable types also present in the union 2`() {
+  fun `Union can convert to nullable types also present in the union 3`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
         """
         |${UnionTestPrelude}
         |
-        |fun f(): Union2<String, Int> = 0
+        |fun f(): Union3<String, Int, Double> = 0
         |fun z(): Int? = f()
         """.source
       },
@@ -116,7 +152,25 @@ class UnionTest {
   }
 
   @Test
-  fun `Union converts to nullable type with null when the union value is absent`() {
+  fun `Union can convert to nullable types also present in the union 4`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union4<String, Int, Double, List<Int>> = 0
+        |fun z(): Int? = f()
+        """.source
+      },
+      assert = {
+        allOf("z()".source.evalsTo(0))
+      }
+    ))
+  }
+
+  @Test
+  fun `Union converts to nullable type with null when the union value is absent 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -124,6 +178,42 @@ class UnionTest {
         |${UnionTestPrelude}
         |
         |fun f(): Union2<String, Int> = 0
+        |fun z(): String? = f()
+        """.source
+      },
+      assert = {
+        allOf("z()".source.evalsTo(null))
+      }
+    ))
+  }
+
+  @Test
+  fun `Union converts to nullable type with null when the union value is absent 3`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union3<String, Int, Double> = 0
+        |fun z(): String? = f()
+        """.source
+      },
+      assert = {
+        allOf("z()".source.evalsTo(null))
+      }
+    ))
+  }
+
+  @Test
+  fun `Union converts to nullable type with null when the union value is absent 4`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+        |${UnionTestPrelude}
+        |
+        |fun f(): Union4<String, Int, Double, List<Int>> = 0
         |fun z(): String? = f()
         """.source
       },
