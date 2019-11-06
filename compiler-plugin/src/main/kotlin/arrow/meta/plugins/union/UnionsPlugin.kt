@@ -17,15 +17,12 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrClassSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
-import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.findSingleFunction
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 
 /**
  *
@@ -203,7 +200,7 @@ private fun IrUtils.nullableConversionCall(typeArgument: IrType?, argument: IrEx
  * val willBeInt: Int? = proof() //ok
  * ```
  */
-private fun Diagnostic.suppressTypeMismatchOnNullableReceivers(): Boolean =
+fun Diagnostic.suppressTypeMismatchOnNullableReceivers(): Boolean =
   if (factory == Errors.TYPE_MISMATCH)
     Errors.TYPE_MISMATCH.cast(this).run {
       b.nullableUnionTargets(subType = a)

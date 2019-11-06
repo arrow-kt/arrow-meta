@@ -10,6 +10,7 @@ import arrow.meta.ide.plugins.initial.initialIdeSetUp
 import arrow.meta.ide.plugins.nothing.nothingIdePlugin
 import arrow.meta.ide.plugins.optics.opticsIdePlugin
 import arrow.meta.ide.plugins.typeclasses.typeclassesIdePlugin
+import arrow.meta.ide.plugins.union.uniontypes
 import arrow.meta.phases.CompilerContext
 import kotlin.contracts.ExperimentalContracts
 
@@ -18,6 +19,7 @@ open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
   override fun intercept(ctx: CompilerContext): List<Plugin> =
     super.intercept(ctx) +
       initialIdeSetUp +
+      uniontypes +
       higherKindsIdePlugin +
       typeclassesIdePlugin +
       comprehensionsIdePlugin +
