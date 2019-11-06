@@ -68,6 +68,42 @@ fun Meta.classOrObject(
 ): ExtensionPhase =
   quote(match, map) { ClassScope(it) }
 
+/**
+ * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
+ * allowing a [Transform] to change the intercepted AST tree before compilation.
+ *
+ * The [ClassScope] is projected over the template to allow destructuring of the different parts of the
+ * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
+ * before it's compiled
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.classOrObject
+ *
+ * val Meta.example: Plugin
+ *   get() =
+ *     "Example" {
+ *       meta(
+ *         /** Intercepts all classes named 'Test' **/
+ *         classOrObject({ name == "Test" }) { classOrObject ->
+ *           Transform.replace(
+ *             replacing = classOrObject,
+ *             newDeclaration =
+ *               """|$`@annotationEntries` $kind $name $`(typeParameters)` $`(valueParameters)` : $supertypes"} {
+ *                  |  $body
+ *                  |  fun void test(): Unit =
+ *                  |    println("Implemented by ΛRROW Meta!")
+ *                  |}
+ *                  |""".`class`.synthetic
+ *           )
+ *         }
+ *       )
+ *     }
+ * ```
+ */
 class ClassScope(
   override val value: KtClass,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
