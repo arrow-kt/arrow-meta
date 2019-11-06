@@ -1,11 +1,11 @@
 package arrow.meta.plugin.gradle
 
-import io.github.classgraph.ClassGraph
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
-import java.util.*
+import io.github.classgraph.ClassGraph
+import java.util.Properties
 
 /**
  * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
