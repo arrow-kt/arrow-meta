@@ -13,6 +13,55 @@ import org.jetbrains.kotlin.psi.psiUtil.getValueParameters
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
+/**
+ * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to to feed in
+ * virtually any kind of [KtClass] predicate, followed by mapping a function that takes the desired [Scope] of our
+ * [KtClass] to change whatever PSI elements desired.
+ *
+ * @param [match] designed to to feed in any kind of [KtClass] predicate returning a [Boolean]
+ *
+ * For example, the [LensPlugin] and the [HigherKindPlugin] favors enabling ad-hoc polymorphism and more for the
+ * compiler by taking advantage of typeclass checks.
+ *
+ * In the [LensPlugin], we check to see if a type is a product type.  To add context, the cardinality of a product
+ * type is the product of their cardinalities:
+ *
+ * ```
+ *      |(a, b)| = |a| x |b|
+ * ```
+ *
+ * In particular, the [LensPlugin] is passing a function to whatever class or object type is a product type:
+ *
+ * ```
+ *  val Meta.lenses: Plugin
+ *    get() =
+ *      "lenses" {
+ *        meta {
+ *          classOrObject(::isProductOrType) { c -> ... }
+ *        }
+ *       }
+ * ```
+ *
+ * Where the function type for [::isProductType] is written as:
+ *
+ * ```
+ * fun isProductType(ktClass: KtClass): Boolean =
+ *  ktClass.isData() &&
+ *    ktClass.primaryConstructorParameters.isNotEmpty() &&
+ *    ktClass.primaryConstructorParameters.all { !it.isMutable } &&
+ *    ktClass.typeParameters.isEmpty()
+ * ```
+ *
+ * For a [KtClass] to be a product type, we check to see if the [KtClass] is an ADT, and that the cardinality of
+ * the constructor parameters is greater than one and non-mutable. For the [LensPlugin], we've just demonstrated how we
+ * can check for the product type of a [KtClass] by access the properties made available by the Kotlin PSI change.
+ *
+ * While it is not necessary to build [KtClass] predicates for [Meta.classOrObject] does not necessarily have to serve
+ * as a check for functional proofs in your compiler plugin.  It is relevant to highlight that the `match` predicate
+ * written gives access to the Kotlin PSI when analyzing written code via the written compiler plugin.
+ *
+ * @param map // TODO discuss the transformation parameter `map`
+ */
 fun Meta.classOrObject(
   match: KtClass.() -> Boolean,
   map: ClassScope.(KtClass) -> Transform<KtClass>
