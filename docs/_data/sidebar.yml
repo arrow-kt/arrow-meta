@@ -4,8 +4,84 @@ options:
 
     nested_options:
 
-      - title: Index
+      - title: Building Compiler Plugins
         url: /
+
+      - title: Hello World
+        url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
+
+      - title: Hello World IntelliJ IDEA
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.nothing/nothing-ide-plugin.html
+
+  - title: Quotes
+
+    nested_options:
+
+      - title: Index
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/index.html
+
+      - title: classOrObject
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/class-or-object.html
+
+      - title: func
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/func.html
+
+      - title: property
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property.html
+
+      - title: propertyAccessor
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property-accessor.html
+
+      - title: typeAlias
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/type-alias.html
+
+  - title: Compiler API
+
+    nested_options:
+
+      - title: Config
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
+
+      - title: Analysis
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
+
+      - title: Resolution
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
+
+      - title: ASM Codegen
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
+
+      - title: IR Codegen
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
+
+  - title: IntelliJ IDEA API
+
+    nested_options:
+
+      - title: Config
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
+
+      - title: Analysis
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
+
+      - title: Resolution
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
+
+      - title: ASM Codegen
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
+
+      - title: IR Codegen
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
+
+  - title: Testing
+
+    nested_options:
+
+      - title: Compiler Plugins Tests
+        url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/-compiler-test/index.html
+
+      - title: IntelliJ IDEA Plugin Tests
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl/-ide-test-syntax.html
 
   - title: API Docs
 
