@@ -58,7 +58,7 @@
     $('.sidebar-nav > li > ul a').each(function() {
       var $this = $(this);
       // If the current path is like this link, make it active
-      if (current.includes($this.attr('href'))) {
+      if (current == ($this.attr('href'))) {
         $this.addClass('active');
         activate($this.closest('.sidebar-nav > li').children('a'), 0);
       }
