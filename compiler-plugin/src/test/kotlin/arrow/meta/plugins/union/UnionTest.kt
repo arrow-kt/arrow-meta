@@ -213,7 +213,7 @@ class UnionTest {
         """
         |${UnionTestPrelude}
         |
-        |fun f(): Union4<String, Int, Double, List<Int>Union arity tests for > = 0
+        |fun f(): Union4<String, Int, Double, List<Int>> = 0
         |fun z(): String? = f()
         """.source
       },
