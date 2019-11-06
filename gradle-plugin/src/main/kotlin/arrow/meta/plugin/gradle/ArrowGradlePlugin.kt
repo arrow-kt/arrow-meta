@@ -28,6 +28,7 @@ class ArrowGradlePlugin : Plugin<Project> {
     project.buildscript.repositories.maven { m ->
       m.setUrl("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
     }
+    project.buildscript.repositories.mavenCentral()
 
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
