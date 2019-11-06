@@ -95,11 +95,11 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * After analyzing the PSI elements available, we pass a resulting [KtClass] matching the predicate (in our case,
  * we pass the resulting [KtClass] whose name is "Test") and replace the entire object with the string block, which is
  * then wrapped as a [ClassScope] and wrapped so the `newDeclaration` is of the type [Scope]<[ClassScope]> to match
- * match compatibility of the intercepted classes wrapped in some kind of [Scope]. Too see more, scroll down to
+ * match compatibility of the intercepted classes wrapped in some kind of [Scope]. To see more, see
  * [ClassScope].
  *
  * @param match designed to to feed in any kind of [KtClass] predicate returning a [Boolean]
- * @param map
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.classOrObject(
   match: KtClass.() -> Boolean,
