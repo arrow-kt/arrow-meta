@@ -4,6 +4,7 @@ build
 _site
 .sass-cache
 .jekyll-metadata
+.jekyll-cache
 
 ## OSX bullshit
 .DS_Store
