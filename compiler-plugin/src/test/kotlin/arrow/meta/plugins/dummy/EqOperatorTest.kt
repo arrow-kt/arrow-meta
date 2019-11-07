@@ -60,15 +60,24 @@ class EqOperatorTest {
         | 
         | object Id
         |
+        | @extension
         | fun IdEq() : Eq<Id> = Id.eq().run {
         |   Id.eqv(Id)
         | }
         """.source
       },
       assert = {
-        compiles
+        assertCompiles(        """
+        | import arrow.typeclasses.Eq
+        | 
+        | object Id
+        |
+        | @extension
+        | fun IdEq() : Eq<Id> = Id.eq().run {
+        |   Id.eqv(Id)
+        | }
+        """.source)
       }
     ))
-    assert(true)
   }
 }
