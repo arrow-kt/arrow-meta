@@ -44,8 +44,9 @@ interface ConfigSyntax {
 
   val metaDependencies: List<Config>
     get() {
-      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-      val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
+      val currentVersion = System.getProperty("CURRENT_VERSION")
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion:all")))
+      val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
       return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations)
     }
 }

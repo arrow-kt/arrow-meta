@@ -32,5 +32,3 @@ ank {
 //}
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
-
-apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
