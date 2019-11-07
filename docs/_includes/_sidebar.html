@@ -14,7 +14,7 @@
 
     {% for item in site.data.sidebar.options %}
     <li class="sidebar-nav-item">
-      <a href="{% if item.url %}{{item.url}}{% else %}#{% endif %}" class="{{ meta }}">
+      <a href="{% if item.url %}{{ item.url | relative_url }}{% else %}#{% endif %}" class="{{ meta }}">
         <span>{{ item.title }}</span>
         {% if item.nested_options %}
         <i class="fa fa-angle-right"></i>
@@ -24,7 +24,7 @@
       <ul>
         {% for nested_item in item.nested_options %}
         <li>
-          <a href="{{ nested_item.url }}">
+          <a href="{{ nested_item.url | relative_url }}">
             <span>{{ nested_item.title }}</span>
           </a>
         </li>
