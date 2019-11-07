@@ -135,7 +135,7 @@ fun Meta.classOrObject(
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject: KtClass ->
+ *         classOrObject({ name == "Test" }) { classOrObject ->
  *           Transform.replace(
  *             replacing = classOrObject,
  *             newDeclaration =
