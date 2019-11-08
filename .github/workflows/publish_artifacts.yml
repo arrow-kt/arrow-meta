@@ -31,7 +31,7 @@ jobs:
         ./gradlew :testing-plugin:test
         #
         # Generate idea-plugin artifact
-        ./gradlew :idea-plugin:build
+        ./gradlew :idea:idea-plugin:build
         #
         # Note: Gradle Plugin and Documentation have their own workflows
     - name: Publish artifacts

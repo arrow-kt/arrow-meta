@@ -28,7 +28,7 @@ jobs:
         ./gradlew :testing-plugin:test
         #
         # Generate idea-plugin artifact
-        ./gradlew :idea-plugin:build
+        ./gradlew :idea:idea-plugin:build
         #
         # Check Gradle Plugin build
         ./gradlew :gradle-plugin:build
