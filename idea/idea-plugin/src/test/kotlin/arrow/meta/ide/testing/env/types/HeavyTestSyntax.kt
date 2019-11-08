@@ -1,8 +1,9 @@
 package arrow.meta.ide.testing.env.types
 
+import arrow.CompilationResult
+import arrow.compile
 import arrow.meta.ide.phases.config.buildFolders
 import arrow.meta.ide.testing.Source
-import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootManager
@@ -11,12 +12,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import java.io.File
-import io.github.classgraph.ClassGraph
 
 data class HeavyTestSetUp(
   val buildDir: VirtualFile,
@@ -28,18 +25,8 @@ data class HeavyTestSetUp(
 
 object HeavyTestSyntax : CommonTestSyntax {
 
-  fun compile(source: String): Result {
-    val currentVersion = System.getProperty("CURRENT_VERSION")
-
-    return KotlinCompilation().apply {
-      sources = listOf(SourceFile.kotlin("Example.kt", source))
-      classpaths = listOf(classpathOf("arrow-annotations:$currentVersion"), classpathOf("arrow-core-data:$currentVersion"))
-      pluginClasspaths = listOf(classpathOf("compiler-plugin"))
-    }.compile()
-  }
-
-  val Result.outDirFile: VirtualFile?
-    get() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory)
+  val CompilationResult.outDirFile: VirtualFile?
+    get() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(classesDirectory)
 
   fun Source.addMetaDataToBuild(buildDir: VirtualFile, myFixture: CodeInsightTestFixture): VirtualFile? =
     compile(this).outDirFile?.let { myFixture.copyDirectoryToProject(it.path, buildDir.path) }
@@ -96,10 +83,4 @@ object HeavyTestSyntax : CommonTestSyntax {
         }
       }
     }
-
-  private fun classpathOf(dependency: String): File {
-    val regex = Regex(".*${dependency.replace(':', '-')}.*")
-    val file = ClassGraph().classpathFiles.firstOrNull { classpath -> classpath.name.matches(regex) }
-    return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
-  }
 }

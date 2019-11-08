@@ -5,6 +5,9 @@ buildscript {
     assertj_version = '3.13.2'
     dokka_version = '0.9.18'
     class_graph_version = '4.8.47'
+    junit_vintage_version = '5.4.0'
+    // TODO: temporary version until PR is approved and published
+    kotlin_compile_testing = '1.3.0'
   }
   repositories {
     mavenCentral()

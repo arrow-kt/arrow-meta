@@ -1,17 +1,7 @@
 apply plugin: 'kotlin'
 apply plugin: 'kotlin-kapt'
 
-buildscript {
-    ext {
-        junit_vintage_version = '5.4.0'
-
-        // TODO: temporary version until PR is approved and published
-        kotlin_compile_testing = '1.3.0'
-    }
-}
-
 dependencies {
-
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compileOnly "io.github.classgraph:classgraph:$class_graph_version"
     compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
