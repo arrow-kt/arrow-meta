@@ -12,8 +12,6 @@ class LensTest {
   fun `Initial lens test`() {
 
     val currentVersion = System.getProperty("CURRENT_VERSION")
-    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
     val arrowOptics = Dependency("arrow-optics:$currentVersion")
     val codeSnippet = """
       | 
@@ -27,14 +25,10 @@ class LensTest {
       """
 
     assertThis(CompilerTest(
-        config = {
-          addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowOptics)
-        },
-        code = {
-          codeSnippet.source
-        },
+        config = { metaDependencies + addDependencies(arrowOptics) },
+        code = { codeSnippet.source },
         assert = {
-          quoteOutputMatches(
+          allOf(quoteOutputMatches(
             """
             | data class TestLenses public constructor (val a: String, val b: String) {
             |
@@ -53,7 +47,7 @@ class LensTest {
             |     )
             |   }
             | }
-        """.source)
+        """.source))
         }
     ))
   }

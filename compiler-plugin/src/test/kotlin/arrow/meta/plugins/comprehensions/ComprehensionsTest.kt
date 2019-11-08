@@ -1,8 +1,6 @@
 package arrow.meta.plugins.comprehensions
 
-import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
@@ -27,7 +25,6 @@ class ComprehensionsTest {
       |   }
       | }
       """
-    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
   }
 
   @Test
@@ -45,12 +42,8 @@ class ComprehensionsTest {
       |"""
 
     assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
+      config = { metaDependencies },
+      code = { codeSnippet.source },
       assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
@@ -62,18 +55,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "test().value".source.evalsTo(3)
       }
     ))
@@ -94,12 +76,8 @@ class ComprehensionsTest {
       |"""
 
     assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
+      config = { metaDependencies },
+      code = { codeSnippet.source },
       assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
@@ -111,26 +89,14 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        "test().value".source.evalsTo(3)
+          |""".source) + "test().value".source.evalsTo(3)
       }
     ))
   }
 
   @Test
   fun `nested case with type inference`() {
-  val codeSnippet = """
+    val codeSnippet = """
     $IO_CLASS_4_TESTS
     |
     | fun test(): IO<Int> =
@@ -152,7 +118,7 @@ class ComprehensionsTest {
 
     assertThis(CompilerTest(
       config = {
-        listOf(addCompilerPlugins(compilerPlugin))
+        metaDependencies
       },
       code = {
         codeSnippet.source
@@ -176,18 +142,7 @@ class ComprehensionsTest {
           |     }
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "test().value".source.evalsTo(10)
       }
     ))
@@ -214,7 +169,7 @@ class ComprehensionsTest {
 
     assertThis(CompilerTest(
       config = {
-        listOf(addCompilerPlugins(compilerPlugin))
+        metaDependencies
       },
       code = {
         codeSnippet.source
@@ -237,18 +192,7 @@ class ComprehensionsTest {
           |     } 
           |   }
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "test().value".source.evalsTo(14)
       }
     ))
@@ -266,7 +210,7 @@ class ComprehensionsTest {
 
     assertThis(CompilerTest(
       config = {
-        listOf(addCompilerPlugins(compilerPlugin))
+        metaDependencies
       },
       code = {
         codeSnippet.source
@@ -278,18 +222,7 @@ class ComprehensionsTest {
           | fun test(): IO<Int> =
           |   IO.just(1 + 1)
           |   
-          |""".source)
-      }
-    ))
-
-    assertThis(CompilerTest(
-      config = {
-        listOf(addCompilerPlugins(compilerPlugin))
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
+          |""".source) +
         "test().value".source.evalsTo(2)
       }
     ))
@@ -299,7 +232,7 @@ class ComprehensionsTest {
   fun `unresolved reference error`() {
     assertThis(CompilerTest(
       config = {
-        listOf(addCompilerPlugins(compilerPlugin))
+        metaDependencies
       },
       code = {
         """
@@ -311,7 +244,7 @@ class ComprehensionsTest {
         |""".source
       },
       assert = {
-        failsWith { it.contains("Unresolved reference: a") }
+        allOf(failsWith { it.contains("Unresolved reference: a") })
       }
     ))
   }
@@ -320,7 +253,7 @@ class ComprehensionsTest {
 //  fun `Does not break other delegations`() {
 //    assertThis(CompilerTest(
 //      config = {
-//        listOf(addCompilerPlugins(compilerPlugin))
+//        metaDependencies
 //      },
 //      code = {
 //        """
@@ -336,7 +269,7 @@ class ComprehensionsTest {
 //        |""".source
 //      },
 //      assert = {
-//        quoteOutputMatches("""
+//        allOf(quoteOutputMatches("""
 //          $IO_CLASS_4_TESTS
 //          |
 //          | fun test(): IO<Int> =
@@ -346,7 +279,7 @@ class ComprehensionsTest {
 //          |      }
 //          |   }
 //          |
-//          |""".source)
+//          |""".source))
 //      }
 //    ))
 //  }

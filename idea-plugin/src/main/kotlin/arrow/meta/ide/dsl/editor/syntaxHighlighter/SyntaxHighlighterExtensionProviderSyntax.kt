@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.syntaxHighlighter
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.ideRegistry
+import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -10,7 +10,6 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighter
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.psi.tree.IElementType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.lexer.KotlinLexer
 
 interface SyntaxHighlighterExtensionProviderSyntax {
@@ -19,12 +18,11 @@ interface SyntaxHighlighterExtensionProviderSyntax {
     highlightingLexer: Lexer = KotlinLexer(),
     tokenHighlights: (tokenType: IElementType?) -> Array<TextAttributesKey>
   ): ExtensionPhase =
-    ideRegistry {
-      SyntaxHighlighterFactory.LANGUAGE_FACTORY
-        .addExplicitExtension(KotlinLanguage.INSTANCE, syntaxHighlighterFactory(
-          this@SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter(highlightingLexer, tokenHighlights)
-        ))
-    }
+    SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter(
+      syntaxHighlighterFactory(
+        this@SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter(highlightingLexer, tokenHighlights)
+      )
+    )
 
   fun SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter(
     highlightingLexer: Lexer = KotlinLexer(),
