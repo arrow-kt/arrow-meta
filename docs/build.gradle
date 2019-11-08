@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 
 dependencies {
     compile project(':compiler-plugin')
-    compile project(':idea-plugin')
+    compile project(':idea:idea-plugin')
     compile "io.arrow-kt:arrow-ank:$VERSION_NAME"
 }
 

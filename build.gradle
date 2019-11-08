@@ -112,8 +112,8 @@ task buildMeta {
 
 task publishAndRunIde {
   dependsOn ':buildMeta'
-  dependsOn ':idea-plugin:runIde'
-  tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':buildMeta'
+  dependsOn ':idea:idea-plugin:runIde'
+  tasks.findByPath(':idea:idea-plugin:runIde').mustRunAfter ':buildMeta'
 }
 
 wrapper {
