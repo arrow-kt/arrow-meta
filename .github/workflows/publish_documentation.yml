@@ -49,6 +49,7 @@ jobs:
         bundle install --gemfile docs/Gemfile --path vendor/bundle
         MAYOR_MINOR_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2 | cut -d. -f1-2)
         echo $MAYOR_MINOR_VERSION
+        # bundle exec jekyll build --baseurl /$MAYOR_MINOR_VERSION -s docs -d docs/build/_site
         bundle exec jekyll build -s docs -d docs/build/_site
         echo "Publish in S3..."
         # Waiting for AWS configuration to active this part:
