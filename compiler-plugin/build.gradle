@@ -49,15 +49,6 @@ shadowJar {
     relocate 'org.jetbrains.kotlin.load', 'kotlin.reflect.jvm.internal.impl.load'
 }
 
-// TODO: Temporary configuration
-// A temporary version from a fork of
-// com.github.tschuchortdev:kotlin-compile-testing
-// is needed until it's published with the contribution
-// Remove when having only releases from Maven Central
-repositories {
-    maven { url "https://jitpack.io" }
-}
-
 test {
   testLogging.showStandardStreams = true
   systemProperty "CURRENT_VERSION", "$VERSION_NAME"

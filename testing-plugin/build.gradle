@@ -42,14 +42,6 @@ test {
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
 }
 
-// TODO: Temporary configuration
-// - A temporary version from a fork of
-//     com.github.tschuchortdev:kotlin-compile-testing
-//   is needed until it's published with the contribution
-repositories {
-    maven { url "https://jitpack.io" }
-}
-
 jar {
     manifest {
         attributes["Specification-Title"] = project.name
