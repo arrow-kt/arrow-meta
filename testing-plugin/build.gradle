@@ -15,17 +15,15 @@ dependencies {
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compileOnly "io.github.classgraph:classgraph:$class_graph_version"
-    compileOnly project(":compiler-plugin")
-    implementation "org.assertj:assertj-core:$assertj_version"
+    compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
+    implementation "org.assertj:assertj-core:$assertj_version"
     // TODO: temporary dependency until PR is approved and published
     // implementation "com.github.tschuchortdev:kotlin-compile-testing:$kotlin_compile_testing"
     implementation "com.github.arrow-kt:kotlin-compile-testing:$kotlin_compile_testing"
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$kotlin_test_version"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit_vintage_version"
-    testRuntimeOnly project(":compiler-plugin")
-
     testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
 }
 
