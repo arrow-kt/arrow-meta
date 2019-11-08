@@ -95,7 +95,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<Plugin>
 
-  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
+  fun CompilerContext.registerIdeExclusiveProjectPhase(currentPhase: ExtensionPhase) {}
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
@@ -149,6 +149,14 @@ interface InternalRegistry : ConfigSyntax {
     registerMetaComponents(project, configuration)
   }
 
+  fun collectPhases(ctx: CompilerContext): List<Plugin> =
+    listOf("Initial setup" {
+      listOf(
+        compilerContextService(),
+        registerMetaAnalyzer()
+      )
+    }) + intercept(ctx)
+
   fun registerMetaComponents(
     project: Project,
     configuration: CompilerConfiguration
@@ -158,7 +166,7 @@ interface InternalRegistry : ConfigSyntax {
       println("it's the CLI plugin")
     }
     ide {
-      println("it's the IDEA plugin")
+      println("it's the IDEA plugin in a Project")
     }
     val scope = ElementScope.default(project)
     val messageCollector: MessageCollector? =
@@ -173,13 +181,7 @@ interface InternalRegistry : ConfigSyntax {
 
     installArrowPlugin()
 
-    val initialPhases = listOf("Initial setup" {
-      listOf(
-        compilerContextService(),
-        registerMetaAnalyzer()
-      )
-    })
-    (initialPhases + intercept(ctx)).forEach { plugin ->
+    collectPhases(ctx).forEach { plugin ->
       println("Registering plugin: $plugin extensions: ${plugin.meta}")
       plugin.meta.invoke(ctx).forEach { currentPhase ->
         fun ExtensionPhase.registerPhase(): Unit {
@@ -208,7 +210,7 @@ interface InternalRegistry : ConfigSyntax {
           }
         }
         currentPhase.registerPhase()
-        ctx.registerIdeExclusivePhase(currentPhase)
+        ctx.registerIdeExclusiveProjectPhase(currentPhase)
       }
     }
   }

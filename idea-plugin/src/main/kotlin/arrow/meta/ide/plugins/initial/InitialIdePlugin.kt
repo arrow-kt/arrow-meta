@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.initial
 
-import arrow.meta.Plugin
-import arrow.meta.invoke
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.IdePlugin
+import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.initialIdeSetUp: Plugin
+val IdeMetaPlugin.initialIdeSetUp: IdePlugin
   get() = "Initial Ide Setup" {
     meta(
      addDiagnosticSuppressor { diagnostic ->

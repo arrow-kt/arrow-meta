@@ -15,10 +15,9 @@ class MetaPluginRegistrar : ApplicationInitializedListener {
 
   override fun componentsInitialized() {
     val app = ApplicationManager.getApplication()
+    val configuration = CompilerConfiguration()
 
-    // register application-level extensions
-    // TODO support registration of application extensions
-    // IdeMetaPlugin.Instance.registerMetaApplicationComponents(app, ...)
+    metaPlugin.registerMetaApplication(app, configuration)
 
     // register a project lifecycle listener to register project components when necessary
     // the listener registers project-level extensions
@@ -27,7 +26,6 @@ class MetaPluginRegistrar : ApplicationInitializedListener {
         LOG.info("beforeProjectLoaded(${project.name})")
 
         val start = System.currentTimeMillis()
-        val configuration = CompilerConfiguration()
         // TODO: only register project extensions here
         metaPlugin.registerMetaComponents(project, configuration)
         LOG.info("beforeProjectLoaded(${project.name}) took ${System.currentTimeMillis() - start} ms")

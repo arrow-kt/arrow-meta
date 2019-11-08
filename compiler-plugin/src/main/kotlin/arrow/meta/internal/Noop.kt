@@ -13,6 +13,7 @@ object Noop {
   fun <A> nullable4(): (Any?, Any?, Any?, Any?) -> A? = { _, _, _, _ -> null }
   fun <A> nullable5(): (Any?, Any?, Any?, Any?, Any?) -> A? = { _, _, _, _, _ -> null }
   fun <A> emptyCollection1(): (Any?) -> Collection<A> = { emptyList() }
+  fun <A> emptyList0(): () -> List<A> = { emptyList() }
   fun <A> emptyList1(): (Any?) -> List<A> = { emptyList() }
   fun <A> emptyCollection2(): (Any?, Any?) -> Collection<A> = { _, _ -> emptyList() }
   fun <A> emptyList2(): (Any?, Any?) -> List<A> = { _, _ -> emptyList() }

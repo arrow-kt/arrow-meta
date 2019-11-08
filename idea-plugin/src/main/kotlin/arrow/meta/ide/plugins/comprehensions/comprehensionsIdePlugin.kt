@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.comprehensions
 
-import arrow.meta.Plugin
-import arrow.meta.invoke
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.IdePlugin
+import arrow.meta.ide.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.plugins.comprehensions.isBinding
 import com.intellij.psi.PsiElement
@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.contracts.ExperimentalContracts
 
 @ExperimentalContracts
-val IdeMetaPlugin.comprehensionsIdePlugin: Plugin
+val IdeMetaPlugin.comprehensionsIdePlugin: IdePlugin
   get() = "ComprehensionsIdePlugin" {
     meta(
       addLineMarkerProvider(

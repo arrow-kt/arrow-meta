@@ -1,6 +1,7 @@
 package arrow.meta.ide.internal.registry
 
 import arrow.meta.dsl.platform.ide
+import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
@@ -29,13 +30,17 @@ import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 internal interface IdeInternalRegistry : InternalRegistry {
+
+  fun intercept(): List<IdePlugin>
 
   override fun registerMetaAnalyzer(): ExtensionPhase =
     ide {
@@ -50,18 +55,32 @@ internal interface IdeInternalRegistry : InternalRegistry {
       )
     } ?: ExtensionPhase.Empty
 
-  override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
-    when (currentPhase) {
-      is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
-      is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
-      is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
-      is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
-      is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
-      is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
-      is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
-      is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
-      else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+  fun registerMetaApplication(application: Application, compilerConfiguration: CompilerConfiguration): Unit =
+    intercept().forEach { plugin ->
+      println("Registering plugin: $plugin extensions: ${plugin.meta}")
+      plugin.meta.invoke().forEach(::registerIdeExclusiveApplicationPhase)
     }
+
+  fun registerIdeExclusiveApplicationPhase(currentPhase: ExtensionPhase): Unit = when (currentPhase) {
+    is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
+    is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
+    is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
+    is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
+    is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
+    is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
+    is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
+    is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
+    else -> LOG.error("Unsupported ide extension phase at application level: $currentPhase")
+  }
+
+  override fun CompilerContext.registerIdeExclusiveProjectPhase(currentPhase: ExtensionPhase): Unit = when (currentPhase) {
+    is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
+    is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
+    is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
+    is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
+    is ExtensionProvider<*>, is AnActionExtensionProvider, is IntentionExtensionProvider, is SyntaxHighlighterExtensionProvider -> Unit // filter out ApplicationLevel Extensions
+    else -> LOG.error("Unsupported ide extension phase at project level: $currentPhase")
+  }
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {
