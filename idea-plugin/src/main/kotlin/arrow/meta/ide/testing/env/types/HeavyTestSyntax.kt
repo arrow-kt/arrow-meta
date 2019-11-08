@@ -2,15 +2,7 @@ package arrow.meta.ide.testing.env.types
 
 import arrow.meta.ide.phases.config.buildFolders
 import arrow.meta.ide.testing.Source
-import arrow.meta.ide.testing.env.types.HeavyTestSyntax.plus
-import arrow.meta.plugin.testing.CompilationData
-import arrow.meta.plugin.testing.CompilationResult
-import arrow.meta.plugin.testing.CompilerPlugin
-import arrow.meta.plugin.testing.Config
-import arrow.meta.plugin.testing.ConfigSyntax
-import arrow.meta.plugin.testing.Dependency
-import arrow.meta.plugin.testing.compilationData
-import arrow.meta.plugin.testing.compile
+import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootManager
@@ -19,8 +11,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.io.File
+import io.github.classgraph.ClassGraph
 
 data class HeavyTestSetUp(
   val buildDir: VirtualFile,
@@ -30,25 +26,23 @@ data class HeavyTestSetUp(
   val outDirTarget: VirtualFile
 )
 
-val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-val arrowAnnotations = { str: String -> Dependency("arrow-annotations:$str") }
-val arrowCoreData = { str: String -> Dependency("arrow-core-data:$str") }
+object HeavyTestSyntax : CommonTestSyntax {
 
-val defaultConfig: (String) -> List<Config>
-  get() = { str -> HeavyTestSyntax.addCompilerPlugins(compilerPlugin) + HeavyTestSyntax.addDependencies(arrowAnnotations(str), arrowCoreData(str)) }
+  fun compile(source: String): Result {
+    val currentVersion = System.getProperty("CURRENT_VERSION")
 
-object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
-  override val emptyConfig: Config
-    get() = Config.Empty
+    return KotlinCompilation().apply {
+      sources = listOf(SourceFile.kotlin("Example.kt", source))
+      classpaths = listOf(classpathOf("arrow-annotations:$currentVersion"), classpathOf("arrow-core-data:$currentVersion"))
+      pluginClasspaths = listOf(classpathOf("compiler-plugin"))
+    }.compile()
+  }
 
-  fun Source.compile(config: List<Config>): CompilationResult =
-    compile(config.compilationData(CompilationData(source = listOf(this.trimMargin()))))
-
-  val CompilationResult.outDirFile: VirtualFile?
+  val Result.outDirFile: VirtualFile?
     get() = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(outputDirectory)
 
-  fun Source.addMetaDataToBuild(config: List<Config>, buildDir: VirtualFile, myFixture: CodeInsightTestFixture): VirtualFile? =
-    compile(config).outDirFile?.let { myFixture.copyDirectoryToProject(it.path, buildDir.path) }
+  fun Source.addMetaDataToBuild(buildDir: VirtualFile, myFixture: CodeInsightTestFixture): VirtualFile? =
+    compile(this).outDirFile?.let { myFixture.copyDirectoryToProject(it.path, buildDir.path) }
 
   fun Source.toFile(name: String = "Source.kt", dir: VirtualFile): VirtualFile? =
     WriteAction.computeAndWait<VirtualFile, Throwable> {
@@ -87,15 +81,14 @@ object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
     myFixture: CodeInsightTestFixture,
     srcDirName: String = "src",
     buildDirName: String = "build",
-    srcFileName: String = "Source.kt",
-    config: List<Config>
+    srcFileName: String = "Source.kt"
   ): HeavyTestSetUp? =
     module.root?.let { root: VirtualFile ->
       root.addExcludedDir(buildDirName, module)?.let { buildDir: VirtualFile ->
         root.addSourceDir(srcDirName, module)?.let { srcDir: VirtualFile ->
           module.buildFolders().takeIf { it.isNotEmpty() }?.run {
             copyToDir(srcFileName, srcDir, myFixture)?.let { ktFile: KtFile ->
-              addMetaDataToBuild(config, buildDir, myFixture)?.let { target: VirtualFile ->
+              addMetaDataToBuild(buildDir, myFixture)?.let { target: VirtualFile ->
                 HeavyTestSetUp(buildDir, srcDir, ktFile, ktFileToList(myFixture), target)
               }
             }
@@ -103,6 +96,12 @@ object HeavyTestSyntax : CommonTestSyntax, ConfigSyntax {
         }
       }
     }
+
+  private fun classpathOf(dependency: String): File {
+    val regex = Regex(".*${dependency.replace(':', '-')}.*")
+    val file = ClassGraph().classpathFiles.firstOrNull { classpath -> classpath.name.matches(regex) }
+    return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
+  }
 }
 
 
