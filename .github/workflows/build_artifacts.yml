@@ -18,4 +18,17 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        ./gradlew clean build
+        # Generate compiler-plugin artifact
+        ./gradlew :compile-plugin:shadowJar
+        #
+        # Generate testing-plugin artifact when running compiler-plugin tests
+        ./gradlew :compile-plugin:test
+        #
+        # Run tests from testing-plugin
+        ./gradlew :testing-plugin:test
+        #
+        # Generate idea-plugin artifact
+        ./gradlew :idea-plugin:build
+        #
+        # Check Gradle Plugin build
+        ./gradlew :gradle-plugin:build

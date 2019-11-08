@@ -3,13 +3,14 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    // WARNING: don't change the configuration name because it's used by shadowJar
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
     compileOnly "com.intellij:openapi:7.0.3"
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$kotlin_test_version"
     testImplementation project(":testing-plugin")
-    testRuntimeOnly project(":compiler-plugin")
+    testRuntimeOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
     testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
     testRuntimeOnly "io.arrow-kt:arrow-core-data:$VERSION_NAME"
