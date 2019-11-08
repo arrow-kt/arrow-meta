@@ -6,6 +6,7 @@ import arrow.meta.plugins.higherkind.higherKindedTypes
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.typeclasses.typeClasses
 import arrow.meta.plugins.union.unionTypes
+import arrow.meta.plugins.union.unionTypes2
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -18,7 +19,7 @@ open class MetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<Plugin> =
     listOf(
-      unionTypes,
+      unionTypes2,
       higherKindedTypes,
       typeClasses,
       comprehensions,

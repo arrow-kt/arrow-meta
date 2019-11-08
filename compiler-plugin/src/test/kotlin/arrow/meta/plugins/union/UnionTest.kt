@@ -2,28 +2,31 @@ package arrow.meta.plugins.union
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
+import org.junit.FixMethodOrder
+import org.junit.Ignore
 import org.junit.Test
+import org.junit.runners.MethodSorters
 
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class UnionTest {
-
-  @Test
-  fun `Union uber constructor remains visible`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """
-        |${UnionTestPrelude}
-        |
-        |fun f(): Union2<String, Int> = Union(0)
-        | 
-        """.source
-      },
-      assert = {
-        allOf("f().value".source.evalsTo(0))
-      }
-    ))
-  }
+//
+//  @Test
+//  fun `Union uber constructor remains visible`() {
+//    assertThis(CompilerTest(
+//      config = { metaDependencies },
+//      code = {
+//        """
+//        |${UnionTestPrelude}
+//        |
+//        |fun f(): Union2<String, Int> = Union(0)
+//        |
+//        """.source
+//      },
+//      assert = {
+//        allOf("f().value".source.evalsTo(0))
+//      }
+//    ))
+//  }
 
   @Test
   fun `Union accepts typed values in the union 2`() {

@@ -58,8 +58,10 @@ repositories {
 }
 
 test {
-  testLogging.showStandardStreams = true
-  systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+    maxHeapSize = "4096m"
+    maxParallelForks = 1
+    testLogging.showStandardStreams = true
+    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'

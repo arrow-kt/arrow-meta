@@ -153,10 +153,8 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         files as ArrayList
-        println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations)
-        println("END quote.doAnalysis: $files")
         files.forEach {
           val fileText = it.text
           if (fileText.contains("//metadebug")) {

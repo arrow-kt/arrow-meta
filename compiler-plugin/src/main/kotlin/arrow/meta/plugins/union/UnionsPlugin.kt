@@ -19,10 +19,43 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.findSingleFunction
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.typeUtil.makeNullable
+
+val Meta.unionTypes2: Plugin
+  get() =
+    "Union Types" {
+      implicitConversion(
+        subtyping = KotlinType::union,
+        equality = KotlinTypeChecker.DEFAULT::equalTypes,
+        wrap = IrUtils::toUnion
+      ) +
+        implicitConversion(
+          subtyping = KotlinType::nullableUnionTargets,
+          equality = KotlinTypeChecker.DEFAULT::equalTypes,
+          wrap = IrUtils::unionToNullable,
+          additionalPhase = irTypeOperator { lift(it, { superType -> makeNullable().nullableUnionTargets(superType) }, IrUtils::unionToNullable) }
+        )
+    }
+
+private fun IrUtils.toUnion(expression: IrExpression): IrExpression? =
+  unionClassDescriptor()?.irConstructorCall()?.let {
+    it.putValueArgument(0, expression)
+    it
+  }
+
+
+private fun IrUtils.unionToNullable(expression: IrExpression): IrExpression? {
+  val value = expression.type.makeNullable()
+  println("Wrapping value : ${value.originalKotlinType}")
+  return unliftCall(value, expression)
+}
+
 
 /**
  *
@@ -67,7 +100,7 @@ val Meta.unionTypes: Plugin
          * val willBeInt: Int? = proof() //ok
          * ```
          */
-        suppressDiagnostic(Diagnostic::suppressTypeMismatchOnNullableReceivers),
+        suppressDiagnostic(Diagnostic::suppressTypeMismatch),
         /**
          * ```kotlin
          * fun proof(): Union2<String, Int> = 1
@@ -76,28 +109,28 @@ val Meta.unionTypes: Plugin
          * ```
          */
         irDump(),
-        irTypeOperator(IrUtils::insertNullableConversion),
+        irTypeOperator(IrUtils::unlift),
         /**
          * ```diff
          * - val proof: Union2<String, Int> = 1
          * + val proof: Union2<String, Int> = Union(1) //inlined class
          * ```
          */
-        irVariable(IrUtils::insertUnionConversion),
+        irVariable(IrUtils::lift),
         /**
          * ```diff
          * - val proof: Union2<String, Int> = 1
          * + val proof: Union2<String, Int> = Union(1) //inlined class
          * ```
          */
-        irProperty(IrUtils::insertUnionConversion),
+        irProperty(IrUtils::lift),
         /**
          * ```kotlin:diff
          * - fun proof(): Union2<String, Int> = 1
          * + fun proof(): Union2<String, Int> = Union(1) //inlined class
          * ```
          */
-        irReturn(IrUtils::insertUnionConversion),
+        irReturn(IrUtils::lift),
         irDump()
       )
     }
@@ -110,11 +143,11 @@ val Meta.unionTypes: Plugin
  * + fun proof(): Union2<String, Int> = Union(1) //inlined class
  * ```
  */
-private fun IrUtils.insertUnionConversion(it: IrReturn): IrExpression? {
+private fun IrUtils.lift(it: IrReturn): IrExpression? {
   val targetType = it.returnTarget.returnType
   val valueType = it.value.type.originalKotlinType
   return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-    unionConversion(it, targetType)
+    liftConversion(it, targetType)
   } else it
 }
 
@@ -126,11 +159,11 @@ private fun IrUtils.insertUnionConversion(it: IrReturn): IrExpression? {
  * + val proof: Union2<String, Int> = Union(1) //inlined class
  * ```
  */
-private fun IrUtils.insertUnionConversion(it: IrVariable): IrVariable? {
+private fun IrUtils.lift(it: IrVariable): IrVariable? {
   val targetType = it.type.originalKotlinType
   val valueType = it.initializer?.type?.originalKotlinType
   return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-    unionConversion(it)
+    liftConversion(it)
   } else it
 }
 
@@ -142,14 +175,13 @@ private fun IrUtils.insertUnionConversion(it: IrVariable): IrVariable? {
  * + val proof: Union2<String, Int> = Union(1) //inlined class
  * ```
  */
-private fun IrUtils.insertUnionConversion(it: IrProperty): IrProperty? {
+private fun IrUtils.lift(it: IrProperty): IrProperty? {
   val targetType = it.descriptor.returnType
   val valueType = it.descriptor.getter?.returnType
   return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-    unionConversion(it)
+    liftConversion(it)
   } else it
 }
-
 
 
 /**
@@ -161,21 +193,21 @@ private fun IrUtils.insertUnionConversion(it: IrProperty): IrProperty? {
  * val willBeInt: Int? = proof() //ok
  * ```
  */
-private fun IrUtils.insertNullableConversion(it: IrTypeOperatorCall): IrExpression? {
+private fun IrUtils.unlift(it: IrTypeOperatorCall): IrExpression? {
   val targetType = it.argument.type.originalKotlinType
   val valueType = it.type.originalKotlinType
   return if (targetType != null && valueType != null && targetType.union(valueType)) { //insert conversion
-    nullableConversion(it.type, it)
+    unlift(it.type, it)
   } else it
 }
 
 /**
- * @see [insertNullableConversion]
+ * @see [unlift]
  */
-fun IrUtils.nullableConversion(valueType: IrType, intercepted: IrTypeOperatorCall): IrCall? =
-  nullableConversionCall(valueType, intercepted.argument)
+fun IrUtils.unlift(valueType: IrType, intercepted: IrTypeOperatorCall): IrCall? =
+  unliftCall(valueType, intercepted.argument)
 
-private fun IrUtils.nullableConversionCall(typeArgument: IrType?, argument: IrExpression): IrCall? =
+private fun IrUtils.unliftCall(typeArgument: IrType?, argument: IrExpression): IrCall? =
   unionClassDescriptor()
     ?.companionObjectDescriptor?.let { companion ->
     companion.unsubstitutedMemberScope.findSingleFunction(Name.identifier("toNullable")).irCall().apply {
@@ -200,17 +232,17 @@ private fun IrUtils.nullableConversionCall(typeArgument: IrType?, argument: IrEx
  * val willBeInt: Int? = proof() //ok
  * ```
  */
-fun Diagnostic.suppressTypeMismatchOnNullableReceivers(): Boolean =
+fun Diagnostic.suppressTypeMismatch(): Boolean =
   if (factory == Errors.TYPE_MISMATCH)
     Errors.TYPE_MISMATCH.cast(this).run {
-      b.nullableUnionTargets(subType = a)
+      a.nullableUnionTargets(superType = b)
     }
   else false
 
 /**
- * @see [insertUnionConversion]
+ * @see [lift]
  */
-fun IrUtils.unionConversion(intercepted: IrProperty): IrProperty? =
+fun IrUtils.liftConversion(intercepted: IrProperty): IrProperty? =
   intercepted.backingField?.let { field ->
     val replacement = field.initializer?.expression?.let {
       unionClassDescriptor()?.irConstructorCall()?.apply {
@@ -222,25 +254,20 @@ fun IrUtils.unionConversion(intercepted: IrProperty): IrProperty? =
   }
 
 /**
- * @see [insertUnionConversion]
+ * @see [lift]
  */
-fun IrUtils.unionConversion(intercepted: IrVariable): IrVariable? =
+fun IrUtils.liftConversion(intercepted: IrVariable): IrVariable? =
   intercepted.apply {
     initializer = unionClassDescriptor()?.irConstructorCall()?.apply {
       putValueArgument(0, initializer)
     }
   }
 
-/**
- * The arrow.Union inline class value holder
- */
-private fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
-  backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
 
 /**
- * @see [insertUnionConversion]
+ * @see [lift]
  */
-fun IrUtils.unionConversion(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
+fun IrUtils.liftConversion(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
   targetType?.let { unionType ->
     return unionClassDescriptor()?.irConstructorCall()?.let { constructorCall ->
       constructorCall.putValueArgument(0, intercepted.value)
@@ -254,7 +281,11 @@ fun IrUtils.unionConversion(intercepted: IrReturn, targetType: KotlinType?): IrR
     }
   }
 
-
+/**
+ * The arrow.Union inline class value holder
+ */
+internal fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
+  backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
 
 
 

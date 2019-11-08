@@ -2,6 +2,7 @@ package arrow.meta.plugins.union
 
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 
@@ -19,7 +20,7 @@ class UnionTypeChecker(val typeChecker: KotlinTypeChecker) : KotlinTypeChecker b
     return if (!underlyingResult) {
       val subType = p0.unwrap()
       val superType = p1.unwrap()
-      val inUnion: Boolean = superType.union(subType)
+      val inUnion: Boolean = subType.union(superType)
       val result = inUnion
       println("UnionTypeChecker.isSubtypeOf: $subType <-> $superType = $result, inUnion: $inUnion")
       result
@@ -31,16 +32,16 @@ class UnionTypeChecker(val typeChecker: KotlinTypeChecker) : KotlinTypeChecker b
 
 }
 
-fun KotlinType.nullableUnionTargets(subType: KotlinType): Boolean {
-  val result: Boolean = subType.isMarkedNullable && isUnion() && arguments.contains(subType.makeNotNullable().asTypeProjection())
-  println("nullableUnionTargets: $subType : $this = $result")
+fun KotlinType.nullableUnionTargets(superType: KotlinType): Boolean {
+  val result: Boolean = isNullable() && superType.isUnion() && superType.arguments.contains(makeNotNullable().asTypeProjection())
+  //println("nullableUnionTargets: $this : $superType = $result")
   return result
 }
 
 fun KotlinType.isUnion(): Boolean {
-  println("type: " + constructor.declarationDescriptor?.name?.asString())
+  //println("type: " + constructor.declarationDescriptor?.name?.asString())
   return constructor.declarationDescriptor?.name?.asString()?.startsWith("Union") == true
 }
 
-fun KotlinType.union(subType: KotlinType) =
-  isUnion() && arguments.contains(subType.asTypeProjection()) || nullableUnionTargets(subType)
+fun KotlinType.union(superType: KotlinType): Boolean =
+  superType.isUnion() && superType.arguments.contains(asTypeProjection()) || this.nullableUnionTargets(superType)
