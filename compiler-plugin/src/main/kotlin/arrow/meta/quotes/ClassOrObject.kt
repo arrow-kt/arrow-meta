@@ -70,6 +70,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.classOrObject
+ * import org.jetbrains.kotlin.psi.KtClassOrObject
  *
  * val Meta.example: Plugin
  *   get() =
@@ -77,7 +78,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
  *         classOrObject({ name == "Test" }) { classOrObject ->
- *           Transform.replace(
+ *           Transform.replace<KtClass>(
  *             replacing = classOrObject,
  *             newDeclaration =
  *               """|$`@annotationEntries` $kind $name $`(typeParameters)` $`(valueParameters)` : $supertypes"} {
@@ -113,10 +114,10 @@ fun Meta.classOrObject(
  * before it's compiled.
  *
  * @param value the PSI element being fed in for the compiler plugin.
- * @param `@annotationEntries`
- * @param modality
+ * @param annotationEntries searches for marked annotations associated with the class.
+ * @param modality  Modifier keyword is a keyword that can be used in annotation position as part of modifier list
  * @param visibility is the class public, private, protected? etc.
- * @oaran kind denotes certain classes as sealed class types or data class types.
+ * @oaram kind denotes certain classes as sealed class types or data class types.
  */
 class ClassScope(
   override val value: KtClass,
