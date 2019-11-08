@@ -29,7 +29,6 @@ dependencies {
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
     exclude group: "org.jetbrains.kotlin", module: "kotlin-annotation-processing-embeddable"
   }
-  testRuntimeOnly project(":compiler-plugin")
   testRuntimeOnly("io.arrow-kt:arrow-annotations:$VERSION_NAME") {
     // already provided by the kotlin-plugin
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
