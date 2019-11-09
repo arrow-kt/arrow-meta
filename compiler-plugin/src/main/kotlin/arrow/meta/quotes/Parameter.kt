@@ -5,6 +5,8 @@ import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtTypeParameter
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
@@ -25,5 +27,7 @@ class ParameterScope(
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val name: Name? = value.nameAsName,
-  val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries)
+  val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val type: Scope<KtTypeReference> = Scope(value.typeReference),
+  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">")
 ) : Scope<KtParameter>(value)
