@@ -18,7 +18,16 @@ dependencies {
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
   }
 
-  testImplementation(project(":idea:compilation-library")) {
+  implementation(project(":idea:compile")) {
+    // already provided by the kotlin-plugin
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-annotation-processing-embeddable"
+  }
+
+  testImplementation(project(":idea:compile")) {
     // already provided by the kotlin-plugin
     exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
     exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"

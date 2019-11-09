@@ -1,4 +1,4 @@
-package arrow
+package arrow.meta.ide.compile
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile

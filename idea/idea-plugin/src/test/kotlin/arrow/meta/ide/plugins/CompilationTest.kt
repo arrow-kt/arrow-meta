@@ -1,10 +1,12 @@
 package arrow.meta.ide.plugins
 
-import arrow.CompilationStatus
-import arrow.compile
+import arrow.meta.ide.compile.CompilationStatus
+import arrow.meta.ide.compile.compile
 import arrow.meta.ide.testing.env.IdeHeavyTestSetUp
+import org.junit.Test
 
 class CompilationTest : IdeHeavyTestSetUp() {
+  @Test
   fun testCompilation() {
     val code = """
       fun main() {

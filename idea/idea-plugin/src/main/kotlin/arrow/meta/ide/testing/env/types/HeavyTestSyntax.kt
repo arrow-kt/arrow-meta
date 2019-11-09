@@ -1,7 +1,7 @@
 package arrow.meta.ide.testing.env.types
 
-import arrow.CompilationResult
-import arrow.compile
+import arrow.meta.ide.compile.CompilationResult
+import arrow.meta.ide.compile.compile
 import arrow.meta.ide.phases.config.buildFolders
 import arrow.meta.ide.testing.Source
 import com.intellij.openapi.application.WriteAction
