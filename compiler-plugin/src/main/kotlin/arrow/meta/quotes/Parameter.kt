@@ -12,8 +12,8 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * A [KtParameter] [Quote] with a custom template destructuring [ParameterScope]
  */
 fun Meta.parameter(
-        match: KtParameter.() -> Boolean,
-        map: ParameterScope.(KtParameter) -> Transform<KtParameter>
+  match: KtParameter.() -> Boolean,
+  map: ParameterScope.(KtParameter) -> Transform<KtParameter>
 ) : ExtensionPhase =
   quote(match, map) { ParameterScope(it) }
 
