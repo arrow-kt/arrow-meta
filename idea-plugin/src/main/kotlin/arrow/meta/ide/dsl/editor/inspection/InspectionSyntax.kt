@@ -5,6 +5,7 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.InspectionEP
+import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.LanguageInspectionSuppressors
 import com.intellij.codeInspection.LocalInspectionEP
@@ -13,6 +14,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -22,7 +24,6 @@ import org.jetbrains.kotlin.psi.KtElement
 
 /**
  * TODO: @param inspection should also be used with #applicableInspection.
- * todo: registration is wip
  * More General Inspections can be build with [AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
@@ -30,12 +31,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     inspection: LocalInspectionTool,
     shortName: String,
     defaultLevel: HighlightDisplayLevel = HighlightDisplayLevel(HighlightSeverity.INFORMATION),
-    defaultShortName: String? = null,
-    groupDisplayName: String? = null,
-    defaultGroupDisplayName: String? = null,
-    displayName: String? = null,
-    defaultDisplayName: String? = null,
-    groupPath: Array<String>? = null
+    displayName: String,
+    groupPath: Array<String>
   ): ExtensionPhase =
     extensionProvider(
       InspectionEP.GLOBAL_INSPECTION,
@@ -49,24 +46,14 @@ interface InspectionSyntax : InspectionUtilitySyntax {
         override fun getDisplayName(): String? =
           displayName
 
-        override fun getDefaultDisplayName(): String? =
-          defaultDisplayName
-
         override fun getInstance(): Any =
           inspection
-
-        override fun getDefaultGroupDisplayName(): String? =
-          defaultGroupDisplayName
 
         override fun getShortName(): String =
           shortName
 
-        override fun getDefaultShortName(): String? =
-          defaultShortName
-
-        override fun getGroupDisplayName(): String? =
-          groupDisplayName
-      }
+      },
+      LoadingOrder.FIRST
     )
 
   /**
@@ -80,27 +67,29 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     inspectionText: (element: K) -> String,
     applyTo: (element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
+    groupPath: Array<String>,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
-      { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING }
-  ): ExtensionPhase = TODO("Adapt ExtensionProvider to Subtypes OR this is used solely for [QuickFixContributor]")
-    /*extensionProvider(
-      LocalInspectionEP.GLOBAL_INSPECTION,
-      object : LocalInspectionEP() {
-        override fun instantiateTool(): InspectionProfileEntry =
-          applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType)
-      }
-    )*/
-
-  /*fun IdeMetaPlugin.addLocalInspection(
+      { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
+    level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING,
+    enabledByDefault: Boolean = true
   ): ExtensionPhase =
-    registerExtensionPoint(EP_NAME, LocalInspectionTool::class.java).run {
-      extensionProvider(
-        EP_NAME,
-        object : LocalInspectionTool() {
-          override fun getShortName(): String = "Test"
-        }
-      )
-    }*/
+    extensionProvider(
+      LocalInspectionEP.LOCAL_INSPECTION,
+      object : LocalInspectionEP() {
+        override fun getDefaultLevel(): HighlightDisplayLevel = level
+
+        override fun instantiateTool(): InspectionProfileEntry =
+          applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault)
+
+        override fun getShortName(): String = defaultFixText
+
+        override fun getDisplayName(): String = defaultFixText
+
+        override fun getGroupPath(): Array<String>? = groupPath
+
+      },
+      LoadingOrder.FIRST
+    )
 
 
   fun IdeMetaPlugin.addInspectionSuppressor(
@@ -121,9 +110,14 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     applyTo: (element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
-      { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING }
+      { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
+    enabledByDefault: Boolean = true
   ): AbstractApplicabilityBasedInspection<K> =
     object : AbstractApplicabilityBasedInspection<K>(kClass) {
+      override fun isEnabledByDefault(): Boolean = enabledByDefault
+
+      override fun getShortName(): String = defaultFixText
+
       override val defaultFixText: String
         get() = defaultFixText
 
