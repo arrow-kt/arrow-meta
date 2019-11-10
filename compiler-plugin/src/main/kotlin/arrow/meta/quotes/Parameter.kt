@@ -3,10 +3,7 @@ package arrow.meta.quotes
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtTypeParameter
-import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
@@ -29,5 +26,6 @@ class ParameterScope(
   val name: Name? = value.nameAsName,
   val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val type: Scope<KtTypeReference> = Scope(value.typeReference),
-  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">")
+  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
+  val defaultValue: KtExpression? = value.defaultValue
 ) : Scope<KtParameter>(value)
