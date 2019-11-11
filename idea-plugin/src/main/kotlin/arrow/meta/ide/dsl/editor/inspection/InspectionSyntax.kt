@@ -87,6 +87,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
         override fun getGroupPath(): Array<String>? = groupPath
 
+        override fun getGroupDisplayName(): String = defaultFixText
       },
       LoadingOrder.FIRST
     )
