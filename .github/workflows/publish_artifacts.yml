@@ -31,6 +31,5 @@ jobs:
         echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
         ./gradlew uploadArchives
         echo "Uploading compiler-plugin (shadowJar)..."
-        sed -i "s/POM_ARTIFACT_ID=arrow-meta-compiler-plugin/POM_ARTIFACT_ID=arrow-meta-compiler-plugin-all/g" compiler-plugin/gradle.properties
         ./gradlew :compiler-plugin:uploadShadow
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
