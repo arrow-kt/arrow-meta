@@ -56,9 +56,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * the constructor parameters is greater than one and non-mutable. For the [LensPlugin], we've just demonstrated how we
  * can check for the product type of a [KtClass] by accessing the properties made available by the Kotlin PSI tree.
  *
- * While it is not necessary to build [KtClass] predicates for [Meta.classOrObject] does not necessarily have to serve
- * as a check for functional proofs in your compiler plugin.  It is relevant to highlight that the `match` predicate
- * written gives access to the Kotlin PSI when analyzing written code via the written compiler plugin.
+ * In the example provided, we favor and talk about writing compiler plugins for functional stuff,
+ * which is great - I wanted to emphasize that folks really don't need to worry about writing predicates
+ * (the [match] parameter) that are functional proofs. They can be for any boolean predicate!
  *
  * The second parameter [map] is a function that allows the resulting action from matching on the transformation at
  * the PSI level. The following example plugin illustrates how a Class is intercepted and transformed given `name == "Test" filter. Once matched it's then transformed by [Transform.replace], a transformation that will replace the intercepted class by a new user-declared synthetic replacement. In this example we can observe how the [ClassScope] is available to destructure the class template in full and allows us to reconstruct it back into a [KtClass] by using the [ElementScope.`class`] function.
