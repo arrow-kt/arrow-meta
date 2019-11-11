@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * virtually any kind of [KtClass] predicate, followed by mapping a function that takes the desired [Scope] of our
  * [KtClass] to change whatever PSI elements desired.
  *
- * For example, the [LensPlugin] and the [HigherKindPlugin] favors enabling ad-hoc polymorphism and more for the
+ * For example, the [LensPlugin] and the [HigherKindPlugin] favor easy update of immutable data structures and ad-hoc polymorphism that does not require inheritance.
  *
  * In the [LensPlugin], we check to see if a type is a product type.  To add context, the cardinality of a product
  * type is the product of its contained properties:
