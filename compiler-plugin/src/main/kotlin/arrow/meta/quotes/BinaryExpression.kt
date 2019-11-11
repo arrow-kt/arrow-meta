@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 /**
  * A template destructuring [Scope] for a [KtBinaryExpression]
  */
-fun Meta.binaryOper(
+fun Meta.binaryExpression(
   match: KtBinaryExpression.() -> Boolean,
   map: BinaryExpressionScope.(KtBinaryExpression) -> Transform<KtBinaryExpression>
 ): ExtensionPhase =
