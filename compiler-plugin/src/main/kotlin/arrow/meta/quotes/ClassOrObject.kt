@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * For example, the [LensPlugin] and the [HigherKindPlugin] favors enabling ad-hoc polymorphism and more for the
  *
  * In the [LensPlugin], we check to see if a type is a product type.  To add context, the cardinality of a product
- * type is the product of their cardinalities:
+ * type is the product of its contained properties:
  *
  * ```
  *      |(a, b)| = |a| x |b|
