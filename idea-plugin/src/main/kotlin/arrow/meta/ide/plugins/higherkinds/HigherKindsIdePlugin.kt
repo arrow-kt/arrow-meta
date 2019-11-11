@@ -60,7 +60,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
   }
 
 private fun FuncScope.givenParameters(): ScopedList<KtParameter> =
-  ScopedList(`(valueParameters)`.value.filter { it.hasExtensionDefaultValue() }, transform = {
+  ScopedList(`(params)`.value.filter { it.hasExtensionDefaultValue() }, transform = {
     it.text.escapeHTML()
   })
 
