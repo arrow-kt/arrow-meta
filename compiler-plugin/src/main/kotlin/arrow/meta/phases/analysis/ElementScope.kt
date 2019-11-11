@@ -83,6 +83,8 @@ interface ElementScope {
   val KtTypeElement.type: Scope<KtTypeReference>
   
   val String.typeOrNull: Scope<KtTypeReference>
+
+  val String.nullableType: NullableTypeScope
   
   val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
   
