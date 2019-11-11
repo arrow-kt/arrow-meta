@@ -60,7 +60,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * as a check for functional proofs in your compiler plugin.  It is relevant to highlight that the `match` predicate
  * written gives access to the Kotlin PSI when analyzing written code via the written compiler plugin.
  *
- * The second parameter `map` is a function that allows the resulting action from matching on the transformation at
+ * The second parameter [map] is a function that allows the resulting action from matching on the transformation at
  * the PSI level. The following example plugin illustrates how a Class is intercepted and transformed given `name == "Test" filter. Once matched it's then transformed by [Transform.replace], a transformation that will replace the intercepted class by a new user-declared synthetic replacement. In this example we can observe how the [ClassScope] is available to destructure the class template in full and allows us to reconstruct it back into a [KtClass] by using the [ElementScope.`class`] function.
  *
  * ```kotlin:ank:silent
