@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * [KtClass] to change whatever PSI elements desired.
  *
  * For example, the [LensPlugin] and the [HigherKindPlugin] favors enabling ad-hoc polymorphism and more for the
- * compiler by taking advantage of typeclass checks.
  *
  * In the [LensPlugin], we check to see if a type is a product type.  To add context, the cardinality of a product
  * type is the product of their cardinalities:
