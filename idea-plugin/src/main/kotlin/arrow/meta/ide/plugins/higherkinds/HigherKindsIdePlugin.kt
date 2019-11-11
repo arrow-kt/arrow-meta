@@ -9,7 +9,7 @@ import arrow.meta.ide.dsl.utils.kotlin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.plugins.higherkind.isHigherKindedType
 import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
-import arrow.meta.quotes.FuncScope
+import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ScopedList
 import org.celtric.kotlin.html.Node
 import org.celtric.kotlin.html.a
@@ -45,7 +45,7 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
         transform = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
         composite = KtNamedFunction::class.java,
         message = { f: KtNamedFunction ->
-          FuncScope(f).run {
+          NamedFunctionScope(f).run {
             val target = ScopedList(receiver.value, transform = { it.text.escapeHTML() })
             val compose: List<Node> = h1(name) + kotlin(this@run) +
               code(name) + text(" is a polymorphic function that can be applied over $target.") +
@@ -59,12 +59,12 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
     )
   }
 
-private fun FuncScope.givenParameters(): ScopedList<KtParameter> =
+private fun NamedFunctionScope.givenParameters(): ScopedList<KtParameter> =
   ScopedList(`(params)`.value.filter { it.hasExtensionDefaultValue() }, transform = {
     it.text.escapeHTML()
   })
 
-private fun FuncScope.validExtensionLocations(): String =
+private fun NamedFunctionScope.validExtensionLocations(): String =
   givenParameters().value.joinToString("\n") {
     val type = it.type()
     val extensionType = type.toString().escapeHTML()

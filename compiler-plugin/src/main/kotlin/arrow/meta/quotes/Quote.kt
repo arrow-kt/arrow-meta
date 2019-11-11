@@ -41,7 +41,7 @@ import kotlin.collections.ArrayList
  * val Meta.helloWorld: Plugin get() =
  *   "Hello World" {
  *     meta(
- *       func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}
+ *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         ...
  *       }
  *     )
@@ -56,7 +56,7 @@ import kotlin.collections.ArrayList
  * val Meta.helloWorld: Plugin get() =
  *   "Hello World" {
  *     meta(
- *       func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}
+ *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
