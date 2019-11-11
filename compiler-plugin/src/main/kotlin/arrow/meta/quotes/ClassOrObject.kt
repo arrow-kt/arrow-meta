@@ -54,7 +54,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *
  * For a [KtClass] to be a product type, we check to see if the [KtClass] is an ADT, and that the cardinality of
  * the constructor parameters is greater than one and non-mutable. For the [LensPlugin], we've just demonstrated how we
- * can check for the product type of a [KtClass] by access the properties made available by the Kotlin PSI change.
+ * can check for the product type of a [KtClass] by accessing the properties made available by the Kotlin PSI tree.
  *
  * While it is not necessary to build [KtClass] predicates for [Meta.classOrObject] does not necessarily have to serve
  * as a check for functional proofs in your compiler plugin.  It is relevant to highlight that the `match` predicate
