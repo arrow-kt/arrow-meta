@@ -4,24 +4,8 @@
  *
  */
 
-apply plugin: 'java'
-apply plugin: 'maven'
-
-uploadShadow {
-    repositories {
-        mavenDeployer {
-            pom.groupId = GROUP
-            pom.artifactId = POM_ARTIFACT_ID
-            pom.version = VERSION_NAME
-
-            if ("$VERSION_NAME".contains("SNAPSHOT"))
-                repository(url: "https://oss.jfrog.org/artifactory/oss-snapshot-local") {
-                    authentication(userName: System.getenv('BINTRAY_USER'), password: System.getenv('BINTRAY_API_KEY'))
-                }
-            else
-                repository(url: "https://api.bintray.com/maven/arrow-kt/arrow-kt/arrow") {
-                    authentication(userName: System.getenv('BINTRAY_USER'), password: System.getenv('BINTRAY_API_KEY'))
-                }
-        }
-    }
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives shadowJar
 }

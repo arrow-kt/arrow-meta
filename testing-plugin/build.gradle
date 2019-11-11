@@ -59,4 +59,5 @@ jar {
     }
 }
 
-apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
+//apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
