@@ -2,12 +2,12 @@ package arrow.meta.ide.plugins.higherkinds
 
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.env.IdeTestSetUp
+import arrow.meta.ide.testing.env.IdeLightTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.resolves
 import org.junit.Test
 
-class HigherKindTest : IdeTestSetUp() {
+class HigherKindTest : IdeLightTestSetUp() {
   @Test
   fun `HKT Tests for LineMarkers`() =
     ideTest(

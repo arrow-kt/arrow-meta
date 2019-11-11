@@ -45,6 +45,13 @@ allprojects {
     mavenCentral()
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+
+    // TODO: Temporary configuration
+    // A temporary version from a fork of
+    // com.github.tschuchortdev:kotlin-compile-testing
+    // is needed until it's published with the contribution
+    // Remove when having only releases from Maven Central
+    maven { url "https://jitpack.io" }
   }
 }
 
