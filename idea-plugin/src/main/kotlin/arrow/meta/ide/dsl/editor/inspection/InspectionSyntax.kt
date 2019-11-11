@@ -11,6 +11,7 @@ import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.LanguageInspectionSuppressors
 import com.intellij.codeInspection.LocalInspectionEP
 import com.intellij.codeInspection.LocalInspectionTool
+import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.openapi.editor.Editor
@@ -20,7 +21,10 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
+import org.jetbrains.kotlin.idea.quickfix.AnnotationHostKind
+import org.jetbrains.kotlin.idea.quickfix.KotlinSuppressIntentionAction
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 
 /**
  * More General Inspections can be build with [AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
@@ -77,6 +81,10 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       LoadingOrder.FIRST
     )
 
+  /**
+   * suppresses Warning[org.jetbrains.kotlin.idea.inspections.KotlinInspectionSuppressor]
+   * TODO: Add a representation of [KotlinSuppressIntentionAction]
+   */
   fun IdeMetaPlugin.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
     suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
@@ -85,6 +93,21 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       LanguageInspectionSuppressors.INSTANCE,
       inspectionSuppressor(suppressFor, suppressAction)
     )
+
+  fun InspectionSyntax.supressQuickFix(
+    name: String,
+    familyName: String,
+    applyFix: (project: Project, descriptor: ProblemDescriptor) -> Unit,
+    isAvailable: (project: Project, context: PsiElement) -> Boolean,
+    isSuppressAll: Boolean
+  ): SuppressQuickFix =
+    object : SuppressQuickFix {
+      override fun getName(): String = name
+      override fun getFamilyName(): String = familyName
+      override fun applyFix(project: Project, descriptor: ProblemDescriptor): Unit = applyFix(project, descriptor)
+      override fun isAvailable(project: Project, context: PsiElement): Boolean = isAvailable(project, context)
+      override fun isSuppressAll(): Boolean = isSuppressAll
+    }
 
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(
@@ -119,7 +142,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       override fun inspectionHighlightType(element: K): ProblemHighlightType =
         inspectionHighlightType(element)
     }
-
 
   fun InspectionSyntax.inspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
