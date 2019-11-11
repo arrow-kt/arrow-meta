@@ -70,7 +70,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.classOrObject
- * import org.jetbrains.kotlin.psi.KtClassOrObject
+ * import org.jetbrains.kotlin.psi.KtClass
  * import com.intellij.psi.PsiElement
  *
  * val Meta.example: Plugin
