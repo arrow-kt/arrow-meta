@@ -48,7 +48,7 @@ val Meta.typeClasses: Plugin
             println("intercepting function for typeclass: ${func.text}")
             val result =
               """
-              |$modality $visibility fun $`(typeParameters)` $receiver $name $`(valueParameters)` $returnType =
+              |$modality $visibility fun $`(typeParameters)` $receiver $name $`(params)` $returnType =
               |  ${func.extensionValueParamNames().run(body)}
               |""".function
             println("result: $result")
