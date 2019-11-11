@@ -9,7 +9,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 interface SyntheticResolutionTestSyntax {
   fun IdeTestTypeSyntax.traverseResolution(
     code: Source,
-    srcFileName: String = "Source.kt",
+    srcFileName: String = arrow.meta.DEFAULT_FILENAME,
     module: Module,
     myFixture: CodeInsightTestFixture,
     srcDirName: String = "src",

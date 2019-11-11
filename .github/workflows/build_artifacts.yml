@@ -20,7 +20,7 @@ jobs:
       run: |
         ./gradlew clean
         ./gradlew :compiler-plugin:build
-        ./gradlew :idea-plugin:build
+        ./gradlew :idea:idea-plugin:build
         ./gradlew :testing-plugin:build
         # 'build' task is not executed for :gradle-plugin because
         # it depends on the publication of compiler-plugin 

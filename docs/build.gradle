@@ -3,7 +3,7 @@ apply plugin: 'kotlin-kapt'
 //apply plugin: 'org.ajoberstar.git-publish'
 
 dependencies {
-    compile project(':idea-plugin')
+    compile project(':idea:idea-plugin')
     compile "io.arrow-kt:arrow-ank:$ARROW_VERSION"
 }
 
