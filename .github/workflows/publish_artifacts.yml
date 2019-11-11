@@ -21,23 +21,16 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        # Generate compiler-plugin artifact
-        ./gradlew :compile-plugin:shadowJar
-        #
-        # Generate testing-plugin artifact when running compiler-plugin tests
-        ./gradlew :compile-plugin:test
-        #
-        # Run testing plugin tests 
-        ./gradlew :testing-plugin:test
-        #
-        # Generate idea-plugin artifact
-        ./gradlew :idea-plugin:build
-        #
-        # Note: Gradle Plugin and Documentation have their own workflows
+        ./gradlew clean build
     - name: Publish artifacts
       env:
         BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
         BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       run: |
+        echo "NOTE: gradle-plugin and docs have their own publication workflows" 
+        echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
         ./gradlew uploadArchives
+        echo "Uploading compiler-plugin (shadowJar)..."
+        sed -i "s/POM_ARTIFACT_ID=arrow-meta-compiler-plugin/POM_ARTIFACT_ID=arrow-meta-compiler-plugin-all/g" compiler-plugin/gradle.properties
+        ./gradlew :compiler-plugin:uploadShadow
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
