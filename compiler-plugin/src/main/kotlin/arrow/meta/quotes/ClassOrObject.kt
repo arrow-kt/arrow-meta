@@ -32,7 +32,7 @@ class ClassScope(
     } + value.getClassOrInterfaceKeyword()?.text).let(Name::identifier),
   val name: Name? = value.nameAsName,
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
-  val `(valueParameters)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
+  val `(params)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
   val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries),
   val body: ClassBodyScope = ClassBodyScope(value.body)
 ) : Scope<KtClass>(value)
