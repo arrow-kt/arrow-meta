@@ -109,46 +109,9 @@ fun Meta.classOrObject(
   quote(match, map) { ClassScope(it) }
 
 /**
- * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
- * allowing a [Transform] to change the intercepted AST tree before compilation.
- *
  * The [ClassScope] is projected over the template to allow destructuring of the different parts of the
  * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
- * before it's compiled
- *
- * After analyzing the PSI elements available, we pass a resulting [KtClass] matching the predicate (in our case,
- * we pass the resulting [KtClass] whose name is "Test") and replace the entire object with the string block, which is
- * then wrapped as a [ClassScope] and wrapped so the `newDeclaration` is of the type [Scope]<[ClassScope]> to match
- * match compatibility of the intercepted classes wrapped in some kind of [Scope]. Too see more, scroll down to
- * [ClassScope].
- *
- * ```kotlin:ank:silent
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.classOrObject
- *
- * val Meta.example: Plugin
- *   get() =
- *     "Example" {
- *       meta(
- *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject ->
- *           Transform.replace(
- *             replacing = classOrObject,
- *             newDeclaration =
- *               """|$`@annotationEntries` $kind $name $`(typeParameters)` $`(valueParameters)` : $supertypes"} {
- *                  |  $body
- *                  |  fun void test(): Unit =
- *                  |    println("Implemented by ΛRROW Meta!")
- *                  |}
- *                  |""".`class`.synthetic
- *           )
- *         }
- *       )
- *     }
- * ```
+ * before it's compiled.
  *
  * @param value the PSI element being fed in for the compiler plugin.
  * @param annotationEntries searches for marked annotations associated with the class.
