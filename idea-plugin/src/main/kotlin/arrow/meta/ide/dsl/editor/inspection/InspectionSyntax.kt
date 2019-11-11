@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.InspectionEP
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.InspectionSuppressor
@@ -12,7 +13,6 @@ import com.intellij.codeInspection.LocalInspectionEP
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressQuickFix
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.project.Project
@@ -50,7 +50,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   fun IdeMetaPlugin.addGlobalInspection(
-    inspectionTool: InspectionProfileEntry,
+    inspectionTool: GlobalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
     displayName: String,
@@ -64,7 +64,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   fun IdeMetaPlugin.addLocalInspection(
-    inspectionTool: InspectionProfileEntry,
+    inspectionTool: LocalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
     displayName: String,
@@ -134,7 +134,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     }
 
   fun InspectionSyntax.inspection(
-    inspectionTool: InspectionProfileEntry,
+    inspectionTool: GlobalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
     displayName: String,
@@ -151,7 +151,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     }
 
   fun InspectionSyntax.localInspection(
-    inspectionTool: InspectionProfileEntry,
+    inspectionTool: LocalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
     displayName: String,
