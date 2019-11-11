@@ -5,7 +5,8 @@ import java.io.File
 import java.net.URLClassLoader
 
 private const val META_PREFIX = "//meta"
-private const val EXPRESSION_PATTERN = "^[^(]+\\(\\)(\\.\\S+)?\$"
+private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
+private const val VARIABLE = "[^(]+"
 private const val DEFAULT_CLASSNAME = "ExampleKt"
 
 private data class ExpressionParts(
@@ -45,7 +46,7 @@ private val interpreter: (CompilerTest) -> Unit = {
   val initialCompilationData = CompilationData(source = listOf(it.code(CompilerTest).text.trimMargin()))
   val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-  runAssert(it.assert(CompilerTest), compilationResult)
+  it.assert(CompilerTest).map { assert -> runAssert(assert, compilationResult) }
 }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
@@ -56,8 +57,14 @@ private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins
 
 private fun assertEvalsTo(compilationResult: CompilationResult, source: Source, output: Any?) {
   assertCompiles(compilationResult)
-  assertThat(source.text.trimMargin()).matches(EXPRESSION_PATTERN)
-  assertThat(call(source.text.trimMargin(), compilationResult.classesDirectory)).isEqualTo(output)
+  val expression = source.text.trimMargin()
+  assertThat(expression)
+    .`as`("EXPECTED: expressions like myVariable, myFunction() or myFunction().value - ACTUAL: $expression")
+    .matches("^($VARIABLE)|($METHOD_CALL)\$")
+  if (expression.matches(Regex("^$METHOD_CALL\$")))
+    assertThat(call(expression, compilationResult.classesDirectory)).isEqualTo(output)
+  else
+    assertThat(eval(expression, compilationResult.classesDirectory)).isEqualTo(output)
 }
 
 private fun assertCompiles(compilationResult: CompilationResult): Unit {
@@ -87,7 +94,7 @@ private fun assertQuoteOutputMatches(compilationResult: CompilationResult, expec
 private fun removeCommands(actualGeneratedFileContent: String): String =
   actualGeneratedFileContent.lines().filter { !it.trimStart().startsWith(META_PREFIX) }.joinToString(separator = "")
 
-private fun eval(expression: String): ExpressionParts {
+private fun partsFrom(expression: String): ExpressionParts {
   val parts = expression.split("()")
   return when {
     parts.size > 1 -> ExpressionParts(method = parts[0], property = parts[1].removePrefix("."))
@@ -95,13 +102,20 @@ private fun eval(expression: String): ExpressionParts {
   }
 }
 
-private fun call(expression: String, classesDirectory: File): Any {
+private fun call(expression: String, classesDirectory: File): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
-  val expressionParts = eval(expression)
+  val expressionParts = partsFrom(expression)
 
-  val resultForMethodCall = classLoader.loadClass(DEFAULT_CLASSNAME).getMethod(expressionParts.method).invoke(null)
+  val resultForMethodCall: Any? = classLoader.loadClass(DEFAULT_CLASSNAME).getMethod(expressionParts.method).invoke(null)
   return when {
     expressionParts.property.isNullOrBlank() -> resultForMethodCall
-    else -> resultForMethodCall.javaClass.getField(expressionParts.property).get(resultForMethodCall)
+    else -> resultForMethodCall?.javaClass?.getField(expressionParts.property)?.get(resultForMethodCall)
   }
+}
+
+private fun eval(expression: String, classesDirectory: File): Any {
+  val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
+  val field = classLoader.loadClass(DEFAULT_CLASSNAME).getDeclaredField(expression)
+  field.isAccessible = true
+  return field.get(Object())
 }

@@ -1,4 +1,4 @@
-name: Publish artifacts
+name: Publish Artifacts
 
 on:
   push:
@@ -27,5 +27,7 @@ jobs:
         BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
         BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       run: |
+        echo "NOTE: gradle-plugin and docs have their own publication workflows" 
+        echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
         ./gradlew uploadArchives
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"

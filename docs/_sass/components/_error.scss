@@ -1,0 +1,85 @@
+// Header error layout
+// -----------------------------------------------
+// -----------------------------------------------
+body {
+  color: $color-primary;
+  background: $background-color;
+  background-image: url("../img/lines-header-bg.svg");
+  background-repeat: repeat-x;
+  font-family: $base-font-family;
+  line-height: $base-line-height;
+}
+
+#masthead-error {
+  padding: ($base-point-grid * 24) 0 ($base-point-grid * 7) 0;
+  position: relative;
+  z-index: 100;
+
+  .header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .brand {
+      margin-right: $base-point-grid * 3;
+
+      .masthead-brand {
+        position: relative;
+        top: -10px;
+        width: 220px;
+      }
+    }
+
+    .header-error-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 188px;
+
+      .masthead-code-error {
+        font-size: 7.2rem;
+        font-weight: normal;
+      }
+
+      .masthead-title {
+        font-size: 2.1rem;
+        font-weight: normal;
+      }
+    }
+  }
+
+  .error-button {
+    display: block;
+    background: none;
+    border: solid 2px;
+    padding: ($base-point-grid) 26px;
+    font-size: 1.2rem;
+    font-weight: normal;
+    width: 60%;
+    text-transform: uppercase;
+    transition: all $base-duration $base-timing;
+
+    &:hover {
+      background-color: $color-primary;
+      color: $white;
+      border: solid 2px $color-primary;
+      text-decoration: none;
+    }
+  }
+}
+
+@include bp(medium) {
+  #masthead-error {
+    .header-flex {
+      flex-direction: column;
+      .brand {
+        margin-right: unset;
+      }
+      .header-error-text {
+        margin-top: $base-point-grid * 4;
+        align-items: center;
+      }
+    }
+  }
+}

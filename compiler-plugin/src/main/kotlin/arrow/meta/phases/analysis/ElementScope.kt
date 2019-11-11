@@ -2,6 +2,7 @@ package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.FuncScope
+import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
@@ -13,13 +14,11 @@ import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
@@ -31,10 +30,8 @@ import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -92,7 +89,7 @@ interface ElementScope {
   
   val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
   
-  val KtTypeReference.functionTypeParameter: Scope<KtParameter>
+  val KtTypeReference.functionTypeParameter: ParameterScope
   
   fun typeAlias(
     name: String,
@@ -167,7 +164,7 @@ interface ElementScope {
   
   val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
   
-  val String.destructuringParameter: Scope<KtParameter>
+  val String.destructuringParameter: ParameterScope
   
   fun <A : KtDeclaration> String.declaration(): Scope<A>
   
@@ -203,9 +200,9 @@ interface ElementScope {
   
   val emptyClassBody: Scope<KtClassBody>
   
-  val String.parameter: Scope<KtParameter>
+  val String.parameter: ParameterScope
   
-  val String.loopParameter: Scope<KtParameter>
+  val String.loopParameter: ParameterScope
   
   val String.parameterList: Scope<KtParameterList>
   

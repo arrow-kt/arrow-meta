@@ -1,8 +1,6 @@
 package arrow.meta.plugins.higherkind
 
-import arrow.meta.plugin.testing.CompilerPlugin
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
@@ -10,13 +8,8 @@ class HigherkindTest {
 
   @Test
   fun `initial test`() {
-    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:${System.getProperty("CURRENT_VERSION")}")
-
     assertThis(CompilerTest(
-      config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations)
-      },
+      config = { metaDependencies },
       code = {
         """
         | import arrow.higherkind
@@ -31,7 +24,7 @@ class HigherkindTest {
         """.source
       },
       assert = {
-        quoteOutputMatches(
+        allOf(quoteOutputMatches(
           """
           | import arrow.higherkind
           | 
@@ -46,7 +39,7 @@ class HigherkindTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source)
+          """.source))
       }
     ))
   }

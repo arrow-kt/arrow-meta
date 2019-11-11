@@ -80,6 +80,7 @@ import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
+import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -93,9 +94,9 @@ interface IrSyntax {
   /**
    * IR, The intermediate representation format is a structured text format with significant indentation that contains
    * all the information the compiler knows about a program.
-   * At this point the compiler knows how a program is declared in sources, what the typed expressions are and how
-   * each of the generic type arguments are applied.
-   * The compiler emits in this phase this information which can then be further processed by interpreters and compilers
+   * At this point the compiler knows the structure of a program based on its sources, what the typed expressions are and how
+   * each of the generic type arguments gets applied.
+   * The compiler emits in this phase this information that is processed by interpreters and compilers
    * targeting any platform.
    * [IR Example]
    */
@@ -704,4 +705,8 @@ interface IrSyntax {
           f(IrUtils(backendContext, compilerContext), expression) ?: super.visitErrorCallExpression(expression, data)
       }, Unit)
     }
+
+  fun irDump(): IRGeneration = IrGeneration { compilerContext, file, backendContext, bindingContext ->
+    println(file.dump())
+  }
 }

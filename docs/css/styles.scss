@@ -25,5 +25,6 @@
 @import "components/sidebar-nav";
 @import "components/sidebar";
 @import "components/navigation";
+@import "components/error";
 
 @include dropdown($dropdown-config...);
