@@ -7,7 +7,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.quotes.FunctionBodyScope
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.func
+import arrow.meta.quotes.namedFunction
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -42,7 +42,7 @@ val Meta.typeClasses: Plugin
     "typeClasses" {
       meta(
         enableIr(),
-        func(
+        namedFunction(
           match = { hasExtensionValueParameters() },
           map = { func ->
             println("intercepting function for typeclass: ${func.text}")
