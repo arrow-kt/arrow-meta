@@ -81,7 +81,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *           Transform.replace<KtClass>(
  *             replacing = classOrObject,
  *             newDeclaration =
- *               """|$`@annotationEntries` $kind $name $`(typeParameters)` $`(valueParameters)` : $supertypes"} {
+ *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
  *                  |  $body
  *                  |  fun void test(): Unit =
  *                  |    println("Implemented by ΛRROW Meta!")
