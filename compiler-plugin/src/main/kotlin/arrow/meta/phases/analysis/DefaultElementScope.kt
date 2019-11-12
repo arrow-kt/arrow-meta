@@ -1,7 +1,8 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FuncScope
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
@@ -14,13 +15,11 @@ import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
@@ -32,10 +31,8 @@ import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -112,8 +109,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
     get() = Scope(delegate.createFunctionTypeReceiver(this))
 
-  override val KtTypeReference.functionTypeParameter: Scope<KtParameter>
-    get() = Scope(delegate.createFunctionTypeParameter(this))
+  override val KtTypeReference.functionTypeParameter: ParameterScope
+    get() = ParameterScope(delegate.createFunctionTypeParameter(this))
 
   override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement): Scope<KtTypeAlias> =
     Scope(delegate.createTypeAlias(name, typeParameters, typeElement))
@@ -189,8 +186,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
     get() = Scope(delegate.createDestructuringDeclaration(trimMargin()))
 
-  override val String.destructuringParameter: Scope<KtParameter>
-    get() = Scope(delegate.createDestructuringParameter(trimMargin()))
+  override val String.destructuringParameter: ParameterScope
+    get() = ParameterScope(delegate.createDestructuringParameter(trimMargin()))
 
   override fun <A : KtDeclaration> String.declaration(): Scope<A> =
     Scope(delegate.createDeclaration(trimMargin()))
@@ -210,8 +207,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.identifier: PsiElement
     get() = delegate.createIdentifier(trimMargin())
 
-  override val String.function: FuncScope
-    get() = FuncScope(delegate.createFunction(trimMargin()))
+  override val String.function: NamedFunctionScope
+    get() = NamedFunctionScope(delegate.createFunction(trimMargin()))
 
   override val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
     get() = Scope(delegate.createCallableReferenceExpression(trimMargin()))
@@ -243,11 +240,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val emptyClassBody: Scope<KtClassBody>
     get() = Scope(delegate.createEmptyClassBody())
 
-  override val String.parameter: Scope<KtParameter>
-    get() = Scope(delegate.createParameter(trimMargin()))
+  override val String.parameter: ParameterScope
+    get() = ParameterScope(delegate.createParameter(trimMargin()))
 
-  override val String.loopParameter: Scope<KtParameter>
-    get() = Scope(delegate.createLoopParameter(trimMargin()))
+  override val String.loopParameter: ParameterScope
+    get() = ParameterScope(delegate.createLoopParameter(trimMargin()))
 
   override val String.parameterList: Scope<KtParameterList>
     get() = Scope(delegate.createParameterList(trimMargin()))

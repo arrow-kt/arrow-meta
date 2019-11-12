@@ -47,7 +47,7 @@ val Meta.higherKindedTypes: Plugin
               "typealias ${name}PartialOf<${c.partialTypeParameters}> = arrow.Kind${c.partialKindAritySuffix}<For$name, ${c.partialTypeParameters}>".declaration<KtTypeAlias>().synthetic
             else null,
             /** Class redefinition with kinded super type **/
-            """|$`@annotationEntries` $kind $name $`(typeParameters)` $`(valueParameters)` : ${supertypes.."${name}Of<${`(typeParameters)`.invariant()}>"} {
+            """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : ${supertypes.."${name}Of<${`(typeParameters)`.invariant()}>"} {
                |  $body
                |}
                |""".`class`.synthetic

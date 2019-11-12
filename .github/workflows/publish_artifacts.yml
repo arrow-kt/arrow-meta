@@ -30,6 +30,4 @@ jobs:
         echo "NOTE: gradle-plugin and docs have their own publication workflows" 
         echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
         ./gradlew uploadArchives
-        echo "Uploading compiler-plugin (shadowJar)..."
-        ./gradlew :compiler-plugin:uploadShadow
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
