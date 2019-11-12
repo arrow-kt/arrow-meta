@@ -11,5 +11,5 @@ open class LoopExpressionScope<out T : KtLoopExpression>(
   override val value: T,
   val leftParenthesis: PsiElement? = value.leftParenthesis,
   val rightParenthesis: PsiElement? = value.rightParenthesis,
-  val body: KtExpression? = value.body
+  val body: Scope<KtExpression> = Scope(value.body)
 ) : Scope<T>(value)
