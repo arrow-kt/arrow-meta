@@ -30,7 +30,7 @@ val Meta.helloWorld: Plugin
   get() =
     "Hello World" {
       meta(
-        func({ name == "helloWorld" }) { c ->
+        namedFunction({ name == "helloWorld" }) { c ->
           Transform.replace(
             replacing = c,
             newDeclaration =

@@ -14,25 +14,25 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * A [KtNamedFunction] [Quote] with a custom template destructuring [FuncScope]
+ * A [KtNamedFunction] [Quote] with a custom template destructuring [NamedFunctionScope]
  */
-fun Meta.func(
+fun Meta.namedFunction(
   match: KtNamedFunction.() -> Boolean,
-  map: FuncScope.(KtNamedFunction) -> Transform<KtNamedFunction>
+  map: NamedFunctionScope.(KtNamedFunction) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
-  quote(match, map) { FuncScope(it) }
+  quote(match, map) { NamedFunctionScope(it) }
 
 /**
  * A template destructuring [Scope] for a [KtNamedFunction]
  */
-class FuncScope(
+class NamedFunctionScope(
   override val value: KtNamedFunction,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,
-  val `(valueParameters)`: ScopedList<KtParameter> = ScopedList(
+  val `(params)`: ScopedList<KtParameter> = ScopedList(
     prefix = "(",
     value = value.valueParameters,
     postfix = ")",

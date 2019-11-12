@@ -34,7 +34,7 @@ val Meta.lenses: Plugin
             newDeclaration =
             if (c.companionObjects.isEmpty())
               """|
-                 |$kind $name $`(valueParameters)` {
+                 |$kind $name $`(params)` {
                  |  
                  |  companion object {
                  |    ${lenses(this)}
@@ -43,7 +43,7 @@ val Meta.lenses: Plugin
                  |}""".`class`
             else
               """
-                 |$kind $name $`(valueParameters)` {
+                 |$kind $name $`(params)` {
                  |  ${body.value?.addDeclarationToBody(lenses = lenses(this))}
                  |  
                  |}""".`class`
@@ -53,11 +53,11 @@ val Meta.lenses: Plugin
     }
 
 private fun CompilerContext.validateMaxArityAllowed(classScope: ClassScope) {
-  if (classScope.`(valueParameters)`.value.size > 10)
+  if (classScope.`(params)`.value.size > 10)
     // Question: error message file location
     messageCollector?.report(
       CompilerMessageSeverity.WARNING,
-      "Iso cannot be generated for product type with ${classScope.`(valueParameters)`.value.size}. Maximum support is $maxArity"
+      "Iso cannot be generated for product type with ${classScope.`(params)`.value.size}. Maximum support is $maxArity"
     )
 }
 
@@ -67,7 +67,7 @@ private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> 
   classScope.run {
     ScopedList(
       separator = "\n",
-      value = `(valueParameters)`.value.mapNotNull { param: KtParameter ->
+      value = `(params)`.value.mapNotNull { param: KtParameter ->
         lens(source = value, focus = param).value
       }
     )
@@ -81,9 +81,9 @@ private fun ElementScope.lens(source: KtClass, focus: KtParameter): Scope<KtProp
 
 private fun ElementScope.iso(classScope: ClassScope): Scope<KtProperty> =
   classScope.run {
-    """|val iso: arrow.optics.Iso<${value.name}, ${`(valueParameters)`.tupledType}> = arrow.optics.Iso(
-       |  get = { (${`(valueParameters)`.destructured}) -> ${`(valueParameters)`.tupled} },
-       |  reverseGet = { (${`(valueParameters)`.destructured}) -> ${value.name}(${`(valueParameters)`.destructured}) }
+    """|val iso: arrow.optics.Iso<${value.name}, ${`(params)`.tupledType}> = arrow.optics.Iso(
+       |  get = { (${`(params)`.destructured}) -> ${`(params)`.tupled} },
+       |  reverseGet = { (${`(params)`.destructured}) -> ${value.name}(${`(params)`.destructured}) }
        |)""".property.synthetic
   }
 

@@ -31,7 +31,7 @@ class PropertyAccessorScope(
   override val value: KtPropertyAccessor?,
   val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),
-  val `(valueParameters)`: ScopedList<KtParameter> = ScopedList(
+  val `(params)`: ScopedList<KtParameter> = ScopedList(
     prefix = "(",
     value = value?.valueParameters ?: emptyList(),
     postfix = ")",
