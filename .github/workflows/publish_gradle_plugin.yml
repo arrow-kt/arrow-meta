@@ -24,6 +24,7 @@ jobs:
         ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
         echo "Checking if version ends with SNAPSHOT to add a commit hash ..."
         LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
-        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$ACTUAL_VERSION-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
+        VERSION_NUMBER=$(echo $ACTUAL_VERSION | cut -d- -f1)
+        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$VERSION_NUMBER-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
         echo "Publish artifact ..."
         ./gradlew -Dgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Dgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} publishPlugins
