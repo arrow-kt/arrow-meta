@@ -57,8 +57,9 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * TODO: Add more costume attributes: ShortCuts etc.
    * [http://www.jetbrains.org/intellij/sdk/docs/tutorials/action_system/working_with_custom_actions.html
+   * http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/creating_an_action.html
    */
-  fun AnActionSyntax.addAnAction(
+  fun AnActionSyntax.anAction(
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -91,7 +92,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         beforeActionPerformedUpdate(e)
     }
 
-  fun AnActionSyntax.addAnAction(
+  fun AnActionSyntax.anAction(
     icon: Icon,
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -125,7 +126,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         beforeActionPerformedUpdate(e)
     }
 
-  fun AnActionSyntax.addAnAction(
+  fun AnActionSyntax.anAction(
     title: String,
     actionPerformed: (e: AnActionEvent) -> Unit,
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
@@ -159,7 +160,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         beforeActionPerformedUpdate(e)
     }
 
-  fun AnActionSyntax.addAnAction(
+  fun AnActionSyntax.anAction(
     title: String,
     description: String,
     icon: Icon,

@@ -13,6 +13,7 @@ interface RunLineMarkerSyntax {
 
   /**
    * a free RunLineMarker based on an Action
+   * Usee [arrow.meta.ide.dsl.editor.action.AnActionSyntax.anAction] to construct an Action
    */
   fun <A : PsiElement> IdeMetaPlugin.addRunLineMarkerProvider(action: AnAction, transform: (PsiElement) -> A?): ExtensionPhase =
     extensionProvider(
