@@ -242,7 +242,7 @@ private fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
  */
 fun IrUtils.unionConversion(intercepted: IrReturn, targetType: KotlinType?): IrReturn? =
   targetType?.let { unionType ->
-    return unionClassDescriptor()?.irConstructorCall()?.let { constructorCall ->
+    unionClassDescriptor()?.irConstructorCall()?.let { constructorCall ->
       constructorCall.putValueArgument(0, intercepted.value)
       IrReturnImpl(
         UNDEFINED_OFFSET,

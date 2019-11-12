@@ -3,6 +3,7 @@ package arrow.meta.plugins.higherkind
 import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
+import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.classOrObject
@@ -12,6 +13,7 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
@@ -57,7 +59,7 @@ val Meta.higherKindedTypes: Plugin
       )
     }
 
-private fun Diagnostic.kindsTypeMismatch(): Boolean =
+fun Diagnostic.kindsTypeMismatch(): Boolean =
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
     safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
       val a = diagnosticWithParameters.a
@@ -66,7 +68,7 @@ private fun Diagnostic.kindsTypeMismatch(): Boolean =
       KotlinTypeChecker.DEFAULT.isSubtypeOf(a, b)
     } == true
 
-private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
+fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
   value.joinToString {
     it.text
       .replace("out ", "")
@@ -76,24 +78,24 @@ private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false):
       }.trim()
   }
 
-private val KtClass.partialTypeParameters: String
+val KtClass.partialTypeParameters: String
   get() = typeParameters
     .dropLast(1)
     .joinToString(separator = ", ") {
       it.nameAsSafeName.identifier
     }
 
-private val KtClass.arity: Int
+val KtClass.arity: Int
   get() = typeParameters.size
 
-private val KtClass.kindAritySuffix: String
+val KtClass.kindAritySuffix: String
   get() = arity.let { if (it > 1) "$it" else "" }
 
-private val KtClass.partialKindAritySuffix: String
+val KtClass.partialKindAritySuffix: String
   get() = (arity - 1).let { if (it > 1) "$it" else "" }
 
 fun isHigherKindedType(ktClass: KtClass): Boolean =
-  ktClass.annotationEntries.any { it.text.matches(Regex("@(arrow\\.)?higherkind")) } &&
+  ktClass.isAnnotatedWith(higherKindAnnotation) &&
     ktClass.fqName?.asString()?.startsWith("arrow.Kind") != true &&
     !ktClass.isAnnotation() &&
     !ktClass.isNested() &&
@@ -101,14 +103,16 @@ fun isHigherKindedType(ktClass: KtClass): Boolean =
     ktClass.typeParameters.isNotEmpty() &&
     ktClass.parent is KtFile
 
-private fun KtClass.superTypeIsSealedInFile(): Boolean =
+val higherKindAnnotation: Regex = Regex("@(arrow\\.)?higherkind")
+
+fun KtClass.superTypeIsSealedInFile(): Boolean =
   superTypeListEntries.isNotEmpty() &&
     superTypeListEntries.any {
       val className = it.text?.substringBefore("<")
       it.containingKtFile.ktClassNamed(className) != null
     }
 
-private fun KtClass.isNested(): Boolean =
+fun KtClass.isNested(): Boolean =
   parent is KtClassOrObject
 
 val kindName: FqName = FqName("arrow.Kind")

@@ -113,7 +113,7 @@ private fun call(expression: String, classesDirectory: File): Any? {
   }
 }
 
-private fun eval(expression: String, classesDirectory: File): Any {
+private fun eval(expression: String, classesDirectory: File): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
   val field = classLoader.loadClass(DEFAULT_CLASSNAME).getDeclaredField(expression)
   field.isAccessible = true

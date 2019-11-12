@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -47,4 +48,6 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
   return found
 }
 
+fun KtAnnotated.isAnnotatedWith(regex: Regex) =
+  annotationEntries.any { it.text.matches(regex) }
 

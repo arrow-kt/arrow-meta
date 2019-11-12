@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -13,6 +14,10 @@ sealed class Transform<out K : KtElement> {
     val newDeclarations: List<Scope<KtElement>>,
     val replacementId: String? = null
   ) : Transform<K>()
+
+  data class AddPhases(
+    val phases: List<ExtensionPhase>
+  ) : Transform<Nothing>()
 
   object Empty : Transform<Nothing>()
 

@@ -2,7 +2,7 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
-import arrow.meta.plugins.higherkind.higherKindedTypes
+import arrow.meta.plugins.higherkind.implicitConversion
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.typeclasses.typeClasses
 import arrow.meta.plugins.union.unionTypes
@@ -18,10 +18,13 @@ open class MetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<Plugin> =
     listOf(
-      unionTypes,
-      higherKindedTypes,
-      typeClasses,
-      comprehensions,
-      lenses
+      //unionTypes,
+      //higherKindedTypes,
+      implicitConversion
+      //typeClasses,
+      //comprehensions,
+      //lenses
     )
 }
+
+
