@@ -1,6 +1,12 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.*
+import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.ForExpressionScope
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.NullableTypeScope
+import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.WhileExpressionScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
