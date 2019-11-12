@@ -31,7 +31,7 @@ val IdeMetaPlugin.purity: Plugin
           f.nameIdentifier != null && !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
             f.resolveToDescriptorIfAny()?.run {
               !isSuspend && !isSynthesized && !isSuspendLambdaOrLocalFunction() &&
-                returns(f) { impureList }
+                returns(f) { impureTypes }
             } == true
         },
         level = HighlightDisplayLevel.ERROR,
@@ -47,7 +47,7 @@ val IdeMetaPlugin.purity: Plugin
           // TODO
         },
         isApplicable = { prop: KtProperty ->
-          prop.resolveToDescriptorIfAny()?.returns(prop) { impureList } == true
+          prop.resolveToDescriptorIfAny()?.returns(prop) { impureTypes } == true
         },
         level = HighlightDisplayLevel.ERROR,
         groupPath = ArrowPath + "PurityPlugin"
@@ -55,5 +55,5 @@ val IdeMetaPlugin.purity: Plugin
     )
   }
 
-private val KotlinBuiltIns.impureList: List<KotlinType>
+private val KotlinBuiltIns.impureTypes: List<KotlinType>
   get() = listOf(unitType, nothingType, nullableNothingType)
