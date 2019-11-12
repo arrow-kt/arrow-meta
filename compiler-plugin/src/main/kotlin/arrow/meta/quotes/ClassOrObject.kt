@@ -57,7 +57,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * can check for the product type of a [KtClass] by accessing the properties made available by the Kotlin PSI tree.
  *
  * In the example provided, we favor and talk about writing compiler plugins for functional stuff,
- * which is great - I wanted to emphasize that folks really don't need to worry about writing predicates
+ * which is great - We'd want to emphasize that folks really don't need to worry about writing predicates
  * (the [match] parameter) that are functional proofs. They can be for any boolean predicate!
  *
  * The second parameter [map] is a function that allows the resulting action from matching on the transformation at
