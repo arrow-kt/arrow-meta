@@ -2,6 +2,8 @@ package arrow.meta.ide.dsl.editor.inspection
 
 import arrow.meta.ide.dsl.utils.toNotNullable
 import arrow.meta.ide.dsl.utils.traverseFilter
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
@@ -13,8 +15,11 @@ import org.jetbrains.kotlin.idea.util.liftToExpected
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.createByPattern
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -65,4 +70,10 @@ interface InspectionUtilitySyntax {
 
   val ArrowPath: Array<String>
     get() = arrayOf("Kotlin", "Λrrow")
+
+  val Project.ktPsiFactory: KtPsiFactory
+    get() = KtPsiFactory(this)
+
+  fun <K : KtElement> KtPsiFactory.modify(element: K, f: KtPsiFactory.(K) -> K?): PsiElement? =
+    f(this, element)?.run { element.replace(this) }
 }

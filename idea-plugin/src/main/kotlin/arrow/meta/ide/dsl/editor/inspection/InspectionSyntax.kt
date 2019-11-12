@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.quickfix.KotlinSuppressIntentionAction
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
  * More General Inspections can be build with [AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
@@ -34,7 +35,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
-    applyTo: (element: K, project: Project, editor: Editor?) -> Unit,
+    applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     groupPath: Array<String>,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
@@ -113,7 +114,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
-    applyTo: (element: K, project: Project, editor: Editor?) -> Unit,
+    applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
       { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
@@ -125,8 +126,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       override val defaultFixText: String
         get() = defaultFixText
 
-      override fun applyTo(element: K, project: Project, editor: Editor?) =
-        applyTo(element, project, editor)
+      override fun applyTo(element: K, project: Project, editor: Editor?): Unit =
+        applyTo(project.ktPsiFactory, element, project, editor)
 
       override fun inspectionText(element: K): String =
         inspectionText(element)
