@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
 * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
- * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to to feed in
+ * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to feed in
  * virtually any kind of [KtClass] predicate, followed by mapping a function that takes the desired [Scope] of our
  * [KtClass] to change whatever PSI elements desired.
  *
