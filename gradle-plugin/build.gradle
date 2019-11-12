@@ -15,7 +15,7 @@ repositories {
 apply plugin: 'kotlin'
 
 group = 'io.arrow-kt'
-version = '0.10.3-rc-2'
+version = VERSION_NAME
 def pluginId = 'io.arrow-kt.arrow'
 
 processResources {
