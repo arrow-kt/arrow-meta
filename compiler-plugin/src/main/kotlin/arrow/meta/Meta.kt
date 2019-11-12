@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  * val Meta.helloWorld: Plugin get() =
  *   "Hello World" {
  *     meta(
- *       func({ name == "helloWorld" }) { c ->  // <-- func(...) {...}
+ *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =

@@ -1,7 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FuncScope
+import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -15,13 +15,11 @@ import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
@@ -33,10 +31,8 @@ import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -211,8 +207,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.identifier: PsiElement
     get() = delegate.createIdentifier(trimMargin())
 
-  override val String.function: FuncScope
-    get() = FuncScope(delegate.createFunction(trimMargin()))
+  override val String.function: NamedFunctionScope
+    get() = NamedFunctionScope(delegate.createFunction(trimMargin()))
 
   override val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
     get() = Scope(delegate.createCallableReferenceExpression(trimMargin()))

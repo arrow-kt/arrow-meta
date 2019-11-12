@@ -6,10 +6,12 @@ import arrow.meta.ide.dsl.editor.inspection.ExtendedReturnsCheck
 import arrow.meta.invoke
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
+import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.util.nameIdentifierTextRangeInThis
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.resolve.calls.tower.isSynthesized
 import org.jetbrains.kotlin.util.ReturnsCheck
 
 val IdeMetaPlugin.purity: Plugin
@@ -27,7 +29,7 @@ val IdeMetaPlugin.purity: Plugin
         isApplicable = { f: KtNamedFunction ->
           f.nameIdentifier != null && !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
             f.resolveToDescriptorIfAny()?.run {
-              !isSuspend && (ReturnsCheck.ReturnsUnit.check(this) || ExtendedReturnsCheck.ReturnsNothing.check(this)
+              !isSuspend && !isSynthesized && !isSuspendLambdaOrLocalFunction() && (ReturnsCheck.ReturnsUnit.check(this) || ExtendedReturnsCheck.ReturnsNothing.check(this)
                 || ExtendedReturnsCheck.ReturnsNullableNothing.check(this))
             } == true
         },
