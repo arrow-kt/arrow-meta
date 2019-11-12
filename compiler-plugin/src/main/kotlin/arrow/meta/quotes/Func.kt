@@ -32,7 +32,7 @@ class FuncScope(
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,
-  val `(valueParameters)`: ScopedList<KtParameter> = ScopedList(
+  val `(params)`: ScopedList<KtParameter> = ScopedList(
     prefix = "(",
     value = value.valueParameters,
     postfix = ")",
