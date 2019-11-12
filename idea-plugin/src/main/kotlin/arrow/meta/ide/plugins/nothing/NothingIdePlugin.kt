@@ -12,7 +12,8 @@ val IdeMetaPlugin.nothingIdePlugin: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.NOTHING,
-        transform = { it.safeAs<KtUserType>()?.takeIf { type -> type.referencedName == "Nothing" } },
+        transform = { it.safeAs<KtUserType>()?.takeIf { type -> type.referencedName == "Nothing" }
+          ?.referenceExpression?.getReferencedNameElement()},
         message = { "Bottom Type" }
       )
     )

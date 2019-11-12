@@ -1,7 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FuncScope
+import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -178,7 +178,7 @@ interface ElementScope {
   
   val String.identifier: PsiElement
   
-  val String.function: FuncScope
+  val String.function: NamedFunctionScope
   
   val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
   
