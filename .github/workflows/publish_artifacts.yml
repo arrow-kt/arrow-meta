@@ -42,11 +42,17 @@ jobs:
     - name: Publish Gradle Plugin
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
+        GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }
+        GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
       run: |
         ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
-        echo "Checking if version ends with SNAPSHOT to add a commit hash ..."
-        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
         VERSION_NUMBER=$(echo $ACTUAL_VERSION | cut -d- -f1)
-        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$VERSION_NUMBER-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
+        LATEST_VERSION=$(curl https://plugins.gradle.org/m2/io/arrow-kt/arrow/io.arrow-kt.arrow.gradle.plugin/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
+        echo "Latest version: $LATEST_VERSION"
+        COUNT=$(echo $LATEST_VERSION | cut -d- -f2)
+        if [[ "$COUNT" == "$LATEST_VERSION" ]]; then NEXT_COUNT=0; else NEXT_COUNT=$(($COUNT + 1)); fi
+        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
+        echo "Checking if version ends with SNAPSHOT to add a commit hash ..."
+        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$VERSION_NUMBER-$NEXT_COUNT-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
         echo "Publish artifact ..."
-        ./gradlew -Dgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Dgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} publishPlugins
+        ./gradlew -Dgradle.publish.key=$GRADLE_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PUBLISH_SECRET publishPlugins
