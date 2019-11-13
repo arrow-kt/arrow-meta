@@ -20,7 +20,7 @@ fun Meta.forExpression(
  */
 class ForExpressionScope(
   override val value: KtForExpression,
-  val `(parameter)`: ParameterScope = ParameterScope(value.loopParameter),
+  val `(param)`: ParameterScope = ParameterScope(value.loopParameter),
   val range: Scope<KtExpression> = Scope(value.loopRange),
   val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration)
 ) : LoopExpressionScope<KtForExpression>(value)

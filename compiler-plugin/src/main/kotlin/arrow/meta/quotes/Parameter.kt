@@ -24,8 +24,8 @@ class ParameterScope(
   val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),
   val name: Name? = value?.nameAsName,
-  val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries ?: listOf()),
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries ?: listOf()),
   val type: Scope<KtTypeReference> = Scope(value?.typeReference),
-  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value?.typeParameters ?: listOf(), postfix = ">"),
+  val `(typeParams)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value?.typeParameters ?: listOf(), postfix = ">"),
   val defaultValue: Scope<KtExpression> = Scope(value?.defaultValue)
 ) : Scope<KtParameter>(value)
