@@ -7,21 +7,21 @@ import org.junit.Test
 
 class TypeProofTest {
 
-  @Test
-  fun `Union accepts typed values in the union 3`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|import arrow.Union3
-           |fun f(): Union3<String, Int, Double> = 0
-           |val x: Int? = f()
-           |""".source
-      },
-      assert = {
-        allOf("x".source.evalsTo(0))
-      }
-    ))
-  }
+//  @Test
+//  fun `Union accepts typed values in the union 3`() {
+//    assertThis(CompilerTest(
+//      config = { metaDependencies },
+//      code = {
+//        """|import arrow.Union3
+//           |fun f(): Union3<String, Int, Double> = 0
+//           |val x: Int? = f()
+//           |""".source
+//      },
+//      assert = {
+//        allOf("x".source.evalsTo(0))
+//      }
+//    ))
+//  }
 
   @Test
   fun `Union fails to convert nullable types not present in the union`() {

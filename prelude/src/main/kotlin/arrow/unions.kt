@@ -1,55 +1,44 @@
 package arrow
 
-interface UnionSyntax {
+interface Union4<out A, out B, out C, out D> {
   val value: Any?
 }
-
-interface Union2<out A, out B> : UnionSyntax
-interface Union3<out A, out B, out C> : Union2<A, B>
-interface Union4<out A, out B, out C, out D> : Union3<A, B, C>
+typealias Union3<A, B, C> = Union4<A, B, C, Nothing>
+typealias Union2<A, B> = Union3<A, B, Nothing>
 
 inline class Union(override val value: Any?) : Union4<Nothing, Nothing, Nothing, Nothing>
 
 @proof(implicitConversion = true)
-fun <A> A.first(): Union2<A, Nothing> =
+fun <A> A.first(): Union4<A, Nothing, Nothing, Nothing> =
   Union(this)
 
 @proof(implicitConversion = true)
-fun <A> A.second(): Union2<Nothing, A> =
+fun <A> A.second(): Union4<Nothing, A, Nothing, Nothing> =
   Union(this)
 
 @proof(implicitConversion = true)
-fun <A> A.third(): Union3<Nothing, Nothing, A> =
+fun <A> A.third(): Union4<Nothing, Nothing, A, Nothing> =
   Union(this)
 
-///**
-// * Unions are commutative
-// * Union2<A, B> =:= Union2<B, A>
-// */
-//@proof(implicitConversion = true)
-//fun <A, B> Union2<A, B>.commutative(): Union2<B, A> =
-//  this as Union2<B, A>
-//
-///**
-// * Unions are associative
-// * Union2<A, Union2<B, C>> =:= Union2<Union2<A, B>, C>
-// */
-//@proof(implicitConversion = true)
-//fun <A, B, C> Union2<A, Union2<B, C>>.associative(): Union2<Union2<A, B>, C> =
-//  this as Union2<Union2<A, B>, C>
-
-/**
- * Unions are subtypes of their nullable types
- * Union2<A, null> =:= A?
- */
 @proof(implicitConversion = true)
-fun <A> Union2<A, Nothing>.first(): A? =
-  (this as Union).value as? A
+fun <A> A.fourth(): Union4<Nothing, Nothing, Nothing, A> =
+  Union(this)
 
-/**
- * Unions are subtypes of their nullable types
- * Union2<null, B> =:= B?
- */
 @proof(implicitConversion = true)
-fun <A> Union2<Nothing, A>.second(): A? =
-  (this as Union).value as? A
+inline fun <reified A> Union4<A, Nothing, Nothing, Nothing>.firstN(): A? {
+  val result: A? = (this as Union).value?.let { if (it is A) it else null }
+  println("firstN: ${A::class.java}: value: $result")
+  return result
+}
+
+@proof(implicitConversion = true)
+inline fun <reified A> Union4<Nothing, A, Nothing, Nothing>.secondN(): A? =
+  (this as Union).value?.let { if (it is A) it else null }
+
+@proof(implicitConversion = true)
+inline fun <reified A> Union4<Nothing, Nothing, A, Nothing>.thirdN(): A? =
+  (this as Union).value?.let { if (it is A) it else null }
+
+@proof(implicitConversion = true)
+inline fun <reified A> Union4<Nothing, Nothing, Nothing, A>.fourthN(): A? =
+  (this as Union).value?.let { if (it is A) it else null }

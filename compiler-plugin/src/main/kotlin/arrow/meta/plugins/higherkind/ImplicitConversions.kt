@@ -41,7 +41,7 @@ val Meta.typeProofs: Plugin
       val proofs: HashMap<Pair<KotlinType, KotlinType>, FunctionDescriptor> = hashMapOf()
 
       fun conversionDescriptor(subType: KotlinType, superType: KotlinType): FunctionDescriptor? =
-        proofs.entries.find { (types, conversion) ->
+        proofs.entries.firstOrNull { (types, conversion) ->
           val (from, to) = types
           val fromSub = if (from.isTypeParameter()) from.constructor to subType.makeNotNullable().unwrap() else null
           val toSub = if (to.isTypeParameter()) to.constructor to superType.makeNotNullable().unwrap() else null
@@ -55,7 +55,7 @@ val Meta.typeProofs: Plugin
                 isSubtypeOf(receiver, subType) && isSubtypeOf(returnType, superType)
               }
             }
-          } == true
+          } ?: false
         }?.value
 
       fun KotlinType.applyProof(superType: KotlinType): Boolean =

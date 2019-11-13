@@ -8,22 +8,6 @@ import org.junit.Test
 class UnionTest {
 
   @Test
-  fun `Union uber constructor remains visible`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|import arrow.Union2
-           |fun f(): Union2<String, Int> = Union(0)
-           | 
-           |""".source
-      },
-      assert = {
-        allOf("f().value".source.evalsTo(0))
-      }
-    ))
-  }
-
-  @Test
   fun `Union accepts typed values in the union 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
@@ -79,11 +63,11 @@ class UnionTest {
       code = {
         """|import arrow.Union2
            |fun f(): Union2<String, Int> = "a"
-           |
+           |val x: String? = f()
            |""".source
       },
       assert = {
-        allOf("f().value".source.evalsTo("a"))
+        allOf("x".source.evalsTo("a"))
       }
     ))
   }
@@ -228,7 +212,7 @@ class UnionTest {
            |""".source
       },
       assert = {
-        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") })
+        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> /* = Union4<String, Int, Nothing, Nothing> */ but Double? was expected") })
       }
     ))
   }
