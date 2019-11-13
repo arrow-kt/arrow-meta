@@ -10,12 +10,26 @@ import org.jetbrains.kotlin.psi.KtForExpression
  * A [KtForExpression] [Quote] with a custom template destructuring [ForExpressionScope].  See below:
  *
  * ```kotlin:ank:silent
- * forExpression({ true }) { e ->
- *   Transform.replace(
- *    replacing = e,
- *    newDeclaration = """ for $`(param)` { $body } """.`for`
- *   )
- *  }
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.classOrObject
+ * import org.jetbrains.kotlin.psi.KtClass
+ * import com.intellij.psi.PsiElement
+ *
+ * val Meta.reformatFor: Plugin
+ *   get() =
+ *     "ReformatFor" {
+ *       meta(
+ *        forExpression({ true }) { e ->
+ *          Transform.replace(
+ *            replacing = e,
+ *            newDeclaration = """ for $`(param)` { $body } """.`for`
+ *          )
+ *        }
+ *       )
+ *     }
  * ```
  *
  * @param match designed to to feed in any kind of [KtForExpression] predicate returning a [Boolean]
