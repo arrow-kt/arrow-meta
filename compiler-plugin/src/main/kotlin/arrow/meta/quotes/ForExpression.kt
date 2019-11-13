@@ -7,10 +7,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
 
 /**
- * A [KtForExpression] [Quote] with a custom template destructuring [ForExpressionScope]
- *
- * @param match designed to to feed in any kind of [KtForExpression] predicate returning a [Boolean]
- * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
+ * A [KtForExpression] [Quote] with a custom template destructuring [ForExpressionScope].  See below:
  *
  * ```kotlin:ank:silent
  * forExpression({ true }) { e ->
@@ -20,6 +17,9 @@ import org.jetbrains.kotlin.psi.KtForExpression
  *   )
  *  }
  * ```
+ *
+ * @param match designed to to feed in any kind of [KtForExpression] predicate returning a [Boolean]
+ * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.forExpression(
   match: KtForExpression.() -> Boolean,
@@ -33,6 +33,6 @@ fun Meta.forExpression(
 class ForExpressionScope(
   override val value: KtForExpression,
   val `(param)`: ParameterScope = ParameterScope(value.loopParameter),
-  val range: Scope<KtExpression> = Scope(value.loopRange),
+  val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope
   val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration) // TODO KtDestructuringDeclaration scope
 ) : LoopExpressionScope<KtForExpression>(value)

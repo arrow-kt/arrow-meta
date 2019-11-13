@@ -9,6 +9,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
  * A [KtParameter] [Quote] with a custom template destructuring [ParameterScope]
+ *
+ * @param match designed to to feed in any kind of [KtParameter] predicate returning a [Boolean]
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.parameter(
   match: KtParameter.() -> Boolean,
