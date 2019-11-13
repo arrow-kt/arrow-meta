@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
 
@@ -20,5 +21,6 @@ fun Meta.forExpression(
 class ForExpressionScope(
   override val value: KtForExpression,
   val `(parameter)`: ParameterScope = ParameterScope(value.loopParameter),
-  val range: Scope<KtExpression> = Scope(value.loopRange)
+  val range: Scope<KtExpression> = Scope(value.loopRange),
+  val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration)
 ) : LoopExpressionScope<KtForExpression>(value)
