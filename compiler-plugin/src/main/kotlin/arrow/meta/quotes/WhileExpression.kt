@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  * @param match designed to to feed in any kind of [KtWhileExpression] predicate returning a [Boolean]
  * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
  *
- * ```kotlin
+ * ```kotlin:ank:silent
  * whileExpression({ true }) { c ->
  *   Transform.replace(
  *     replacing = c,

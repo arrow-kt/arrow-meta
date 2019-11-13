@@ -297,6 +297,9 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
 
+  override val String.`for`: ForExpressionScope
+    get() = ForExpressionScope(expression.value as KtForExpression)
+
   override val String.`while`: WhileExpressionScope
     get() = WhileExpressionScope(expression.value as KtWhileExpression)
 }
