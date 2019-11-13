@@ -12,12 +12,14 @@ import org.jetbrains.kotlin.psi.KtForExpression
  * @param match designed to to feed in any kind of [KtForExpression] predicate returning a [Boolean]
  * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
  *
+ * ```kotlin:ank:silent
  * forExpression({ true }) { e ->
  *   Transform.replace(
  *    replacing = e,
  *    newDeclaration = """ for $`(param)` { $body } """.`for`
  *   )
  *  }
+ * ```
  */
 fun Meta.forExpression(
   match: KtForExpression.() -> Boolean,
