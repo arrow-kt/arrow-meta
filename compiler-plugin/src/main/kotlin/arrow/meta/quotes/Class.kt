@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
+ * [`class`] is a function that intercepts all [KtClass] elements that [match]
 * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
  * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to feed in
@@ -102,7 +102,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * @param match filters [KtClass] elements based on a [Boolean] predicate
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
-fun Meta.classOrObject(
+fun Meta.`class`(
   match: KtClass.() -> Boolean,
   map: ClassScope.(KtClass) -> Transform<KtClass>
 ): ExtensionPhase =
@@ -113,11 +113,11 @@ fun Meta.classOrObject(
  * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
  * before it's compiled.
  *
- * @param The scoped [KtElement] being destructured in the template
- * @param annotationEntries searches for marked annotations associated with the class.
+ * @param value scoped [KtClass] being destructured in the template
+ * @param @annotations searches for marked annotations associated with the class.
  * @param modality  Modifier keyword is a keyword that can be used in annotation position as part of modifier list
  * @param visibility is the class public, private, protected? etc.
- * @oaram kind denotes certain classes as sealed class types or data class types.
+ * @param kind denotes certain classes as sealed class types or data class types.
  */
 class ClassScope(
   override val value: KtClass,
