@@ -1,11 +1,7 @@
 package arrow.meta
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.comprehensions.comprehensions
-import arrow.meta.plugins.higherkind.implicitConversion
-import arrow.meta.plugins.optics.lenses
-import arrow.meta.plugins.typeclasses.typeClasses
-import arrow.meta.plugins.union.unionTypes
+import arrow.meta.plugins.higherkind.typeProofs
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -20,7 +16,7 @@ open class MetaPlugin : Meta {
     listOf(
       //unionTypes,
       //higherKindedTypes,
-      implicitConversion
+      typeProofs
       //typeClasses,
       //comprehensions,
       //lenses

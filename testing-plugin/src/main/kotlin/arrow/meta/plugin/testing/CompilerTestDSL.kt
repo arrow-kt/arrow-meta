@@ -42,12 +42,15 @@ interface ConfigSyntax {
   fun List<Config>.toConfig(): Config =
     Config.Many(this)
 
+  private fun prelude(currentVersion: String?): Dependency =
+    Dependency("prelude:$currentVersion")
+
   val metaDependencies: List<Config>
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
       val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion:all")))
       val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
-      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations)
+      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations) + CompilerTest.addDependencies(prelude(currentVersion))
     }
 }
 

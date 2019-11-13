@@ -15,6 +15,7 @@ dependencies {
     testRuntimeOnly "io.arrow-kt:arrow-annotations:$VERSION_NAME"
     testRuntimeOnly "io.arrow-kt:arrow-core-data:$VERSION_NAME"
     testRuntimeOnly "io.arrow-kt:arrow-optics:$VERSION_NAME"
+    testRuntimeOnly project(":prelude")
 }
 
 compileKotlin {
