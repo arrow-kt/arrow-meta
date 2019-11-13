@@ -16,7 +16,7 @@ fun Meta.binaryExpression(
   match: KtBinaryExpression.() -> Boolean,
   map: BinaryExpressionScope.(KtBinaryExpression) -> Transform<KtBinaryExpression>
 ): ExtensionPhase =
-  quote(match, map) { BinaryExpressionScope(it) } // How can I drill down into the right scope here?
+  quote(match, map) { BinaryExpressionScope(it) }
 
 /**
  * A template destructuring [Scope] for a [KtBinaryExpression]
