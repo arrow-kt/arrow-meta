@@ -9,6 +9,11 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
  * A [KtNullableType] [Quote] with a custom template destructuring [NullableTypeScope]
+ *
+ * Note: [KtTypeReference] is called [TypeMirror] in the Java annotation processing API.
+ *
+ * @param match designed to to feed in any kind of [KtNullableType] predicate returning a [Boolean]
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.nullableType(
   match: KtNullableType.() -> Boolean,
@@ -21,8 +26,8 @@ fun Meta.nullableType(
  */
 class NullableTypeScope(
   override val value: KtNullableType,
-  val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val typeArgumentsAsTypes: ScopedList<KtTypeReference>? = value.innerType?.let { ScopedList(it.typeArgumentsAsTypes, prefix = " : ") } ?: ScopedList(emptyList()),
-  // TODO create scope for KtTypeElement?
-  val innerType: Scope<KtTypeElement> = Scope(value.innerType)
+  val innerType: Scope<KtTypeElement> = Scope(value.innerType)    // TODO KtTypeElement scope and quote template
 ) : Scope<KtNullableType>(value)
+
