@@ -1,9 +1,6 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FuncScope
-import arrow.meta.quotes.ParameterScope
-import arrow.meta.quotes.Scope
+import arrow.meta.quotes.*
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -178,7 +175,7 @@ interface ElementScope {
   
   val String.identifier: PsiElement
   
-  val String.function: FuncScope
+  val String.function: NamedFunctionScope
   
   val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
   
@@ -279,6 +276,8 @@ interface ElementScope {
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
   val String.block: Scope<KtBlockExpression>
+
+  val String.`while`: WhileExpressionScope
   
   fun singleStatementBlock(
     statement: KtExpression,
