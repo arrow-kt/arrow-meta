@@ -11,10 +11,8 @@ class TypeClassesTest {
 
   @Test
   fun `simple case`() {
-    val currentVersion = System.getProperty("CURRENT_VERSION")
-    val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin")))
-    val arrowAnnotations = Dependency("arrow-annotations:$currentVersion")
-    val arrowCoreData = Dependency("arrow-core-data:$currentVersion")
+    val arrowVersion = System.getProperty("ARROW_VERSION")
+    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
       | import arrow.Kind
       | import arrow.given
@@ -54,7 +52,7 @@ class TypeClassesTest {
 
     assertThis(CompilerTest(
       config = {
-        addCompilerPlugins(compilerPlugin) + addDependencies(arrowAnnotations, arrowCoreData)
+        metaDependencies + addDependencies(arrowCoreData)
       },
       code = {
         codeSnippet.source
