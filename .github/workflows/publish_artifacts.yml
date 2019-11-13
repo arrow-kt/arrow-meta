@@ -21,7 +21,15 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        ./gradlew clean build
+        ./gradlew clean
+        ./gradlew :compiler-plugin:build
+        ./gradlew :idea-plugin:build
+        ./gradlew :testing-plugin:build
+        # 'build' task is not executed for :gradle-plugin because
+        # it depends on the publication of compiler-plugin 
+        # and it could fail when changing version
+        ./gradlew :gradle-plugin:jar
+        # :docs is considered in another workflow
     - name: Publish artifacts
       env:
         BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
@@ -31,3 +39,14 @@ jobs:
         echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
         ./gradlew uploadArchives
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
+    - name: Publish Gradle Plugin
+      env:
+        JAVA_OPTS: -Xms512m -Xmx1024m
+      run: |
+        ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
+        echo "Checking if version ends with SNAPSHOT to add a commit hash ..."
+        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
+        VERSION_NUMBER=$(echo $ACTUAL_VERSION | cut -d- -f1)
+        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$VERSION_NUMBER-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
+        echo "Publish artifact ..."
+        ./gradlew -Dgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Dgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} publishPlugins
