@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtForExpression
 /**
  * A [KtForExpression] [Quote] with a custom template destructuring [ForExpressionScope].  See below:
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
