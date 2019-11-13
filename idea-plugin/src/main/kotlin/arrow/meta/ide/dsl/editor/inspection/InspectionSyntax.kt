@@ -103,7 +103,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   /**
-   * Is used in combination with [addInspectionSuppressor]
+   * Is to be used in combination with [addInspectionSuppressor]
    */
   fun InspectionSyntax.supressQuickFix(
     name: String,

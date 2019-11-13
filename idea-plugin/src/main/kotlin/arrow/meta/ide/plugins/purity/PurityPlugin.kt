@@ -56,7 +56,10 @@ val IdeMetaPlugin.purity: Plugin
         },
         isApplicable = { prop: KtProperty ->
           prop.resolveToDescriptorIfAny()?.run {
-            returns { impureTypes } && returns(prop) { impureTypes }
+            !returns(
+              f = { t: KotlinType -> t.constructor },
+              types = { suspendedFunctionTypes }
+            ) && returns(prop) { impureTypes }
           } == true
         },
         level = HighlightDisplayLevel.ERROR,
@@ -67,3 +70,7 @@ val IdeMetaPlugin.purity: Plugin
 
 private val KotlinBuiltIns.impureTypes: List<KotlinType>
   get() = listOf(unitType, nothingType, nullableNothingType)
+
+private val KotlinBuiltIns.suspendedFunctionTypes: List<KotlinType>
+  get() = (0..22).toList().map { getSuspendFunction(it).defaultType }
+
