@@ -5,6 +5,8 @@ buildscript {
     assertj_version = '3.13.2'
     dokka_version = '0.9.18'
     class_graph_version = '4.8.47'
+    junit_vintage_version = '5.4.0'
+    kotlin_compile_testing = '1.2.4'
   }
   repositories {
     mavenCentral()
