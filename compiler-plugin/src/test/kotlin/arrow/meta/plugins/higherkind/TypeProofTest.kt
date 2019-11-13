@@ -34,7 +34,7 @@ class TypeProofTest {
            |""".source
       },
       assert = {
-        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") })
+        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> /* = Union4<String, Int, Nothing, Nothing> */ but Double? was expected") })
       }
     ))
   }
