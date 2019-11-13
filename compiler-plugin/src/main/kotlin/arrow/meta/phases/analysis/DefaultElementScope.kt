@@ -1,6 +1,12 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.*
+import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.ForExpressionScope
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.NullableTypeScope
+import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.WhileExpressionScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -54,6 +60,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.typeOrNull: Scope<KtTypeReference>
     get() = Scope(delegate.createTypeIfPossible(trimMargin()))
+
+  override val String.nullableType: NullableTypeScope
+    get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
   override val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
     get() = Scope(delegate.createFunctionTypeReceiver(this))
