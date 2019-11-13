@@ -65,7 +65,7 @@ val Meta.typeProofs: Plugin
         conversion.apply {
           extensionReceiver = argument
           (0 until typeArgumentsCount).forEach {
-            putTypeArgument(it, backendContext.irBuiltIns.anyNType) //TODO properly apply the conversion
+            putTypeArgument(it, backendContext.irBuiltIns.anyNType) //TODO properly apply the conversion with the same substitution we do to find a match, nullable and reified type may be failing because we set the the type args to any? here and the reifid type is seen as java lang object
           }
         }
       }
