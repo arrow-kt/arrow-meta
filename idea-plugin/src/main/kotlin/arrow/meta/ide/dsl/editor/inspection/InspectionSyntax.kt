@@ -29,6 +29,9 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  * More General Inspections can be build with [AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
+  /**
+   * Local Applicable Inspection with enhanced Scope to modify the element, project or editor at once within [applyTo]
+   */
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IdeMetaPlugin.addApplicableInspection(
     defaultFixText: String,
@@ -52,6 +55,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       defaultFixText
     )
 
+  /**
+   * Defines Inspection on a global scale or in other words on multiple Files and the entire Project Scope
+   */
   fun IdeMetaPlugin.addGlobalInspection(
     inspectionTool: GlobalInspectionTool,
     level: HighlightDisplayLevel,
@@ -66,6 +72,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       LoadingOrder.FIRST
     )
 
+  /**
+   * Defines Inspection on local scale or in other words on the current user file
+   */
   fun IdeMetaPlugin.addLocalInspection(
     inspectionTool: LocalInspectionTool,
     level: HighlightDisplayLevel,
@@ -93,6 +102,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       inspectionSuppressor(suppressFor, suppressAction)
     )
 
+  /**
+   * Is used in combination with [addInspectionSuppressor]
+   */
   fun InspectionSyntax.supressQuickFix(
     name: String,
     familyName: String,
