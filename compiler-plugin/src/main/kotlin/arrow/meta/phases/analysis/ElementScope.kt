@@ -278,6 +278,8 @@ interface ElementScope {
   val String.block: Scope<KtBlockExpression>
 
   val String.`for`: ForExpressionScope
+
+  val String.`while`: WhileExpressionScope
   
   fun singleStatementBlock(
     statement: KtExpression,
@@ -291,5 +293,4 @@ interface ElementScope {
     fun default(project: Project): ElementScope =
       DefaultElementScope(project)
   }
-
 }
