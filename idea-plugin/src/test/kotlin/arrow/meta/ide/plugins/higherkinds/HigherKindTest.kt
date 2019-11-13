@@ -33,7 +33,7 @@ class HigherKindTest : IdeTestSetUp() {
           collectLM(code, myFixture, ArrowIcons.HKT)
         },
         result = resolves("LineMarkerTest for multiple valid HKT") {
-          it.takeIf { description -> description.lineMarker.isNotEmpty() && description.slowLM.isEmpty() }
+          it.takeIf { description -> description.lineMarker.size == 2 && description.slowLM.isEmpty() }
         }
       )
     )
@@ -49,6 +49,21 @@ class HigherKindTest : IdeTestSetUp() {
         },
         result = resolves("LineMarkerTest for no valid HKT") {
           it.takeIf { description -> description.lineMarker.isEmpty() && description.slowLM.isEmpty() }
+        }
+      )
+    )
+
+  @Test
+  fun `LM for Poly Icon`() =
+    ideTest(
+      IdeTest(
+        code = HigherKindsTestCode.code4,
+        myFixture = myFixture,
+        test = { code, myFixture ->
+          collectLM(code, myFixture, ArrowIcons.POLY)
+        },
+        result = resolves("LineMarkerTest for Poly Icon") {
+          it.takeIf { description -> description.lineMarker.size == 2  && description.slowLM.isEmpty() }
         }
       )
     )
