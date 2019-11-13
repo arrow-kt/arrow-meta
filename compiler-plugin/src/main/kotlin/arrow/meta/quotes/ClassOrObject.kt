@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
  * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to feed in
- * virtually any kind of [KtClass] predicate, followed by mapping a function that takes the desired [Scope] of our
+ * virtually any kind of [KtClass] predicate, followed by a mapping function that takes the desired [Scope] of our
  * [KtClass] to change whatever PSI elements desired.
  *
  * For example, the [LensPlugin] and the [HigherKindPlugin] favor easy update of immutable data structures and ad-hoc polymorphism that does not require inheritance.
