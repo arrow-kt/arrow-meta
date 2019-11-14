@@ -18,4 +18,12 @@ jobs:
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
-        ./gradlew clean build
+        ./gradlew clean
+        ./gradlew :compiler-plugin:build
+        ./gradlew :idea-plugin:build
+        ./gradlew :testing-plugin:build
+        # 'build' task is not executed for :gradle-plugin because
+        # it depends on the publication of compiler-plugin 
+        # and it could fail when changing version
+        ./gradlew :gradle-plugin:jar
+        # :docs is considered in another workflow

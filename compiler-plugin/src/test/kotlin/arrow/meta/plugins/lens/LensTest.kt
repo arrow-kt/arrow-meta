@@ -11,8 +11,8 @@ class LensTest {
   @Test
   fun `Initial lens test`() {
 
-    val currentVersion = System.getProperty("CURRENT_VERSION")
-    val arrowOptics = Dependency("arrow-optics:$currentVersion")
+    val arrowVersion = System.getProperty("ARROW_VERSION")
+    val arrowOptics = Dependency("arrow-optics:$arrowVersion")
     val codeSnippet = """
       | 
       | //metadebug
