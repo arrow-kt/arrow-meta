@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 /**
  * A [KtWhenEntry] [Quote] with a custom template destructuring [WhenEntryScope]. See below:
  *
- * ```kotlin
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
