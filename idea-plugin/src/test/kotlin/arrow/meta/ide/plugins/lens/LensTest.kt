@@ -9,7 +9,7 @@ import org.junit.Test
 
 class LensTest : IdeTestSetUp(){
   @Test
-  fun `Bind Test for no LM`() =
+  fun `Optics Test for LineMarkers`() =
     ideTest(
       IdeTest(
         code = LensTestCode.code1,

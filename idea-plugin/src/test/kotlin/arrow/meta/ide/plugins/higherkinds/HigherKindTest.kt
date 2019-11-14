@@ -9,7 +9,7 @@ import org.junit.Test
 
 class HigherKindTest : IdeTestSetUp() {
   @Test
-  fun `LM Test`() =
+  fun `HKT Tests for LineMarkers`() =
     ideTest(
       IdeTest(
         code = HigherKindsTestCode.code1,
@@ -20,12 +20,7 @@ class HigherKindTest : IdeTestSetUp() {
         result = resolves("LineMarkerTest for one valid HKT") {
           it.takeIf { description -> description.lineMarker.size == 1 && description.slowLM.isEmpty() }
         }
-      )
-    )
-
-  @Test
-  fun `LM for multipel HKT`() =
-    ideTest(
+      ),
       IdeTest(
         code = HigherKindsTestCode.code2,
         myFixture = myFixture,
@@ -35,12 +30,7 @@ class HigherKindTest : IdeTestSetUp() {
         result = resolves("LineMarkerTest for multiple valid HKT") {
           it.takeIf { description -> description.lineMarker.size == 2 && description.slowLM.isEmpty() }
         }
-      )
-    )
-
-  @Test
-  fun `LM for no valid HKT`() =
-    ideTest(
+      ),
       IdeTest(
         code = HigherKindsTestCode.code3,
         myFixture = myFixture,
@@ -53,8 +43,9 @@ class HigherKindTest : IdeTestSetUp() {
       )
     )
 
+
   @Test
-  fun `LM for Poly Icon`() =
+  fun `HKT Tests for Poly LineMarkers`() =
     ideTest(
       IdeTest(
         code = HigherKindsTestCode.code4,
