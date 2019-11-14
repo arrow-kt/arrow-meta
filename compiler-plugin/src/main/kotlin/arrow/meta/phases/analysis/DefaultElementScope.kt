@@ -222,8 +222,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.whenEntry: WhenEntryScope
     get() = WhenEntryScope(delegate.createWhenEntry(trimMargin()))
 
-  override val String.whenCondition: Scope<KtWhenCondition>
-    get() = Scope(delegate.createWhenCondition(trimMargin()))
+  override val String.whenCondition: WhenConditionScope
+    get() = WhenConditionScope(delegate.createWhenCondition(trimMargin()))
 
   override fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression> =
     Scope(delegate.createBlockStringTemplateEntry(expression))

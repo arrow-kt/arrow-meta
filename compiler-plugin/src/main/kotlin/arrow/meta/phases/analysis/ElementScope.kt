@@ -222,7 +222,7 @@ interface ElementScope {
   
   val String.whenEntry: WhenEntryScope
   
-  val String.whenCondition: Scope<KtWhenCondition>
+  val String.whenCondition: WhenConditionScope
   
   fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression>
   
