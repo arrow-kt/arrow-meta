@@ -5,6 +5,7 @@ import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 
@@ -32,15 +33,19 @@ class FragmentProviderComponent(val project: Project) : ProjectComponent, AsyncF
     } ?: LOG.error("Could not get MetaSyntheticPackageFragmentProvider instance, while opening the project")
   }
 
-  override fun prepareChange(events: MutableList<out VFileEvent>): FragmentProviderComponent? {
-    // we only care about changes to .class files inside of build folders
-    val buildFolders = project.buildFolders().toHashSet()
-    val hasBuildFolderEvents = events.any { e ->
-      val file = e.file
-      e.isValid && file != null && file.extension == "class" && VfsUtilCore.isUnder(file, buildFolders)
+  /**
+   *  we only care about changes to .class files inside of build folders
+   */
+  override fun prepareChange(events: MutableList<out VFileEvent>): FragmentProviderComponent? =
+    this.takeIf {
+      project.buildFolders().toHashSet().let { buildFolders: HashSet<VirtualFile> ->
+        events.any { e: VFileEvent ->
+          e.file?.let { file: VirtualFile ->
+            e.isValid && file.extension == "class" && VfsUtilCore.isUnder(file, buildFolders)
+          } ?: false
+        }
+      }
     }
-    return if (hasBuildFolderEvents) this else null
-  }
 
   override fun afterVfsChange() {
     LOG.debug("MetaSyntheticPackageFragmentProvider.afterVfsChange")
