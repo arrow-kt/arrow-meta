@@ -1,8 +1,10 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.phases.config.buildFolders
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.AsyncFileListener
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 
@@ -30,10 +32,14 @@ class FragmentProviderComponent(val project: Project) : ProjectComponent, AsyncF
     } ?: LOG.error("Could not get MetaSyntheticPackageFragmentProvider instance, while opening the project")
   }
 
-  override fun prepareChange(events: MutableList<out VFileEvent>) = this
-
-  override fun beforeVfsChange() {
-    LOG.debug("MetaSyntheticPackageFragmentProvider.beforeVfsChange")
+  override fun prepareChange(events: MutableList<out VFileEvent>): FragmentProviderComponent? {
+    // we only care about changes to .class files inside of build folders
+    val buildFolders = project.buildFolders().toHashSet()
+    val hasBuildFolderEvents = events.any { e ->
+      val file = e.file
+      e.isValid && file != null && file.extension == "class" && VfsUtilCore.isUnder(file, buildFolders)
+    }
+    return if (hasBuildFolderEvents) this else null
   }
 
   override fun afterVfsChange() {
