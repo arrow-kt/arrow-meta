@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
 /**
  * A [KtWhenExpression] [Quote] with a custom template destructuring [WhenExpressionScope].  See below:
  *
- * ```kotlin
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
