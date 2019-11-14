@@ -3,12 +3,20 @@ package arrow.meta.ide.testing.env
 import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.testing.env.types.HeavyTestSyntax
 import arrow.meta.ide.testing.env.types.LightTestSyntax
+import arrow.meta.ide.testing.env.types.PreviousLightTestSyntax
 
 /**
  * [IdeTestTypeSyntax] ensures that each TestType is within an Idea instance and provides Tooling from
  * IntelliJ's Testing
  */
 interface IdeTestTypeSyntax {
+
+  /**
+   * LightTests run headless ide instances
+   */
+  fun <A> previousLightTest(f: PreviousLightTestSyntax.() -> A): A? =
+    ide { f(PreviousLightTestSyntax) }
+
   /**
    * LightTests run headless ide instances
    */

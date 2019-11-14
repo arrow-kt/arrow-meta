@@ -2,12 +2,12 @@ package arrow.meta.ide.plugins.comprehensions
 
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.env.IdeTestSetUp
+import arrow.meta.ide.testing.env.IdeLightTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.resolves
 import org.junit.Test
 
-class ComprehensionsTest : IdeTestSetUp() {
+class ComprehensionsTest : IdeLightTestSetUp() {
   @Test
   fun `ComprehensionsTest for LineMarkers`() =
     ideTest(

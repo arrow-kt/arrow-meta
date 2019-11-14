@@ -2,12 +2,12 @@ package arrow.meta.ide.plugins.lens
 
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.env.IdeTestSetUp
+import arrow.meta.ide.testing.env.IdeLightTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.resolves
 import org.junit.Test
 
-class LensTest : IdeTestSetUp(){
+class LensTest : IdeLightTestSetUp(){
   @Test
   fun `Optics Test for LineMarkers`() =
     ideTest(

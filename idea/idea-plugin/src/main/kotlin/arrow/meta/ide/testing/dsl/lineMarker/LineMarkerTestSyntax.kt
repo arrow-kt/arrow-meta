@@ -14,7 +14,7 @@ data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>
 interface LineMarkerTestSyntax {
 
   fun IdeTestSyntax.collectLM(code: Source, myFixture: CodeInsightTestFixture, icon: Icon): LineMarkerDescription =
-    lightTest {
+    previousLightTest {
       code.ktFileToList(myFixture).run { LineMarkerDescription(collectLM(icon), collectSlowLM(icon)) }
     } ?: LineMarkerDescription()
 
