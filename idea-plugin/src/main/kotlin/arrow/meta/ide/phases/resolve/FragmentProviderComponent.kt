@@ -38,10 +38,10 @@ class FragmentProviderComponent(val project: Project) : ProjectComponent, AsyncF
    */
   override fun prepareChange(events: MutableList<out VFileEvent>): FragmentProviderComponent? =
     this.takeIf {
-      project.run {
+      project.buildFolders().toHashSet().let { buildFolders: HashSet<VirtualFile> ->
         events.any { e: VFileEvent ->
           e.file?.let { file: VirtualFile ->
-            e.isValid && file.extension == "class" && VfsUtilCore.isUnder(file, buildFolders().toHashSet())
+            e.isValid && file.extension == "class" && VfsUtilCore.isUnder(file, buildFolders)
           } ?: false
         }
       }
