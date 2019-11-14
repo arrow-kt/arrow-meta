@@ -24,7 +24,7 @@ fun <A : PsiElement, B> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B): Li
  * Modify [element] based on [f]
  */
 inline fun <reified K : KtElement> KtPsiFactory.modify(element: K, noinline f: KtPsiFactory.(K) -> K?): K? =
-  f(this, element)?.run { element.replaceK(element) }
+  f(this, element)?.run { element.replaceK(this) }
 
 /**
  * reified PsiElement replacement

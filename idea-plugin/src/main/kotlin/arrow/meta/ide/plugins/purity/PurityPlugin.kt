@@ -9,14 +9,16 @@ import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.intentions.branchedTransformations.unwrapBlockOrParenthesis
 import org.jetbrains.kotlin.idea.util.nameIdentifierTextRangeInThis
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.createExpressionByPattern
 import org.jetbrains.kotlin.resolve.calls.tower.isSynthesized
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.purity: Plugin
   get() = "PurityPlugin" {
@@ -26,7 +28,7 @@ val IdeMetaPlugin.purity: Plugin
         inspectionHighlightType = { ProblemHighlightType.ERROR },
         kClass = KtNamedFunction::class.java,
         highlightingRange = { f -> f.nameIdentifierTextRangeInThis() },
-        inspectionText = { f -> "Function should be suspended" },
+        inspectionText = { f -> "Function: ${f.name} should be suspended" },
         applyTo = { f, project, editor ->
           f.addModifier(KtTokens.SUSPEND_KEYWORD)
         },
@@ -45,12 +47,13 @@ val IdeMetaPlugin.purity: Plugin
         inspectionHighlightType = { ProblemHighlightType.ERROR },
         kClass = KtProperty::class.java,
         highlightingRange = { prop -> prop.nameIdentifierTextRangeInThis() },
-        inspectionText = { prop -> "Property:${prop.name} should be suspended" },
+        inspectionText = { prop -> "Property: ${prop.name} should be suspended" },
         applyTo = { prop, project, editor ->
           prop.initializer?.let { body: KtExpression ->
             modify(body) { b: KtExpression ->
-              b.unwrapBlockOrParenthesis()
-              // createExpressionByPattern("suspend { $0 }", b)
+              b.safeAs<KtLambdaExpression>()?.let {
+                createExpressionByPattern("$1$0", it.functionLiteral, createIdentifier("suspend"))
+              } ?: createExpressionByPattern("suspend { $0 }", b)
             }
           }
         },
@@ -73,4 +76,3 @@ private val KotlinBuiltIns.impureTypes: List<KotlinType>
 
 private val KotlinBuiltIns.suspendedFunctionTypes: List<KotlinType>
   get() = (0..22).toList().map { getSuspendFunction(it).defaultType }
-
