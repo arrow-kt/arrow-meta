@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.whenEntry
  *
- * val Meta.helloWorld: Plugin
+ * val Meta.reformatWhenEntry: Plugin
  *  get() =
  *   "ReformatWhenEntry" {
  *    meta(
