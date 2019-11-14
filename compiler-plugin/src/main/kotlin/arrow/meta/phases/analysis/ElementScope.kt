@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
@@ -258,7 +257,7 @@ interface ElementScope {
     condition: KtExpression,
     thenExpr: KtExpression,
     elseExpr: KtExpression? = null
-  ): Scope<KtIfExpression>
+  ): IfExpressionScope
   
   fun argument(
     expression: KtExpression?,
