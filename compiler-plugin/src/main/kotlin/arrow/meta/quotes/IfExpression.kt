@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 /**
  * A [KtIfExpression] [Quote] with a custom template destructuring [IfExpressionScope].  See below:
  *
+ *```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -26,6 +27,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *    }
  *   )
  *  }
+ *```
  *
  * * @param match designed to to feed in any kind of [KtIfExpression] predicate returning a [Boolean]
  * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
