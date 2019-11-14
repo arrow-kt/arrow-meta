@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
@@ -10,6 +11,9 @@ import org.jetbrains.kotlin.psi.KtParameter
 
 /**
  * A [KtLambdaExpression] [Quote] with a custom template destructuring [LambdaExpressionScope]
+ *
+ * @param match designed to to feed in any kind of [KtLambdaExpression] predicate returning a [Boolean]
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.lambdaExpression(
   match: KtLambdaExpression.() -> Boolean,
