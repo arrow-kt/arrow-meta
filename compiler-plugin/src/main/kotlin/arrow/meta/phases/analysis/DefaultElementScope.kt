@@ -219,8 +219,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val enumEntryInitializerList: Scope<KtInitializerList>
     get() = Scope(delegate.createEnumEntryInitializerList())
 
-  override val String.whenEntry: Scope<KtWhenEntry>
-    get() = Scope(delegate.createWhenEntry(trimMargin()))
+  override val String.whenEntry: WhenEntryScope
+    get() = WhenEntryScope(delegate.createWhenEntry(trimMargin()))
 
   override val String.whenCondition: Scope<KtWhenCondition>
     get() = Scope(delegate.createWhenCondition(trimMargin()))
