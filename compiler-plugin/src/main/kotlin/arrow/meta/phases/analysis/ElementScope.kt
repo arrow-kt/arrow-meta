@@ -219,7 +219,7 @@ interface ElementScope {
   
   val enumEntryInitializerList: Scope<KtInitializerList>
   
-  val String.whenEntry: Scope<KtWhenEntry>
+  val String.whenEntry: WhenEntryScope
   
   val String.whenCondition: Scope<KtWhenCondition>
   
