@@ -3,6 +3,7 @@ package arrow.meta.ide.phases.resolve
 import arrow.meta.ide.phases.config.buildFolders
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
@@ -67,6 +68,7 @@ import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyAnnotationDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -174,6 +176,9 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     ApplicationManager.getApplication().executeOnPooledThread {
       DumbService.getInstance(project).runReadActionInSmartMode {
         computeCache()
+
+        // refresh the highlighting of the current editor, using the new cache
+        DaemonCodeAnalyzer.getInstance(project).restart()
       }
     }
   }
