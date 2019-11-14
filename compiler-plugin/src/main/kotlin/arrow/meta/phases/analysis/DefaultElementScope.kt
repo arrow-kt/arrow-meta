@@ -302,4 +302,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`while`: WhileExpressionScope
     get() = WhileExpressionScope(expression.value as KtWhileExpression)
+
+  override val String.`if`: IfExpressionScope
+    get() = IfExpressionScope(expression.value as KtIfExpression)
 }

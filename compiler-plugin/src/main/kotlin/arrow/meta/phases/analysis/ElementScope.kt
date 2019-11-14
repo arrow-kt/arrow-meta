@@ -279,6 +279,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.`if`: IfExpressionScope
   
   fun singleStatementBlock(
     statement: KtExpression,
