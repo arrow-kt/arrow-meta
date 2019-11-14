@@ -5,6 +5,7 @@ import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.KtTypeReference
@@ -13,6 +14,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
  * A [KtTypeAlias] [Quote] with a custom template destructuring [TypeAliasScope]
+ *
+ * @param match designed to to feed in any kind of [KtTypeAlias] predicate returning a [Boolean]
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.typeAlias(
   match: KtTypeAlias.() -> Boolean,
