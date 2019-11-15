@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  *     tryExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ try $`{ tryBlock }` $catch $finally """.`try`
+ *       newDeclaration = """ try $tryBlock $catch $finally """.`try`
  *      )
 *      }
 *     )
@@ -45,7 +45,7 @@ fun Meta.tryExpression(
  */
 class TryExpressionScope(
   override val value: KtTryExpression?,
-  val `{ tryBlock }`: Scope<KtBlockExpression> = Scope(value?.tryBlock),
+  val tryBlock: Scope<KtBlockExpression> = Scope(value?.tryBlock),
   val catch: ScopedList<KtCatchClause> = ScopedList(value?.catchClauses ?: listOf()),
   val finally: Scope<KtFinallySection> = Scope(value?.finallyBlock)
 ) : Scope<KtTryExpression>(value)
