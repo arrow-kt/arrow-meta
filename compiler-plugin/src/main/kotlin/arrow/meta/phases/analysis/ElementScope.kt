@@ -1,6 +1,13 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.*
+import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.ForExpressionScope
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.WhenConditionScope
+import arrow.meta.quotes.WhenEntryScope
+import arrow.meta.quotes.WhileExpressionScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -52,8 +59,6 @@ import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.KtWhenCondition
-import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.resolve.ImportPath
 
 interface ElementScope {
