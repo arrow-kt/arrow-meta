@@ -8,6 +8,7 @@ import arrow.meta.ide.dsl.utils.h1
 import arrow.meta.ide.dsl.utils.kotlin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.plugins.higherkind.isHigherKindedType
+import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ScopedList
@@ -18,6 +19,7 @@ import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.i
 import org.celtric.kotlin.html.render
 import org.celtric.kotlin.html.text
+import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtClass
@@ -28,6 +30,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 val IdeMetaPlugin.higherKindsIdePlugin: Plugin
   get() = "HigherKindsIdePlugin" {
     meta(
+      addDiagnosticSuppressor(Diagnostic::kindsTypeMismatch),
       addLineMarkerProvider(
         icon = ArrowIcons.HKT,
         transform = {
