@@ -11,7 +11,6 @@ import arrow.meta.ide.plugins.nothing.nothingIdePlugin
 import arrow.meta.ide.plugins.optics.opticsIdePlugin
 import arrow.meta.ide.plugins.purity.purity
 import arrow.meta.ide.plugins.typeclasses.typeclassesIdePlugin
-import arrow.meta.ide.plugins.union.uniontypes
 import arrow.meta.phases.CompilerContext
 import kotlin.contracts.ExperimentalContracts
 
@@ -21,7 +20,6 @@ open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
     super.intercept(ctx) +
       initialIdeSetUp +
       purity +
-      uniontypes +
       higherKindsIdePlugin +
       typeclassesIdePlugin +
       comprehensionsIdePlugin +
