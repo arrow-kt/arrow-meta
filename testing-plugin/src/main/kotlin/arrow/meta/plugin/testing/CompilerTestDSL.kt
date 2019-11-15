@@ -75,6 +75,7 @@ interface AssertSyntax {
 
   operator fun Assert.plus(other: Assert): List<Assert> =
     listOf(this, other)
+
   fun allOf(vararg elements: Assert): List<Assert> =
     if (elements.isNotEmpty()) elements.asList() else emptyList()
 }

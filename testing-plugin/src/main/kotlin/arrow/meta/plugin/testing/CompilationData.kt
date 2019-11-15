@@ -1,15 +1,8 @@
 package arrow.meta.plugin.testing
 
-enum class CompilationStatus {
-  OK,
-  INTERNAL_ERROR,
-  COMPILATION_ERROR,
-  SCRIPT_EXECUTION_ERROR
-}
-
 /**
- * Compilation data is a Monoid that can accumulate in it's element as it's
- * composed and fushioned with other CompilationData elements
+ * Compilation data is a Monoid that can accumulate in its element as it's
+ * composed and merged with other CompilationData elements
  */
 data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
