@@ -5,6 +5,7 @@ import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhileExpressionScope
@@ -285,6 +286,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.`try`: TryExpressionScope
   
   fun singleStatementBlock(
     statement: KtExpression,
