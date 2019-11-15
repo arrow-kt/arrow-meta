@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.quotes.CatchClauseScope
 import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
@@ -285,6 +286,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.catch: CatchClauseScope
   
   fun singleStatementBlock(
     statement: KtExpression,
