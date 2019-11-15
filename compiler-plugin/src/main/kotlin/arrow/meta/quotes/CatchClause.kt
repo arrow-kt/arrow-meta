@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.psi.KtParameterList
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.CatchClause
+ * import arrow.meta.quotes.catchClause
  *
  * val Meta.reformatCatchClause: Plugin
  *  get() =
