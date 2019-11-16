@@ -302,6 +302,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`while`: WhileExpressionScope
     get() = WhileExpressionScope(expression.value as KtWhileExpression)
+  
+  override val String.catch: CatchClauseScope
+    get() = CatchClauseScope(expression.value as KtCatchClause)
 
   override val String.finally: FinallySectionScope
     get() = FinallySectionScope(expression.value as KtFinallySection)
