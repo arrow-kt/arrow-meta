@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.quotes.BlockExpressionScope
 import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
@@ -16,7 +17,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
@@ -196,7 +196,7 @@ interface ElementScope {
   
   val String.annotationEntry: Scope<KtAnnotationEntry>
   
-  val emptyBody: Scope<KtBlockExpression>
+  val emptyBody: BlockExpressionScope
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
@@ -280,7 +280,7 @@ interface ElementScope {
   
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
-  val String.block: Scope<KtBlockExpression>
+  val String.block: BlockExpressionScope
 
   val String.`for`: ForExpressionScope
 
@@ -290,7 +290,7 @@ interface ElementScope {
     statement: KtExpression,
     prevComment: String? = null,
     nextComment: String? = null
-  ): Scope<KtBlockExpression>
+  ): BlockExpressionScope
   
   val String.comment: PsiComment
 
