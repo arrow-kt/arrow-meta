@@ -5,6 +5,7 @@ import arrow.meta.quotes.BlockExpressionScope
 import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
+import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
@@ -31,7 +32,6 @@ import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
@@ -267,7 +267,7 @@ interface ElementScope {
     condition: KtExpression,
     thenExpr: KtExpression,
     elseExpr: KtExpression? = null
-  ): Scope<KtIfExpression>
+  ): IfExpressionScope
   
   fun argument(
     expression: KtExpression?,
@@ -289,6 +289,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.`if`: IfExpressionScope
 
   val String.`when`: WhenExpressionScope
 
