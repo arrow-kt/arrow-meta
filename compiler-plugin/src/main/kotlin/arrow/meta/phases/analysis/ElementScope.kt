@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
@@ -285,6 +286,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.finally: FinallySectionScope
   
   fun singleStatementBlock(
     statement: KtExpression,
