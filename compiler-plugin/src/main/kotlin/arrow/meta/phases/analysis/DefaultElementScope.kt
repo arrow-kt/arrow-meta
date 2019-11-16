@@ -270,8 +270,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
     Scope(delegate.createBlockCodeFragment(trimMargin(), context))
 
-  override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): Scope<KtIfExpression> =
-    Scope(delegate.createIf(condition, thenExpr, elseExpr))
+  override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpressionScope =
+    IfExpressionScope(delegate.createIf(condition, thenExpr, elseExpr))
 
   override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): Scope<KtValueArgument> =
     Scope(delegate.createArgument(expression, name, isSpread, reformat))
@@ -302,6 +302,15 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`while`: WhileExpressionScope
     get() = WhileExpressionScope(expression.value as KtWhileExpression)
+
+  override val String.`if`: IfExpressionScope
+    get() = IfExpressionScope(expression.value as KtIfExpression)
+
+  override val String.`when`: WhenExpressionScope
+    get() = WhenExpressionScope(expression.value as KtWhenExpression)
+
+  override val String.`try`: TryExpressionScope
+    get() = TryExpressionScope(expression.value as KtTryExpression)
   
   override val String.catch: CatchClauseScope
     get() = CatchClauseScope(expression.value as KtCatchClause)
