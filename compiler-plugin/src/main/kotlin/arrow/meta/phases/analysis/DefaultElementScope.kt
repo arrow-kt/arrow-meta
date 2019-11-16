@@ -180,8 +180,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotationEntry: Scope<KtAnnotationEntry>
     get() = Scope(delegate.createAnnotationEntry(trimMargin()))
 
-  override val emptyBody: Scope<KtBlockExpression>
-    get() = Scope(delegate.createEmptyBody())
+  override val emptyBody: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createEmptyBody())
 
   override val anonymousInitializer: Scope<KtAnonymousInitializer>
     get() = Scope(delegate.createAnonymousInitializer())
@@ -222,8 +222,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.whenEntry: WhenEntryScope
     get() = WhenEntryScope(delegate.createWhenEntry(trimMargin()))
 
-  override val String.whenCondition: Scope<KtWhenCondition>
-    get() = Scope(delegate.createWhenCondition(trimMargin()))
+  override val String.whenCondition: WhenConditionScope
+    get() = WhenConditionScope(delegate.createWhenCondition(trimMargin()))
 
   override fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression> =
     Scope(delegate.createBlockStringTemplateEntry(expression))
@@ -288,11 +288,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
     get() = Scope(delegate.creareDelegatedSuperTypeEntry(trimMargin()))
 
-  override val String.block: Scope<KtBlockExpression>
-    get() = Scope(delegate.createBlock(trimMargin()))
+  override val String.block: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createBlock(trimMargin()))
 
-  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): Scope<KtBlockExpression> =
-    Scope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
+  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpressionScope =
+    BlockExpressionScope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
 
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
@@ -305,4 +305,13 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`when`: WhenExpressionScope
     get() = WhenExpressionScope(expression.value as KtWhenExpression)
+
+  override val String.`try`: TryExpressionScope
+    get() = TryExpressionScope(expression.value as KtTryExpression)
+  
+  override val String.catch: CatchClauseScope
+    get() = CatchClauseScope(expression.value as KtCatchClause)
+
+  override val String.finally: FinallySectionScope
+    get() = FinallySectionScope(expression.value as KtFinallySection)
 }
