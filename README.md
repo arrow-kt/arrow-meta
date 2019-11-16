@@ -18,7 +18,8 @@ Writing compiler plugins, source transformations, IDEA plugins, linters, type se
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=WKR384ZeBgk
 " target="_blank"><img src="http://img.youtube.com/vi/WKR384ZeBgk/0.jpg" 
-alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" width="240" height="180" border="10" /></a>
+alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" width="100%" border="10" /></a>
+
 
 ### Λrrow Meta examples
 
