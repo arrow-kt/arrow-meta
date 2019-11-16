@@ -57,7 +57,7 @@ val Meta.higherKindedTypes: Plugin
       )
     }
 
-private fun Diagnostic.kindsTypeMismatch(): Boolean =
+fun Diagnostic.kindsTypeMismatch(): Boolean =
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
     safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
       val a = diagnosticWithParameters.a
