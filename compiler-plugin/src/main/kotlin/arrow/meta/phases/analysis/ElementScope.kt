@@ -9,6 +9,7 @@ import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
@@ -299,7 +300,9 @@ interface ElementScope {
   val String.catch: CatchClauseScope
 
   val String.finally: FinallySectionScope
-  
+
+  val String.`throw`: ThrowExpressionScope
+
   fun singleStatementBlock(
     statement: KtExpression,
     prevComment: String? = null,

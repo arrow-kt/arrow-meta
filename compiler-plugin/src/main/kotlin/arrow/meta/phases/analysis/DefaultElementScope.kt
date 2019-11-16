@@ -317,4 +317,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.finally: FinallySectionScope
     get() = FinallySectionScope(expression.value as KtFinallySection)
+
+  override val String.`throw`: ThrowExpressionScope
+    get() = ThrowExpressionScope(expression.value as KtThrowExpression)
 }
