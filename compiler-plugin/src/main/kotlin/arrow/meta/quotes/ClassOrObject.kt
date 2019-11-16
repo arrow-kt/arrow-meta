@@ -52,7 +52,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *        ktClass.typeParameters.isEmpty()
  * ```
  *
- * For a [KtClass] to be a product type, we check to see if the [KtClass] is an ADT, and that the cardinality of
+ * For a [KtClass] to be a product type, we check to see if the [KtClass] is an ADT, and that the arity of
  * the constructor parameters is greater than one and non-mutable. For the [LensPlugin], we've just demonstrated how we
  * can check for the product type of a [KtClass] by accessing the properties made available by the Kotlin PSI tree.
  *
@@ -99,7 +99,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * match compatibility of the intercepted classes wrapped in some kind of [Scope]. To see more, see
  * [ClassScope].
  *
- * @param match designed to to feed in any kind of [KtClass] predicate returning a [Boolean]
+ * @param match filters [KtClass] elements based on a [Boolean] predicate
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.classOrObject(
@@ -113,7 +113,7 @@ fun Meta.classOrObject(
  * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
  * before it's compiled.
  *
- * @param value the PSI element being fed in for the compiler plugin.
+ * @param The scoped [KtElement] being destructured in the template
  * @param annotationEntries searches for marked annotations associated with the class.
  * @param modality  Modifier keyword is a keyword that can be used in annotation position as part of modifier list
  * @param visibility is the class public, private, protected? etc.
