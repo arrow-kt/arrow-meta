@@ -1,7 +1,7 @@
 plugins {
   id 'java-gradle-plugin'
   id 'maven-publish'
-  id 'com.gradle.plugin-publish' version "0.10.1"
+  id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
 }
 
 repositories {
@@ -28,18 +28,18 @@ processResources {
 
 dependencies {
   implementation gradleApi()
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
-  implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-  implementation "io.github.classgraph:classgraph:$class_graph_version"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+  implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$KOTLIN_VERSION"
+  implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
+  implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   runtimeOnly "io.arrow-kt:arrow-meta-compiler-plugin:$VERSION_NAME"
 }
 
 compileKotlin {
-  kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
 }
 compileTestKotlin {
-  kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
 }
 
 jar {
