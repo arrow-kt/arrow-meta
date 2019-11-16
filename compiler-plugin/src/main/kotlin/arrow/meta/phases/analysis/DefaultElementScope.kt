@@ -180,8 +180,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotationEntry: Scope<KtAnnotationEntry>
     get() = Scope(delegate.createAnnotationEntry(trimMargin()))
 
-  override val emptyBody: Scope<KtBlockExpression>
-    get() = Scope(delegate.createEmptyBody())
+  override val emptyBody: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createEmptyBody())
 
   override val anonymousInitializer: Scope<KtAnonymousInitializer>
     get() = Scope(delegate.createAnonymousInitializer())
@@ -288,11 +288,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
     get() = Scope(delegate.creareDelegatedSuperTypeEntry(trimMargin()))
 
-  override val String.block: Scope<KtBlockExpression>
-    get() = Scope(delegate.createBlock(trimMargin()))
+  override val String.block: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createBlock(trimMargin()))
 
-  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): Scope<KtBlockExpression> =
-    Scope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
+  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpressionScope =
+    BlockExpressionScope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
 
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
