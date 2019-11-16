@@ -11,6 +11,7 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
+import arrow.meta.quotes.WhenExpressionScope
 import arrow.meta.quotes.WhileExpressionScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
@@ -288,6 +289,8 @@ interface ElementScope {
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
+
+  val String.`when`: WhenExpressionScope
 
   val String.`try`: TryExpressionScope
 
