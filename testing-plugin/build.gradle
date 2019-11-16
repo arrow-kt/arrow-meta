@@ -3,23 +3,23 @@ apply plugin: 'kotlin-kapt'
 
 dependencies {
 
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compileOnly "io.github.classgraph:classgraph:$class_graph_version"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    compileOnly "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
     compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
-    implementation "org.assertj:assertj-core:$assertj_version"
-    implementation "com.github.tschuchortdev:kotlin-compile-testing:$kotlin_compile_testing"
+    implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
+    implementation "com.github.tschuchortdev:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING"
 
-    testImplementation "io.kotlintest:kotlintest-runner-junit4:$kotlin_test_version"
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit_vintage_version"
+    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
     testRuntimeOnly "io.arrow-kt:arrow-annotations:$ARROW_VERSION"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
 }
 
 test {

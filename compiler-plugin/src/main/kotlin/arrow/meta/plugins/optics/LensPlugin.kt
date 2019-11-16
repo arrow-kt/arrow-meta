@@ -24,12 +24,12 @@ val Meta.lenses: Plugin
   get() =
     "lenses" {
       meta(
-        classOrObject(::isProductType) { c ->
+        classOrObject(::isProductType) { c: KtClass ->
 
           val location = c.toSourceElement().safeAs<KotlinSourceElement>()?.psi?.textRange
 
           validateMaxArityAllowed(this)
-          Transform.replace(
+          Transform.replace<KtClass>(
             replacing = c,
             newDeclaration =
             if (c.companionObjects.isEmpty())
