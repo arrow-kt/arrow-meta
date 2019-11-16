@@ -1,0 +1,46 @@
+package arrow.meta.quotes
+
+import arrow.meta.Meta
+import arrow.meta.phases.ExtensionPhase
+import org.jetbrains.kotlin.psi.KtWhenCondition
+
+/**
+ * A [KtWhenCondition] [Quote] with a custom template destructuring [WhenConditionScope]. See below:
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.whenCondition
+ *
+ * val Meta.reformatWhenCondition: Plugin
+ *  get() =
+ *   "ReformatWhenCondition" {
+ *    meta(
+ *     whenCondition({ true }) { c ->
+ *      Transform.replace(
+ *       replacing = c,
+ *       newDeclaration = """ $condition """.whenCondition
+ *      )
+ *     }
+ *    )
+ *   }
+ *```
+ *
+ * @param match designed to to feed in any kind of [KtWhenCondition] predicate returning a [Boolean]
+ * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
+ */
+fun Meta.whenCondition(
+  match: KtWhenCondition.() -> Boolean,
+  map: WhenConditionScope.(KtWhenCondition) -> Transform<KtWhenCondition>
+): ExtensionPhase =
+  quote(match, map) { WhenConditionScope(it) }
+
+/**
+ * A template destructuring [Scope] for a [KtWhenCondition]
+ */
+class WhenConditionScope(
+  override val value: KtWhenCondition?,
+  val condition: String = value?.text ?: ""
+) : Scope<KtWhenCondition>(value)

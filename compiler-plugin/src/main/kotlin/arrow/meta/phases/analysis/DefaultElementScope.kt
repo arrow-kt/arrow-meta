@@ -1,64 +1,13 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.NamedFunctionScope
-import arrow.meta.quotes.ParameterScope
-import arrow.meta.quotes.Scope
+import arrow.meta.quotes.*
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtAnonymousInitializer
-import org.jetbrains.kotlin.psi.KtBlockCodeFragment
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClassBody
-import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtEnumEntry
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
-import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtInitializerList
-import org.jetbrains.kotlin.psi.KtLabeledExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameterList
-import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import org.jetbrains.kotlin.psi.KtPropertyDelegate
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
-import org.jetbrains.kotlin.psi.KtSuperTypeEntry
-import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
-import org.jetbrains.kotlin.psi.KtTypeArgumentList
-import org.jetbrains.kotlin.psi.KtTypeCodeFragment
-import org.jetbrains.kotlin.psi.KtTypeElement
-import org.jetbrains.kotlin.psi.KtTypeParameter
-import org.jetbrains.kotlin.psi.KtTypeParameterList
-import org.jetbrains.kotlin.psi.KtTypeProjection
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.KtWhenCondition
-import org.jetbrains.kotlin.psi.KtWhenEntry
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
@@ -231,8 +180,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotationEntry: Scope<KtAnnotationEntry>
     get() = Scope(delegate.createAnnotationEntry(trimMargin()))
 
-  override val emptyBody: Scope<KtBlockExpression>
-    get() = Scope(delegate.createEmptyBody())
+  override val emptyBody: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createEmptyBody())
 
   override val anonymousInitializer: Scope<KtAnonymousInitializer>
     get() = Scope(delegate.createAnonymousInitializer())
@@ -270,11 +219,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val enumEntryInitializerList: Scope<KtInitializerList>
     get() = Scope(delegate.createEnumEntryInitializerList())
 
-  override val String.whenEntry: Scope<KtWhenEntry>
-    get() = Scope(delegate.createWhenEntry(trimMargin()))
+  override val String.whenEntry: WhenEntryScope
+    get() = WhenEntryScope(delegate.createWhenEntry(trimMargin()))
 
-  override val String.whenCondition: Scope<KtWhenCondition>
-    get() = Scope(delegate.createWhenCondition(trimMargin()))
+  override val String.whenCondition: WhenConditionScope
+    get() = WhenConditionScope(delegate.createWhenCondition(trimMargin()))
 
   override fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression> =
     Scope(delegate.createBlockStringTemplateEntry(expression))
@@ -339,12 +288,24 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
     get() = Scope(delegate.creareDelegatedSuperTypeEntry(trimMargin()))
 
-  override val String.block: Scope<KtBlockExpression>
-    get() = Scope(delegate.createBlock(trimMargin()))
+  override val String.block: BlockExpressionScope
+    get() = BlockExpressionScope(delegate.createBlock(trimMargin()))
 
-  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): Scope<KtBlockExpression> =
-    Scope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
+  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpressionScope =
+    BlockExpressionScope(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
 
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
+
+  override val String.`for`: ForExpressionScope
+    get() = ForExpressionScope(expression.value as KtForExpression)
+
+  override val String.`while`: WhileExpressionScope
+    get() = WhileExpressionScope(expression.value as KtWhileExpression)
+  
+  override val String.catch: CatchClauseScope
+    get() = CatchClauseScope(expression.value as KtCatchClause)
+
+  override val String.finally: FinallySectionScope
+    get() = FinallySectionScope(expression.value as KtFinallySection)
 }
