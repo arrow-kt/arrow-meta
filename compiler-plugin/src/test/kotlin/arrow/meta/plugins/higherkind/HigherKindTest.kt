@@ -47,6 +47,27 @@ class HigherKindTest {
   }
 
   @Test
+  fun `PositiveInt can be refined with type proofs`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|import arrow.*
+           |val one: PositiveInt? = 1
+           |val pos: Int? = one
+           |val minusOne: PositiveInt? = -1
+           |val neg: Int? = minusOne
+           |""".source
+      },
+      assert = {
+        allOf(
+          "pos".source.evalsTo(1),
+          "neg".source.evalsTo(null)
+        )
+      }
+    ))
+  }
+
+  @Test
   fun `Union accepts typed values in the union 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
