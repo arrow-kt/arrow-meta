@@ -13,9 +13,12 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
+import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
+import org.jetbrains.kotlin.ir.util.endOffset
 import org.jetbrains.kotlin.ir.util.referenceFunction
+import org.jetbrains.kotlin.ir.util.startOffset
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtParameter
 
@@ -49,7 +52,7 @@ class IrUtils(
       endOffset = UNDEFINED_OFFSET,
       type = irFunctionSymbol.owner.returnType,
       symbol = irFunctionSymbol,
-      descriptor = irFunctionSymbol.owner.descriptor,
+      descriptor = irFunctionSymbol.descriptor,
       typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
       valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
     )

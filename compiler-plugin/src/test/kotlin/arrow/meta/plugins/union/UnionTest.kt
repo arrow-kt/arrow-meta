@@ -4,7 +4,6 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
-
 class UnionTest {
 
   @Test
@@ -191,8 +190,8 @@ class UnionTest {
       code = {
         """|import arrow.Union2
            |fun f(): Union2<String, Int> = 0
-           |fun x() = f()
-           |fun z(): Int? = x()
+           |val x = f()
+           |fun z(): Int? = x
            |""".source
       },
       assert = {
@@ -212,7 +211,7 @@ class UnionTest {
            |""".source
       },
       assert = {
-        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> /* = Union4<String, Int, Nothing, Nothing> */ but Double? was expected") })
+        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> /* = Union4<String, Int, Impossible, Impossible> */ but Double? was expected") })
       }
     ))
   }

@@ -1,6 +1,6 @@
 package arrow
 
-@proof(implicitConversion = true)
+@proof(conversion = true)
 fun String.safeToInt(): Int? =
   try {
     toInt()

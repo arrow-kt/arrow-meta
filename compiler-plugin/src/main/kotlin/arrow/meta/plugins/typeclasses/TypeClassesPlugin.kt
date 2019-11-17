@@ -184,6 +184,8 @@ private fun CompilerContext.reportAmbiguousExtensions(
   )
 }
 
+//TODO this is not enough, this needs to use call resolution to find candidates as subtype matching over the functions won't
+// consider generic functions whose type argumnents would need to first be substituded in resolution in order to be valid candidates
 private fun PackageFragmentDescriptor.findExtensionProof(extensionType: KotlinType): List<DeclarationDescriptor> =
   getMemberScope()
     .getContributedDescriptors()

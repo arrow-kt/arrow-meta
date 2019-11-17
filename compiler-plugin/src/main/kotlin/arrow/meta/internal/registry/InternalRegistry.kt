@@ -23,6 +23,7 @@ import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import arrow.meta.plugins.higherkind.KindAwareTypeChecker
+import arrow.meta.quotes.get
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.backend.common.BackendContext
@@ -153,7 +154,6 @@ interface InternalRegistry : ConfigSyntax {
     project: Project,
     configuration: CompilerConfiguration
   ) {
-    println("Project allowed extensions: ${Extensions.getArea(project).extensionPoints.toList().joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
     }
