@@ -70,7 +70,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.resolve.ImportPath
 
-interface ElementScope {
+interface ElementScope : ScopeSyntax {
   
   val valKeyword: PsiElement
   

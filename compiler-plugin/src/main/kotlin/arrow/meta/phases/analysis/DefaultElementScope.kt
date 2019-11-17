@@ -113,6 +113,21 @@ class DefaultElementScope(project: Project) : ElementScope {
       } else this
     }
 
+  override fun <A : KtElement, B : KtElement> Scope<A>.map(f: (A) -> B): Scope<B> =
+          value?.let { v ->
+            Scope(f(v))
+          }.orEmpty()
+
+  override fun <A : KtElement, B : KtElement> Scope<A>.`as`(b: B): Scope<B> =
+          map { b }
+
+  override fun <A : B, B : KtElement> Scope<A>.widen(): Scope<B> = this
+
+  override fun <A : KtElement, B : KtElement> Scope<A>.fold(b: B, f: (B, A) -> B): B =
+          value?.let { v ->
+            f(b, v)
+          } ?: b
+
   override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Scope<KtProperty> =
     Scope(delegate.createProperty(modifiers, name, type, isVar, initializer))
 
