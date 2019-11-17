@@ -320,4 +320,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`throw`: ThrowExpressionScope
     get() = ThrowExpressionScope(expression.value as KtThrowExpression)
+
+  override val String.`is`: IsExpressionScope
+    get() = IsExpressionScope(expression.value as KtIsExpression)
 }
