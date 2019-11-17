@@ -47,6 +47,25 @@ class HigherKindTest {
   }
 
   @Test
+  fun `Tuples`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|import arrowx.*
+           |val tupled: Tuple2<String, Int> = Person("a", 1)
+           |val person: Person = tupled
+           |val result = person.name to person.age
+           |""".source
+      },
+      assert = {
+        allOf(
+          "result".source.evalsTo(Pair("a", 1))
+        )
+      }
+    ))
+  }
+
+  @Test
   fun `PositiveInt can be refined with type proofs`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
