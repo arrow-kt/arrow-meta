@@ -1,6 +1,21 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.*
+import arrow.meta.quotes.BlockExpressionScope
+import arrow.meta.quotes.CatchClauseScope
+import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.FinallySectionScope
+import arrow.meta.quotes.ForExpressionScope
+import arrow.meta.quotes.IfExpressionScope
+import arrow.meta.quotes.IsExpressionScope
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.ThrowExpressionScope
+import arrow.meta.quotes.TryExpressionScope
+import arrow.meta.quotes.WhenConditionScope
+import arrow.meta.quotes.WhenEntryScope
+import arrow.meta.quotes.WhenExpressionScope
+import arrow.meta.quotes.WhileExpressionScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -9,7 +24,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
@@ -20,7 +34,6 @@ import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
@@ -52,8 +65,6 @@ import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.KtWhenCondition
-import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.resolve.ImportPath
 
 interface ElementScope {
@@ -191,7 +202,7 @@ interface ElementScope {
   
   val String.annotationEntry: Scope<KtAnnotationEntry>
   
-  val emptyBody: Scope<KtBlockExpression>
+  val emptyBody: BlockExpressionScope
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
@@ -220,9 +231,9 @@ interface ElementScope {
   
   val enumEntryInitializerList: Scope<KtInitializerList>
   
-  val String.whenEntry: Scope<KtWhenEntry>
+  val String.whenEntry: WhenEntryScope
   
-  val String.whenCondition: Scope<KtWhenCondition>
+  val String.whenCondition: WhenConditionScope
   
   fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression>
   
@@ -258,7 +269,7 @@ interface ElementScope {
     condition: KtExpression,
     thenExpr: KtExpression,
     elseExpr: KtExpression? = null
-  ): Scope<KtIfExpression>
+  ): IfExpressionScope
   
   fun argument(
     expression: KtExpression?,
@@ -275,17 +286,31 @@ interface ElementScope {
   
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
-  val String.block: Scope<KtBlockExpression>
+  val String.block: BlockExpressionScope
 
   val String.`for`: ForExpressionScope
 
   val String.`while`: WhileExpressionScope
-  
+
+  val String.`if`: IfExpressionScope
+
+  val String.`when`: WhenExpressionScope
+
+  val String.`try`: TryExpressionScope
+
+  val String.catch: CatchClauseScope
+
+  val String.finally: FinallySectionScope
+
+  val String.`throw`: ThrowExpressionScope
+
+  val String.`is`: IsExpressionScope
+
   fun singleStatementBlock(
     statement: KtExpression,
     prevComment: String? = null,
     nextComment: String? = null
-  ): Scope<KtBlockExpression>
+  ): BlockExpressionScope
   
   val String.comment: PsiComment
 

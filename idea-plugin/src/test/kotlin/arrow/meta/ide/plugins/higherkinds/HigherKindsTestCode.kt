@@ -60,5 +60,22 @@ internal object HigherKindsTestCode {
     // not a class
     val notAClass: IdOf<Int> = Id(1)
     """.trimIndent()
+
+  val code4 = """
+    package test
+    
+    import arrow.Kind
+
+    interface Service<F> {
+    fun Kind<F, Int>.addOne(F: Monad<F> = given): Kind<F, Int> =
+        map { it + 1 }
+    }
+
+
+    object Typeclasses {
+        fun <F, A> Kind<F, A>.resolution1(s: Service<ForOption> = given): OptionOf<Int> =
+            Option.Some(1).addOne()
+    }
+  """.trimIndent()
 }
 

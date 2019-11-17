@@ -1,9 +1,9 @@
-# Arrow Meta
+# Λrrow Meta
 
 [![Latest snapshot](https://img.shields.io/maven-metadata/v?color=%230576b6&label=latest%20snapshot&metadataUrl=https%3A%2F%2Foss.jfrog.org%2Fartifactory%2Foss-snapshot-local%2Fio%2Farrow-kt%2Farrow-meta-compiler-plugin%2Fmaven-metadata.xml)](https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/arrow-meta-compiler-plugin/)
 [![Latest Gradle Plugin Version](https://img.shields.io/maven-metadata/v?color=%230576b6&label=latest%20Gradle%20Plugin%20version&metadataUrl=https%3A%2F%2Fplugins.gradle.org%2Fm2%2Fio%2Farrow-kt%2Farrow%2Fio.arrow-kt.arrow.gradle.plugin%2Fmaven-metadata.xml)](https://plugins.gradle.org/plugin/io.arrow-kt.arrow)
-![Publish artifacts](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Artifacts/badge.svg)
-![Publish documentation](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Documentation/badge.svg)
+[![Publish artifacts](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Artifacts/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Artifacts%22)
+[![Publish documentation](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Documentation/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Documentation%22)
 [![Kotlin version badge](https://img.shields.io/badge/kotlin-1.3-blue.svg)](https://kotlinlang.org/docs/reference/whatsnew13.html)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -13,59 +13,19 @@ Functional companion to Kotlin's Compiler & IDE
 
 ### Getting started
 
-Arrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all it's phases bringing its full power to the community.
+Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all it's phases bringing its full power to the community.
 Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, automatic code refactoring,... are just a few of the [use cases](#use-cases) of the things that can be accomplished with Meta.
 
-#### Creating your first compiler plugin
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=WKR384ZeBgk
+" target="_blank"><img src="http://img.youtube.com/vi/WKR384ZeBgk/0.jpg" 
+alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" width="100%" border="10" /></a>
 
-#### Project Setup
 
-#### Hello World Compiler Plugin
+### Λrrow Meta examples
 
-The following example shows a Hello World Compiler Plugin. 
-The Hello World plugin auto implements the `helloWorld` function by rewriting the Kotlin AST before the compiler proceeds.
+![Hello World Compiler Plugin Demo](docs/img/demos/hello-world-compiler-plugin.gif)
 
-```kotlin
-val Meta.helloWorld: Plugin
-  get() =
-    "Hello World" {
-      meta(
-        namedFunction({ name == "helloWorld" }) { c ->
-          Transform.replace(
-            replacing = c,
-            newDeclaration =
-            """|fun helloWorld(): Unit = 
-               |  println("Hello ΛRROW Meta!")
-               |""".function.synthetic
-          )
-        }
-      )
-    }
-```
-
-For any user code whose function name is `helloWorld` our compiler plugin will replace the matching function for a
-function that returns Unit and prints our message.
-
-```kotlin:diff
--fun helloWorld(): Unit = TODO()
-+fun helloWorld(): Unit = 
-+  println("Hello ΛRROW Meta!")
-```
-
-#### Hello World Compiler + IDE Plugin
-
-#### Arrow Meta 💚 Kotlin Compiler
-
-#### Anatomy of a Meta Plugin
-
-## Plugins
-
-### Higher Kinded Types
-### Type classes
-### Comprehensions
-### Optics
-
-## Use cases
+Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
 
 ## Build and run in your local environment
 
@@ -85,7 +45,7 @@ function that returns Unit and prints our message.
 
 ## Contributing
 
-Arrow Meta is an inclusive community powered by awesome individuals like you. As an actively growing ecosystem, Arrow Meta and its associated libraries and toolsets are in need of new contributors! We have issues suited for all levels, from entry to advanced, and our maintainers are happy to provide 1:1 mentoring. All are welcome in Arrow Meta.
+Λrrow Meta is an inclusive community powered by awesome individuals like you. As an actively growing ecosystem, Λrrow Meta and its associated libraries and toolsets are in need of new contributors! We have issues suited for all levels, from entry to advanced, and our maintainers are happy to provide 1:1 mentoring. All are welcome in Λrrow Meta.
 
 If you’re looking to contribute, have questions, or want to keep up-to-date about what’s happening, please follow us here and say hello!
 

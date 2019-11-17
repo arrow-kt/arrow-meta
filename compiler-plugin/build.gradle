@@ -4,11 +4,11 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     // WARNING: don't change the configuration name because it's used by shadowJar
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
-    compileOnly "com.intellij:openapi:7.0.3"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+    compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+    compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
 
-    testImplementation "io.kotlintest:kotlintest-runner-junit4:$kotlin_test_version"
+    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testImplementation project(":testing-plugin")
     testRuntimeOnly project(path: ':compiler-plugin', configuration: 'shadow')
 

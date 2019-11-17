@@ -18,7 +18,11 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
+import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.mapValueParameters
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -209,3 +213,7 @@ private fun KotlinType.dataTypeDescriptor(): ClassifierDescriptor? =
 private fun KotlinType.typeClassDescriptor(): ClassifierDescriptor? =
   constructor.declarationDescriptor
 
+fun Diagnostic.suppressUnusedParameter(): Boolean =
+  factory == Errors.UNUSED_PARAMETER && safeAs<DiagnosticWithParameters1<KtParameter, VariableDescriptor>>()?.let { diagnosticWithParameters ->
+    diagnosticWithParameters.psiElement.defaultValue?.text == "given"
+  } == true
