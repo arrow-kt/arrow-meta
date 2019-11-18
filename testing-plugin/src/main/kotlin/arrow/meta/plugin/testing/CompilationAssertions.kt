@@ -33,6 +33,10 @@ private const val VARIABLE = "[^(]+"
  *  )
  * ```
  *
+ * For running the compilation from the provided configuration and getting the results (status, classes and output
+ * messages) makes use of [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing), a library
+ * developed by [Thilo Schuchort](https://github.com/tschuchortdev).
+ *
  * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behaviour
  * @see [CompilerTest]
  */
