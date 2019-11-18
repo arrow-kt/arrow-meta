@@ -326,4 +326,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`return`: ReturnExpressionScope
     get() = ReturnExpressionScope(expression.value as KtReturnExpression)
+
+  override val String.annotatedExpression: AnnotatedExpressionScope
+    get() = AnnotatedExpressionScope(expression.value as KtAnnotatedExpression)
 }
