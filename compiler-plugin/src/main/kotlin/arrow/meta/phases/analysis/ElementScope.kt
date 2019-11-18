@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.quotes.AnnotatedExpressionScope
 import arrow.meta.quotes.BlockExpressionScope
 import arrow.meta.quotes.CatchClauseScope
 import arrow.meta.quotes.ClassScope
@@ -308,6 +309,8 @@ interface ElementScope {
   val String.`is`: IsExpressionScope
 
   val String.`return`: ReturnExpressionScope
+
+  val String.annotatedExpression: AnnotatedExpressionScope
 
   fun singleStatementBlock(
     statement: KtExpression,
