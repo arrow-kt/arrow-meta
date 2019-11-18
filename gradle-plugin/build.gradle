@@ -21,7 +21,7 @@ def pluginId = 'io.arrow-kt.arrow'
 processResources {
   filesMatching('**/plugin.properties') {
     filter {
-      it.replace('%COMPILER_PLUGIN_VERSION%', VERSION_NAME)
+      it.replace('%COMPILER_PLUGIN_VERSION%', version)
     }
   }
 }
@@ -32,7 +32,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$KOTLIN_VERSION"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
-  runtimeOnly "io.arrow-kt:arrow-meta-compiler-plugin:$VERSION_NAME"
+  runtimeOnly "io.arrow-kt:arrow-meta-compiler-plugin:$version"
 }
 
 compileKotlin {
