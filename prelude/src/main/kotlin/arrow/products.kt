@@ -72,7 +72,9 @@ inline class Tupled(override val value: Array<Any?>) : Tuple22<Any?, Any?, Any?,
   override fun component20(): Any? = value[19]
   override fun component21(): Any? = value[20]
   override fun component22(): Any? = value[21]
-  inline fun <A, B, C, D> widen(): Tuple4<A, B, C, D> = Tupled(value) as Tuple4<A, B, C, D>
+  @Suppress("UNCHECKED_CAST")
+  inline fun widen(): Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing> =
+    Tupled(value) as Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing>
 }
 
 data class Person(val name: String, val age: Int)
