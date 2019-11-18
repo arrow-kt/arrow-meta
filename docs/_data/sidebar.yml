@@ -78,7 +78,7 @@ options:
     nested_options:
 
       - title: Compiler Plugins Tests
-        url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/-compiler-test/index.html
+        url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/assert-this.html
 
       - title: IntelliJ IDEA Plugin Tests
         url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl/-ide-test-syntax.html

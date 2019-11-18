@@ -11,6 +11,31 @@ private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
 
+/**
+ * Allows to check if a compiler plugin is working as expected.
+ *
+ * It's not necessary to write assertions with actual and expected behaviour.
+ * Just indicating the expected behaviour in a [CompilerTest] and assertions will be built automatically
+ * from it.
+ *
+ * For instance:
+ *
+ * ```
+ *  assertThis(
+ *      CompilerTest(
+ *        config = { metaDependencies },
+ *        code = { "...".source },
+ *        assert = {
+ *          quoteOutputMatches("...".source) +
+ *          "...".source.evalsTo(someValue)
+ *        }
+ *      )
+ *  )
+ * ```
+ *
+ * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behaviour
+ * @see [CompilerTest]
+ */
 fun assertThis(compilerTest: CompilerTest): Unit =
   compilerTest.run(interpreter)
 
