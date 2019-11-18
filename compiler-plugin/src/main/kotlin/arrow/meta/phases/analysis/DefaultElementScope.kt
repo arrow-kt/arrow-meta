@@ -323,4 +323,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`is`: IsExpressionScope
     get() = IsExpressionScope(expression.value as KtIsExpression)
+
+  override val String.`return`: ReturnExpressionScope
+    get() = ReturnExpressionScope(expression.value as KtReturnExpression)
 }

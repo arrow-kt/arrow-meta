@@ -9,6 +9,7 @@ import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.IsExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
@@ -305,6 +306,8 @@ interface ElementScope {
   val String.`throw`: ThrowExpressionScope
 
   val String.`is`: IsExpressionScope
+
+  val String.`return`: ReturnExpressionScope
 
   fun singleStatementBlock(
     statement: KtExpression,
