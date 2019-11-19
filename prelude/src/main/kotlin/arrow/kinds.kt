@@ -1,5 +1,8 @@
 package arrowx
 
+import arrow.TypeProof.*
+import arrow.Proof
+
 class Impossible
 
 inline class Kinded(val value: Any?) :
@@ -51,23 +54,32 @@ typealias Kind21<F, A, B, C, D, E, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, 
 interface Kind22<out F, out A, out B, out C, out D, out E, out G, out H, out I, out J,
   out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V, out W>
 
-class `Id(_)`
-class Id<out A>(val value: A)
-
-@arrow.proof(conversion = true)
-fun <A> Kind<`Id(_)`, A>.fix(): Id<A> =
-  (this as Kinded).value as Id<A>
-
-@arrow.proof(conversion = true)
-fun <A> Id<A>.unfix(): Kind<`Id(_)`, A> =
-  Kinded(this)
-
 class `List(_)`
 
-@arrow.proof(conversion = true)
+@Proof(Subtyping)
 fun <A> Kind<`List(_)`, A>.fix(): List<A> =
   (this as Kinded).value as List<A>
 
-@arrow.proof(conversion = true)
+@Proof(Subtyping)
 fun <A> List<A>.unfix(): Kind<`List(_)`, A> =
+  Kinded(this)
+
+class `Set(_)`
+
+@Proof(Subtyping)
+fun <A> Kind<`Set(_)`, A>.fix(): Set<A> =
+  (this as Kinded).value as Set<A>
+
+@Proof(Subtyping)
+fun <A> Set<A>.unfix(): Kind<`Set(_)`, A> =
+  Kinded(this)
+
+class `Sequence(_)`
+
+@Proof(Subtyping)
+fun <A> Kind<`Sequence(_)`, A>.fix(): Sequence<A> =
+  (this as Kinded).value as Sequence<A>
+
+@Proof(Subtyping)
+fun <A> Sequence<A>.unfix(): Kind<`Sequence(_)`, A> =
   Kinded(this)

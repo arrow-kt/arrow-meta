@@ -1,26 +1,37 @@
 package arrow.meta.phases.codegen.ir
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.resolve.unwrappedNotNullableType
+import arrow.meta.proofs.Proof
+import arrow.meta.proofs.ProofCandidate
+import arrow.meta.proofs.matchingCandidates
+import arrow.meta.proofs.typeSubstitutor
 import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
-import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.endOffset
 import org.jetbrains.kotlin.ir.util.referenceFunction
-import org.jetbrains.kotlin.ir.util.startOffset
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.jetbrains.kotlin.types.KotlinType
 
 class IrUtils(
   val backendContext: BackendContext,
@@ -87,6 +98,90 @@ class IrUtils(
         constructorTypeArgumentsCount = declaredTypeParameters.size
       )
     }
+  }
+
+  fun FunctionDescriptor.substitutedIrTypes(
+    typeSubstitutor: NewTypeSubstitutorByConstructorMap
+  ): List<IrType?> =
+    typeParameters.mapIndexed { n, typeParamDescriptor ->
+      val newType = typeSubstitutor.map.entries.find {
+        it.key.toString() == typeParamDescriptor.defaultType.toString()
+      }
+      newType?.value?.let(typeTranslator::translateType)
+    }
+
+  fun proofCall(
+    fn: FunctionDescriptor,
+    typeSubstitutor: NewTypeSubstitutorByConstructorMap,
+    initializer: IrExpression?
+  ): IrCall {
+    val irTypes = fn.substitutedIrTypes(typeSubstitutor)
+    return fn.irCall().apply {
+      extensionReceiver = initializer
+      irTypes.forEachIndexed(this::putTypeArgument)
+    }
+  }
+
+  fun proofCall(
+    proofs: List<Proof>,
+    subType: KotlinType,
+    superType: KotlinType,
+    initializer: IrExpression?
+  ): IrCall? {
+    val matchingCandidates = proofs.matchingCandidates(subType, superType)
+    val proofs = matchingCandidates.map { (from, to, conversion) ->
+      proofCall(
+        fn = conversion,
+        typeSubstitutor = ProofCandidate(
+          from = from,
+          to = to,
+          subType = subType.unwrappedNotNullableType,
+          superType = superType.unwrappedNotNullableType
+        ).typeSubstitutor,
+        initializer = initializer
+      )
+    }
+    return proofs.firstOrNull() //TODO handle ambiguity and orphan selection
+  }
+
+  fun insertProof(proofs: List<Proof>, it: IrVariable): IrVariable? {
+    val targetType = it.type.originalKotlinType
+    val valueType = it.initializer?.type?.originalKotlinType
+    return if (targetType != null && valueType != null) {
+      it.apply {
+        initializer = proofCall(proofs, valueType, targetType, initializer) ?: initializer
+      }
+    } else it
+  }
+
+  fun insertProof(proofs: List<Proof>, it: IrProperty): IrProperty? {
+    val targetType = it.descriptor.returnType
+    val valueType = it.backingField?.initializer?.expression?.type?.originalKotlinType
+    return if (targetType != null && valueType != null) {
+      it.backingField?.let { field ->
+        val replacement = field.initializer?.expression?.let {
+          proofCall(proofs, valueType, targetType, it)
+        }
+        replacement?.let { field.initializer?.expression = it }
+        it
+      }
+    } else it
+  }
+
+  fun insertProof(proofs: List<Proof>, it: IrReturn): IrReturn? {
+    val targetType = it.returnTarget.returnType
+    val valueType = it.value.type.originalKotlinType
+    return if (targetType != null && valueType != null) {
+      proofCall(proofs, valueType, targetType, it.value)?.let { call ->
+        IrReturnImpl(
+          UNDEFINED_OFFSET,
+          UNDEFINED_OFFSET,
+          typeTranslator.translateType(targetType),
+          it.returnTargetSymbol,
+          call
+        )
+      } ?: it
+    } else it
   }
 
 }

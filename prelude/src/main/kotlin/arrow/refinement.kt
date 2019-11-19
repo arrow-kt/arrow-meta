@@ -1,15 +1,17 @@
 package arrow
 
+import arrow.TypeProof.*
+
 inline class PositiveInt(val value: Int)
 
-@proof(conversion = true)
+@Proof(Subtyping)
 fun Int.toPositiveInt(): PositiveInt? =
   if (this >= 0) PositiveInt(this) else null
 
-@proof(conversion = true)
+@Proof(Subtyping)
 fun PositiveInt.toPositiveInt(): Int =
   value
 
-@proof(conversion = true)
+@Proof(Subtyping)
 fun PositiveInt?.toPositiveInt(): Int? =
   this?.value

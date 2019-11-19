@@ -1,9 +1,10 @@
 package arrowx
 
-import arrow.proof
+import arrow.TypeProof.Subtyping
+import arrow.Proof
 
 interface Tuple22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> {
-  val value: Any?
+  val value: Array<Any?>
   operator fun component1(): A
   operator fun component2(): B
   operator fun component3(): C
@@ -49,7 +50,9 @@ typealias Tuple4<A, B, C, D> = Tuple5<A, B, C, D, Impossible>
 typealias Tuple3<A, B, C> = Tuple4<A, B, C, Impossible>
 typealias Tuple2<A, B> = Tuple3<A, B, Impossible>
 
-inline class Tupled(override val value: Array<Any?>) : Tuple22<Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?> {
+inline class Tupled(override val value: Array<Any?>) :
+  Tuple22<Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?,
+    Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?> {
   override fun component1(): Any? = value[0]
   override fun component2(): Any? = value[1]
   override fun component3(): Any? = value[2]
@@ -73,17 +76,21 @@ inline class Tupled(override val value: Array<Any?>) : Tuple22<Any?, Any?, Any?,
   override fun component21(): Any? = value[20]
   override fun component22(): Any? = value[21]
   @Suppress("UNCHECKED_CAST")
-  inline fun widen(): Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing> =
-    Tupled(value) as Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing>
+  inline fun widen(): Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing,
+    Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing,
+    Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing> =
+    Tupled(value) as Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing,
+      Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing,
+      Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing>
 }
 
 data class Person(val name: String, val age: Int)
 
-@proof(conversion = true)
+@Proof(Subtyping)
 fun Person.tupled(): Tuple2<String, Int> =
   Tupled(arrayOf(name, age)).widen()
 
-@proof(conversion = true)
+@Proof(Subtyping)
 fun Tuple2<String, Int>.person(): Person {
   val (name, age) = this
   return Person(name, age)

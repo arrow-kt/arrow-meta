@@ -8,6 +8,9 @@ import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.resolve.typeProofs
+import arrow.meta.proofs.Proof
+import arrow.meta.proofs.dump
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -23,6 +26,7 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
 import java.util.ArrayList
+import java.util.Collections.addAll
 
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly.
@@ -52,7 +56,7 @@ interface AnalysisSyntax {
    */
   fun analysis(
     doAnalysis: CompilerContext.(project: Project, module: ModuleDescriptor, projectContext: ProjectContext, files: Collection<KtFile>, bindingTrace: BindingTrace, componentProvider: ComponentProvider) -> AnalysisResult?,
-    analysisCompleted: CompilerContext.(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>) -> AnalysisResult?
+    analysisCompleted: CompilerContext.(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>) -> AnalysisResult? = Noop.nullable5()
   ): AnalysisHandler =
     object : AnalysisHandler {
       override fun CompilerContext.doAnalysis(
@@ -119,11 +123,20 @@ interface AnalysisSyntax {
         },
         analysisCompleted = { project, module, bindingTrace, files ->
           val diagnostics: MutableDiagnosticsWithSuppression =
-          BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
+            BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf(f)
           null
         }
       )
     } ?: ExtensionPhase.Empty
+
+  fun MutableList<Proof>.initializeProofs(): AnalysisHandler =
+    analysis(
+      doAnalysis = { _, module, _, _, _, _ ->
+        addAll(module.typeProofs)
+        dump()
+        null
+      }
+    )
 }

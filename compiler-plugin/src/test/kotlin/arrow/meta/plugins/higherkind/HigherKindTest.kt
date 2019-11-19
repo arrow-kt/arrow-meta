@@ -8,7 +8,10 @@ class HigherKindTest {
 
   val prelude: String = """
     import arrowx.*
-    
+    import arrow.higherkind
+    //metadebug
+    @higherkind
+    class Id<out A>(val value: A)
   """.trimIndent()
 
   @Test
@@ -18,7 +21,7 @@ class HigherKindTest {
       code = {
         """|$prelude
            |val concrete: Id<Int> = Id(0)
-           |val kinded: Kind<`Id(_)`, Int> = concrete
+           |val kinded: Kind<ForId, Int> = concrete
            |val back: Id<Int> = kinded
            |val value: Int = back.value
            |""".source
