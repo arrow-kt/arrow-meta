@@ -84,7 +84,7 @@ class ExampleTest {
   }
 
   @Test
-  fun `allows several sources`() {
+  fun `allows several sources with names to add associated asserts`() {
     assertThis(CompilerTest(
       code = {
         sources(
@@ -110,6 +110,28 @@ class ExampleTest {
           Source(filename = "LowerCaseKt", text = "x").evalsTo("hello world!"),
           Source(filename = "UpperCaseKt", text = "y").evalsTo("HELLO WORLD!")
         )
+      }
+    ))
+  }
+
+  @Test
+  fun `allows several sources without names because they don't matter`() {
+    assertThis(CompilerTest(
+      code = {
+        sources(
+          """
+          |
+          | val x: String = "hello world!"
+          | 
+          """.source,
+          """
+          |
+          | val y: String = "HELLO WORLD!"
+          | 
+          """.source)
+      },
+      assert = {
+        allOf(compiles)
       }
     ))
   }

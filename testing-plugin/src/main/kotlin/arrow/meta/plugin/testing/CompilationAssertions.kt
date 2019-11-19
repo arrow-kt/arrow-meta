@@ -60,10 +60,16 @@ private val interpreter: (CompilerTest) -> Unit = {
       }
     }
 
+  fun Code.Source.renameBy(index: Int) =
+    when (this.filename) {
+      DEFAULT_FILENAME -> Code.Source(filename = this.filename.replace(".kt", "${index}.kt"), text = this.text)
+      else -> this
+    }
+
   fun Code.compilationData(): CompilationData =
     when (this) {
       is Code.Source -> CompilationData(sources = listOf(this))
-      is Code.Sources -> CompilationData(sources = this.sources)
+      is Code.Sources -> CompilationData(sources = this.sources.mapIndexed{ index, source -> source.renameBy(index) })
     }
 
   fun runAssert(assert: Assert, compilationResult: Result): Unit = when (assert) {
