@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.quotes.AnnotatedExpressionScope
 import arrow.meta.quotes.BlockExpressionScope
 import arrow.meta.quotes.CatchClauseScope
 import arrow.meta.quotes.ClassScope
@@ -9,6 +10,7 @@ import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.IsExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
+import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
@@ -305,6 +307,10 @@ interface ElementScope {
   val String.`throw`: ThrowExpressionScope
 
   val String.`is`: IsExpressionScope
+
+  val String.`return`: ReturnExpressionScope
+
+  val String.annotatedExpression: AnnotatedExpressionScope
 
   fun singleStatementBlock(
     statement: KtExpression,
