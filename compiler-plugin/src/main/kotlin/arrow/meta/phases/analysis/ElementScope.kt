@@ -14,6 +14,7 @@ import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
+import arrow.meta.quotes.TypeReferenceScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
@@ -91,10 +92,10 @@ interface ElementScope {
   
   val String.typeArgument: Scope<KtTypeProjection>
   
-  val String.type: Scope<KtTypeReference>
+  val String.type: TypeReferenceScope
   
-  val KtTypeElement.type: Scope<KtTypeReference>
-  
+  val KtTypeElement.type: TypeReferenceScope
+
   val String.typeOrNull: Scope<KtTypeReference>
   
   val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>

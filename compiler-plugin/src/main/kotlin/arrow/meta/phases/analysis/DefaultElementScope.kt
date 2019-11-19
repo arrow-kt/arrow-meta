@@ -46,11 +46,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.typeArgument: Scope<KtTypeProjection>
     get() = Scope(delegate.createTypeArgument(trimMargin()))
 
-  override val String.type: Scope<KtTypeReference>
-    get() = Scope(delegate.createType(trimMargin()))
+  override val String.type: TypeReferenceScope
+    get() = TypeReferenceScope(delegate.createType(trimMargin()))
 
-  override val KtTypeElement.type: Scope<KtTypeReference>
-    get() = Scope(delegate.createType(this))
+  override val KtTypeElement.type: TypeReferenceScope
+    get() = TypeReferenceScope(delegate.createType(this))
 
   override val String.typeOrNull: Scope<KtTypeReference>
     get() = Scope(delegate.createTypeIfPossible(trimMargin()))
