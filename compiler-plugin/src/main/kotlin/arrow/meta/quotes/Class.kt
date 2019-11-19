@@ -69,7 +69,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.classOrObject
+ * import arrow.meta.quotes.`class`
  * import org.jetbrains.kotlin.psi.KtClass
  * import com.intellij.psi.PsiElement
  *
@@ -78,9 +78,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject ->
+ *         `class`({ name == "Test" }) { classElement ->
  *           Transform.replace<KtClass>(
- *             replacing = classOrObject,
+ *             replacing = classElement,
  *             newDeclaration =
  *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
  *                  |  $body
