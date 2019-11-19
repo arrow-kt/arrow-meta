@@ -1,5 +1,6 @@
 package arrow.meta.plugin.testing
 
+import arrow.meta.plugin.testing.Code.Source
 import org.junit.Test
 
 class ExampleTest {
@@ -78,6 +79,37 @@ class ExampleTest {
       },
       assert = {
         allOf("x".source.evalsTo("Hello world!"))
+      }
+    ))
+  }
+
+  @Test
+  fun `allows several sources`() {
+    assertThis(CompilerTest(
+      code = {
+        sources(
+          Source(
+            filename = "LowerCase.kt",
+            text = """
+              |
+              | val x: String = "hello world!"
+              | 
+              """
+          ),
+          Source(
+            filename = "UpperCase.kt",
+            text = """
+              |
+              | val y: String = "HELLO WORLD!"
+              | 
+              """
+          ))
+      },
+      assert = {
+        allOf(
+          Source(filename = "LowerCaseKt", text = "x").evalsTo("hello world!"),
+          Source(filename = "UpperCaseKt", text = "y").evalsTo("HELLO WORLD!")
+        )
       }
     ))
   }

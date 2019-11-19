@@ -3,12 +3,6 @@ package arrow.meta.plugin.testing
 import arrow.meta.Plugin
 
 /**
- * Represents all kind of code snippets: source code to be compiled, expressions, etc.
- * Avoid the use of a primitive type.
- */
-data class Source(val text: String)
-
-/**
  * Represents a dependency from `<artifact-id>:<version>` string.
  */
 data class Dependency(val mavenCoordinates: String)
@@ -44,9 +38,9 @@ data class CompilerTest(
    */
   val config: Companion.() -> List<Config> = { emptyList() },
   /**
-   * Code snippet which will be compiled.
+   * Code snippet o snippets which will be compiled.
    */
-  val code: Companion.() -> Source, // TODO: Sources
+  val code: Companion.() -> Code,
   /**
    * Expected behaviour during and after compilation.
    *
@@ -57,7 +51,7 @@ data class CompilerTest(
   internal fun run(interpret: CompilerTestInterpreter): Unit =
     interpret(this)
 
-  companion object : ConfigSyntax by Config, AssertSyntax by Assert {
+  companion object : ConfigSyntax by Config, CodeSyntax by Code, AssertSyntax by Assert {
     operator fun invoke(f: Companion.() -> CompilerTest): CompilerTest =
       f(this)
   }
@@ -124,6 +118,47 @@ sealed class Config {
   }
 }
 
+interface CodeSyntax {
+  val emptyCode: Code
+
+  /**
+   * Allows to indicate several sources to be compiled.
+   *
+   * @see [CompilerTest]
+   */
+  fun sources(vararg sources: Code.Source): Code =
+    Code.Sources(sources.toList())
+}
+
+/**
+ * Represents the different types of [Code] which will be managed.
+ */
+sealed class Code {
+
+  /**
+   * Represents all kind of code snippets: source code to be compiled, expressions, etc.
+   */
+  data class Source(
+    /**
+     * Necessary filename to identify different code snippets.
+     */
+    val filename: String = DEFAULT_FILENAME,
+    /**
+     * Content of code snippet.
+     */
+    val text: String
+  ): Code()
+
+  /**
+   * It's possible to provide one or several sources to be compiled
+   */
+  internal data class Sources(val sources: List<Source>): Code()
+
+  internal companion object : CodeSyntax {
+    override val emptyCode: Code = Code.emptyCode
+  }
+}
+
 /**
  * Provides expected behaviours.
  *
@@ -161,7 +196,7 @@ interface AssertSyntax {
    *
    * @param source Code snippet with the expected quote output.
    */
-  fun quoteOutputMatches(source: Source): Assert = Assert.QuoteOutputMatches(source)
+  fun quoteOutputMatches(source: Code.Source): Assert = Assert.QuoteOutputMatches(source)
 
   /**
    * Checks if a code snippet evals to a provided value after the compilation.
@@ -169,12 +204,12 @@ interface AssertSyntax {
    *
    * @param value Expected result after running the code snippet.
    */
-  infix fun Source.evalsTo(value: Any?): Assert = Assert.EvalsTo(this, value)
+  infix fun Code.Source.evalsTo(value: Any?): Assert = Assert.EvalsTo(this, value)
 
   /**
    * Returns a Source object from a String.
    */
-  val String.source: Source get() = Source(this)
+  val String.source: Code.Source get() = Code.Source(text = this)
 
   /**
    * Allows to combine [Assert].
@@ -199,8 +234,8 @@ sealed class Assert {
   }
 
   internal object Empty : Assert()
-  internal data class QuoteOutputMatches(val source: Source) : Assert()
-  internal data class EvalsTo(val source: Source, val output: Any?) : Assert()
+  internal data class QuoteOutputMatches(val source: Code.Source) : Assert()
+  internal data class EvalsTo(val source: Code.Source, val output: Any?) : Assert()
   internal data class FailsWith(val f: (String) -> Boolean) : Assert()
 
   internal companion object : AssertSyntax {
