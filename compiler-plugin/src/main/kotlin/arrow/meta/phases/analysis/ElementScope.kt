@@ -14,6 +14,7 @@ import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
+import arrow.meta.quotes.TypeReferenceScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
