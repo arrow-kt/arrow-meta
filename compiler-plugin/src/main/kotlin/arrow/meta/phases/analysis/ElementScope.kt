@@ -22,7 +22,6 @@ import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
 import arrow.meta.quotes.WhileExpressionScope
-import arrow.meta.quotes.*
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement

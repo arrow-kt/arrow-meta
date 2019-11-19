@@ -1,7 +1,6 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.*
-import arrow.meta.quotes.parentscopes.ClassScope
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
