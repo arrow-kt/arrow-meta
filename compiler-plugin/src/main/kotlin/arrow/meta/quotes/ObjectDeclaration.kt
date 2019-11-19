@@ -16,13 +16,12 @@ fun Meta.objectDeclaration(
   match: KtObjectDeclaration.() -> Boolean,
   map: ObjectDeclarationScope.(KtObjectDeclaration) -> Transform<KtObjectDeclaration>
 ): ExtensionPhase =
-  quote(match, map) { ObjectDeclarationScope(it) } // How can I drill down into the right scope here?
+  quote(match, map) { ObjectDeclarationScope(it) }
 
 /**
  * A template destructuring [Scope] for a [KtObjectDeclaration]
  */
 class ObjectDeclarationScope(
   override val value: KtObjectDeclaration,
-  val name: Name? = value.nameAsName,
   val textOffset: Int = value.textOffset
 ): ClassOrObjectScope<KtObjectDeclaration>(value)

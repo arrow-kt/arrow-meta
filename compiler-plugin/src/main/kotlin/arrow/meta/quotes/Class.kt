@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.parentscopes.ClassOrObjectScope
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -121,8 +122,6 @@ fun Meta.`class`(
  */
 class ClassScope(
   override val value: KtClass,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
-  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val kind: Name? =
     (when {
@@ -130,12 +129,10 @@ class ClassScope(
       value.isData() -> "data "
       else -> "/* empty? */"
     } + value.getClassOrInterfaceKeyword()?.text).let(Name::identifier),
-  val name: Name? = value.nameAsName,
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val `(params)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
-  val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries),
-  val body: ClassBodyScope = ClassBodyScope(value.body)
-) : Scope<KtClass>(value)
+  val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries)
+) : ClassOrObjectScope<KtClass>(value)
 
 data class ClassBodyScope(val value: KtClassBody?) {
   override fun toString(): String =
