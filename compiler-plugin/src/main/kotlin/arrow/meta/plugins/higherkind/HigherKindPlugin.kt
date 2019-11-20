@@ -5,7 +5,7 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.classOrObject
+import arrow.meta.quotes.`class`
 import arrow.meta.quotes.ktClassNamed
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
@@ -28,7 +28,7 @@ val Meta.higherKindedTypes: Plugin
       meta(
         registerKindAwareTypeChecker(),
         suppressDiagnostic(Diagnostic::kindsTypeMismatch),
-        classOrObject(::isHigherKindedType) { c ->
+        `class`(::isHigherKindedType) { c ->
           println("Processing Higher Kind: ${c.name}: ${c.superTypeIsSealedInFile()}")
           Transform.replace(c, listOfNotNull(
             /** Kind Marker **/
