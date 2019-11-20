@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *    modifierList({ true }) { l ->
  *     Transform.replace(
  *      replacing = l,
- *      newDeclaration = """ $`@annotations` $modifier value """.`if`
+ *      newDeclaration = """ $`@annotations` $modifier value """.`modifierList`
  *     )
  *    }
  *   )
