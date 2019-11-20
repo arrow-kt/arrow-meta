@@ -15,6 +15,7 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.TypeReferenceScope
+import arrow.meta.quotes.ValueArgumentScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
@@ -279,10 +280,10 @@ interface ElementScope {
     name: Name? = null,
     isSpread: Boolean = false,
     reformat: Boolean = true
-  ): Scope<KtValueArgument>
+  ): ValueArgumentScope
   
-  val String.argument: Scope<KtValueArgument>
-  
+  val String.argument: ValueArgumentScope
+
   val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
   
   val String.superTypeEntry: Scope<KtSuperTypeEntry>
