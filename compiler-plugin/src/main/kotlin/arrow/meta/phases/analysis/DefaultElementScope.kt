@@ -243,8 +243,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.packageDirectiveOrNull: Scope<KtPackageDirective>
     get() = Scope(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
-  override fun importDirective(importPath: ImportPath): Scope<KtImportDirective> =
-    Scope(delegate.createImportDirective(importPath))
+  override fun importDirective(importPath: ImportPath): ImportDirectiveScope =
+    ImportDirectiveScope(delegate.createImportDirective(importPath))
 
   override fun primaryConstructor(text: String): Scope<KtPrimaryConstructor> =
     Scope(delegate.createPrimaryConstructor(text))
@@ -273,11 +273,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpressionScope =
     IfExpressionScope(delegate.createIf(condition, thenExpr, elseExpr))
 
-  override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): Scope<KtValueArgument> =
-    Scope(delegate.createArgument(expression, name, isSpread, reformat))
+  override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgumentScope =
+    ValueArgumentScope(delegate.createArgument(expression, name, isSpread, reformat))
 
-  override val String.argument: Scope<KtValueArgument>
-    get() = Scope(delegate.createArgument(trimMargin()))
+  override val String.argument: ValueArgumentScope
+    get() = ValueArgumentScope(delegate.createArgument(trimMargin()))
 
   override val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
     get() = Scope(delegate.createSuperTypeCallEntry(trimMargin()))

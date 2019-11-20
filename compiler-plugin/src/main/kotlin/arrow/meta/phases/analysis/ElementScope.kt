@@ -7,6 +7,7 @@ import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.IfExpressionScope
+import arrow.meta.quotes.ImportDirectiveScope
 import arrow.meta.quotes.IsExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterListScope
@@ -16,6 +17,7 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.TypeReferenceScope
+import arrow.meta.quotes.ValueArgumentScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
@@ -250,7 +252,7 @@ interface ElementScope {
 
   val String.packageDirectiveOrNull: Scope<KtPackageDirective>
   
-  fun importDirective(importPath: ImportPath): Scope<KtImportDirective>
+  fun importDirective(importPath: ImportPath): ImportDirectiveScope
   
   fun primaryConstructor(text: String = ""): Scope<KtPrimaryConstructor>
   
@@ -279,10 +281,10 @@ interface ElementScope {
     name: Name? = null,
     isSpread: Boolean = false,
     reformat: Boolean = true
-  ): Scope<KtValueArgument>
+  ): ValueArgumentScope
   
-  val String.argument: Scope<KtValueArgument>
-  
+  val String.argument: ValueArgumentScope
+
   val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
   
   val String.superTypeEntry: Scope<KtSuperTypeEntry>
