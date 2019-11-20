@@ -243,8 +243,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.packageDirectiveOrNull: Scope<KtPackageDirective>
     get() = Scope(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
-  override fun importDirective(importPath: ImportPath): Scope<KtImportDirective> =
-    Scope(delegate.createImportDirective(importPath))
+  override fun importDirective(importPath: ImportPath): ImportDirectiveScope =
+    ImportDirectiveScope(delegate.createImportDirective(importPath))
 
   override fun primaryConstructor(text: String): Scope<KtPrimaryConstructor> =
     Scope(delegate.createPrimaryConstructor(text))
