@@ -195,8 +195,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.loopParameter: ParameterScope
     get() = ParameterScope(delegate.createLoopParameter(trimMargin()))
 
-  override val String.parameterList: Scope<KtParameterList>
-    get() = Scope(delegate.createParameterList(trimMargin()))
+  override val String.parameterList: ParameterListScope
+    get() = ParameterListScope(delegate.createParameterList(trimMargin()))
 
   override val String.typeParameterList: Scope<KtTypeParameterList>
     get() = Scope(delegate.createTypeParameterList(trimMargin()))
@@ -204,11 +204,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.typeParameter: Scope<KtTypeParameter>
     get() = Scope(delegate.createTypeParameter(trimMargin()))
 
-  override val String.lambdaParameterListIfAny: Scope<KtParameterList>
-    get() = Scope(delegate.createLambdaParameterList(trimMargin()))
+  override val String.lambdaParameterListIfAny: ParameterListScope
+    get() = ParameterListScope(delegate.createLambdaParameterList(trimMargin()))
 
-  override val String.lambdaParameterList: Scope<KtParameterList>
-    get() = Scope(delegate.createLambdaParameterList(trimMargin()))
+  override val String.lambdaParameterList: ParameterListScope
+    get() = ParameterListScope(delegate.createLambdaParameterList(trimMargin()))
 
   override fun lambdaExpression(parameters: String, body: String): Scope<KtLambdaExpression> =
     Scope(delegate.createLambdaExpression(parameters, body))
