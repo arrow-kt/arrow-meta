@@ -120,8 +120,6 @@ fun Meta.`class`(
  */
 class ClassDeclaration(
   override val value: KtClass,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
-  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val kind: Name? =
     (when {
