@@ -7,6 +7,7 @@ import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.IfExpressionScope
+import arrow.meta.quotes.ImportDirectiveScope
 import arrow.meta.quotes.IsExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
@@ -251,7 +252,7 @@ interface ElementScope {
 
   val String.packageDirectiveOrNull: Scope<KtPackageDirective>
   
-  fun importDirective(importPath: ImportPath): Scope<KtImportDirective>
+  fun importDirective(importPath: ImportPath): ImportDirectiveScope
   
   fun primaryConstructor(text: String = ""): Scope<KtPrimaryConstructor>
   
