@@ -165,14 +165,14 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.secondaryConstructor: Scope<KtSecondaryConstructor>
     get() = Scope(delegate.createSecondaryConstructor(trimMargin()))
 
-  override fun modifierList(modifier: KtModifierKeywordToken): Scope<KtModifierList> =
-    Scope(delegate.createModifierList(modifier))
+  override fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope =
+    ModifierListScope(delegate.createModifierList(modifier))
 
-  override val String.modifierList: Scope<KtModifierList>
-    get() = Scope(delegate.createModifierList(trimMargin()))
+  override val String.modifierList: ModifierListScope
+    get() = ModifierListScope(delegate.createModifierList(trimMargin()))
 
-  override val emptyModifierList: Scope<KtModifierList>
-    get() = Scope(delegate.createEmptyModifierList())
+  override val emptyModifierList: ModifierListScope
+    get() = ModifierListScope(delegate.createEmptyModifierList())
 
   override fun modifier(modifier: KtModifierKeywordToken): PsiElement =
     delegate.createModifier(modifier)

@@ -8,6 +8,7 @@ import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.IsExpressionScope
+import arrow.meta.quotes.ModifierListScope
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.ReturnExpressionScope
@@ -42,7 +43,6 @@ import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtParameterList
@@ -195,11 +195,11 @@ interface ElementScope {
   
   val String.secondaryConstructor: Scope<KtSecondaryConstructor>
   
-  fun modifierList(modifier: KtModifierKeywordToken): Scope<KtModifierList>
+  fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope
   
-  val String.modifierList: Scope<KtModifierList>
+  val String.modifierList: ModifierListScope
   
-  val emptyModifierList: Scope<KtModifierList>
+  val emptyModifierList: ModifierListScope
   
   fun modifier(modifier: KtModifierKeywordToken): PsiElement
   
