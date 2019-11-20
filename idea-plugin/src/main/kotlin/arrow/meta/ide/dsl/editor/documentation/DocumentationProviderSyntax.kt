@@ -2,6 +2,7 @@ package arrow.meta.ide.dsl.editor.documentation
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
+import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationProvider
@@ -14,9 +15,9 @@ interface DocumentationProviderSyntax {
    * Adds an DocumentationProvider as you know it from hovering over descriptors
    */
   fun IdeMetaPlugin.addDocumentationProvider(
-    quickNavigateInfo: (element: PsiElement?, originalElement: PsiElement?) -> String?,
-    generateDoc: (element: PsiElement?, originalElement: PsiElement?) -> String?,
-    documentationElementForLink: (psiManager: PsiManager?, link: String?, context: PsiElement?) -> PsiElement?
+    quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
+    generateDoc: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
+    documentationElementForLink: (psiManager: PsiManager, link: String, context: PsiElement) -> PsiElement? = Noop.nullable3()
   ): ExtensionPhase =
     ExtensionProvider.AddExtension(
       DocumentationProvider.EP_NAME,
@@ -30,18 +31,18 @@ interface DocumentationProviderSyntax {
    * @param documentationElementForLink given a [link] and a [context] this function resolves the PsiElement of that link
    */
   fun DocumentationProviderSyntax.quickDocumentationProvider(
-    quickNavigateInfo: (element: PsiElement?, originalElement: PsiElement?) -> String?,
-    generateDoc: (element: PsiElement?, originalElement: PsiElement?) -> String?,
-    documentationElementForLink: (psiManager: PsiManager?, link: String?, context: PsiElement?) -> PsiElement?
+    quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String?,
+    generateDoc: (element: PsiElement, originalElement: PsiElement) -> String?,
+    documentationElementForLink: (psiManager: PsiManager, link: String, context: PsiElement) -> PsiElement?
   ): AbstractDocumentationProvider =
     object : AbstractDocumentationProvider() {
       override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?): String? =
-        quickNavigateInfo(element, originalElement)
+        element?.let { el -> originalElement?.let { original -> quickNavigateInfo(el, original) } }
 
       override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? =
-        generateDoc(element, originalElement)
+        element?.let { el -> originalElement?.let { original -> generateDoc(el, original) } }
 
       override fun getDocumentationElementForLink(psiManager: PsiManager?, link: String?, context: PsiElement?): PsiElement? =
-        documentationElementForLink(psiManager, link, context)
+        psiManager?.let { manager -> link?.let { l -> context?.let { ctx -> documentationElementForLink(manager, l, ctx) } } }
     }
 }
