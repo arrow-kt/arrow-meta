@@ -10,6 +10,7 @@ import arrow.meta.quotes.IfExpressionScope
 import arrow.meta.quotes.ImportDirectiveScope
 import arrow.meta.quotes.IsExpressionScope
 import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ParameterListScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
@@ -47,7 +48,6 @@ import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
@@ -217,15 +217,15 @@ interface ElementScope {
   
   val String.loopParameter: ParameterScope
   
-  val String.parameterList: Scope<KtParameterList>
+  val String.parameterList: ParameterListScope
   
   val String.typeParameterList: Scope<KtTypeParameterList>
   
   val String.typeParameter: Scope<KtTypeParameter>
   
-  val String.lambdaParameterListIfAny: Scope<KtParameterList>
+  val String.lambdaParameterListIfAny: ParameterListScope
   
-  val String.lambdaParameterList: Scope<KtParameterList>
+  val String.lambdaParameterList: ParameterListScope
   
   fun lambdaExpression(
     parameters: String,
