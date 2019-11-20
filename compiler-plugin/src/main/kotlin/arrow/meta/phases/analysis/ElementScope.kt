@@ -7,14 +7,18 @@ import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.FinallySectionScope
 import arrow.meta.quotes.ForExpressionScope
 import arrow.meta.quotes.IfExpressionScope
+import arrow.meta.quotes.ImportDirectiveScope
 import arrow.meta.quotes.IsExpressionScope
+import arrow.meta.quotes.ModifierListScope
 import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ParameterListScope
 import arrow.meta.quotes.ParameterScope
 import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ThrowExpressionScope
 import arrow.meta.quotes.TryExpressionScope
 import arrow.meta.quotes.TypeReferenceScope
+import arrow.meta.quotes.ValueArgumentScope
 import arrow.meta.quotes.WhenConditionScope
 import arrow.meta.quotes.WhenEntryScope
 import arrow.meta.quotes.WhenExpressionScope
@@ -42,10 +46,8 @@ import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
@@ -195,11 +197,11 @@ interface ElementScope {
   
   val String.secondaryConstructor: Scope<KtSecondaryConstructor>
   
-  fun modifierList(modifier: KtModifierKeywordToken): Scope<KtModifierList>
+  fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope
   
-  val String.modifierList: Scope<KtModifierList>
+  val String.modifierList: ModifierListScope
   
-  val emptyModifierList: Scope<KtModifierList>
+  val emptyModifierList: ModifierListScope
   
   fun modifier(modifier: KtModifierKeywordToken): PsiElement
   
@@ -215,15 +217,15 @@ interface ElementScope {
   
   val String.loopParameter: ParameterScope
   
-  val String.parameterList: Scope<KtParameterList>
+  val String.parameterList: ParameterListScope
   
   val String.typeParameterList: Scope<KtTypeParameterList>
   
   val String.typeParameter: Scope<KtTypeParameter>
   
-  val String.lambdaParameterListIfAny: Scope<KtParameterList>
+  val String.lambdaParameterListIfAny: ParameterListScope
   
-  val String.lambdaParameterList: Scope<KtParameterList>
+  val String.lambdaParameterList: ParameterListScope
   
   fun lambdaExpression(
     parameters: String,
@@ -250,7 +252,7 @@ interface ElementScope {
 
   val String.packageDirectiveOrNull: Scope<KtPackageDirective>
   
-  fun importDirective(importPath: ImportPath): Scope<KtImportDirective>
+  fun importDirective(importPath: ImportPath): ImportDirectiveScope
   
   fun primaryConstructor(text: String = ""): Scope<KtPrimaryConstructor>
   
@@ -279,10 +281,10 @@ interface ElementScope {
     name: Name? = null,
     isSpread: Boolean = false,
     reformat: Boolean = true
-  ): Scope<KtValueArgument>
+  ): ValueArgumentScope
   
-  val String.argument: Scope<KtValueArgument>
-  
+  val String.argument: ValueArgumentScope
+
   val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
   
   val String.superTypeEntry: Scope<KtSuperTypeEntry>
