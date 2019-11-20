@@ -25,6 +25,39 @@ class ComprehensionsTest {
       |   }
       | }
       """
+
+      const val HUE = """
+        | //metadebug
+        | 
+        | fun helloWorld(): Unit {
+        |   println("Hello!")
+        |   println("5")
+        | }
+        | fun helloWorld(a: String): Unit {
+        |   println("Hello!")
+        |   println("Hello!")
+        |   println("Hello!")
+        |   println("Hello!")
+        |   println("5")
+        | }
+        | fun bloder() {
+        |   println("Hello!")
+        |   "Hi!"
+        | }
+      """
+  }
+
+  @Test
+  fun `simple remove`() {
+      assertThis(CompilerTest(
+        config = { metaDependencies },
+        code = { HUE.source },
+        assert = {
+            quoteOutputMatches("""
+              | fun bloder() = "Hi!"   
+            """.source) + "bloder()".source.evalsTo("Hi!")
+        }
+      ))
   }
 
   @Test

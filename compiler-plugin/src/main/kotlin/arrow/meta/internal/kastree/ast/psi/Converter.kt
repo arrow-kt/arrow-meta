@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.psiUtil.*
 import java.util.*
 
 open class Converter {
-  protected open fun onNode(node: Node, elem: PsiElement) { }
+  protected open fun onNode(node: Node, elem: PsiElement) { node.psiElement = elem }
 
   open fun convertAnnotated(v: KtAnnotatedExpression) = Node.Expr.Annotated(
     anns = convertAnnotationSets(v),

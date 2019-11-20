@@ -1,5 +1,7 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.internal.kastree.ast.MutableVisitor
+import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.quotes.*
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
@@ -267,8 +269,24 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun String.expressionCodeFragment(context: PsiElement?): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
 
-  override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
-    Scope(delegate.createBlockCodeFragment(trimMargin(), context))
+  override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> {
+    val codeFragment = Scope(delegate.createBlockCodeFragment(trimMargin(), context))
+    var contextTextRangedCodeFragment: Scope<KtBlockCodeFragment>? = null
+    val contextAst = when (context) {
+      is KtClassOrObject -> Converter.convertDecl(context)
+      is KtNamedFunction -> Converter.convertFunc(context)
+      is KtExpression -> Converter.convertExpr(context)
+      else -> TODO("Unsupported $context")
+    }
+    MutableVisitor.preVisit(contextAst) { element, _  ->
+      if (element != null && element.psiElement?.text?.trim() == codeFragment.value?.text?.trim()) {
+        element.also { e -> contextTextRangedCodeFragment = contextTextRangedCodeFragment?.apply {
+          e.psiElement?.let { psiElement.add(it) }
+        } ?: codeFragment.apply { e.psiElement?.let { psiElement.add(it) } }
+        }} else element
+    }
+    return contextTextRangedCodeFragment ?: codeFragment
+  }
 
   override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpressionScope =
     IfExpressionScope(delegate.createIf(condition, thenExpr, elseExpr))

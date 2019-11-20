@@ -284,6 +284,35 @@ fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Tra
         }
         Unit
       }
+      is Transform.Remove -> {
+          transform.removing.let { when (it) {
+              is KtClassOrObject -> Converter.convertDecl(it)
+              is KtNamedFunction -> Converter.convertFunc(it)
+              is KtExpression -> Converter.convertExpr(it)
+              else -> TODO("Unsupported $it")
+          }}.apply {
+              if (transform.declarations.isNotEmpty()) {
+                  val contentsToRemove = transform.declarations.flatMap { it.psiElement.map { element -> when (element) {
+                      is KtClassOrObject -> Converter.convertDecl(element)
+                      is KtNamedFunction -> Converter.convertFunc(element)
+                      is KtExpression -> Converter.convertExpr(element)
+                      else -> TODO("Unsupported $element")
+                  }}}
+                  dummyFile = MutableVisitor.preVisit(dummyFile) { element, parent ->
+                      if (element != null && contentsToRemove.any { it.psiElement?.textRange == element.psiElement?.textRange }) element.also {
+                          it.dynamic = ""
+                      } else element
+                  }
+              } else {
+                  dummyFile = MutableVisitor.preVisit(dummyFile) { element, _ ->
+                      if (element != null && element == this) element.also {
+                          println("Removing ${element.javaClass}")
+                          it.dynamic = ""
+                      } else element
+                  }
+              }
+          }
+      }
       Transform.Empty -> Unit
     }
   }

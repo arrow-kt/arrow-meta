@@ -11,12 +11,9 @@ val Meta.helloWorld: Plugin
     "Hello World" {
       meta(
         namedFunction({ name == "helloWorld" }) { c ->
-          Transform.replace(
-            replacing = c,
-            newDeclaration =
-            """|fun helloWorld(): Unit = 
-               |  println("Hello ΛRROW Meta!")
-               |""".function.synthetic
+          Transform.remove(
+            remove = c,
+            declaration = """ println("Hello!") """.blockCodeFragment(c)
           )
         }
       )
