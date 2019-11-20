@@ -34,5 +34,5 @@ class LambdaExpressionScope(
     forceRenderSurroundings = true
   ),
   val bodyExpression: Scope<KtBlockExpression> = Scope(value.bodyExpression), // TODO KtBodyExpression scope and quote template
-  val containingLtFile: Scope<KtFile> = Scope(value.containingKtFile) // TODO KtFile scope and quote template
+  val containingLtFile: FileScope = FileScope(value.containingKtFile)
 ) : Scope<KtLambdaExpression>(value)
