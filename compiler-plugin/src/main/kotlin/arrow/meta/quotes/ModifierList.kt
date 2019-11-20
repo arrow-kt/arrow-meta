@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *  }
  *```
  *
- * * @param match designed to to feed in any kind of [KtModifierList] predicate returning a [Boolean]
+ * @param match designed to to feed in any kind of [KtModifierList] predicate returning a [Boolean]
  * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.modifierList(
