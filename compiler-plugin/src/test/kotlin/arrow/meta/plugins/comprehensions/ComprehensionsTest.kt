@@ -150,12 +150,8 @@ class ComprehensionsTest {
     |"""
 
     assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
+      config = { metaDependencies },
+      code = { codeSnippet.source },
       assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
@@ -201,12 +197,8 @@ class ComprehensionsTest {
       |"""
 
     assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
+      config = { metaDependencies },
+      code = { codeSnippet.source },
       assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
@@ -242,12 +234,8 @@ class ComprehensionsTest {
       |"""
 
     assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
-      code = {
-        codeSnippet.source
-      },
+      config = { metaDependencies },
+      code = { codeSnippet.source },
       assert = {
         quoteOutputMatches("""
           $IO_CLASS_4_TESTS
@@ -256,7 +244,7 @@ class ComprehensionsTest {
           |   IO.just(1 + 1)
           |   
           |""".source) +
-        "test().value".source.evalsTo(2)
+          "test().value".source.evalsTo(2)
       }
     ))
   }
@@ -264,9 +252,7 @@ class ComprehensionsTest {
   @Test
   fun `unresolved reference error`() {
     assertThis(CompilerTest(
-      config = {
-        metaDependencies
-      },
+      config = { metaDependencies },
       code = {
         """
         $IO_CLASS_4_TESTS
@@ -276,9 +262,7 @@ class ComprehensionsTest {
         |
         |""".source
       },
-      assert = {
-        allOf(failsWith { it.contains("Unresolved reference: a") })
-      }
+      assert = { allOf(failsWith { it.contains("Unresolved reference: a") }) }
     ))
   }
 

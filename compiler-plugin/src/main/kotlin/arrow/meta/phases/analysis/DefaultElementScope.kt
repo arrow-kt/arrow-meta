@@ -47,11 +47,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.typeArgument: Scope<KtTypeProjection>
     get() = Scope(delegate.createTypeArgument(trimMargin()))
 
-  override val String.type: Scope<KtTypeReference>
-    get() = Scope(delegate.createType(trimMargin()))
+  override val String.type: TypeReferenceScope
+    get() = TypeReferenceScope(delegate.createType(trimMargin()))
 
-  override val KtTypeElement.type: Scope<KtTypeReference>
-    get() = Scope(delegate.createType(this))
+  override val KtTypeElement.type: TypeReferenceScope
+    get() = TypeReferenceScope(delegate.createType(this))
 
   override val String.typeOrNull: Scope<KtTypeReference>
     get() = Scope(delegate.createTypeIfPossible(trimMargin()))
@@ -166,14 +166,14 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.secondaryConstructor: Scope<KtSecondaryConstructor>
     get() = Scope(delegate.createSecondaryConstructor(trimMargin()))
 
-  override fun modifierList(modifier: KtModifierKeywordToken): Scope<KtModifierList> =
-    Scope(delegate.createModifierList(modifier))
+  override fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope =
+    ModifierListScope(delegate.createModifierList(modifier))
 
-  override val String.modifierList: Scope<KtModifierList>
-    get() = Scope(delegate.createModifierList(trimMargin()))
+  override val String.modifierList: ModifierListScope
+    get() = ModifierListScope(delegate.createModifierList(trimMargin()))
 
-  override val emptyModifierList: Scope<KtModifierList>
-    get() = Scope(delegate.createEmptyModifierList())
+  override val emptyModifierList: ModifierListScope
+    get() = ModifierListScope(delegate.createEmptyModifierList())
 
   override fun modifier(modifier: KtModifierKeywordToken): PsiElement =
     delegate.createModifier(modifier)
@@ -196,8 +196,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.loopParameter: ParameterScope
     get() = ParameterScope(delegate.createLoopParameter(trimMargin()))
 
-  override val String.parameterList: Scope<KtParameterList>
-    get() = Scope(delegate.createParameterList(trimMargin()))
+  override val String.parameterList: ParameterListScope
+    get() = ParameterListScope(delegate.createParameterList(trimMargin()))
 
   override val String.typeParameterList: Scope<KtTypeParameterList>
     get() = Scope(delegate.createTypeParameterList(trimMargin()))
@@ -205,11 +205,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.typeParameter: Scope<KtTypeParameter>
     get() = Scope(delegate.createTypeParameter(trimMargin()))
 
-  override val String.lambdaParameterListIfAny: Scope<KtParameterList>
-    get() = Scope(delegate.createLambdaParameterList(trimMargin()))
+  override val String.lambdaParameterListIfAny: ParameterListScope
+    get() = ParameterListScope(delegate.createLambdaParameterList(trimMargin()))
 
-  override val String.lambdaParameterList: Scope<KtParameterList>
-    get() = Scope(delegate.createLambdaParameterList(trimMargin()))
+  override val String.lambdaParameterList: ParameterListScope
+    get() = ParameterListScope(delegate.createLambdaParameterList(trimMargin()))
 
   override fun lambdaExpression(parameters: String, body: String): Scope<KtLambdaExpression> =
     Scope(delegate.createLambdaExpression(parameters, body))
@@ -244,8 +244,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.packageDirectiveOrNull: Scope<KtPackageDirective>
     get() = Scope(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
-  override fun importDirective(importPath: ImportPath): Scope<KtImportDirective> =
-    Scope(delegate.createImportDirective(importPath))
+  override fun importDirective(importPath: ImportPath): ImportDirectiveScope =
+    ImportDirectiveScope(delegate.createImportDirective(importPath))
 
   override fun primaryConstructor(text: String): Scope<KtPrimaryConstructor> =
     Scope(delegate.createPrimaryConstructor(text))
@@ -274,11 +274,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpressionScope =
     IfExpressionScope(delegate.createIf(condition, thenExpr, elseExpr))
 
-  override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): Scope<KtValueArgument> =
-    Scope(delegate.createArgument(expression, name, isSpread, reformat))
+  override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgumentScope =
+    ValueArgumentScope(delegate.createArgument(expression, name, isSpread, reformat))
 
-  override val String.argument: Scope<KtValueArgument>
-    get() = Scope(delegate.createArgument(trimMargin()))
+  override val String.argument: ValueArgumentScope
+    get() = ValueArgumentScope(delegate.createArgument(trimMargin()))
 
   override val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
     get() = Scope(delegate.createSuperTypeCallEntry(trimMargin()))
