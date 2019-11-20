@@ -1,0 +1,32 @@
+package arrow.meta.quotes.expression
+
+import arrow.meta.Meta
+import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.Transform
+import arrow.meta.quotes.quote
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
+
+/**
+ * A template destructuring [Scope] for a [KtBinaryExpression]
+ *
+ * @param match designed to to feed in any kind of [KtBinaryExpression] predicate returning a [Boolean]
+ * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
+ */
+fun Meta.binaryExpression(
+  match: KtBinaryExpression.() -> Boolean,
+  map: BinaryExpression.(KtBinaryExpression) -> Transform<KtBinaryExpression>
+): ExtensionPhase =
+  quote(match, map) { BinaryExpression(it) }
+
+/**
+ * A template destructuring [Scope] for a [KtBinaryExpression]
+ */
+class BinaryExpression(
+  override val value: KtBinaryExpression,
+  val left: Scope<KtExpression>? = Scope(value.left),
+  val right: Scope<KtExpression>? = Scope(value.right),
+  val operationReference: Scope<KtOperationReferenceExpression>? = Scope(value.operationReference)
+): Scope<KtBinaryExpression>(value)

@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.modifierlist.TypeReferenceScope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentName

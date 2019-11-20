@@ -5,7 +5,7 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.`class`
+import arrow.meta.quotes.classorobject.`class`
 import arrow.meta.quotes.ktClassNamed
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2

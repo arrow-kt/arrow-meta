@@ -4,7 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.namedFunction
+import arrow.meta.quotes.nameddeclaration.typeparameterlistowner.namedFunction
 
 /**
  * The following example shows a Hello World Compiler Plugin.

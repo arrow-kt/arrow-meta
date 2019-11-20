@@ -9,7 +9,7 @@ import arrow.meta.quotes.ClassDeclaration
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.`class`
+import arrow.meta.quotes.classorobject.`class`
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody

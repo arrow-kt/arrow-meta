@@ -1,0 +1,55 @@
+package arrow.meta.quotes.declaration
+
+import arrow.meta.Meta
+import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.Transform
+import arrow.meta.quotes.Quote
+import arrow.meta.quotes.quote
+import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
+import org.jetbrains.kotlin.psi.KtExpression
+
+/**
+ * A [KtDestructuringDeclaration] [Quote] with a custom template destructuring [DestructuringDeclaration]. See below:
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.destructuringDeclaration
+ *
+ * val Meta.reformatDestructuringDeclaration: Plugin
+ *  get() =
+ *   "ReformatDestructuringDeclaration" {
+ *    meta(
+ *     destructuringDeclaration({ true }) { c ->
+ *      Transform.replace(
+ *       replacing = c,
+ *       newDeclaration = """ $`(vars)` = $initializer """.destructuringDeclaration
+ *      )
+ *     }
+ *    )
+ *   }
+ *```
+ *
+ * @param match designed to to feed in any kind of [KtDestructuringDeclaration] predicate returning a [Boolean]
+ * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
+ */
+fun Meta.destructuringDeclaration(
+  match: KtDestructuringDeclaration.() -> Boolean,
+  map: DestructuringDeclaration.(KtDestructuringDeclaration) -> Transform<KtDestructuringDeclaration>
+): ExtensionPhase =
+  quote(match, map) { DestructuringDeclaration(it) }
+
+/**
+ * A template destructuring [Scope] for a [KtDestructuringDeclaration]
+ */
+class DestructuringDeclaration(
+  override val value: KtDestructuringDeclaration?,
+  val `(vars)`: ScopedList<KtDestructuringDeclarationEntry> = ScopedList(value?.entries
+    ?: listOf()),
+  val initializer: Scope<KtExpression> = Scope(value?.initializer)
+) : Scope<KtDestructuringDeclaration>(value)

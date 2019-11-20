@@ -20,6 +20,9 @@ options:
       - title: Index
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
+      - title: Quotes
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/quotes.html
+
       - title: classOrObject
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/class-or-object.html
 
