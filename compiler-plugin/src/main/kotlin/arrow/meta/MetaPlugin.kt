@@ -2,7 +2,6 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
-import arrow.meta.plugins.helloWorld.helloWorld
 import arrow.meta.plugins.higherkind.higherKindedTypes
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.typeclasses.typeClasses
@@ -23,7 +22,6 @@ open class MetaPlugin : Meta {
       higherKindedTypes,
       typeClasses,
       comprehensions,
-      lenses,
-      helloWorld
+      lenses
     )
 }
