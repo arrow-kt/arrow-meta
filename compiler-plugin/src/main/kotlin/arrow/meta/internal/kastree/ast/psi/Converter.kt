@@ -831,7 +831,7 @@ open class Converter {
   }
 }
 
-val PsiElement.ast: Node get() = when(this) {
+internal val PsiElement.ast: Node get() = when(this) {
   is KtClassOrObject -> Converter.convertDecl(this)
   is KtNamedFunction -> Converter.convertFunc(this)
   is KtExpression -> Converter.convertExpr(this)
