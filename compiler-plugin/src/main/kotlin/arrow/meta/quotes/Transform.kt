@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 
 /**
  * The resulting action from matching on transformation
@@ -16,7 +17,7 @@ sealed class Transform<out K : KtElement> {
 
   data class Remove<out K : KtElement>(
     val removing: PsiElement,
-    val declarations: List<Scope<KtElement>> = listOf()
+    val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
   ) : Transform<K>()
 
   object Empty : Transform<Nothing>()
@@ -37,14 +38,14 @@ sealed class Transform<out K : KtElement> {
     fun <K : KtElement> remove(remove: PsiElement): Transform<K> = Remove(remove)
 
     fun <K : KtElement> remove(
-      remove: PsiElement,
-      declaration: Scope<KtElement>
-    ): Transform<K> = Remove(remove, listOf(declaration))
+      removeIn: PsiElement,
+      declaration: Scope<KtExpressionCodeFragment>
+    ): Transform<K> = Remove(removeIn, listOf(declaration))
 
     fun <K : KtElement> remove(
-      remove: PsiElement,
-      declarations: List<Scope<KtElement>>
-    ): Transform<K> = Remove(remove, declarations)
+      removeIn: PsiElement,
+      declarations: List<Scope<KtExpressionCodeFragment>>
+    ): Transform<K> = Remove(removeIn, declarations)
 
     val empty: Transform<Nothing> = Empty
   }

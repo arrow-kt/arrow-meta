@@ -12,8 +12,8 @@ val Meta.helloWorld: Plugin
       meta(
         namedFunction({ name == "helloWorld" }) { c ->
           Transform.remove(
-            remove = c,
-            declaration = """ println("Hello!") """.blockCodeFragment(c)
+            removeIn = c,
+            declaration = """ println("Hello!") """.expressionIn(c)
           )
         }
       )

@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.ImportPath
-
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
  */
@@ -329,7 +328,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`try`: TryExpressionScope
     get() = TryExpressionScope(expression.value as KtTryExpression)
-  
+
   override val String.catch: CatchClauseScope
     get() = CatchClauseScope(expression.value as KtCatchClause)
 
@@ -347,4 +346,8 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.annotatedExpression: AnnotatedExpressionScope
     get() = AnnotatedExpressionScope(expression.value as KtAnnotatedExpression)
+
+  override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
+    Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
 }
+
