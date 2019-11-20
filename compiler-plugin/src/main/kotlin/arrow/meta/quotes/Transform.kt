@@ -35,7 +35,7 @@ sealed class Transform<out K : KtElement> {
     ): Transform<K> =
       replace(replacing, listOf(newDeclaration))
 
-    fun <K : KtElement> remove(remove: PsiElement): Transform<K> = Remove(remove)
+    fun <K : KtElement> remove(remove: PsiElement): Transform<K> = Replace(remove, emptyList())
 
     fun <K : KtElement> remove(
       removeIn: PsiElement,

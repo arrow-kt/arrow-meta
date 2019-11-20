@@ -287,8 +287,14 @@ private fun <T : KtElement> Transform.Replace<T>.transform(file: Node.File): Nod
     } else element
 }
 
-private fun <T : KtElement> Transform.Remove<T>.transform(file: Node.File): Node.File = MutableVisitor.preVisit(file) { element, _ ->
-    astModifier(declarations.elementsFromItsContexts())(element)
+private fun <T : KtElement> Transform.Remove<T>.transform(file: Node.File): Node.File {
+    val elementsToRemove = declarations.elementsFromItsContexts()
+    return MutableVisitor.preVisit(file) { element, _ ->
+        if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
+            println("Removing ${element.javaClass}")
+            it.dynamic = ""
+        } else element
+    }
 }
 
 private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(): List<PsiElement> = flatMap { scope ->
@@ -299,21 +305,6 @@ private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(): Lis
         } else element
     }}
     psiElements
-}
-
-private fun <T : KtElement> Transform.Remove<T>.astModifier(elementsToRemove: List<PsiElement>): (Node?) -> Node? = when {
-    declarations.isNotEmpty() -> { element ->
-        if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
-            println("Removing ${element.javaClass}")
-            it.dynamic = ""
-        } else element
-    }
-    else -> { element ->
-        if (element != null && element == this) element.also {
-            println("Removing ${element.javaClass}")
-            it.dynamic = ""
-        } else element
-    }
 }
 
 fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {
