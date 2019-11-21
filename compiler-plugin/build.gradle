@@ -10,11 +10,17 @@ dependencies {
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testImplementation project(":testing-plugin")
-    testRuntimeOnly project(path: ':compiler-plugin', configuration: 'shadow')
+    testRuntimeOnly project(':compiler-plugin')
 
-    testRuntimeOnly "io.arrow-kt:arrow-annotations:$ARROW_VERSION"
-    testRuntimeOnly "io.arrow-kt:arrow-core-data:$ARROW_VERSION"
-    testRuntimeOnly "io.arrow-kt:arrow-optics:$ARROW_VERSION"
+    testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+    }
+    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+    }
+    testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+    }
 }
 
 compileKotlin {
