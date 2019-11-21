@@ -15,24 +15,24 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build Arrow Meta
-      id: meta
+    - name: Update versions
+      id: update
       run: |
         LATEST_EAP_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-eap/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
         echo "Latest EAP version: $LATEST_EAP_VERSION"
         echo ::set-output name=version::"$LATEST_EAP_VERSION"
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_EAP_VERSION/g" gradle.properties
+        NEW_VERSION=$(echo $LATEST_EAP_VERSION | cut -d- -f1)
+        sed -i "s/^VERSION_NAME=.*$/VERSION_NAME=${NEW_VERSION}-SNAPSHOT/g" gradle.properties
+        DIFFERENCES=$(git diff gradle.properties)
+        if [[ "$DIFFERENCES" -eq "" ]]; then echo ::set-output name=differences::false; else echo ::set-output name=differences::true; fi
+    - name: Build Arrow Meta
+      if: steps.update.outputs.differences
+      run: |
         ./gradlew :compiler-plugin:build 2> stderr
         ./gradlew :idea-plugin:build 2> stderr
         ./gradlew :testing-plugin:build 2> stderr
         ./gradlew :gradle-plugin:jar 2> stderr
-    - name: Update versions
-      id: update
-      run: |
-        NEW_VERSION=$(echo ${{ steps.meta.outputs.version }} | cut -d- -f1)
-        sed -i "s/^VERSION_NAME=.*$/VERSION_NAME=${NEW_VERSION}-SNAPSHOT/g" gradle.properties
-        DIFFERENCES=$(git diff gradle.properties)
-        if [[ "$DIFFERENCES" -eq "" ]]; then echo ::set-output name=differences::false; else echo ::set-output name=differences::true; fi
     - name: Create pull request
       if: steps.update.outputs.differences
       uses: peter-evans/create-pull-request@v1
@@ -51,7 +51,7 @@ jobs:
     - name: Prepare environment to create the issue (new package)
       if: failure()
       run: |
-        echo ${{ steps.meta.outputs.version }} > version
+        echo ${{ steps.update.outputs.version }} > version
         rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
         cd /home/runner/work/_actions/actions/github-script/0.3.0/
         npm install
