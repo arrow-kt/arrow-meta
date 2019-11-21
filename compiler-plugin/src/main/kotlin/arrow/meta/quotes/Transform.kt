@@ -9,12 +9,45 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
  */
 sealed class Transform<out K : KtElement> {
 
+  /**
+   * A Transform that replaces some element in AST:
+   *
+   * ```kotlin:ank:silent
+   * namedFunction({ name == "helloWorld" }) { c ->
+   *   Transform.replace(
+   *     replacing = c,
+   *     newDeclaration =
+   *     """|fun helloWorld(): Unit =
+   *        |  println("Hello ΛRROW Meta!")
+   *        |""".function.synthetic
+   *   )
+   * }
+   * ```
+   *
+   * @param replacing the element to be replaced
+   * @param newDeclarations are the elements that will replace
+   */
   data class Replace<out K : KtElement>(
     val replacing: PsiElement,
     val newDeclarations: List<Scope<KtElement>>,
     val replacementId: String? = null
   ) : Transform<K>()
 
+  /**
+   * A Transform that removes declarations from a specific element in the AST. See below:
+   *
+   * ```kotlin:ank:silent
+   * namedFunction({ name == "helloWorld" }) { c ->
+   *   Transform.remove(
+   *     removeIn = c,
+   *     declaration = """ println("") """.expressionIn(c)
+   *   )
+   * }
+   * ```
+   *
+   * @param removing is the element context
+   * @param declarations are the elements that should be removed
+   */
   data class Remove<out K : KtElement>(
     val removing: PsiElement,
     val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
