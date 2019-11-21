@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 sealed class Transform<out K : KtElement> {
 
   /**
-   * A Transform that replaces some element in AST:
+   * A Transform that replaces some element in AST. See below:
    *
    * ```kotlin:ank:silent
    * namedFunction({ name == "helloWorld" }) { c ->
