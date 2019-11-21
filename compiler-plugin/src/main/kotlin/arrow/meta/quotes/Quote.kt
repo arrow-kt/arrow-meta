@@ -276,7 +276,7 @@ fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Tra
   return Writer.write(dummyFile)
 }
 
-private fun <T : KtElement> Transform.Replace<T>.transform(file: Node.File): Node.File = MutableVisitor.preVisit(file) { element, _ ->
+private fun <T : KtElement> Transform.Replace<T>.replace(file: Node.File): Node.File = MutableVisitor.preVisit(file) { element, _ ->
     if (element != null && element == replacing.ast) {
         val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
         println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
