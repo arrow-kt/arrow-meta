@@ -285,7 +285,7 @@ private fun <T : KtElement> Transform.Replace<T>.transform(file: Node.File): Nod
     } else element
 }
 
-private fun <T : KtElement> Transform.Remove<T>.transform(file: Node.File): Node.File {
+private fun <T : KtElement> Transform.Remove<T>.remove(file: Node.File): Node.File {
     val elementsToRemove = declarations.elementsFromItsContexts()
     return MutableVisitor.preVisit(file) { element, _ ->
         if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
