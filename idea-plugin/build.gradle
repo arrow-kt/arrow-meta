@@ -32,7 +32,7 @@ buildSearchableOptions.enabled = false
 intellij {
   version = "2019.2.1"
   pluginName = "Arrow plugin"
-  setPlugins("gradle", "java", "org.jetbrains.kotlin:${KOTLIN_VERSION}-release-IJ2019.2-1")
+  setPlugins("gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}-release-IJ2019.2-1")
 }
 
 patchPluginXml {
