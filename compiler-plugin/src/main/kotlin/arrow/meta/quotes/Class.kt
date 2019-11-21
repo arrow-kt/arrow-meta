@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.parentscopes.ClassOrObjectScope
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -14,7 +15,7 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * [classOrObject] is a function that intercepts all [KtClass] elements that [match]
+ * [`class`] is a function that intercepts all [KtClass] elements that [match]
 * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
  * An extension function of [Meta] and inheriting from [ExtensionPhase], [classOrObject] was designed to feed in
@@ -68,7 +69,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.classOrObject
+ * import arrow.meta.quotes.`class`
  * import org.jetbrains.kotlin.psi.KtClass
  * import com.intellij.psi.PsiElement
  *
@@ -77,9 +78,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classOrObject({ name == "Test" }) { classOrObject ->
+ *         `class`({ name == "Test" }) { classElement ->
  *           Transform.replace<KtClass>(
- *             replacing = classOrObject,
+ *             replacing = classElement,
  *             newDeclaration =
  *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
  *                  |  $body
@@ -102,7 +103,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * @param match filters [KtClass] elements based on a [Boolean] predicate
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
-fun Meta.classOrObject(
+fun Meta.`class`(
   match: KtClass.() -> Boolean,
   map: ClassScope.(KtClass) -> Transform<KtClass>
 ): ExtensionPhase =
@@ -113,16 +114,14 @@ fun Meta.classOrObject(
  * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
  * before it's compiled.
  *
- * @param The scoped [KtElement] being destructured in the template
- * @param annotationEntries searches for marked annotations associated with the class.
+ * @param value scoped [KtClass] being destructured in the template
+ * @param @annotations searches for marked annotations associated with the class.
  * @param modality  Modifier keyword is a keyword that can be used in annotation position as part of modifier list
  * @param visibility is the class public, private, protected? etc.
- * @oaram kind denotes certain classes as sealed class types or data class types.
+ * @param kind denotes certain classes as sealed class types or data class types.
  */
 class ClassScope(
   override val value: KtClass,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
-  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val kind: Name? =
     (when {
@@ -130,12 +129,10 @@ class ClassScope(
       value.isData() -> "data "
       else -> "/* empty? */"
     } + value.getClassOrInterfaceKeyword()?.text).let(Name::identifier),
-  val name: Name? = value.nameAsName,
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val `(params)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
-  val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries),
-  val body: ClassBodyScope = ClassBodyScope(value.body)
-) : Scope<KtClass>(value)
+  val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries)
+) : ClassOrObjectScope<KtClass>(value)
 
 data class ClassBodyScope(val value: KtClassBody?) {
   override fun toString(): String =
