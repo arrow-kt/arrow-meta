@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * A [KtBlockExpression] [Quote] with a custom template destructuring [BlockExpressionScope]. See below:
+ * A [KtBlockExpression] [Quote] with a custom template destructuring [BlockExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 fun Meta.blockExpression(
   match: KtBlockExpression.() -> Boolean,
-  map: BlockExpressionScope.(KtBlockExpression) -> Transform<KtBlockExpression>
+  map: BlockExpression.(KtBlockExpression) -> Transform<KtBlockExpression>
 ): ExtensionPhase =
-  quote(match, map) { BlockExpressionScope(it) }
+  quote(match, map) { BlockExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtBlockExpression]
  */
-class BlockExpressionScope(
+class BlockExpression(
   override val value: KtBlockExpression?,
   val statements: ScopedList<KtExpression> = ScopedList(value?.statements ?: listOf()),
   val firstStatement: Scope<KtExpression> = Scope(value?.firstStatement)

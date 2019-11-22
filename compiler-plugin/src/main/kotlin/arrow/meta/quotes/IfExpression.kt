@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 
 /**
- * A [KtIfExpression] [Quote] with a custom template destructuring [IfExpressionScope].  See below:
+ * A [KtIfExpression] [Quote] with a custom template destructuring [IfExpression].  See below:
  *
  *```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  */
 fun Meta.ifExpression(
   match: KtIfExpression.() -> Boolean,
-  map: IfExpressionScope.(KtIfExpression) -> Transform<KtIfExpression>
+  map: IfExpression.(KtIfExpression) -> Transform<KtIfExpression>
 ): ExtensionPhase =
-  quote(match, map) { IfExpressionScope(it) }
+  quote(match, map) { IfExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtIfExpression]
  */
-class IfExpressionScope(
+class IfExpression(
   override val value: KtIfExpression?,
   val `else`: Scope<KtExpression> = Scope(value?.`else`),
   val `(condition)`: Scope<KtExpression> = Scope(value?.condition),

@@ -8,21 +8,21 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * A [KtParameter] [Quote] with a custom template destructuring [ParameterScope]
+ * A [KtParameter] [Quote] with a custom template destructuring [Parameter]
  *
  * @param match designed to to feed in any kind of [KtParameter] predicate returning a [Boolean]
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.parameter(
   match: KtParameter.() -> Boolean,
-  map: ParameterScope.(KtParameter) -> Transform<KtParameter>
+  map: Parameter.(KtParameter) -> Transform<KtParameter>
 ) : ExtensionPhase =
-  quote(match, map) { ParameterScope(it) }
+  quote(match, map) { Parameter(it) }
 
 /**
  * A template destructuring [Scope] for a [KtParameter]
  */
-class ParameterScope(
+class Parameter(
   override val value: KtParameter?,
   val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),

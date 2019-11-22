@@ -6,7 +6,6 @@ import arrow.meta.phases.analysis.body
 import arrow.meta.phases.analysis.bodySourceAsExpression
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
@@ -15,21 +14,21 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * A [KtNamedFunction] [Quote] with a custom template destructuring [NamedFunctionScope]
+ * A [KtNamedFunction] [Quote] with a custom template destructuring [NamedFunction]
  *
  * @param match designed to to feed in any kind of [KtNamedFunction] predicate returning a [Boolean]
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.namedFunction(
   match: KtNamedFunction.() -> Boolean,
-  map: NamedFunctionScope.(KtNamedFunction) -> Transform<KtNamedFunction>
+  map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
-  quote(match, map) { NamedFunctionScope(it) }
+  quote(match, map) { NamedFunction(it) }
 
 /**
  * A template destructuring [Scope] for a [KtNamedFunction]
  */
-class NamedFunctionScope(
+class NamedFunction(
   override val value: KtNamedFunction,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
@@ -43,10 +42,10 @@ class NamedFunctionScope(
     forceRenderSurroundings = true
   ),
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
-  val body: FunctionBodyScope? = value.body()?.let { FunctionBodyScope(it) }
+  val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
 ) : Scope<KtNamedFunction>(value)
 
-class FunctionBodyScope(
+class FunctionBody(
   override val value: KtExpression
 ) : Scope<KtExpression>(value) {
   override fun toString(): String =
