@@ -27,19 +27,19 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
  * Parent scope of [KtClass] and [KtObjectDeclaration]
  */
 open class ClassOrObjectScope<out T : KtClassOrObject>(
-        override val value: T,
-        val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
-        val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
-        val superTypeList: KtSuperTypeList? = value.getSuperTypeList(),
-        val superTypeListEntries: ScopedList<KtSuperTypeListEntry> = ScopedList(prefix = "<", value = value.superTypeListEntries, postfix = ">"),
-        val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers(), postfix = ","),
-        val body: ClassBody = ClassBody(value.body),
-        val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
-        val presentation: ItemPresentation? = value.presentation,
-        val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,
-        val primaryConstructorModifierList: Scope<KtModifierList> = Scope(primaryConstructor?.modifierList), // TODO KtModifierList scope
-        val primaryConstructorParameterList: Scope<KtParameterList> = Scope(primaryConstructor?.valueParameterList), // TODO KtParameterList scope
-        val name: Name? = value.nameAsName
+  override val value: T,
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
+  val superTypeList: KtSuperTypeList? = value.getSuperTypeList(),
+  val superTypeListEntries: ScopedList<KtSuperTypeListEntry> = ScopedList(prefix = "<", value = value.superTypeListEntries, postfix = ">"),
+  val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers(), postfix = ","),
+  val body: ClassBody = ClassBody(value.body),
+  val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
+  val presentation: ItemPresentation? = value.presentation,
+  val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,
+  val primaryConstructorModifierList: Scope<KtModifierList> = Scope(primaryConstructor?.modifierList), // TODO KtModifierList scope
+  val primaryConstructorParameterList: Scope<KtParameterList> = Scope(primaryConstructor?.valueParameterList), // TODO KtParameterList scope
+  val name: Name? = value.nameAsName
   ) : Scope<T>(value)
 
 fun <T: KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> = Scope(value.getOrCreateBody())
