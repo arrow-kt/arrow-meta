@@ -14,6 +14,7 @@ internal fun compile(data: CompilationData): Result =
     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
+    compilerPlugins = data.metaPlugins
   }.compile()
 
 private fun classpathOf(dependency: String): File {

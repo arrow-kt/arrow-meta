@@ -1,6 +1,7 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
+import arrow.meta.plugin.testing.plugins.MetaPlugin
 import org.junit.Test
 
 class ExampleTest {
@@ -132,6 +133,24 @@ class ExampleTest {
       },
       assert = {
         allOf(compiles)
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to test a Meta plugin`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      code = {
+          """
+          | //metadebug
+          | 
+          | fun helloWorld(): String = TODO()
+          | 
+          """.source
+      },
+      assert = {
+        allOf("helloWorld()".source.evalsTo("Hello ΛRROW Meta!"))
       }
     ))
   }
