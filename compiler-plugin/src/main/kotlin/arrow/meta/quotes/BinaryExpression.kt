@@ -14,14 +14,14 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  */
 fun Meta.binaryExpression(
   match: KtBinaryExpression.() -> Boolean,
-  map: BinaryExpressionScope.(KtBinaryExpression) -> Transform<KtBinaryExpression>
+  map: BinaryExpression.(KtBinaryExpression) -> Transform<KtBinaryExpression>
 ): ExtensionPhase =
-  quote(match, map) { BinaryExpressionScope(it) }
+  quote(match, map) { BinaryExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtBinaryExpression]
  */
-class BinaryExpressionScope(
+class BinaryExpression(
   override val value: KtBinaryExpression,
   val left: Scope<KtExpression>? = Scope(value.left),
   val right: Scope<KtExpression>? = Scope(value.right),

@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
 
 /**
- * A [KtForExpression] [Quote] with a custom template destructuring [ForExpressionScope].  See below:
+ * A [KtForExpression] [Quote] with a custom template destructuring [ForExpression].  See below:
  *
  * ```
  * import arrow.meta.Meta
@@ -38,16 +38,16 @@ import org.jetbrains.kotlin.psi.KtForExpression
  */
 fun Meta.forExpression(
   match: KtForExpression.() -> Boolean,
-  map: ForExpressionScope.(KtForExpression) -> Transform<KtForExpression>
+  map: ForExpression.(KtForExpression) -> Transform<KtForExpression>
 ): ExtensionPhase =
-  quote(match, map) { ForExpressionScope(it) }
+  quote(match, map) { ForExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtForExpression]
  */
-class ForExpressionScope(
-  override val value: KtForExpression,
-  val `(param)`: ParameterScope = ParameterScope(value.loopParameter),
-  val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope
-  val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration) // TODO KtDestructuringDeclaration scope
+class ForExpression(
+        override val value: KtForExpression,
+        val `(param)`: Parameter = Parameter(value.loopParameter),
+        val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope
+        val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration) // TODO KtDestructuringDeclaration scope
 ) : LoopExpressionScope<KtForExpression>(value)

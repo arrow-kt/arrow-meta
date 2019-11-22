@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 /**
- * A [KtTryExpression] [Quote] with a custom template destructuring [TryExpressionScope]. See below:
+ * A [KtTryExpression] [Quote] with a custom template destructuring [TryExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -36,14 +36,14 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  */
 fun Meta.tryExpression(
   match: KtTryExpression.() -> Boolean,
-  map: TryExpressionScope.(KtTryExpression) -> Transform<KtTryExpression>
+  map: TryExpression.(KtTryExpression) -> Transform<KtTryExpression>
 ): ExtensionPhase =
-  quote(match, map) { TryExpressionScope(it) }
+  quote(match, map) { TryExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtTryExpression]
  */
-class TryExpressionScope(
+class TryExpression(
   override val value: KtTryExpression?,
   val tryBlock: Scope<KtBlockExpression> = Scope(value?.tryBlock),
   val catch: ScopedList<KtCatchClause> = ScopedList(value?.catchClauses ?: listOf()),

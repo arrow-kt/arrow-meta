@@ -1,28 +1,28 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.AnnotatedExpressionScope
-import arrow.meta.quotes.BlockExpressionScope
-import arrow.meta.quotes.CatchClauseScope
-import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FinallySectionScope
-import arrow.meta.quotes.ForExpressionScope
-import arrow.meta.quotes.IfExpressionScope
-import arrow.meta.quotes.ImportDirectiveScope
-import arrow.meta.quotes.IsExpressionScope
-import arrow.meta.quotes.ModifierListScope
-import arrow.meta.quotes.NamedFunctionScope
-import arrow.meta.quotes.ParameterListScope
-import arrow.meta.quotes.ParameterScope
-import arrow.meta.quotes.ReturnExpressionScope
+import arrow.meta.quotes.AnnotatedExpression
+import arrow.meta.quotes.BlockExpression
+import arrow.meta.quotes.CatchClause
+import arrow.meta.quotes.ClassDeclaration
+import arrow.meta.quotes.FinallySection
+import arrow.meta.quotes.ForExpression
+import arrow.meta.quotes.IfExpression
+import arrow.meta.quotes.ImportDirective
+import arrow.meta.quotes.IsExpression
+import arrow.meta.quotes.ModifierList
+import arrow.meta.quotes.NamedFunction
+import arrow.meta.quotes.ParameterList
+import arrow.meta.quotes.Parameter
+import arrow.meta.quotes.ReturnExpression
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.ThrowExpressionScope
-import arrow.meta.quotes.TryExpressionScope
-import arrow.meta.quotes.TypeReferenceScope
-import arrow.meta.quotes.ValueArgumentScope
-import arrow.meta.quotes.WhenConditionScope
-import arrow.meta.quotes.WhenEntryScope
-import arrow.meta.quotes.WhenExpressionScope
-import arrow.meta.quotes.WhileExpressionScope
+import arrow.meta.quotes.ThrowExpression
+import arrow.meta.quotes.TryExpression
+import arrow.meta.quotes.TypeReference
+import arrow.meta.quotes.ValueArgument
+import arrow.meta.quotes.WhenCondition
+import arrow.meta.quotes.WhenEntry
+import arrow.meta.quotes.WhenExpression
+import arrow.meta.quotes.WhileExpression
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -68,7 +67,6 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.KtTypeParameterList
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.resolve.ImportPath
 
@@ -94,15 +92,15 @@ interface ElementScope {
   
   val String.typeArgument: Scope<KtTypeProjection>
   
-  val String.type: TypeReferenceScope
+  val String.type: TypeReference
   
-  val KtTypeElement.type: TypeReferenceScope
+  val KtTypeElement.type: TypeReference
 
   val String.typeOrNull: Scope<KtTypeReference>
   
   val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
   
-  val KtTypeReference.functionTypeParameter: ParameterScope
+  val KtTypeReference.functionTypeParameter: Parameter
   
   fun typeAlias(
     name: String,
@@ -136,7 +134,7 @@ interface ElementScope {
   
   val Int.newLine: PsiElement
   
-  val String.`class`: ClassScope
+  val String.`class`: ClassDeclaration
   
   val String.`object`: Scope<KtObjectDeclaration>
   
@@ -177,7 +175,7 @@ interface ElementScope {
   
   val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
   
-  val String.destructuringParameter: ParameterScope
+  val String.destructuringParameter: Parameter
   
   fun <A : KtDeclaration> String.declaration(): Scope<A>
   
@@ -191,41 +189,41 @@ interface ElementScope {
   
   val String.identifier: PsiElement
   
-  val String.function: NamedFunctionScope
+  val String.function: NamedFunction
   
   val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
   
   val String.secondaryConstructor: Scope<KtSecondaryConstructor>
   
-  fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope
+  fun modifierList(modifier: KtModifierKeywordToken): ModifierList
   
-  val String.modifierList: ModifierListScope
+  val String.modifierList: ModifierList
   
-  val emptyModifierList: ModifierListScope
+  val emptyModifierList: ModifierList
   
   fun modifier(modifier: KtModifierKeywordToken): PsiElement
   
   val String.annotationEntry: Scope<KtAnnotationEntry>
   
-  val emptyBody: BlockExpressionScope
+  val emptyBody: BlockExpression
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
   val emptyClassBody: Scope<KtClassBody>
   
-  val String.parameter: ParameterScope
+  val String.parameter: Parameter
   
-  val String.loopParameter: ParameterScope
+  val String.loopParameter: Parameter
   
-  val String.parameterList: ParameterListScope
+  val String.parameterList: ParameterList
   
   val String.typeParameterList: Scope<KtTypeParameterList>
   
   val String.typeParameter: Scope<KtTypeParameter>
   
-  val String.lambdaParameterListIfAny: ParameterListScope
+  val String.lambdaParameterListIfAny: ParameterList
   
-  val String.lambdaParameterList: ParameterListScope
+  val String.lambdaParameterList: ParameterList
   
   fun lambdaExpression(
     parameters: String,
@@ -236,9 +234,9 @@ interface ElementScope {
   
   val enumEntryInitializerList: Scope<KtInitializerList>
   
-  val String.whenEntry: WhenEntryScope
+  val String.whenEntry: WhenEntry
   
-  val String.whenCondition: WhenConditionScope
+  val String.whenCondition: WhenCondition
   
   fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression>
   
@@ -252,7 +250,7 @@ interface ElementScope {
 
   val String.packageDirectiveOrNull: Scope<KtPackageDirective>
   
-  fun importDirective(importPath: ImportPath): ImportDirectiveScope
+  fun importDirective(importPath: ImportPath): ImportDirective
   
   fun primaryConstructor(text: String = ""): Scope<KtPrimaryConstructor>
   
@@ -274,16 +272,16 @@ interface ElementScope {
     condition: KtExpression,
     thenExpr: KtExpression,
     elseExpr: KtExpression? = null
-  ): IfExpressionScope
+  ): IfExpression
   
   fun argument(
     expression: KtExpression?,
     name: Name? = null,
     isSpread: Boolean = false,
     reformat: Boolean = true
-  ): ValueArgumentScope
+  ): ValueArgument
   
-  val String.argument: ValueArgumentScope
+  val String.argument: ValueArgument
 
   val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
   
@@ -291,35 +289,35 @@ interface ElementScope {
   
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
-  val String.block: BlockExpressionScope
+  val String.block: BlockExpression
 
-  val String.`for`: ForExpressionScope
+  val String.`for`: ForExpression
 
-  val String.`while`: WhileExpressionScope
+  val String.`while`: WhileExpression
 
-  val String.`if`: IfExpressionScope
+  val String.`if`: IfExpression
 
-  val String.`when`: WhenExpressionScope
+  val String.`when`: WhenExpression
 
-  val String.`try`: TryExpressionScope
+  val String.`try`: TryExpression
 
-  val String.catch: CatchClauseScope
+  val String.catch: CatchClause
 
-  val String.finally: FinallySectionScope
+  val String.finally: FinallySection
 
-  val String.`throw`: ThrowExpressionScope
+  val String.`throw`: ThrowExpression
 
-  val String.`is`: IsExpressionScope
+  val String.`is`: IsExpression
 
-  val String.`return`: ReturnExpressionScope
+  val String.`return`: ReturnExpression
 
-  val String.annotatedExpression: AnnotatedExpressionScope
+  val String.annotatedExpression: AnnotatedExpression
 
   fun singleStatementBlock(
     statement: KtExpression,
     prevComment: String? = null,
     nextComment: String? = null
-  ): BlockExpressionScope
+  ): BlockExpression
   
   val String.comment: PsiComment
 

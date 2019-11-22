@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtParameterList
 
 /**
- * A [KtCatchClause] [Quote] with a custom template destructuring [CatchClauseScope]. See below:
+ * A [KtCatchClause] [Quote] with a custom template destructuring [CatchClause]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -35,16 +35,16 @@ import org.jetbrains.kotlin.psi.KtParameterList
  */
 fun Meta.catchClause(
   match: KtCatchClause.() -> Boolean,
-  map: CatchClauseScope.(KtCatchClause) -> Transform<KtCatchClause>
+  map: CatchClause.(KtCatchClause) -> Transform<KtCatchClause>
 ): ExtensionPhase =
-  quote(match, map) { CatchClauseScope(it) }
+  quote(match, map) { CatchClause(it) }
 
 /**
  * A template destructuring [Scope] for a [KtCatchClause]
  */
-class CatchClauseScope(
-  override val value: KtCatchClause?,
-  val `(parameter)`: ParameterScope = ParameterScope(value?.catchParameter),
-  val `{ body }`: Scope<KtExpression> = Scope(value?.catchBody),
-  val parameterList: Scope<KtParameterList> = Scope(value?.parameterList)
+class CatchClause(
+        override val value: KtCatchClause?,
+        val `(parameter)`: Parameter = Parameter(value?.catchParameter),
+        val `{ body }`: Scope<KtExpression> = Scope(value?.catchBody),
+        val parameterList: Scope<KtParameterList> = Scope(value?.parameterList)
 ) : Scope<KtCatchClause>(value)

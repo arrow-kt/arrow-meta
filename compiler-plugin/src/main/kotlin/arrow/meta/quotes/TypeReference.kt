@@ -16,14 +16,14 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  */
 fun Meta.typeReference(
   match: KtTypeReference.() -> Boolean,
-  map: TypeReferenceScope.(KtTypeReference) -> Transform<KtTypeReference>
+  map: TypeReference.(KtTypeReference) -> Transform<KtTypeReference>
 ): ExtensionPhase =
-  quote(match, map) { TypeReferenceScope(it) }
+  quote(match, map) { TypeReference(it) }
 
 /**
- * A template destructuring [Scope] for a [TypeReferenceScope]
+ * A template destructuring [Scope] for a [TypeReference]
  */
-class TypeReferenceScope(
+class TypeReference(
   override val value: KtTypeReference,
   val typeElement: Scope<KtTypeElement>? = Scope(value.typeElement), // TODO KtTypeElement scope and quote template
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries)

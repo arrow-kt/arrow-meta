@@ -5,7 +5,7 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.quotes.ClassScope
+import arrow.meta.quotes.ClassDeclaration
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
@@ -52,7 +52,7 @@ val Meta.lenses: Plugin
       )
     }
 
-private fun CompilerContext.validateMaxArityAllowed(classScope: ClassScope) {
+private fun CompilerContext.validateMaxArityAllowed(classScope: ClassDeclaration) {
   if (classScope.`(params)`.value.size > 10)
     // Question: error message file location
     messageCollector?.report(
