@@ -27,7 +27,7 @@ fun Meta.typeAlias(
  */
 class TypeAlias(
   override val value: KtTypeAlias,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val `@annotationEntries`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val name: Name? = value.nameAsName,
