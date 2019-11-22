@@ -53,9 +53,9 @@ private val interpreter: (CompilerTest) -> Unit = {
         when (config) {
           is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
           is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
+          is Config.AddMetaPlugins -> remaining.compilationData(acc.addMetaPlugins(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
-          is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
         }
       }
     }
@@ -92,6 +92,9 @@ private fun CompilationData.addDependencies(config: Config.AddDependencies) =
 
 private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins) =
   copy(compilerPlugins = compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } })
+
+private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
+  copy(metaPlugins = metaPlugins + config.plugins)
 
 private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
   assertCompiles(compilationResult)

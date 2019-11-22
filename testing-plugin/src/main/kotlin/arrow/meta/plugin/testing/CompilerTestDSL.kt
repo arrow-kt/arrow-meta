@@ -1,5 +1,6 @@
 package arrow.meta.plugin.testing
 
+import arrow.meta.Meta
 import arrow.meta.Plugin
 
 /**
@@ -74,7 +75,7 @@ interface ConfigSyntax {
   /**
    * Adds the Meta Plugins to run the compilation.
    */
-  fun addMetaPlugins(vararg element: Plugin): Config =
+  fun addMetaPlugins(vararg element: Meta): Config =
     Config.Many(listOf(Config.AddMetaPlugins(element.toList())))
 
   /**
@@ -108,7 +109,7 @@ interface ConfigSyntax {
  */
 sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
-  internal data class AddMetaPlugins(val plugins: List<Plugin>) : Config()
+  internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
