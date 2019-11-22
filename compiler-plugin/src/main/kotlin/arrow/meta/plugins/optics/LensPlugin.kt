@@ -63,7 +63,7 @@ private fun CompilerContext.validateMaxArityAllowed(classScope: ClassDeclaration
 
 private const val maxArity: Int = 10
 
-private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> =
+private fun ElementScope.lenses(classScope: ClassDeclaration): ScopedList<KtProperty> =
   classScope.run {
     ScopedList(
       separator = "\n",
@@ -79,7 +79,7 @@ private fun ElementScope.lens(source: KtClass, focus: KtParameter): Scope<KtProp
      |  set = { ${source.name!!.toLowerCase()}, ${focus.name} -> ${source.name!!.toLowerCase()}.copy(${focus.name} = ${focus.name}) }
      |)""".property.synthetic
 
-private fun ElementScope.iso(classScope: ClassScope): Scope<KtProperty> =
+private fun ElementScope.iso(classScope: ClassDeclaration): Scope<KtProperty> =
   classScope.run {
     """|val iso: arrow.optics.Iso<${value.name}, ${`(params)`.tupledType}> = arrow.optics.Iso(
        |  get = { (${`(params)`.destructured}) -> ${`(params)`.tupled} },
