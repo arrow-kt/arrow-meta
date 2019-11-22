@@ -269,7 +269,7 @@ fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Tra
   mutations.forEach { transform ->
     when (transform) {
       is Transform.Replace -> dummyFile = transform.replace(dummyFile)
-      is Transform.Remove -> dummyFile = transform.transform(dummyFile)
+      is Transform.Remove -> dummyFile = transform.remove(dummyFile)
       Transform.Empty -> Unit
     }
   }
