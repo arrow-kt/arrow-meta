@@ -13,15 +13,27 @@ sealed class Transform<out K : KtElement> {
    * A Transform that replaces some element in AST. See below:
    *
    * ```kotlin:ank:silent
-   * namedFunction({ name == "helloWorld" }) { c ->
-   *   Transform.replace(
-   *     replacing = c,
-   *     newDeclaration =
-   *     """|fun helloWorld(): Unit =
-   *        |  println("Hello ΛRROW Meta!")
-   *        |""".function.synthetic
-   *   )
-   * }
+   * import arrow.meta.Meta
+   * import arrow.meta.Plugin
+   * import arrow.meta.invoke
+   * import arrow.meta.quotes.Transform
+   * import arrow.meta.quotes.namedFunction
+   *
+   * val Meta.replacePlugin: Plugin
+   *  get() =
+   *   "Replace Transform" {
+   *     meta(
+   *      namedFunction({ name == "helloWorld" }) { c ->
+   *        Transform.replace(
+   *          replacing = c,
+   *          newDeclaration =
+   *          """|fun helloWorld(): Unit =
+   *             |  println("Hello ΛRROW Meta!")
+   *             |""".function.synthetic
+   *        )
+   *      }
+   *     )
+   *   }
    * ```
    *
    * @param replacing the element to be replaced
@@ -37,12 +49,23 @@ sealed class Transform<out K : KtElement> {
    * A Transform that removes declarations from a specific element in the AST. See below:
    *
    * ```kotlin:ank:silent
-   * namedFunction({ name == "helloWorld" }) { c ->
-   *   Transform.remove(
-   *     removeIn = c,
-   *     declaration = """ println("") """.expressionIn(c)
-   *   )
-   * }
+   * import arrow.meta.Meta
+   * import arrow.meta.Plugin
+   * import arrow.meta.invoke
+   * import arrow.meta.quotes.Transform
+   * import arrow.meta.quotes.namedFunction
+   *
+   * val Meta.replacePlugin: Plugin
+   *  get() =
+   *   "Remove Transform" {
+   *     meta(
+   *      namedFunction({ name == "helloWorld" }) { c ->
+   *        Transform.remove(
+   *          remove = c
+   *        )
+   *      }
+   *     )
+   *   }
    * ```
    *
    * @param removing is the element context
