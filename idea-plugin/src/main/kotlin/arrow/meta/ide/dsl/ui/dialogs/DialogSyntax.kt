@@ -37,7 +37,7 @@ interface DialogSyntax {
     buildDialog: CreateFileFromTemplateDialog.Builder.(project: Project, directory: PsiDirectory) -> Unit = Noop.effect3,
     postProcess: (createdElement: PsiFile, templateName: String, customProperties: MutableMap<String, String>) -> Unit = Noop.effect3,
     fileIcon: Icon? = KotlinFileType.INSTANCE.icon,
-    actionName: (directory: PsiDirectory?, newName: String, templateName: String?) -> String =
+    actionName: (directory: PsiDirectory, newName: String, templateName: String) -> String =
       { _, _, _ -> createText },
     createFileFromTemplate: (name: String, template: FileTemplate, dir: PsiDirectory) -> PsiFile? =
       { name, template, dir -> NewKotlinFileAction.createFileFromTemplateWithStat(name, template, dir) },
@@ -51,15 +51,15 @@ interface DialogSyntax {
     buildDialog: CreateFileFromTemplateDialog.Builder.(project: Project, directory: PsiDirectory) -> Unit = Noop.effect3,
     postProcess: (createdElement: PsiFile, templateName: String, customProperties: MutableMap<String, String>) -> Unit = Noop.effect3,
     fileIcon: Icon? = KotlinFileType.INSTANCE.icon,
-    actionName: (directory: PsiDirectory?, newName: String, templateName: String?) -> String =
+    actionName: (directory: PsiDirectory, newName: String, templateName: String) -> String =
       { _, _, _ -> createText },
     createFileFromTemplate: (name: String, template: FileTemplate, dir: PsiDirectory) -> PsiFile? =
       { name, template, dir -> NewKotlinFileAction.createFileFromTemplate(name, template, dir) },
     startInWriteAction: Boolean = false
   ): CreateFileFromTemplateAction =
     object : CreateFileFromTemplateAction(createText, actionDescription, fileIcon), DumbAware {
-      override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String =
-        actionName(directory, newName, templateName)
+      override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String? =
+        directory?.let { d -> templateName?.let { t -> actionName(d, newName, t) } }
 
       override fun buildDialog(project: Project?, directory: PsiDirectory?, builder: CreateFileFromTemplateDialog.Builder?): Unit =
         project?.let { p -> directory?.let { d -> builder?.let { b -> buildDialog(b, p, d) } } } ?: Unit
