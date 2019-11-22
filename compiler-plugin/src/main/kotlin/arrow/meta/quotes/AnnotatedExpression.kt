@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * A [KtAnnotatedExpression] [Quote] with a custom template destructuring [AnnotatedExpressionScope]. See below:
+ * A [KtAnnotatedExpression] [Quote] with a custom template destructuring [AnnotatedExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -35,14 +35,14 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 fun Meta.annotatedExpression(
   match: KtAnnotatedExpression.() -> Boolean,
-  map: AnnotatedExpressionScope.(KtAnnotatedExpression) -> Transform<KtAnnotatedExpression>
+  map: AnnotatedExpression.(KtAnnotatedExpression) -> Transform<KtAnnotatedExpression>
 ): ExtensionPhase =
-  quote(match, map) { AnnotatedExpressionScope(it) }
+  quote(match, map) { AnnotatedExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtAnnotatedExpression]
  */
-class AnnotatedExpressionScope(
+class AnnotatedExpression(
   override val value: KtAnnotatedExpression?,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries ?: listOf()),
   val expression: Scope<KtExpression> = Scope(value?.baseExpression)

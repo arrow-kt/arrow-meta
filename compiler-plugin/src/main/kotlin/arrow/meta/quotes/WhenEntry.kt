@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
 
 /**
- * A [KtWhenEntry] [Quote] with a custom template destructuring [WhenEntryScope]. See below:
+ * A [KtWhenEntry] [Quote] with a custom template destructuring [WhenEntry]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -35,14 +35,14 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
  */
 fun Meta.whenEntry(
   match: KtWhenEntry.() -> Boolean,
-  map: WhenEntryScope.(KtWhenEntry) -> Transform<KtWhenEntry>
+  map: WhenEntry.(KtWhenEntry) -> Transform<KtWhenEntry>
 ): ExtensionPhase =
-  quote(match, map) { WhenEntryScope(it) }
+  quote(match, map) { WhenEntry(it) }
 
 /**
  * A template destructuring [Scope] for a [KtWhenEntry]
  */
-class WhenEntryScope(
+class WhenEntry(
   override val value: KtWhenEntry?,
   val conditions: ScopedList<KtWhenCondition> = ScopedList(value?.conditions?.toList() ?: listOf()),
   val expression: Scope<KtExpression> = Scope(value?.expression),

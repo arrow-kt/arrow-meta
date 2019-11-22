@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 
 /**
- * A [KtReturnExpression] [Quote] with a custom template destructuring [ReturnExpressionScope]. See below:
+ * A [KtReturnExpression] [Quote] with a custom template destructuring [ReturnExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  */
 fun Meta.returnExpression(
   match: KtReturnExpression.() -> Boolean,
-  map: ReturnExpressionScope.(KtReturnExpression) -> Transform<KtReturnExpression>
+  map: ReturnExpression.(KtReturnExpression) -> Transform<KtReturnExpression>
 ): ExtensionPhase =
-  quote(match, map) { ReturnExpressionScope(it) }
+  quote(match, map) { ReturnExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtReturnExpression]
  */
-class ReturnExpressionScope(
+class ReturnExpression(
   override val value: KtReturnExpression?,
   val `return`: Scope<KtExpression> = Scope(value?.returnedExpression)
 ) : Scope<KtReturnExpression>(value)

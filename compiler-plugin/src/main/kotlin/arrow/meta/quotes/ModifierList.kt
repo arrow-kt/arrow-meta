@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
 
 /**
- * A [KtModifierList] [Quote] with a custom template destructuring [ModifierListScope].  See below:
+ * A [KtModifierList] [Quote] with a custom template destructuring [ModifierList].  See below:
  *
  *```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -36,14 +36,14 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  */
 fun Meta.modifierList(
   match: KtModifierList.() -> Boolean,
-  map: ModifierListScope.(KtModifierList) -> Transform<KtModifierList>
+  map: ModifierList.(KtModifierList) -> Transform<KtModifierList>
 ): ExtensionPhase =
-  quote(match, map) { ModifierListScope(it) }
+  quote(match, map) { ModifierList(it) }
 
 /**
  * A template destructuring [Scope] for a [KtModifierList]
  */
-class ModifierListScope(
+class ModifierList(
   override val value: KtModifierList?,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries ?: listOf()),
   val modifier: PsiElement? = value?.visibilityModifier()
