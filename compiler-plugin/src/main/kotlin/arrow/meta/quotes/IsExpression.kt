@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
- * A [KtIsExpression] [Quote] with a custom template destructuring [IsExpressionScope]. See below:
+ * A [KtIsExpression] [Quote] with a custom template destructuring [IsExpression]. See below:
  *
  *```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -36,14 +36,14 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  */
 fun Meta.isExpression(
   match: KtIsExpression.() -> Boolean,
-  map: IsExpressionScope.(KtIsExpression) -> Transform<KtIsExpression>
+  map: IsExpression.(KtIsExpression) -> Transform<KtIsExpression>
 ): ExtensionPhase =
-  quote(match, map) { IsExpressionScope(it) }
+  quote(match, map) { IsExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtIsExpression]
  */
-class IsExpressionScope(
+class IsExpression(
   override val value: KtIsExpression?,
   val left: Scope<KtExpression> = Scope(value?.leftHandSide),
   val operation: Scope<KtSimpleNameExpression> = Scope(value?.operationReference),

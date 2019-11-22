@@ -1,6 +1,6 @@
 package arrow.meta.quotes.parentscopes
 
-import arrow.meta.quotes.ClassBodyScope
+import arrow.meta.quotes.ClassBody
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.com.intellij.navigation.ItemPresentation
@@ -33,7 +33,7 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   val superTypeList: KtSuperTypeList? = value.getSuperTypeList(),
   val superTypeListEntries: ScopedList<KtSuperTypeListEntry> = ScopedList(prefix = "<", value = value.superTypeListEntries, postfix = ">"),
   val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers(), postfix = ","),
-  val body: ClassBodyScope = ClassBodyScope(value.body),
+  val body: ClassBody = ClassBody(value.body),
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
   val presentation: ItemPresentation? = value.presentation,
   val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,

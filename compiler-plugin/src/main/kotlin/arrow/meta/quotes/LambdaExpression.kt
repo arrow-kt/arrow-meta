@@ -2,9 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
-import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtParameter
@@ -34,5 +32,5 @@ class LambdaExpressionScope(
     forceRenderSurroundings = true
   ),
   val bodyExpression: Scope<KtBlockExpression> = Scope(value.bodyExpression), // TODO KtBodyExpression scope and quote template
-  val containingLtFile: Scope<KtFile> = Scope(value.containingKtFile) // TODO KtFile scope and quote template
+  val containingLtFile: File = File(value.containingKtFile)
 ) : Scope<KtLambdaExpression>(value)

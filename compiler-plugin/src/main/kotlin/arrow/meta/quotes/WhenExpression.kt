@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
 /**
- * A [KtWhenExpression] [Quote] with a custom template destructuring [WhenExpressionScope].  See below:
+ * A [KtWhenExpression] [Quote] with a custom template destructuring [WhenExpression].  See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -37,17 +37,17 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  */
 fun Meta.whenExpression(
   match: KtWhenExpression.() -> Boolean,
-  map: WhenExpressionScope.(KtWhenExpression) -> Transform<KtWhenExpression>
+  map: WhenExpression.(KtWhenExpression) -> Transform<KtWhenExpression>
 ): ExtensionPhase =
-  quote(match, map) { WhenExpressionScope(it) }
+  quote(match, map) { WhenExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtWhenExpression]
  */
-class WhenExpressionScope(
+class WhenExpression(
   override val value: KtWhenExpression?,
   val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries ?: listOf()),
-  val variable: PropertyScope = PropertyScope(value?.subjectVariable),
+  val variable: Property = Property(value?.subjectVariable),
   val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
 ) : Scope<KtWhenExpression>(value)
