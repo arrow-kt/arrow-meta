@@ -46,8 +46,8 @@ fun Meta.forExpression(
  * A template destructuring [Scope] for a [KtForExpression]
  */
 class ForExpression(
-        override val value: KtForExpression,
-        val `(param)`: Parameter = Parameter(value.loopParameter),
-        val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope
-        val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration) // TODO KtDestructuringDeclaration scope
+  override val value: KtForExpression,
+  val `(param)`: Parameter = Parameter(value.loopParameter),
+  val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope
+  val destructuringDeclaration: Scope<KtDestructuringDeclaration> = Scope(value.destructuringDeclaration) // TODO KtDestructuringDeclaration scope
 ) : LoopExpressionScope<KtForExpression>(value)

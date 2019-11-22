@@ -45,9 +45,9 @@ fun Meta.whenExpression(
  * A template destructuring [Scope] for a [KtWhenExpression]
  */
 class WhenExpression(
-        override val value: KtWhenExpression?,
-        val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries ?: listOf()),
-        val variable: Property = Property(value?.subjectVariable),
-        val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
-        val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
+  override val value: KtWhenExpression?,
+  val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries ?: listOf()),
+  val variable: Property = Property(value?.subjectVariable),
+  val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
+  val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
 ) : Scope<KtWhenExpression>(value)

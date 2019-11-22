@@ -43,8 +43,8 @@ fun Meta.catchClause(
  * A template destructuring [Scope] for a [KtCatchClause]
  */
 class CatchClause(
-        override val value: KtCatchClause?,
-        val `(parameter)`: Parameter = Parameter(value?.catchParameter),
-        val `{ body }`: Scope<KtExpression> = Scope(value?.catchBody),
-        val parameterList: Scope<KtParameterList> = Scope(value?.parameterList)
+  override val value: KtCatchClause?,
+  val `(parameter)`: Parameter = Parameter(value?.catchParameter),
+  val `{ body }`: Scope<KtExpression> = Scope(value?.catchBody),
+  val parameterList: Scope<KtParameterList> = Scope(value?.parameterList)
 ) : Scope<KtCatchClause>(value)
