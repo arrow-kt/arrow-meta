@@ -4,6 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugin.testing.plugins.transform.transformRemove
+import arrow.meta.plugin.testing.plugins.transform.transformReplace
 import kotlin.contracts.ExperimentalContracts
 
 open class MetaPlugin : Meta {
@@ -11,5 +12,6 @@ open class MetaPlugin : Meta {
     override fun intercept(ctx: CompilerContext): List<Plugin> = (
         transformRemove
         + helloWorld
+        + transformReplace
     )
 }
