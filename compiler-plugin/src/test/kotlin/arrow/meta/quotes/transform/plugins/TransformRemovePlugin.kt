@@ -14,7 +14,7 @@ private val Meta.transformRemoveSingleElement: Plugin
     "Transform Remove" {
       meta(
         namedFunction({ name == "transformRemove" }) { f ->
-            Transform.remove(f)
+          Transform.remove(f)
         }
       )
     }
@@ -22,28 +22,28 @@ private val Meta.transformRemoveSingleElement: Plugin
 private val Meta.transformRemoveSingleElementFromContext: Plugin
   get() =
     "Transform Remove" {
-        meta(
-          namedFunction({ name == "transformRemoveSingleElement" }) { f ->
-              Transform.remove(
-                removeIn = f,
-                declaration = """ println("") """.expressionIn(f)
-              )
-          }
-        )
+      meta(
+        namedFunction({ name == "transformRemoveSingleElement" }) { f ->
+          Transform.remove(
+            removeIn = f,
+            declaration = """ println("") """.expressionIn(f)
+          )
+        }
+      )
     }
 
 private val Meta.transformRemoveElementsFromContext: Plugin
   get() =
     "Transform Remove" {
-        meta(
-          namedFunction({ name == "transformRemoveElements" }) { f ->
-              Transform.remove(
-                removeIn = f,
-                declarations = listOf(
-                  """ println("") """.expressionIn(f),
-                  """ println("asd") """.expressionIn(f)
-                )
-              )
-          }
-        )
+      meta(
+        namedFunction({ name == "transformRemoveElements" }) { f ->
+          Transform.remove(
+            removeIn = f,
+            declarations = listOf(
+              """ println("") """.expressionIn(f),
+              """ println("asd") """.expressionIn(f)
+            )
+          )
+        }
+      )
     }

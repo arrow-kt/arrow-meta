@@ -17,7 +17,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(compiles)
+        compiles
       }
     ))
   }
@@ -33,7 +33,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("hello()".source.evalsTo("Hello world!"))
+        "hello()".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -48,7 +48,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(fails)
+        fails
       }
     ))
   }
@@ -63,7 +63,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(failsWith { it.contains("Expecting a top level declaration") })
+        failsWith { it.contains("Expecting a top level declaration") }
       }
     ))
   }
@@ -79,7 +79,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("x".source.evalsTo("Hello world!"))
+        "x".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -132,7 +132,7 @@ class ExampleTest {
           """.source)
       },
       assert = {
-        allOf(compiles)
+        compiles
       }
     ))
   }
@@ -150,7 +150,7 @@ class ExampleTest {
           """.source
       },
       assert = {
-        allOf("helloWorld()".source.evalsTo("Hello ΛRROW Meta!"))
+        "helloWorld()".source.evalsTo("Hello ΛRROW Meta!")
       }
     ))
   }

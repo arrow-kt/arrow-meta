@@ -6,23 +6,25 @@ import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.Test
 
 class TransformRemoveTest {
-  
+
   @Test
   fun `check if transformRemove function is deleted from AST`() {
-      assertThis(CompilerTest(
-        config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
-        code = {
-          """
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """
           | //metadebug
           |
           | fun transformRemove() {}
           | fun foo() {}
           """.source
-        },
-        assert = { allOf(quoteOutputMatches(""" fun foo() {} """.source)) }
-      ))
+      },
+      assert = {
+        quoteOutputMatches(""" fun foo() {} """.source)
+      }
+    ))
   }
-  
+
   @Test
   fun `check if the element of transformRemoveSingleElement function is deleted from AST`() {
     assertThis(CompilerTest(
@@ -37,10 +39,12 @@ class TransformRemoveTest {
         | }
         """.source
       },
-      assert = { allOf(quoteOutputMatches(""" fun transformRemoveSingleElement() { println("asd") } """.source)) }
+      assert = {
+        quoteOutputMatches(""" fun transformRemoveSingleElement() { println("asd") } """.source)
+      }
     ))
   }
-  
+
   @Test
   fun `check if the elements of transformRemoveElements function are deleted from AST`() {
     assertThis(CompilerTest(
@@ -55,7 +59,9 @@ class TransformRemoveTest {
         | }
         """.source
       },
-      assert = { allOf(quoteOutputMatches(""" fun transformRemoveElements() { } """.source)) }
+      assert = {
+        quoteOutputMatches(""" fun transformRemoveElements() { } """.source)
+      }
     ))
   }
 }
