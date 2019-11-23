@@ -16,8 +16,8 @@ private val Meta.transformReplaceFunction: Plugin
       namedFunction({ name == "transformReplace" }) { f ->
         Transform.replace(
           f,
-	  """ fun transformReplace() = println("Transform Replace") """.function.synthetic
-	)
+          """ fun transformReplace() = println("Transform Replace") """.function.synthetic
+        )
       }
     )
   }
@@ -26,14 +26,14 @@ private val Meta.transformReplaceClass: Plugin
   get() = "Transfor Replace Class" {
     meta(
       `class`({ name == "Foo" }) { c ->
-	 Transform.replace(
-	   c,
-	   """
-	     | class FooModified {
-	     |   fun generatedFun() = println("Generated function")
-	     | }
-	   """.`class`.synthetic
-	 )
+        Transform.replace(
+          c,
+          """
+          | class FooModified {
+          |   fun generatedFun() = println("Generated function")
+          | }
+          """.`class`.synthetic
+        )
       }
     )
   }

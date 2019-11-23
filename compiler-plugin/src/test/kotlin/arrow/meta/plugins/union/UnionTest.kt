@@ -4,7 +4,6 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
-
 class UnionTest {
 
   @Test
@@ -20,7 +19,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f().value".source.evalsTo(0))
+        "f().value".source.evalsTo(0)
       }
     ))
   }
@@ -38,7 +37,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f().value".source.evalsTo(0))
+        "f().value".source.evalsTo(0)
       }
     ))
   }
@@ -56,7 +55,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f().value".source.evalsTo(0))
+        "f().value".source.evalsTo(0)
       }
     ))
   }
@@ -74,7 +73,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f().value".source.evalsTo(0))
+        "f().value".source.evalsTo(0)
       }
     ))
   }
@@ -92,7 +91,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f().value".source.evalsTo("a"))
+        "f().value".source.evalsTo("a")
       }
     ))
   }
@@ -110,7 +109,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf(failsWith { it.contains("The floating-point literal does not conform to the expected type Union2<String, Int>") })
+        failsWith { it.contains("The floating-point literal does not conform to the expected type Union2<String, Int>") }
       }
     ))
   }
@@ -128,7 +127,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo("a"))
+        "z()".source.evalsTo("a")
       }
     ))
   }
@@ -146,7 +145,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(0))
+        "z()".source.evalsTo(0)
       }
     ))
   }
@@ -164,7 +163,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(0))
+        "z()".source.evalsTo(0)
       }
     ))
   }
@@ -182,7 +181,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(null))
+        "z()".source.evalsTo(null)
       }
     ))
   }
@@ -200,7 +199,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(null))
+        "z()".source.evalsTo(null)
       }
     ))
   }
@@ -218,7 +217,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(null))
+        "z()".source.evalsTo(null)
       }
     ))
   }
@@ -237,7 +236,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("z()".source.evalsTo(0))
+        "z()".source.evalsTo(0)
       }
     ))
   }
@@ -255,7 +254,7 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") })
+        failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> but Double? was expected") }
       }
     ))
   }
@@ -283,34 +282,34 @@ class UnionTest {
         """.source
       },
       assert = {
-        allOf("f12().value".source.evalsTo("x"))
+        "f12().value".source.evalsTo("x")
       }
     ))
   }
 
   private val UnionTestPrelude: String =
     """|
-      |interface UnionSyntax {
-      |  val value: Any?
-      |}
+       |interface UnionSyntax {
+       |  val value: Any?
+       |}
        |interface Union2<out A, out B> : UnionSyntax
-        |interface Union3<out A, out B, out C> : Union2<A, B>
-        |interface Union4<out A, out B, out C, out D> : Union3<A, B, C>
-        |
-        |
-        |inline class Union(override val value: Any?) :
-        |  Union2<Nothing, Nothing>,
-        |  Union3<Nothing, Nothing, Nothing>,
-        |  Union4<Nothing, Nothing, Nothing, Nothing> {
-        |  
-        |    companion object {
-        |      @Suppress("UNCHECKED_CAST")
-        |      inline fun <reified A> toNullable(union: UnionSyntax): A? {
-        |        val value = (union as Union).value
-        |        return if (value != null && value is A) value
-        |        else null
-        |      }
-        |    }
-        |}
-        |""".trimMargin()
+       |interface Union3<out A, out B, out C> : Union2<A, B>
+       |interface Union4<out A, out B, out C, out D> : Union3<A, B, C>
+       |
+       |
+       |inline class Union(override val value: Any?) :
+       |  Union2<Nothing, Nothing>,
+       |  Union3<Nothing, Nothing, Nothing>,
+       |  Union4<Nothing, Nothing, Nothing, Nothing> {
+       |  
+       |    companion object {
+       |      @Suppress("UNCHECKED_CAST")
+       |      inline fun <reified A> toNullable(union: UnionSyntax): A? {
+       |        val value = (union as Union).value
+       |        return if (value != null && value is A) value
+       |        else null
+       |      }
+       |    }
+       |}
+       |""".trimMargin()
 }
