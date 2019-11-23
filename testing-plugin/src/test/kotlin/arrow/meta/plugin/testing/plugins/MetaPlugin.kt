@@ -11,7 +11,7 @@ open class MetaPlugin : Meta {
     @ExperimentalContracts
     override fun intercept(ctx: CompilerContext): List<Plugin> = (
         transformRemove
-        + helloWorld
         + transformReplace
+        + helloWorld
     )
 }
