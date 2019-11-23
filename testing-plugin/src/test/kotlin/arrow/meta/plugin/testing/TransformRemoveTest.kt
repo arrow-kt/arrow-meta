@@ -35,9 +35,7 @@ class TransformRemoveTest {
         | }
         """.source
       },
-      assert = { allOf(quoteOutputMatches(
-          """ fun transformRemoveSingleElement() { println("asd") } """.source)
-      )}
+      assert = { allOf(quoteOutputMatches(""" fun transformRemoveSingleElement() { println("asd") } """.source)) }
     ))
   }
   
@@ -55,9 +53,7 @@ class TransformRemoveTest {
         | }
         """.source
       },
-      assert = { allOf(quoteOutputMatches(
-          """ fun transformRemoveElements() { } """.source)
-      )}
+      assert = { allOf(quoteOutputMatches(""" fun transformRemoveElements() { } """.source)) }
     ))
   }
 }
