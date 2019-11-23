@@ -76,6 +76,10 @@ sealed class Transform<out K : KtElement> {
     val removing: PsiElement,
     val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
   ) : Transform<K>()
+  
+  data class Many<K : KtElement>(
+    val transforms: ArrayList<Transform<K>>
+  ) : Transform<K>()
 
   object Empty : Transform<Nothing>()
 
@@ -106,5 +110,10 @@ sealed class Transform<out K : KtElement> {
 
     val empty: Transform<Nothing> = Empty
   }
-
 }
+
+operator fun <K : KtElement> Transform<K>.plus(transform: Transform<K>): Transform.Many<K> =
+  Transform.Many(arrayListOf(this, transform))
+
+operator fun <K : KtElement> Transform.Many<K>.plus(transform: Transform<K>): Transform.Many<K> =
+  Transform.Many(this.transforms.also { it.add(transform) })
