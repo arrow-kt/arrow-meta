@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.psiUtil.*
 import java.util.*
 
 open class Converter {
-  protected open fun onNode(node: Node, elem: PsiElement) { }
+  protected open fun onNode(node: Node, elem: PsiElement) { node.psiElement = elem }
 
   open fun convertAnnotated(v: KtAnnotatedExpression) = Node.Expr.Annotated(
     anns = convertAnnotationSets(v),
@@ -829,4 +829,11 @@ open class Converter {
         takeWhile { it.elementType != KtTokens.COLONCOLON }.
         count { it.elementType == KtTokens.QUEST }
   }
+}
+
+internal val PsiElement.ast: Node get() = when(this) {
+  is KtClassOrObject -> Converter.convertDecl(this)
+  is KtNamedFunction -> Converter.convertFunc(this)
+  is KtExpression -> Converter.convertExpr(this)
+  else -> TODO("Unsupported ${this}")
 }

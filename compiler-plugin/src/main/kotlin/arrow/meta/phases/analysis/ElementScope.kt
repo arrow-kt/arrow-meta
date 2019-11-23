@@ -313,6 +313,13 @@ interface ElementScope {
 
   val String.annotatedExpression: AnnotatedExpression
 
+  /**
+   * Creates an expression that has reference to its context
+   *
+   * @param context is used to feed the expression context reference
+   */
+  fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment>
+
   fun singleStatementBlock(
     statement: KtExpression,
     prevComment: String? = null,
