@@ -1,6 +1,8 @@
-package arrow.meta.plugin.testing
+package arrow.meta.quotes.transform
 
-import arrow.meta.plugin.testing.plugins.MetaPlugin
+import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.assertThis
+import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.Test
 
 class TransformReplaceTest {
@@ -8,7 +10,7 @@ class TransformReplaceTest {
   @Test
   fun `should replace function scope to print message`() {
     assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
         """
 	  | //metadebug
@@ -23,7 +25,7 @@ class TransformReplaceTest {
   @Test
   fun `check if extra function is generated`() {
     assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
 	code = {
 	  """
 	    | //metadebug
