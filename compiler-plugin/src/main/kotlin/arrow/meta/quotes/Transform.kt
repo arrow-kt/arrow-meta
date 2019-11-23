@@ -61,7 +61,8 @@ sealed class Transform<out K : KtElement> {
    *     meta(
    *      namedFunction({ name == "helloWorld" }) { c ->
    *        Transform.remove(
-   *          remove = c
+   *          removeIn = c,
+   *          declaration = """ println("") """.expressionIn(c)
    *        )
    *      }
    *     )
