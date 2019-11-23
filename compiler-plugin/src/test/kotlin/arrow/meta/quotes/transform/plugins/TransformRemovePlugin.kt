@@ -1,4 +1,4 @@
-package arrow.meta.plugin.testing.plugins.transform
+package arrow.meta.quotes.transform.plugins
 
 import arrow.meta.Meta
 import arrow.meta.Plugin

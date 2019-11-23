@@ -1,6 +1,8 @@
-package arrow.meta.plugin.testing
+package arrow.meta.quotes.transform
 
-import arrow.meta.plugin.testing.plugins.MetaPlugin
+import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.assertThis
+import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.Test
 
 class TransformRemoveTest {
@@ -8,7 +10,7 @@ class TransformRemoveTest {
   @Test
   fun `check if transformRemove function is deleted from AST`() {
       assertThis(CompilerTest(
-        config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+        config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
         code = {
           """
           | //metadebug
@@ -24,7 +26,7 @@ class TransformRemoveTest {
   @Test
   fun `check if the element of transformRemoveSingleElement function is deleted from AST`() {
     assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
         """
         | //metadebug
@@ -42,7 +44,7 @@ class TransformRemoveTest {
   @Test
   fun `check if the elements of transformRemoveElements function are deleted from AST`() {
     assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
         """
         | //metadebug
