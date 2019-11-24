@@ -12,9 +12,82 @@ class TransformManyTest {
     assertThis(CompilerTest(
       config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
-        """ class Many {} """.source
+        """
+        | //metadebug
+        |
+        | class ManySimpleCase {
+        |   fun printFirst() = println("Foo")
+        |   fun printSecond() = println("Bar")
+        | }
+        """.source
       },
-      assert = {  }
+      assert = {
+        quoteOutputMatches(
+          """
+          | @arrow.synthetic private class ManySimpleCase {
+          |   fun printSecond() = println("Bar")
+          | }
+          """.source
+        )
+      }
+    ))
+  }
+  
+  @Test
+  fun `check if many plugin creates functions and also clean them`() {
+    assertThis(CompilerTest(
+     config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+     code = {
+      """
+        | //metadebug
+        |
+        | class ManyCustomCase {}
+      """.source
+      },
+      assert = {
+        quoteOutputMatches(
+          """
+          | @arrow.synthetic private class ManyCustomCase {
+          |   fun printSecond() = println("Bar")
+          | }
+          """.source
+          )
+      }
+    ))
+  }
+  
+  @Test
+  fun `check if many plugin will apply all replace transformations`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+       """
+       | //metadebug
+       |
+       | class ManyReplace {
+       |   fun test() {}
+       | }
+       """.source
+      },
+      assert = { quoteOutputMatches(""" @arrow.synthetic private class ManyReplace """.source) }
+    ))
+  }
+  
+  @Test
+  fun `check if many plugin will apply all remove transformations`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """
+        | //metadebug
+        |
+        | class ManyRemove {
+        |   fun printFirst() = println("Foo")
+        |   fun printSecond() = println("Bar")
+        | }
+        """.source
+      },
+      assert = { quoteOutputMatches(""" class ManyRemove """.source) }
     ))
   }
 }
