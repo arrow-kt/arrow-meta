@@ -2,6 +2,7 @@ package arrow.meta.plugins.union
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
+import org.junit.Ignore
 import org.junit.Test
 
 class UnionTest {
@@ -78,6 +79,7 @@ class UnionTest {
     ))
   }
 
+  @Ignore
   @Test
   fun `Union accepts typed values in the union`() {
     assertThis(CompilerTest(
@@ -114,6 +116,7 @@ class UnionTest {
     ))
   }
 
+  @Ignore
   @Test
   fun `Union can convert to nullable types also present in the union 2`() {
     assertThis(CompilerTest(
@@ -259,6 +262,7 @@ class UnionTest {
     ))
   }
 
+  @Ignore
   @Test
   fun `Union values don't require lifting`() {
     assertThis(CompilerTest(
