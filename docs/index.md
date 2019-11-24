@@ -22,3 +22,7 @@ Writing compiler plugins, source transformations, IDEA plugins, linters, type se
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
 
 Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=WKR384ZeBgk
+" target="_blank"><img src="http://img.youtube.com/vi/WKR384ZeBgk/0.jpg" 
+alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" width="100%" border="10" /></a>
