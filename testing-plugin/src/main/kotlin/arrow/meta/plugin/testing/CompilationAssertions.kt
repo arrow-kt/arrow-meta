@@ -168,7 +168,7 @@ private fun call(className: String, expression: String, classesDirectory: File):
   val resultForMethodCall: Any? = classLoader.loadClass(className).getMethod(method).invoke(null)
   return when {
     property.isNullOrBlank() -> resultForMethodCall
-    else -> resultForMethodCall?.javaClass?.getField(property)?.get(resultForMethodCall)
+    else -> resultForMethodCall?.javaClass?.getMethod("get${property.capitalize()}")?.invoke(resultForMethodCall)
   }
 }
 
