@@ -5,7 +5,6 @@ import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.com.intellij.openapi.fileTypes.FileType
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
@@ -24,14 +23,14 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
  */
 fun Meta.file(
   match: KtFile.() -> Boolean,
-  map: FileScope.(KtFile) -> Transform<KtFile>
+  map: File.(KtFile) -> Transform<KtFile>
 ): ExtensionPhase =
-  quote(match, map) { FileScope(it) }
+  quote(match, map) { File(it) }
 
 /**
- * A template destructuring [Scope] for a [FileScope]
+ * A template destructuring [Scope] for a [File]
  */
-class FileScope(
+class File(
   override val value: KtFile,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val name: String = value.name,

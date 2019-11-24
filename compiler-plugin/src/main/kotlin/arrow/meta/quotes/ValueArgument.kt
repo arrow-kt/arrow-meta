@@ -14,14 +14,14 @@ import org.jetbrains.kotlin.psi.KtValueArgumentName
  */
 fun Meta.valueArgument(
   match: KtValueArgument.() -> Boolean,
-  map: ValueArgumentScope.(KtValueArgument) -> Transform<KtValueArgument>
+  map: ValueArgument.(KtValueArgument) -> Transform<KtValueArgument>
 ): ExtensionPhase =
-  quote(match, map) { ValueArgumentScope(it) }
+  quote(match, map) { ValueArgument(it) }
 
 /**
- * A template destructuring [Scope] for a [TypeReferenceScope]
+ * A template destructuring [Scope] for a [TypeReference]
  */
-class ValueArgumentScope(
+class ValueArgument(
   override val value: KtValueArgument,
   val argumentExpression: Scope<KtExpression>? = Scope(value.getArgumentExpression()),
   val argumentName: Scope<KtValueArgumentName>? = Scope(value.getArgumentName()) // TODO KtValueArgumentName scope and quote template

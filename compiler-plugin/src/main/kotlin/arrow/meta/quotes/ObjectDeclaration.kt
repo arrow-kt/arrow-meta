@@ -3,7 +3,6 @@ package arrow.meta.quotes
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.parentscopes.ClassOrObjectScope
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 /**
@@ -14,14 +13,14 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  */
 fun Meta.objectDeclaration(
   match: KtObjectDeclaration.() -> Boolean,
-  map: ObjectDeclarationScope.(KtObjectDeclaration) -> Transform<KtObjectDeclaration>
+  map: ObjectDeclaration.(KtObjectDeclaration) -> Transform<KtObjectDeclaration>
 ): ExtensionPhase =
-  quote(match, map) { ObjectDeclarationScope(it) }
+  quote(match, map) { ObjectDeclaration(it) }
 
 /**
  * A template destructuring [Scope] for a [KtObjectDeclaration]
  */
-class ObjectDeclarationScope(
+class ObjectDeclaration(
   override val value: KtObjectDeclaration,
   val textOffset: Int = value.textOffset
 ): ClassOrObjectScope<KtObjectDeclaration>(value)

@@ -1,10 +1,13 @@
 package arrow.meta.internal.kastree.ast
 
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+
 const val COMMAND_PREFIX = "//meta"
 
 sealed class Node {
   var tag: Any? = null
   var dynamic: String? = null
+  var psiElement: PsiElement? = null
 
   interface WithAnnotations {
     val anns: List<Modifier.AnnotationSet>

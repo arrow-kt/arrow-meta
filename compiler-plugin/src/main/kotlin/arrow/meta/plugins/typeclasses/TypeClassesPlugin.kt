@@ -5,7 +5,7 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
-import arrow.meta.quotes.FunctionBodyScope
+import arrow.meta.quotes.FunctionBody
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.namedFunction
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -65,7 +65,7 @@ val Meta.typeClasses: Plugin
       )
     }
 
-private fun List<String?>.run(body: FunctionBodyScope?): String =
+private fun List<String?>.run(body: FunctionBody?): String =
   if (body != null)
     fold(body.toString()) { acc, scope -> "$scope.run { $acc }" }
   else ""

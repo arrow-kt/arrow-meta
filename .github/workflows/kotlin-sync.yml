@@ -52,6 +52,7 @@ jobs:
       if: failure()
       run: |
         echo ${{ steps.update.outputs.version }} > version
+        echo "* LINK: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks" >> stderr
         rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
         cd /home/runner/work/_actions/actions/github-script/0.3.0/
         npm install
@@ -75,4 +76,6 @@ jobs:
           }
           await github.issues.create({...context.repo, 
             title: 'Sync with Kotlin Compiler: ' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/version"), 
-            body: 'Failure: \n' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/stderr")});
+            body: ' * FAILURE: \n' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/stderr"),
+            assignees: ['raulraja', 'i-walker', 'ahinchman1', 'rachelcarmena'],
+            labels: ['critical', 'Kotlin version upgrade']});

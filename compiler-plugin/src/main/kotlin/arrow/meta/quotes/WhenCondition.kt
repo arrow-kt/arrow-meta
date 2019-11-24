@@ -5,7 +5,7 @@ import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.psi.KtWhenCondition
 
 /**
- * A [KtWhenCondition] [Quote] with a custom template destructuring [WhenConditionScope]. See below:
+ * A [KtWhenCondition] [Quote] with a custom template destructuring [WhenCondition]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -33,14 +33,14 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
  */
 fun Meta.whenCondition(
   match: KtWhenCondition.() -> Boolean,
-  map: WhenConditionScope.(KtWhenCondition) -> Transform<KtWhenCondition>
+  map: WhenCondition.(KtWhenCondition) -> Transform<KtWhenCondition>
 ): ExtensionPhase =
-  quote(match, map) { WhenConditionScope(it) }
+  quote(match, map) { WhenCondition(it) }
 
 /**
  * A template destructuring [Scope] for a [KtWhenCondition]
  */
-class WhenConditionScope(
+class WhenCondition(
   override val value: KtWhenCondition?,
   val condition: String = value?.text ?: ""
 ) : Scope<KtWhenCondition>(value)

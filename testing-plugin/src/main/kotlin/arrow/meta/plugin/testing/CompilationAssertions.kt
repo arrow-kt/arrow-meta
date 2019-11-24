@@ -15,8 +15,27 @@ private const val VARIABLE = "[^(]+"
  * Allows to check if a compiler plugin is working as expected.
  *
  * It's not necessary to write assertions with actual and expected behaviour.
- * Just indicating the expected behaviour in a [CompilerTest] and assertions will be built automatically
+ * Just indicating the expected behaviour in a [CompilerTest], assertions will be built automatically
  * from it.
+ *
+ * Running the compilation from the provided configuration and getting the results (status, classes and output
+ * messages) is possible thanks to [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing),
+ * a library developed by [Thilo Schuchort](https://github.com/tschuchortdev).
+ *
+ * Main schema:
+ *
+ * ```
+ *  assertThis(
+ *      CompilerTest(
+ *        config = { ... },
+ *        code = { ... },
+ *        assert = { ... }
+ *      )
+ *  )
+ * ```
+ *
+ * Compilation will be executed with the provided configuration (`config`) and code snippets (`code`). Then,
+ * the expected behaviour (`assert`) will be checked.
  *
  * For instance:
  *
@@ -32,10 +51,6 @@ private const val VARIABLE = "[^(]+"
  *      )
  *  )
  * ```
- *
- * For running the compilation from the provided configuration and getting the results (status, classes and output
- * messages) makes use of [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing), a library
- * developed by [Thilo Schuchort](https://github.com/tschuchortdev).
  *
  * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behaviour
  * @see [CompilerTest]
@@ -53,9 +68,9 @@ private val interpreter: (CompilerTest) -> Unit = {
         when (config) {
           is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
           is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
+          is Config.AddMetaPlugins -> remaining.compilationData(acc.addMetaPlugins(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
-          is Config.AddMetaPlugins -> TODO("How do we bootstrap the Meta Plugin Quote system?")
         }
       }
     }
@@ -69,22 +84,28 @@ private val interpreter: (CompilerTest) -> Unit = {
   fun Code.compilationData(): CompilationData =
     when (this) {
       is Code.Source -> CompilationData(sources = listOf(this))
-      is Code.Sources -> CompilationData(sources = this.sources.mapIndexed{ index, source -> source.renameBy(index) })
+      is Code.Sources -> CompilationData(sources = this.sources.mapIndexed { index, source -> source.renameBy(index) })
     }
 
-  fun runAssert(assert: Assert, compilationResult: Result): Unit = when (assert) {
-    Assert.Empty -> println("Assertions not found")
-    Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
-    Assert.CompilationResult.Fails -> assertFails(compilationResult)
-    is Assert.FailsWith -> assertFailsWith(compilationResult, assert.f)
-    is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, assert.source)
-    is Assert.EvalsTo -> assertEvalsTo(compilationResult, assert.source, assert.output)
-  }
+  fun runAssert(singleAssert: Assert.SingleAssert, compilationResult: Result): Unit =
+    when (singleAssert) {
+      Assert.Empty -> println("Assertions not found")
+      Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
+      Assert.CompilationResult.Fails -> assertFails(compilationResult)
+      is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
+      is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
+      is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
+      else -> TODO()
+    }
 
   val initialCompilationData = it.code(CompilerTest).compilationData()
   val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-  it.assert(CompilerTest).map { assert -> runAssert(assert, compilationResult) }
+  val assert = it.assert(CompilerTest)
+  when (assert) {
+    is Assert.SingleAssert -> runAssert(assert, compilationResult)
+    is Assert.Many -> assert.asserts.map { singleAssert -> runAssert(singleAssert, compilationResult) }
+  }
 }
 
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
@@ -92,6 +113,9 @@ private fun CompilationData.addDependencies(config: Config.AddDependencies) =
 
 private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins) =
   copy(compilerPlugins = compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } })
+
+private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
+  copy(metaPlugins = metaPlugins + config.plugins)
 
 private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
   assertCompiles(compilationResult)
@@ -144,7 +168,7 @@ private fun call(className: String, expression: String, classesDirectory: File):
   val resultForMethodCall: Any? = classLoader.loadClass(className).getMethod(method).invoke(null)
   return when {
     property.isNullOrBlank() -> resultForMethodCall
-    else -> resultForMethodCall?.javaClass?.getField(property)?.get(resultForMethodCall)
+    else -> resultForMethodCall?.javaClass?.getMethod("get${property.capitalize()}")?.invoke(resultForMethodCall)
   }
 }
 

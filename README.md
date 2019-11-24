@@ -39,6 +39,10 @@ Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-ex
 ./gradlew publishAndRunIde -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
 ```
 
+## Testing
+
+Λrrow Meta provides an easy way to write tests about plugins, quotes, etc. thanks to [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing), a library developed by [Thilo Schuchort](https://github.com/tschuchortdev).
+
 ## Contributing
 
 Λrrow Meta is an inclusive community powered by awesome individuals like you. As an actively growing ecosystem, Λrrow Meta and its associated libraries and toolsets are in need of new contributors! We have issues suited for all levels, from entry to advanced, and our maintainers are happy to provide 1:1 mentoring. All are welcome in Λrrow Meta.
