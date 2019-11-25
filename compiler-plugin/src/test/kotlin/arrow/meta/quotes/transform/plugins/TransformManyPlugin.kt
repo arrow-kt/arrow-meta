@@ -17,7 +17,7 @@ private val Meta.transformManyRemove: Plugin
   get() = "Transform Many" {
     meta(
       `class`({ name == "ManyRemove" }) { c ->
-        removeFooPrint(c, this) + removeBarPrint(c, this)
+        removeFooPrint(c, this) + removeBarPrint(c, this) + cleanMethods("ManyRemove", c, this)
       }
     )
   }

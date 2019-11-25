@@ -87,7 +87,7 @@ class TransformManyTest {
         | }
         """.source
       },
-      assert = { quoteOutputMatches(""" class ManyRemove """.source) }
+      assert = { quoteOutputMatches(""" @arrow.synthetic private class ManyRemove """.source) }
     ))
   }
 }
