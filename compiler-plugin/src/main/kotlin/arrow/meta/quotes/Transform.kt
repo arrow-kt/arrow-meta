@@ -91,7 +91,7 @@ sealed class Transform<out K : KtElement> {
    * import arrow.meta.quotes.plus
    * import org.jetbrains.kotlin.psi.KtClass
    *
-   * private val Meta.transformManySimpleCase: Plugin
+   * val Meta.transformManySimpleCase: Plugin
    *  get() = "Transform Many" {
    *   meta(
    *     `class`({ name == "ManySimpleCase" }) { c ->
@@ -100,7 +100,7 @@ sealed class Transform<out K : KtElement> {
    *    )
    *   }
    *
-   * private fun CompilerContext.changeClassVisibility(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
+   * fun CompilerContext.changeClassVisibility(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
    *   replacing = context,
    *   newDeclaration = """
    *   | private class $className {
@@ -108,7 +108,7 @@ sealed class Transform<out K : KtElement> {
    *   | } """.`class`.synthetic
    * )}
    *
-   * private fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(
+   * fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(
    *   removeIn = context,
    *   declaration = """ fun printFirst() = println("Foo") """.expressionIn(context)
    * )}
