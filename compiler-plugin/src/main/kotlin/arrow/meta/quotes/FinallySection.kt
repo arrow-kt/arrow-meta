@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFinallySection
 
 /**
- * A [KtFinallySection] [Quote] with a custom template destructuring [FinallySectionScope]. See below:
+ * A [KtFinallySection] [Quote] with a custom template destructuring [FinallySection]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  */
 fun Meta.finallySection(
   match: KtFinallySection.() -> Boolean,
-  map: FinallySectionScope.(KtFinallySection) -> Transform<KtFinallySection>
+  map: FinallySection.(KtFinallySection) -> Transform<KtFinallySection>
 ): ExtensionPhase =
-  quote(match, map) { FinallySectionScope(it) }
+  quote(match, map) { FinallySection(it) }
 
 /**
  * A template destructuring [Scope] for a [KtFinallySection]
  */
-class FinallySectionScope(
+class FinallySection(
   override val value: KtFinallySection?,
   val finally: Scope<KtBlockExpression> = Scope(value?.finalExpression)
 ) : Scope<KtFinallySection>(value)

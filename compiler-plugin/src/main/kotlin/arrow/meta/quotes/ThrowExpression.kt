@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 
 /**
- * A [KtThrowExpression] [Quote] with a custom template destructuring [ThrowExpressionScope]. See below:
+ * A [KtThrowExpression] [Quote] with a custom template destructuring [ThrowExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  */
 fun Meta.throwExpression(
   match: KtThrowExpression.() -> Boolean,
-  map: ThrowExpressionScope.(KtThrowExpression) -> Transform<KtThrowExpression>
+  map: ThrowExpression.(KtThrowExpression) -> Transform<KtThrowExpression>
 ): ExtensionPhase =
-  quote(match, map) { ThrowExpressionScope(it) }
+  quote(match, map) { ThrowExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtThrowExpression]
  */
-class ThrowExpressionScope(
+class ThrowExpression(
   override val value: KtThrowExpression?,
   val `throw`: Scope<KtExpression> = Scope(value?.thrownExpression)
 ) : Scope<KtThrowExpression>(value)

@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 
 /**
- * A [KtWhileExpression] [Quote] with a custom template destructuring [WhileExpressionScope]
+ * A [KtWhileExpression] [Quote] with a custom template destructuring [WhileExpression]
  *
  * @param match designed to to feed in any kind of [KtWhileExpression] predicate returning a [Boolean]
  * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
@@ -23,14 +23,14 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  */
 fun Meta.whileExpression(
   match: KtWhileExpression.() -> Boolean,
-  map: WhileExpressionScope.(KtWhileExpression) -> Transform<KtWhileExpression>
+  map: WhileExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
 ): ExtensionPhase =
-  quote(match, map) { WhileExpressionScope(it) }
+  quote(match, map) { WhileExpression(it) }
 
 /**
  * A template destructuring [Scope] for a [KtWhileExpression]
  */
-class WhileExpressionScope(
+class WhileExpression(
   override val value: KtWhileExpression,
   val `(condition)`: Scope<KtExpression> = Scope(value.condition)
 ) : LoopExpressionScope<KtWhileExpression>(value)

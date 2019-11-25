@@ -12,21 +12,21 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
- * A [KtImportDirective] [Quote] with a custom template destructuring [ImportDirectiveScope]
+ * A [KtImportDirective] [Quote] with a custom template destructuring [ImportDirective]
  *
  * @param match designed to to feed in any kind of [KtImportDirective] predicate returning a [Boolean]
  * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
  */
 fun Meta.importDirective(
   match: KtImportDirective.() -> Boolean,
-  map: ImportDirectiveScope.(KtImportDirective) -> Transform<KtImportDirective>
+  map: ImportDirective.(KtImportDirective) -> Transform<KtImportDirective>
 ) : ExtensionPhase =
-  quote(match, map) { ImportDirectiveScope(it) }
+  quote(match, map) { ImportDirective(it) }
 
 /**
  * A template destructuring [Scope] for a [KtLambdaExpression]
  */
-class ImportDirectiveScope(
+class ImportDirective(
   override val value: KtImportDirective,
   val importedReference: Scope<KtExpression> = Scope(value.importedReference), // TODO KtExpression scope and quote template
   val alias: Scope<KtImportAlias> = Scope(value.alias), // TODO KtImportAlias scope and quote template

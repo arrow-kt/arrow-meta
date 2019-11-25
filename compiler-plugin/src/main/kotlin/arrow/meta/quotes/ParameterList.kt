@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 
 /**
- * A [KtParameterList] [Quote] with a custom template destructuring [ParameterListScope]. See below:
+ * A [KtParameterList] [Quote] with a custom template destructuring [ParameterList]. See below:
  *
  *```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -34,14 +34,14 @@ import org.jetbrains.kotlin.psi.KtParameterList
  */
 fun Meta.parameterList(
   match: KtParameterList.() -> Boolean,
-  map: ParameterListScope.(KtParameterList) -> Transform<KtParameterList>
+  map: ParameterList.(KtParameterList) -> Transform<KtParameterList>
 ): ExtensionPhase =
-  quote(match, map) { ParameterListScope(it) }
+  quote(match, map) { ParameterList(it) }
 
 /**
  * A template destructuring [Scope] for a [KtParameterList]
  */
-class ParameterListScope(
+class ParameterList(
   override val value: KtParameterList?,
   val `(params)`: ScopedList<KtParameter> = ScopedList(value?.parameters ?: listOf())
 ) : Scope<KtParameterList>(value)

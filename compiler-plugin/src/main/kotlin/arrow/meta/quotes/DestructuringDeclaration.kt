@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * A [KtDestructuringDeclaration] [Quote] with a custom template destructuring [DestructuringDeclarationScope]. See below:
+ * A [KtDestructuringDeclaration] [Quote] with a custom template destructuring [DestructuringDeclaration]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -35,14 +35,14 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 fun Meta.destructuringDeclaration(
   match: KtDestructuringDeclaration.() -> Boolean,
-  map: DestructuringDeclarationScope.(KtDestructuringDeclaration) -> Transform<KtDestructuringDeclaration>
+  map: DestructuringDeclaration.(KtDestructuringDeclaration) -> Transform<KtDestructuringDeclaration>
 ): ExtensionPhase =
-  quote(match, map) { DestructuringDeclarationScope(it) }
+  quote(match, map) { DestructuringDeclaration(it) }
 
 /**
  * A template destructuring [Scope] for a [KtDestructuringDeclaration]
  */
-class DestructuringDeclarationScope(
+class DestructuringDeclaration(
   override val value: KtDestructuringDeclaration?,
   val `(vars)`: ScopedList<KtDestructuringDeclarationEntry> = ScopedList(value?.entries ?: listOf()),
   val initializer: Scope<KtExpression> = Scope(value?.initializer)

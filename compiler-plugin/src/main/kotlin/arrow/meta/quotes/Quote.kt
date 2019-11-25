@@ -3,13 +3,16 @@ package arrow.meta.quotes
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
+import arrow.meta.internal.kastree.ast.MutableVisitor
+import arrow.meta.internal.kastree.ast.Node
+import arrow.meta.internal.kastree.ast.Writer
+import arrow.meta.internal.kastree.ast.psi.Converter
+import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.Writer
-import arrow.meta.internal.kastree.ast.psi.Converter
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
@@ -18,15 +21,13 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * ### Quote Templates DSL
@@ -267,27 +268,41 @@ fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Tra
   var dummyFile = Converter.convertFile(this)
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> {
-        val replacingNode = when {
-          transform.replacing is KtClassOrObject -> Converter.convertDecl(transform.replacing)
-          transform.replacing is KtNamedFunction -> Converter.convertFunc(transform.replacing)
-          transform.replacing is KtExpression -> Converter.convertExpr(transform.replacing)
-          else -> TODO("Unsupported ${transform.replacing}")
-        }
-        dummyFile = MutableVisitor.preVisit(dummyFile) { element, _ ->
-          if (element != null && element == replacingNode) {
-            val newContents = transform.newDeclarations.joinToString("\n") { it.value?.text ?: "" }
-            println("Replacing ${element.javaClass} with ${transform.newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
-            element.dynamic = newContents
-            element
-          } else element
-        }
-        Unit
-      }
+      is Transform.Replace -> dummyFile = transform.replace(dummyFile)
+      is Transform.Remove -> dummyFile = transform.remove(dummyFile)
       Transform.Empty -> Unit
     }
   }
   return Writer.write(dummyFile)
+}
+
+private fun <T : KtElement> Transform.Replace<T>.replace(file: Node.File): Node.File = MutableVisitor.preVisit(file) { element, _ ->
+    if (element != null && element == replacing.ast) {
+        val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
+        println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
+        element.dynamic = newContents
+        element
+    } else element
+}
+
+private fun <T : KtElement> Transform.Remove<T>.remove(file: Node.File): Node.File {
+    val elementsToRemove = declarations.elementsFromItsContexts()
+    return MutableVisitor.preVisit(file) { element, _ ->
+        if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
+            println("Removing ${element.javaClass}")
+            it.dynamic = ""
+        } else element
+    }
+}
+
+private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(): List<PsiElement> = flatMap { scope ->
+    val psiElements = mutableListOf<PsiElement>()
+    scope.value?.context?.let { context -> MutableVisitor.preVisit(context.ast) { element, _ ->
+        if (element != null && element.psiElement?.text?.trim() == scope.value?.text?.trim()) element.also {
+            it.psiElement?.let { psi -> psiElements.add(psi) }
+        } else element
+    }}
+    psiElements
 }
 
 fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {

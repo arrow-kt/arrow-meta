@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
 /**
- * A [KtFunctionLiteral] [Quote] with a custom template destructuring [FunctionLiteralScope]
+ * A [KtFunctionLiteral] [Quote] with a custom template destructuring [FunctionLiteral]
  *
  * A function literal is a special notation to simplify how a function is defined.  There are two types of function literals in Kotlin:
  *  #### Lambda expression
@@ -26,14 +26,14 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  */
 fun Meta.functionLiteral(
   match: KtFunctionLiteral.() -> Boolean,
-  map: FunctionLiteralScope.(KtFunctionLiteral) -> Transform<KtFunctionLiteral>
+  map: FunctionLiteral.(KtFunctionLiteral) -> Transform<KtFunctionLiteral>
 ) : ExtensionPhase =
-  quote(match, map) { FunctionLiteralScope(it) }
+  quote(match, map) { FunctionLiteral(it) }
 
 /**
  * A template destructuring [Scope] for a [KtFunctionLiteral]
  */
-class FunctionLiteralScope(
+class FunctionLiteral(
   override val value: KtFunctionLiteral,
   val name: Name? = value.nameAsName,
   val blockExpression: Scope<KtBlockExpression> = Scope(value.bodyBlockExpression) // TODO KtBlockExpression scope and quote template
