@@ -44,6 +44,7 @@ allprojects {
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
     maven { url 'https://dl.bintray.com/kotlin/kotlin-eap/' }
+    maven { url 'https://jitpack.io' } 
   }
 }
 
