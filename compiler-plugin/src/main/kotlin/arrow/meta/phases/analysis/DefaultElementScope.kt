@@ -1,5 +1,7 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.internal.kastree.ast.MutableVisitor
+import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.quotes.*
 import arrow.meta.quotes.ValueArgument
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -10,7 +12,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.ImportPath
-
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
  */
@@ -328,6 +329,10 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.`return`: ReturnExpression
     get() = ReturnExpression(expression.value as KtReturnExpression)
 
+  override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
+    Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
+
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
 }
+

@@ -17,8 +17,11 @@ permalink: /
 
 Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, automatic code refactoring,... are just a few of the use cases of the things that can be accomplished with Meta.
 
+<iframe title="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" style="width:560px; height:315px !important" src="https://www.youtube.com/embed/WKR384ZeBgk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Λrrow Meta examples
 
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
 
 Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
+
