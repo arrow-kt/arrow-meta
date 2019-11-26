@@ -22,8 +22,8 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForExpression
-import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
+import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
 import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
@@ -216,9 +216,6 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.destructuringDeclaration: DestructuringDeclaration
     get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(trimMargin()))
 
-  override val String.destructuringParameter: Parameter
-    get() = Parameter(delegate.createDestructuringParameter(trimMargin()))
-
   override fun <A : KtDeclaration> String.declaration(): Scope<A> =
     Scope(delegate.createDeclaration(trimMargin()))
 
@@ -273,11 +270,14 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val emptyClassBody: Scope<KtClassBody>
     get() = Scope(delegate.createEmptyClassBody())
 
-  override val String.parameter: Parameter
+  override val String.classParameter: Parameter
     get() = Parameter(delegate.createParameter(trimMargin()))
 
   override val String.loopParameter: Parameter
     get() = Parameter(delegate.createLoopParameter(trimMargin()))
+
+  override val String.destructuringParameter: Parameter
+    get() = Parameter(delegate.createDestructuringParameter(trimMargin()))
 
   override val String.parameterList: ParameterList
     get() = ParameterList(delegate.createParameterList(trimMargin()))
@@ -381,11 +381,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
 
-  override val String.`for`: ForExpression
-    get() = ForExpression(expression.value as KtForExpression)
+  override val String.`for`: ForLoopExpression
+    get() = ForLoopExpression(expression.value as KtForExpression)
 
-  override val String.`while`: WhileExpression
-    get() = WhileExpression(expression.value as KtWhileExpression)
+  override val String.`while`: WhileLoopExpression
+    get() = WhileLoopExpression(expression.value as KtWhileExpression)
 
   override val String.`if`: IfExpression
     get() = IfExpression(expression.value as KtIfExpression)

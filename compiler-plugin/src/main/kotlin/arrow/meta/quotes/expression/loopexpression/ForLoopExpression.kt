@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtForExpression
  *     }
  * ```
  */
-class ForExpression(
+class ForLoopExpression(
   override val value: KtForExpression,
   val `(param)`: Parameter = Parameter(value.loopParameter),
   val range: Scope<KtExpression> = Scope(value.loopRange), // TODO KtExpression scope

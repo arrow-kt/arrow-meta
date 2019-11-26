@@ -22,8 +22,8 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForExpression
-import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
+import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
 import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
@@ -184,8 +184,6 @@ interface ElementScope {
   
   val String.destructuringDeclaration: DestructuringDeclaration
   
-  val String.destructuringParameter: Parameter
-  
   fun <A : KtDeclaration> String.declaration(): Scope<A>
   
   val String.nameIdentifier: PsiElement
@@ -222,9 +220,11 @@ interface ElementScope {
   
   val emptyClassBody: Scope<KtClassBody>
   
-  val String.parameter: Parameter
+  val String.classParameter: Parameter
   
   val String.loopParameter: Parameter
+
+  val String.destructuringParameter: Parameter
   
   val String.parameterList: ParameterList
   
@@ -302,9 +302,9 @@ interface ElementScope {
   
   val String.block: BlockExpression
 
-  val String.`for`: ForExpression
+  val String.`for`: ForLoopExpression
 
-  val String.`while`: WhileExpression
+  val String.`while`: WhileLoopExpression
 
   val String.`if`: IfExpression
 

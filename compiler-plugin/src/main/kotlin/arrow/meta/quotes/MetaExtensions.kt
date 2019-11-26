@@ -22,12 +22,13 @@ import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForExpression
-import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
+import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
 import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
+import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
@@ -48,6 +49,7 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReturnExpression
@@ -134,13 +136,13 @@ fun Meta.finallySection(
   quote(match, map) { FinallySection(it) }
 
 /**
- * @see [ForExpression]
+ * @see [ForLoopExpression]
  */
 fun Meta.forExpression(
   match: KtForExpression.() -> Boolean,
-  map: ForExpression.(KtForExpression) -> Transform<KtForExpression>
+  map: ForLoopExpression.(KtForExpression) -> Transform<KtForExpression>
 ): ExtensionPhase =
-  quote(match, map) { ForExpression(it) }
+  quote(match, map) { ForLoopExpression(it) }
 
 /**
  * @see [FunctionLiteral]
@@ -215,6 +217,15 @@ fun Meta.objectDeclaration(
   quote(match, map) { ObjectDeclaration(it) }
 
 /**
+ * @see [Parameter]
+ */
+fun Meta.parameter(
+  match: KtParameter.() -> Boolean,
+  map: Parameter.(KtParameter) -> Transform<KtParameter>
+) : ExtensionPhase =
+  quote(match, map) { Parameter(it) }
+
+/**
  * @see [ParameterList]
  */
 fun Meta.parameterList(
@@ -287,13 +298,13 @@ fun Meta.whenExpression(
   quote(match, map) { WhenExpression(it) }
 
 /**
- * @see [WhileExpression]
+ * @see [WhileLoopExpression]
  */
 fun Meta.whileExpression(
   match: KtWhileExpression.() -> Boolean,
-  map: WhileExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
+  map: WhileLoopExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
 ): ExtensionPhase =
-  quote(match, map) { WhileExpression(it) }
+  quote(match, map) { WhileLoopExpression(it) }
 
 /**
  * @see [TryExpression]

@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  *     }
  * ```
  */
-class WhileExpression(
+class WhileLoopExpression(
   override val value: KtWhileExpression,
   val `(condition)`: Scope<KtExpression> = Scope(value.condition)
 ) : LoopExpression<KtWhileExpression>(value)

@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  */
 class TypeReference(
   override val value: KtTypeReference?,
+  val name: String? = value?.name,
   val typeElement: Scope<KtTypeElement>? = Scope(value?.typeElement), // TODO KtTypeElement scope and quote template
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries?: listOf())
 ): Scope<KtTypeReference>(value)
