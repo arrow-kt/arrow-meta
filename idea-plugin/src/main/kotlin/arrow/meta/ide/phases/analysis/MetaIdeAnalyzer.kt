@@ -24,6 +24,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.keyFMap.KeyFMap
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
@@ -118,8 +121,10 @@ class MetaIdeAnalyzer : MetaAnalyzer {
     thisDescriptor.syntheticCache?.let {
       val compiledDescriptor = it.descriptorCache[thisDescriptor.fqNameSafe].safeAs<ClassDescriptor>()
       compiledDescriptor?.let { classDescriptor ->
-        val originalNames = thisDescriptor.ktClassOrObject()?.nestedClassNames()?.toSet()?.map(Name::identifier) ?: emptyList()
-        val compiledNames = classDescriptor.ktClassOrObject()?.nestedClassNames()?.toSet()?.map(Name::identifier) ?: emptyList()
+        val originalNames = thisDescriptor.ktClassOrObject()?.nestedClassNames()?.toSet()?.map(Name::identifier)
+          ?: emptyList()
+        val compiledNames = classDescriptor.ktClassOrObject()?.nestedClassNames()?.toSet()?.map(Name::identifier)
+          ?: emptyList()
         val diff = compiledNames - originalNames
         diff
       }
@@ -230,7 +235,20 @@ class MetaIdeAnalyzer : MetaAnalyzer {
     if (!subscribedToEditorHooks.get()) {
       val application = ApplicationManager.getApplication()
       val projectBus = currentProject()?.messageBus?.connect()
-      val connection = application.messageBus.connect()
+      val applicationBus = application.messageBus.connect()
+      applicationBus.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
+        override fun before(events: MutableList<out VFileEvent>) {
+          events.forEach {
+            println("VFS_CHANGES: before: $it")
+          }
+        }
+
+        override fun after(events: MutableList<out VFileEvent>) {
+          events.forEach {
+            println("VFS_CHANGES: after: $it")
+          }
+        }
+      })
       projectBus?.subscribe<FileEditorManagerListener>(
         FileEditorManagerListener.FILE_EDITOR_MANAGER,
         object : FileEditorManagerListener {
@@ -279,7 +297,7 @@ class MetaIdeAnalyzer : MetaAnalyzer {
           }
         }
       )
-      connection.subscribe<FileDocumentManagerListener>(
+      applicationBus.subscribe<FileDocumentManagerListener>(
         AppTopics.FILE_DOCUMENT_SYNC,
         object : FileDocumentManagerListener {
           override fun fileContentReloaded(file: VirtualFile, document: Document) {

@@ -55,6 +55,7 @@ import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.extensions.CollectAdditionalSourcesExtension
 import org.jetbrains.kotlin.extensions.CompilerConfigurationExtension
@@ -117,12 +118,6 @@ interface InternalRegistry : ConfigSyntax {
       })
     }
     ide {
-      PackageFragmentProviderExtension.registerExtension(project, object : PackageFragmentProviderExtension {
-        override fun getPackageFragmentProvider(project: Project, module: ModuleDescriptor, storageManager: StorageManager, trace: BindingTrace, moduleInfo: ModuleInfo?, lookupTracker: LookupTracker): PackageFragmentProvider? {
-          println("getPackageFragmentProvider")
-          return null
-        }
-      })
       StorageComponentContainerContributor.registerExtension(
         project,
         object : StorageComponentContainerContributor {
@@ -171,8 +166,6 @@ interface InternalRegistry : ConfigSyntax {
       "\n${it.key} : ${it.value}"
     })
 
-    installArrowPlugin()
-
     val initialPhases = listOf("Initial setup" {
       listOf(
         compilerContextService(),
@@ -210,14 +203,6 @@ interface InternalRegistry : ConfigSyntax {
         currentPhase.registerPhase()
         ctx.registerIdeExclusivePhase(currentPhase)
       }
-    }
-  }
-
-  fun installArrowPlugin() {
-    val ideaPath = System.getProperty("idea.plugins.path")
-    val userDir = System.getProperty("user.dir")
-    if (ideaPath != null && ideaPath.isNotEmpty() && userDir != null && userDir.isNotEmpty()) {
-      println("Installing Arrow Plugin: $ideaPath, $userDir")
     }
   }
 

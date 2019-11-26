@@ -13,41 +13,48 @@ class TypeClassesTest {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
-      | import arrow.Kind
-      | import arrow.given
-      | import arrow.core.Some
-      | import arrow.core.Option
-      | import arrow.extension
-      | import arrow.core.ForOption
-      | import arrow.core.fix
-      | import arrow.core.None
-      |
-      | //metadebug
-      |
-      | @extension
-      | object OptionMappable : Mappable<ForOption> {
-      |   override fun <A, B> Kind<ForOption, A>.map(f: (A) -> B): Kind<ForOption, B> =
-      |     when (val o: Option<A> = this.fix()) {
-      |       is Some -> Some(f(o.t))
-      |       None -> None
-      |     }
-      | } 
-      | 
-      | interface Mappable<F> {
-      |   fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
-      | }
-      |
-      | object Test {
-      |   fun <F> Kind<F, Int>.addOne(M: Mappable<F> = given): Kind<F, Int> =
-      |     map { it + 1 }
-      | }
-      |
-      | fun foo(): Option<Int> {
-      |   Test.run {
-      |     return Some(1).addOne()
-      |   }
-      | }
-      |"""
+       import arrowx.*
+       import arrow.higherkind
+       import arrow.Proof
+       import arrow.TypeProof.*
+      
+       //metadebug
+       
+        interface Applicative<F> {
+          fun <A> just(a: A): Kind<F, A>
+          fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
+        }
+
+        class ForId
+        
+        @Proof(Subtyping)
+        fun <A> Kind<ForId, A>.fix(): Id<A> =
+          (this as Kinded).value as Id<A>
+          
+        @Proof(Subtyping)
+        fun <A> Id<A>.unfix(): Kind<ForId, A> =
+          Kinded(this)
+        
+        class Id<out A>(val value: A) {
+          companion object
+        }
+        
+        @Proof(Extension)
+        fun Id<*>.applicative(): Applicative<ForId> =
+          object : Applicative<ForId> {
+            override fun <A, B> Kind<ForId, A>.map(f: (A) -> B): Kind<ForId, B> =
+              TODO()
+            override fun <A> just(a: A): Kind<ForId, A> =
+              TODO()
+          }
+        
+        fun foo(): Id<Int> = Id(1).map { it + 1 }
+        
+        fun f(): Int {
+          val x : Id<Int> = foo()
+          return x.value
+        }
+      """
 
     assertThis(CompilerTest(
       config = {
@@ -57,45 +64,9 @@ class TypeClassesTest {
         codeSnippet.source
       },
       assert = {
-        quoteOutputMatches(
-          """
-          | import arrow.Kind
-          | import arrow.given
-          | import arrow.core.Some
-          | import arrow.core.Option
-          | import arrow.extension
-          | import arrow.core.ForOption
-          | import arrow.core.fix
-          | import arrow.core.None
-          | 
-          | //meta: <date>
-          | 
-          | @extension
-          | object OptionMappable : Mappable<ForOption> {
-          |   override fun <A, B> Kind<ForOption, A>.map(f: (A) -> B): Kind<ForOption, B> =
-          |     when(val o: Option<A> = this.fix()) {
-          |       is Some -> Some(f(o.t))
-          |       None -> None
-          |     }
-          | }
-          | 
-          | interface Mappable<F> {
-          |   fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
-          | }
-          | 
-          | object Test {
-          |   fun <F> Kind<F, Int>.addOne(M: Mappable<F> = given): Kind<F, Int> =
-          |     M.run { map { it + 1 } }
-          | }
-          | 
-          | fun foo(): Option<Int> {
-          |   Test.run {
-          |     return Some(1).addOne()
-          |   }
-          | }
-          |""".source) +
-        "foo()".source.evalsTo(Some(2))
+        allOf("f()".source.evalsTo(2))
       }
     ))
   }
 }
+

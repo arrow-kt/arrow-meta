@@ -8,6 +8,8 @@ import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.resolve.applySmartCast
+import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.dump
@@ -131,10 +133,33 @@ interface AnalysisSyntax {
       )
     } ?: ExtensionPhase.Empty
 
+  /**
+   * @see [suppressDiagnostic] including access to the [BindingTrace]
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun suppressDiagnosticWithTrace(f: BindingTrace.(Diagnostic) -> Boolean): ExtensionPhase =
+    cli {
+      analysis(
+        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          null
+        },
+        analysisCompleted = { project, module, bindingTrace, files ->
+          val diagnostics: MutableDiagnosticsWithSuppression =
+            BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
+          val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
+          mutableDiagnostics.removeIf { f(bindingTrace, it) }
+          null
+        }
+      )
+    } ?: ExtensionPhase.Empty
+
+
   fun MutableList<Proof>.initializeProofs(): AnalysisHandler =
     analysis(
       doAnalysis = { _, module, _, _, _, _ ->
-        addAll(module.typeProofs)
+        val proofs = module.typeProofs
+        println("Found proofs: ${proofs.joinToString("\n")}")
+        addAll(proofs)
         dump()
         null
       }

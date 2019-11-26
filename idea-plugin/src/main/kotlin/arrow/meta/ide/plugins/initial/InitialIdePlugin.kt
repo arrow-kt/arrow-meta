@@ -6,7 +6,6 @@ import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.invoke
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import arrow.meta.plugins.typeclasses.suppressUnusedParameter
-import arrow.meta.plugins.union.suppressTypeMismatchOnNullableReceivers
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -31,7 +30,6 @@ private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||
     suppressNoElseInWhen() ||
     kindsTypeMismatch() ||
-    suppressTypeMismatchOnNullableReceivers() ||
     suppressUnusedParameter()
 
 private fun Diagnostic.suppressInvisibleMember(): Boolean =

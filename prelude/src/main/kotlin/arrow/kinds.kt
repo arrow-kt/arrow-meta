@@ -56,6 +56,13 @@ interface Kind22<out F, out A, out B, out C, out D, out E, out G, out H, out I, 
 
 class `List(_)`
 
+/**
+ * Kind L : from Kind<List, Int>
+ * List a : to
+ * fix: through
+ *
+ * val l: List<Int> = kinded
+ */
 @Proof(Subtyping)
 fun <A> Kind<`List(_)`, A>.fix(): List<A> =
   (this as Kinded).value as List<A>

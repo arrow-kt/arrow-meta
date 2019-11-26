@@ -1,6 +1,9 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
+import arrow.meta.ide.phases.resolve.proofs.ProofsPackageFragmentDescriptor
+import arrow.meta.phases.resolve.disposeProofCache
+import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -17,7 +20,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.PsiManagerImpl
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.daemon.common.findWithTransform
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -38,7 +40,6 @@ import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -68,7 +69,6 @@ import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyAnnotationDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -78,7 +78,7 @@ import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
@@ -123,7 +123,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
       descriptorCache.keys().toList().map { packageName ->
         BuildCachePackageFragmentDescriptor(module, packageName)
-      }
+      } + ProofsPackageFragmentDescriptor(module, fqName, module.typeProofs)
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
       getPackageFragments(fqName).map { it.fqName }
@@ -164,6 +164,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
   override fun dispose() {
     LOG.info("MetaSyntheticPackageFragmentProvider.dispose")
     descriptorCache.clear()
+    disposeProofCache()
   }
 
   /**
@@ -186,7 +187,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
   @Synchronized
   private fun computeCache() {
     assert(ApplicationManager.getApplication().isReadAccessAllowed)
-
     measureTimeMillis {
       LOG.debug("initializing new PackageFragmentProvider")
       descriptorCache.clear()
@@ -229,21 +229,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
       LOG.info("computeCache() took $it ms")
     }
   }
-
-  private fun List<LazyClassDescriptor>.toSynthetic(declarationProvider: DeclarationProvider): List<ClassDescriptor> =
-    map { it.synthetic(declarationProvider) }
-
-  private fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
-    map { it.synthetic() }
-
-  private fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor =
-    copy(
-      containingDeclaration,
-      modality,
-      if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
-      CallableMemberDescriptor.Kind.SYNTHESIZED,
-      true
-    )
 
   private fun LazyClassDescriptor.synthetic(declarationProvider: DeclarationProvider): SyntheticClassOrObjectDescriptor {
     val ktDeclaration = this.ktClassOrObject()
@@ -355,22 +340,8 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     addAll(replacements.values.filterNotNull().toSynthetic(declarationProvider))
   }
 
-  private fun MutableCollection<SimpleFunctionDescriptor>.replaceWithSynthetics(packageName: FqName): Unit {
-    val replacements = mapNotNull { existing ->
-      val synthDescriptors = descriptorCache[packageName]?.filterIsInstance<LazyClassDescriptor>() ?: emptyList()
-      val replacement = synthDescriptors.findWithTransform { synth ->
-        val fn = synth.unsubstitutedMemberScope.getContributedFunctions(existing.name, NoLookupLocation.FROM_BACKEND).firstOrNull()
-        (fn != null) to fn
-      }
-      existing to replacement
-    }.toMap()
-    removeIf { replacements[it] != null }
-    addAll(replacements.values.filterNotNull())
-    val allSynths = map { it.synthetic() }
-    clear()
-    addAll(allSynths)
-  }
-
+  private fun List<LazyClassDescriptor>.toSynthetic(declarationProvider: DeclarationProvider): List<ClassDescriptor> =
+    map { it.synthetic(declarationProvider) }
 
   override fun generateSyntheticClasses(thisDescriptor: ClassDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: ClassMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {
@@ -474,3 +445,14 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
   }
 }
 
+internal fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
+  map { it.synthetic() }
+
+internal inline fun <reified C: CallableMemberDescriptor> C.synthetic(): C =
+  copy(
+    containingDeclaration,
+    modality,
+    if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    true
+  ) as C

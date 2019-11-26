@@ -12,6 +12,7 @@ typealias Union2<A, B> = Union3<A, B, Impossible>
 
 inline class Union(override val value: Any?) : Union4<Nothing, Nothing, Nothing, Nothing>
 
+// val x: Union<String, Int> = 0.0
 @Proof(of = [Subtyping])
 inline fun <A> A.first(): Union4<A, Any?, Any?, Any?> =
   Union(this)

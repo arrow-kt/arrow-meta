@@ -30,3 +30,8 @@ fun Id.Companion.applicative(): Applicative<`Id(_)`> =
     override fun <A> just(a: A): Kind<`Id(_)`, A> =
       Kinded(Id(a))
   }
+
+fun <F, A, FA: Kind<F, A>>  FA.f(): Kind<F, A>
+  where FA: Applicative.Ops<F, A> = TODO()
+
+val x = Id(1).f()
