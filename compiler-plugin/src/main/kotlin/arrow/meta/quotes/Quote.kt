@@ -3,13 +3,13 @@ package arrow.meta.quotes
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.Writer
-import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
+import arrow.meta.internal.kastree.ast.MutableVisitor
+import arrow.meta.internal.kastree.ast.Writer
+import arrow.meta.internal.kastree.ast.psi.Converter
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
