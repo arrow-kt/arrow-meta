@@ -1,18 +1,15 @@
 package arrow.meta.quotes.expression.expressionwithlabel
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.Quote
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 
 /**
- * A [KtReturnExpression] [Quote] with a custom template destructuring [ReturnExpression]. See below:
+ * <code>""" $`return` """.`return`</code>
  *
- * ```kotlin:ank:silent
+ * A template destructuring [Scope] for a [KtReturnExpression]. See below:
+ *
+ *  ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -32,18 +29,6 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  *     )
  *    }
  * ```
- *
- * @param match designed to to feed in any kind of [KtReturnExpression] predicate returning a [Boolean]
- * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.returnExpression(
-  match: KtReturnExpression.() -> Boolean,
-  map: ReturnExpression.(KtReturnExpression) -> Transform<KtReturnExpression>
-): ExtensionPhase =
-  quote(match, map) { ReturnExpression(it) }
-
-/**
- * A template destructuring [Scope] for a [KtReturnExpression]
  */
 class ReturnExpression(
   override val value: KtReturnExpression?,

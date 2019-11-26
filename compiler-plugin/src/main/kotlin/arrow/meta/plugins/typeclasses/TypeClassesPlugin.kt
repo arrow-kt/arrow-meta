@@ -6,8 +6,8 @@ import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.nameddeclaration.typeparameterlistowner.FunctionBody
-import arrow.meta.quotes.nameddeclaration.typeparameterlistowner.namedFunction
+import arrow.meta.quotes.namedFunction
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.FunctionBody
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.ClassDescriptor

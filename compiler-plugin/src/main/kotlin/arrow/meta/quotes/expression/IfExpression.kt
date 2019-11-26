@@ -1,18 +1,15 @@
 package arrow.meta.quotes.expression
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.Quote
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 
 /**
- * A [KtIfExpression] [Quote] with a custom template destructuring [IfExpression].  See below:
+ * <code>``` """ if $`(condition)` $then $`else` """.`if` ```</code>
  *
- *```kotlin:ank:silent
+ * A template destructuring [Scope] for a [KtIfExpression]. See below:
+ *
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -32,18 +29,6 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *   )
  *  }
  *```
- *
- * * @param match designed to to feed in any kind of [KtIfExpression] predicate returning a [Boolean]
- * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.ifExpression(
-  match: KtIfExpression.() -> Boolean,
-  map: IfExpression.(KtIfExpression) -> Transform<KtIfExpression>
-): ExtensionPhase =
-  quote(match, map) { IfExpression(it) }
-
-/**
- * A template destructuring [Scope] for a [KtIfExpression]
  */
 class IfExpression(
   override val value: KtIfExpression?,

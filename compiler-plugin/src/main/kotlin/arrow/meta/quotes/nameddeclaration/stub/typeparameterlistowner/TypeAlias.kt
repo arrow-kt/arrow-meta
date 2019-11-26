@@ -1,12 +1,8 @@
-package arrow.meta.quotes.nameddeclaration.typeparameterlistowner
+package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.Quote
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtTypeAlias
@@ -16,19 +12,11 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * A [KtTypeAlias] [Quote] with a custom template destructuring [TypeAlias]
+ * <code>"""typealias $name = $type""".typeAlias</code>
  *
- * @param match designed to to feed in any kind of [KtTypeAlias] predicate returning a [Boolean]
- * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.typeAlias(
-  match: KtTypeAlias.() -> Boolean,
-  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
-): ExtensionPhase =
-  quote(match, map) { TypeAlias(it) }
-
-/**
- * A template destructuring [Scope] for a [KtTypeAlias]
+ * A template destructuring [Scope] for a [KtTypeAlias]. See below:
+ *
+ * TODO adjust type alias factory in ElementScope
  */
 class TypeAlias(
   override val value: KtTypeAlias,

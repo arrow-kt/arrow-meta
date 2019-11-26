@@ -1,28 +1,35 @@
 package arrow.meta.quotes.expression
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 
 /**
- * A template destructuring [Scope] for a [KtBinaryExpression]
+ * <code>""" $left $operationReference $right """.binaryExpression</code>
  *
- * @param match designed to to feed in any kind of [KtBinaryExpression] predicate returning a [Boolean]
- * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.binaryExpression(
-  match: KtBinaryExpression.() -> Boolean,
-  map: BinaryExpression.(KtBinaryExpression) -> Transform<KtBinaryExpression>
-): ExtensionPhase =
-  quote(match, map) { BinaryExpression(it) }
-
-/**
- * A template destructuring [Scope] for a [KtBinaryExpression]
+ * A template destructuring [Scope] for a [KtBinaryExpression]. See below:
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.binaryExpression
+ *
+ * val Meta.reformatBinary: Plugin
+ *  get() =
+ *   "ReformatBinary" {
+ *    meta(
+ *     binaryExpression({ true }) { e ->
+ *      Transform.replace(
+ *       replacing = e,
+ *       newDeclaration = """ $left $operationReference $right """.binaryExpression
+ *      )
+ *      }
+ *     )
+ *    }
+ * ```
  */
 class BinaryExpression(
   override val value: KtBinaryExpression,

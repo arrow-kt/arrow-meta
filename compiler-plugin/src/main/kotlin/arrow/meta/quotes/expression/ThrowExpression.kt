@@ -1,15 +1,13 @@
 package arrow.meta.quotes.expression
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 
 /**
- * A [KtThrowExpression] [Quote] with a custom template destructuring [ThrowExpression]. See below:
+ * <code>""" $`throw` """.`throw`</code>
+ *
+ * A template destructuring [Scope] for a [KtThrowExpression]. See below:
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -31,18 +29,6 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  *     )
  *    }
  * ```
- *
- * @param match designed to to feed in any kind of [KtThrowExpression] predicate returning a [Boolean]
- * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.throwExpression(
-  match: KtThrowExpression.() -> Boolean,
-  map: ThrowExpression.(KtThrowExpression) -> Transform<KtThrowExpression>
-): ExtensionPhase =
-  quote(match, map) { ThrowExpression(it) }
-
-/**
- * A template destructuring [Scope] for a [KtThrowExpression]
  */
 class ThrowExpression(
   override val value: KtThrowExpression?,

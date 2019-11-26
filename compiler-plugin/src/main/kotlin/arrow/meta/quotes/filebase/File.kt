@@ -1,7 +1,7 @@
-package arrow.meta.quotes
+package arrow.meta.quotes.filebase
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.com.intellij.openapi.fileTypes.FileType
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.name.FqName
@@ -14,18 +14,6 @@ import org.jetbrains.kotlin.psi.KtImportList
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
-
-/**
- * A template destructuring [Scope] for a [KtFile]
- *
- * @param match designed to to feed in any kind of [KtFile] predicate returning a [Boolean]
- * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.file(
-  match: KtFile.() -> Boolean,
-  map: File.(KtFile) -> Transform<KtFile>
-): ExtensionPhase =
-  quote(match, map) { File(it) }
 
 /**
  * A template destructuring [Scope] for a [File]
@@ -44,7 +32,7 @@ class File(
   val virtualFilePath: String = value.virtualFilePath,
   val danglingAnnotations: ScopedList<KtAnnotationEntry> = ScopedList(value = value.danglingAnnotations, postfix = ", "),
   val fileType: FileType = value.fileType,
-  val declaractions: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
+  val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
   val stub: KotlinFileStub? = value.stub,
   val classes: Array<PsiClass> = value.classes
   ): Scope<KtFile>(value)

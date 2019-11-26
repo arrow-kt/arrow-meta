@@ -11,7 +11,7 @@ val Meta.transformReplace: List<Plugin>
   get() = listOf(transformReplaceFunction, transformReplaceClass)
 
 private val Meta.transformReplaceFunction: Plugin
-  get() = "Transform Replace" {
+  get() = "Transform Replace Function" {
     meta(
       namedFunction({ name == "transformReplace" }) { f ->
         Transform.replace(
@@ -23,7 +23,7 @@ private val Meta.transformReplaceFunction: Plugin
   }
 
 private val Meta.transformReplaceClass: Plugin
-  get() = "Transfor Replace Class" {
+  get() = "Transform Replace Class" {
     meta(
       `class`({ name == "Foo" }) { c ->
         Transform.replace(

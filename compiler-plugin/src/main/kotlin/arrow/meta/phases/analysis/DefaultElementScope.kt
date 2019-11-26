@@ -1,16 +1,91 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.psi.Converter
-import arrow.meta.quotes.*
-import arrow.meta.quotes.ValueArgument
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassDeclaration
+import arrow.meta.quotes.classorobject.ObjectDeclaration
+import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.element.CatchClause
+import arrow.meta.quotes.element.FinallySection
+import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.ParameterList
+import arrow.meta.quotes.element.ValueArgument
+import arrow.meta.quotes.element.WhenCondition
+import arrow.meta.quotes.element.WhenEntry
+import arrow.meta.quotes.expression.AnnotatedExpression
+import arrow.meta.quotes.expression.BinaryExpression
+import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.IfExpression
+import arrow.meta.quotes.expression.IsExpression
+import arrow.meta.quotes.expression.LambdaExpression
+import arrow.meta.quotes.expression.ThrowExpression
+import arrow.meta.quotes.expression.TryExpression
+import arrow.meta.quotes.expression.WhenExpression
+import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.modifierlist.ModifierList
+import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
+import arrow.meta.quotes.nameddeclaration.stub.Parameter
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtAnonymousInitializer
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockCodeFragment
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtCatchClause
+import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtEnumEntry
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
+import org.jetbrains.kotlin.psi.KtFinallySection
+import org.jetbrains.kotlin.psi.KtForExpression
+import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
+import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtInitializerList
+import org.jetbrains.kotlin.psi.KtIsExpression
+import org.jetbrains.kotlin.psi.KtLabeledExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtPackageDirective
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtPropertyDelegate
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
+import org.jetbrains.kotlin.psi.KtSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtThisExpression
+import org.jetbrains.kotlin.psi.KtThrowExpression
+import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeArgumentList
+import org.jetbrains.kotlin.psi.KtTypeCodeFragment
+import org.jetbrains.kotlin.psi.KtTypeElement
+import org.jetbrains.kotlin.psi.KtTypeParameter
+import org.jetbrains.kotlin.psi.KtTypeParameterList
+import org.jetbrains.kotlin.psi.KtTypeProjection
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
@@ -63,11 +138,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val KtTypeReference.functionTypeParameter: Parameter
     get() = Parameter(delegate.createFunctionTypeParameter(this))
 
-  override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement): Scope<KtTypeAlias> =
-    Scope(delegate.createTypeAlias(name, typeParameters, typeElement))
+  override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement): TypeAlias =
+    TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement))
 
-  override fun typeAlias(name: String, typeParameters: List<String>, body: String): Scope<KtTypeAlias> =
-    Scope(delegate.createTypeAlias(name, typeParameters, body))
+  override fun typeAlias(name: String, typeParameters: List<String>, body: String): TypeAlias =
+    TypeAlias(delegate.createTypeAlias(name, typeParameters, body))
 
   override val star: PsiElement
     get() = delegate.createStar()
@@ -113,29 +188,29 @@ class DefaultElementScope(project: Project) : ElementScope {
       } else this
     }
 
-  override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Scope<KtProperty> =
-    Scope(delegate.createProperty(modifiers, name, type, isVar, initializer))
+  override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Property =
+    Property(delegate.createProperty(modifiers, name, type, isVar, initializer))
 
-  override fun property(name: String, type: String?, isVar: Boolean, initializer: String?): Scope<KtProperty> =
-    Scope(delegate.createProperty(name, type, isVar, initializer))
+  override fun property(name: String, type: String?, isVar: Boolean, initializer: String?): Property =
+    Property(delegate.createProperty(name, type, isVar, initializer))
 
-  override fun property(name: String, type: String?, isVar: Boolean): Scope<KtProperty> =
-    Scope(delegate.createProperty(name, type, isVar))
+  override fun property(name: String, type: String?, isVar: Boolean): Property =
+    Property(delegate.createProperty(name, type, isVar))
 
-  override val String.property: Scope<KtProperty>
-    get() = Scope(delegate.createProperty(trimMargin()))
+  override val String.property: Property
+    get() = Property(delegate.createProperty(trimMargin()))
 
-  override fun propertyGetter(expression: KtExpression): Scope<KtPropertyAccessor> =
-    Scope(delegate.createPropertyGetter(expression))
+  override fun propertyGetter(expression: KtExpression): PropertyAccessor =
+    PropertyAccessor(delegate.createPropertyGetter(expression))
 
-  override fun propertySetter(expression: KtExpression): Scope<KtPropertyAccessor> =
-    Scope(delegate.createPropertyGetter(expression))
+  override fun propertySetter(expression: KtExpression): PropertyAccessor =
+    PropertyAccessor(delegate.createPropertyGetter(expression))
 
   override fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate> =
     Scope(delegate.createPropertyDelegate(expression))
 
-  override val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
-    get() = Scope(delegate.createDestructuringDeclaration(trimMargin()))
+  override val String.destructuringDeclaration: DestructuringDeclaration
+    get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(trimMargin()))
 
   override val String.destructuringParameter: Parameter
     get() = Parameter(delegate.createDestructuringParameter(trimMargin()))
@@ -160,6 +235,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.function: NamedFunction
     get() = NamedFunction(delegate.createFunction(trimMargin()))
+
+  override val String.binaryExpression: BinaryExpression
+    get() = BinaryExpression(expression.value as KtBinaryExpression)
 
   override val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
     get() = Scope(delegate.createCallableReferenceExpression(trimMargin()))
@@ -212,8 +290,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.lambdaParameterList: ParameterList
     get() = ParameterList(delegate.createLambdaParameterList(trimMargin()))
 
-  override fun lambdaExpression(parameters: String, body: String): Scope<KtLambdaExpression> =
-    Scope(delegate.createLambdaExpression(parameters, body))
+  override fun lambdaExpression(parameters: String, body: String): LambdaExpression =
+    LambdaExpression(delegate.createLambdaExpression(parameters, body))
 
   override val String.enumEntry: Scope<KtEnumEntry>
     get() = Scope(delegate.createEnumEntry(trimMargin()))
@@ -276,7 +354,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     IfExpression(delegate.createIf(condition, thenExpr, elseExpr))
 
   override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgument =
-          ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
+    ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
 
   override val String.argument: ValueArgument
     get() = ValueArgument(delegate.createArgument(trimMargin()))
@@ -334,5 +412,14 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
+
+  override val String.lambdaExpression: LambdaExpression
+    get() = LambdaExpression(delegate.createLambdaExpression(trimMargin(), expression.value?.bodySourceAsExpression().orEmpty()))
+
+  override val String.importDirective: ImportDirective
+    get() = ImportDirective(expression.value as KtImportDirective)
+
+  override val String.functionLiteral: FunctionLiteral
+    get() = FunctionLiteral(expression.value as KtFunctionLiteral)
 }
 

@@ -1,20 +1,17 @@
 package arrow.meta.quotes.expression
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.Quote
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
- * A [KtIsExpression] [Quote] with a custom template destructuring [IsExpression]. See below:
+ * <code>""" $left $operation $type """.`is`</code>
  *
- *```kotlin:ank:silent
+ * A template destructuring [Scope] for a [KtIsExpression]. See below:
+ *
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -34,18 +31,6 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *   )
  *  }
  *```
- *
- * * @param match designed to to feed in any kind of [KtIsExpression] predicate returning a [Boolean]
- * @param map map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.isExpression(
-  match: KtIsExpression.() -> Boolean,
-  map: IsExpression.(KtIsExpression) -> Transform<KtIsExpression>
-): ExtensionPhase =
-  quote(match, map) { IsExpression(it) }
-
-/**
- * A template destructuring [Scope] for a [KtIsExpression]
  */
 class IsExpression(
   override val value: KtIsExpression?,

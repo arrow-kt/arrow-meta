@@ -5,11 +5,11 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.quotes.ClassDeclaration
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.classorobject.`class`
+import arrow.meta.quotes.Transform
+import arrow.meta.quotes.`class`
+import arrow.meta.quotes.classorobject.ClassDeclaration
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody

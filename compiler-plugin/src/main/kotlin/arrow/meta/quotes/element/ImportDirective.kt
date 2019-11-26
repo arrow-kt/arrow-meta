@@ -1,30 +1,40 @@
-package arrow.meta.quotes
+package arrow.meta.quotes.element
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.ElementScope
+import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtImportAlias
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtImportInfo
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
- * A [KtImportDirective] [Quote] with a custom template destructuring [ImportDirective]
+ * <code>""" import $importPath.$importedName """.importDirective</code>
  *
- * @param match designed to to feed in any kind of [KtImportDirective] predicate returning a [Boolean]
- * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.importDirective(
-  match: KtImportDirective.() -> Boolean,
-  map: ImportDirective.(KtImportDirective) -> Transform<KtImportDirective>
-) : ExtensionPhase =
-  quote(match, map) { ImportDirective(it) }
-
-/**
- * A template destructuring [Scope] for a [KtLambdaExpression]
+ * A template destructuring [Scope] for a [KtImportDirective]. See below:
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.importDirective
+ *
+ * val Meta.reformatImportDirective: Plugin
+ *  get() =
+ *   "ReformatImportDirective" {
+ *    meta(
+ *     importDirective({ true }) { e ->
+ *      Transform.replace(
+ *       replacing = e,
+ *       newDeclaration = """ import $importPath.$importedName """.importDirective
+ *      )
+ *      }
+ *     )
+ *    }
+ * ```
  */
 class ImportDirective(
   override val value: KtImportDirective,

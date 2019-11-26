@@ -2,6 +2,8 @@ package arrow.meta.quotes.classorobject
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.element.ParameterList
+import arrow.meta.quotes.modifierlist.ModifierList
 import org.jetbrains.kotlin.com.intellij.navigation.ItemPresentation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -9,10 +11,8 @@ import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.KtParameterList
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSuperTypeList
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
@@ -36,8 +36,8 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
   val presentation: ItemPresentation? = value.presentation,
   val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,
-  val primaryConstructorModifierList: Scope<KtModifierList> = Scope(primaryConstructor?.modifierList), // TODO KtModifierList scope
-  val primaryConstructorParameterList: Scope<KtParameterList> = Scope(primaryConstructor?.valueParameterList), // TODO KtParameterList scope
+  val primaryConstructorModifierList: ModifierList = ModifierList(primaryConstructor?.modifierList),
+  val primaryConstructorParameterList: ParameterList = ParameterList(primaryConstructor?.valueParameterList),
   val name: Name? = value.nameAsName
   ) : Scope<T>(value)
 

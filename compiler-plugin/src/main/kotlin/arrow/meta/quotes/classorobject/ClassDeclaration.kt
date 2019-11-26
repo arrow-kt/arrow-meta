@@ -1,11 +1,6 @@
 package arrow.meta.quotes.classorobject
 
-import arrow.meta.Meta
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.quote
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -16,8 +11,14 @@ import org.jetbrains.kotlin.psi.psiUtil.getValueParameters
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * [`class`] is a function that intercepts all [KtClass] elements that [match]
-* then uses a [Transform] to change the intercepted AST tree before compilation.
+ * <code>```"""|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} { $body } """.`class````</code>
+ *
+ * The [ClassDeclaration] is projected over the template to allow destructuring of the different parts of the
+ * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
+ * before it's compiled.
+ *
+ *  * [`class`] is a function that intercepts all [KtClass] elements that [match]
+ * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
  * An extension function of [Meta] and inheriting from [ExtensionPhase], [class] was designed to feed in
  * virtually any kind of [KtClass] predicate, followed by a mapping function that takes the desired [Scope] of our
@@ -70,7 +71,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.classorobject.`class`
+ * import arrow.meta.quotes.`class`
  * import org.jetbrains.kotlin.psi.KtClass
  * import com.intellij.psi.PsiElement
  *
@@ -100,20 +101,6 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * then wrapped as a [ClassDeclaration] and wrapped so the `newDeclaration` is of the type [Scope]<[ClassDeclaration]> to match
  * match compatibility of the intercepted classes wrapped in some kind of [Scope]. To see more, see
  * [ClassDeclaration].
- *
- * @param match filters [KtClass] elements based on a [Boolean] predicate
- * @param map a function that maps over the resulting action from matching on the transformation at the PSI level.
- */
-fun Meta.`class`(
-  match: KtClass.() -> Boolean,
-  map: ClassDeclaration.(KtClass) -> Transform<KtClass>
-): ExtensionPhase =
-  quote(match, map) { ClassDeclaration(it) }
-
-/**
- * The [ClassDeclaration] is projected over the template to allow destructuring of the different parts of the
- * [KtClass]. The scope enables template syntax where the user may add new members or modify the class structure
- * before it's compiled.
  *
  * @param value scoped [KtClass] being destructured in the template
  * @param @annotations searches for marked annotations associated with the class.
