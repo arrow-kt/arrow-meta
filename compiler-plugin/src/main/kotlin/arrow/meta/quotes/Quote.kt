@@ -3,13 +3,13 @@ package arrow.meta.quotes
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
+import arrow.meta.internal.kastree.ast.MutableVisitor
+import arrow.meta.internal.kastree.ast.Writer
+import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.Writer
-import arrow.meta.internal.kastree.ast.psi.Converter
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
@@ -25,8 +25,8 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.Date
+import kotlin.reflect.KClass
 
 /**
  * ### Quote Templates DSL
@@ -143,6 +143,15 @@ inline fun <reified K : KtElement, S : Scope<K>> Meta.quote(
 ): ExtensionPhase =
   quote(QuoteFactory(transform), match, map)
 
+// fixme data class to store the information about registered analysis extensions to make this accessible to the IDE plugin later on
+data class AnalysisDefinition(val type: KClass<KtElement>,
+                              val quoteFactory: Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
+                              val match: KtElement.() -> Boolean,
+                              val map: Scope<KtElement>.(KtElement) -> Transform<KtElement>)
+
+// fixme: the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemCache)
+val analysisIdeExtensions: MutableList<AnalysisDefinition> = ArrayList()
+
 @Suppress("UNCHECKED_CAST")
 inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
   quoteFactory: Quote.Factory<P, K, S>,
@@ -175,6 +184,14 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         null
       }
     )
+  } ?: ide {
+    // store triple of quoteFactory, match, and map
+    analysisIdeExtensions.add(AnalysisDefinition(
+      K::class as KClass<KtElement>,
+      quoteFactory as Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
+      match as KtElement.() -> Boolean,
+      map as Scope<KtElement>.(KtElement) -> Transform<KtElement>))
+    null
   } ?: ExtensionPhase.Empty
 
 fun PackageViewDescriptor.declarations(): Collection<DeclarationDescriptor> =
@@ -216,11 +233,25 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>
 ): Pair<KtFile, ArrayList<Transform<K>>> {
+  return processKtFile(file, K::class, quoteFactory, match, map)
+}
+
+/**
+ * Overloaded method, which is also used by the IDE quote system transformation code.
+ */
+@Suppress("UNCHECKED_CAST")
+fun <K : KtElement, P : KtElement, S> processKtFile(
+  file: KtFile,
+  elementType: KClass<K>,
+  quoteFactory: Quote.Factory<P, K, S>,
+  match: K.() -> Boolean,
+  map: S.(K) -> Transform<K>
+): Pair<KtFile, ArrayList<Transform<K>>> {
   val mutatingDocument = file.viewProvider.document
   val mutations = arrayListOf<Transform<K>>()
   if (mutatingDocument != null) {
     val matches: List<KtElement> = file.dfs { element ->
-      val result = K::class.java.isAssignableFrom(element.javaClass)
+      val result = elementType.java.isAssignableFrom(element.javaClass)
       result
     }
     matches.forEach { element ->
