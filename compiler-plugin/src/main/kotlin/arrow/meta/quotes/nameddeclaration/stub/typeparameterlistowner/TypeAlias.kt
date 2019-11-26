@@ -1,6 +1,5 @@
 package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.name.Name
@@ -14,9 +13,31 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 /**
  * <code>"""typealias $name = $type""".typeAlias</code>
  *
- * A template destructuring [Scope] for a [KtTypeAlias]. See below:
+ *  TODO add wrappers for certain boolean logic so that there are more options to create KtTypeAlias
+ * @see [DefaultElementScope::typeAlias]
  *
- * TODO adjust type alias factory in ElementScope
+ * A template destructuring [Scope] for a [KtTypeAlias].
+ *
+ * * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.typeAlias
+ *
+ * val Meta.reformatTypeAlias: Plugin
+ *  get() =
+ *   "ReformatTypeAlias" {
+ *    typeAlias(
+ *     property({ true }) { dec ->
+ *      Transform.replace(
+ *       replacing = dec,
+ *       newDeclaration = """typealias $name = $type""".typeAlias
+ *      )
+ *      }
+ *     )
+ *    }
+ * ```
  */
 class TypeAlias(
   override val value: KtTypeAlias,

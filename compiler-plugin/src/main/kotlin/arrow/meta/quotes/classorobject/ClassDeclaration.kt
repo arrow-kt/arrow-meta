@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *  * [`class`] is a function that intercepts all [KtClass] elements that [match]
  * then uses a [Transform] to change the intercepted AST tree before compilation.
  *
- * An extension function of [Meta] and inheriting from [ExtensionPhase], [class] was designed to feed in
+ * An extension function of [Meta] and inheriting from [ExtensionPhase], [classDeclaration] was designed to feed in
  * virtually any kind of [KtClass] predicate, followed by a mapping function that takes the desired [Scope] of our
  * [KtClass] to change whatever PSI elements desired.
  *
@@ -71,17 +71,15 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.`class`
- * import org.jetbrains.kotlin.psi.KtClass
- * import com.intellij.psi.PsiElement
+ * import arrow.meta.quotes.classDeclaration
  *
  * val Meta.example: Plugin
  *   get() =
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         `class`({ name == "Test" }) { classElement ->
- *           Transform.replace<KtClass>(
+ *         classDeclaration({ name == "Test" }) { classElement ->
+ *           Transform.replace(
  *             replacing = classElement,
  *             newDeclaration =
  *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
@@ -103,8 +101,6 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * [ClassDeclaration].
  *
  * @param value scoped [KtClass] being destructured in the template
- * @param @annotations searches for marked annotations associated with the class.
- * @param modality  Modifier keyword is a keyword that can be used in annotation position as part of modifier list
  * @param visibility is the class public, private, protected? etc.
  * @param kind denotes certain classes as sealed class types or data class types.
  */

@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.resolve.ImportPath
 /**
  * <code>""" import $importPath.$importedName """.importDirective</code>
  *
- * A template destructuring [Scope] for a [KtImportDirective]. See below:
+ * A template destructuring [Scope] for a [KtImportDirective].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

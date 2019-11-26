@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 /**
  * <code>""" $`@annotations` $expression """.annotatedExpression</code>
  *
- * A template destructuring [Scope] for a [KtBlockExpression]. See below:
+ * A template destructuring [Scope] for a [KtBlockExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

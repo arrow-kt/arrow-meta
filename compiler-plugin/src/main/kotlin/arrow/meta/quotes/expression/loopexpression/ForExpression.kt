@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtForExpression
 /**
  * <code>""" for $`(param)` { $body } """.`for`</code>
  *
- * A template destructuring [Scope] for a [KtForExpression]. See below:
+ * A template destructuring [Scope] for a [KtForExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

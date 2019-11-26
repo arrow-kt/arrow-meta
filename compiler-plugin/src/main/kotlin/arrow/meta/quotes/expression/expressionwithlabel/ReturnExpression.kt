@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 /**
  * <code>""" $`return` """.`return`</code>
  *
- * A template destructuring [Scope] for a [KtReturnExpression]. See below:
+ * A template destructuring [Scope] for a [KtReturnExpression].
  *
  *  ```kotlin:ank:silent
  * import arrow.meta.Meta

@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
 /**
  * <code>""" while $`(condition)` { $body } """.`while`</code>
  *
- * A template destructuring [Scope] for a [KtWhileExpression]. See below:
+ * A template destructuring [Scope] for a [KtWhileExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 /**
  * <code>""" $left $operationReference $right """.binaryExpression</code>
  *
- * A template destructuring [Scope] for a [KtBinaryExpression]. See below:
+ * A template destructuring [Scope] for a [KtBinaryExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

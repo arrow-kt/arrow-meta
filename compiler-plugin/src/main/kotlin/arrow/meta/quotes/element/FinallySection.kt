@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
 /**
  * <code>""" $finally """.finally</code>
  *
- * A template destructuring [Scope] for a [KtFinallySection]. See below:
+ * A template destructuring [Scope] for a [KtFinallySection].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

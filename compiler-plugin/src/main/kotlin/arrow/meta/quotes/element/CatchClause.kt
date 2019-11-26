@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtParameterList
 /**
  * <code>```""" catch $`(parameter)` $`{ body }` """.catchClause```</code>
  *
- * A template destructuring [Scope] for a [KtCatchClause]. See below:
+ * A template destructuring [Scope] for a [KtCatchClause].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

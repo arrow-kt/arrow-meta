@@ -24,6 +24,7 @@ import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
@@ -174,6 +175,9 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ObjectDeclaration(delegate.createCompanionObject())
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
+
+  override fun file(fileName: String, text: String): File =
+    File(delegate.createFile(fileName, text))
 
   override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
     get() {

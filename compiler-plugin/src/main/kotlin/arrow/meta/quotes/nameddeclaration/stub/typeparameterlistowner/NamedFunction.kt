@@ -14,7 +14,30 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * A template destructuring [Scope] for a [KtNamedFunction]
+ * <code>""" $modality $visibility fun $`(typeParameters)` $receiver.$name $`(args)` : $returnType = { $body } """.namedFunction</code>
+ *
+ * A template destructuring [Scope] for a [KtNamedFunction].
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.namedFunction
+ *
+ * val Meta.reformatFile: Plugin
+ *   get() =
+ *     "ReformatFile" {
+ *       meta(
+ *        namedFunction({ true }) { f ->
+ *          Transform.replace(
+ *            replacing = f,
+ *            newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
+ *          )
+ *        }
+ *       )
+ *     }
+ * ```
  */
 class NamedFunction(
   override val value: KtNamedFunction,

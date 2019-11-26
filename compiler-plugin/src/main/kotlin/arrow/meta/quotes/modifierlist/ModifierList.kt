@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
 /**
  * <code>""" $`@annotations` $modifier value """.`modifierList`</code>
  *
- * A template destructuring [Scope] for a [KtModifierList]. See below:
+ * A template destructuring [Scope] for a [KtModifierList].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *  get() =
  *  "ReformatModifier" {
  *   meta(
- *    modifierList({ true }) { l ->
+ *    modifierList({ true }){ l ->
  *     Transform.replace(
  *      replacing = l,
  *      newDeclaration = """ $`@annotations` $modifier value """.`modifierList`

@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
 /**
  * <code>""" $`throw` """.`throw`</code>
  *
- * A template destructuring [Scope] for a [KtThrowExpression]. See below:
+ * A template destructuring [Scope] for a [KtThrowExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

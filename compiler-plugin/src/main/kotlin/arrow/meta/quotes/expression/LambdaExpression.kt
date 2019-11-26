@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 /**
  * <code>""" { $`(params)` -> $bodyExpression } """.lambdaExpression</code>
  *
- * A template destructuring [Scope] for a [KtLambdaExpression]. See below:
+ * A template destructuring [Scope] for a [KtLambdaExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

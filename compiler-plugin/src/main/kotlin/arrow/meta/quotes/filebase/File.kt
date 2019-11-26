@@ -16,7 +16,36 @@ import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
 
 /**
- * A template destructuring [Scope] for a [File]
+ * <code>file(name, """ $packageDirective $importList $classes """)</code>
+ *
+ * TODO add wrappers for certain boolean logic so that there are more options to create KtFile
+ * @see [DefaultElementScope::file]
+ *
+ * A template destructuring [Scope] for a [File]. See below:
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.file
+ *
+ * val Meta.reformatFile: Plugin
+ *   get() =
+ *     "ReformatFile" {
+ *       meta(
+ *        file({ true }) { f ->
+ *          Transform.replace(
+ *            replacing = f,
+ *            newDeclaration = {
+ *               val fileContents = """ $packageDirective $importList $classes """
+ *               file(name, fileContents)
+ *            }
+ *          )
+ *        }
+ *       )
+ *     }
+ * ```
  */
 class File(
   override val value: KtFile,

@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 /**
  * <code>""" $left $operation $type """.`is`</code>
  *
- * A template destructuring [Scope] for a [KtIsExpression]. See below:
+ * A template destructuring [Scope] for a [KtIsExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

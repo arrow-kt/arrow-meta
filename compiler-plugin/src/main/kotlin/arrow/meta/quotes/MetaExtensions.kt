@@ -100,7 +100,7 @@ fun Meta.catchClause(
 /**
  * @see [ClassDeclaration]
  */
-fun Meta.`class`(
+fun Meta.classDeclaration(
   match: KtClass.() -> Boolean,
   map: ClassDeclaration.(KtClass) -> Transform<KtClass>
 ): ExtensionPhase =
@@ -116,7 +116,7 @@ fun Meta.destructuringDeclaration(
   quote(match, map) { DestructuringDeclaration(it) }
 
 /**
- * """ $packageDirective $importList $classes """.file
+ * @see [File]
  */
 fun Meta.file(
   match: KtFile.() -> Boolean,
@@ -197,7 +197,7 @@ fun Meta.modifierList(
   quote(match, map) { ModifierList(it) }
 
 /**
- * """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(args)` : $returnType = { $body } """.namedFunction
+ * @see [NamedFunction]
  */
 fun Meta.namedFunction(
   match: KtNamedFunction.() -> Boolean,
@@ -206,7 +206,7 @@ fun Meta.namedFunction(
   quote(match, map) { NamedFunction(it) }
 
 /**
- *  """ object $name { $body }""".objectDeclaration
+ * @see [ObjectDeclaration]
  */
 fun Meta.objectDeclaration(
   match: KtObjectDeclaration.() -> Boolean,
@@ -251,7 +251,7 @@ fun Meta.throwExpression(
   quote(match, map) { ThrowExpression(it) }
 
 /**
- * """someFunction(someParam: ${typeElement}.typeReference)"""
+ * @see [TypeReference]
  */
 fun Meta.typeReference(
   match: KtTypeReference.() -> Boolean,
@@ -315,6 +315,7 @@ fun Meta.typeAlias(
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""
+ * @see [ValueArgument]
  */
 fun Meta.valueArgument(
   match: KtValueArgument.() -> Boolean,

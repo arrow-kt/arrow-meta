@@ -17,7 +17,10 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 /**
  * <code>""" $modifier $visibility val $name: $typeReference = $getter by $delegate""".property</code>
  *
- * A template destructuring [Scope] for a [KtProperty]. See below:
+ * TODO add wrappers for certain boolean logic so that there are more options to create KtProperty
+ * @see [DefaultElementScope::property]
+ *
+ * A template destructuring [Scope] for a [KtProperty].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 /**
  * <code>""" $conditions -> $expression """.whenEntry</code>
  *
- * A template destructuring [Scope] for a [KtWhenEntry]. See below:
+ * A template destructuring [Scope] for a [KtWhenEntry].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

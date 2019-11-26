@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtTryExpression
 /**
  * <code>""" try $tryBlock $catch $finally """.tryExpression</code>
  *
- * A template destructuring [Scope] for a [KtTryExpression]. See below:
+ * A template destructuring [Scope] for a [KtTryExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

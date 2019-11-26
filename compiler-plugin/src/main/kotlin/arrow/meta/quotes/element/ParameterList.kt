@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtParameterList
 /**
  * <code>""" $`(params)` """.parameterList</code>
  *
- * A template destructuring [Scope] for a [KtParameterList]. See below:
+ * A template destructuring [Scope] for a [KtParameterList].
  *
  * ``kotlin:ank:silent
  * import arrow.meta.Meta

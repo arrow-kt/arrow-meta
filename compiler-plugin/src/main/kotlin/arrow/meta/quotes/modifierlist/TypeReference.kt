@@ -7,7 +7,30 @@ import org.jetbrains.kotlin.psi.KtTypeElement
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
- * A template destructuring [Scope] for a [TypeReference]
+ * <code>"""$typeElement""".type</code>
+ *
+ * A template destructuring [Scope] for a [TypeReference].
+ *
+ * ```kotlin:ank:silent
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.typeReference
+ *
+ * val Meta.changeTypeReference: Plugin
+ *  get() =
+ *  "ReformatModifier" {
+ *   meta(
+ *    typeReference({ true }) { l ->
+ *     Transform.replace(
+ *      replacing = l,
+ *      newDeclaration = """$typeElement""".type
+ *     )
+ *    }
+ *   )
+ *  }
+ *```
  */
 class TypeReference(
   override val value: KtTypeReference?,

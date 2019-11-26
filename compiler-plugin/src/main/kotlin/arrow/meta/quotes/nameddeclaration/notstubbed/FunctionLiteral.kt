@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 /**
  * <code>""" val $name = { $blockExpression }""".functionLiteral</code>
  *
- * A template destructuring [Scope] for a [KtFunctionLiteral]. See below:
+ * A template destructuring [Scope] for a [KtFunctionLiteral].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

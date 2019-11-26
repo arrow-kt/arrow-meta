@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 /**
  * <code>``` """ if $`(condition)` $then $`else` """.`if` ```</code>
  *
- * A template destructuring [Scope] for a [KtIfExpression]. See below:
+ * A template destructuring [Scope] for a [KtIfExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

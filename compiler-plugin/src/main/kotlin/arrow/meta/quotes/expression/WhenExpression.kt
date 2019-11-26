@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
 /**
  * <code>""" $condition """.whenCondition</code>
  *
- * A template destructuring [Scope] for a [KtWhenExpression]. See below:
+ * A template destructuring [Scope] for a [KtWhenExpression].
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta

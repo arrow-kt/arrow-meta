@@ -24,6 +24,7 @@ import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
@@ -54,7 +55,6 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -146,6 +146,11 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
+  fun file(
+    fileName: String,
+    text: String
+  ): File
+
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
   fun property(
@@ -154,20 +159,20 @@ interface ElementScope {
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean
-  ): Scope<KtProperty>
+  ): Property
   
   val String.property: Property
   

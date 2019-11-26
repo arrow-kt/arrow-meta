@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 /**
  * <code>```""" $`(vars)` = $initializer """.destructuringDeclaration```</code>
  *
- * A template destructuring [Scope] for a [KtDestructuringDeclaration]. See below:
+ * A template destructuring [Scope] for a [KtDestructuringDeclaration].
  *
  *  ```kotlin:ank:silent
  * import arrow.meta.Meta
