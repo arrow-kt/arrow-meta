@@ -93,12 +93,12 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = delegate.createNewLine()
   override val String.`class`: ClassDeclaration
     get() = ClassDeclaration(delegate.createClass(trimMargin()))
-  override val String.`object`: Scope<KtObjectDeclaration>
-    get() = Scope(delegate.createObject(trimMargin()))
-  override val companionObject: Scope<KtObjectDeclaration>
-    get() = Scope(delegate.createCompanionObject())
-  override val String.companionObject: Scope<KtObjectDeclaration>
-    get() = Scope(delegate.createCompanionObject(trimMargin()))
+  override val String.`object`: ObjectDeclaration
+    get() = ObjectDeclaration(delegate.createObject(trimMargin()))
+  override val companionObject: ObjectDeclaration
+    get() = ObjectDeclaration(delegate.createCompanionObject())
+  override val String.companionObject: ObjectDeclaration
+    get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
 
   override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
     get() {
