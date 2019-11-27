@@ -11,6 +11,7 @@ import arrow.meta.quotes.ImportDirective
 import arrow.meta.quotes.IsExpression
 import arrow.meta.quotes.ModifierList
 import arrow.meta.quotes.NamedFunction
+import arrow.meta.quotes.ObjectDeclaration
 import arrow.meta.quotes.ParameterList
 import arrow.meta.quotes.Parameter
 import arrow.meta.quotes.ReturnExpression
@@ -45,7 +46,6 @@ import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -136,11 +136,11 @@ interface ElementScope {
   
   val String.`class`: ClassDeclaration
   
-  val String.`object`: Scope<KtObjectDeclaration>
+  val String.`object`: ObjectDeclaration
   
-  val companionObject: Scope<KtObjectDeclaration>
+  val companionObject: ObjectDeclaration
   
-  val String.companionObject: Scope<KtObjectDeclaration>
+  val String.companionObject: ObjectDeclaration
 
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   

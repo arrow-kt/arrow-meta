@@ -21,6 +21,5 @@ fun Meta.objectDeclaration(
  * A template destructuring [Scope] for a [KtObjectDeclaration]
  */
 class ObjectDeclaration(
-  override val value: KtObjectDeclaration,
-  val textOffset: Int = value.textOffset
+  override val value: KtObjectDeclaration
 ): ClassOrObjectScope<KtObjectDeclaration>(value)
