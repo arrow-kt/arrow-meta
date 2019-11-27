@@ -251,33 +251,40 @@ inline fun <reified K : KtElement> CompilerContext.updateFile(
   mutations: java.util.ArrayList<Transform<K>>,
   file: KtFile,
   match: K.() -> Boolean
-): KtFile =
+): List<KtFile> =
   if (mutations.isNotEmpty()) {
     transformFile(file, mutations, match)
-  } else file
+  } else listOf(file)
 
 inline fun <reified K : KtElement> CompilerContext.transformFile(
   ktFile: KtFile,
   mutations: java.util.ArrayList<Transform<K>>,
   match: K.() -> Boolean
-): KtFile {
+): List<KtFile> {
   val newSource = ktFile.sourceWithTransformationsAst(mutations, this, match)
-  val newFile = newSource?.let { changeSource(ktFile, it) } ?: ktFile
+  val newFile = newSource.map { source -> changeSource(ktFile, source) } ?: listOf(ktFile)
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
 
-inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Transform<K>>, compilerContext: CompilerContext, match: K.() -> Boolean): String? {
+inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
+  mutations: ArrayList<Transform<K>>,
+  compilerContext: CompilerContext,
+  match: K.() -> Boolean
+): List<String> {
   var dummyFile = Converter.convertFile(this)
+  val newSource: List<Node.File> = listOf()
+  val saveTransformation: (Node.File) -> Unit = { dummyFile = it }
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> dummyFile = transform.replace(dummyFile)
-      is Transform.Remove -> dummyFile = transform.remove(dummyFile)
-      is Transform.Many -> dummyFile = transform.many(this, compilerContext, match)
+      is Transform.Replace -> saveTransformation(transform.replace(dummyFile))
+      is Transform.Remove -> saveTransformation(transform.remove(dummyFile))
+      is Transform.Many -> saveTransformation(transform.many(this, compilerContext, match))
+      is Transform.NewSource -> newSource + transform.files.map { Converter.convertFile(it.value) }
       Transform.Empty -> Unit
     }
   }
-  return Writer.write(dummyFile)
+  return (newSource + dummyFile).map { Writer.write(it) }
 }
 
 inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Node.File {
@@ -327,10 +334,10 @@ inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() ->
     K::class.java.isAssignableFrom(it.javaClass)
 }.firstOrNull { (it as K).match() } as K
 
-fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {
+fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
   val fileIndex = indexOf(file)
   removeAt(fileIndex)
-  add(fileIndex, newFile)
+  addAll(fileIndex, newFile)
 }
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String): KtFile =
@@ -344,7 +351,7 @@ fun CompilerContext.changeSource(file: KtFile, newSource: String): KtFile =
       isCompiled = false
     )
   } ?: ide {
-    ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file)
+      ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file)
   }!!
 
 @Suppress("UNCHECKED_CAST")

@@ -119,6 +119,10 @@ sealed class Transform<out K : KtElement> {
   data class Many<K : KtElement>(
     val transforms: ArrayList<Transform<K>>
   ) : Transform<K>()
+  
+  data class NewSource<K : KtElement>(
+    val files: List<File>
+  ) : Transform<K>()
 
   object Empty : Transform<Nothing>()
 
@@ -146,6 +150,10 @@ sealed class Transform<out K : KtElement> {
       removeIn: PsiElement,
       declarations: List<Scope<KtExpressionCodeFragment>>
     ): Transform<K> = Remove(removeIn, declarations)
+    
+    fun <K : KtElement> newSources(
+      vararg files: File
+    ): Transform<K> = NewSource(files.toList())
 
     val empty: Transform<Nothing> = Empty
   }
