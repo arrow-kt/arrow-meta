@@ -2,7 +2,6 @@ package arrow.meta.ide.dsl
 
 import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.ide.dsl.editor.color.ColorSyntax
-import arrow.meta.ide.dsl.editor.fileTemplates.FileTemplateSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
@@ -19,8 +18,9 @@ import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterExtensionPro
 import arrow.meta.ide.dsl.editor.usage.UsageSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
+import arrow.meta.ide.dsl.ui.popups.PopupSyntax
 
 interface IdeSyntax : IntentionExtensionProviderSyntax, IconProviderSyntax,
   SyntaxHighlighterExtensionProviderSyntax, InspectionSyntax, AnActionSyntax, ColorSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  RefactoringSyntax, UsageSyntax, ExtensionProviderSyntax, RunLineMarkerSyntax, DialogSyntax, FileTemplateSyntax
+  RefactoringSyntax, UsageSyntax, ExtensionProviderSyntax, RunLineMarkerSyntax, DialogSyntax, PopupSyntax

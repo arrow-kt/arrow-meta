@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.cfg.WhenMissingCase
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -24,13 +23,7 @@ val IdeMetaPlugin.initialIdeSetUp: Plugin
         val result = diagnostic.suppressMetaDiagnostics()
         diagnostic.logSuppression(result)
         result
-      },
-      // addFileTemplate("Kotlin Arrow File"), TODO: the actuale FileType needs to be created, though registering works
-      addFileAction("CrazyAction", "New ArrowFile", "Creates a new Arrow File",
-        buildDialog = { project, directory ->
-          setTitle("Arrow")
-          addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
-        })
+      }
     )
   }
 

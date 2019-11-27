@@ -28,6 +28,11 @@ import javax.swing.Icon
 interface DialogSyntax {
   /**
    * [actionId] has to be unique
+   * addFileAction("ExampleAction", "New File", "Creates a new File",
+   *  buildDialog = { project, directory ->
+   *   setTitle("CostumeTitle")
+   *   addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
+   * })
    * TODO: Investigate system if there is no `postProcess`
    */
   fun IdeMetaPlugin.addFileAction(
