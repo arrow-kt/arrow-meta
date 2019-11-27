@@ -9,30 +9,39 @@
       <img src="{{ '/img/arrow-meta-brand-sidebar.svg' | relative_url }}" alt="Arrow Meta">
     </a>
   </div>
-
-  <ul id="meta-sidebar-nav" class="sidebar-nav">
-
+  <div class="sidebar-menu">
     {% for item in site.data.sidebar.options %}
-    <li class="sidebar-nav-item">
-      <a href="{% if item.url %}{{ item.url | relative_url }}{% else %}#{% endif %}" class="{{ meta }}">
-        <span>{{ item.title }}</span>
-        {% if item.nested_options %}
-        <i class="fa fa-angle-right"></i>
-        {% endif%}
-      </a>
-      {% if item.nested_options %}
-      <ul>
-        {% for nested_item in item.nested_options %}
-        <li>
-          <a href="{{ nested_item.url | relative_url }}">
-            <span>{{ nested_item.title }}</span>
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-      {% endif%}
-    </li>
+
+    {% comment %}
+    <!-- Needed logic to show the submenu open when the active entry is an inner element -->
+    {% endcomment %}
+    {% assign open_submenu = '' %}
+    {% if item.nested_options %}
+    {% for nested_item in item.nested_options %}
+    {% if nested_item.url == page.url %}
+    {% assign open_submenu = 'open' %}
+    {% endif %}
     {% endfor %}
-  </ul>
+    {% endif %}
+
+    <div class="sidebar-menu-item {% if item.url == page.url or open_submenu == 'open' %}active{% endif %} {{ open_submenu }}">
+      {% if item.nested_options %}
+      <button type="button" title="Open {{ item.title }}" class="button" onClick="activateParent(event.target, 'open');">
+        {{ item.title }}
+        <i class="fa fa-angle-right"></i>
+      </button>
+      <div class="sub-menu">
+        {% for nested_item in item.nested_options %}
+        <a class="sidebar-menu-item {% if nested_item.url == page.url %}active{% endif %}" href="{{ nested_item.url | relative_url }}" title="{{ nested_item.title }}">{{ nested_item.title }}</a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <a href="{{ item.url | relative_url }}" title="{{ item.title }}">
+        <span>{{ item.title }}</span>
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
 
 </div>
