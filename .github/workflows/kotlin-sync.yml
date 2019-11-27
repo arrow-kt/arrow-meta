@@ -33,6 +33,9 @@ jobs:
         ./gradlew :idea-plugin:build 2> stderr
         ./gradlew :testing-plugin:build 2> stderr
         ./gradlew :gradle-plugin:jar 2> stderr
+    - name: Prepare the environment to create the pull request
+      if: steps.update.outputs.differences
+      run: rm -f stderr
     - name: Create pull request
       if: steps.update.outputs.differences
       uses: peter-evans/create-pull-request@v1
