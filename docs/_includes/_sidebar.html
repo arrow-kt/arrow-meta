@@ -26,7 +26,7 @@
 
     <div class="sidebar-menu-item {% if item.url == page.url or open_submenu == 'open' %}active{% endif %} {{ open_submenu }}">
       {% if item.nested_options %}
-      <button type="button" title="Open {{ item.title }}" class="button" onClick="activateParent(event.target, 'open'); removeOpen(event.target);">
+      <button type="button" title="Open {{ item.title }}" class="button" onClick="activateParent(event.target, 'open');">
         {{ item.title }}
         <i class="fa fa-angle-right"></i>
       </button>
