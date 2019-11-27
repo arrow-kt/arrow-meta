@@ -156,7 +156,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map)
-        updateFiles(files, fileMutations)
+        updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
         files.forEach {
           val fileText = it.text
@@ -238,46 +238,64 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
 
 inline fun <reified K : KtElement> CompilerContext.updateFiles(
   result: java.util.ArrayList<KtFile>,
-  fileMutations: List<Pair<KtFile, java.util.ArrayList<Transform<K>>>>
+  fileMutations: List<Pair<KtFile, java.util.ArrayList<Transform<K>>>>,
+  match: K.() -> Boolean
 ) {
   fileMutations.forEach { (file, mutations) ->
-    val newFile = updateFile(mutations, file)
+    val newFile = updateFile(mutations, file, match)
     result.replaceFiles(file, newFile)
   }
 }
 
 inline fun <reified K : KtElement> CompilerContext.updateFile(
   mutations: java.util.ArrayList<Transform<K>>,
-  file: KtFile
+  file: KtFile,
+  match: K.() -> Boolean
 ): KtFile =
   if (mutations.isNotEmpty()) {
-    transformFile(file, mutations)
+    transformFile(file, mutations, match)
   } else file
 
 inline fun <reified K : KtElement> CompilerContext.transformFile(
   ktFile: KtFile,
-  mutations: java.util.ArrayList<Transform<K>>
+  mutations: java.util.ArrayList<Transform<K>>,
+  match: K.() -> Boolean
 ): KtFile {
-  val newSource = ktFile.sourceWithTransformationsAst(mutations)
+  val newSource = ktFile.sourceWithTransformationsAst(mutations, this, match)
   val newFile = newSource?.let { changeSource(ktFile, it) } ?: ktFile
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
 
-fun <K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Transform<K>>): String? {
+inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Transform<K>>, compilerContext: CompilerContext, match: K.() -> Boolean): String? {
   var dummyFile = Converter.convertFile(this)
   mutations.forEach { transform ->
     when (transform) {
       is Transform.Replace -> dummyFile = transform.replace(dummyFile)
       is Transform.Remove -> dummyFile = transform.remove(dummyFile)
+      is Transform.Many -> dummyFile = transform.many(this, compilerContext, match)
       Transform.Empty -> Unit
     }
   }
   return Writer.write(dummyFile)
 }
 
-private fun <T : KtElement> Transform.Replace<T>.replace(file: Node.File): Node.File = MutableVisitor.preVisit(file) { element, _ ->
-    if (element != null && element == replacing.ast) {
+inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Node.File {
+  var newSource: KtFile = ktFile
+  var context: K? = null
+  val changeSource: (Node.File) -> KtFile = { compilerContext.changeSource(newSource, Writer.write(it)) }
+  transforms.forEach { transform ->
+    context = processContext(newSource, match)
+    when (transform) {
+      is Transform.Replace -> newSource = changeSource(transform.replace(Converter.convertFile(newSource), context))
+      is Transform.Remove -> newSource = changeSource(transform.remove(Converter.convertFile(newSource), context))
+    }
+  }
+  return Converter.convertFile(newSource)
+}
+
+fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
+    if (element != null && element == (context?.ast ?: replacing.ast)) {
         val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
         println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
         element.dynamic = newContents
@@ -285,8 +303,8 @@ private fun <T : KtElement> Transform.Replace<T>.replace(file: Node.File): Node.
     } else element
 }
 
-private fun <T : KtElement> Transform.Remove<T>.remove(file: Node.File): Node.File {
-    val elementsToRemove = declarations.elementsFromItsContexts()
+fun <K : KtElement> Transform.Remove<K>.remove(file: Node.File, context: PsiElement? = null): Node.File {
+    val elementsToRemove = declarations.elementsFromItsContexts(context)
     return MutableVisitor.preVisit(file) { element, _ ->
         if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
             println("Removing ${element.javaClass}")
@@ -295,15 +313,19 @@ private fun <T : KtElement> Transform.Remove<T>.remove(file: Node.File): Node.Fi
     }
 }
 
-private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(): List<PsiElement> = flatMap { scope ->
+private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(context: PsiElement? = null): List<PsiElement> = flatMap { scope ->
     val psiElements = mutableListOf<PsiElement>()
-    scope.value?.context?.let { context -> MutableVisitor.preVisit(context.ast) { element, _ ->
+    (context ?: scope.value?.context)?.let { context -> MutableVisitor.preVisit(context.ast) { element, _ ->
         if (element != null && element.psiElement?.text?.trim() == scope.value?.text?.trim()) element.also {
             it.psiElement?.let { psi -> psiElements.add(psi) }
         } else element
     }}
     psiElements
 }
+
+inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() -> Boolean): K? = source.dfs {
+    K::class.java.isAssignableFrom(it.javaClass)
+}.firstOrNull { (it as K).match() } as K
 
 fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {
   val fileIndex = indexOf(file)

@@ -76,6 +76,49 @@ sealed class Transform<out K : KtElement> {
     val removing: PsiElement,
     val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
   ) : Transform<K>()
+  
+  /**
+   * A Transform that allows transformations combining. See below:
+   *
+   * ```kotlin:ank:silent
+   * import arrow.meta.Meta
+   * import arrow.meta.Plugin
+   * import arrow.meta.invoke
+   * import arrow.meta.phases.CompilerContext
+   * import arrow.meta.quotes.ClassDeclaration
+   * import arrow.meta.quotes.Transform
+   * import arrow.meta.quotes.`class`
+   * import arrow.meta.quotes.plus
+   * import org.jetbrains.kotlin.psi.KtClass
+   *
+   * val Meta.transformManySimpleCase: Plugin
+   *  get() = "Transform Many" {
+   *   meta(
+   *     `class`({ name == "ManySimpleCase" }) { c ->
+   *       changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
+   *     }
+   *    )
+   *   }
+   *
+   * fun CompilerContext.changeClassVisibility(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
+   *   replacing = context,
+   *   newDeclaration = """
+   *   | private class $className {
+   *   |   $body
+   *   | } """.`class`.synthetic
+   * )}
+   *
+   * fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(
+   *   removeIn = context,
+   *   declaration = """ fun printFirst() = println("Foo") """.expressionIn(context)
+   * )}
+   * ```
+   *
+   * @param transforms list of transformations
+   */
+  data class Many<K : KtElement>(
+    val transforms: ArrayList<Transform<K>>
+  ) : Transform<K>()
 
   object Empty : Transform<Nothing>()
 
@@ -106,5 +149,10 @@ sealed class Transform<out K : KtElement> {
 
     val empty: Transform<Nothing> = Empty
   }
-
 }
+
+operator fun <K : KtElement> Transform<K>.plus(transform: Transform<K>): Transform.Many<K> =
+  Transform.Many(arrayListOf(this, transform))
+
+operator fun <K : KtElement> Transform.Many<K>.plus(transform: Transform<K>): Transform.Many<K> =
+  Transform.Many(this.transforms.also { it.add(transform) })
