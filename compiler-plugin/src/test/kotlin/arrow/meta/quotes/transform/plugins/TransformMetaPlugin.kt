@@ -9,6 +9,7 @@ open class TransformMetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<Plugin> = (
     transformRemove
-      + transformReplace
-    )
+    + transformReplace
+    + transformMany
+  )
 }
