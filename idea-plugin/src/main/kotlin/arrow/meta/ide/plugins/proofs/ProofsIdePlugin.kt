@@ -4,42 +4,80 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.phases.resolve.proofs.Log
+import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
+import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.plugins.comprehensions.isBinding
 import arrow.meta.proofs.Proof
+import arrow.meta.proofs.ProofStrategy
+import arrow.meta.proofs.extensions
 import arrow.meta.proofs.intersection
 import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
+import arrow.meta.quotes.NamedFunctionScope
+import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.get
+import arrow.meta.quotes.ktFile
+import org.jetbrains.kotlin.analyzer.moduleInfo
+import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
+import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+import org.jetbrains.kotlin.idea.debugger.readAction
+import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
+import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.Call
+import org.jetbrains.kotlin.psi.KtAnonymousInitializer
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtScript
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.psiUtil.blockExpressionsOrSingle
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BodiesResolveContext
 import org.jetbrains.kotlin.resolve.FunctionDescriptorUtil
+import org.jetbrains.kotlin.resolve.LazyTopDownAnalyzer
 import org.jetbrains.kotlin.resolve.OverloadChecker
 import org.jetbrains.kotlin.resolve.StatementFilter
+import org.jetbrains.kotlin.resolve.TopDownAnalysisContext
+import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
 import org.jetbrains.kotlin.resolve.calls.results.TypeSpecificityComparator
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.SingleSmartCast
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.resolve.lazy.KotlinCodeAnalyzer
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
+import org.jetbrains.kotlin.resolve.lazy.descriptors.findPackageFragmentForFile
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
@@ -49,76 +87,218 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
+val proofAnnotation: Regex = Regex("@(arrow\\.)?Proof\\((.*)\\)")
+
+fun KtNamedFunction.isProof(): Boolean =
+  isAnnotatedWith(proofAnnotation)
+
+fun KtNamedFunction.proofTypes(): ScopedList<KtExpression> =
+  ScopedList(annotationEntries
+    .first { it.text.matches(proofAnnotation) }
+    .valueArguments.mapNotNull { it.getArgumentExpression() })
+
+fun NamedFunctionScope.withStrategy(strategy: ProofStrategy, f: NamedFunctionScope.() -> String): String =
+  when {
+    value.proofTypes().value.any {
+      it.text.endsWith(strategy.name)
+    } -> f(this)
+    else -> ""
+  }
+
+val FunctionDescriptor.from: String
+  get() =
+    extensionReceiverParameter?.type?.let(IdeDescriptorRenderers.SOURCE_CODE::renderType).orEmpty()
+
+val FunctionDescriptor.to: String
+  get() =
+    returnType?.toString().orEmpty()
+
+fun FunctionDescriptor.proof(): Proof? =
+  module.typeProofs.find { it.through.fqNameSafe == fqNameSafe }
+
+fun KtNamedFunction.markerMessage(): String =
+  NamedFunctionScope(this).run {
+    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.run {
+      """
+      <code lang="kotlin">${text}</code> 
+      
+      ${withStrategy(ProofStrategy.Subtyping) {
+        """
+        <code lang="kotlin">$from</code> is seen as subtype of <code lang="kotlin">$to</code> :
+        
+        <code lang="kotlin">
+        $from : $to
+        </code>
+        ```
+        
+        <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code> 
+        is used as injective function proof to support all subtype associations of <code lang="kotlin">$from : $to</code>.
+        
+        <code lang="kotlin">
+        val a: $from = TODO()
+        val b: $to = a //ok
+        </code>
+        
+        In the example above compiling <code lang="kotlin">val b: $to = a</code> would have failed to compile but because we have proof of 
+        <code lang="kotlin">$from : $to</code> this becomes a valid global ad-hoc synthetic subtype relationship.
+        """.trimIndent()
+      }}
+      ${withStrategy(ProofStrategy.Extension) {
+        """
+        All members of <code lang="kotlin">$to</code> become available in <code lang="kotlin">$from</code> :
+        <ul>
+          ${through.returnTypeCallableMembers().joinToString("\n -") {
+          """
+            <li>${it.renderForConflicts()}</li>
+            """.trimIndent()
+        }}
+        </ul>
+        <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code> 
+        is used as proof to support the intersection of <code lang="kotlin">$from & $to</code>.
+        """.trimIndent()
+      }}
+      
+    <a href="">More info on Type Proofs</a>: ${ProofStrategy.values().joinToString { """<code lang="kotlin">${it.name}</code>""" }}
+    """.trimIndent()
+    }.orEmpty()
+  }
+
+private fun FunctionDescriptor.returnTypeCallableMembers(): List<CallableMemberDescriptor> =
+  returnType
+    ?.memberScope
+    ?.getContributedDescriptors { true }
+    ?.filterIsInstance<CallableMemberDescriptor>()
+    ?.filter { it.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE }
+    .orEmpty()
+
 @Suppress("UnstableApiUsage")
 val IdeMetaPlugin.proofsIdePlugin: Plugin
   get() = "ProofsIdePlugin" {
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
-        transform = { it.safeAs<KtNamedFunction>()?.takeIf{
-          true
-        }?.identifyingElement },
-        message = { "Bind" }
+        transform = {
+          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isProof)?.identifyingElement
+        },
+        message = {
+          it.parent.safeAs<KtNamedFunction>()?.let(KtNamedFunction::markerMessage).orEmpty()
+        }
       ),
-//      addDiagnosticSuppressor { diagnostic ->
-//        if (diagnostic.factory == Errors.UNRESOLVED_REFERENCE) {
-//          Errors.UNRESOLVED_REFERENCE.cast(diagnostic).let {
-//            module.typeProofs.extensions().any { ext ->
-//              ext.to.memberScope.getContributedDescriptors { true }.any {
-//                it.name.asString() == diagnostic.psiElement.text
-//              }
-//            }
-//          }
-//        } else false
-//      },
+      syntheticResolver(
+        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
+          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
+            result.firstOrNull()?.ktFile()?.let {
+              Log.Verbose({ "resolveBodyWithExtensionsScope file $it" }) {
+                resolveBodyWithExtensionsScope(ctx as ResolveSession, it)
+              }
+            }
+          }
+        }
+      ),
+      addDiagnosticSuppressor { diagnostic ->
+        if (diagnostic.factory == Errors.UNRESOLVED_REFERENCE) {
+          Errors.UNRESOLVED_REFERENCE.cast(diagnostic).let {
+            module.typeProofs.extensions().any { ext ->
+              ext.to.memberScope.getContributedDescriptors { true }.any {
+                it.name.asString() == diagnostic.psiElement.text
+              }
+            }
+          }
+        } else false
+      },
       addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) },
       addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
-      //ideSyntheticBodyResolution()
     )
   }
 
-private fun Meta.ideSyntheticBodyResolution(): ExtensionPhase = ide {
-  syntheticResolver(
-    generateSyntheticMethods = { thisDescriptor, name, bindingContext, fromSupertypes, result ->
-      println("generateSyntheticMethods($thisDescriptor, $name, $bindingContext, $fromSupertypes, $result)")
-      thisDescriptor.safeAs<LazyClassDescriptor>()?.let { lazyDescriptor ->
-        val lazyClassContext: Any = lazyDescriptor["c"]
-        lazyClassContext.safeAs<ResolveSession>()?.let { session ->
-          result.firstOrNull { it.name == name }?.let { function ->
-            resolveBodyWithExtensionsScope(session, function)
-          }
-        }
+
+class ProofsBodyResolveContent(
+  val session: ResolveSession,
+  val delegate: TopDownAnalysisContext
+) : BodiesResolveContext by delegate {
+
+  override fun getFiles(): Collection<KtFile> =
+    Log.Verbose({ "ProofsBodyResolveContent.getFiles: $this" }) {
+      delegate.files
+    }
+
+  override fun getTypeAliases(): MutableMap<KtTypeAlias, TypeAliasDescriptor> =
+    Log.Verbose({ "ProofsBodyResolveContent.getTypeAliases: $this" }) {
+      delegate.typeAliases
+    }
+
+  override fun getScripts(): MutableMap<KtScript, ClassDescriptorWithResolutionScopes> =
+    Log.Verbose({ "ProofsBodyResolveContent.getScripts: $this" }) {
+      delegate.scripts
+    }
+
+  override fun getOuterDataFlowInfo(): DataFlowInfo =
+    Log.Verbose({ "ProofsBodyResolveContent.getOuterDataFlowInfo: $this" }) {
+      delegate.outerDataFlowInfo
+    }
+
+  override fun getDeclaredClasses(): MutableMap<KtClassOrObject, ClassDescriptorWithResolutionScopes> =
+    Log.Verbose({ "ProofsBodyResolveContent.getDeclaredClasses: $this" }) {
+      delegate.declaredClasses
+    }
+
+  override fun getSecondaryConstructors(): MutableMap<KtSecondaryConstructor, ClassConstructorDescriptor> =
+    Log.Verbose({ "ProofsBodyResolveContent.getSecondaryConstructors: $this" }) {
+      delegate.secondaryConstructors
+    }
+
+  override fun getProperties(): MutableMap<KtProperty, PropertyDescriptor> =
+    Log.Verbose({ "ProofsBodyResolveContent.getProperties: $this" }) {
+      delegate.properties
+    }
+
+  override fun getDestructuringDeclarationEntries(): MutableMap<KtDestructuringDeclarationEntry, PropertyDescriptor> =
+    Log.Verbose({ "ProofsBodyResolveContent.getDestructuringDeclarationEntries: $this" }) {
+      delegate.destructuringDeclarationEntries
+    }
+
+  override fun getTopDownAnalysisMode(): TopDownAnalysisMode =
+    Log.Verbose({ "ProofsBodyResolveContent.getTopDownAnalysisMode: $this" }) {
+      delegate.topDownAnalysisMode
+    }
+
+  override fun getFunctions(): MutableMap<KtNamedFunction, SimpleFunctionDescriptor> =
+    Log.Verbose({ "ProofsBodyResolveContent.getFunctions: $this" }) {
+      delegate.functions
+    }
+
+  override fun getAnonymousInitializers(): MutableMap<KtAnonymousInitializer, ClassDescriptorWithResolutionScopes> =
+    Log.Verbose({ "ProofsBodyResolveContent.getAnonymousInitializers: $this" }) {
+      delegate.anonymousInitializers
+    }
+
+  override fun getDeclaringScope(p0: KtDeclaration): LexicalScope? =
+    session.moduleDescriptor.run {
+      val currentScope = session.declarationScopeProvider.getResolutionScopeForDeclaration(p0)
+      findPackageFragmentForFile(p0.containingKtFile)?.let {
+        typeProofs.lexicalScope(currentScope, it)
       }
     }
-  )
-} ?: ExtensionPhase.Empty
+}
 
-private fun CompilerContext.resolveBodyWithExtensionsScope(session: ResolveSession, function: SimpleFunctionDescriptor): Unit {
-  val proofs = module.typeProofs
-  function.findPsi().safeAs<KtDeclarationWithBody>()?.let { ktCallable ->
-    println("resolveBodyWithExtensionsScope: ${ktCallable.text}")
-    val functionScope = session.declarationScopeProvider.getResolutionScopeForDeclaration(ktCallable)
-    val innerScope = FunctionDescriptorUtil.getFunctionInnerScope(functionScope, function, session.trace, OverloadChecker(TypeSpecificityComparator.NONE))
-    val bodyResolver = analyzer?.createBodyResolver(
-      session, session.trace, ktCallable.containingKtFile, StatementFilter.NONE
-    )
-//    val referencedTypes = function.referencedProofedCalls(proofs)
-//    referencedTypes.forEach { (resolvedCall, typeProofs) ->
-//      typeProofs.forEach { proof ->
-//        val intersection = proof.intersection(/* TODO type susbtitutor? */).asSimpleType()
-//        applySmartCast(resolvedCall.call, intersection, ktCallable, session)
-//        println("applySmartCast(${resolvedCall.call}, $intersection, $ktCallable, $session)")
-//      }
-//    }
-    val modifiedScope = proofs.lexicalScope(innerScope, function)
-    bodyResolver?.resolveFunctionBody(DataFlowInfo.EMPTY, session.trace, ktCallable, function, modifiedScope)
-//    val calls = session.trace.bindingContext.getSliceContents(BindingContext.CALL)
-//    calls.forEach(::println)
+private fun CompilerContext.resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
+  Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
+    session.fileScopeProvider = MetaFileScopeProvider(session, session.fileScopeProvider)
+//    val bodyResolver = analyzer?.createBodyResolver(
+//      session, session.trace, ktFile, StatementFilter.NONE
+//    )
+//    val analysisContext = topDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(ktFile), DataFlowInfo.EMPTY)
+//    val resolveContext = ProofsBodyResolveContent(
+//      session = session,
+//      delegate = analysisContext
+//    )
+//    bodyResolver?.resolveBodies(resolveContext)
+  }
+}
 //    modifiedScope.implicitReceiver?.type?.asSimpleType()?.let {
 //      applySmartCast(null, it, ktCallable, session)
 //    }
-  }
-}
+
 
 fun List<Proof>.mentioning(kotlinType: KotlinType): List<Proof> =
   filter { it.from.constructor == kotlinType.constructor && it.to.constructor == kotlinType.constructor }
@@ -151,16 +331,19 @@ private fun applySmartCast(
   }
 }
 
-private fun Proof.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
-  val proofIntersection = from.intersection(to)
-  val ownerDescriptor = AnonymousFunctionDescriptor(containingDeclaration, Annotations.EMPTY, CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE, false)
-  val extensionReceiver = ExtensionReceiver(ownerDescriptor, proofIntersection, null)
-  val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(ownerDescriptor, extensionReceiver, ownerDescriptor.annotations)
-  ownerDescriptor.initialize(extensionReceiverParamDescriptor, null, through.typeParameters, through.valueParameters, through.returnType, Modality.FINAL, through.visibility)
-  return LexicalScopeImpl(currentScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
-}
+//private fun Proof.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
+//  val proofIntersection = from.intersection(to)
+//  val ownerDescriptor = AnonymousFunctionDescriptor(containingDeclaration, Annotations.EMPTY, CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE, false)
+//  val extensionReceiver = ExtensionReceiver(ownerDescriptor, proofIntersection, null)
+//  val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(ownerDescriptor, extensionReceiver, ownerDescriptor.annotations)
+//  ownerDescriptor.initialize(extensionReceiverParamDescriptor, null, through.typeParameters, through.valueParameters, through.returnType, Modality.FINAL, through.visibility)
+//  return LexicalScopeImpl(currentScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+//}
 
-private fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: CallableMemberDescriptor): LexicalScope {
+
+
+
+fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
   val types = map { it.intersection(/* TODO substitutor */) }
   return if (types.isEmpty()) currentScope
   else types.reduce { acc, kotlinType -> acc.intersection(kotlinType) }.let { proofIntersection ->

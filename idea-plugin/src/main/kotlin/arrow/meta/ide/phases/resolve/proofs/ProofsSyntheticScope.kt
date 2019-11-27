@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 
 class MetaSyntheticScope : SyntheticScopeProviderExtension {
   override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
-    listOf(ProofsSyntheticScope(moduleDescriptor))
+    emptyList()//listOf(ProofsSyntheticScope(moduleDescriptor))
 }
 
 sealed class Log {

@@ -25,6 +25,7 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
+
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -34,6 +35,11 @@
         <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />
         <diagnosticSuppressor implementation="arrow.meta.ide.phases.resolve.proofs.ProofsDiagnosticsSuppressor" />
         <syntheticScopeProviderExtension implementation="arrow.meta.ide.phases.resolve.proofs.MetaSyntheticScope" />
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+<!--        <projectService serviceInterface="org.jetbrains.kotlin.resolve.CodeAnalyzerInitializer"-->
+<!--                        serviceImplementation="arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer"/>-->
     </extensions>
 
 </idea-plugin>

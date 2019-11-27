@@ -28,6 +28,7 @@ fun Meta.namedFunction(
 
 /**
  * A template destructuring [Scope] for a [KtNamedFunction]
+ * TODO missing annotations and potentially other properties
  */
 class NamedFunctionScope(
   override val value: KtNamedFunction,
