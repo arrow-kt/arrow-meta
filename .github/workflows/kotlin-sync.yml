@@ -24,20 +24,19 @@ jobs:
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_EAP_VERSION/g" gradle.properties
         NEW_VERSION=$(echo $LATEST_EAP_VERSION | cut -d- -f1)
         sed -i "s/^VERSION_NAME=.*$/VERSION_NAME=${NEW_VERSION}-SNAPSHOT/g" gradle.properties
-        DIFFERENCES=$(git diff gradle.properties)
-        if [[ "$DIFFERENCES" -eq "" ]]; then echo ::set-output name=differences::false; else echo ::set-output name=differences::true; fi
+        echo ::set-output name=differences::$(git diff gradle.properties)
     - name: Build Arrow Meta
-      if: steps.update.outputs.differences
+      if: steps.update.outputs.differences != ''
       run: |
         ./gradlew :compiler-plugin:build 2> stderr
         ./gradlew :idea-plugin:build 2> stderr
         ./gradlew :testing-plugin:build 2> stderr
         ./gradlew :gradle-plugin:jar 2> stderr
     - name: Prepare the environment to create the pull request
-      if: steps.update.outputs.differences
+      if: steps.update.outputs.differences != ''
       run: rm -f stderr
     - name: Create pull request
-      if: steps.update.outputs.differences
+      if: steps.update.outputs.differences != ''
       uses: peter-evans/create-pull-request@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
