@@ -20,21 +20,6 @@ options:
       - title: Index
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
-      - title: classOrObject
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/class-or-object.html
-
-      - title: func
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/func.html
-
-      - title: property
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property.html
-
-      - title: propertyAccessor
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property-accessor.html
-
-      - title: typeAlias
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/type-alias.html
-
   - title: Compiler API
 
     nested_options:

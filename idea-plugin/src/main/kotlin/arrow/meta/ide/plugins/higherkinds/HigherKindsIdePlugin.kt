@@ -9,8 +9,8 @@ import arrow.meta.ide.dsl.utils.kotlin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.plugins.higherkind.isHigherKindedType
 import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
-import arrow.meta.quotes.NamedFunction
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.celtric.kotlin.html.Node
 import org.celtric.kotlin.html.a
 import org.celtric.kotlin.html.h2

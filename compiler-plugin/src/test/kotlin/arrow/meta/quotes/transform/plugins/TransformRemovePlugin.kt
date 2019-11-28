@@ -11,7 +11,7 @@ val Meta.transformRemove: List<Plugin>
 
 private val Meta.transformRemoveSingleElement: Plugin
   get() =
-    "Transform Remove" {
+    "Transform Remove Single Element" {
       meta(
         namedFunction({ name == "transformRemove" }) { f ->
           Transform.remove(f)
@@ -21,7 +21,7 @@ private val Meta.transformRemoveSingleElement: Plugin
 
 private val Meta.transformRemoveSingleElementFromContext: Plugin
   get() =
-    "Transform Remove" {
+    "Transform Remove Single Element from Context" {
       meta(
         namedFunction({ name == "transformRemoveSingleElement" }) { f ->
           Transform.remove(
@@ -34,7 +34,7 @@ private val Meta.transformRemoveSingleElementFromContext: Plugin
 
 private val Meta.transformRemoveElementsFromContext: Plugin
   get() =
-    "Transform Remove" {
+    "Transform Remove Multiple Elements from Context" {
       meta(
         namedFunction({ name == "transformRemoveElements" }) { f ->
           Transform.remove(

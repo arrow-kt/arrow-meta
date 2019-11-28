@@ -4,9 +4,9 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.quotes.ClassDeclaration
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.`class`
+import arrow.meta.quotes.classDeclaration
+import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -16,7 +16,7 @@ val Meta.transformMany: List<Plugin>
 private val Meta.transformManyRemove: Plugin
   get() = "Transform Many" {
     meta(
-      `class`({ name == "ManyRemove" }) { c ->
+      classDeclaration({ name == "ManyRemove" }) { c ->
         removeFooPrint(c, this) + removeBarPrint(c, this) + cleanMethods("ManyRemove", c, this)
       }
     )
@@ -25,7 +25,7 @@ private val Meta.transformManyRemove: Plugin
 private val Meta.transformManyReplace: Plugin
   get() = "Transform Many" {
     meta(
-      `class`({ name == "ManyReplace" }) { c ->
+      classDeclaration({ name == "ManyReplace" }) { c ->
         createPrints("ManyReplace", c, this) + cleanMethods("ManyReplace", c, this)
       }
     )
@@ -34,7 +34,7 @@ private val Meta.transformManyReplace: Plugin
 private val Meta.transformManyCustomCase: Plugin
   get() = "Transform Many" {
     meta(
-      `class`({ name == "ManyCustomCase" }) { c ->
+      classDeclaration({ name == "ManyCustomCase" }) { c ->
         createPrints("ManyCustomCase", c, this) + removeFooPrint(c, this)
       }
     )
@@ -43,7 +43,7 @@ private val Meta.transformManyCustomCase: Plugin
 private val Meta.transformManySimpleCase: Plugin
   get() = "Transform Many" {
     meta(
-      `class`({ name == "ManySimpleCase" }) { c ->
+      classDeclaration({ name == "ManySimpleCase" }) { c ->
         changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
       }
     )

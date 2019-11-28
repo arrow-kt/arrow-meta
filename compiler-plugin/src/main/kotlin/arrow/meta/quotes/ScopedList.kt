@@ -20,4 +20,12 @@ data class ScopedList<K : KtElement>(
       postfix = postfix,
       transform = transform
     )
+
+  fun toStringList(): List<String> {
+    val list = arrayListOf<String>()
+    if (value.isEmpty())
+      if (forceRenderSurroundings) list.add(prefix + postfix)
+    else list.addAll(value.filterNot { it.text == "null" }.map {it.text})
+    return list
+  }
 }
