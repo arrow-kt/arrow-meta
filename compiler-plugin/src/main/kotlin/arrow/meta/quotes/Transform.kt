@@ -85,16 +85,16 @@ sealed class Transform<out K : KtElement> {
    * import arrow.meta.Plugin
    * import arrow.meta.invoke
    * import arrow.meta.phases.CompilerContext
-   * import arrow.meta.quotes.ClassDeclaration
+   * import arrow.meta.quotes.classorobject.ClassDeclaration
    * import arrow.meta.quotes.Transform
-   * import arrow.meta.quotes.`class`
+   * import arrow.meta.quotes.classDeclaration
    * import arrow.meta.quotes.plus
    * import org.jetbrains.kotlin.psi.KtClass
    *
    * val Meta.transformManySimpleCase: Plugin
    *  get() = "Transform Many" {
    *   meta(
-   *     `class`({ name == "ManySimpleCase" }) { c ->
+   *      classDeclaration({ name == "ManySimpleCase" }) { c ->
    *       changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
    *     }
    *    )

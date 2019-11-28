@@ -60,23 +60,6 @@ subprojects { project ->
   dokka {
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
-
-    includes = ['README.md']
-    reportUndocumented = false
-
-    // Specifies the location of the project source code on the Web.
-    // If provided, Dokka generates "source" links for each declaration.
-    // Repeat for multiple mappings
-    linkMapping {
-      // Source directory
-      dir = "src/main/kotlin"
-
-      // URL showing where the source code can be accessed through the web browser
-      url = "https://github.com/arrow-kt/arrow/blob/master/${relativeProjectPath('src/main/kotlin')}"
-
-      // Suffix which is used to append the line number to the URL. Use #L for GitHub
-      suffix = "#L"
-    }
   }
 
   apply plugin: 'com.jfrog.bintray'
