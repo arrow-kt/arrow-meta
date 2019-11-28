@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 
 /**
- * <code>""" $left $operationReference $right """.binaryExpression</code>
+ * <code>"""$left $operationReference $right""".binaryExpression</code>
  *
  * A template destructuring [Scope] for a [KtBinaryExpression].
  *
@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  *     binaryExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ $left $operationReference $right """.binaryExpression
+ *       newDeclaration = """$left $operationReference $right""".binaryExpression
  *      )
  *      }
  *     )

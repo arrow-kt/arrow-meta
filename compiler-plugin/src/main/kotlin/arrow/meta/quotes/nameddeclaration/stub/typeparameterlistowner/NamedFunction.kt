@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *
  * A template destructuring [Scope] for a [KtNamedFunction].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke

@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 
 /**
- * <code>""" $`throw` """.`throw`</code>
+ * <code>"""throw $thrownExpression""".`throw`</code>
  *
  * A template destructuring [Scope] for a [KtThrowExpression].
  *
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  *     throwExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ $`throw` """.`throw`
+ *       newDeclaration = """throw $thrownExpression""".`throw`
  *      )
  *      }
  *     )
@@ -32,5 +32,5 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  */
 class ThrowExpression(
   override val value: KtThrowExpression?,
-  val `throw`: Scope<KtExpression> = Scope(value?.thrownExpression)
+  val thrownExpression: Scope<KtExpression> = Scope(value?.thrownExpression)
 ) : Scope<KtThrowExpression>(value)

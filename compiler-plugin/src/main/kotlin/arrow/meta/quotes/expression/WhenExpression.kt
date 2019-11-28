@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  *
  * A template destructuring [Scope] for a [KtWhenExpression].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  */
 class WhenExpression(
   override val value: KtWhenExpression?,
-  val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries ?: listOf()),
+  val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries.orEmpty()),
   val variable: Property = Property(value?.subjectVariable),
   val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)

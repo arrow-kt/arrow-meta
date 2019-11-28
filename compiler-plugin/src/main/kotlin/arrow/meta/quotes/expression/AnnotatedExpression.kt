@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *
  * A template destructuring [Scope] for a [KtAnnotatedExpression].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 class AnnotatedExpression(
   override val value: KtAnnotatedExpression?,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries
-    ?: listOf()),
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries.orEmpty()),
   val expression: Scope<KtExpression> = Scope(value?.baseExpression)
 ) : Scope<KtAnnotatedExpression>(value) {}

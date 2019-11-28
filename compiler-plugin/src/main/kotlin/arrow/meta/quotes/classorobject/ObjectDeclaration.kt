@@ -6,8 +6,6 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 /**
  * <code>""" object $name { $body }""".objectDeclaration</code>
  *
- * @see [ElementScope::companionObject]
- *
  * A template destructuring [Scope] for a [KtObjectDeclaration].
  *
  * ```kotlin:ank:silent
@@ -21,14 +19,18 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  *   get() =
  *     "ReformatObjectDeclaration" {
  *       meta(
- *        objectDeclaration({ true }) { c ->
- *          Transform.replace(
- *            replacing = c,
- *            newDeclaration = """ object $name { $body }""".`object`
- *          )
- *        }
- *       )
- *     }
+ *         objectDeclaration({ isObjectLiteral() }) { c ->
+ *           Transform.replace(
+ *             replacing = c,
+ *             newDeclaration = """
+ *                 | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+ *                 |   $body
+ *                 | }
+ *                 | """.`object`
+ *             )
+ *           }
+ *         )
+ *       }
  * ```
  */
 class ObjectDeclaration(

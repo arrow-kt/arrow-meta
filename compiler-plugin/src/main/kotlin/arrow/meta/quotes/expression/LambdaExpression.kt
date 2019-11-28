@@ -2,13 +2,11 @@ package arrow.meta.quotes.expression
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtParameter
 
 /**
- * <code>""" { $`(params)` -> $bodyExpression } """.lambdaExpression</code>
+ * <code>lambdaExpression("""$`(params)`""", """$bodyExpression""")</code>
  *
  * A template destructuring [Scope] for a [KtLambdaExpression].
  *
@@ -26,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtParameter
  *        lambdaExpression({ true }) { e ->
  *          Transform.replace(
  *            replacing = e,
- *            newDeclaration = """ { $`(params)` -> $bodyExpression } """.lambdaExpression
+ *            newDeclaration = lambdaExpression("""$`(params)`""", """$bodyExpression""")
  *          )
  *        }
  *       )
@@ -35,13 +33,7 @@ import org.jetbrains.kotlin.psi.KtParameter
  */
 class LambdaExpression(
   override val value: KtLambdaExpression,
-  val functionLiteral: FunctionLiteral = FunctionLiteral(value.functionLiteral),
-  val `(params)`: ScopedList<KtParameter> = ScopedList(
-    prefix = "(",
-    value = value.valueParameters,
-    postfix = ")",
-    forceRenderSurroundings = true
-  ),
-  val bodyExpression: BlockExpression = BlockExpression(value.bodyExpression),
-  val containingKtFile: File = File(value.containingKtFile)
+  // val functionLiteral: FunctionLiteral = FunctionLiteral(value.functionLiteral),  // TODO locate an example or fix ValueArgument
+  val `(params)`: ScopedList<KtParameter> = ScopedList(value = value.valueParameters),
+  val bodyExpression: BlockExpression? = BlockExpression(value.bodyExpression)
 ) : Scope<KtLambdaExpression>(value)

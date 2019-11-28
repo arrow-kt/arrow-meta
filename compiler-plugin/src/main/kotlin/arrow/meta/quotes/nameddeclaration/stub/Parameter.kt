@@ -3,21 +3,42 @@ package arrow.meta.quotes.nameddeclaration.stub
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.classorobject.ClassDeclaration
-import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
+import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.modifierlist.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
-import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
-import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * <code>"""$visibility $name : $type""".classParameter</code>
+ * <code>""" $name : $type""".classParameter</code>
  *
  * A template destructuring [Scope] for a [KtParameter]
+ *
+ * ### Parameter Formatting:
+ *  ```
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.parameter
+ *
+ * val Meta.reformatParameter: Plugin
+ *  get() =
+ *   "ReformatParameter" {
+ *    meta(
+ *     parameter({ true }) { param ->
+ *      Transform.replace(
+ *       replacing = param,
+ *       newDeclaration = " $name: $type = EnvironmentRepository()".classParameter
+ *      )
+ *      }
+ *     )
+ *    }
+ * ```
+ *
  *
  * ### Class Parameter:
  * A loop parameter may be found within a [ClassDeclaration]. For example, we can change:
@@ -29,7 +50,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * class A(val environmentRepository: Repository = EnvironmentRepository())
  * ```
  * By working with loop parameters:
- *  ```kotlin:ank:silent
+ *  ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -43,7 +64,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     parameter({ name == "environmentRepository" }) { param ->
  *      Transform.replace(
  *       replacing = param,
- *       newDeclaration = "$visibility $name: $type = EnvironmentRepository()".classParameter
+ *       newDeclaration = " $name: $type = EnvironmentRepository()".classParameter
  *      )
  *      }
  *     )
@@ -51,7 +72,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * ```
  *
  * ### Loop Parameter:
- *  A loop parameter may be found within a [ForLoopExpression]. For example, we can change
+ *  A loop parameter may be found within a [ForExpression]. For example, we can change
  * ```
  * for (i in list) { ... }
  * ```
@@ -102,7 +123,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *  get() =
  *   "RenameDestructuringParameter" {
  *    meta(
- *     parameter({ name?.type?.name == "func" }) { param ->
+ *      parameter({ typeReference?.name == "func" }) { param ->
  *      Transform.replace(
  *       replacing = param,
  *       newDeclaration = "function".destructuringDeclaration
@@ -116,13 +137,16 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 class Parameter(
   override val value: KtParameter?,
-  val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
-  val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),
   val name: Name? = value?.nameAsName,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries
-    ?: listOf()),
   val type: TypeReference = TypeReference(value?.typeReference),
   val `(typeParams)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value?.typeParameters
     ?: listOf(), postfix = ">"),
-  val defaultValue: Scope<KtExpression> = Scope(value?.defaultValue)
+  val defaultValue: Scope<KtExpression> = Scope(value?.defaultValue),
+  val valOrVar: Name = when {
+    value?.hasValOrVar() == true && value.isMutable -> "var"
+    value?.hasValOrVar() == true && !value.isMutable -> "val"
+    value?.isVarArg == true -> "vararg"
+    else -> ""
+  }.let(Name::identifier),
+  val destructuringDeclaration: DestructuringDeclaration = DestructuringDeclaration(value?.destructuringDeclaration)
 ) : Scope<KtParameter>(value)

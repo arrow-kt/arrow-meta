@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 /**
- * <code>""" try $tryBlock $catch $finally """.tryExpression</code>
+ * <code>"""try $tryBlock$catchClauses$finallySection""".`try`</code>
  *
  * A template destructuring [Scope] for a [KtTryExpression].
  *
@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  *     tryExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ try $tryBlock $catch $finally """.`try`
+ *       newDeclaration = """try $tryBlock$catchClauses$finallySection""".`try`
  *      )
  *      }
  *     )
@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.psi.KtTryExpression
 class TryExpression(
   override val value: KtTryExpression?,
   val tryBlock: Scope<KtBlockExpression> = Scope(value?.tryBlock),
-  val catch: ScopedList<KtCatchClause> = ScopedList(value?.catchClauses
-    ?: listOf()),
-  val finally: Scope<KtFinallySection> = Scope(value?.finallyBlock)
+  val catchClauses: ScopedList<KtCatchClause> = ScopedList(value = value?.catchClauses.orEmpty()),
+  val finallySection: Scope<KtFinallySection> = Scope(value?.finallyBlock)
 ) : Scope<KtTryExpression>(value)

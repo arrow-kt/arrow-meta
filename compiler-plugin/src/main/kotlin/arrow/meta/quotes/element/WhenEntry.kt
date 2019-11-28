@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
 
 /**
- * <code>""" $conditions -> $expression """.whenEntry</code>
+ * <code>(if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry</code>
  *
  * A template destructuring [Scope] for a [KtWhenEntry].
  *
@@ -25,17 +25,20 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
  *     whenEntry({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ $conditions -> $expression """.whenEntry
+ *       newDeclaration = (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry
  *      )
  *     }
  *    )
  *   }
  * ```
  */
+
 class WhenEntry(
   override val value: KtWhenEntry?,
-  val conditions: ScopedList<KtWhenCondition> = ScopedList(value?.conditions?.toList()
-    ?: listOf()),
+  val conditions: ScopedList<KtWhenCondition> = ScopedList(
+    separator = " && ",
+    value = value?.conditions?.toList().orEmpty()
+  ),
   val expression: Scope<KtExpression> = Scope(value?.expression),
   val isElse: Boolean = value?.isElse == true
 ) : Scope<KtWhenEntry>(value)

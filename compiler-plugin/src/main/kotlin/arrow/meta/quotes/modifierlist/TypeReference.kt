@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtTypeElement
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
- * <code>"""$typeElement""".type</code>
+ * <code> """$`@annotations` $typeElement""".type </code>
  *
  * A template destructuring [Scope] for a [TypeReference].
  *
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *    typeReference({ true }) { l ->
  *     Transform.replace(
  *      replacing = l,
- *      newDeclaration = """$typeElement""".type
+ *      newDeclaration = """$`@annotations` $typeElement""".type
  *     )
  *    }
  *   )
@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  */
 class TypeReference(
   override val value: KtTypeReference?,
-  val name: String? = value?.name,
   val typeElement: Scope<KtTypeElement>? = Scope(value?.typeElement), // TODO KtTypeElement scope and quote template
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries?: listOf())
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(separator = " ", value = value?.annotationEntries.orEmpty())
 ): Scope<KtTypeReference>(value)

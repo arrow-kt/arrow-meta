@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * <code>""" $`@annotations` $expression """.annotatedExpression</code>
+ * <code> """$statements""".block </code>
  *
  * A template destructuring [Scope] for a [KtBlockExpression].
  *
@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *     blockExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ { $statements } """.block
+ *       newDeclaration = """$statements""".block
  *      )
  *     }
  *    )
@@ -32,7 +32,8 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 class BlockExpression(
   override val value: KtBlockExpression?,
-  val statements: ScopedList<KtExpression> = ScopedList(value?.statements
-    ?: listOf()),
-  val firstStatement: Scope<KtExpression> = Scope(value?.firstStatement)
+  val statements: ScopedList<KtExpression> = ScopedList(
+    separator = "\n",
+    value = value?.statements.orEmpty()
+  )
 ) : Scope<KtBlockExpression>(value)

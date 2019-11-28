@@ -5,11 +5,11 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 
 /**
- * <code>""" $`return` """.`return`</code>
+ * <code>"""return $`return`""".`return`</code>
  *
  * A template destructuring [Scope] for a [KtReturnExpression].
  *
- *  ```kotlin:ank:silent
+ *  ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  *     returnExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ $`return` """.`return`
+ *       newDeclaration = """return $`return`""".`return`
  *      )
  *      }
  *     )

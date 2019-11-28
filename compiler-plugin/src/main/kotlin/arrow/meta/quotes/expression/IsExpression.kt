@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
- * <code>""" $left $operation $type """.`is`</code>
+ * <code>"""$left $operation $type""".`is`</code>
  *
  * A template destructuring [Scope] for a [KtIsExpression].
  *
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *    isExpression({ true }) { e ->
  *     Transform.replace(
  *      replacing = e,
- *      newDeclaration = """ $left $operation $type """.`is`
+ *      newDeclaration = """$left $operation $type""".`is`
  *     )
  *    }
  *   )

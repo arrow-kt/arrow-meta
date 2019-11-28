@@ -33,6 +33,5 @@ import org.jetbrains.kotlin.psi.KtParameterList
  */
 class ParameterList(
   override val value: KtParameterList?,
-  val `(params)`: ScopedList<KtParameter> = ScopedList(value?.parameters
-    ?: listOf())
+  val `(params)`: ScopedList<KtParameter> = ScopedList(value?.parameters.orEmpty())
 ) : Scope<KtParameterList>(value)

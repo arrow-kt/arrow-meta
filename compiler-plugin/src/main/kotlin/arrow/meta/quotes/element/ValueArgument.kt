@@ -7,10 +7,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentName
 import org.jetbrains.kotlin.psi.ValueArgument
 
 /**
- * <code>"""argumentExpression""".argument</code>
- *
- * TODO add wrappers for certain boolean logic so that there are more options to create KtValueArgument
- * @see [DefaultElementScope::argument]
+ * <code>(if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument</code>
  *
  * A template destructuring [Scope] for a [ValueArgument].
  *
@@ -28,7 +25,7 @@ import org.jetbrains.kotlin.psi.ValueArgument
  *     valueArgument({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """argumentExpression""".argument
+ *       newDeclaration = (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument
  *      )
  *      }
  *     )

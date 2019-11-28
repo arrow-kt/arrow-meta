@@ -9,8 +9,8 @@ import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
-import arrow.meta.quotes.element.WhenCondition
 import arrow.meta.quotes.element.WhenEntry
+import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.AnnotatedExpression
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
@@ -22,8 +22,8 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
-import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -52,12 +51,10 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
-import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
@@ -102,30 +99,31 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = delegate.createVarKeyword()
 
   override val String.expression: Scope<KtExpression>
-    get() = Scope(delegate.createExpression(trimMargin()))
+    get() = Scope(delegate.createExpression(trimMargin().trim()))
 
   override val String.dotQualifiedExpression: Scope<KtDotQualifiedExpression>
     get() = Scope(expression.value as KtDotQualifiedExpression)
+
   override val String.expressionOrNull: Scope<KtExpression>
-    get() = Scope(delegate.createExpressionIfPossible(trimMargin()))
+    get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
 
   override val thisExpression: Scope<KtThisExpression>
     get() = Scope(delegate.createThisExpression())
 
   override val String.thisExpression: Scope<KtThisExpression>
-    get() = Scope(delegate.createThisExpression(trimMargin()))
+    get() = Scope(delegate.createThisExpression(trimMargin().trim()))
 
   override val String.callArguments: Scope<KtValueArgumentList>
-    get() = Scope(delegate.createCallArguments(trimMargin()))
+    get() = Scope(delegate.createCallArguments(trimMargin().trim()))
 
   override val String.typeArguments: Scope<KtTypeArgumentList>
-    get() = Scope(delegate.createTypeArguments(trimMargin()))
+    get() = Scope(delegate.createTypeArguments(trimMargin().trim()))
 
   override val String.typeArgument: Scope<KtTypeProjection>
-    get() = Scope(delegate.createTypeArgument(trimMargin()))
+    get() = Scope(delegate.createTypeArgument(trimMargin().trim()))
 
   override val String.type: TypeReference
-    get() = TypeReference(delegate.createType(trimMargin()))
+    get() = TypeReference(delegate.createType(trimMargin().trim()))
 
   override val KtTypeElement.type: TypeReference
     get() = TypeReference(delegate.createType(this))
@@ -202,7 +200,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     Property(delegate.createProperty(name, type, isVar))
 
   override val String.property: Property
-    get() = Property(delegate.createProperty(trimMargin()))
+    get() = Property(delegate.createProperty(trimMargin().trim()))
 
   override fun propertyGetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
@@ -214,37 +212,37 @@ class DefaultElementScope(project: Project) : ElementScope {
     Scope(delegate.createPropertyDelegate(expression))
 
   override val String.destructuringDeclaration: DestructuringDeclaration
-    get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(trimMargin()))
+    get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(trimMargin().trim()))
 
   override fun <A : KtDeclaration> String.declaration(): Scope<A> =
-    Scope(delegate.createDeclaration(trimMargin()))
+    Scope(delegate.createDeclaration(trimMargin().trim()))
 
   override val String.nameIdentifier: PsiElement
-    get() = delegate.createNameIdentifier(trimMargin())
+    get() = delegate.createNameIdentifier(trimMargin().trim())
 
   override val String.nameIdentifierIfPossible: PsiElement?
     get() = delegate.createNameIdentifierIfPossible(trimMargin())
 
   override val String.simpleName: Scope<KtSimpleNameExpression>
-    get() = Scope(delegate.createSimpleName(trimMargin()))
+    get() = Scope(delegate.createSimpleName(trimMargin().trim()))
 
   override val String.operationName: Scope<KtSimpleNameExpression>
-    get() = Scope(delegate.createOperationName(trimMargin()))
+    get() = Scope(delegate.createOperationName(trimMargin().trim()))
 
   override val String.identifier: PsiElement
-    get() = delegate.createIdentifier(trimMargin())
+    get() = delegate.createIdentifier(trimMargin().trim())
 
   override val String.function: NamedFunction
-    get() = NamedFunction(delegate.createFunction(trimMargin()))
+    get() = NamedFunction(delegate.createFunction(trimMargin().trim()))
 
   override val String.binaryExpression: BinaryExpression
     get() = BinaryExpression(expression.value as KtBinaryExpression)
 
   override val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
-    get() = Scope(delegate.createCallableReferenceExpression(trimMargin()))
+    get() = Scope(delegate.createCallableReferenceExpression(trimMargin().trim()))
 
   override val String.secondaryConstructor: Scope<KtSecondaryConstructor>
-    get() = Scope(delegate.createSecondaryConstructor(trimMargin()))
+    get() = Scope(delegate.createSecondaryConstructor(trimMargin().trim()))
 
   override fun modifierList(modifier: KtModifierKeywordToken): ModifierList =
     ModifierList(delegate.createModifierList(modifier))
@@ -373,7 +371,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = Scope(delegate.creareDelegatedSuperTypeEntry(trimMargin()))
 
   override val String.block: BlockExpression
-    get() = BlockExpression(delegate.createBlock(trimMargin()))
+    get() = BlockExpression(delegate.createBlock(trimMargin().trim()))
 
   override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpression =
     BlockExpression(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
@@ -381,14 +379,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.comment: PsiComment
     get() = delegate.createComment(trimMargin())
 
-  override val String.`for`: ForLoopExpression
-    get() = ForLoopExpression(expression.value as KtForExpression)
+  override val String.`for`: ForExpression
+    get() = ForExpression(expression.value as KtForExpression)
 
-  override val String.`while`: WhileLoopExpression
-    get() = WhileLoopExpression(expression.value as KtWhileExpression)
-
-  override val String.`if`: IfExpression
-    get() = IfExpression(expression.value as KtIfExpression)
+  override val String.`while`: WhileExpression
+    get() = WhileExpression(expression.value as KtWhileExpression)
 
   override val String.`when`: WhenExpression
     get() = WhenExpression(expression.value as KtWhenExpression)
@@ -397,16 +392,27 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = TryExpression(expression.value as KtTryExpression)
   
   override val String.catch: CatchClause
-    get() = CatchClause(expression.value as KtCatchClause)
+    get() = CatchClause(
+      """
+      |try { } 
+      |$this
+      """.trimIndent().trim().`try`.catchClauses.value.first())
 
   override val String.finally: FinallySection
-    get() = FinallySection(expression.value as KtFinallySection)
+    get() = FinallySection(
+      """
+      |try { } 
+      |$this
+      """.trimIndent().trim().`try`.finallySection.value)
 
   override val String.`throw`: ThrowExpression
     get() = ThrowExpression(expression.value as KtThrowExpression)
 
   override val String.`is`: IsExpression
     get() = IsExpression(expression.value as KtIsExpression)
+
+  override val String.`if`: IfExpression
+    get() = IfExpression(expression.value as KtIfExpression)
 
   override val String.`return`: ReturnExpression
     get() = ReturnExpression(expression.value as KtReturnExpression)
@@ -416,12 +422,6 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
-
-  override val String.lambdaExpression: LambdaExpression
-    get() = LambdaExpression(delegate.createLambdaExpression(trimMargin(), expression.value?.bodySourceAsExpression().orEmpty()))
-
-  override val String.importDirective: ImportDirective
-    get() = ImportDirective(expression.value as KtImportDirective)
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral(expression.value as KtFunctionLiteral)

@@ -9,8 +9,8 @@ import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
-import arrow.meta.quotes.element.WhenCondition
 import arrow.meta.quotes.element.WhenEntry
+import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.AnnotatedExpression
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
@@ -22,8 +22,8 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
-import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
@@ -51,7 +51,6 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
@@ -239,7 +238,7 @@ interface ElementScope {
   fun lambdaExpression(
     parameters: String,
     body: String
-  ): Scope<KtLambdaExpression>
+  ): LambdaExpression
   
   val String.enumEntry: Scope<KtEnumEntry>
   
@@ -302,11 +301,9 @@ interface ElementScope {
   
   val String.block: BlockExpression
 
-  val String.`for`: ForLoopExpression
+  val String.`for`: ForExpression
 
-  val String.`while`: WhileLoopExpression
-
-  val String.`if`: IfExpression
+  val String.`while`: WhileExpression
 
   val String.`when`: WhenExpression
 
@@ -320,13 +317,11 @@ interface ElementScope {
 
   val String.`is`: IsExpression
 
+  val String.`if`: IfExpression
+
   val String.`return`: ReturnExpression
 
   val String.annotatedExpression: AnnotatedExpression
-
-  val String.lambdaExpression: LambdaExpression
-
-  val String.importDirective: ImportDirective
 
   val String.functionLiteral: FunctionLiteral
 

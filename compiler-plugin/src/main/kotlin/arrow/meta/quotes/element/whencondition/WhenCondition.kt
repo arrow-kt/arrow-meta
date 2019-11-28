@@ -1,10 +1,10 @@
-package arrow.meta.quotes.element
+package arrow.meta.quotes.element.whencondition
 
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtWhenCondition
 
 /**
- * <code> """ $condition """.whenCondition </code>
+ * <code>condition.whenCondition</code>
  *
  * A template destructuring [Scope] for a [KtWhenCondition].
  *
@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
  *     whenCondition({ true }) { c ->
  *      Transform.replace(
  *       replacing = c,
- *       newDeclaration = """ $condition """.whenCondition
+ *       newDeclaration = condition.whenCondition
  *      )
  *     }
  *    )

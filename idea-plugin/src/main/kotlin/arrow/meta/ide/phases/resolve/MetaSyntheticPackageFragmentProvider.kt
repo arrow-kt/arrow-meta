@@ -77,7 +77,7 @@ import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 

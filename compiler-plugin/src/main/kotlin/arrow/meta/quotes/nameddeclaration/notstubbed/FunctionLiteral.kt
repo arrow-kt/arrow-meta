@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  *
  * A template destructuring [Scope] for a [KtFunctionLiteral].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke

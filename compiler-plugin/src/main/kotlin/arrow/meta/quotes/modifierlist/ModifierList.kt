@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *
  * A template destructuring [Scope] for a [KtModifierList].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  */
 class ModifierList(
   override val value: KtModifierList?,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries
-    ?: listOf()),
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries.orEmpty()),
   val modifier: PsiElement? = value?.visibilityModifier()
 ) : Scope<KtModifierList>(value)

@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 
 /**
- * <code>""" while $`(condition)` { $body } """.`while`</code>
+ * <code>"""while ($condition) $body""".`while`</code>
  *
  * A template destructuring [Scope] for a [KtWhileExpression].
  *
@@ -23,14 +23,14 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  *       whileExpression({ true }) { e ->
  *        Transform.replace(
  *         replacing = e,
- *         newDeclaration = """ while $`(condition)` { $body } """.`while`
+ *         newDeclaration = """while ($condition) $body""".`while`
  *        )
  *       }
  *      )
  *     }
  * ```
  */
-class WhileLoopExpression(
+class WhileExpression(
   override val value: KtWhileExpression,
-  val `(condition)`: Scope<KtExpression> = Scope(value.condition)
+  val condition: Scope<KtExpression> = Scope(value.condition)
 ) : LoopExpression<KtWhileExpression>(value)

@@ -6,13 +6,10 @@ import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.element.CatchClause
-import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
-import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
-import arrow.meta.quotes.element.WhenCondition
 import arrow.meta.quotes.element.WhenEntry
-import arrow.meta.quotes.expression.AnnotatedExpression
+import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
 import arrow.meta.quotes.expression.IfExpression
@@ -20,57 +17,39 @@ import arrow.meta.quotes.expression.IsExpression
 import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
-import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
-import arrow.meta.quotes.expression.loopexpression.ForLoopExpression
-import arrow.meta.quotes.expression.loopexpression.WhileLoopExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.modifierlist.ModifierList
 import arrow.meta.quotes.modifierlist.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
-import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
-import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
-import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
-
-/**
- * @see [AnnotatedExpression]
- */
-fun Meta.annotatedExpression(
-  match: KtAnnotatedExpression.() -> Boolean,
-  map: AnnotatedExpression.(KtAnnotatedExpression) -> Transform<KtAnnotatedExpression>
-): ExtensionPhase =
-  quote(match, map) { AnnotatedExpression(it) }
 
 /**
  * @see [BinaryExpression]
@@ -127,22 +106,13 @@ fun Meta.file(
   quote(match, map) { File(it) }
 
 /**
- * @see [FinallySection]
- */
-fun Meta.finallySection(
-  match: KtFinallySection.() -> Boolean,
-  map: FinallySection.(KtFinallySection) -> Transform<KtFinallySection>
-): ExtensionPhase =
-  quote(match, map) { FinallySection(it) }
-
-/**
- * @see [ForLoopExpression]
+ * @see [ForExpression]
  */
 fun Meta.forExpression(
   match: KtForExpression.() -> Boolean,
-  map: ForLoopExpression.(KtForExpression) -> Transform<KtForExpression>
+  map: ForExpression.(KtForExpression) -> Transform<KtForExpression>
 ): ExtensionPhase =
-  quote(match, map) { ForLoopExpression(it) }
+  quote(match, map) { ForExpression(it) }
 
 /**
  * @see [FunctionLiteral]
@@ -190,15 +160,6 @@ fun Meta.lambdaExpression(
   quote(match, map) { LambdaExpression(it) }
 
 /**
- * @see [ModifierList]
- */
-fun Meta.modifierList(
-  match: KtModifierList.() -> Boolean,
-  map: ModifierList.(KtModifierList) -> Transform<KtModifierList>
-): ExtensionPhase =
-  quote(match, map) { ModifierList(it) }
-
-/**
  * @see [NamedFunction]
  */
 fun Meta.namedFunction(
@@ -224,15 +185,6 @@ fun Meta.parameter(
   map: Parameter.(KtParameter) -> Transform<KtParameter>
 ) : ExtensionPhase =
   quote(match, map) { Parameter(it) }
-
-/**
- * @see [ParameterList]
- */
-fun Meta.parameterList(
-  match: KtParameterList.() -> Boolean,
-  map: ParameterList.(KtParameterList) -> Transform<KtParameterList>
-): ExtensionPhase =
-  quote(match, map) { ParameterList(it) }
 
 /**
  * @see [Property]
@@ -289,22 +241,13 @@ fun Meta.whenEntry(
   quote(match, map) { WhenEntry(it) }
 
 /**
- * @see [WhenExpression]
- */
-fun Meta.whenExpression(
-  match: KtWhenExpression.() -> Boolean,
-  map: WhenExpression.(KtWhenExpression) -> Transform<KtWhenExpression>
-): ExtensionPhase =
-  quote(match, map) { WhenExpression(it) }
-
-/**
- * @see [WhileLoopExpression]
+ * @see [WhileExpression]
  */
 fun Meta.whileExpression(
   match: KtWhileExpression.() -> Boolean,
-  map: WhileLoopExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
+  map: WhileExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
 ): ExtensionPhase =
-  quote(match, map) { WhileLoopExpression(it) }
+  quote(match, map) { WhileExpression(it) }
 
 /**
  * @see [TryExpression]
@@ -314,15 +257,6 @@ fun Meta.tryExpression(
   map: TryExpression.(KtTryExpression) -> Transform<KtTryExpression>
 ): ExtensionPhase =
   quote(match, map) { TryExpression(it) }
-
-/**
- * @see [TypeAlias]
- */
-fun Meta.typeAlias(
-  match: KtTypeAlias.() -> Boolean,
-  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
-): ExtensionPhase =
-  quote(match, map) { TypeAlias(it) }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""

@@ -2,12 +2,13 @@ package arrow.meta.quotes.declaration
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * <code>```""" $`(vars)` = $initializer """.destructuringDeclaration```</code>
+ * <code>"""$valOrVar ($entries) = $initializer """.destructuringDeclaration</code>
  *
  * A template destructuring [Scope] for a [KtDestructuringDeclaration].
  *
@@ -25,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *     destructuringDeclaration({ true }) { c ->
  *      Transform.replace(
  *       replacing = c,
- *       newDeclaration = """ $`(vars)` = $initializer """.destructuringDeclaration
+ *       newDeclaration = """$valOrVar ($entries) = $initializer """.destructuringDeclaration
  *      )
  *     }
  *    )
@@ -34,7 +35,11 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 class DestructuringDeclaration(
   override val value: KtDestructuringDeclaration?,
-  val `(vars)`: ScopedList<KtDestructuringDeclarationEntry> = ScopedList(value?.entries
-    ?: listOf()),
+  val valOrVar: Name? = when {
+    value?.isVar == true -> "var"
+    value?.isVar != true -> "val"
+    else -> ""
+  }.let(Name::identifier),
+  val entries: ScopedList<KtDestructuringDeclarationEntry> = ScopedList(value?.entries.orEmpty()),
   val initializer: Scope<KtExpression> = Scope(value?.initializer)
 ) : Scope<KtDestructuringDeclaration>(value)

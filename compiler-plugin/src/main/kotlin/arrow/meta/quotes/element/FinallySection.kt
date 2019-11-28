@@ -5,11 +5,11 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFinallySection
 
 /**
- * <code>""" $finally """.finally</code>
+ * <code>"""finally { $finallyExpression }""".finally</code>
  *
  * A template destructuring [Scope] for a [KtFinallySection].
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  *     finallySection({ true }) { s ->
  *      Transform.replace(
  *       replacing = s,
- *       newDeclaration = """ $finally """.finally
+ *       newDeclaration = """finally { $finallyExpression }""".finally
  *      )
  *     }
  *    )
@@ -32,5 +32,5 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  */
 class FinallySection(
   override val value: KtFinallySection?,
-  val finally: Scope<KtBlockExpression> = Scope(value?.finalExpression)
+  val `{ finallyExpression }`: Scope<KtBlockExpression> = Scope(value?.finalExpression)
 ) : Scope<KtFinallySection>(value)

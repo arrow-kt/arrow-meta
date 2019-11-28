@@ -18,12 +18,9 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
 /**
  * <code>file(name, """ $packageDirective $importList $classes """)</code>
  *
- * TODO add wrappers for certain boolean logic so that there are more options to create KtFile
- * @see [DefaultElementScope::file]
- *
  * A template destructuring [Scope] for a [File]. See below:
  *
- * ```kotlin:ank:silent
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
@@ -58,7 +55,6 @@ class File(
   val packageFqName: FqName = value.packageFqName,
   val packageFqNameByTree: FqName = value.packageFqNameByTree,
   val script: Scope<KtScript>? = Scope(value.script), // TODO KtScript scope and quote template
-  val virtualFilePath: String = value.virtualFilePath,
   val danglingAnnotations: ScopedList<KtAnnotationEntry> = ScopedList(value = value.danglingAnnotations, postfix = ", "),
   val fileType: FileType = value.fileType,
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),

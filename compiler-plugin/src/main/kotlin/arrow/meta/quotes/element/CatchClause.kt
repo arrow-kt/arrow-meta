@@ -4,10 +4,9 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtParameterList
 
 /**
- * <code>```""" catch $`(parameter)` $`{ body }` """.catchClause```</code>
+ * <code>"""catch ($parameter) $`{ catchBody }`""".catch</code>
  *
  * A template destructuring [Scope] for a [KtCatchClause].
  *
@@ -25,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtParameterList
  *     catchClause({ true }) { c ->
  *      Transform.replace(
  *       replacing = c,
- *       newDeclaration = """ catch $`(parameter)` $`{ body }` """.catch
+ *       newDeclaration = """catch ($parameter) $`{ catchBody }`""".catch
  *      )
  *     }
  *    )
@@ -34,7 +33,6 @@ import org.jetbrains.kotlin.psi.KtParameterList
  */
 class CatchClause(
   override val value: KtCatchClause?,
-  val `(parameter)`: Parameter = Parameter(value?.catchParameter),
-  val `{ body }`: Scope<KtExpression> = Scope(value?.catchBody),
-  val parameterList: Scope<KtParameterList> = Scope(value?.parameterList)
+  val parameter: Parameter = Parameter(value?.catchParameter),
+  val `{ catchBody }`: Scope<KtExpression> = Scope(value?.catchBody)
 ) : Scope<KtCatchClause>(value)
