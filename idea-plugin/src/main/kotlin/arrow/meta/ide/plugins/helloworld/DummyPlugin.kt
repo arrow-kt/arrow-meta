@@ -18,7 +18,7 @@ import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
  *    get() = "Hello World" {
  *      meta(
  *        addLineMarkerProvider(
- *          icon = ArrowIcons.PURE,
+ *          icon = ArrowIcons.ICON1,
  *          composite = KtNamedFunction::class.java,
  *          message = { f: KtNamedFunction -> "Teach your users about this feature in function $f" },
  *          transform = {
@@ -31,16 +31,16 @@ import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
  *    }
  * ```
  *
- * For every function with the name `helloWorld` our ide plugin will register a lineMarker with our costume icon and whenever
+ * For every function with the name `helloWorld` our ide plugin will register a lineMarker with our costum icon and whenever
  * the user hovers over the Icon it will display the message.
  * // TODO: Add Animation or example picture
- * Take a look at [LineMarkerSyntax] for more details.
+ * @see [LineMarkerSyntax]
  */
 val IdeMetaPlugin.helloWorld: Plugin
   get() = "Hello World" {
     meta(
       addLineMarkerProvider(
-        icon = ArrowIcons.PURE,
+        icon = ArrowIcons.ICON1,
         composite = KtNamedFunction::class.java,
         message = { f: KtNamedFunction -> "Teach your users about this feature in function $f" },
         transform = {
