@@ -5,7 +5,7 @@ import arrow.meta.ide.testing.IdeTestEnvironment
 import org.junit.Assert
 
 /**
- * [runTest] executes the tests with a costume [interpreter], which allows users to run their test in every environment.
+ * [runTest] executes the tests with a custom [interpreter], which allows users to run their test in every environment.
  * This allows user's to use the Testing DSL for IntelliJ in a pure or impure Test environment and compose it with a variety of
  * testing methods such as property-based testing, unit tests and many more.
  */
