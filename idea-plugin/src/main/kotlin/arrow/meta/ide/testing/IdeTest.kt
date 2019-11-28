@@ -9,7 +9,7 @@ typealias Source = String
  * [IdeTest] is a polymorphic aggregation of one complete test suite.
  * [myFixture] is a key component of the underlying IntelliJ Testing environment.
  * [test] defines what exact test is run on the [code]
- * [result] describes the expected shape of [A] with a costume message.
+ * [result] describes the expected shape of [A] with a custom message.
  */
 data class IdeTest<A>(
   val myFixture: CodeInsightTestFixture,
