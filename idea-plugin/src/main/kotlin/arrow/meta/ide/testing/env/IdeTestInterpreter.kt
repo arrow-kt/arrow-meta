@@ -2,6 +2,7 @@ package arrow.meta.ide.testing.env
 
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.IdeTestEnvironment
+import arrow.meta.ide.plugins.helloworld.helloWorld
 import org.junit.Assert
 
 /**
@@ -60,7 +61,7 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
  *  )
  * ```
  *
- * Given the example ide plugin from [TODO: Add URL] one concrete example may look like this:
+ * Given the [helloWorld] ide plugin, one concrete example may look like this:
  * ```kotlin
  * @Test
  * fun `test if lineMarker is displayed`(): Unit =
@@ -72,8 +73,7 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
  *       |   "Hello world!"
  *       """.trimIndent(),
  *       test = { code, myFixture ->
- *         collectLM(code, myFixture, {TODO: Add Icon from Isra})
- *         // this collect's all visible LineMarkers in the editor for a given Icon
+ *         collectLM(code, myFixture, ArrowIcons.ICON1) // this collect's all visible LineMarkers in the editor for a given Icon
  *       },
  *       result = resolves("LineMarker Test for helloWorld") {
  *         it.takeIf { collected ->
