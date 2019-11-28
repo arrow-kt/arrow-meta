@@ -20,9 +20,10 @@ import arrow.meta.ide.dsl.editor.usage.UsageSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
 import arrow.meta.ide.dsl.ui.popups.PopupSyntax
+import arrow.meta.ide.dsl.ui.toolwindow.ToolWindowSyntax
 
 interface IdeSyntax : IntentionExtensionProviderSyntax, IconProviderSyntax,
   SyntaxHighlighterExtensionProviderSyntax, InspectionSyntax, AnActionSyntax, ColorSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   RefactoringSyntax, UsageSyntax, ExtensionProviderSyntax, RunLineMarkerSyntax, DocumentationProviderSyntax,
-  DialogSyntax, PopupSyntax
+  DialogSyntax, PopupSyntax, ToolWindowSyntax
