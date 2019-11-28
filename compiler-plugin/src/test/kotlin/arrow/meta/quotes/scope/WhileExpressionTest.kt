@@ -9,8 +9,6 @@ import org.junit.Test
 class WhileExpressionTest {
 
   private val whileExpression = """
-                         | package 47deg.arrow-meta
-                         | 
                          | //metadebug
                          | 
                          | fun power(x: Int) {
@@ -30,10 +28,3 @@ class WhileExpressionTest {
     ))
   }
 }
-
-fun power(x: Int) {
-    var y = 0
-     while (y++ < x) {
-         println("INFINITE POWER")
-       }
-   }
