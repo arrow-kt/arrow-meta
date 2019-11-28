@@ -1,29 +1,37 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.AnnotatedExpression
-import arrow.meta.quotes.BlockExpression
-import arrow.meta.quotes.CatchClause
-import arrow.meta.quotes.ClassDeclaration
-import arrow.meta.quotes.FinallySection
-import arrow.meta.quotes.ForExpression
-import arrow.meta.quotes.IfExpression
-import arrow.meta.quotes.ImportDirective
-import arrow.meta.quotes.IsExpression
-import arrow.meta.quotes.ModifierList
-import arrow.meta.quotes.NamedFunction
-import arrow.meta.quotes.ObjectDeclaration
-import arrow.meta.quotes.ParameterList
-import arrow.meta.quotes.Parameter
-import arrow.meta.quotes.ReturnExpression
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.ThrowExpression
-import arrow.meta.quotes.TryExpression
-import arrow.meta.quotes.TypeReference
-import arrow.meta.quotes.ValueArgument
-import arrow.meta.quotes.WhenCondition
-import arrow.meta.quotes.WhenEntry
-import arrow.meta.quotes.WhenExpression
-import arrow.meta.quotes.WhileExpression
+import arrow.meta.quotes.classorobject.ClassDeclaration
+import arrow.meta.quotes.classorobject.ObjectDeclaration
+import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.element.CatchClause
+import arrow.meta.quotes.element.FinallySection
+import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.ParameterList
+import arrow.meta.quotes.element.ValueArgument
+import arrow.meta.quotes.element.WhenEntry
+import arrow.meta.quotes.element.whencondition.WhenCondition
+import arrow.meta.quotes.expression.AnnotatedExpression
+import arrow.meta.quotes.expression.BinaryExpression
+import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.IfExpression
+import arrow.meta.quotes.expression.IsExpression
+import arrow.meta.quotes.expression.LambdaExpression
+import arrow.meta.quotes.expression.ThrowExpression
+import arrow.meta.quotes.expression.TryExpression
+import arrow.meta.quotes.expression.WhenExpression
+import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.filebase.File
+import arrow.meta.quotes.modifierlist.ModifierList
+import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
+import arrow.meta.quotes.nameddeclaration.stub.Parameter
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -36,7 +44,6 @@ import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
@@ -44,12 +51,9 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -59,7 +63,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
 import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeCodeFragment
 import org.jetbrains.kotlin.psi.KtTypeElement
@@ -106,13 +109,13 @@ interface ElementScope {
     name: String,
     typeParameters: List<String>,
     typeElement: KtTypeElement
-  ): Scope<KtTypeAlias>
+  ): TypeAlias
   
   fun typeAlias(
     name: String,
     typeParameters: List<String>,
     body: String
-  ): Scope<KtTypeAlias>
+  ): TypeAlias
   
   val star: PsiElement
   
@@ -142,6 +145,11 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
+  fun file(
+    fileName: String,
+    text: String
+  ): File
+
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
   fun property(
@@ -150,32 +158,30 @@ interface ElementScope {
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean
-  ): Scope<KtProperty>
+  ): Property
   
-  val String.property: Scope<KtProperty>
+  val String.property: Property
   
-  fun propertyGetter(expression: KtExpression): Scope<KtPropertyAccessor>
+  fun propertyGetter(expression: KtExpression): PropertyAccessor
   
-  fun propertySetter(expression: KtExpression): Scope<KtPropertyAccessor>
+  fun propertySetter(expression: KtExpression): PropertyAccessor
   
   fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate>
   
-  val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
-  
-  val String.destructuringParameter: Parameter
+  val String.destructuringDeclaration: DestructuringDeclaration
   
   fun <A : KtDeclaration> String.declaration(): Scope<A>
   
@@ -190,6 +196,8 @@ interface ElementScope {
   val String.identifier: PsiElement
   
   val String.function: NamedFunction
+
+  val String.binaryExpression: BinaryExpression
   
   val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
   
@@ -211,9 +219,11 @@ interface ElementScope {
   
   val emptyClassBody: Scope<KtClassBody>
   
-  val String.parameter: Parameter
+  val String.classParameter: Parameter
   
   val String.loopParameter: Parameter
+
+  val String.destructuringParameter: Parameter
   
   val String.parameterList: ParameterList
   
@@ -228,7 +238,7 @@ interface ElementScope {
   fun lambdaExpression(
     parameters: String,
     body: String
-  ): Scope<KtLambdaExpression>
+  ): LambdaExpression
   
   val String.enumEntry: Scope<KtEnumEntry>
   
@@ -295,8 +305,6 @@ interface ElementScope {
 
   val String.`while`: WhileExpression
 
-  val String.`if`: IfExpression
-
   val String.`when`: WhenExpression
 
   val String.`try`: TryExpression
@@ -309,9 +317,13 @@ interface ElementScope {
 
   val String.`is`: IsExpression
 
+  val String.`if`: IfExpression
+
   val String.`return`: ReturnExpression
 
   val String.annotatedExpression: AnnotatedExpression
+
+  val String.functionLiteral: FunctionLiteral
 
   /**
    * Creates an expression that has reference to its context

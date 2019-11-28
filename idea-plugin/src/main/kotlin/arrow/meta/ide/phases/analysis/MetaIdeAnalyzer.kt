@@ -6,7 +6,6 @@ import arrow.meta.phases.analysis.MetaAnalyzer
 import arrow.meta.quotes.Quote
 import arrow.meta.quotes.functionNames
 import arrow.meta.quotes.ktClassOrObject
-import arrow.meta.quotes.ktFile
 import arrow.meta.quotes.nestedClassNames
 import com.intellij.AppTopics
 import com.intellij.openapi.application.ApplicationManager

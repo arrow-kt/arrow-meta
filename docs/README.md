@@ -1,3 +1,9 @@
+---
+layout: docs
+title: Async
+permalink: /docs/effects/async/
+---
+
 # Documentation
 
 ## Prerequisites
