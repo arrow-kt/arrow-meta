@@ -8,6 +8,7 @@ import org.junit.Assert
  * [runTest] executes the tests with a costume [interpreter], which allows users to run their test in every environment.
  * This allows user's to use the Testing DSL for IntelliJ in a pure or impure Test environment and compose it with a variety of
  * testing methods such as property-based testing, unit tests and many more.
+ * @see [arrow.meta.ide.testing.env.interpreter]
  */
 fun <A> IdeTest<A>.runTest(interpreter: (test: IdeTest<A>) -> Unit = ::interpreter): Unit =
   interpreter(this)
@@ -82,6 +83,7 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
  *     )
  *   )
  * ```
+ * @see [runTest], [IdeTest]
  */
 fun <A> ideTest(vararg tests: IdeTest<A>): Unit =
   tests.toList().forEach { it.runTest() }

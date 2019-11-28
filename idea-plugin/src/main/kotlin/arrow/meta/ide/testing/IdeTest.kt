@@ -20,9 +20,28 @@ data class IdeTest<A>(
 
 object IdeTestEnvironment : IdeTestSyntax
 
+/**
+ * [transform] defines a valid representation of the editor feature, where [null] stands for a wrong representation.
+ * [fails], [failsWith], [empty] and [resolves] facilitate syntactic sugar to express semantic implications of an expected result.
+ */
 data class IdeResolution<A>(val message: String, val transform: (A) -> A? = { it })
 
+/**
+ * @see IdeResolution
+ */
 fun <A> failsWith(message: String, transform: (A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
+
+/**
+ * @see IdeResolution
+ */
 fun <A> resolves(message: String, transform: (A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
+
+/**
+ * @see IdeResolution
+ */
 fun <A> empty(): IdeResolution<A> = IdeResolution("Empty IdeResolution")
+
+/**
+ * @see IdeResolution
+ */
 fun <A> fails(): IdeResolution<A> = IdeResolution("Failing IdeResolution") { null }
