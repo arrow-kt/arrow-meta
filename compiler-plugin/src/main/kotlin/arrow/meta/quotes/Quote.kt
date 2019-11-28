@@ -239,7 +239,7 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
 inline fun <reified K : KtElement> CompilerContext.updateFiles(
   result: java.util.ArrayList<KtFile>,
   fileMutations: List<Pair<KtFile, java.util.ArrayList<Transform<K>>>>,
-  match: K.() -> Boolean
+  noinline match: K.() -> Boolean
 ) {
   fileMutations.forEach { (file, mutations) ->
     val newFile = updateFile(mutations, file, match)
@@ -250,7 +250,7 @@ inline fun <reified K : KtElement> CompilerContext.updateFiles(
 inline fun <reified K : KtElement> CompilerContext.updateFile(
   mutations: java.util.ArrayList<Transform<K>>,
   file: KtFile,
-  match: K.() -> Boolean
+  noinline match: K.() -> Boolean
 ): List<KtFile> =
   if (mutations.isNotEmpty()) {
     transformFile(file, mutations, match)
@@ -259,10 +259,10 @@ inline fun <reified K : KtElement> CompilerContext.updateFile(
 inline fun <reified K : KtElement> CompilerContext.transformFile(
   ktFile: KtFile,
   mutations: java.util.ArrayList<Transform<K>>,
-  match: K.() -> Boolean
+  noinline match: K.() -> Boolean
 ): List<KtFile> {
   val newSource = ktFile.sourceWithTransformationsAst(mutations, this, match)
-  val newFile = newSource.map { source -> changeSource(ktFile, source) } ?: listOf(ktFile)
+  val newFile = newSource.map { source -> changeSource(source.first, source.second) } ?: listOf(ktFile)
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
@@ -271,20 +271,20 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
   mutations: ArrayList<Transform<K>>,
   compilerContext: CompilerContext,
   match: K.() -> Boolean
-): List<String> {
-  var dummyFile = Converter.convertFile(this)
-  val newSource: List<Node.File> = listOf()
-  val saveTransformation: (Node.File) -> Unit = { dummyFile = it }
+): List<Pair<KtFile, String>> {
+  var dummyFile: Pair<KtFile, Node.File> = this to Converter.convertFile(this)
+  val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
+  val saveTransformation: (Node.File) -> Unit = { dummyFile = this to it }
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> saveTransformation(transform.replace(dummyFile))
-      is Transform.Remove -> saveTransformation(transform.remove(dummyFile))
+      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second))
+      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second))
       is Transform.Many -> saveTransformation(transform.many(this, compilerContext, match))
-      is Transform.NewSource -> newSource + transform.files.map { Converter.convertFile(it.value) }
+      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to Converter.convertFile(it.value) })
       Transform.Empty -> Unit
     }
   }
-  return (newSource + dummyFile).map { Writer.write(it) }
+  return (newSource + dummyFile).map { it.first to Writer.write(it.second) }
 }
 
 inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Node.File {

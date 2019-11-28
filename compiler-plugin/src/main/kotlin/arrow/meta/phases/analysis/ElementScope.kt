@@ -4,6 +4,7 @@ import arrow.meta.quotes.AnnotatedExpression
 import arrow.meta.quotes.BlockExpression
 import arrow.meta.quotes.CatchClause
 import arrow.meta.quotes.ClassDeclaration
+import arrow.meta.quotes.File
 import arrow.meta.quotes.FinallySection
 import arrow.meta.quotes.ForExpression
 import arrow.meta.quotes.IfExpression
@@ -312,6 +313,8 @@ interface ElementScope {
   val String.`return`: ReturnExpression
 
   val String.annotatedExpression: AnnotatedExpression
+  
+  fun String.file(fileName: String): File
 
   /**
    * Creates an expression that has reference to its context

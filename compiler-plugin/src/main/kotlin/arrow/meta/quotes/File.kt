@@ -31,20 +31,20 @@ fun Meta.file(
  * A template destructuring [Scope] for a [File]
  */
 class File(
-  override val value: KtFile,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
-  val name: String = value.name,
-  val importList: Scope<KtImportList> = Scope(value.importList), // TODO KtImportList scope and quote template
-  val fileAnnotationList: Scope<KtFileAnnotationList>? = Scope(value.fileAnnotationList), // TODO KtFileAnnotationList scope and quote template
-  val importDirectives: ScopedList<KtImportDirective> = ScopedList(value = value.importDirectives, postfix = ", "),
-  val packageDirective: Scope<KtPackageDirective> = Scope(value.packageDirective), // TODO KtPackageDirective scope and quote template
-  val packageFqName: FqName = value.packageFqName,
-  val packageFqNameByTree: FqName = value.packageFqNameByTree,
-  val script: Scope<KtScript>? = Scope(value.script), // TODO KtScript scope and quote template
-  val virtualFilePath: String = value.virtualFilePath,
-  val danglingAnnotations: ScopedList<KtAnnotationEntry> = ScopedList(value = value.danglingAnnotations, postfix = ", "),
-  val fileType: FileType = value.fileType,
-  val declaractions: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
-  val stub: KotlinFileStub? = value.stub,
-  val classes: Array<PsiClass> = value.classes
+  override val value: KtFile?,
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries ?: listOf()),
+  val name: String = value?.name ?: "",
+  val importList: Scope<KtImportList> = Scope(value?.importList), // TODO KtImportList scope and quote template
+  val fileAnnotationList: Scope<KtFileAnnotationList> = Scope(value?.fileAnnotationList), // TODO KtFileAnnotationList scope and quote template
+  val importDirectives: ScopedList<KtImportDirective> = ScopedList(value = value?.importDirectives ?: listOf(), postfix = ", "),
+  val packageDirective: Scope<KtPackageDirective> = Scope(value?.packageDirective), // TODO KtPackageDirective scope and quote template
+  val packageFqName: FqName? = value?.packageFqName,
+  val packageFqNameByTree: FqName? = value?.packageFqNameByTree,
+  val script: Scope<KtScript> = Scope(value?.script), // TODO KtScript scope and quote template
+  val virtualFilePath: String? = value?.virtualFilePath,
+  val danglingAnnotations: ScopedList<KtAnnotationEntry> = ScopedList(value = value?.danglingAnnotations ?: listOf(), postfix = ", "),
+  val fileType: FileType? = value?.fileType,
+  val declaractions: ScopedList<KtDeclaration> = ScopedList(value = value?.declarations ?: listOf(), postfix = ", "),
+  val stub: KotlinFileStub? = value?.stub,
+  val classes: Array<PsiClass> = value?.classes ?: arrayOf()
   ): Scope<KtFile>(value)
