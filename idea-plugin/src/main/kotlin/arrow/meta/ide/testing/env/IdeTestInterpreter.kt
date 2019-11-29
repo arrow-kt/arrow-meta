@@ -3,6 +3,7 @@ package arrow.meta.ide.testing.env
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.IdeTestEnvironment
 import arrow.meta.ide.plugins.helloworld.helloWorld
+import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerTestSyntax
 import org.junit.Assert
 
 /**
@@ -69,7 +70,7 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
  *     IdeTest(
  *       myFixture = myFixture,
  *       code = """
- *       | fun hello(): String =
+ *       | fun helloWorld(): String =
  *       |   "Hello world!"
  *       """.trimIndent(),
  *       test = { code, myFixture ->
@@ -77,13 +78,13 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
  *       },
  *       result = resolves("LineMarker Test for helloWorld") {
  *         it.takeIf { collected ->
- *           collected.lineMarker.size == 1 // we expect that there is only one linemarker in our example code
+ *           collected.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
  *         }
  *       }
  *     )
  *   )
  * ```
- * @see [runTest], [IdeTest]
+ * @see [runTest], [IdeTest], [LineMarkerTestSyntax]
  */
 fun <A> ideTest(vararg tests: IdeTest<A>): Unit =
   tests.toList().forEach { it.runTest() }

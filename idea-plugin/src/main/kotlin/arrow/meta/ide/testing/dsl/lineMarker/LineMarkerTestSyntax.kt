@@ -9,6 +9,7 @@ import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import arrow.meta.ide.testing.env.ideTest
 import javax.swing.Icon
 
 /**
@@ -18,7 +19,7 @@ data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>
 
 /**
  * [LineMarkerTestSyntax] provides test methods for [LineMarkerProvider]'s.
- * One example is [here](TODO: URL for Testing Hello World)
+ * One example is in [ideTest] KDoc's
  * @see [LineMarkerSyntax]
  */
 interface LineMarkerTestSyntax {

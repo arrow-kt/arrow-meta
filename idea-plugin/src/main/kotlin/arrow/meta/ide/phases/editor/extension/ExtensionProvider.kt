@@ -8,7 +8,11 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.fileTypes.FileTypeExtension
 import com.intellij.openapi.util.ClassExtension
+import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 
+/**
+ * @see [ExtensionProviderSyntax]
+ */
 sealed class ExtensionProvider<E> : ExtensionPhase {
   data class AddExtension<E>(val EP_NAME: ExtensionPointName<E>, val impl: E, val loadingOrder: LoadingOrder) : ExtensionProvider<E>()
   data class AddLanguageExtension<E>(val LE: LanguageExtension<E>, val impl: E) : ExtensionProvider<E>()
