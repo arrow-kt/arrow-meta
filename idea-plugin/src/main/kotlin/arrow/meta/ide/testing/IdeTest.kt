@@ -2,14 +2,15 @@ package arrow.meta.ide.testing
 
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-
+import arrow.meta.ide.testing.env.ideTest
 typealias Source = String
 
 /**
  * [IdeTest] is a polymorphic aggregation of one complete test suite.
  * [myFixture] is a key component of the underlying IntelliJ Testing environment.
- * [test] defines what exact test is run on the [code]
+ * [test] defines what exact test is run on the [code] there is an example in [ideTest] KDoc's
  * [result] describes the expected shape of [A] with a custom message.
+ * @see IdeResolution, [ideTest]
  */
 data class IdeTest<A>(
   val myFixture: CodeInsightTestFixture,

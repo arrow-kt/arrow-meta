@@ -33,7 +33,7 @@ interface LineMarkerTestSyntax {
 
   /**
    * collects regular LineMarkers from a List of PsiElements.
-   * @receiver is a for example deconstructed KtFile into a List
+   * @receiver is a KtFile, which is deconstructed into a List
    */
   fun List<PsiElement>.collectLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
     LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)

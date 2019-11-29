@@ -31,6 +31,16 @@ interface ExtensionProviderSyntax {
    * The [extensionProvider] function allows you to add concrete implementations to ExtensionPoints.
    * Or define higher-level API's such as [IconProviderSyntax.addIcon], which adds a FileIcon to a File and StructureView.
    * ```kotlin:ank
+   * import arrow.meta.internal.Noop
+   * import arrow.meta.phases.ExtensionPhase
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import com.intellij.ide.IconProvider
+   * import com.intellij.openapi.extensions.LoadingOrder
+   * import com.intellij.openapi.project.DumbAware
+   * import com.intellij.psi.PsiElement
+   * import javax.swing.Icon
+   *
+   * //sampleStart
    * fun <A : PsiElement> IdeMetaPlugin.addIcon(
    *   icon: Icon? = null,
    *   transform: (psiElement: PsiElement, flag: Int) -> A? = Noop.nullable2()
@@ -44,6 +54,7 @@ interface ExtensionProviderSyntax {
    *      },
    *     LoadingOrder.FIRST
    *   )
+   * //sampleEnd
    * ```
    * @param impl is the concrete implementation
    * @param loadingOrder has to be set as [LoadingOrder.FIRST], whenever we introduce visual changes
@@ -100,7 +111,7 @@ interface ExtensionProviderSyntax {
   /**
    * Interestingly enough, [ExtensionProvider] allow's us to define new workflow's and register them to the editor.
    * Given an example Provider:
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import com.intellij.openapi.extensions.ExtensionPointName
    * import javax.swing.Icon
    *
@@ -123,6 +134,13 @@ interface ExtensionProviderSyntax {
    * import com.intellij.openapi.extensions.ExtensionPointName
    * import javax.swing.Icon
    *
+   * interface MetaProvider {
+   *   fun <A> List<Icon>.helloMeta(f: (Icon) -> A): List<A>
+   *   companion object {
+   *     val EP_NAME: ExtensionPointName<MetaProvider> =
+   *       ExtensionPointName("arrow.meta.ide.dsl.extensions.MetaProvider") // The EP_NAME is the FQ name of your Provider
+   *   }
+   * }
    * //sampleStart
    * val IdeMetaPlugin.registeringIdeExtensions: Plugin
    *   get() = "Register ExtensionPoints" {
