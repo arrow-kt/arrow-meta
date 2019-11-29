@@ -89,7 +89,7 @@ interface ExtensionProviderSyntax {
 
   /**
    * Registers [BaseExtensionPointName]'s
-   * @see [registerExtensionPoint]
+   * @see [registerExtensionPoint] for [ExtensionPointName]
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: BaseExtensionPointName,
