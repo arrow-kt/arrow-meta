@@ -31,7 +31,7 @@ import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
  *    }
  * ```
  *
- * For every function with the name `helloWorld` our ide plugin will register a lineMarker with our costum icon and whenever
+ * For every function with the name `helloWorld` our ide plugin will register a lineMarker with our custom icon and whenever
  * the user hovers over the Icon it will display the message.
  * // TODO: Add Animation or example picture
  * @see [LineMarkerSyntax]
