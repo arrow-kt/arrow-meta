@@ -158,10 +158,14 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
+        val defaultSourceName = "Source.kt"
+        val defaultSource = files.first { it.name == defaultSourceName }
         files.forEach {
           val fileText = it.text
           if (fileText.contains("//metadebug")) {
-            File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
+            File(defaultSource.virtualFilePath.let { path ->
+              if (it.name != defaultSourceName) path.substring(0, path.lastIndex - 2) + "_${it.name}" else path
+            } + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
             println("""|
             |ktFile: $it
             |----
@@ -261,8 +265,8 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
   mutations: java.util.ArrayList<Transform<K>>,
   noinline match: K.() -> Boolean
 ): List<KtFile> {
-  val newSource = ktFile.sourceWithTransformationsAst(mutations, this, match)
-  val newFile = newSource.map { source -> changeSource(source.first, source.second) } ?: listOf(ktFile)
+  val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map { (it.first ?: ktFile) to it.second }
+  val newFile = newSource.map { source -> changeSource(source.first, source.second) }
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
@@ -271,10 +275,10 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
   mutations: ArrayList<Transform<K>>,
   compilerContext: CompilerContext,
   match: K.() -> Boolean
-): List<Pair<KtFile, String>> {
-  var dummyFile: Pair<KtFile, Node.File> = this to Converter.convertFile(this)
+): List<Pair<KtFile?, String>> {
+  var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
-  val saveTransformation: (Node.File) -> Unit = { dummyFile = this to it }
+  val saveTransformation: (Node.File) -> Unit = { dummyFile = null to it }
   mutations.forEach { transform ->
     when (transform) {
       is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second))
