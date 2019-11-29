@@ -2,6 +2,7 @@ package arrow.meta.ide.plugins.higherkinds
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.editor.lineMarker.addLineMarkerProvider
 import arrow.meta.invoke
 import arrow.meta.ide.dsl.utils.code
 import arrow.meta.ide.dsl.utils.h1
@@ -23,7 +24,6 @@ import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.higherKindsIdePlugin: Plugin
   get() = "HigherKindsIdePlugin" {
@@ -31,19 +31,18 @@ val IdeMetaPlugin.higherKindsIdePlugin: Plugin
       addLineMarkerProvider(
         icon = ArrowIcons.HKT,
         transform = {
-          it.safeAs<KtClass>()?.takeIf(::isHigherKindedType)?.identifyingElement
+          it.takeIf(::isHigherKindedType)
         },
-        message = { identifier ->
+        message = { kind: KtClass ->
           """
-          |${identifier.text} is a Higher Kinded Type that may be used in polymorphic functions expressed over [Kind<F, A>] and with the type classes.
+          |${kind.name} is a Higher Kinded Type that may be used in polymorphic functions expressed over [Kind<F, A>] and with the type classes.
           |For more info visit [https://arrow-kt.io/docs/patterns/glossary/#type-constructors](https://arrow-kt.io/docs/patterns/glossary/#type-constructors)
           |""".trimMargin()
         }
       ),
       addLineMarkerProvider(
         icon = ArrowIcons.POLY,
-        transform = { it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
-        composite = KtNamedFunction::class.java,
+        transform = { it.takeIf(KtNamedFunction::isKindPolymorphic)?.takeIf(KtNamedFunction::hasExtensionDefaultValues) },
         message = { f: KtNamedFunction ->
           NamedFunction(f).run {
             val target = ScopedList(receiver.value, transform = { it.text.escapeHTML() })

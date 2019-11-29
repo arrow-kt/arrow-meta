@@ -5,8 +5,8 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
+import arrow.meta.ide.dsl.editor.lineMarker.addLineMarkerProvider
 
 /**
  * The following section exemplifies a Hello World Ide Plugin
@@ -17,12 +17,11 @@ import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
  * val IdeMetaPlugin.helloWorld: Plugin
  *    get() = "Hello World" {
  *      meta(
- *        addLineMarkerProvider(
+ *        lineMarkerProvider(
  *          icon = ArrowIcons.ICON1,
- *          composite = KtNamedFunction::class.java,
  *          message = { f: KtNamedFunction -> "Teach your users about this feature in function $f" },
  *          transform = {
- *            it.safeAs<KtNamedFunction>()?.takeIf { f ->
+ *            it.takeIf { f ->
  *              f.name == "helloWorld"
  *            }
  *          }
@@ -41,10 +40,9 @@ val IdeMetaPlugin.helloWorld: Plugin
     meta(
       addLineMarkerProvider(
         icon = ArrowIcons.ICON1,
-        composite = KtNamedFunction::class.java,
         message = { f: KtNamedFunction -> "Teach your users about this feature in function $f" },
         transform = {
-          it.safeAs<KtNamedFunction>()?.takeIf { f ->
+          it.takeIf { f ->
             f.name == "helloWorld"
           }
         }
