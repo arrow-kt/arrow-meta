@@ -30,6 +30,8 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * import arrow.meta.invoke
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
+   * import com.intellij.openapi.project.Project
+   * import com.intellij.openapi.actionSystem.AnActionEvent
    *
    * val IdeMetaPlugin.exampleAction: Plugin
    * get() = "Example Action" {
@@ -39,8 +41,8 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *      actionId = "Unique",
    *      action = anAction(
    *       icon = ArrowIcons.ICON1,
-   *       actionPerformed = { e ->
-   *        e.project?.let { project -> ToolWindowManager.getInstance(project)?.getToolWindow("MetaToolWindow")?.activate(null) }
+   *       actionPerformed = { e: AnActionEvent ->
+   *        e.project?.let { project: Project -> ToolWindowManager.getInstance(project)?.getToolWindow("MetaToolWindow")?.activate(null) }
    *        }
    *       )
    *      )

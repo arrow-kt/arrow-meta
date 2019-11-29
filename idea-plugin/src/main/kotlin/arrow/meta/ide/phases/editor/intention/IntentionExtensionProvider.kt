@@ -12,12 +12,12 @@ sealed class IntentionExtensionProvider : ExtensionPhase {
   /**
    * @see [IntentionSyntax.addIntention]
    */
-  data class RegisterIntention(val intention: IntentionAction, val category: String) : IntentionExtensionProvider()
+  data class RegisterIntention(val intention: IntentionAction) : IntentionExtensionProvider()
 
   /**
    * @see [IntentionSyntax.addIntentionWithMetaData]
    */
-  data class RegisterIntentionWithMetaData(val intention: IntentionAction) : IntentionExtensionProvider()
+  data class RegisterIntentionWithMetaData(val intention: IntentionAction, val category: String) : IntentionExtensionProvider()
 
   /**
    * @see [IntentionSyntax.unregisterIntention]
