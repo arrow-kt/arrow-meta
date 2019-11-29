@@ -6,6 +6,7 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
+import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
@@ -14,7 +15,7 @@ import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.psi.KtElement
 
-interface IntentionExtensionProviderSyntax : IntentionExtensionProviderUtilitySyntax {
+interface IntentionSyntax : IntentionUtilitySyntax {
   fun IdeMetaPlugin.addIntentionWithMetaData(
     intention: IntentionAction
   ): ExtensionPhase =
@@ -48,12 +49,15 @@ interface IntentionExtensionProviderSyntax : IntentionExtensionProviderUtilitySy
   fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
     IntentionExtensionProvider.SetAvailability(intention, enabled)
 
+  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionActionMetaData, enabled: Boolean): ExtensionPhase =
+    IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
+
   /**
    * You can use this in [addQuickFixContributor] for @param intentions
    * @param text == familyName for creating MetaData for an Intentions
    */
   @Suppress("UNCHECKED_CAST")
-  fun <K : KtElement> IntentionExtensionProviderSyntax.ktIntention(
+  fun <K : KtElement> IntentionSyntax.ktIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
@@ -75,7 +79,7 @@ interface IntentionExtensionProviderSyntax : IntentionExtensionProviderUtilitySy
    * Defaults from [KotlinIntentionActionsFactory]
    * Solely for [QuickFixContributor]
    */
-  fun IntentionExtensionProviderSyntax.kotlinIntention(
+  fun IntentionSyntax.kotlinIntention(
     createAction: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
     isApplicableForCodeFragment: Boolean = false,
     doCreateActionsForAllProblems: (sameTypeDiagnostics: Collection<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()

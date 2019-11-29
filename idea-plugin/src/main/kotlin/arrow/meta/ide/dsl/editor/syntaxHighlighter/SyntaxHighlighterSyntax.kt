@@ -12,7 +12,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KotlinLexer
 
-interface SyntaxHighlighterExtensionProviderSyntax {
+interface SyntaxHighlighterSyntax {
   // TODO: Test impl
   fun IdeMetaPlugin.addSyntaxHighlighter(
     highlightingLexer: Lexer = KotlinLexer(),
@@ -20,11 +20,11 @@ interface SyntaxHighlighterExtensionProviderSyntax {
   ): ExtensionPhase =
     SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter(
       syntaxHighlighterFactory(
-        this@SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter(highlightingLexer, tokenHighlights)
+        this@SyntaxHighlighterSyntax.syntaxHighlighter(highlightingLexer, tokenHighlights)
       )
     )
 
-  fun SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter(
+  fun SyntaxHighlighterSyntax.syntaxHighlighter(
     highlightingLexer: Lexer = KotlinLexer(),
     tokenHighlights: (tokenType: IElementType?) -> Array<TextAttributesKey>
   ): SyntaxHighlighter =
@@ -36,7 +36,7 @@ interface SyntaxHighlighterExtensionProviderSyntax {
         highlightingLexer
     }
 
-  fun SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighterFactory(
+  fun SyntaxHighlighterSyntax.syntaxHighlighterFactory(
     syntaxHighlighter: SyntaxHighlighter
   ): SyntaxHighlighterFactory =
     object : SingleLazyInstanceSyntaxHighlighterFactory() {
