@@ -14,7 +14,7 @@ val Meta.transformNewSource: Plugin
           """
           | //metadebug
           | class ${name}_Generated {}
-          """.file("${name}_Generated", this.value)
+          """.file("${name}_Generated")
         )
       }
     )
