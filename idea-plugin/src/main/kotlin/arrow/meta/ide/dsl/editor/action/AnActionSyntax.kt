@@ -114,9 +114,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     AnActionExtensionProvider.RemoveTimerListener(listener)
 
   /**
-   * [http://www.jetbrains.org/intellij/sdk/docs/tutorials/action_system/working_with_custom_actions.html
-   * http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/creating_an_action.html
-   * one example is [org.jetbrains.kotlin.idea.actions.DecompileKotlinToJavaAction]
+   * @see org.jetbrains.kotlin.idea.actions.DecompileKotlinToJavaAction
    */
   fun AnActionSyntax.anAction(
     actionPerformed: (e: AnActionEvent) -> Unit,
@@ -129,13 +127,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     getTemplateText: String? = null
   ): AnAction =
     object : AnAction() { // TODO: Add more costume attributes: ShortCuts etc.
-      override fun actionPerformed(e: AnActionEvent) = actionPerformed(e)
+      override fun actionPerformed(e: AnActionEvent): Unit = actionPerformed(e)
       override fun displayTextInToolbar(): Boolean = displayTextInToolbar
 
-      override fun setInjectedContext(worksInInjected: Boolean) =
+      override fun setInjectedContext(worksInInjected: Boolean): Unit =
         super.setInjectedContext(setInjectedContext(worksInInjected))
 
-      override fun update(e: AnActionEvent) = update(e)
+      override fun update(e: AnActionEvent): Unit = update(e)
 
       override fun useSmallerFontForTextInToolbar(): Boolean =
         useSmallerFontForTextInToolbar
@@ -147,7 +145,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         return getTemplateText ?: super.getTemplateText()
       }
 
-      override fun beforeActionPerformedUpdate(e: AnActionEvent) =
+      override fun beforeActionPerformedUpdate(e: AnActionEvent): Unit =
         beforeActionPerformedUpdate(e)
     }
 
@@ -163,13 +161,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     getTemplateText: String? = null
   ): AnAction =
     object : AnAction(icon) {
-      override fun actionPerformed(e: AnActionEvent) = actionPerformed(e)
+      override fun actionPerformed(e: AnActionEvent): Unit = actionPerformed(e)
       override fun displayTextInToolbar(): Boolean = displayTextInToolbar
 
-      override fun setInjectedContext(worksInInjected: Boolean) =
+      override fun setInjectedContext(worksInInjected: Boolean): Unit =
         super.setInjectedContext(setInjectedContext(worksInInjected))
 
-      override fun update(e: AnActionEvent) = update(e)
+      override fun update(e: AnActionEvent): Unit = update(e)
 
       override fun useSmallerFontForTextInToolbar(): Boolean =
         useSmallerFontForTextInToolbar
@@ -181,7 +179,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         return getTemplateText ?: super.getTemplateText()
       }
 
-      override fun beforeActionPerformedUpdate(e: AnActionEvent) =
+      override fun beforeActionPerformedUpdate(e: AnActionEvent): Unit =
         beforeActionPerformedUpdate(e)
     }
 
@@ -197,13 +195,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     getTemplateText: String? = null
   ): AnAction =
     object : AnAction(title) {
-      override fun actionPerformed(e: AnActionEvent) = actionPerformed(e)
+      override fun actionPerformed(e: AnActionEvent): Unit = actionPerformed(e)
       override fun displayTextInToolbar(): Boolean = displayTextInToolbar
 
       override fun setInjectedContext(worksInInjected: Boolean) =
         super.setInjectedContext(setInjectedContext(worksInInjected))
 
-      override fun update(e: AnActionEvent) = update(e)
+      override fun update(e: AnActionEvent): Unit = update(e)
 
       override fun useSmallerFontForTextInToolbar(): Boolean =
         useSmallerFontForTextInToolbar
@@ -215,7 +213,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         return getTemplateText ?: super.getTemplateText()
       }
 
-      override fun beforeActionPerformedUpdate(e: AnActionEvent) =
+      override fun beforeActionPerformedUpdate(e: AnActionEvent): Unit =
         beforeActionPerformedUpdate(e)
     }
 
@@ -233,13 +231,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     getTemplateText: String? = null
   ): AnAction =
     object : AnAction(title, description, icon) {
-      override fun actionPerformed(e: AnActionEvent) = actionPerformed(e)
+      override fun actionPerformed(e: AnActionEvent): Unit = actionPerformed(e)
       override fun displayTextInToolbar(): Boolean = displayTextInToolbar
 
       override fun setInjectedContext(worksInInjected: Boolean) =
         super.setInjectedContext(setInjectedContext(worksInInjected))
 
-      override fun update(e: AnActionEvent) = update(e)
+      override fun update(e: AnActionEvent): Unit = update(e)
 
       override fun useSmallerFontForTextInToolbar(): Boolean =
         useSmallerFontForTextInToolbar
@@ -251,7 +249,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
         return getTemplateText ?: super.getTemplateText()
       }
 
-      override fun beforeActionPerformedUpdate(e: AnActionEvent) =
+      override fun beforeActionPerformedUpdate(e: AnActionEvent): Unit =
         beforeActionPerformedUpdate(e)
     }
 
@@ -260,8 +258,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     run: () -> Unit
   ): TimerListener =
     object : TimerListener {
-      override fun run() = run()
-
+      override fun run(): Unit = run()
       override fun getModalityState(): ModalityState = modalityState
     }
 }
