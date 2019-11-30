@@ -170,6 +170,7 @@ interface ExtensionProviderSyntax {
 
   /**
    * The editor integration for [AnalysisSyntax.suppressDiagnostic].
+   * @param f reuse your implementation from the compiler-plugin
    * TODO: Check out [org.jetbrains.kotlin.resolve.checkers.PlatformDiagnosticSuppressor] for further improvements
    */
   fun IdeMetaPlugin.addDiagnosticSuppressor(
