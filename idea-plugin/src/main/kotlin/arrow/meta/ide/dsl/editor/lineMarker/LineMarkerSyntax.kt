@@ -16,12 +16,13 @@ import com.intellij.psi.util.PsiTreeUtil
 import javax.swing.Icon
 
 /**
- * This technique adds an LineMarker on the specified PsiElement similar to the Recursive Kotlin Icon [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider]
- * or Suspended Icon [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider].
- * Registration Impl may change to 2019.3 EAP
- * TODO: Add more Techniques such as the one from Elm
+ * LineMarker's serve as visuals, which appear on the specified PsiElement.
+ * There are several methods to subscribe LineMarkers, the one [LineMarkerSyntax] provides is derived from
+ * [org.jetbrains.kotlin.idea.highlighter.KotlinSuspendCallLineMarkerProvider] and [org.jetbrains.kotlin.idea.highlighter.KotlinRecursiveCallLineMarkerProvider].
  */
 interface LineMarkerSyntax {
+  // TODO: Registration Impl may change to 2019.3 EAP
+  // TODO: Add more Techniques such as the one from Elm
 
   /**
    * It is advised to create LineMarkerInfo for leaf elements (e.g: Psi(Identifier)) and not composite PsiElements
@@ -89,14 +90,7 @@ interface LineMarkerSyntax {
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT
     // nav: GutterIconNavigationHandler<*>? = null TODO
   ): LineMarkerInfo<PsiElement> =
-    object : LineMarkerInfo<PsiElement>(
-      element,
-      element.textRange,
-      icon,
-      message,
-      null,
-      placed
-    ) {
+    object : LineMarkerInfo<PsiElement>(element, element.textRange, icon, message, null, placed) {
       override fun createGutterRenderer(): GutterIconRenderer =
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = null // to place breakpoint on mouse click
