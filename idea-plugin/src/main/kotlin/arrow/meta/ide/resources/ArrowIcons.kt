@@ -36,4 +36,20 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-product.png")
   val PRODUCT: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-product.svg")
+  val INTERSECTION_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-intersection.png")
+  val INTERSECTION: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-intersection.svg")
+  val NEGATION_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.png")
+  val NEGATION: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.svg")
+  val REFINEMENT_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.png")
+  val REFINEMENT: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.svg")
+  val SUBTYPING_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.png")
+  val SUBTYPING: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.svg")
 }
