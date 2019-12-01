@@ -17,18 +17,12 @@ jobs:
       with:
         java-version: 1.8
         architecture: x64
-    - name: Dokka
+    - name: Dokka and Ank
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
         set -ex
-        ./gradlew dokka
-    - name: Run Ank
-      env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
-      run: |
-        set -ex
-        ./gradlew :docs:runAnk
+        ./gradlew dokka :docs:runAnk
     - name: Deploy
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
