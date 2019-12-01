@@ -81,7 +81,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * //sampleEnd
    * ```
    * Needless to say, the latter implementation is not sufficient enough as a purityPlugin, as the function body of the underlying Call's may have impure Call's.
-   * This Plugin will be discoverable in the user setting's under the Path Meta and it's displayName is `SimplePlugin`.
+   * This Plugin will be discoverable in the user setting's under the Path Meta and its groupDisplayName is `SimplePlugin`.
    * In addition, depending on [inspectionHighlightType] and [level] the `lightBulb` changes it's color.
    * @param groupPath
    * @see addLocalInspection
