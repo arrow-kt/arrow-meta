@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  * Interestingly enough, despite calling `Inspection's` proverbially "QuickFixes", IntelliJ defines a `QuickFix` as an aggregation of multiple `Intention's`.
  * Whereas `Intention's` analysis your code and users can decide whether they want to apply a suggested Fix,
  * Inspection's improve upon that very idea and are capable to block the user to compile code at the first place.
- * Additionally, we can scope the Fix we define in `applyTo` locally, for each instance per file, or globally to the whole project, assuming it has an universal refactoring task.
+ * Additionally, we can scope the Fix in `applyTo` locally, for each instance per file, or globally to the whole project, assuming it has a universal refactoring task.
  * There are cases, where an universal Fix, might not be obvious, but that doesn't stop plugin developer's to notify and direct user's to helpful resources about this problem.
  * @see [addApplicableInspection]
  */
