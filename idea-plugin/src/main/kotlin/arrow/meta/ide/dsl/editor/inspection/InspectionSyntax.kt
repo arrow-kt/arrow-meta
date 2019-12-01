@@ -37,7 +37,54 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   // TODO: Add more General `Inspection's` can be build with [org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
 
   /**
-   * Local Applicable Inspection with enhanced Scope to modify the element, project or editor at once within [applyTo]
+   * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
+   * The following example is a simplified purityPlugin, where we impose that every function that returns Unit has to be suspended.
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.phases.analysis.resolveFunctionType
+   * import arrow.meta.phases.analysis.returns
+   * import arrow.meta.invoke
+   * import com.intellij.codeHighlighting.HighlightDisplayLevel
+   * import com.intellij.codeInspection.ProblemHighlightType
+   * import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
+   * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+   * import org.jetbrains.kotlin.lexer.KtTokens
+   * import org.jetbrains.kotlin.psi.KtNamedFunction
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.simplyPure: Plugin
+   *  get() = "Draft PurityPlugin" {
+   *   meta(
+   *    addApplicableInspection(
+   *     defaultFixText = "Simplified PurityPlugin",
+   *     inspectionHighlightType = { ProblemHighlightType.ERROR },
+   *     kClass = KtNamedFunction::class.java,
+   *     inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
+   *     applyTo = { f, project, editor ->
+   *      f.addModifier(KtTokens.SUSPEND_KEYWORD)
+   *     },
+   *     isApplicable = { f: KtNamedFunction ->
+   *      !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
+   *      f.resolveToDescriptorIfAny()?.run {
+   *       !isSuspend && !isSuspendLambdaOrLocalFunction() &&
+   *        returns(resolveFunctionType, { listOf(unitType) })
+   *       // `returns` evaluates the returnType of the functionDescriptor of [f] and returns true if the list with `KotlinTypes` contains any collected returnType from the former computation.
+   *       // additionally, `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
+   *      } == true
+   *     },
+   *     level = HighlightDisplayLevel.ERROR,
+   *     groupPath = arrayOf("Meta", "SimplePlugin")
+   *    )
+   *   )
+   *  }
+   * //sampleEnd
+   * ```
+   * Needless to say, the latter implementation is not sufficient enough as a purityPlugin, as the function body of the underlying Call's may have impure Call's.
+   * This Plugin will be discoverable in the user setting's under the Path Meta and it's displayName is `SimplePlugin`.
+   * In addition, depending on [inspectionHighlightType] and [level] the `lightBulb` changes it's color.
+   * @param groupPath
+   * @see addLocalInspection
    * @sample arrow.meta.ide.plugins.purity.purity
    */
   @Suppress("UNCHECKED_CAST")
@@ -65,7 +112,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   /**
    * registers a GlobalInspection.
-   * [InspectionEP] is once again a wrapper over the actual Inspection.
+   * [InspectionEP] is once again a wrapper over the actual [GlobalInspectionTool].
    * @see addLocalInspection
    * TODO: Add easy first issue for contributor's
    */
