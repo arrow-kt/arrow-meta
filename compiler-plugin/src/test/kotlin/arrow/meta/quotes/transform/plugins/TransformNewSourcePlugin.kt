@@ -11,7 +11,12 @@ val Meta.transformNewSource: Plugin
     meta(
       `class`({ name == "NewSource" }) {
         Transform.newSources(
-          """ class ${name}_Generated {} """.file("${name}_Generated")
+          """
+            //metadebug
+            class ${name}_Generated {
+             fun sayHi() = println("Hi!")
+            }
+          """.file("${name}_Generated")
         )
       }
     )

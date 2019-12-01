@@ -31,6 +31,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.util.*
 
+const val META_DEBUG_COMMENT = "//metadebug"
+const val DEFAULT_META_FILE_NAME = "Source.kt"
+
 /**
  * ### Quote Templates DSL
  *
@@ -160,13 +163,11 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
-        val defaultSourceName = "Source.kt"
-        val defaultSource = files.first { it.name == defaultSourceName }
         files.forEach {
-          val fileText = if (!it.text.contains("//metadebug")) "//metadebug \n" + it.text else it.text
-          
-          if (fileText.contains("//metadebug")) {
-            File(defaultSource.virtualFilePath + ".meta").writeText(fileText.replaceFirst("//metadebug", "//meta: ${Date()}"))
+          if (it.text.contains(META_DEBUG_COMMENT)) {
+              File(files.first { it.name == DEFAULT_META_FILE_NAME }.virtualFilePath.let { path ->
+                  if (it.name != DEFAULT_META_FILE_NAME) path.substring(0, path.lastIndex - 2) + "_${it.name}" else path
+              } + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
             println("""|
             |ktFile: $it
             |----
@@ -267,7 +268,9 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
   noinline match: K.() -> Boolean
 ): List<KtFile> {
   val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map { (it.first ?: ktFile) to it.second }
-  val newFile = newSource.map { source -> changeSource(source.first, source.second, ktFile) }
+  val newFile = newSource.map { source ->
+    changeSource(source.first, if (source.first.text.contains(META_DEBUG_COMMENT) && !source.second.contains(META_DEBUG_COMMENT)) "$META_DEBUG_COMMENT\n" + source.second else source.second, ktFile)
+  }
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
@@ -346,25 +349,26 @@ fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>
 }
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
-    var virtualFile = rootFile.virtualFile
-    if (file.name != "Source.kt") {
-        val f = File(file.name)
-        f.writeText(file.text)
-        f.readText()
-        virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), f)
-    }
-    return cli {
-        KtFile(
-                viewProvider = MetaFileViewProvider(file.manager, virtualFile) {
-                    it?.also {
-                        it.setText(newSource)
-                    }
-                },
-                isCompiled = false
-        )
-    } ?: ide {
-        ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file)
-    }!!
+  var virtualFile = rootFile.virtualFile
+  if (file.name != DEFAULT_META_FILE_NAME) {
+      val directory = File("build/arrow-meta/main")
+      directory.mkdirs()
+      virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
+          writeText(file.text)
+      })
+  }
+  return cli {
+    KtFile(
+      viewProvider = MetaFileViewProvider(file.manager, virtualFile) {
+        it?.also {
+          it.setText(newSource)
+        }
+      },
+      isCompiled = false
+    )
+  } ?: ide {
+    ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file)
+  }!!
 }
 
 @Suppress("UNCHECKED_CAST")

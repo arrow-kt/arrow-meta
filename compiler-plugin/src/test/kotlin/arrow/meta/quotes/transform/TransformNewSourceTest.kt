@@ -14,7 +14,13 @@ class TransformNewSourceTest {
       code = {
         """ class NewSource {} """.source
       },
-      assert = { quoteFileMatches("NewSource_Generated", """class NewSource_Generated {}""".source) }
+      assert = { quoteFileMatches("NewSource_Generated.kt",
+        """
+           class NewSource_Generated {
+            fun sayHi() = println("Hi!")
+           }
+        """.source
+      )}
     ))
   }
 }
