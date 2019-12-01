@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
  * Loosely speaking, `Inspection's` are easily recognized as "QuickFixes" when the user hit's a KeyShortCut for missing imports.
- * Interestingly enough, despite calling `Inspection's` proverbially "QuickFixes", IntelliJ defines a `QuickFix` as an aggregation of multiple `Inspection's`.
+ * Interestingly enough, despite calling `Inspection's` proverbially "QuickFixes", IntelliJ defines a `QuickFix` as an aggregation of multiple `Intention's`.
  * Whereas `Intention's` analysis your code and users can decide whether they want to apply a suggested Fix,
  * Inspection's improve upon that very idea and are capable to block the user to compile code at the first place.
  * Additionally, we can scope the Fix we define in `applyTo` locally, for each instance per file, or globally to the whole project, assuming it has an universal refactoring task.
