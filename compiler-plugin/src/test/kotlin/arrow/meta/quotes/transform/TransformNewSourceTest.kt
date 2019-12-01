@@ -12,12 +12,9 @@ class TransformNewSourceTest {
     assertThis(CompilerTest(
       config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
-        """
-        | //metadebug
-        | class NewSource {}
-        """.source
+        """ class NewSource {} """.source
       },
-      assert = { quoteFileMatches("NewSource_Generated", """class NewSource_Generated { fun sayHi() = println("Hi") }""".source) }
+      assert = { quoteFileMatches("NewSource_Generated", """class NewSource_Generated {}""".source) }
     ))
   }
 }
