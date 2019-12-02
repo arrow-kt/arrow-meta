@@ -4,7 +4,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
-import arrow.meta.quotes.updateFile
+import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -149,27 +149,29 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * Applies the Quote system's transformations on the input files and returns a mapping of
    * originalFile->transformedFile if the transformation changed the original file.
    */
-  private fun transformFiles(ktFiles: List<KtFile>): List<Pair<KtFile, KtFile>> {
+  private fun transformFiles(sourceFiles: List<KtFile>): List<Pair<KtFile, KtFile>> {
     ApplicationManager.getApplication().assertReadAccessAllowed()
 
     // fixme scope?
     val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = ktFiles
+    // fixme do we need to set more properties of the compiler context?
+    context.files = sourceFiles
 
-    return ktFiles.mapNotNull { file ->
-      // collect all transformation for the current PsiFile
-      val mutations = analysisIdeExtensions.flatMapTo(arrayListOf()) { ext ->
-        val (_, fileMutations) = processKtFile(file, ext.type, ext.quoteFactory, ext.match, ext.map)
-        fileMutations
+    val resultFiles = arrayListOf<KtFile>()
+    resultFiles.addAll(sourceFiles)
+
+    analysisIdeExtensions.forEach { ext ->
+      val mutations = resultFiles.map {
+        processKtFile(it, ext.type, ext.quoteFactory, ext.match, ext.map)
       }
 
-      val transformedCopy = context.updateFile(mutations, file)
-      if (transformedCopy != file) {
-        file to transformedCopy
-      } else {
-        null
-      }
+      // this replaces the files with transformed files in resultFiles
+      // a file may be transformed multiple times
+      context.updateFiles(resultFiles, mutations, ext.match)
     }
+
+    // now, restore the association of sourceFile to transformed file
+    return sourceFiles.zip(resultFiles)
   }
 
   private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true) {
@@ -289,6 +291,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   @TestOnly
   fun flush() {
-    pool.submit {  }.get(5000, TimeUnit.MILLISECONDS)
+    pool.submit { }.get(5000, TimeUnit.MILLISECONDS)
   }
 }

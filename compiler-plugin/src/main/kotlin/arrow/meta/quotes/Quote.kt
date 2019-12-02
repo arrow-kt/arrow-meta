@@ -187,7 +187,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
       }
     )
   } ?: ide {
-    // store triple of quoteFactory, match, and map
+    // store combination of PSI element type, quoteFactory, match, and map
     analysisIdeExtensions.add(AnalysisDefinition(
       K::class as KClass<KtElement>,
       quoteFactory as Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
