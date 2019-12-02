@@ -32,10 +32,11 @@ import kotlin.reflect.KClass
 interface HintingSyntax {
   /**
    * registers a [ExpressionTypeProvider] for [KtExpression]s.
-   * Use this function to add an improved TypeInferenceAlgorithm for Kotlin to the editor.
+   * Use this function to add an improved TypeInferenceAlgorithm for Kotlin to the ide.
    * @param informationHint render's the Type of the  evaluated expression
    * @param expressionAt provides all [KtExpression] from a [PsiElement]
    * @param errorHint if the Type can't be detected
+   * @sample [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider]
    */
   fun IdeMetaPlugin.addExpressionTypeProviderForKotlin(
     informationHint: (expression: KtExpression) -> String,
@@ -47,8 +48,8 @@ interface HintingSyntax {
     addExpressionTypeProvider(informationHint, expressionAt, errorHint, hasAdvancedInformation, advancedInformation)
 
   /**
-   * registers a [ExpressionTypeProvider] for an expression [A] in a language.
-   * This extension can be used to bring TypeInferenceAlgorithms to the editor and is a language independent version of [addExpressionTypeProviderForKotlin].
+   * registers a [ExpressionTypeProvider] for an expressionType [A] in a language.
+   * This extension can be used to bring TypeInferenceAlgorithms to the ide and is a language independent version of [addExpressionTypeProviderForKotlin].
    * @see addExpressionTypeProviderForKotlin
    */
   fun <A : PsiElement> IdeMetaPlugin.addExpressionTypeProvider(
@@ -107,7 +108,7 @@ interface HintingSyntax {
     )
 
   /**
-   * Type being an Descriptor check Subtypes of [org.jetbrains.kotlin.idea.parameterInfo.KotlinTypeArgumentInfoHandlerBase]
+   * {Type being an Descriptor check Subtypes of [org.jetbrains.kotlin.idea.parameterInfo.KotlinTypeArgumentInfoHandlerBase]
    * or [org.jetbrains.kotlin.idea.parameterInfo.KotlinParameterInfoWithCallHandlerBase]
    */
   fun <Owner : PsiElement, Type, ActualType : PsiElement> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
