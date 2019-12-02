@@ -1,8 +1,6 @@
 package arrow.meta.ide.plugins.proofs
 
-import arrow.meta.Meta
 import arrow.meta.Plugin
-import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.resolve.proofs.Log
 import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
@@ -10,7 +8,6 @@ import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
@@ -22,16 +19,12 @@ import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.get
 import arrow.meta.quotes.ktFile
-import org.jetbrains.kotlin.analyzer.moduleInfo
-import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -42,15 +35,13 @@ import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -62,21 +53,14 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.psiUtil.blockExpressionsOrSingle
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BodiesResolveContext
-import org.jetbrains.kotlin.resolve.FunctionDescriptorUtil
-import org.jetbrains.kotlin.resolve.LazyTopDownAnalyzer
-import org.jetbrains.kotlin.resolve.OverloadChecker
-import org.jetbrains.kotlin.resolve.StatementFilter
 import org.jetbrains.kotlin.resolve.TopDownAnalysisContext
 import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
-import org.jetbrains.kotlin.resolve.calls.results.TypeSpecificityComparator
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.SingleSmartCast
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.lazy.KotlinCodeAnalyzer
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.findPackageFragmentForFile
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
@@ -89,8 +73,18 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val proofAnnotation: Regex = Regex("@(arrow\\.)?Proof\\((.*)\\)")
 
-fun KtNamedFunction.isProof(): Boolean =
-  isAnnotatedWith(proofAnnotation)
+private fun KtNamedFunction.isProofOf(strategy: ProofStrategy): Boolean =
+  isAnnotatedWith(proofAnnotation) && this.proofTypes().value.any {
+      it.text.endsWith(strategy.name)
+  }
+
+fun KtNamedFunction.isExtensionProof(): Boolean = isProofOf(ProofStrategy.Extension)
+
+fun KtNamedFunction.isNegationProof(): Boolean = isProofOf(ProofStrategy.Negation)
+
+fun KtNamedFunction.isRefinementProof(): Boolean = isProofOf(ProofStrategy.Refinement)
+
+fun KtNamedFunction.isSubtypingProof(): Boolean = isProofOf(ProofStrategy.Subtyping)
 
 fun KtNamedFunction.proofTypes(): ScopedList<KtExpression> =
   ScopedList(annotationEntries
@@ -116,14 +110,35 @@ val FunctionDescriptor.to: String
 fun FunctionDescriptor.proof(): Proof? =
   module.typeProofs.find { it.through.fqNameSafe == fqNameSafe }
 
-fun KtNamedFunction.markerMessage(): String =
-  NamedFunctionScope(this).run {
-    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.run {
-      """
-      <code lang="kotlin">${text}</code> 
-      
-      ${withStrategy(ProofStrategy.Subtyping) {
-        """
+fun Proof.extensionMarkerMessage(name: Name?): String {
+  return """
+  All members of <code lang="kotlin">$to</code> become available in <code lang="kotlin">$from</code> :
+  <ul>
+  ${through.returnTypeCallableMembers().joinToString("\n -") {
+    """
+            <li>${it.renderForConflicts()}</li>
+            """.trimIndent()
+  }}
+  </ul>
+  <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code>
+  is used as proof to support the intersection of <code lang="kotlin">$from & $to</code>.
+  """.trimIndent()
+}
+
+fun Proof.negationMarkerMessage(name: Name?): String {
+  return "TODO"
+}
+
+fun Proof.refinementMarkerMessage(name: Name?): String {
+  return """
+        <code lang="kotlin">$from</code> is a refined type that represents a set of values of the type <code lang="kotlin">$to</code>
+        that meet a certain type-level predicate.
+        ```
+  """.trimIndent()
+}
+
+fun Proof.subtypingMarkerMessage(name: Name?): String {
+  return """
         <code lang="kotlin">$from</code> is seen as subtype of <code lang="kotlin">$to</code> :
         
         <code lang="kotlin">
@@ -142,20 +157,25 @@ fun KtNamedFunction.markerMessage(): String =
         In the example above compiling <code lang="kotlin">val b: $to = a</code> would have failed to compile but because we have proof of 
         <code lang="kotlin">$from : $to</code> this becomes a valid global ad-hoc synthetic subtype relationship.
         """.trimIndent()
-      }}
+}
+
+fun KtNamedFunction.markerMessage(): String =
+  NamedFunctionScope(this).run {
+    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let {proof ->
+      """
+      <code lang="kotlin">${text}</code> 
+
       ${withStrategy(ProofStrategy.Extension) {
-        """
-        All members of <code lang="kotlin">$to</code> become available in <code lang="kotlin">$from</code> :
-        <ul>
-          ${through.returnTypeCallableMembers().joinToString("\n -") {
-          """
-            <li>${it.renderForConflicts()}</li>
-            """.trimIndent()
-        }}
-        </ul>
-        <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code> 
-        is used as proof to support the intersection of <code lang="kotlin">$from & $to</code>.
-        """.trimIndent()
+        Proof::extensionMarkerMessage.invoke(proof, this.name)
+      }}
+      ${withStrategy(ProofStrategy.Negation) {
+        Proof::negationMarkerMessage.invoke(proof, this.name)
+      }}
+      ${withStrategy(ProofStrategy.Refinement) {
+        Proof::refinementMarkerMessage.invoke(proof, this.name)
+      }}
+      ${withStrategy(ProofStrategy.Subtyping) {
+        Proof::subtypingMarkerMessage.invoke(proof, this.name)
       }}
       
     <a href="">More info on Type Proofs</a>: ${ProofStrategy.values().joinToString { """<code lang="kotlin">${it.name}</code>""" }}
@@ -176,12 +196,43 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
   get() = "ProofsIdePlugin" {
     meta(
       addLineMarkerProvider(
-        icon = ArrowIcons.POLY,
+        icon = ArrowIcons.INTERSECTION,
+        composite = KtNamedFunction::class.java,
         transform = {
-          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isProof)?.identifyingElement
+          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isExtensionProof)
         },
         message = {
-          it.parent.safeAs<KtNamedFunction>()?.let(KtNamedFunction::markerMessage).orEmpty()
+          it.markerMessage()
+        }
+      ),
+      addLineMarkerProvider(
+        icon = ArrowIcons.NEGATION,
+        composite = KtNamedFunction::class.java,
+        transform = {
+          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isNegationProof)
+        },
+        message = {
+          it.markerMessage()
+        }
+      ),
+      addLineMarkerProvider(
+        icon = ArrowIcons.REFINEMENT,
+        composite = KtNamedFunction::class.java,
+        transform = {
+          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isRefinementProof)
+        },
+        message = {
+          it.markerMessage()
+        }
+      ),
+      addLineMarkerProvider(
+        icon = ArrowIcons.SUBTYPING,
+        composite = KtNamedFunction::class.java,
+        transform = {
+          it.safeAs<KtNamedFunction>()?.takeIf(KtNamedFunction::isSubtypingProof)
+        },
+        message = {
+          it.markerMessage()
         }
       ),
       syntheticResolver(
