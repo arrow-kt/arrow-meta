@@ -2,7 +2,7 @@ buildscript {
   repositories {
     mavenCentral()
     maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
-    maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
+    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
   }
   dependencies {
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
@@ -43,7 +43,8 @@ allprojects {
     mavenCentral()
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-dev/' }
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap/' }
+    maven { url 'https://jitpack.io' } 
   }
 }
 
@@ -59,23 +60,6 @@ subprojects { project ->
   dokka {
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
-
-    includes = ['README.md']
-    reportUndocumented = false
-
-    // Specifies the location of the project source code on the Web.
-    // If provided, Dokka generates "source" links for each declaration.
-    // Repeat for multiple mappings
-    linkMapping {
-      // Source directory
-      dir = "src/main/kotlin"
-
-      // URL showing where the source code can be accessed through the web browser
-      url = "https://github.com/arrow-kt/arrow/blob/master/${relativeProjectPath('src/main/kotlin')}"
-
-      // Suffix which is used to append the line number to the URL. Use #L for GitHub
-      suffix = "#L"
-    }
   }
 
   apply plugin: 'com.jfrog.bintray'

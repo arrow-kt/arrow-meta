@@ -5,11 +5,11 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.quotes.ClassScope
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.`class`
+import arrow.meta.quotes.Transform
+import arrow.meta.quotes.classDeclaration
+import arrow.meta.quotes.classorobject.ClassDeclaration
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -24,7 +24,7 @@ val Meta.lenses: Plugin
   get() =
     "lenses" {
       meta(
-        `class`(::isProductType) { c: KtClass ->
+        classDeclaration(::isProductType) { c: KtClass ->
 
           val location = c.toSourceElement().safeAs<KotlinSourceElement>()?.psi?.textRange
 
@@ -52,7 +52,7 @@ val Meta.lenses: Plugin
       )
     }
 
-private fun CompilerContext.validateMaxArityAllowed(classScope: ClassScope) {
+private fun CompilerContext.validateMaxArityAllowed(classScope: ClassDeclaration) {
   if (classScope.`(params)`.value.size > 10)
     // Question: error message file location
     messageCollector?.report(
@@ -63,7 +63,7 @@ private fun CompilerContext.validateMaxArityAllowed(classScope: ClassScope) {
 
 private const val maxArity: Int = 10
 
-private fun ElementScope.lenses(classScope: ClassScope): ScopedList<KtProperty> =
+private fun ElementScope.lenses(classScope: ClassDeclaration): ScopedList<KtProperty> =
   classScope.run {
     ScopedList(
       separator = "\n",
@@ -79,7 +79,7 @@ private fun ElementScope.lens(source: KtClass, focus: KtParameter): Scope<KtProp
      |  set = { ${source.name!!.toLowerCase()}, ${focus.name} -> ${source.name!!.toLowerCase()}.copy(${focus.name} = ${focus.name}) }
      |)""".property.synthetic
 
-private fun ElementScope.iso(classScope: ClassScope): Scope<KtProperty> =
+private fun ElementScope.iso(classScope: ClassDeclaration): Scope<KtProperty> =
   classScope.run {
     """|val iso: arrow.optics.Iso<${value.name}, ${`(params)`.tupledType}> = arrow.optics.Iso(
        |  get = { (${`(params)`.destructured}) -> ${`(params)`.tupled} },

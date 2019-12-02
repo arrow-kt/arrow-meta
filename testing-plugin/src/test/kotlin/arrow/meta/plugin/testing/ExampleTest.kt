@@ -1,6 +1,7 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
+import arrow.meta.plugin.testing.plugins.MetaPlugin
 import org.junit.Test
 
 class ExampleTest {
@@ -16,7 +17,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(compiles)
+        compiles
       }
     ))
   }
@@ -32,7 +33,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("hello()".source.evalsTo("Hello world!"))
+        "hello()".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -47,7 +48,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(fails)
+        fails
       }
     ))
   }
@@ -62,7 +63,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(failsWith { it.contains("Expecting a top level declaration") })
+        failsWith { it.contains("Expecting a top level declaration") }
       }
     ))
   }
@@ -78,7 +79,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("x".source.evalsTo("Hello world!"))
+        "x".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -131,7 +132,25 @@ class ExampleTest {
           """.source)
       },
       assert = {
-        allOf(compiles)
+        compiles
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to test a Meta plugin`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      code = {
+          """
+          | //metadebug
+          | 
+          | fun helloWorld(): String = TODO()
+          | 
+          """.source
+      },
+      assert = {
+        "helloWorld()".source.evalsTo("Hello ΛRROW Meta!")
       }
     ))
   }

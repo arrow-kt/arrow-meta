@@ -11,67 +11,35 @@ options:
         url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
       - title: Hello World IntelliJ IDEA
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.nothing/nothing-ide-plugin.html
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
 
   - title: Quotes
 
     nested_options:
 
       - title: Index
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/index.html
-
-      - title: classOrObject
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/class-or-object.html
-
-      - title: func
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/func.html
-
-      - title: property
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property.html
-
-      - title: propertyAccessor
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property-accessor.html
-
-      - title: typeAlias
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/type-alias.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
   - title: Compiler API
 
     nested_options:
 
       - title: Config
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/
 
       - title: Analysis
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/
 
       - title: Resolution
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/
 
       - title: ASM Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/
 
       - title: IR Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
   - title: IntelliJ IDEA API
-
-    nested_options:
-
-      - title: Config
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
-
-      - title: Analysis
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
-
-      - title: Resolution
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
-
-      - title: ASM Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
-
-      - title: IR Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
 
   - title: Testing
 

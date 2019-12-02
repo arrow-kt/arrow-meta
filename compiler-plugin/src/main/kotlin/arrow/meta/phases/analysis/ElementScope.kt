@@ -1,28 +1,37 @@
 package arrow.meta.phases.analysis
 
-import arrow.meta.quotes.AnnotatedExpressionScope
-import arrow.meta.quotes.BlockExpressionScope
-import arrow.meta.quotes.CatchClauseScope
-import arrow.meta.quotes.ClassScope
-import arrow.meta.quotes.FinallySectionScope
-import arrow.meta.quotes.ForExpressionScope
-import arrow.meta.quotes.IfExpressionScope
-import arrow.meta.quotes.ImportDirectiveScope
-import arrow.meta.quotes.IsExpressionScope
-import arrow.meta.quotes.ModifierListScope
-import arrow.meta.quotes.NamedFunctionScope
-import arrow.meta.quotes.ParameterListScope
-import arrow.meta.quotes.ParameterScope
-import arrow.meta.quotes.ReturnExpressionScope
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.ThrowExpressionScope
-import arrow.meta.quotes.TryExpressionScope
-import arrow.meta.quotes.TypeReferenceScope
-import arrow.meta.quotes.ValueArgumentScope
-import arrow.meta.quotes.WhenConditionScope
-import arrow.meta.quotes.WhenEntryScope
-import arrow.meta.quotes.WhenExpressionScope
-import arrow.meta.quotes.WhileExpressionScope
+import arrow.meta.quotes.classorobject.ClassDeclaration
+import arrow.meta.quotes.classorobject.ObjectDeclaration
+import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.element.CatchClause
+import arrow.meta.quotes.element.FinallySection
+import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.ParameterList
+import arrow.meta.quotes.element.ValueArgument
+import arrow.meta.quotes.element.WhenEntry
+import arrow.meta.quotes.element.whencondition.WhenCondition
+import arrow.meta.quotes.expression.AnnotatedExpression
+import arrow.meta.quotes.expression.BinaryExpression
+import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.IfExpression
+import arrow.meta.quotes.expression.IsExpression
+import arrow.meta.quotes.expression.LambdaExpression
+import arrow.meta.quotes.expression.ThrowExpression
+import arrow.meta.quotes.expression.TryExpression
+import arrow.meta.quotes.expression.WhenExpression
+import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.loopexpression.ForExpression
+import arrow.meta.quotes.expression.loopexpression.WhileExpression
+import arrow.meta.quotes.filebase.File
+import arrow.meta.quotes.modifierlist.ModifierList
+import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
+import arrow.meta.quotes.nameddeclaration.stub.Parameter
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -35,22 +44,16 @@ import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
-import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -60,7 +63,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
 import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeCodeFragment
 import org.jetbrains.kotlin.psi.KtTypeElement
@@ -68,7 +70,6 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.KtTypeParameterList
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.resolve.ImportPath
 
@@ -94,27 +95,27 @@ interface ElementScope {
   
   val String.typeArgument: Scope<KtTypeProjection>
   
-  val String.type: TypeReferenceScope
+  val String.type: TypeReference
   
-  val KtTypeElement.type: TypeReferenceScope
+  val KtTypeElement.type: TypeReference
 
   val String.typeOrNull: Scope<KtTypeReference>
   
   val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
   
-  val KtTypeReference.functionTypeParameter: ParameterScope
+  val KtTypeReference.functionTypeParameter: Parameter
   
   fun typeAlias(
     name: String,
     typeParameters: List<String>,
     typeElement: KtTypeElement
-  ): Scope<KtTypeAlias>
+  ): TypeAlias
   
   fun typeAlias(
     name: String,
     typeParameters: List<String>,
     body: String
-  ): Scope<KtTypeAlias>
+  ): TypeAlias
   
   val star: PsiElement
   
@@ -136,13 +137,18 @@ interface ElementScope {
   
   val Int.newLine: PsiElement
   
-  val String.`class`: ClassScope
+  val String.`class`: ClassDeclaration
   
-  val String.`object`: Scope<KtObjectDeclaration>
+  val String.`object`: ObjectDeclaration
   
-  val companionObject: Scope<KtObjectDeclaration>
+  val companionObject: ObjectDeclaration
   
-  val String.companionObject: Scope<KtObjectDeclaration>
+  val String.companionObject: ObjectDeclaration
+
+  fun file(
+    fileName: String,
+    text: String
+  ): File
 
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
@@ -152,32 +158,30 @@ interface ElementScope {
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean,
     initializer: String?
-  ): Scope<KtProperty>
+  ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean
-  ): Scope<KtProperty>
+  ): Property
   
-  val String.property: Scope<KtProperty>
+  val String.property: Property
   
-  fun propertyGetter(expression: KtExpression): Scope<KtPropertyAccessor>
+  fun propertyGetter(expression: KtExpression): PropertyAccessor
   
-  fun propertySetter(expression: KtExpression): Scope<KtPropertyAccessor>
+  fun propertySetter(expression: KtExpression): PropertyAccessor
   
   fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate>
   
-  val String.destructuringDeclaration: Scope<KtDestructuringDeclaration>
-  
-  val String.destructuringParameter: ParameterScope
+  val String.destructuringDeclaration: DestructuringDeclaration
   
   fun <A : KtDeclaration> String.declaration(): Scope<A>
   
@@ -191,54 +195,58 @@ interface ElementScope {
   
   val String.identifier: PsiElement
   
-  val String.function: NamedFunctionScope
+  val String.function: NamedFunction
+
+  val String.binaryExpression: BinaryExpression
   
   val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
   
   val String.secondaryConstructor: Scope<KtSecondaryConstructor>
   
-  fun modifierList(modifier: KtModifierKeywordToken): ModifierListScope
+  fun modifierList(modifier: KtModifierKeywordToken): ModifierList
   
-  val String.modifierList: ModifierListScope
+  val String.modifierList: ModifierList
   
-  val emptyModifierList: ModifierListScope
+  val emptyModifierList: ModifierList
   
   fun modifier(modifier: KtModifierKeywordToken): PsiElement
   
   val String.annotationEntry: Scope<KtAnnotationEntry>
   
-  val emptyBody: BlockExpressionScope
+  val emptyBody: BlockExpression
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
   val emptyClassBody: Scope<KtClassBody>
   
-  val String.parameter: ParameterScope
+  val String.classParameter: Parameter
   
-  val String.loopParameter: ParameterScope
+  val String.loopParameter: Parameter
+
+  val String.destructuringParameter: Parameter
   
-  val String.parameterList: ParameterListScope
+  val String.parameterList: ParameterList
   
   val String.typeParameterList: Scope<KtTypeParameterList>
   
   val String.typeParameter: Scope<KtTypeParameter>
   
-  val String.lambdaParameterListIfAny: ParameterListScope
+  val String.lambdaParameterListIfAny: ParameterList
   
-  val String.lambdaParameterList: ParameterListScope
+  val String.lambdaParameterList: ParameterList
   
   fun lambdaExpression(
     parameters: String,
     body: String
-  ): Scope<KtLambdaExpression>
+  ): LambdaExpression
   
   val String.enumEntry: Scope<KtEnumEntry>
   
   val enumEntryInitializerList: Scope<KtInitializerList>
   
-  val String.whenEntry: WhenEntryScope
+  val String.whenEntry: WhenEntry
   
-  val String.whenCondition: WhenConditionScope
+  val String.whenCondition: WhenCondition
   
   fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression>
   
@@ -252,7 +260,7 @@ interface ElementScope {
 
   val String.packageDirectiveOrNull: Scope<KtPackageDirective>
   
-  fun importDirective(importPath: ImportPath): ImportDirectiveScope
+  fun importDirective(importPath: ImportPath): ImportDirective
   
   fun primaryConstructor(text: String = ""): Scope<KtPrimaryConstructor>
   
@@ -274,16 +282,16 @@ interface ElementScope {
     condition: KtExpression,
     thenExpr: KtExpression,
     elseExpr: KtExpression? = null
-  ): IfExpressionScope
+  ): IfExpression
   
   fun argument(
     expression: KtExpression?,
     name: Name? = null,
     isSpread: Boolean = false,
     reformat: Boolean = true
-  ): ValueArgumentScope
+  ): ValueArgument
   
-  val String.argument: ValueArgumentScope
+  val String.argument: ValueArgument
 
   val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
   
@@ -291,35 +299,44 @@ interface ElementScope {
   
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
-  val String.block: BlockExpressionScope
+  val String.block: BlockExpression
 
-  val String.`for`: ForExpressionScope
+  val String.`for`: ForExpression
 
-  val String.`while`: WhileExpressionScope
+  val String.`while`: WhileExpression
 
-  val String.`if`: IfExpressionScope
+  val String.`when`: WhenExpression
 
-  val String.`when`: WhenExpressionScope
+  val String.`try`: TryExpression
 
-  val String.`try`: TryExpressionScope
+  val String.catch: CatchClause
 
-  val String.catch: CatchClauseScope
+  val String.finally: FinallySection
 
-  val String.finally: FinallySectionScope
+  val String.`throw`: ThrowExpression
 
-  val String.`throw`: ThrowExpressionScope
+  val String.`is`: IsExpression
 
-  val String.`is`: IsExpressionScope
+  val String.`if`: IfExpression
 
-  val String.`return`: ReturnExpressionScope
+  val String.`return`: ReturnExpression
 
-  val String.annotatedExpression: AnnotatedExpressionScope
+  val String.annotatedExpression: AnnotatedExpression
+
+  val String.functionLiteral: FunctionLiteral
+
+  /**
+   * Creates an expression that has reference to its context
+   *
+   * @param context is used to feed the expression context reference
+   */
+  fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment>
 
   fun singleStatementBlock(
     statement: KtExpression,
     prevComment: String? = null,
     nextComment: String? = null
-  ): BlockExpressionScope
+  ): BlockExpression
   
   val String.comment: PsiComment
 
