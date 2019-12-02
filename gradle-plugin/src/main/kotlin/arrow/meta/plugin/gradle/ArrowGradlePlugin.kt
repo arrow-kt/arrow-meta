@@ -10,7 +10,7 @@ import java.util.Properties
 /**
  * Gradle Plugin to enable Arrow Meta.
  *
- * It's published in Gradle Plugin Portal: https://plugins.gradle.org/plugin/io.arrow-kt.arrow
+ * It's published in [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.arrow-kt.arrow).
  *
  * It can be used with the plugins DSL for release versions:
  *
