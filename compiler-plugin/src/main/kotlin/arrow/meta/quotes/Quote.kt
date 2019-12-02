@@ -268,9 +268,7 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
   noinline match: K.() -> Boolean
 ): List<KtFile> {
   val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map { (it.first ?: ktFile) to it.second }
-  val newFile = newSource.map { source ->
-    changeSource(source.first, if (source.first.text.contains(META_DEBUG_COMMENT) && !source.second.contains(META_DEBUG_COMMENT)) "$META_DEBUG_COMMENT\n" + source.second else source.second, ktFile)
-  }
+  val newFile = newSource.map { source -> changeSource(source.first, source.second, ktFile) }
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
@@ -282,13 +280,13 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
 ): List<Pair<KtFile?, String>> {
   var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
-  val saveTransformation: (Node.File) -> Unit = { dummyFile = null to it }
+  val saveTransformation: (Node.File, KtFile?) -> Unit = { nodeFile, file -> dummyFile = file to nodeFile }
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second))
-      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second))
-      is Transform.Many -> saveTransformation(transform.many(this, compilerContext, match))
-      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to Converter.convertFile(it.value) })
+      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second), null)
+      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second), null)
+      is Transform.Many -> saveTransformation(transform.many(this, compilerContext, match), this)
+      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) })
       Transform.Empty -> Unit
     }
   }
