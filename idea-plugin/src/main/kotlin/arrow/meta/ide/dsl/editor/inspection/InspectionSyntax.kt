@@ -70,7 +70,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *       !isSuspend && !isSuspendLambdaOrLocalFunction() &&
    *        returns(resolveFunctionType, { listOf(unitType) })
    *       // `returns` evaluates the returnType of the functionDescriptor of [f] and returns true if the list with `KotlinTypes` contains any collected returnType from the former computation.
-   *       // additionally, `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
+   *       // `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
    *      } == true
    *     },
    *     level = HighlightDisplayLevel.ERROR,

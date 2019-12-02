@@ -58,7 +58,7 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
 }
 
 /**
- * true if [types] contains the returnType of [F]
+ * true if [types] contains the returnType of receiver [C]
  * [f] defines on what property two Types are equal
  * e.g.: [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc.
  * One concrete example for equality on [TypeConstructor] may look like this:
@@ -78,7 +78,7 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
  * More abstractions are here [org.jetbrains.kotlin.types.TypeUtils]
  */
 @Suppress("UNCHECKED_CAST")
-fun <F : CallableDescriptor, A> F.returns(
+fun <C : CallableDescriptor, A> C.returns(
   f: (KotlinType) -> A = { it as A },
   types: KotlinBuiltIns.() -> List<KotlinType>
 ): Boolean =
@@ -90,10 +90,10 @@ fun <F : CallableDescriptor, A> F.returns(
  * true if any type of [list] is in [types]
  * [f] defines on what property two Types are equal
  * e.g.: [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc...
- * @see [returns] where [F] is a SubType of [CallableDescriptor]
+ * @see [returns]
  */
 @Suppress("UNCHECKED_CAST")
-fun <F : DeclarationDescriptor, A> F.returns(
+fun <D : DeclarationDescriptor, A> D.returns(
   f: (KotlinType) -> A = { it as A },
   list: List<KotlinType>,
   types: KotlinBuiltIns.() -> List<KotlinType>
