@@ -8,9 +8,34 @@ import io.github.classgraph.ClassGraph
 import java.util.Properties
 
 /**
- * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
- * [ArrowExtension] class.
- * revisit [org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension] and [MultiplatformPlugin] from Spek to move forward for Mpp
+ * Gradle Plugin to enable Arrow Meta.
+ *
+ * It's published in Gradle Plugin Portal: https://plugins.gradle.org/plugin/io.arrow-kt.arrow
+ *
+ * It can be used with the plugins DSL for release versions:
+ *
+ * ```
+ * plugins {
+ *   id "io.arrow-kt.arrow" version "<release-version>"
+ * }
+ * ```
+ *
+ * In case of using a snapshot version, it must be included with the legacy plugin application:
+ *
+ * ```
+ * buildscript {
+ *   repositories {
+ *     maven { url "https://plugins.gradle.org/m2/" }
+ *     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
+ *   }
+ *   dependencies {
+ *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *   }
+ * }
+ *
+ * apply plugin: "io.arrow-kt.arrow"
+ * ```
+ *
  */
 class ArrowGradlePlugin : Plugin<Project> {
   companion object {
