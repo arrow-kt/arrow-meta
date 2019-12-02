@@ -25,23 +25,47 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import kotlin.reflect.KClass
 
+/**
+ * Hint's are generally used with TypeInferenceAlgorithms.
+ * [HintingSyntax] provides means to connect those algorithms to the editor for specified element's.
+ */
 interface HintingSyntax {
-  fun IdeMetaPlugin.addExpressionTypeProvider(
-    informationHint: (element: KtExpression) -> String,
+  /**
+   * registers a [ExpressionTypeProvider] for [KtExpression]s.
+   * Use this function to add an improved TypeInferenceAlgorithm for Kotlin to the editor.
+   * @param informationHint render's the Type of the  evaluated expression
+   * @param expressionAt provides all [KtExpression] from a [PsiElement]
+   * @param errorHint if the Type can't be detected
+   */
+  fun IdeMetaPlugin.addExpressionTypeProviderForKotlin(
+    informationHint: (expression: KtExpression) -> String,
     expressionAt: (elementAt: PsiElement) -> MutableList<KtExpression>,
-    errorHint: String
+    errorHint: String = "No expression Found",
+    hasAdvancedInformation: Boolean = false,
+    advancedInformation: (expression: KtExpression) -> String = Noop.string1()
+  ): ExtensionPhase =
+    addExpressionTypeProvider(informationHint, expressionAt, errorHint, hasAdvancedInformation, advancedInformation)
+
+  /**
+   * registers a [ExpressionTypeProvider] for an expression [A] in a language.
+   * This extension can be used to bring TypeInferenceAlgorithms to the editor and is a language independent version of [addExpressionTypeProviderForKotlin].
+   * @see addExpressionTypeProviderForKotlin
+   */
+  fun <A : PsiElement> IdeMetaPlugin.addExpressionTypeProvider(
+    informationHint: (expression: A) -> String,
+    expressionAt: (elementAt: PsiElement) -> MutableList<A>,
+    errorHint: String = "No expression Found",
+    hasAdvancedInformation: Boolean = false,
+    advancedInformation: (expression: A) -> String = Noop.string1()
   ): ExtensionPhase =
     extensionProvider(
       LanguageExpressionTypes.INSTANCE,
-      object : ExpressionTypeProvider<KtExpression>() {
-        override fun getInformationHint(element: KtExpression): String =
-          informationHint(element)
-
-        override fun getExpressionsAt(elementAt: PsiElement): MutableList<KtExpression> =
-          expressionAt(elementAt)
-
-        override fun getErrorHint(): String =
-          errorHint
+      object : ExpressionTypeProvider<A>() {
+        override fun getInformationHint(element: A): String = informationHint(element)
+        override fun hasAdvancedInformation(): Boolean = hasAdvancedInformation
+        override fun getExpressionsAt(elementAt: PsiElement): MutableList<A> = expressionAt(elementAt)
+        override fun getErrorHint(): String = errorHint
+        override fun getAdvancedInformationHint(element: A): String = advancedInformation(element)
       }
     )
 
@@ -51,12 +75,11 @@ interface HintingSyntax {
   fun <Owner : PsiElement, Type> IdeMetaPlugin.addParameterInfoHandler(
     showParameterInfo: (element: Owner, context: CreateParameterInfoContext) -> Unit,
     updateParameterInfo: (parameterOwner: Owner, context: UpdateParameterInfoContext) -> Unit,
-    updateUI: (p: Type, context: ParameterInfoUIContext) -> Unit,
-    parameterForLookUp: (item: LookupElement?, context: ParameterInfoContext?) -> Array<Any>?,
-    couldShowInLookup: Boolean,
-    findElementForUpdatingParameterInfo: (context: UpdateParameterInfoContext) -> Owner? =
-      Noop.nullable1(),
-    findElementForParameterInfo: (context: CreateParameterInfoContext) -> Owner?
+    updateUI: (p: Type, context: ParameterInfoUIContext) -> Unit = Noop.effect2,
+    parameterForLookUp: (item: LookupElement?, context: ParameterInfoContext?) -> Array<Any>? = Noop.nullable2(),
+    couldShowInLookup: Boolean = false,
+    findElementForUpdatingParameterInfo: (context: UpdateParameterInfoContext) -> Owner? = Noop.nullable1(),
+    findElementForParameterInfo: (context: CreateParameterInfoContext) -> Owner? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
       LanguageParameterInfo.INSTANCE,
@@ -146,6 +169,7 @@ interface HintingSyntax {
 
   /**
    * This is used for [DeclarationDescriptor]'s
+   * @see addParameterInfoHandlerForKotlin
    */
   fun <Type : DeclarationDescriptor> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     fetchTypeParameters: (descriptor: Type) -> List<TypeParameterDescriptor>,
@@ -168,6 +192,7 @@ interface HintingSyntax {
 
   /**
    * This is used for [FunctionDescriptor]'s
+   * @see addParameterInfoHandlerForKotlin
    */
   @Suppress
   fun <ArgumentList : KtElement, Argument : KtElement> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
