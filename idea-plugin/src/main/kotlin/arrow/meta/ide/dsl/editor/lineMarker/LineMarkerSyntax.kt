@@ -115,7 +115,6 @@ interface LineMarkerSyntax {
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
           override fun isDumbAware(): Boolean = isDumbAware
-
         }
     }
 }
