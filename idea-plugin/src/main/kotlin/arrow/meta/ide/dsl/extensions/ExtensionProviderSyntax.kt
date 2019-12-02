@@ -15,6 +15,9 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.dsl.analysis.AnalysisSyntax
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
+import arrow.meta.ide.dsl.editor.search.SearchSyntax
+import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 
 /**
  * The [ExtensionProvider] phase sits at the core of the main API in IntelliJ's Platform for ExtensionPoints.
@@ -56,6 +59,9 @@ interface ExtensionProviderSyntax {
    *   )
    * //sampleEnd
    * ```
+   * More importantly, using [extensionProvider] and all it's variations lift's any ide workflow for `Extension's` to `Meta` and is evident
+   * to all derived instances like [LineMarkerSyntax], [InspectionSyntax], [SearchSyntax] and many more.
+   * Hence, if a costume workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
    * @param impl is the concrete implementation
    * @param loadingOrder has to be set as [LoadingOrder.FIRST], whenever we introduce visual changes
    * @see ExtensionProviderSyntax
