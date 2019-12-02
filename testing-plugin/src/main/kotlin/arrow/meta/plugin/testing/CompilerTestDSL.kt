@@ -201,6 +201,12 @@ interface AssertSyntax {
    */
   fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert = Assert.QuoteOutputMatches(source)
   
+  /**
+   * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
+   *
+   * @param filename Name of the specific file that will be evaluated.
+   * @param source Code snippet with the expected quote output.
+   */
   fun quoteFileMatches(filename: String, source: Code.Source): Assert.SingleAssert = Assert.QuoteFileMatches(filename, source)
 
   /**
