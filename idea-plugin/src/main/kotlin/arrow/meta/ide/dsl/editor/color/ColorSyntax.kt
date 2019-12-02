@@ -17,6 +17,7 @@ import com.intellij.psi.codeStyle.DisplayPriority
 import com.intellij.psi.codeStyle.DisplayPrioritySortable
 import com.intellij.ui.EditorCustomization
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
 import javax.swing.Icon
 
 /**
@@ -30,11 +31,11 @@ interface ColorSyntax {
   fun IdeMetaPlugin.addColorSettingsPage(
     displayName: String,
     demoText: String,
-    highlighter: SyntaxHighlighter,
     priority: DisplayPriority,
     additionalHighlightingTagToDescriptorMap: MutableMap<String, TextAttributesKey>,
+    attributesDescriptor: Array<AttributesDescriptor>,
+    highlighter: SyntaxHighlighter = KotlinHighlighter(),
     icon: Icon? = null,
-    attributesDescriptor: Array<AttributesDescriptor> = emptyArray(),
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
     isRainbowType: (type: TextAttributesKey) -> Boolean = Noop.boolean1False,
     language: Language? = KotlinLanguage.INSTANCE,
@@ -42,26 +43,26 @@ interface ColorSyntax {
   ): ExtensionPhase =
     extensionProvider(
       ColorSettingsPage.EP_NAME,
-      colorSettingsPage(displayName, demoText, highlighter, priority, additionalHighlightingTagToDescriptorMap, icon, attributesDescriptor, colorDescriptor, isRainbowType, language, customize)
+      colorSettingsPage(displayName, demoText, priority, additionalHighlightingTagToDescriptorMap, attributesDescriptor, highlighter, icon, colorDescriptor, isRainbowType, language, customize)
     )
 
   /**
-   * @param attributesDescriptor use [toA]
-   * @param highlighter use [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter]
+   * @param attributesDescriptor use [toA] to construct the Array
+   * @param highlighter use [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter]. The default is for Kotlin.
    * @param language the default is [KotlinLanguage].
    * @param customize add's customizations to the editor
-   * @param isRainbowType the default doesn't display RainbowTypes for any Key.
+   * @param isRainbowType RainbowTypes add color changes to each Token. The default doesn't display RainbowTypes for any Key. For example Kotlin and Java define local Variables and Parameter's as RainbowTypes.
    * @param priority use [DisplayPriority.KEY_LANGUAGE_SETTINGS] for programming languages and [DisplayPriority.LANGUAGE_SETTINGS] for less expressive languages like `JSON`.
    * @param priority [DisplayPriority.COMMON_SETTINGS] is used for generic setting's like Debugger's. Check [DisplayPriority] for more information.
    */
   fun ColorSyntax.colorSettingsPage(
     displayName: String,
     demoText: String,
-    highlighter: SyntaxHighlighter,
     priority: DisplayPriority,
     additionalHighlightingTagToDescriptorMap: MutableMap<String, TextAttributesKey>,
+    attributesDescriptor: Array<AttributesDescriptor>,
+    highlighter: SyntaxHighlighter = KotlinHighlighter(),
     icon: Icon? = null,
-    attributesDescriptor: Array<AttributesDescriptor> = emptyArray(),
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
     isRainbowType: (type: TextAttributesKey) -> Boolean = Noop.boolean1False,
     language: Language? = KotlinLanguage.INSTANCE,
