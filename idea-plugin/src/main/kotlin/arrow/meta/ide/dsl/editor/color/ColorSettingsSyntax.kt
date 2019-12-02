@@ -25,7 +25,7 @@ import javax.swing.Icon
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
- * [ColorSettingsPage] add's a costume page in the user Settings under "Color and Fonts" and is based on a costume [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
+ * [ColorSettingsPage] add's a custom page in the user Settings under "Color and Fonts" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
  * Consequently, plugin developer's may refine [SyntaxHighlighter]'s with a [ColorSettingsPage] for a better ide experience.
  * Hence, a [ColorSettingsPage] may act as a visual template for the SyntaxHighlighter.
  */
