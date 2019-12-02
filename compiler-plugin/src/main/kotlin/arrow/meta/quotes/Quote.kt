@@ -351,7 +351,7 @@ fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
   var virtualFile = rootFile.virtualFile
   if (file.name != DEFAULT_META_FILE_NAME) {
-      val directory = File("build/arrow-meta/main")
+      val directory = File("build/generated/source/kapt/main")
       directory.mkdirs()
       virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
           writeText(file.text)

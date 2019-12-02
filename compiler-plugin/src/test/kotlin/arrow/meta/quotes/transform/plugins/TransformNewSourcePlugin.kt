@@ -12,6 +12,7 @@ val Meta.transformNewSource: Plugin
       `class`({ name == "NewSource" }) {
         Transform.newSources(
           """
+            package arrow
             //metadebug
             class ${name}_Generated {
              fun sayHi() = println("Hi!")

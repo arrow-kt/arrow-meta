@@ -16,6 +16,7 @@ class TransformNewSourceTest {
       },
       assert = { quoteFileMatches("NewSource_Generated.kt",
         """
+           package arrow
            class NewSource_Generated {
             fun sayHi() = println("Hi!")
            }
