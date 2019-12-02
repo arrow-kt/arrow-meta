@@ -66,6 +66,7 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
  * import org.jetbrains.kotlin.descriptors.CallableDescriptor
  * import org.jetbrains.kotlin.builtins.KotlinBuiltIns
  * import org.jetbrains.kotlin.types.KotlinType
+ * import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
  *
  * fun <F : CallableDescriptor> F.returnsOnTypeConstructor(
  *   types: KotlinBuiltIns.() -> List<KotlinType>
