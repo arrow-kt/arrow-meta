@@ -120,6 +120,36 @@ sealed class Transform<out K : KtElement> {
     val transforms: ArrayList<Transform<K>>
   ) : Transform<K>()
   
+  /**
+   * A Transform that allows code generation. See below:
+   *
+   * ```kotlin:ank:silent
+   * import arrow.meta.Meta
+   * import arrow.meta.Plugin
+   * import arrow.meta.invoke
+   * import arrow.meta.quotes.Transform
+   * import arrow.meta.quotes.`class`
+   *
+   * val Meta.transformNewSource: Plugin
+   *  get() = "Transform New Source" {
+   *   meta(
+   *    `class`({ name == "NewSource" }) {
+   *     Transform.newSources(
+   *      """
+   *      package arrow
+   *      //metadebug
+   *      class ${name}_Generated {
+   *       fun sayHi() = println("Hi!")
+   *      }
+   *      """.file("${name}_Generated")
+   *     )
+   *    }
+   *   )
+   *  }
+   *```
+   *
+   * @param files list of files to be generated
+   */
   data class NewSource<K : KtElement>(
     val files: List<File>
   ) : Transform<K>()
