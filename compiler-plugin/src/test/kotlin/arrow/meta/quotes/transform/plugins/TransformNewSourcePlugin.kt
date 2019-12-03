@@ -4,9 +4,9 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.quotes.ClassDeclaration
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.`class`
+import arrow.meta.quotes.classDeclaration
+import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -16,7 +16,7 @@ val Meta.transformNewSource: List<Plugin>
 private val Meta.transformNewSourceSingleGeneration: Plugin
   get() = "Transform New Source" {
     meta(
-      `class`({ name == "NewSource" }) {
+      classDeclaration({ name == "NewSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -33,7 +33,7 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
 private val Meta.transformNewSourceMultipleGeneration: Plugin
   get() = "Transform New Multiply Source" {
     meta(
-      `class`({ name == "NewMultiplySource" }) {
+      classDeclaration({ name == "NewMultiplySource" }) {
         Transform.newSources(
           """
             package arrow
@@ -57,7 +57,7 @@ private val Meta.transformNewSourceMultipleGeneration: Plugin
 private val Meta.transformNewSourceWithManyTransformation: Plugin
   get() = "Transform New Source With Many Transformation" {
     meta(
-      `class`({ name == "NewSourceMany" }) { c ->
+      classDeclaration({ name == "NewSourceMany" }) { c ->
         (
           changeClassVisibility("NewSourceMany", c, this)
           + removeFooPrint(c, this)
