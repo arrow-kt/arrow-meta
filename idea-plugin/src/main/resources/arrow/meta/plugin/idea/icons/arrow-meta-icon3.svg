@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="12px" height="12px" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 60.1 (88133) - https://sketch.com -->
+    <title>arrow-meta-icon3-light-12</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="12" height="12"></rect>
+    </defs>
+    <g id="arrow-meta-icon3-light-12" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="arrow-meta-icon2-dark-12" transform="translate(6.000000, 6.000000) scale(-1, 1) translate(-6.000000, -6.000000) ">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <g id="bound"></g>
+            <path d="M2.69713792,6.94153846 C3.16893279,7.2574359 3.65508664,7.69435897 4.15559946,8.25230769 L5.01713792,9.18769231 L3.74329177,10.2830769 L0.0202148438,6.14769231 L3.74329177,2.01230769 L5.01713792,3.10769231 L4.15559946,4.04307692 C3.86431741,4.35487179 3.60585587,4.61333333 3.38021484,4.81846154 C3.15457382,5.02358974 2.92072766,5.20205128 2.67867638,5.35384615 L9.34153846,5.35384615 C9.09948718,5.20205128 8.86564103,5.02358974 8.64,4.81846154 C8.41435897,4.61333333 8.15589744,4.35487179 7.86461538,4.04307692 L7.86461538,4.04307692 L7.00307692,3.10769231 L8.27692308,2.01230769 L12,6.14769231 L8.27692308,10.2830769 L7.00307692,9.18769231 L7.86461538,8.25230769 C8.36512821,7.69435897 8.85128205,7.2574359 9.32307692,6.94153846 L9.32307692,6.94153846 L2.69713792,6.94153846 Z" id="Combined-Shape" fill="#2B3940" fill-rule="nonzero" opacity="0.5" mask="url(#mask-2)"></path>
+        </g>
+    </g>
+</svg>
