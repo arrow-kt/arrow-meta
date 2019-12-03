@@ -291,12 +291,15 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
           newSource.addAll(it.second)
         }
       }
-      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) })
+      is Transform.NewSource -> newSource.addAll(transform.newSource())
       Transform.Empty -> Unit
     }
   }
   return (newSource + dummyFile).map { it.first to Writer.write(it.second) }
 }
+
+fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.File>> =
+  files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) }
 
 inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
   var dummyFile: KtFile = ktFile
@@ -308,7 +311,7 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
     when (transform) {
       is Transform.Replace -> dummyFile = changeSource(transform.replace(Converter.convertFile(dummyFile), context))
       is Transform.Remove -> dummyFile = changeSource(transform.remove(Converter.convertFile(dummyFile), context))
-      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) })
+      is Transform.NewSource -> newSource.addAll(transform.newSource())
     }
   }
   return Converter.convertFile(dummyFile) to newSource
