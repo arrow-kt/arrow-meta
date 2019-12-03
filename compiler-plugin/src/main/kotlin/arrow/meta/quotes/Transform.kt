@@ -129,12 +129,12 @@ sealed class Transform<out K : KtElement> {
    * import arrow.meta.Plugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
-   * import arrow.meta.quotes.`class`
+   * import arrow.meta.quotes.classDeclaration
    *
    * val Meta.transformNewSource: Plugin
    *  get() = "Transform New Source" {
    *   meta(
-   *    `class`({ name == "NewSource" }) {
+   *    classDeclaration({ name == "NewSource" }) {
    *     Transform.newSources(
    *      """
    *      package arrow
