@@ -11,14 +11,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
 /**
- * [DocumentationProviderSyntax] registers an extension for documentation support.
+ * [DocumentationSyntax] registers an extension for documentation support.
  * @see [Documentation](http://www.jetbrains.org/intellij/sdk/docs/reference_guide/custom_language_support/documentation.html?search=doc)
  */
-interface DocumentationProviderSyntax {
+interface DocumentationSyntax {
   /**
    * registers a [DocumentationProvider].
    * Users are now able to hover over descriptors and see the provided documentation.
-   * @see quickNavigateInfo
+   * @see quickDocumentationProvider
    */
   fun IdeMetaPlugin.addDocumentationProvider(
     quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
@@ -36,7 +36,7 @@ interface DocumentationProviderSyntax {
    * @param generateDoc returns the entire Doc
    * @param documentationElementForLink given a [link] and a [context] this function resolves the PsiElement of that link
    */
-  fun DocumentationProviderSyntax.quickDocumentationProvider(
+  fun DocumentationSyntax.quickDocumentationProvider(
     quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String?,
     generateDoc: (element: PsiElement, originalElement: PsiElement) -> String?,
     documentationElementForLink: (psiManager: PsiManager, link: String, context: PsiElement) -> PsiElement?
