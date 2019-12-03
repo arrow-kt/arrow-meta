@@ -31,9 +31,9 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
   }
 
 private val Meta.transformNewSourceMultipleGeneration: Plugin
-  get() = "Transform New Multiply Source" {
+  get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration({ name == "NewMultiplySource" }) {
+      classDeclaration({ name == "NewMultipleSource" }) {
         Transform.newSources(
           """
             package arrow

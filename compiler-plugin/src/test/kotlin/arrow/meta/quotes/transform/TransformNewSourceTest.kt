@@ -26,26 +26,26 @@ class TransformNewSourceTest {
   }
   
   @Test
-  fun `validate multiply extra files are created`() {
+  fun `validate multiple extra files are created`() {
     assertThis(CompilerTest(
       config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
-        """ class NewMultiplySource {} """.source
+        """ class NewMultipleSource {} """.source
       },
       assert = {
         allOf(
-          quoteFileMatches("NewMultiplySource_Generated.kt",
+          quoteFileMatches("NewMultipleSource_Generated.kt",
             """
                package arrow
-               class NewMultiplySource_Generated {
+               class NewMultipleSource_Generated {
                 fun sayHi() = println("Hi!")
                }
             """.source
           ),
-          quoteFileMatches("NewMultiplySource_Generated_2.kt",
+          quoteFileMatches("NewMultipleSource_Generated_2.kt",
             """
                package arrow
-               class NewMultiplySource_Generated_2 {
+               class NewMultipleSource_Generated_2 {
                 fun say(name: String) = println(name)
                }
             """.source
