@@ -14,13 +14,13 @@ video: WKR384ZeBgk
 
 # Functional companion to Kotlin's Compiler & IDE
 
-Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all it's phases bringing its full power to the community.
+Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all its phases, bringing its full power to the community.
 
-Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, automatic code refactoring,... are just a few of the use cases of the things that can be accomplished with Meta.
+Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, and automatic code refactoring are just a few of the things that can be accomplished with Meta.
 
 ## Λrrow Meta examples
 
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
 
-Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
+Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
 
