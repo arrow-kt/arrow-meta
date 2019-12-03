@@ -10,9 +10,15 @@ import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
+/**
+ * [DocumentationProviderSyntax] registers an extension for documentation support.
+ * @see [Documentation](http://www.jetbrains.org/intellij/sdk/docs/reference_guide/custom_language_support/documentation.html?search=doc)
+ */
 interface DocumentationProviderSyntax {
   /**
-   * Adds an DocumentationProvider as you know it from hovering over descriptors
+   * registers a [DocumentationProvider].
+   * Users are now able to hover over descriptors and see the provided documentation.
+   * @see quickNavigateInfo
    */
   fun IdeMetaPlugin.addDocumentationProvider(
     quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
