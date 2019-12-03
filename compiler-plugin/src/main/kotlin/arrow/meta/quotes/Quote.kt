@@ -280,12 +280,17 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
 ): List<Pair<KtFile?, String>> {
   var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
-  val saveTransformation: (Node.File, KtFile?) -> Unit = { nodeFile, file -> dummyFile = file to nodeFile }
+  val saveTransformation: (Node.File) -> Unit = { nodeFile -> dummyFile = null to nodeFile }
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second), null)
-      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second), null)
-      is Transform.Many -> saveTransformation(transform.many(this, compilerContext, match), this)
+      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second))
+      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second))
+      is Transform.Many -> {
+        transform.many(this, compilerContext, match).let {
+          saveTransformation(it.first)
+          newSource.addAll(it.second)
+        }
+      }
       is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) })
       Transform.Empty -> Unit
     }
@@ -293,18 +298,20 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
   return (newSource + dummyFile).map { it.first to Writer.write(it.second) }
 }
 
-inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Node.File {
-  var newSource: KtFile = ktFile
+inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
+  var dummyFile: KtFile = ktFile
+  val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
   var context: K? = null
-  val changeSource: (Node.File) -> KtFile = { compilerContext.changeSource(newSource, Writer.write(it), ktFile) }
+  val changeSource: (Node.File) -> KtFile = { compilerContext.changeSource(dummyFile, Writer.write(it), ktFile) }
   transforms.forEach { transform ->
-    context = processContext(newSource, match)
+    context = processContext(dummyFile, match)
     when (transform) {
-      is Transform.Replace -> newSource = changeSource(transform.replace(Converter.convertFile(newSource), context))
-      is Transform.Remove -> newSource = changeSource(transform.remove(Converter.convertFile(newSource), context))
+      is Transform.Replace -> dummyFile = changeSource(transform.replace(Converter.convertFile(dummyFile), context))
+      is Transform.Remove -> dummyFile = changeSource(transform.remove(Converter.convertFile(dummyFile), context))
+      is Transform.NewSource -> newSource.addAll(transform.files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) })
     }
   }
-  return Converter.convertFile(newSource)
+  return Converter.convertFile(dummyFile) to newSource
 }
 
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
