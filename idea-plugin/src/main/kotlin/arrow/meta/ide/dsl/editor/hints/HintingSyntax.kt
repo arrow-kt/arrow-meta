@@ -24,31 +24,120 @@ import org.jetbrains.kotlin.idea.parameterInfo.KotlinFunctionParameterInfoHandle
 import org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler
 import org.jetbrains.kotlin.idea.parameterInfo.KotlinParameterInfoWithCallHandlerBase
 import org.jetbrains.kotlin.idea.parameterInfo.KotlinTypeArgumentInfoHandlerBase
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.psi.KtTypeProjection
+import org.jetbrains.kotlin.psi.psiUtil.allChildren
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import kotlin.reflect.KClass
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
+import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtWhenExpression
 
 /**
  * Hint's are generally used with TypeInferenceAlgorithms.
  * [HintingSyntax] provides means to connect those algorithms to the ide for specified element's.
  */
 interface HintingSyntax {
+  //TODO: consider if PsiElement.selectionTextRangeOnTextEditor from the following example is universal
+
   /**
    * registers a [ExpressionTypeProvider] for [KtExpression]s.
    * Use this function to add an improved TypeInferenceAlgorithm for Kotlin to the ide.
    * [informationHint] and [expressionAt] will be executed as the user types.
+   * The following examples is a minimal version of the
+   * [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider] and targets [KtFunction]s, who are expressed as expressions.
+   *
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import com.intellij.openapi.editor.ex.util.EditorUtil
+   * import com.intellij.openapi.fileEditor.FileEditorManager
+   * import com.intellij.openapi.fileEditor.TextEditor
+   * import com.intellij.openapi.util.TextRange
+   * import com.intellij.openapi.vfs.VirtualFile
+   * import com.intellij.psi.PsiElement
+   * import org.jetbrains.kotlin.descriptors.CallableDescriptor
+   * import org.jetbrains.kotlin.psi.KtFunction
+   * import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
+   * import org.jetbrains.kotlin.renderer.DescriptorRenderer
+   * import org.jetbrains.kotlin.renderer.RenderingFormat
+   * import org.jetbrains.kotlin.resolve.BindingContext
+   * import org.jetbrains.kotlin.types.KotlinType
+   * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.expressionHints: Plugin
+   *  get() = "Hints for KtExpressions" {
+   *   meta(
+   *    addExpressionTypeProviderForKotlin(
+   *     informationHint = { expr ->
+   *      get(BindingContext.DECLARATION_TO_DESCRIPTOR, expr).safeAs<CallableDescriptor>()?.returnType
+   *       ?.let { result: KotlinType ->
+   *         typeRenderer.renderType(result)
+   *        } ?: "Type is unknown"
+   *    },
+   *    expressionAt = {
+   *      it.selectionTextRangeOnTextEditor().let { range: TextRange ->
+   *        if (!range.isEmpty)
+   *          it.parentsWithSelf.filterIsInstance<KtFunction>()
+   *            .filter { f: KtFunction -> !f.hasBlockBody() && !f.hasDeclaredReturnType() }
+   *            .run {
+   *              val element: KtFunction? = firstOrNull { f: KtFunction -> f.textRange.contains(range) }
+   *              filter { candidate: KtFunction ->
+   *                candidate.textRange?.startOffset == element?.textRange?.startOffset
+   *              }.toList() // you may noticed that this list has maximum one member
+   *            }
+   *        else emptyList()
+   *      }
+   *     }
+   *    )
+   *   )
+   *  }
+   * //sampleEnd
+   *
+   * private val IdeMetaPlugin.typeRenderer: DescriptorRenderer
+   *  get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
+   *    textFormat = RenderingFormat.HTML
+   *    classifierNamePolicy = classifierNamePolicy()
+   *  }
+   *
+   * /**
+   * * evaluates the SelectionTextRang of [PsiElement]'s`containedFile`,
+   * * when the current Editor is a [TextEditor].
+   * */
+   * private fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
+   *  containingFile?.virtualFile?.let { file: VirtualFile ->
+   *   FileEditorManager.getInstance(project)
+   *     .getSelectedEditor(file)?.safeAs<TextEditor>()?.run { EditorUtil.getSelectionInAnyMode(editor) }
+   *  } ?: TextRange.EMPTY_RANGE
+   * ```
+   * The aforementioned example [informationHint] is targeting [CallableDescriptor]s, which is sufficient for [FunctionDescriptor]s - the latter
+   * is isomorphic to the PsiElement representation [KtFunction], which has a lot less information than the `Descriptor`.
+   * In fact Kotlin describes these mechanism for specific [KtProperty]s, [KtDestructuringDeclarationEntry]s, [KtTryExpression]s, [KtWhenExpression]s, [KtIfExpression]s and other [KtElement]s.
+   * @see org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider.shouldShowType for all covered [KtElement]s
    * @param informationHint resolves and render's the Type of the evaluated expression
-   * @param expressionAt provides all [KtExpression] from a [PsiElement]
+   * @param expressionAt provides all [KtExpression]s where a TypeHint should appear
    * @param errorHint if the Type can't be detected
    * @sample [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider]
    */
   fun IdeMetaPlugin.addExpressionTypeProviderForKotlin(
     informationHint: BindingContext.(expression: KtExpression) -> String,
-    expressionAt: (elementAt: PsiElement) -> MutableList<KtExpression>,
+    expressionAt: (elementAt: PsiElement) -> List<KtExpression>,
     errorHint: String = "No expression Found",
     hasAdvancedInformation: Boolean = false,
     advancedInformation: (expression: KtExpression) -> String = Noop.string1()
@@ -62,7 +151,7 @@ interface HintingSyntax {
    */
   fun <A : PsiElement> IdeMetaPlugin.addExpressionTypeProvider(
     informationHint: (expression: A) -> String,
-    expressionAt: (elementAt: PsiElement) -> MutableList<A>,
+    expressionAt: (elementAt: PsiElement) -> List<A>,
     errorHint: String = "No expression Found",
     hasAdvancedInformation: Boolean = false,
     advancedInformation: (expression: A) -> String = Noop.string1()
@@ -72,7 +161,7 @@ interface HintingSyntax {
       object : ExpressionTypeProvider<A>() {
         override fun getInformationHint(element: A): String = informationHint(element)
         override fun hasAdvancedInformation(): Boolean = hasAdvancedInformation
-        override fun getExpressionsAt(elementAt: PsiElement): MutableList<A> = expressionAt(elementAt)
+        override fun getExpressionsAt(elementAt: PsiElement): MutableList<A> = expressionAt(elementAt).toMutableList()
         override fun getErrorHint(): String = errorHint
         override fun getAdvancedInformationHint(element: A): String = advancedInformation(element)
       }
@@ -133,12 +222,40 @@ interface HintingSyntax {
   /**
    * registers a [KotlinTypeArgumentInfoHandlerBase]
    * This extension is used for [DeclarationDescriptor]'s, the `Owner` is [KtTypeArgumentList] and the `ActualType` is [KtTypeProjection].
+   * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import org.jetbrains.kotlin.descriptors.ClassDescriptor
+   * import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
+   * import org.jetbrains.kotlin.psi.KtTypeArgumentList
+   * import org.jetbrains.kotlin.psi.KtUserType
+   * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.parameterHints: Plugin
+   *  get() =  "Hints for ClassDescriptor" {
+   *   meta(
+   *    addParameterInfoHandlerForKotlin(
+   *     fetchTypeParameters = { descriptor: ClassDescriptor -> descriptor.typeConstructor.parameters },
+   *     findParameterOwners = { argumentList: KtTypeArgumentList ->
+   *      argumentList.parent?.safeAs<KtUserType>()?.referenceExpression?.resolveMainReferenceToDescriptors()?.mapNotNull { it.safeAs<ClassDescriptor>() }
+   *     },
+   *     argumentListAllowedParentClasses = setOf(KtUserType::class.java)
+   *    )
+   *   )
+   *  }
+   * //sampleEnd
+   * ```
    * @see addParameterInfoHandlerForKotlin
+   *
    */
-  fun <Type : DeclarationDescriptor> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <Type : DeclarationDescriptor, A> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     fetchTypeParameters: (descriptor: Type) -> List<TypeParameterDescriptor>,
     findParameterOwners: (argumentList: KtTypeArgumentList) -> Collection<Type>?,
-    argumentListAllowedParentClasses: MutableSet<Class<Any>>
+    argumentListAllowedParentClasses: Set<Class<A>>
   ): ExtensionPhase =
     addParameterInfoHandler(
       object : KotlinTypeArgumentInfoHandlerBase<Type>() {
@@ -148,35 +265,69 @@ interface HintingSyntax {
         override fun findParameterOwners(argumentList: KtTypeArgumentList): Collection<Type>? =
           findParameterOwners(argumentList)
 
-        override fun getArgumentListAllowedParentClasses(): MutableSet<Class<Any>> =
-          argumentListAllowedParentClasses
+        override fun getArgumentListAllowedParentClasses(): MutableSet<Class<A>> =
+          argumentListAllowedParentClasses.toMutableSet()
       }
     )
 
   /**
    * registers a [KotlinParameterInfoWithCallHandlerBase]
    * This is used for [FunctionDescriptor]'s, the `Owner` is [ArgumentList] and the `ActualType` is [Argument]. Naturally, `Type` is a [FunctionDescriptor].
+   * The following example is for [KtLambdaArgument]s from [org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler]:
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import org.jetbrains.kotlin.lexer.KtTokens
+   * import org.jetbrains.kotlin.psi.KtCallElement
+   * import org.jetbrains.kotlin.psi.KtLambdaArgument
+   * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.parameterHints: Plugin
+   *  get() =  "Hints for FunctionDescriptor" {
+   *   meta(
+   *    addParameterInfoHandlerForKotlin(
+   *     argument = KtLambdaArgument::class,
+   *     argumentList = KtLambdaArgument::class,
+   *     actualParameters = { arrayOf(it) },
+   *     actualParametersRBraceType = KtTokens.RBRACE,
+   *     argumentListAllowedParentClasses = setOf(KtLambdaArgument::class.java),
+   *     parameterIndex = { _, argumentList ->
+   *      argumentList.parent?.safeAs<KtCallElement>()?.valueArguments?.size?.dec() ?: 0
+   *     }
+   *    )
+   *   )
+   *  }
+   * //sampleEnd
+   * ```
    * @see addParameterInfoHandlerForKotlin
    * @see KotlinParameterInfoWithCallHandlerBase and its SubType.
+   * @param parameterIndex default count's each occurrence of a [KtTokens.COMMA]
    */
   @Suppress
-  fun <ArgumentList : KtElement, Argument : KtElement> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <ArgumentList : KtElement, Argument : KtElement, A> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
     argumentList: KClass<ArgumentList>,
     argument: KClass<Argument>,
     actualParameters: (o: ArgumentList) -> Array<Argument>,
     actualParametersRBraceType: IElementType,
-    argumentListAllowedParentClasses: MutableSet<Class<Any>>
+    argumentListAllowedParentClasses: Set<Class<A>>,
+    parameterIndex: (ctx: UpdateParameterInfoContext, argumentList: ArgumentList) -> Int =
+      { ctx, list -> list.allChildren.takeWhile { it.startOffset < ctx.offset }.count { it.node.elementType == KtTokens.COMMA } }
   ): ExtensionPhase =
     addParameterInfoHandler(
       object : KotlinParameterInfoWithCallHandlerBase<ArgumentList, Argument>(argumentList, argument) {
+        override fun getParameterIndex(context: UpdateParameterInfoContext, argumentList: ArgumentList): Int =
+          parameterIndex(context, argumentList)
+
         override fun getActualParameters(o: ArgumentList): Array<Argument> =
           actualParameters(o)
 
         override fun getActualParametersRBraceType(): IElementType =
           actualParametersRBraceType
 
-        override fun getArgumentListAllowedParentClasses(): MutableSet<Class<Any>> =
-          argumentListAllowedParentClasses
+        override fun getArgumentListAllowedParentClasses(): MutableSet<Class<A>> =
+          argumentListAllowedParentClasses.toMutableSet()
       }
     )
 
@@ -252,4 +403,17 @@ interface HintingSyntax {
           findElementForParameterInfo(context)
       }
     )
+
+  /**
+   * Used to modify a [DescriptorRenderer] for `TypeHinting`
+   */
+  fun HintingSyntax.classifierNamePolicy(
+    render: (classifier: ClassifierDescriptor, renderer: DescriptorRenderer) -> String =
+      { classifier, renderer ->
+        if (DescriptorUtils.isAnonymousObject(classifier)) "&lt;anonymous object&gt;" else ClassifierNamePolicy.SHORT.renderClassifier(classifier, renderer)
+      }
+  ): ClassifierNamePolicy =
+    object : ClassifierNamePolicy {
+      override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String = render(classifier, renderer)
+    }
 }
