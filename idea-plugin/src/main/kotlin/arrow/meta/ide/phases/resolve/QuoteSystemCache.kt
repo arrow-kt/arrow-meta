@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FileTypeIndex
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -84,6 +86,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         val doc = event.document
         val psiMgr = PsiDocumentManager.getInstance(project)
         val psiFile = psiMgr.getPsiFile(doc)
+
+        // fixme skip if psiFile doesn't belong to the current project
+
         if (psiFile is KtFile && psiFile.virtualFile != null && psiFile.isPhysical && !psiFile.isCompiled) {
           if (FileIndexFacade.getInstance(project).isInSourceContent(psiFile.virtualFile)) {
             LOG.info("transforming ${psiFile.text} after change in editor")
@@ -113,12 +118,8 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * Collects all Kotlin files of the current project which are source files for Meta transformations.
    */
   private fun collectProjectKtFiles(): List<VirtualFile> {
-    val files = mutableListOf<VirtualFile>()
-    ProjectRootManager.getInstance(project).fileIndex.iterateContent { file ->
-      if (file.fileType is KotlinFileType && file.isInLocalFileSystem && file.isValid) {
-        files.add(file)
-      }
-      true
+    val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, project.projectScope()).filter {
+      it.isValid && it.isInLocalFileSystem
     }
     LOG.info("collectKtFiles(): ${files.size} kotlin files found for project ${project.name}")
     return files
@@ -137,6 +138,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   private fun List<VirtualFile>.toKtFiles(): List<KtFile> {
     return mapNotNull {
       when {
+        // fixme make sure that files belong to the current project?
         it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType ->
           // fixme use ViewProvider's files instead?
           psiManager.findFile(it) as? KtFile
