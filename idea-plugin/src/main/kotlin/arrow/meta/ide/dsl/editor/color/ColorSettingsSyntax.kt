@@ -25,19 +25,178 @@ import javax.swing.Icon
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
- * [ColorSettingsPage] add's a custom page in the user Settings under "Color and Fonts" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
- * Consequently, plugin developer's may refine [SyntaxHighlighter]'s with a [ColorSettingsPage] for a better ide experience.
- * Hence, a [ColorSettingsPage] may act as a visual template for the SyntaxHighlighter.
+ * [ColorSettingsPage] add's a custom page in the user Settings under "Color Scheme" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
+ * Consequently, `ColorSettingsPages` allow users to customize the colors of [SyntaxHighlighter]'s for a better ide experience.
+ * They may represent a visual template in the ide, before the actual [SyntaxHighlighter] is created.
+ * Hence, a [ColorSettingsPage] enhances the underlying [SyntaxHighlighter] visually. Though, there are other use-cases, for example in `Themes`.
  */
 interface ColorSettingsSyntax {
   // TODO("add `toColorSettingsPage` from a SyntaxHighlighter")
-  // TODO: Add an example
 
   /**
-   * registers a ColorSettingsPanel.
-   * The following example will add `KeyWords`, `Numbers` and `Modifiers` to the list of attributeDescriptors.
+   * registers a [ColorSettingsPage].
+   * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
+   * ```kotlin:ank
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import com.intellij.psi.codeStyle.DisplayPriority
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
+   * import org.jetbrains.kotlin.idea.KotlinLanguage
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
+   *   meta(
+   *    addColorSettingsPage(
+   *     displayName = "MetaColorSettings",
+   *     priority = DisplayPriority.KEY_LANGUAGE_SETTINGS,
+   *     language = KotlinLanguage.INSTANCE,
+   *     highlighter = KotlinHighlighter(),
+   *     demoText = """
+   *       interface Mappable<F>
+   *       val d = 7
+   *       suspend fun hello(str: String): Unit = println(str)
+   *       val help: Unit = hello(str = "help")
+   *      """.trimIndent(),
+   *     additionalHighlightingTags = mutableMapOf()
+   *    )
+   *   )
+   *  }
+   *  //sampleEnd
+   * ```
+   * Even though [additionalHighlightingTags] is empty the standard Kotlin `Keywords`: `fun`, `interface` and `val` are highlighted.
+   * That is evident due to [KotlinHighlighter], where those `Tokens` are already registered.
+   * Therefore, a rich `SyntaxHighlighter` is sufficient enough to highlight the whole scope of the [demoText], without tagging them in [demoText].
+   * @see org.jetbrains.kotlin.lexer.KtTokens
+   * Nonetheless, the `suspend` Keyword is not included in [KotlinHighlighter], nor is it tagged in [demoText] thus `suspend` and the interface identifier are not highlighted.
+   * ---
+   * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
+   * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
+   * ```kotlin:ank
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import com.intellij.psi.codeStyle.DisplayPriority
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
+   * import org.jetbrains.kotlin.idea.KotlinLanguage
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
+   *   meta(
+   *    addColorSettingsPage(
+   *     displayName = "MetaColorSettings",
+   *     priority = DisplayPriority.KEY_LANGUAGE_SETTINGS,
+   *     language = KotlinLanguage.INSTANCE,
+   *     highlighter = KotlinHighlighter(),
+   *     demoText = """
+   *      interface <$Interface>Mappable</$Interface><F>
+   *      val d = 7
+   *      <$Keyword>suspend</$Keyword> fun hello(str: String): Unit = println(str)
+   *      val help: Unit = hello(<$NamedArgument>str</$NamedArgument> = "hello")
+   *     """.trimIndent(),
+   *     additionalHighlightingTags = mutableMapOf(
+   *      NamedArgument to KotlinHighlightingColors.NAMED_ARGUMENT,
+   *      Interface to DefaultLanguageHighlighterColors.INTERFACE_NAME,
+   *      Keyword to DefaultLanguageHighlighterColors.KEYWORD
+   *     )
+   *    )
+   *   )
+   *  }
+   *
+   * val Keyword: String = "keyword"
+   * val Interface: String = "Interface"
+   * val NamedArgument: String = "Named argument"
+   *  //sampleEnd
+   * ```
+   *
+   * [ColorSettingsPage] facilitates to highlight new elements in the Language, but it does not register tagged Tokens in [demoText] to the Language.
+   *
+   * ```kotlin:ank
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import com.intellij.psi.codeStyle.DisplayPriority
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
+   * import org.jetbrains.kotlin.idea.KotlinLanguage
+   *
+   * val Keyword: String = "keyword"
+   * val Interface: String = "Interface"
+   * val NamedArgument: String = "Named argument"
+   * //sampleStart
+   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
+   *   meta(
+   *    addColorSettingsPage(
+   *     displayName = "MetaColorSettings",
+   *     priority = DisplayPriority.KEY_LANGUAGE_SETTINGS,
+   *     language = KotlinLanguage.INSTANCE,
+   *     highlighter = KotlinHighlighter(),
+   *     demoText = """
+   *       interface <$Interface>Functor</$Interface><F>
+   *       <$Keyword>extension</$Keyword> val semiSeven = 7.semigroup()
+   *       fun <F> hello(ctx: Env<F> = <$Keyword>given</$Keyword>): Kind<F, Unit> =
+   *       putStrLn(<$NamedArgument>str</$NamedArgument> = "hello")
+   *       <$Keyword>remote</$Keyword> fun distributed(): IO<Response>
+   *      """.trimIndent(),,
+   *     additionalHighlightingTags = mutableMapOf(
+   *      NamedArgument to KotlinHighlightingColors.NAMED_ARGUMENT,
+   *      Interface to DefaultLanguageHighlighterColors.INTERFACE_NAME,
+   *      Keyword to DefaultLanguageHighlighterColors.KEYWORD
+   *     )
+   *    )
+   *   )
+   *  }
+   *  //sampleEnd
+   * ```
+   *
+   * We can achieve a similar visual representation with an empty instance [PlainSyntaxHighlighter] - which is the default for [highlighter].
+   *
+   * ```kotlin:ank
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import com.intellij.psi.codeStyle.DisplayPriority
+   * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
+   *
+   * val Keyword: String = "keyword"
+   * val Interface: String = "Interface"
+   * val NamedArgument: String = "Named argument"
+   * val Number: String = "Number"
+   * val String: String = "String"
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.nothingIdePlugin: Plugin
+   *  get() = "ColorSettingsPage" {
+   *   meta(
+   *    addColorSettingsPage(
+   *     displayName = "PlainColorSettings",
+   *     priority = DisplayPriority.LANGUAGE_SETTINGS,
+   *     demoText = """
+   *      <$Keyword>interface</$Keyword> <$Interface>Mappable</$Interface><F>
+   *      <$Keyword>extension</$Keyword> <$Keyword>val</$Keyword> semiSeven = <$Number>7</$Number>.semigroup()
+   *      <$Keyword>fun</$Keyword> hello(str: String): Unit = println(str)
+   *      <$Keyword>extension</$Keyword> <$Keyword>val</$Keyword> help: Unit = hello(<$NamedArgument>str</$NamedArgument> = <$String>"hello"</$String>)
+   *      <$Keyword>remote</$Keyword> <$Keyword>fun</$Keyword> distributed(): IO<Response>
+   *     """.trimIndent(),
+   *     additionalHighlightingTags = mutableMapOf(
+   *      NamedArgument to KotlinHighlightingColors.NAMED_ARGUMENT,
+   *      Interface to DefaultLanguageHighlighterColors.INTERFACE_NAME,
+   *      Keyword to DefaultLanguageHighlighterColors.KEYWORD,
+   *      Number to DefaultLanguageHighlighterColors.NUMBER,
+   *      String to DefaultLanguageHighlighterColors.STRING
+   *     )
+   *    )
+   *   )
+   *  }
+   *  //sampleEnd
+   * ```
    * Ideally, constructing a [ColorSettingsPage] from a [SyntaxHighlighter] should be fairly linear as the latter already defines a Mapping between `Tokens` and `TextAttributes` in [SyntaxHighlighter.getTokenHighlights].
-   * [ColorSettingsPage] reuses the same logic other than to name each [TextAttributesKey] and the ability to manipulate the Editor.
+   * To conclude, [ColorSettingsPage] improves upon the underlying [SyntaxHighlighter], in a way to use [TextAttributesKey]s as tags, the ability to manipulate the ide and index Tokens, to be later then processed by other `Extensions`.
    * @see [ColorSettingsPage]
    * @see [colorSettingsPage]
    * @param highlighter an empty default instance is [PlainSyntaxHighlighter]
@@ -46,19 +205,20 @@ interface ColorSettingsSyntax {
   fun IdeMetaPlugin.addColorSettingsPage(
     displayName: String,
     priority: DisplayPriority,
-    additionalHighlightingTagToDescriptorMap: MutableMap<String, TextAttributesKey>,
-    attributesDescriptor: Array<AttributesDescriptor>,
+    additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
+    attributesDescriptor: Array<AttributesDescriptor> =
+      additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
     demoText: String = FontEditorPreview.getIDEDemoText(),
-    highlighter: SyntaxHighlighter = KotlinHighlighter(),
+    highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
     isRainbowType: (type: TextAttributesKey) -> Boolean = Noop.boolean1False,
-    language: Language? = KotlinLanguage.INSTANCE,
+    language: Language? = null,
     customize: EditorEx.() -> Unit = Noop.effect1
   ): ExtensionPhase =
     extensionProvider(
       ColorSettingsPage.EP_NAME,
-      colorSettingsPage(displayName, priority, additionalHighlightingTagToDescriptorMap, attributesDescriptor, demoText, highlighter, icon, colorDescriptor, isRainbowType, language, customize)
+      colorSettingsPage(displayName, priority, additionalHighlightingTags, attributesDescriptor, demoText, highlighter, icon, colorDescriptor, isRainbowType, language, customize)
     )
 
   /**
@@ -74,14 +234,15 @@ interface ColorSettingsSyntax {
   fun ColorSettingsSyntax.colorSettingsPage(
     displayName: String,
     priority: DisplayPriority,
-    additionalHighlightingTagToDescriptorMap: MutableMap<String, TextAttributesKey>,
-    attributesDescriptor: Array<AttributesDescriptor>,
+    additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
+    attributesDescriptor: Array<AttributesDescriptor> =
+      additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
     demoText: String = FontEditorPreview.getIDEDemoText(),
-    highlighter: SyntaxHighlighter = KotlinHighlighter(),
+    highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
     isRainbowType: (type: TextAttributesKey) -> Boolean = Noop.boolean1False,
-    language: Language? = KotlinLanguage.INSTANCE,
+    language: Language? = null,
     customize: EditorEx.() -> Unit = Noop.effect1
   ): ColorSettingsPage =
     object : ColorSettingsPage, RainbowColorSettingsPage, InspectionColorSettingsPage, DisplayPrioritySortable, EditorCustomization {
@@ -99,7 +260,7 @@ interface ColorSettingsSyntax {
       override fun getPriority(): DisplayPriority = priority
       override fun customize(editor: EditorEx): Unit = customize(editor)
       override fun getAdditionalHighlightingTagToDescriptorMap(): MutableMap<String, TextAttributesKey> =
-        additionalHighlightingTagToDescriptorMap
+        additionalHighlightingTags
     }
 
   /**
