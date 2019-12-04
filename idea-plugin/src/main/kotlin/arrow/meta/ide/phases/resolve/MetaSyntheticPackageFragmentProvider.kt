@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyAnnotationDescriptor
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyAnnotations
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
@@ -45,11 +44,10 @@ class MetaSyntheticPackageFragmentProvider(project: Project) : PackageFragmentPr
     DescriptorCachePackageFragmentProvider(module)
 
   inner class DescriptorCachePackageFragmentProvider(private val module: ModuleDescriptor) : PackageFragmentProvider {
-    override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-      cache.packageList().map { packageName ->
-        // fixme return only elements which are in package fqName?
-        BuildCachePackageFragmentDescriptor(module, packageName)
-      }
+    override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
+      // fixme always provide a value or only when a cached value exists?
+      return listOf(BuildCachePackageFragmentDescriptor(module, fqName))
+    }
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
       getPackageFragments(fqName).map { it.fqName }
