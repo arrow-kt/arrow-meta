@@ -37,7 +37,7 @@ interface ColorSettingsSyntax {
   /**
    * registers a [ColorSettingsPage].
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
-   * ```kotlin:ank
+   * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
@@ -75,7 +75,7 @@ interface ColorSettingsSyntax {
    * ---
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
-   * ```kotlin:ank
+   * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
@@ -116,7 +116,7 @@ interface ColorSettingsSyntax {
    *
    * [ColorSettingsPage] facilitates to highlight new elements in the Language, but it does not register tagged Tokens in [demoText] to the Language.
    *
-   * ```kotlin:ank
+   * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
@@ -157,7 +157,7 @@ interface ColorSettingsSyntax {
    *
    * We can achieve a similar visual representation with an empty instance [PlainSyntaxHighlighter] - which is the default for [highlighter].
    *
-   * ```kotlin:ank
+   * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
