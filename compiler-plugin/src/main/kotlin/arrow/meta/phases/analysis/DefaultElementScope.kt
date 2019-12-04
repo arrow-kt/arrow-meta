@@ -14,6 +14,7 @@ import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.AnnotatedExpression
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.DotQualifiedExpression
 import arrow.meta.quotes.expression.IfExpression
 import arrow.meta.quotes.expression.IsExpression
 import arrow.meta.quotes.expression.LambdaExpression
@@ -101,8 +102,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.expression: Scope<KtExpression>
     get() = Scope(delegate.createExpression(trimMargin().trim()))
 
-  override val String.dotQualifiedExpression: Scope<KtDotQualifiedExpression>
-    get() = Scope(expression.value as KtDotQualifiedExpression)
+  override val String.dotQualifiedExpression: DotQualifiedExpression
+    get() = DotQualifiedExpression(expression.value as KtDotQualifiedExpression)
 
   override val String.expressionOrNull: Scope<KtExpression>
     get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
