@@ -20,6 +20,39 @@ options:
       - title: Index
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
+      - title: ClassOrObject
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
+
+      - title: Declaration
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
+
+      - title: Element
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
+
+      - title: WhenCondition
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
+
+      - title: Expression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
+
+      - title: ExpressionWithLabel
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
+
+      - title: LoopExpression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
+
+      - title: Filebase
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
+
+      - title: Modifierlist
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
+
+      - title: NamedDeclaration - NotStubbed
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
+
+      - title: NamedDeclaration - Stub
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
+
   - title: Compiler API
 
     nested_options:
