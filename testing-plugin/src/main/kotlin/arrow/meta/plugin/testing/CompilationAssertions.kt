@@ -12,13 +12,12 @@ private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
 
 /**
- * Allows to check if a compiler plugin is working as expected.
+ * Allows checking if a compiler plugin is working as expected.
  *
- * It's not necessary to write assertions with actual and expected behaviour.
- * Just indicating the expected behaviour in a [CompilerTest], assertions will be built automatically
- * from it.
+ * It's not necessary to write assertions with actual and expected behavior.
+ * Assertions will be built automatically from simply indicating the expected behavior in a [CompilerTest].
  *
- * Running the compilation from the provided configuration and getting the results (status, classes and output
+ * Running the compilation from the provided configuration and getting the results (status, classes, and output
  * messages) is possible thanks to [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing),
  * a library developed by [Thilo Schuchort](https://github.com/tschuchortdev).
  *
@@ -35,7 +34,7 @@ private const val VARIABLE = "[^(]+"
  * ```
  *
  * Compilation will be executed with the provided configuration (`config`) and code snippets (`code`). Then,
- * the expected behaviour (`assert`) will be checked.
+ * the expected behavior (`assert`) will be checked.
  *
  * For instance:
  *
@@ -52,7 +51,7 @@ private const val VARIABLE = "[^(]+"
  *  )
  * ```
  *
- * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behaviour
+ * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behavior
  * @see [CompilerTest]
  */
 fun assertThis(compilerTest: CompilerTest): Unit =
