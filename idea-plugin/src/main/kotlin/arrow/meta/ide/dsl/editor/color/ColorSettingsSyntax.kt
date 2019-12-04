@@ -21,6 +21,7 @@ import com.intellij.ui.EditorCustomization
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.highlighter.KotlinColorSettingsPage
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import javax.swing.Icon
 
 /**
@@ -70,7 +71,7 @@ interface ColorSettingsSyntax {
    * That is evident due to [KotlinHighlighter], where those `Tokens` are already registered.
    * Therefore, a rich `SyntaxHighlighter` is sufficient enough to highlight the whole scope of the [demoText], without tagging them in [demoText].
    * @see org.jetbrains.kotlin.lexer.KtTokens
-   * Nonetheless, the `suspend` Keyword is not included in [KotlinHighlighter], nor is it tagged in [demoText] thus `suspend` and the interface identifier are not highlighted.
+   * Nonetheless, the `suspend` Keyword is not included in [KotlinHighlighter], nor is it tagged in [demoText] thus `suspend`, the interface identifier and `Named arguments` are not highlighted.
    * ---
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
@@ -140,7 +141,7 @@ interface ColorSettingsSyntax {
    *       interface <$Interface>Functor</$Interface><F>
    *       <$Keyword>extension</$Keyword> val semiSeven = 7.semigroup()
    *       fun <F> hello(ctx: Env<F> = <$Keyword>given</$Keyword>): Kind<F, Unit> =
-   *       putStrLn(<$NamedArgument>str</$NamedArgument> = "hello")
+   *         putStrLn(<$NamedArgument>str</$NamedArgument> = "hello")
    *       <$Keyword>remote</$Keyword> fun distributed(): IO<Response>
    *      """.trimIndent(),,
    *     additionalHighlightingTags = mutableMapOf(
@@ -170,8 +171,8 @@ interface ColorSettingsSyntax {
    * val String: String = "String"
    *
    * //sampleStart
-   * val IdeMetaPlugin.nothingIdePlugin: Plugin
-   *  get() = "ColorSettingsPage" {
+   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   *  get() = "Plain ColorSettingsPage" {
    *   meta(
    *    addColorSettingsPage(
    *     displayName = "PlainColorSettings",
@@ -199,6 +200,8 @@ interface ColorSettingsSyntax {
    * To conclude, [ColorSettingsPage] improves upon the underlying [SyntaxHighlighter], in a way to use [TextAttributesKey]s as tags, the ability to manipulate the ide and index Tokens, to be later then processed by other `Extensions`.
    * @see [ColorSettingsPage]
    * @see [colorSettingsPage]
+   * @see TextAttributesKey
+   * @see DefaultLanguageHighlighterColors
    * @param highlighter an empty default instance is [PlainSyntaxHighlighter]
    * @sample [KotlinColorSettingsPage]
    */
