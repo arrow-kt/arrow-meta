@@ -14,6 +14,7 @@ import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.AnnotatedExpression
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.DotQualifiedExpression
 import arrow.meta.quotes.expression.IfExpression
 import arrow.meta.quotes.expression.IsExpression
 import arrow.meta.quotes.expression.LambdaExpression
@@ -101,8 +102,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.expression: Scope<KtExpression>
     get() = Scope(delegate.createExpression(trimMargin().trim()))
 
-  override val String.dotQualifiedExpression: Scope<KtDotQualifiedExpression>
-    get() = Scope(expression.value as KtDotQualifiedExpression)
+  override val String.dotQualifiedExpression: DotQualifiedExpression
+    get() = DotQualifiedExpression(expression.value as KtDotQualifiedExpression)
 
   override val String.expressionOrNull: Scope<KtExpression>
     get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
@@ -173,10 +174,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ObjectDeclaration(delegate.createCompanionObject())
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
-
-  override fun file(fileName: String, text: String): File =
-    File(delegate.createFile(fileName, text))
-
+  
   override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
@@ -422,6 +420,8 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
+  
+  override fun String.file(fileName: String): File = File(delegate.createPhysicalFile("$fileName.kt", this.trimIndent()))
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral(expression.value as KtFunctionLiteral)
