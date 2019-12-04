@@ -12,8 +12,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -30,9 +28,6 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.util.*
-
-const val META_DEBUG_COMMENT = "//metadebug"
-const val DEFAULT_META_FILE_NAME = "Source.kt"
 
 /**
  * ### Quote Templates DSL
@@ -164,10 +159,9 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
         files.forEach {
-          if (it.text.contains(META_DEBUG_COMMENT)) {
-              File(files.first { it.name == DEFAULT_META_FILE_NAME }.virtualFilePath.let { path ->
-                  if (it.name != DEFAULT_META_FILE_NAME) path.substring(0, path.lastIndex - 2) + "_${it.name}" else path
-              } + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
+          val fileText = it.text
+          if (fileText.contains("//metadebug")) {
+            File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
             println("""|
             |ktFile: $it
             |----
@@ -245,7 +239,7 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
 inline fun <reified K : KtElement> CompilerContext.updateFiles(
   result: java.util.ArrayList<KtFile>,
   fileMutations: List<Pair<KtFile, java.util.ArrayList<Transform<K>>>>,
-  noinline match: K.() -> Boolean
+  match: K.() -> Boolean
 ) {
   fileMutations.forEach { (file, mutations) ->
     val newFile = updateFile(mutations, file, match)
@@ -256,65 +250,48 @@ inline fun <reified K : KtElement> CompilerContext.updateFiles(
 inline fun <reified K : KtElement> CompilerContext.updateFile(
   mutations: java.util.ArrayList<Transform<K>>,
   file: KtFile,
-  noinline match: K.() -> Boolean
-): List<KtFile> =
+  match: K.() -> Boolean
+): KtFile =
   if (mutations.isNotEmpty()) {
     transformFile(file, mutations, match)
-  } else listOf(file)
+  } else file
 
 inline fun <reified K : KtElement> CompilerContext.transformFile(
   ktFile: KtFile,
   mutations: java.util.ArrayList<Transform<K>>,
-  noinline match: K.() -> Boolean
-): List<KtFile> {
-  val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map { (it.first ?: ktFile) to it.second }
-  val newFile = newSource.map { source -> changeSource(source.first, source.second, ktFile) }
+  match: K.() -> Boolean
+): KtFile {
+  val newSource = ktFile.sourceWithTransformationsAst(mutations, this, match)
+  val newFile = newSource?.let { changeSource(ktFile, it) } ?: ktFile
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
 
-inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
-  mutations: ArrayList<Transform<K>>,
-  compilerContext: CompilerContext,
-  match: K.() -> Boolean
-): List<Pair<KtFile?, String>> {
-  var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
-  val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
-  val saveTransformation: (Node.File) -> Unit = { nodeFile -> dummyFile = null to nodeFile }
+inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(mutations: ArrayList<Transform<K>>, compilerContext: CompilerContext, match: K.() -> Boolean): String? {
+  var dummyFile = Converter.convertFile(this)
   mutations.forEach { transform ->
     when (transform) {
-      is Transform.Replace -> saveTransformation(transform.replace(dummyFile.second))
-      is Transform.Remove -> saveTransformation(transform.remove(dummyFile.second))
-      is Transform.Many -> {
-        transform.many(this, compilerContext, match).let {
-          saveTransformation(it.first)
-          newSource.addAll(it.second)
-        }
-      }
-      is Transform.NewSource -> newSource.addAll(transform.newSource())
+      is Transform.Replace -> dummyFile = transform.replace(dummyFile)
+      is Transform.Remove -> dummyFile = transform.remove(dummyFile)
+      is Transform.Many -> dummyFile = transform.many(this, compilerContext, match)
       Transform.Empty -> Unit
     }
   }
-  return (newSource + dummyFile).map { it.first to Writer.write(it.second) }
+  return Writer.write(dummyFile)
 }
 
-fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.File>> =
-  files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) }
-
-inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
-  var dummyFile: KtFile = ktFile
-  val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
+inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Node.File {
+  var newSource: KtFile = ktFile
   var context: K? = null
-  val changeSource: (Node.File) -> KtFile = { compilerContext.changeSource(dummyFile, Writer.write(it), ktFile) }
+  val changeSource: (Node.File) -> KtFile = { compilerContext.changeSource(newSource, Writer.write(it)) }
   transforms.forEach { transform ->
-    context = processContext(dummyFile, match)
+    context = processContext(newSource, match)
     when (transform) {
-      is Transform.Replace -> dummyFile = changeSource(transform.replace(Converter.convertFile(dummyFile), context))
-      is Transform.Remove -> dummyFile = changeSource(transform.remove(Converter.convertFile(dummyFile), context))
-      is Transform.NewSource -> newSource.addAll(transform.newSource())
+      is Transform.Replace -> newSource = changeSource(transform.replace(Converter.convertFile(newSource), context))
+      is Transform.Remove -> newSource = changeSource(transform.remove(Converter.convertFile(newSource), context))
     }
   }
-  return Converter.convertFile(dummyFile) to newSource
+  return Converter.convertFile(newSource)
 }
 
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
@@ -350,24 +327,16 @@ inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() ->
     K::class.java.isAssignableFrom(it.javaClass)
 }.firstOrNull { (it as K).match() } as K
 
-fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
+fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: KtFile) {
   val fileIndex = indexOf(file)
   removeAt(fileIndex)
-  addAll(fileIndex, newFile)
+  add(fileIndex, newFile)
 }
 
-fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
-  var virtualFile = rootFile.virtualFile
-  if (file.name != DEFAULT_META_FILE_NAME) {
-      val directory = File("build/generated/source/kapt/main")
-      directory.mkdirs()
-      virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
-          writeText(file.text)
-      })
-  }
-  return cli {
+fun CompilerContext.changeSource(file: KtFile, newSource: String): KtFile =
+  cli {
     KtFile(
-      viewProvider = MetaFileViewProvider(file.manager, virtualFile) {
+      viewProvider = MetaFileViewProvider(file.manager, file.virtualFile) {
         it?.also {
           it.setText(newSource)
         }
@@ -377,7 +346,6 @@ fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFi
   } ?: ide {
     ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file)
   }!!
-}
 
 @Suppress("UNCHECKED_CAST")
 inline operator fun <reified A, B> A.get(field: String): B {
