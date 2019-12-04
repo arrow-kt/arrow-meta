@@ -66,8 +66,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {
       is SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter -> phase.run {
-        SyntaxHighlighterFactory.LANGUAGE_FACTORY
-          .addExplicitExtension(KotlinLanguage.INSTANCE, factory)
+        SyntaxHighlighterFactory.LANGUAGE_FACTORY.addExplicitExtension(language, factory)
       }
     }
 
