@@ -21,37 +21,37 @@ options:
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
       - title: ClassOrObject
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
 
       - title: Declaration
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
 
       - title: Element
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
 
       - title: WhenCondition
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
 
       - title: Expression
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
 
       - title: ExpressionWithLabel
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
 
       - title: LoopExpression
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
 
       - title: Filebase
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
 
       - title: Modifierlist
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
 
       - title: NamedDeclaration - NotStubbed
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
 
       - title: NamedDeclaration - Stub
-        url: docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
 
   - title: Compiler API
 
