@@ -16,14 +16,14 @@ import javax.swing.Icon
  * Put differently, [AnAction] contains a computation which can be evaluated on-demand by the user.
  * When a user triggers [AnAction] the [AnAction.actionPerformed] function is executed.
  * [AnAction] can form starkly different purposes, from changing CompilerConfigurations in the editor to opening UI element's with media content.
- * Here are a few Links to the Action System from IntelliJ's DevGuid:
+ * Here are a few Links to the Action System from IntelliJ's `Development Guide`:
  * - [Plugin Actions](http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_actions.html?search=act)
  * - [Executing and updating actions](http://www.jetbrains.org/intellij/sdk/docs/basics/action_system.html?search=act#executing-and-updating-actions)
  */
 interface AnActionSyntax : AnActionUtilitySyntax {
 
   /**
-   * Registers the [action] with [actionId] as it's identifier.
+   * Registers the [action] with [actionId] as its identifier.
    * ```kotlin:ank:playground
    * import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
@@ -40,7 +40,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *     addAnAction(
    *      actionId = "Unique",
    *      action = anAction(
-   *       icon = ArrowIcons.ICON1,
+   *       title = "MetaAction",
    *       actionPerformed = { e: AnActionEvent ->
    *        e.project?.let { project: Project -> ToolWindowManager.getInstance(project)?.getToolWindow("MetaToolWindow")?.activate(null) }
    *        }
@@ -51,8 +51,8 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *  }
    * ```
    *
-   * This Action `Unique` has an Icon and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindow is registered.
-   * User's are now able to search this Action through his [actionId]
+   * `MetaAction` is registered with the id `Unique` and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindow is registered.
+   * User's are able to search this Action with its title.
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations
    */

@@ -18,11 +18,12 @@ import arrow.meta.dsl.analysis.AnalysisSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
+import com.intellij.ide.IconProvider
 
 /**
  * The [ExtensionProvider] phase sits at the core of the main API in IntelliJ's Platform for ExtensionPoints.
- * ExtensionPoints regardless of their nature are means to interact with the editor.
- * The [ExtensionProviderSyntax] allows plugin developers to define, add and manipulate workflow's in the the editor environment explicitly without specifying those changes in the `plugin.xml`.
+ * ExtensionPoints regardless of their nature are means to interact with the ide.
+ * The [ExtensionProviderSyntax] allows plugin developers to define, compose and manipulate workflow's in the ide environment explicitly without specifying those changes in the `plugin.xml`.
  * The latter is true for all Jetbrains products, which are based on the IntelliJ Platform API, e.g.: `Rider`, `MPS`, `CLion`, etc.
  * It's polymorphic shape facilitates existing and newly created Extensions, for example:
  * [LanguageExtension](https://github.com/JetBrains/intellij-community/blob/master/platform/platform-resources/src/META-INF/LangExtensionPoints.xml),
@@ -30,9 +31,11 @@ import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
  * [RefactoringExtensions](https://github.com/JetBrains/intellij-community/blob/master/platform/platform-resources/src/META-INF/RefactoringExtensionPoints.xml) and many more.
  */
 interface ExtensionProviderSyntax {
+  // TODO: provide complementary methods to integrate [E] with the editor. This requires further integrations to internals
+  // TODO: Check out [org.jetbrains.kotlin.resolve.checkers.PlatformDiagnosticSuppressor] for further improvements in [addDiagnosticSuppressor]
   /**
-   * The [extensionProvider] function allows you to add concrete implementations to ExtensionPoints.
-   * Or define higher-level API's such as [IconProviderSyntax.addIcon], which adds a FileIcon to a File and StructureView.
+   * The [extensionProvider] function registers a concrete implementation for `Extensions` with an [ExtensionPointName].
+   * Or builds higher-level API's such as [IconProviderSyntax.addIcon], which registers a FileIcon to a File and StructureView using [IconProvider.EXTENSION_POINT_NAME].
    * ```kotlin:ank
    * import arrow.meta.internal.Noop
    * import arrow.meta.phases.ExtensionPhase
@@ -59,7 +62,7 @@ interface ExtensionProviderSyntax {
    *   )
    * //sampleEnd
    * ```
-   * More importantly, using [extensionProvider] and all it's variations lift's any ide workflow for `Extension's` to `Meta` and is evident
+   * More importantly, using [extensionProvider] and all its variations lifts any ide workflow for `Extension's` to `Meta` and is evident
    * to all derived instances like [LineMarkerSyntax], [InspectionSyntax], [SearchSyntax] and many more.
    * Hence, if a costume workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
    * @param impl is the concrete implementation
@@ -74,7 +77,7 @@ interface ExtensionProviderSyntax {
     ExtensionProvider.AddExtension(EP_NAME, impl, loadingOrder)
 
   /**
-   * The [extensionProvider] extension adds concrete implementations for [LanguageExtension]'s.
+   * The [extensionProvider] extension registers a concrete implementation for [LanguageExtension]'s.
    * @see [extensionProvider] KDoc's
    */
   fun <E> IdeMetaPlugin.extensionProvider(
@@ -84,7 +87,7 @@ interface ExtensionProviderSyntax {
     ExtensionProvider.AddLanguageExtension(LE, impl)
 
   /**
-   * The [extensionProvider] function adds concrete implementations for [FileTypeExtension]'s.
+   * The [extensionProvider] function registers a concrete implementation for [FileTypeExtension]'s.
    * @see [extensionProvider] KDoc's
    */
   fun <E> IdeMetaPlugin.extensionProvider(
@@ -94,7 +97,7 @@ interface ExtensionProviderSyntax {
     ExtensionProvider.AddFileTypeExtension(FE, impl)
 
   /**
-   * The [extensionProvider] extension adds concrete implementations for [ClassExtension]'s.
+   * The [extensionProvider] extension registers a concrete implementation for [ClassExtension]'s.
    * @see [extensionProvider] KDoc's
    */
   fun <E> IdeMetaPlugin.extensionProvider(
@@ -115,7 +118,7 @@ interface ExtensionProviderSyntax {
     ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass)
 
   /**
-   * Interestingly enough, [ExtensionProvider] allow's us to define new workflow's and register them to the editor.
+   * Interestingly enough, [ExtensionProvider] registers new workflows to the ide.
    * Given an example Provider:
    * ```kotlin:ank
    * import com.intellij.openapi.extensions.ExtensionPointName
@@ -156,7 +159,6 @@ interface ExtensionProviderSyntax {
    *   }
    * //sampleEnd
    * ```
-   * TODO: provide complementary methods to integrate [E] with the editor. This requires further integrations to internals
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
@@ -177,7 +179,6 @@ interface ExtensionProviderSyntax {
   /**
    * The editor integration for [AnalysisSyntax.suppressDiagnostic].
    * @param f reuse your implementation from the compiler-plugin
-   * TODO: Check out [org.jetbrains.kotlin.resolve.checkers.PlatformDiagnosticSuppressor] for further improvements
    */
   fun IdeMetaPlugin.addDiagnosticSuppressor(
     f: (diagnostic: Diagnostic) -> Boolean
