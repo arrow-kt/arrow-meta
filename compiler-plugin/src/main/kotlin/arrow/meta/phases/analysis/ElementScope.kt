@@ -145,11 +145,6 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
-  fun file(
-    fileName: String,
-    text: String
-  ): File
-
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
   fun property(
@@ -322,6 +317,8 @@ interface ElementScope {
   val String.`return`: ReturnExpression
 
   val String.annotatedExpression: AnnotatedExpression
+  
+  fun String.file(fileName: String): File
 
   val String.functionLiteral: FunctionLiteral
 
