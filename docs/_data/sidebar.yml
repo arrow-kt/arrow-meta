@@ -10,7 +10,7 @@ options:
       - title: Hello World
         url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
-      - title: Hello World IntelliJ IDEA
+      - title: Hello World IntelliJ Platform
         url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
 
   - title: Quotes
@@ -94,7 +94,7 @@ options:
       - title: Gradle plugin
         url: /docs/apidocs/gradle-plugin/
 
-      - title: Idea plugin
+      - title: IntelliJ plugin
         url: /docs/apidocs/idea-plugin/
 
       - title: Testing plugin
