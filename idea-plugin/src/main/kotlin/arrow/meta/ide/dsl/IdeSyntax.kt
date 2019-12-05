@@ -22,4 +22,4 @@ import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 interface IdeSyntax : IntentionExtensionProviderSyntax, IconProviderSyntax,
   SyntaxHighlighterExtensionProviderSyntax, InspectionSyntax, AnActionSyntax, ColorSyntax, HintingSyntax,
   LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  UsageSyntax, ExtensionProviderSyntax, RunLineMarkerSyntax, DocumentationProviderSyntax
+  UsageSyntax, ExtensionProviderSyntax, DocumentationProviderSyntax
