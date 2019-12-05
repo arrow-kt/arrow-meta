@@ -38,12 +38,12 @@ interface IconProviderSyntax {
    * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
    *  get() = "File- and StructureViewIcons" {
    *   meta(
-   *    addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
-   *      psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
-   *    },
-   *    addIcon(KotlinIcons.OBJECT) { psi, _ ->
-   *      psi.safeAs<KtObjectDeclaration>()
-   *    }
+   *    // addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
+   *    //   psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
+   *    // },
+   *    // addIcon(KotlinIcons.OBJECT) { psi, _ ->
+   *    //  psi.safeAs<KtObjectDeclaration>()
+   *    // }
    *   )
    *  }
    * ```
@@ -70,7 +70,7 @@ interface IconProviderSyntax {
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
-   * import org.jetbrains.kotlin.idea.KotlinIcons
+   * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -79,12 +79,12 @@ interface IconProviderSyntax {
    *  get() = "File- and StructureViewIcons" {
    *   meta(
    *    addIcons(
-   *     icon(KotlinIcons.GRADLE_SCRIPT) { psi, _ ->
-   *       psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
-   *     },
-   *     icon(KotlinIcons.OBJECT) { psi, _ ->
-   *       psi.safeAs<KtObjectDeclaration>()
-   *     }
+   *     // icon(KotlinIcons.GRADLE_SCRIPT) { psi, _ ->
+   *     //   psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
+   *     // },
+   *     // icon(KotlinIcons.OBJECT) { psi, _ ->
+   *     //   psi.safeAs<KtObjectDeclaration>()
+   *     // }
    *    )
    *   )
    *  }
