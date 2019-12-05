@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
- * [LightTestSyntax] utilises common patterns in test environments for headless ide instances
+ * [LightTestSyntax] utilises common patterns in test environments for headless ide instances.
  */
 object LightTestSyntax {
   /**
@@ -23,13 +23,13 @@ object LightTestSyntax {
     toKtFile(myFixture)?.let { SyntaxTraverser.psiTraverser(it).traverse(traversal).toList() } ?: emptyList()
 
   /**
-   * transforms [Source] string to a [KtFile]
+   * transforms [Source] string to a [KtFile].
    */
   fun Source.toKtFile(myFixture: CodeInsightTestFixture): KtFile? =
     myFixture.configureByText(KotlinFileType.INSTANCE, this).safeAs()
 
   /**
-   * traverses each PsiElement marked by [match] with function [f]
+   * traverses each PsiElement marked by [match] with function [f].
    * Look up is case-insensitive.
    */
   fun <A> Source.traverse(match: String = "<caret>", myFixture: CodeInsightTestFixture, f: (PsiElement) -> A): List<A> =
@@ -40,7 +40,7 @@ object LightTestSyntax {
     }
 
   /**
-   * filters through a StringBuilder for a specific [str] and returns all collected instances within container [F]
+   * filters through a StringBuilder for a specific [str] and returns all collected instances within container [F].
    * @param acc is a container like [List], [Array], etc.
    */
   tailrec fun <F> StringBuilder.filterFold(acc: F, str: String, f: (acc: F, index: Int) -> F): F =

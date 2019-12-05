@@ -13,18 +13,18 @@ import arrow.meta.ide.testing.env.ideTest
 import javax.swing.Icon
 
 /**
- * [LineMarkerDescription] represents the collected slowLinMarker's and regular lineMarkers
+ * [LineMarkerDescription] represents the collected slowLinMarker's and regular lineMarkers.
  */
 data class LineMarkerDescription(val lineMarker: List<LineMarkerInfo<PsiElement>> = emptyList(), val slowLM: List<LineMarkerInfo<PsiElement>> = emptyList())
 
 /**
- * [LineMarkerTestSyntax] provides test methods for [LineMarkerProvider]'s.
- * One example is in [ideTest] KDoc's
+ * [LineMarkerTestSyntax] provides test methods for [LineMarkerProvider].
+ * One example is in [ideTest] KDoc.
  * @see [LineMarkerSyntax]
  */
 interface LineMarkerTestSyntax {
   /**
-   * collects all registered SlowLineMarkers and regular LineMarkers in the given [code] example
+   * collects all registered SlowLineMarkers and regular LineMarkers in the given [code] example.
    */
   fun IdeTestSyntax.collectLM(code: Source, myFixture: CodeInsightTestFixture, icon: Icon): LineMarkerDescription =
     lightTest {
@@ -33,7 +33,7 @@ interface LineMarkerTestSyntax {
 
   /**
    * collects regular LineMarkers from a List of PsiElements.
-   * @receiver is a KtFile, which is deconstructed into a List
+   * @receiver is a KtFile, which is deconstructed into a List.
    */
   fun List<PsiElement>.collectLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
     LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
@@ -41,7 +41,7 @@ interface LineMarkerTestSyntax {
       .filter { it.icon == icon }
 
   /**
-   * Similar to [collectLM] only that it collects SlowLineMarkers
+   * Similar to [collectLM] only that it collects SlowLineMarkers.
    */
   fun List<PsiElement>.collectSlowLM(icon: Icon): List<LineMarkerInfo<PsiElement>> {
     val r = mutableListOf<LineMarkerInfo<PsiElement>>()

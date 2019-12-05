@@ -12,10 +12,12 @@ import javax.swing.Icon
 
 /**
  * [AnActionExtensionProvider] is in charge of the lifecycle of [AnAction].
- * [AnAction] is an overly broad concept to access and execute nearly anything in the editor.
- * Put differently, [AnAction] contains a computation which can be evaluated on-demand by the user.
+ * [AnAction] can be placed, executed and composed into any workflow, throughout the whole application lifecycle.
+ * Whether on-demand by the user or as a standalone workflow.
+ * They're able to access almost every part of the ide.
+ * In other words, [AnAction] contains a computation which can be evaluated multiple times at any time.
  * When a user triggers [AnAction] the [AnAction.actionPerformed] function is executed.
- * [AnAction] can form starkly different purposes, from changing CompilerConfigurations in the editor to opening UI element's with media content.
+ * [AnAction] may have starkly different purposes, from changing CompilerConfigurations in the editor to opening UI element's with media content.
  * Here are a few Links to the Action System from IntelliJ's `Development Guide`:
  * - [Plugin Actions](http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_actions.html?search=act)
  * - [Executing and updating actions](http://www.jetbrains.org/intellij/sdk/docs/basics/action_system.html?search=act#executing-and-updating-actions)
@@ -24,6 +26,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
 
   /**
    * Registers the [action] with [actionId] as its identifier.
+   * The [actionId] is solely used internally.
    * ```kotlin:ank:playground
    * import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
@@ -51,8 +54,8 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *  }
    * ```
    *
-   * `MetaAction` is registered with the id `Unique` and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindow is registered.
-   * User's are able to search this Action with its title.
+   * `MetaAction` is registered with the id `Unique` and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindowId is registered.
+   * User's are able to search this Action with its title: `MetaAction`.
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations
    */

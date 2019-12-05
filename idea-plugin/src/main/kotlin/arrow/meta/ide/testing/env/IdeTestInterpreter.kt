@@ -7,8 +7,8 @@ import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerTestSyntax
 import org.junit.Assert
 
 /**
- * [runTest] executes the tests with a custom [interpreter], which allows users to run their test in every environment.
- * This allows user's to use the Testing DSL for IntelliJ in a pure or impure Test environment and compose it with a variety of
+ * [runTest] executes the test with a custom [interpreter], which facilitates to run a test in any environment.
+ * Hence, the Testing DSL for IntelliJ supports pure or impure Test environments and allows to compose them in a variety of
  * testing methods such as property-based testing, unit tests and many more.
  * @see [arrow.meta.ide.testing.env.interpreter]
  */
@@ -23,8 +23,8 @@ fun <A> IdeTest<A>.testResult(): A =
 
 /**
  * The default [interpreter] evaluates and prints the actual result in an impure Environment.
- * In addition, it throws an [AssertionError] with the [result.messsage],
- * whenever the expected [result] doesn't match the actual result from [testResult].
+ * In addition, it throws an [AssertionError] with the [ideTest.result.message],
+ * whenever the expected [ideTest.result] doesn't match the actual result from [testResult].
  */
 fun <A> interpreter(ideTest: IdeTest<A>): Unit =
   ideTest.run {
@@ -34,8 +34,8 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
   }
 
 /**
- * Runs each ide test for selected editor features.
- * Each Test class has to extend [IdeTestSetUp] to spin-up the underlying IntelliJ Testing Platform.
+ * This extension runs each test for selected editor features.
+ * Each Test class has to extend [IdeTestSetUp], in order to spin-up the underlying IntelliJ Testing Platform at RunTime.
  * ```kotlin
  * class ExampleTest: IdeTestSetUp() {
  *   /** test features **/

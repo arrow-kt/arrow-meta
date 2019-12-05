@@ -8,7 +8,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import javax.swing.Icon
 
 /**
- * [IconProviderTestSyntax] provides test methods for [IconProvider]'s.
+ * [IconProviderTestSyntax] provides test methods for [IconProvider].
  */
 interface IconProviderTestSyntax {
   /**
