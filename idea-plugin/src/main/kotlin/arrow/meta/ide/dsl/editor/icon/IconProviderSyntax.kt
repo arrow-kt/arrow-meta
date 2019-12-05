@@ -1,18 +1,19 @@
 package arrow.meta.ide.dsl.editor.icon
 
+import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
+import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.ide.IconProvider
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.project.DumbAware
-import com.intellij.psi.PsiElement
-import javax.swing.Icon
-import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import com.intellij.openapi.util.Iconable
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinIconProvider
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import javax.swing.Icon
 
 /**
  * [IconProvider] display Icon's for Files and the StructureView.
@@ -52,15 +53,62 @@ interface IconProviderSyntax {
    * The parameter `flag` from [transform] is used to compose more complex [transform] functions considering [Iconable.ICON_FLAG_VISIBILITY], [Iconable.ICON_FLAG_IGNORE_MASK] or [Iconable.ICON_FLAG_READ_STATUS].
    */
   fun <A : PsiElement> IdeMetaPlugin.addIcon(
-    icon: Icon? = null,
+    icon: Icon,
     transform: (psiElement: PsiElement, flag: Int) -> A? = Noop.nullable2()
   ): ExtensionPhase =
     extensionProvider(
       IconProvider.EXTENSION_POINT_NAME,
-      object : IconProvider(), DumbAware {
-        override fun getIcon(p0: PsiElement, p1: Int): Icon? =
-          transform(p0, p1)?.run { icon }
-      },
+      iconProvider { p0, p1 -> transform(p0, p1)?.run { icon } },
       LoadingOrder.FIRST
     )
+
+  /**
+   * registers an [IconProvider]
+   * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
+   * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import org.jetbrains.kotlin.idea.KotlinIcons
+   * import org.jetbrains.kotlin.psi.KtFile
+   * import org.jetbrains.kotlin.psi.KtObjectDeclaration
+   * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+   *
+   * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
+   *  get() = "File- and StructureViewIcons" {
+   *   meta(
+   *    addIcons(
+   *     icon(KotlinIcons.GRADLE_SCRIPT) { psi, _ ->
+   *       psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
+   *     },
+   *     icon(KotlinIcons.OBJECT) { psi, _ ->
+   *       psi.safeAs<KtObjectDeclaration>()
+   *     }
+   *    )
+   *   )
+   *  }
+   * ```
+   * @see IconProviderSyntax
+   * @see addIcon
+   */
+  fun <A : PsiElement> IdeMetaPlugin.addIcons(vararg values: TransformIcon<A>): ExtensionPhase =
+    extensionProvider(
+      IconProvider.EXTENSION_POINT_NAME,
+      iconProvider { p0, p1 -> values.toList().firstOrNull { IdeUtils.isNotNull(it.second(p0, p1)) }?.run { first } },
+      LoadingOrder.FIRST
+    )
+
+  fun <A : PsiElement> IconProviderSyntax.icon(icon: Icon, transform: (psiElement: PsiElement, flag: Int) -> A? = Noop.nullable2()): TransformIcon<A> =
+    icon to transform
+
+  fun IconProviderSyntax.iconProvider(
+    transform: (psiElement: PsiElement, flag: Int) -> Icon? = Noop.nullable2()
+  ): IconProvider =
+    object : IconProvider(), DumbAware {
+      override fun getIcon(p0: PsiElement, p1: Int): Icon? =
+        transform(p0, p1)
+    }
 }
+
+typealias TransformIcon<A> = Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>
