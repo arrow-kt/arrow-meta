@@ -28,7 +28,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * Registers the [action] with [actionId] as its identifier.
    * The [actionId] is solely used internally.
    * ```kotlin:ank:playground
-   * import com.intellij.openapi.wm.ToolWindowManager
+   * // import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
    * import arrow.meta.invoke
    * import arrow.meta.Plugin
@@ -45,7 +45,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *      action = anAction(
    *       title = "MetaAction",
    *       actionPerformed = { e: AnActionEvent ->
-   *        e.project?.let { project: Project -> ToolWindowManager.getInstance(project)?.getToolWindow("MetaToolWindow")?.activate(null) }
+   *        // e.project?.let { project: Project -> ToolWindowManager.getInstance(project)?.getToolWindow("MetaToolWindow")?.activate(null) }
    *        }
    *       )
    *      )

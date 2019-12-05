@@ -45,7 +45,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
-   * import com.intellij.codeInsight.intention.PriorityAction
+   * // import com.intellij.codeInsight.intention.PriorityAction
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
@@ -58,7 +58,6 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    *       f.name == "helloWorld"
    *     },
    *     kClass = KtNamedFunction::class.java,
-   *     priority = PriorityAction.Priority.NORMAL,
    *     applyTo = { f, editor ->
    *       f.setName("renamed")
    *     }
