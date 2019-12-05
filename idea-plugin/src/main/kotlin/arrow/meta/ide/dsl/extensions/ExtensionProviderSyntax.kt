@@ -33,6 +33,7 @@ import com.intellij.ide.IconProvider
 interface ExtensionProviderSyntax {
   // TODO: provide complementary methods to integrate [E] with the editor. This requires further integrations to internals
   // TODO: Check out [org.jetbrains.kotlin.resolve.checkers.PlatformDiagnosticSuppressor] for further improvements in [addDiagnosticSuppressor]
+
   /**
    * The [extensionProvider] function registers a concrete implementation for `Extensions` with an [ExtensionPointName].
    * Or builds higher-level API's such as [IconProviderSyntax.addIcon], which registers a FileIcon to a File and StructureView using [IconProvider.EXTENSION_POINT_NAME].
@@ -134,7 +135,7 @@ interface ExtensionProviderSyntax {
    * }
    * //sampleEnd
    * ```
-   * Registering [MetaProvider] in the Ide may look like this:
+   * Registering [MetaProvider] in `Meta` may look like this:
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
