@@ -5,8 +5,8 @@ import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 
-interface IntentionExtensionProviderUtilitySyntax {
-  fun IntentionExtensionProviderUtilitySyntax.availableIntentions(): List<IntentionAction> =
+interface IntentionUtilitySyntax {
+  fun IntentionUtilitySyntax.availableIntentions(): List<IntentionAction> =
     IntentionManager.getInstance()?.availableIntentionActions?.toList() ?: emptyList()
 
   fun IntentionAction.isEnabled(): Boolean =

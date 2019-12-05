@@ -25,10 +25,10 @@ interface DocumentationProviderSyntax {
       LoadingOrder.FIRST)
 
   /**
-   * An example is here {@link https://github.com/JetBrains/kotlin/blob/49d6bbbd6b1c2fea85df03af047aa0cf21ce0b97/idea/src/org/jetbrains/kotlin/idea/KotlinQuickDocumentationProvider.kt#L148}
+   * An example is [here](https://github.com/JetBrains/kotlin/blob/49d6bbbd6b1c2fea85df03af047aa0cf21ce0b97/idea/src/org/jetbrains/kotlin/idea/KotlinQuickDocumentationProvider.kt#L148)
    * @param quickNavigateInfo returns the short version of the Doc
    * @param generateDoc returns the entire Doc
-   * @param documentationElementForLink given a [link] and a [context] this function resolves the PsiElement of that link
+   * @param documentationElementForLink given a `link` and a `context` this function resolves the PsiElement of that link
    */
   fun DocumentationProviderSyntax.quickDocumentationProvider(
     quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String?,
