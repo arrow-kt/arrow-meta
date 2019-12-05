@@ -23,19 +23,23 @@ import org.jetbrains.kotlin.idea.highlighter.KotlinColorSettingsPage
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import javax.swing.Icon
+import com.intellij.lang.annotation.Annotator
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
  * [ColorSettingsPage] add's a custom page in the user Settings under "Color Scheme" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
- * Consequently, `ColorSettingsPages` allow users to customize the colors of [SyntaxHighlighter]'s for a better ide experience.
- * They may represent a visual template in the ide, before the actual [SyntaxHighlighter] is created.
- * Hence, a [ColorSettingsPage] enhances the underlying [SyntaxHighlighter] visually. Though, there are other use-cases, for example in `Themes`.
+ * Consequently, `ColorSettingsPages` not only allow users to customize the colors of [SyntaxHighlighter]'s for a better ide experience,
+ * More importantly, they provide means, to highlight additional descriptors from the `Parser` or [Annotator].
+ * One use-case for `ColorSettingsPages`, among others, is to use them as a visual template in the ide, before the actual [SyntaxHighlighter] is created.
+ * Therefore, a [ColorSettingsPage] visually enhances the underlying [SyntaxHighlighter] and all descriptors from the `Parser` and [Annotator].
+ * Additionally, there are other use-cases with `Themes`.
+ * @see SyntaxHighlighterExtensionProviderSyntax
  */
 interface ColorSettingsSyntax {
   // TODO("add `toColorSettingsPage` from a SyntaxHighlighter")
 
   /**
-   * registers a [ColorSettingsPage].
+   * This extension registers a [ColorSettingsPage].
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
@@ -67,11 +71,13 @@ interface ColorSettingsSyntax {
    *  }
    *  //sampleEnd
    * ```
-   * Even though [additionalHighlightingTags] is empty the standard Kotlin `Keywords`: `fun`, `interface` and `val` are highlighted.
-   * That is evident due to [KotlinHighlighter], where those `Tokens` are already registered.
-   * Therefore, a rich `SyntaxHighlighter` is sufficient enough to highlight the whole scope of the [demoText], without tagging them in [demoText].
+   * Even though, [additionalHighlightingTags] is empty the standard Kotlin `Keywords`: `fun`, `interface` and `val` are highlighted.
+   * That is evident, due to the underlying `Lexer` in [KotlinHighlighter], the ide registers generated Tokens from `Lexers` automatically and applies it to the [demoText].
+   * Though, most of the time a rich `SyntaxHighlighter` is not sufficient enough to highlight the whole scope of the [demoText].
+   * As, there are descriptors and tokens of the language, which are processed or generated with the `Parser` or [Annotator].
+   * Here is where [ColorSettingsPage] shines, it allow's the ide to register and highlight those elements, too.
    * @see org.jetbrains.kotlin.lexer.KtTokens
-   * Nonetheless, the `suspend` Keyword is not included in [KotlinHighlighter], nor is it tagged in [demoText] thus `suspend`, the interface identifier and `Named arguments` are not highlighted.
+   * Nonetheless, the `suspend` Keyword is not included in the `Lexer` of [KotlinHighlighter], nor is it tagged in [demoText] therefore `suspend`, the interface identifier and `Named arguments` are not highlighted.
    * ---
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
@@ -114,7 +120,8 @@ interface ColorSettingsSyntax {
    *  //sampleEnd
    * ```
    *
-   * [ColorSettingsPage] facilitates to highlight new elements in the Language, but it does not register tagged Tokens in [demoText] to the Language.
+   * [ColorSettingsPage] does not register tagged Tokens in [demoText] to the Language, for that we need other `Extensions`.
+   * Nonetheless, we can register tokens to be highlighted, assuming we already provide an ide extension instance with these added tokens - mainly with a `Parser` and [Annotator].
    *
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
@@ -196,8 +203,8 @@ interface ColorSettingsSyntax {
    *  }
    *  //sampleEnd
    * ```
-   * Ideally, constructing a [ColorSettingsPage] from a [SyntaxHighlighter] should be fairly linear as the latter already defines a Mapping between `Tokens` and `TextAttributes` in [SyntaxHighlighter.getTokenHighlights].
-   * To conclude, [ColorSettingsPage] improves upon the underlying [SyntaxHighlighter], in a way to use [TextAttributesKey]s as tags, the ability to manipulate the ide and index Tokens, to be later then processed by other `Extensions`.
+   * Ideally, constructing a [ColorSettingsPage] from a [SyntaxHighlighter], `Parser` and [Annotator] should be fairly linear as those define a Mappings between `Tokens` and `TextAttributes`, for instance in [SyntaxHighlighter.getTokenHighlights].
+   * To conclude, [ColorSettingsPage] improves upon the underlying `Lexer` of an [SyntaxHighlighter], in a way to use [TextAttributesKey]s as tags, the ability to manipulate the ide and index Tokens, to be later then processed by other `Extensions`.
    * @see [ColorSettingsPage]
    * @see [colorSettingsPage]
    * @see TextAttributesKey
