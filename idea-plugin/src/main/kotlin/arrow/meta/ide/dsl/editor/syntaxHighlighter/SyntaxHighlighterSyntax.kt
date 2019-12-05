@@ -71,7 +71,7 @@ interface SyntaxHighlighterSyntax {
    * In fact, the latter is a minimal example from the existing [KotlinHighlighter].
    * @see SyntaxHighlighterSyntax
    * @see syntaxHighlighterFactory
-   * @sample KotlinHighlighter
+   * @see KotlinHighlighter
    */
   fun IdeMetaPlugin.addSyntaxHighlighter(
     highlightingLexer: Lexer,
