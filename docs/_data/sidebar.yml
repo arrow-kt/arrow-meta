@@ -74,6 +74,21 @@ options:
 
   - title: IntelliJ Platform API
 
+    nested_options:
+
+      - title: ExtensionProviderSyntax
+        url: /docs/apidocs/compiler-plugin/arrow.meta.ide.dsl.extensions/-extension-provider-syntax/
+
+      - title: AnActionSyntax
+        url: /docs/apidocs/compiler-plugin/arrow.meta.ide.dsl.editor.action/-an-action-syntax/
+
+      - title: IntentionSyntax
+        url: /docs/apidocs/compiler-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
+
+      - title: SyntaxHighlighterSyntax
+        url: /docs/apidocs/compiler-plugin/arrow.meta.ide.dsl.editor.
+
+
   - title: Testing
 
     nested_options:
@@ -82,7 +97,7 @@ options:
         url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/assert-this.html
 
       - title: IntelliJ Plugin Tests
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl/-ide-test-syntax.html
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl.env/ide-test.html
 
   - title: API Docs
 
@@ -94,7 +109,7 @@ options:
       - title: Gradle plugin
         url: /docs/apidocs/gradle-plugin/
 
-      - title: Idea plugin
+      - title: IntelliJ plugin
         url: /docs/apidocs/idea-plugin/
 
       - title: Testing plugin
