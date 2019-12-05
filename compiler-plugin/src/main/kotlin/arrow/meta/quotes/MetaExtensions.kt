@@ -12,6 +12,7 @@ import arrow.meta.quotes.element.WhenEntry
 import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.DotQualifiedExpression
 import arrow.meta.quotes.expression.IfExpression
 import arrow.meta.quotes.expression.IsExpression
 import arrow.meta.quotes.expression.LambdaExpression
@@ -31,6 +32,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
@@ -86,6 +88,15 @@ fun Meta.classDeclaration(
   map: ClassDeclaration.(KtClass) -> Transform<KtClass>
 ): ExtensionPhase =
   quote(match, map) { ClassDeclaration(it) }
+
+/**
+ * @see [DotQualifiedExpression]
+ */
+fun Meta.dotQualifiedExpression(
+  match: KtDotQualifiedExpression.() -> Boolean,
+  map: DotQualifiedExpression.(KtDotQualifiedExpression) -> Transform<KtDotQualifiedExpression>
+): ExtensionPhase =
+  quote(match, map) { DotQualifiedExpression(it) }
 
 /**
  * @see [DestructuringDeclaration]
