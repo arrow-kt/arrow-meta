@@ -168,7 +168,7 @@ interface ExtensionProviderSyntax {
     ExtensionProvider.RegisterExtension(EP_NAME, aClass)
 
   /**
-   * Add's a [ContainerProvider].
+   * registers a [ContainerProvider].
    * @param transform defines on which [PsiElement] the [ContainerProvider] is registered.
    */
   fun IdeMetaPlugin.addContainerProvider(transform: (PsiElement) -> PsiElement?): ExtensionPhase =

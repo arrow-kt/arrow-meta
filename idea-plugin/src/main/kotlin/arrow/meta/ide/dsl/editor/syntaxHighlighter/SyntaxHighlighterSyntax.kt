@@ -4,7 +4,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.Language
-import arrow.meta.ide.dsl.editor.color.ColorSyntax
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SingleLazyInstanceSyntaxHighlighterFactory
@@ -13,13 +12,10 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
-import com.intellij.lang.annotation.Annotator
-import com.intellij.lang.PsiParser
 
 /**
  * [SyntaxHighlighterExtensionProvider] provides means to register [SyntaxHighlighter]s for Languages.
  * SyntaxHighlighters solely specify highlighted tokens, which are generated from the Lexer.
- * [ColorSyntax] allows to highlight additional descriptors from the `Parser` or [Annotator]. You may create a `Parser` with [PsiParser] an example is here [org.jetbrains.kotlin.parsing.KotlinParser].
  * Check out the Docs on [Syntax Highlighting](http://www.jetbrains.org/intellij/sdk/docs/reference_guide/custom_language_support/syntax_highlighting_and_error_highlighting.html) or
  * [How to create a Syntax Highlighter](http://www.jetbrains.org/intellij/sdk/docs/tutorials/custom_language_support/syntax_highlighter_and_color_settings_page.html).
  */

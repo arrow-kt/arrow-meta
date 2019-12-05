@@ -139,6 +139,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
         isApplicableForCodeFragment
     }
 
+  /* TODO: Deprecated until MetaData is in the Functionparameters
   /**
    * [addIntentionWithMetaData] extension registers an Intention with Metadata.
    * There is an important note to this function.
@@ -153,7 +154,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     category: String,
     intention: IntentionAction
   ): ExtensionPhase =
-    IntentionExtensionProvider.RegisterIntentionWithMetaData(intention, category)
+    IntentionExtensionProvider.RegisterIntentionWithMetaData(intention, category)*/
 }
 
 
