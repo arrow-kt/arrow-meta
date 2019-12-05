@@ -11,6 +11,5 @@ open class TransformMetaPlugin : Meta {
     transformRemove
     + transformReplace
     + transformMany
-    + transformNewSource
   )
 }
