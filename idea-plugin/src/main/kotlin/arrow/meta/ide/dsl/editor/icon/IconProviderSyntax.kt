@@ -30,7 +30,7 @@ interface IconProviderSyntax {
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.invoke
    * import com.intellij.psi.PsiElement
-   * import org.jetbrains.kotlin.idea.KotlinIcons
+   * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
