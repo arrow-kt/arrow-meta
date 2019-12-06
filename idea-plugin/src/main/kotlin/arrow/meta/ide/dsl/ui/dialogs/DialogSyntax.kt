@@ -33,7 +33,6 @@ interface DialogSyntax {
    *   setTitle("CostumeTitle")
    *   addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
    * })
-   * TODO: Investigate system if there is no `postProcess`
    */
   fun IdeMetaPlugin.addFileAction(
     actionId: String,
@@ -47,7 +46,7 @@ interface DialogSyntax {
     createFileFromTemplate: (name: String, template: FileTemplate, dir: PsiDirectory) -> PsiFile? =
       { name, template, dir -> NewKotlinFileAction.createFileFromTemplateWithStat(name, template, dir) },
     startInWriteAction: Boolean = false
-  ): ExtensionPhase =
+  ): ExtensionPhase = // TODO: Investigate system when there is no `postProcess`
     addAnAction(actionId, newFileAction(createText, actionDescription, buildDialog, postProcess, fileIcon, actionName, createFileFromTemplate, startInWriteAction))
 
   fun DialogSyntax.newFileAction(
