@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.color
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterExtensionProviderSyntax
+import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.application.options.colors.FontEditorPreview
@@ -27,13 +27,13 @@ import com.intellij.lang.annotation.Annotator
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
- * [ColorSettingsPage] add's a custom page in the user Settings under "Color Scheme" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter].
+ * [ColorSettingsPage] add's a custom page in the user Settings under "Color Scheme" and is based on a custom [SyntaxHighlighter] composed with [SyntaxHighlighterSyntax.syntaxHighlighter].
  * Consequently, `ColorSettingsPages` not only allow users to customize the colors of [SyntaxHighlighter]'s for a better ide experience,
  * More importantly, they provide means, to highlight additional descriptors from the `Parser` or [Annotator].
  * One use-case for `ColorSettingsPages`, among others, is to use them as a visual template in the ide, before the actual [SyntaxHighlighter] is created.
  * Therefore, a [ColorSettingsPage] visually enhances the underlying [SyntaxHighlighter] and all descriptors from the `Parser` and [Annotator].
  * Additionally, there are other use-cases with `Themes`.
- * @see SyntaxHighlighterExtensionProviderSyntax
+ * @see SyntaxHighlighterSyntax
  */
 interface ColorSettingsSyntax {
   // TODO("add `toColorSettingsPage` from a SyntaxHighlighter")
@@ -233,7 +233,7 @@ interface ColorSettingsSyntax {
 
   /**
    * @param attributesDescriptor use [toA] to construct the Array
-   * @param highlighter use [SyntaxHighlighterExtensionProviderSyntax.syntaxHighlighter]. The default is for Kotlin.
+   * @param highlighter use [SyntaxHighlighterSyntax.syntaxHighlighter]. The default is for Kotlin.
    * @param language the default is [KotlinLanguage].
    * @param customize add's customizations to the editor
    * @param isRainbowType RainbowTypes add color changes to specified [TextAttributesKey]s. The default doesn't display RainbowTypes for any Key. For example Kotlin and Java define local Variables and Parameter's as RainbowTypes.
