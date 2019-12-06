@@ -6,7 +6,7 @@ import arrow.meta.ide.testing.env.types.LightTestSyntax
 
 /**
  * [IdeTestTypeSyntax] ensures that each TestType is within an Idea instance and provides Tooling from
- * IntelliJ's Testing
+ * IntelliJ's Testing Environment
  */
 interface IdeTestTypeSyntax {
   /**
