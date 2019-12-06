@@ -49,8 +49,10 @@ class MetaSyntheticPackageFragmentProvider(project: Project) : PackageFragmentPr
       return listOf(BuildCachePackageFragmentDescriptor(module, fqName))
     }
 
-    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-      getPackageFragments(fqName).map { it.fqName }
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+      //fixme optimize this
+      return cache.packageList().filter { it.parent() == fqName }
+    }
   }
 
   inner class BuildCachePackageFragmentDescriptor(module: ModuleDescriptor, fqName: FqName) : PackageFragmentDescriptorImpl(module, fqName) {

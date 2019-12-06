@@ -18,7 +18,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
@@ -43,6 +42,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * QuoteSystemCache is a project component which managees the transformations of KtFiles by the quote system.
@@ -162,18 +163,39 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     val resultFiles = arrayListOf<KtFile>()
     resultFiles.addAll(sourceFiles)
 
+    // fixme jansorg: remove debugging code before merging
+    val allDuration = AtomicLong(0)
     analysisIdeExtensions.forEach { ext ->
       val mutations = resultFiles.map {
-        processKtFile(it, ext.type, ext.quoteFactory, ext.match, ext.map)
+        val start = System.currentTimeMillis()
+        try {
+          processKtFile(it, ext.type, ext.quoteFactory, ext.match, ext.map)
+        } finally {
+          val fileDuration = System.currentTimeMillis() - start
+          allDuration.addAndGet(fileDuration)
+          LOG.warn("transformation: file %s, duration %d".format(it.name, fileDuration))
+        }
       }
 
-      // this replaces the files with transformed files in resultFiles
-      // a file may be transformed multiple times
-      context.updateFiles(resultFiles, mutations, ext.match)
+      LOG.warn("transformation created for all quotes: duration $allDuration ms")
+
+      val start = System.currentTimeMillis()
+      try {
+        // this replaces the files with transformed files in resultFiles
+        // a file may be transformed multiple times
+        context.updateFiles(resultFiles, mutations, ext.match)
+      } finally {
+        val updateDuration = System.currentTimeMillis() - start
+        LOG.warn("update of ${resultFiles.size} files with ${mutations.size} mutations: duration $updateDuration ms")
+        allDuration.addAndGet(updateDuration)
+      }
     }
 
+    LOG.warn("transformation and update of all quotes and all files: duration $allDuration")
+
     // now, restore the association of sourceFile to transformed file
-    return sourceFiles.zip(resultFiles)
+    // remove files which were not transformed
+    return sourceFiles.zip(resultFiles).filter { it.first != it.second }
   }
 
   private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true) {
@@ -185,21 +207,27 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     pool.submit {
       // fixme execute under progressManager?
       val transformed = ReadAction.compute<List<Pair<KtFile, KtFile>>, Exception> {
+        val start = System.currentTimeMillis()
         try {
           transformFiles(updatedFiles)
         } catch (e: Exception) {
           LOG.warn("error transforming files $updatedFiles. Falling back to empty transformation.", e)
           emptyList()
+        } finally {
+          val duration = System.currentTimeMillis() - start
+          LOG.warn("kt file transformation: %d files, duration %d ms".format(updatedFiles.size, duration))
         }
       }
 
       // fixme: temporarily write metadata to disk
-      if (!ApplicationManager.getApplication().isUnitTestMode) {
-        ApplicationManager.getApplication().invokeLater {
-          WriteAction.run<Exception> {
-            transformedFiles.forEach { (original, transformed) ->
-              val metaFile = original.virtualFile.parent.findOrCreateChildData(this, transformed.name + ".txt")
-              metaFile.setBinaryContent(transformed.text.toByteArray())
+      if (transformedFiles.isNotEmpty()) {
+        if (!ApplicationManager.getApplication().isUnitTestMode) {
+          ApplicationManager.getApplication().invokeLater {
+            WriteAction.run<Exception> {
+              transformedFiles.forEach { (original, transformed) ->
+                val metaFile = original.virtualFile.parent.findOrCreateChildData(this, transformed.name + ".txt")
+                metaFile.setBinaryContent(transformed.text.toByteArray())
+              }
             }
           }
         }
@@ -218,11 +246,11 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
         // the resolve facade must get all files in the project for a successful resolve
         // files, which were transformed must not be passed, because the transformation result is already added
-        val updatedOriginals = transformedFiles.map { it.key }
-        val updatedTransformed = transformedFiles.values
-        val projectFiles = collectProjectKtFiles().toKtFiles().filterNot { it in updatedOriginals }
+        val transformedSourceFiles = transformedFiles.map { it.key }.toSet()
+        val untransformedSourceFiles = updatedFiles.filter { it !in transformedSourceFiles }
+        val transformationResults = transformedFiles.values
 
-        val filesForResolve = projectFiles + updatedTransformed
+        val filesForResolve = untransformedSourceFiles + transformationResults
         if (filesForResolve.isNotEmpty()) {
           if (resetCache) {
             resolved.clear()
@@ -263,7 +291,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    */
   override fun prepareChange(events: MutableList<out VFileEvent>): AsyncFileListener.ChangeApplier? {
     return when {
-      events.any { it.isValid && it.file?.fileType is KotlinFileType } -> this
+      events.any { e -> e.isValid && e.file?.let { it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType } == true } -> this
       else -> null
     }
   }
