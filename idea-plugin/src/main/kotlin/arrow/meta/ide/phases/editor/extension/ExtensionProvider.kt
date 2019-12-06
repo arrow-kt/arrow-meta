@@ -40,7 +40,7 @@ sealed class ExtensionProvider<E> : ExtensionPhase {
   /**
    * @see [ExtensionProviderSyntax.registerExtensionPoint]
    */
-  data class RegisterBaseExtension<E>(val EP_NAME: BaseExtensionPointName, val aClass: Class<E>) : ExtensionProvider<E>()
+  data class RegisterBaseExtension<E>(val EP_NAME: BaseExtensionPointName<E>, val aClass: Class<E>) : ExtensionProvider<E>()
 
   /**
    * @see [ExtensionProviderSyntax.registerExtensionPoint]

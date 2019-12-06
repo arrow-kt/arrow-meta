@@ -113,7 +113,7 @@ interface ExtensionProviderSyntax {
    * @see [registerExtensionPoint] for [ExtensionPointName]
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
-    EP_NAME: BaseExtensionPointName,
+    EP_NAME: BaseExtensionPointName<E>,
     aClass: Class<E>
   ): ExtensionPhase =
     ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass)
