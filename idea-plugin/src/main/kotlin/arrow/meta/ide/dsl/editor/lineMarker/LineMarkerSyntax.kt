@@ -75,7 +75,7 @@ interface LineMarkerSyntax {
     slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
   ): ExtensionPhase =
     extensionProvider(
-      LineMarkerProviders.INSTANCE,
+      LineMarkerProviders.getInstance(),
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
           transform(element)?.let(
