@@ -94,7 +94,6 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
-      is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
       else -> TODO()
     }
 
@@ -142,16 +141,6 @@ private fun assertFails(compilationResult: Result): Unit {
 private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean): Unit {
   assertFails(compilationResult)
   assertThat(check(compilationResult.messages)).isTrue()
-}
-
-private fun assertQuoteFileMatches(compilationResult: Result, expectedFileName: String, expectedFileSource: Code.Source) {
-  assertCompiles(compilationResult)
-  val actualSource = Paths.get(compilationResult.outputDirectory.parent, "sources", "Source_$expectedFileName.meta").toFile().readText()
-  val actualSourceWithoutCommands = removeCommands(actualSource ?: "")
-  val expectedSourceWithoutCommands = removeCommands(expectedFileSource.text.trimMargin())
-  assertThat(actualSourceWithoutCommands)
-          .`as`("EXPECTED:${expectedFileSource.text.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
-          .isEqualToIgnoringWhitespace(expectedSourceWithoutCommands)
 }
 
 private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit {

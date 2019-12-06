@@ -3,11 +3,16 @@ package arrow.meta.ide.testing.dsl.icon
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestTypeSyntax
 import com.intellij.openapi.util.Iconable
+import com.intellij.ide.IconProvider
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import javax.swing.Icon
 
+/**
+ * [IconProviderTestSyntax] provides test methods for [IconProvider].
+ */
 interface IconProviderTestSyntax {
   /**
+   * resolves the fileIcon for the provided [code]
    * @param flag is from [com.intellij.openapi.util.Iconable]
    */
   fun IdeTestTypeSyntax.iconProvider(code: Source, myFixture: CodeInsightTestFixture, flag: Int = Iconable.ICON_FLAG_VISIBILITY): Icon? =
