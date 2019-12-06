@@ -12,7 +12,7 @@ import com.intellij.psi.PsiManager
 
 /**
  * [DocumentationSyntax] registers an extension for documentation support.
- * @see [Documentation](http://www.jetbrains.org/intellij/sdk/docs/reference_guide/custom_language_support/documentation.html?search=doc)
+ * Check out [Documentation](http://www.jetbrains.org/intellij/sdk/docs/reference_guide/custom_language_support/documentation.html?search=doc)
  */
 interface DocumentationSyntax {
   /**
