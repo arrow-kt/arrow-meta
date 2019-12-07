@@ -14,7 +14,7 @@ interface LanguageInjectionSyntax {
       override fun elementsToInjectIn(): List<Class<out PsiElement>> =
         listOf(elementToInjectIn)
 
-      override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) =
+      override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement): Unit =
         languagesToInject(registrar, context)
     }
 
