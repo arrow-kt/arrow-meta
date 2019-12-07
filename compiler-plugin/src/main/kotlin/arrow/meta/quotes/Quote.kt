@@ -165,7 +165,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         println("END quote.doAnalysis: $files")
         files.forEach {
           if (it.text.contains(META_DEBUG_COMMENT)) {
-              File(files.first { it.name == DEFAULT_META_FILE_NAME }.virtualFilePath.let { path ->
+              File(files.firstOrNull { it.name == DEFAULT_META_FILE_NAME }?.virtualFilePath?.let { path ->
                   if (it.name != DEFAULT_META_FILE_NAME) path.substring(0, path.lastIndex - 2) + "_${it.name}" else path
               } + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
             println("""|
