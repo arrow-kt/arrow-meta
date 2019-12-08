@@ -27,7 +27,7 @@ import arrow.meta.quotes.namedFunction
  *   }
  * ```
  *
- * For any user code whose function name is `helloWorld` our compiler plugin will replace the matching function for a
+ * For any user code whose function name is `helloWorld`, our compiler plugin will replace the matching function for a
  * function that returns Unit and prints our message.
  *
  * ```kotlin:diff
@@ -64,7 +64,7 @@ import arrow.meta.quotes.namedFunction
  * apply plugin: "io.arrow-kt.arrow"
  * ```
  *
- * Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
+ * Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
  */
 val Meta.helloWorld: Plugin
   get() =

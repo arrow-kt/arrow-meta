@@ -10,7 +10,7 @@ options:
       - title: Hello World
         url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
-      - title: Hello World IntelliJ IDEA
+      - title: Hello World IntelliJ Platform
         url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
 
   - title: Quotes
@@ -19,6 +19,39 @@ options:
 
       - title: Index
         url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
+
+      - title: ClassOrObject
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
+
+      - title: Declaration
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
+
+      - title: Element
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
+
+      - title: WhenCondition
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
+
+      - title: Expression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
+
+      - title: ExpressionWithLabel
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
+
+      - title: LoopExpression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
+
+      - title: Filebase
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
+
+      - title: Modifierlist
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
+
+      - title: NamedDeclaration - NotStubbed
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
+
+      - title: NamedDeclaration - Stub
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
 
   - title: Compiler API
 
@@ -39,7 +72,7 @@ options:
       - title: IR Codegen
         url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
-  - title: IntelliJ IDEA API
+  - title: IntelliJ Platform API
 
   - title: Testing
 
@@ -48,7 +81,7 @@ options:
       - title: Compiler Plugins Tests
         url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/assert-this.html
 
-      - title: IntelliJ IDEA Plugin Tests
+      - title: IntelliJ Plugin Tests
         url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl/-ide-test-syntax.html
 
   - title: API Docs
@@ -58,7 +91,7 @@ options:
       - title: Compiler plugin
         url: /docs/apidocs/compiler-plugin/
 
-      - title: Idea plugin
+      - title: IntelliJ plugin
         url: /docs/apidocs/idea-plugin/
 
       - title: Testing plugin

@@ -40,7 +40,7 @@ interface RunLineMarkerSyntax {
 }
 
 /**
- * Revisit this in the next Release. This may change in 19.3.
+ * TODO: Revisit this in the next Release. This may change in 19.3.
  */
 internal val EP_NAME: LanguageExtension<RunLineMarkerContributor>
   get() = LanguageExtension("com.intellij.runLineMarkerContributor")
