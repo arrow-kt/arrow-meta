@@ -5,23 +5,24 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.returnExpression
+import arrow.meta.quotes.breakExpression
 
-open class ReturnExpressionPlugin : Meta {
+open class BreakExpressionPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
-    returnExpressionPlugin
+    breakExpressionPlugin
   )
 }
 
-val Meta.returnExpressionPlugin
+val Meta.breakExpressionPlugin
   get() =
     "Return Expression Scope Plugin" {
       meta(
-        returnExpression({ true }) { expression ->
+        breakExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$labelName $`return`""".`return`
+            newDeclaration = """break$targetLabel""".`break`
           )
         }
       )
     }
+

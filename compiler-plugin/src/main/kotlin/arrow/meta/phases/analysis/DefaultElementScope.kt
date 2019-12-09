@@ -4,6 +4,7 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
@@ -21,7 +22,7 @@ import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
-import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
@@ -44,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
+import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
@@ -417,6 +419,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`return`: ReturnExpression
     get() = ReturnExpression(expression.value as KtReturnExpression)
+
+  override val String.`break`: BreakExpression
+    get() = BreakExpression(expression.value as KtBreakExpression)
 
   override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
