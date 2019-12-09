@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>"""$labelName@$targetLabel""".`break`</code>
+ * <code>"""break$targetLabel""".`break`</code>
  *
  * A template destructuring [Scope] for a [KtReturnExpression].
  *
@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.returnExpression
+ * import arrow.meta.quotes.breakExpression
  *
  * val Meta.reformatBreak: Plugin
  *  get() =
@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *     breakExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """$labelName@$targetLabel""".`break`
+ *       newDeclaration = """break$targetLabel""".`break`
  *      )
  *      }
  *     )
