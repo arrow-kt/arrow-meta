@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.extensionCallables
@@ -31,7 +32,7 @@ class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
     lookupLocation: LookupLocation
   ) {
     Log.Verbose({ "ProofsKotlinIndicesHelperExtension.appendExtensionCallables($receiverTypes), result: $this" }) {
-      val extensions = moduleDescriptor.typeProofs.extensions(receiverTypes)
+      val extensions = proofCache[moduleDescriptor.name]?.second?.extensions(receiverTypes).orEmpty()
       val extensionCallables = extensions.flatMap {
         it.extensionCallables { true }
           .filterIsInstance<SimpleFunctionDescriptor>()

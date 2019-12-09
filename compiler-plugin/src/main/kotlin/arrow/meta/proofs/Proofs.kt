@@ -9,6 +9,7 @@ import arrow.meta.phases.resolve.unwrappedNotNullableType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
@@ -111,12 +112,14 @@ fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<Call
       .filterIsInstance<CallableMemberDescriptor>()
       .mapNotNull {
         when (it) {
-          is FunctionDescriptor ->
+          is FunctionDescriptor -> {
+            val packageReceiver = through.containingDeclaration
             if (it.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) null
-            else it.copy(through.containingDeclaration, it.modality, it.visibility, it.kind, true).newCopyBuilder()
-              .setDispatchReceiverParameter(through.dispatchReceiverParameter)
+            else it.copy(packageReceiver, it.modality, it.visibility, it.kind, true).newCopyBuilder()
+              .setDispatchReceiverParameter(through.extensionReceiverParameter?.copy(packageReceiver))
               .setExtensionReceiverParameter(through.extensionReceiverParameter)
               .build()
+          }
           else -> it
         }
       }
@@ -140,7 +143,7 @@ fun List<Proof>.matchingCandidates(
       superType = superType.unwrappedNotNullableType
     )
     val appliedConversion = proof.applyConversion(candidate)
-    appliedConversion.provesWithBaselineTypeChecker(subType, superType)
+    appliedConversion?.provesWithBaselineTypeChecker(subType, superType) ?: false
   }
 
 fun Graph<ProofVertex, Proof>.shortestPath(
@@ -178,11 +181,14 @@ fun Collection<Proof>.dump() {
   }}")
 }
 
-fun FunctionDescriptor.applyConversion(conversionCandidate: ProofCandidate): CallableDescriptor =
+fun FunctionDescriptor.applyConversion(conversionCandidate: ProofCandidate): FunctionDescriptor? =
   substituteAndApproximateCapturedTypes(
     conversionCandidate.typeSubstitutor,
     TypeApproximator(module.builtIns)
-  )
+  ).run {
+    this as FunctionDescriptor
+    newCopyBuilder().setModality(Modality.FINAL).build()
+  }
 
 fun Diagnostic.suppressProvenTypeMismatch(proofs: List<Proof>): Boolean = //TODO this should only go through if the implicit conversion is true
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&

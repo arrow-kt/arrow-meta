@@ -3,8 +3,10 @@ package arrow.meta.ide.phases.resolve.proofs
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensions
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.findModuleDescriptor
@@ -75,33 +77,33 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
 
 class MetaImportInsertHelper(val project: Project) : ModuleComponent {
 
-  val delegate: ImportInsertHelper = project.getComponent(ImportInsertHelper::class.java)
+  val delegate: ImportInsertHelper = project.getService(ImportInsertHelper::class.java)
 
   override fun initComponent() {
     Log.Verbose({ "MetaImportInsertHelper.initComponent" }) {
-      project.replaceComponent<ImportInsertHelper> { Helper(delegate) }
+      project.replaceImportsInsertHelper { Helper(delegate) }
     }
   }
 
   override fun disposeComponent() {
     Log.Verbose({ "MetaImportInsertHelper.disposeComponent" }) {
-      project.replaceComponent<ImportInsertHelper> { delegate }
+      project.replaceImportsInsertHelper { delegate }
     }
   }
 
-
-}
-
-inline fun <reified A> Project.replaceComponent(f: (A) -> A): Unit {
-  picoContainer.safeAs<DefaultPicoContainer>()?.apply {
-    getComponentAdapterOfType(A::class.java)?.let { componentAdapter ->
-      val instance = componentAdapter.getComponentInstance(this) as? A
-      if (instance != null) {
-        val newInstance = f(instance)
-        val key = componentAdapter.componentKey
-        unregisterComponent(key)
-        registerComponentInstance(key, newInstance as Any)
+  private inline fun Project.replaceImportsInsertHelper(f: (ImportInsertHelper) -> ImportInsertHelper): Unit {
+    picoContainer.safeAs<DefaultPicoContainer>()?.apply {
+      getComponentAdapterOfType(ImportInsertHelper::class.java)?.apply {
+        val instance = getComponentInstance(componentKey) as? ImportInsertHelper
+        if (instance != null) {
+          val newInstance = f(instance)
+          unregisterComponent(componentKey)
+          registerServiceInstance(ImportInsertHelper::class.java, newInstance)
+        }
       }
     }
   }
+
 }
+
+

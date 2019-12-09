@@ -1,6 +1,7 @@
 package arrow.meta.proofs
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.resolve.`isSubtypeOf(NewKotlinTypeChecker)`
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeProofs
 import org.jetbrains.kotlin.types.KotlinType
@@ -11,7 +12,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
 
   override fun isSubtypeOf(p0: KotlinType, p1: KotlinType): Boolean {
     return if (!p0.isError && !p1.isError) {
-      val result = baseLineTypeChecker.isSubtypeOf(p0, p1)
+      val result = p0.`isSubtypeOf(NewKotlinTypeChecker)`(p1)
       val subTypes = if (!result && !p0.isError && !p1.isError) {
         compilerContext.module.typeProofs.hasProof(p0, p1)
       } else result

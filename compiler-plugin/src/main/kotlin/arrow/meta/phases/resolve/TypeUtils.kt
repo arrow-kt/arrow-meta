@@ -4,11 +4,10 @@ import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
 import arrow.meta.proofs.isProof
 import arrow.meta.quotes.get
-import org.jetbrains.kotlin.config.KotlinTypeRefinerImpl
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
@@ -16,7 +15,6 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
@@ -28,8 +26,6 @@ import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
-import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
@@ -38,7 +34,6 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
-import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.getAbbreviation
 import org.jetbrains.kotlin.types.replace
@@ -99,7 +94,7 @@ val ModuleDescriptor.typeProofs: List<Proof>
           //initializeProofCache()
         }
         when {
-          cacheValue != null -> {
+          cacheValue != null && cacheValue.first === this -> {
             println("Serving cached value for $this: ${cacheValue.second}")
             cacheValue.second
           }
@@ -142,16 +137,18 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   }.synthetic()
 
 inline fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
-  map { it.synthetic() }
+  mapNotNull { it.synthetic() }
 
-inline fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor =
-  SimpleFunctionDescriptorImpl.create(
+inline fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor? =
+  copy(
     containingDeclaration,
-    Annotations.EMPTY,
-    name,
+    Modality.FINAL,
+    Visibilities.PUBLIC,
     CallableMemberDescriptor.Kind.SYNTHESIZED,
-    source
-  )
+    true
+  ).run {
+    newCopyBuilder().setDispatchReceiverParameter(extensionReceiverParameter).build()
+  }
 
 inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
   copy(
@@ -163,8 +160,8 @@ inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
   ) as C
 
 fun List<Proof>.synthetic(): List<Proof> =
-  map {
-    Proof(it.from, it.to, (it.through as SimpleFunctionDescriptor).synthetic(), it.proofType)
+  mapNotNull {proof ->
+    (proof.through as SimpleFunctionDescriptor).synthetic()?.let { Proof(proof.from, proof.to, it, proof.proofType) }
   }
 
 class ProofVertex(val type: KotlinType) {
@@ -240,15 +237,7 @@ fun FunctionDescriptor.asProof(): Proof? =
           ProofStrategy.Subtyping.name -> ProofStrategy.Subtyping
           else -> ProofStrategy.Extension
         }
-      val descriptor = when (proofStrategy) {
-        ProofStrategy.Extension ->
-          this.newCopyBuilder()
-            .setDispatchReceiverParameter(this.dispatchReceiverParameter)
-            .setOwner(this.containingDeclaration)
-            .build() ?: this
-        else -> this
-      }
-      Proof(from, to, descriptor, proofStrategy)
+      Proof(from, to, this, proofStrategy)
     }
   }
 
