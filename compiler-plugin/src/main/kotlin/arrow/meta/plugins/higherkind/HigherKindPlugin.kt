@@ -68,7 +68,7 @@ fun Diagnostic.kindsTypeMismatch(): Boolean =
       KotlinTypeChecker.DEFAULT.isSubtypeOf(a, b)
     } == true
 
-private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
+fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
   value.joinToString {
     it.text
       .replace("out ", "")
@@ -78,20 +78,20 @@ private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false):
       }.trim()
   }
 
-private val KtClass.partialTypeParameters: String
+val KtClass.partialTypeParameters: String
   get() = typeParameters
     .dropLast(1)
     .joinToString(separator = ", ") {
       it.nameAsSafeName.identifier
     }
 
-private val KtClass.arity: Int
+val KtClass.arity: Int
   get() = typeParameters.size
 
-private val KtClass.kindAritySuffix: String
+val KtClass.kindAritySuffix: String
   get() = arity.let { if (it > 1) "$it" else "" }
 
-private val KtClass.partialKindAritySuffix: String
+val KtClass.partialKindAritySuffix: String
   get() = (arity - 1).let { if (it > 1) "$it" else "" }
 
 fun isHigherKindedType(ktClass: KtClass): Boolean =

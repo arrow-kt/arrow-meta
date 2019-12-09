@@ -4,7 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.classOrObject
+import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.scope
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
@@ -13,7 +13,7 @@ val Meta.higherKindedTypes2: Plugin
   get() =
     "higherKindedTypes2" {
       meta(
-        classOrObject(::isHigherKindedType) { c ->
+        classDeclaration(::isHigherKindedType) { c ->
           Transform.replace(c, listOfNotNull(
             /** Kind Marker **/
             "class For$name private constructor()".`class`.synthetic,

@@ -12,10 +12,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.Node
-import arrow.meta.internal.kastree.ast.Writer
-import arrow.meta.internal.kastree.ast.psi.Converter
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -325,33 +321,6 @@ private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(contex
         } else element
     }}
     psiElements
-      is Transform.Replace -> {
-        replaceImpl(transform, dummyFile)
-      }
-      is Transform.AddPhases -> TODO()
-      Transform.Empty -> Unit
-    }
-  }
-  return Writer.write(dummyFile)
-}
-
-private fun <K : KtElement> replaceImpl(transform: Transform.Replace<K>, dummyFile: Node.File) {
-  var dummyFile1 = dummyFile
-  val replacingNode = when {
-    transform.replacing is KtClassOrObject -> Converter.convertDecl(transform.replacing)
-    transform.replacing is KtNamedFunction -> Converter.convertFunc(transform.replacing)
-    transform.replacing is KtExpression -> Converter.convertExpr(transform.replacing)
-    else -> TODO("Unsupported ${transform.replacing}")
-  }
-  dummyFile1 = MutableVisitor.preVisit(dummyFile1) { element, _ ->
-    if (element != null && element == replacingNode) {
-      val newContents = transform.newDeclarations.joinToString("\n") { it.value?.text ?: "" }
-      println("Replacing ${element.javaClass} with ${transform.newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
-      element.dynamic = newContents
-      element
-    } else element
-  }
-  Unit
 }
 
 inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() -> Boolean): K? = source.dfs {

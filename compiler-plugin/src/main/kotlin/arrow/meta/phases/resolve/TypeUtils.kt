@@ -4,6 +4,7 @@ import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
 import arrow.meta.proofs.isProof
 import arrow.meta.quotes.get
+import org.jetbrains.kotlin.config.KotlinTypeRefinerImpl
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -28,7 +29,10 @@ import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.getAbbreviation
 import org.jetbrains.kotlin.types.replace
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
@@ -41,6 +45,8 @@ import org.jgrapht.io.DOTExporter
 import java.io.StringWriter
 import java.util.concurrent.ConcurrentHashMap
 
+val baseLineTypeChecker: KotlinTypeChecker =
+  NewKotlinTypeCheckerImpl(KotlinTypeRefiner.Default)
 
 fun KotlinType.replaceTypeArgsWithUpperbounds(): KotlinType =
   replace(arguments.map { typeProjection ->
@@ -54,7 +60,7 @@ fun CallableDescriptor.provesWithBaselineTypeChecker(from: KotlinType, to: Kotli
     returnType?.let { returnType ->
       val receiverWithUpperBounds = receiver.replaceTypeArgsWithUpperbounds()
       val returnTypeWithUpperBounds = returnType.replaceTypeArgsWithUpperbounds()
-      val result = NewKotlinTypeChecker.run {
+      val result = baseLineTypeChecker.run {
         isSubtypeOf(from, receiverWithUpperBounds) && isSubtypeOf(to, returnTypeWithUpperBounds)
       }
       result
@@ -131,7 +137,7 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
 class ProofVertex(val type: KotlinType) {
   override fun equals(other: Any?): Boolean =
     if (other is ProofVertex) {
-      NewKotlinTypeChecker.isSubtypeOf(type, other.type)
+      baseLineTypeChecker.isSubtypeOf(type, other.type)
     } else false
 
   override fun hashCode(): Int {
@@ -154,7 +160,7 @@ fun KotlinType.intersection(vararg other: KotlinType): KotlinType {
 }
 
 fun KotlinType.`isSubtypeOf(NewKotlinTypeChecker)`(other: KotlinType): Boolean =
-  NewKotlinTypeChecker.isSubtypeOf(this, other)
+  baseLineTypeChecker.isSubtypeOf(this, other)
 
 fun BindingTrace.applySmartCast(
   call: Call,
