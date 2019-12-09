@@ -3,10 +3,14 @@ package arrow.meta.phases.resolve
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
 import arrow.meta.proofs.isProof
+import arrow.meta.quotes.get
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
+import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
@@ -67,37 +71,54 @@ fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProj
 val KotlinType.unwrappedNotNullableType: UnwrappedType
   get() = makeNotNullable().unwrap()
 
-internal val proofCache: ConcurrentHashMap<FqName, Pair<ModuleDescriptor, List<Proof>>> = ConcurrentHashMap()
+val proofCache: ConcurrentHashMap<Name, Pair<ModuleDescriptor, List<Proof>>> = ConcurrentHashMap()
 
 fun disposeProofCache(): Unit =
   proofCache.clear()
 
 val ModuleDescriptor.typeProofs: List<Proof>
-  get() {
-    val cacheValue = proofCache[fqNameSafe]
-    return when {
-      cacheValue != null && cacheValue.first == this -> {
-        println("Serving cached value for $this: ${cacheValue.second}")
-        cacheValue.second
+  get() =
+    if (this is ModuleDescriptorImpl) {
+      try {
+        val cacheValue = proofCache[name]
+        val packageFragmentProvider: PackageFragmentProvider? = this["packageFragmentProviderForModuleContent"]
+        if (packageFragmentProvider != null) {
+          initializeProofCache()
+        }
+        when {
+          cacheValue != null && cacheValue.first === this -> {
+            println("Serving cached value for $this: ${cacheValue.second}")
+            cacheValue.second
+          }
+          else -> emptyList()
+        }
+      } catch (e: RuntimeException) {
+        println("TODO() Detected exception: ${e.printStackTrace()}")
+        emptyList<Proof>()
       }
-      else -> emptyList()
-    }
-  }
+    } else emptyList()
 
 fun ModuleDescriptor.initializeProofCache(): List<Proof> =
   try {
     val moduleProofs: List<Proof> = computeModuleProofs()
-    proofCache[module.fqNameSafe] = module to moduleProofs
+    if (moduleProofs.isNotEmpty()) {
+      proofCache[module.name] = module to moduleProofs
+    }
     moduleProofs
-  } catch (e: AssertionError) {
+  } catch (e: Throwable) {
     emptyList()
   }
 
 private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
-  (getSubPackagesOf(FqName.ROOT) { true } + FqName.ROOT).flatMap { packageName ->
-    getPackage(packageName).fragments.flatMap { packageFragmentDescriptor ->
-      packageFragmentDescriptor
-        .getMemberScope()
+  (getSubPackagesOf(FqName.ROOT) { true })
+    .filter { !it.isRoot }
+    .flatMap { packageName ->
+    getPackage(packageName).memberScope
+      .getContributedDescriptors { true }
+      .filterIsInstance<PackageViewDescriptor>()
+      .flatMap { packageViewDescriptor ->
+      packageViewDescriptor
+        .memberScope
         .getContributedDescriptors { true }
         .filterIsInstance<FunctionDescriptor>()
         .filter(FunctionDescriptor::isProof)

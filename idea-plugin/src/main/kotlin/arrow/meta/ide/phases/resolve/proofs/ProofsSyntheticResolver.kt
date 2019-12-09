@@ -23,11 +23,11 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
     thisDescriptor: ClassDescriptor,
     supertypes: MutableList<KotlinType>
   ) {
-    Log.Verbose({ "MetaSyntheticResolver.addSyntheticSupertypes: $thisDescriptor, supertypes: $supertypes: $this" }) {
-      thisDescriptor.module.typeProofs
-        .subtyping(thisDescriptor.defaultType)
-        .mapTo(supertypes, Proof::to)
-    }
+//    Log.Verbose({ "MetaSyntheticResolver.addSyntheticSupertypes: $thisDescriptor, supertypes: $supertypes: $this" }) {
+//      thisDescriptor.module.typeProofs
+//        .subtyping(thisDescriptor.defaultType)
+//        .mapTo(supertypes, Proof::to)
+//    }
   }
 
   override fun generateSyntheticMethods(
@@ -37,11 +37,13 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
     fromSupertypes: List<SimpleFunctionDescriptor>,
     result: MutableCollection<SimpleFunctionDescriptor>
   ) {
-    Log.Verbose({ "MetaSyntheticResolver.generateSyntheticMethods: $thisDescriptor, name: $name, result: $this" }) {
-      thisDescriptor.module.typeProofs
+    val proofs = thisDescriptor.module.typeProofs
+    Log.Verbose({ "MetaSyntheticResolver.generateSyntheticMethods: $thisDescriptor, name: $name, proofs: $proofs result: $this" }) {
+      proofs
         .extensions(thisDescriptor.defaultType)
         .flatMapTo(result) {
-          it.to.memberScope.getContributedFunctions(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE)
+          it.to.memberScope.getContributedDescriptors { true }
+            .filterIsInstance<SimpleFunctionDescriptor>()
             .toList()
             .toSynthetic()
         }
@@ -59,8 +61,8 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
       thisDescriptor.module.typeProofs
         .extensions(thisDescriptor.defaultType)
         .flatMapTo(result) {
-          it.to.memberScope.getContributedVariables(name, NoLookupLocation.FROM_SYNTHETIC_SCOPE)
-            .toList()
+          it.to.memberScope.getContributedDescriptors { true }
+            .filterIsInstance<PropertyDescriptor>()
             .map { it.synthetic() }
         }
     }

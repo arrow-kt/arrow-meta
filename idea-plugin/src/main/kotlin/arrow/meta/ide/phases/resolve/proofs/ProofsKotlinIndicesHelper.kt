@@ -5,6 +5,7 @@ import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.extensionCallables
 import arrow.meta.proofs.extensions
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.idea.core.extension.KotlinIndicesHelperExtension
@@ -35,6 +36,10 @@ class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
         it.extensionCallables { true }
           .filterIsInstance<SimpleFunctionDescriptor>()
           .filter { it.isExtension }
+          .mapNotNull { it.newCopyBuilder()
+            .setModality(Modality.FINAL)
+            .build() }
+          .toSynthetic()
       }
       consumer.addAll(extensionCallables)
       extensionCallables

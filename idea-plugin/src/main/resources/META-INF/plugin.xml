@@ -25,7 +25,9 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
-
+        <component>
+            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
+        </component>
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -38,6 +40,8 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
+<!--        <projectService serviceInterface="org.jetbrains.kotlin.idea.util.ImportInsertHelper"-->
+<!--                        serviceImplementation="arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper"/>-->
 <!--        <projectService serviceInterface="org.jetbrains.kotlin.resolve.CodeAnalyzerInitializer"-->
 <!--                        serviceImplementation="arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer"/>-->
     </extensions>

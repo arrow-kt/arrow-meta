@@ -122,9 +122,11 @@ fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<Call
       }
   } else emptyList()
 
-
 fun List<Proof>.hasProof(subType: KotlinType, superType: KotlinType): Boolean =
   matchingCandidates(subType, superType).isNotEmpty()
+
+fun List<Proof>.subtypingProof(subType: KotlinType, superType: KotlinType): Proof? =
+  matchingCandidates(subType, superType).firstOrNull { it.proofType == ProofStrategy.Subtyping }
 
 fun List<Proof>.matchingCandidates(
   subType: KotlinType,
@@ -187,8 +189,7 @@ fun Diagnostic.suppressProvenTypeMismatch(proofs: List<Proof>): Boolean = //TODO
     safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
       val subType = diagnosticWithParameters.a
       val superType = diagnosticWithParameters.b
-      //if this is the kind type checker then it will do the right thing otherwise this proceeds as usual with the regular type checker
-      proofs.hasProof(subType, superType)
+      proofs.subtypingProof(subType, superType) != null
     } == true
 
 fun Diagnostic.suppressUpperboundViolated(proofs: List<Proof>): Boolean =
@@ -196,6 +197,6 @@ fun Diagnostic.suppressUpperboundViolated(proofs: List<Proof>): Boolean =
     safeAs<DiagnosticFactory2<KtTypeReference, KotlinType, KotlinType>>()?.let { factory ->
       factory.cast(this).run {
         //if this is the kind type checker then it will do the right thing otherwise this proceeds as usual with the regular type checker
-        proofs.hasProof(a, b)
+        proofs.subtypingProof(a, b) != null
       }
     } == true

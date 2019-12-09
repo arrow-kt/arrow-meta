@@ -1,8 +1,12 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
+import arrow.meta.ide.phases.resolve.proofs.Log
 import arrow.meta.ide.phases.resolve.proofs.ProofsPackageFragmentDescriptor
+import arrow.meta.ide.phases.resolve.proofs.chainedMemberScope
+import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.phases.resolve.disposeProofCache
+import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
@@ -70,6 +74,7 @@ import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProv
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageMemberScope
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
@@ -123,7 +128,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
       descriptorCache.keys().toList().map { packageName ->
         BuildCachePackageFragmentDescriptor(module, packageName)
-      } + ProofsPackageFragmentDescriptor(module, fqName, module.typeProofs)
+      } + ProofsPackageFragmentDescriptor(module, fqName)
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
       getPackageFragments(fqName).map { it.fqName }
@@ -159,6 +164,15 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
       override fun printScopeStructure(p: Printer) {
       }
     }
+  }
+
+  inner class ProofsPackageFragmentDescriptor(val module: ModuleDescriptor, fqName: FqName) : PackageFragmentDescriptorImpl(module, fqName) {
+    override fun getMemberScope(): MemberScope = scope
+
+    private val scope by lazy {
+      module.typeProofs.chainedMemberScope()
+    }
+
   }
 
   override fun dispose() {
@@ -448,7 +462,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
 internal fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
   map { it.synthetic() }
 
-internal inline fun <reified C: CallableMemberDescriptor> C.synthetic(): C =
+internal inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
   copy(
     containingDeclaration,
     modality,

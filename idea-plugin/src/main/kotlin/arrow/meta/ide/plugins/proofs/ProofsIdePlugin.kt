@@ -4,10 +4,10 @@ import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.resolve.proofs.Log
 import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
+import arrow.meta.ide.phases.resolve.proofs.ProofsPackageFragmentDescriptor
 import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
-import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
@@ -19,12 +19,15 @@ import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
 import arrow.meta.quotes.NamedFunctionScope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.get
 import arrow.meta.quotes.ktFile
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -37,6 +40,7 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
@@ -61,6 +65,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.resolve.lazy.descriptors.findPackageFragmentForFile
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
@@ -72,6 +77,9 @@ import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val proofAnnotation: Regex = Regex("@(arrow\\.)?Proof\\((.*)\\)")
+
+fun KtNamedFunction.isProof(): Boolean =
+  isAnnotatedWith(proofAnnotation)
 
 private fun KtNamedFunction.isProofOf(strategy: ProofStrategy): Boolean =
   isAnnotatedWith(proofAnnotation) && this.proofTypes().value.any {
@@ -332,7 +340,7 @@ class ProofsBodyResolveContent(
     }
 }
 
-private fun CompilerContext.resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
+private fun resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
   Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
     session.fileScopeProvider = MetaFileScopeProvider(session, session.fileScopeProvider)
 //    val bodyResolver = analyzer?.createBodyResolver(
@@ -390,8 +398,6 @@ private fun applySmartCast(
 //  ownerDescriptor.initialize(extensionReceiverParamDescriptor, null, through.typeParameters, through.valueParameters, through.returnType, Modality.FINAL, through.visibility)
 //  return LexicalScopeImpl(currentScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
 //}
-
-
 
 
 fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
