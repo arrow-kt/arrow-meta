@@ -102,8 +102,7 @@ interface LineMarkerSyntax {
     message: (PsiElement) -> String,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT,
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    clickAction: AnAction? = null,
-    isDumbAware: Boolean = true
+    clickAction: AnAction? = null
   ): LineMarkerInfo<PsiElement> =
     object : LineMarkerInfo<PsiElement>(element, element.textRange, icon, message, null, placed) {
       override fun getNavigationHandler(): GutterIconNavigationHandler<PsiElement>? =
@@ -114,7 +113,6 @@ interface LineMarkerSyntax {
       override fun createGutterRenderer(): GutterIconRenderer =
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
-          override fun isDumbAware(): Boolean = isDumbAware
         }
     }
 }

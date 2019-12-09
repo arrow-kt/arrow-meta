@@ -15,7 +15,8 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
-    <depends>org.jetbrains.plugins.gradle</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
     <project-components>
@@ -26,10 +27,6 @@
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
     </project-components>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider language="kotlin" implementationClass="arrow.meta.ide.plugins.optics.OpticsIdePlugin"/>
-    </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>
