@@ -94,7 +94,7 @@ val ModuleDescriptor.typeProofs: List<Proof>
           //initializeProofCache()
         }
         when {
-          cacheValue != null && cacheValue.first === this -> {
+          cacheValue != null && cacheValue.first == this -> {
             println("Serving cached value for $this: ${cacheValue.second}")
             cacheValue.second
           }

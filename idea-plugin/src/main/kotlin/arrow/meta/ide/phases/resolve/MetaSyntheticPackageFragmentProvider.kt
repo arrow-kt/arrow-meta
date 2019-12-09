@@ -205,7 +205,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
   override fun dispose() {
     LOG.info("MetaSyntheticPackageFragmentProvider.dispose")
     descriptorCache.clear()
-    disposeProofCache()
   }
 
   /**
@@ -218,29 +217,9 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     ApplicationManager.getApplication().executeOnPooledThread {
       DumbService.getInstance(project).runReadActionInSmartMode {
         computeCache()
-        computeProofCache()
         // refresh the highlighting of the current editor, using the new cache
         DaemonCodeAnalyzer.getInstance(project).restart()
       }
-    }
-  }
-
-  @Synchronized
-  private fun computeProofCache() {
-    assert(ApplicationManager.getApplication().isReadAccessAllowed)
-    measureTimeMillis {
-      LOG.debug("initializing new PackageFragmentProvider")
-      proofCache.clear()
-      val modules = project.allModules().mapNotNull {
-        it.toDescriptor()
-      }
-      modules.forEach {
-        it.initializeProofCache()
-      }
-
-
-    }.let {
-      LOG.info("computeProofCache() took $it ms")
     }
   }
 

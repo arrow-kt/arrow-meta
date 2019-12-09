@@ -1,6 +1,9 @@
 package arrow.meta.ide.phases.resolve.proofs
 
-import com.intellij.openapi.components.ProjectComponent
+import arrow.meta.phases.resolve.disposeProofCache
+import arrow.meta.phases.resolve.initializeProofCache
+import arrow.meta.phases.resolve.proofCache
+import arrow.meta.phases.resolve.typeProofs
 import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -11,13 +14,24 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
   override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade =
     Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this" }) {
-      delegate.getResolutionFacade(elements)
+      val resolutionFacade = delegate.getResolutionFacade(elements)
+      val module = resolutionFacade.moduleDescriptor
+      if (elements.firstOrNull().safeAs<KtFile>() != null) {
+        val cachedModule = proofCache[module.name]?.first
+        if (cachedModule != module) {
+          Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache ${resolutionFacade.moduleDescriptor} ${this.size}" }) {
+            resolutionFacade.moduleDescriptor.initializeProofCache()
+          }
+        }
+      }
+      resolutionFacade
     }
 
   override fun getResolutionFacade(elements: List<KtElement>, platform: TargetPlatform): ResolutionFacade =
@@ -54,6 +68,7 @@ class MetaKotlinCacheService(val project: Project) : ModuleComponent {
 
   override fun disposeComponent() {
     Log.Verbose({ "MetaKotlinCacheService.disposeComponent" }) {
+      disposeProofCache()
       project.replaceKotlinCacheService { delegate }
     }
   }
