@@ -4,6 +4,7 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
@@ -21,7 +22,7 @@ import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
-import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
@@ -320,6 +321,8 @@ interface ElementScope {
   val String.`if`: IfExpression
 
   val String.`return`: ReturnExpression
+
+  val String.`break`: BreakExpression
 
   val String.annotatedExpression: AnnotatedExpression
 

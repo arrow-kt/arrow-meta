@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  *     returnExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """return $`return`""".`return`
+ *       newDeclaration = """$labelName $`return`""".`return`
  *      )
  *      }
  *     )
@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  * ```
  */
 class ReturnExpression(
-  override val value: KtReturnExpression?,
-  val `return`: Scope<KtExpression> = Scope(value?.returnedExpression)
-) : Scope<KtReturnExpression>(value)
+  override val value: KtReturnExpression,
+  override val labelName: String? = value.getLabelName() ?: "return",
+  val `return`: Scope<KtExpression> = Scope(value.returnedExpression)
+) : ExpressionWithLabel<KtReturnExpression>(value)
