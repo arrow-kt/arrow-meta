@@ -25,7 +25,7 @@ class BreakExpressionTest {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(BreakExpressionPlugin())) },
       code = { breakExpression },
-      assert = { compiles }//quoteOutputMatches(breakExpression) }
+      assert = { quoteOutputMatches(breakExpression) }
     ))
   }
 }
