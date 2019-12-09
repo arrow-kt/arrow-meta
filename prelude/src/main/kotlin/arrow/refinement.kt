@@ -4,6 +4,10 @@ import arrow.TypeProof.*
 
 inline class PositiveInt(val value: Int)
 
+/**
+ * val x: PositiveInt = -2
+ * val
+ */
 @Proof(Subtyping)
 fun Int.toPositiveInt(): PositiveInt? =
   if (this >= 0) PositiveInt(this) else null

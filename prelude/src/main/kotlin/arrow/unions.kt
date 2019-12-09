@@ -12,35 +12,39 @@ typealias Union2<A, B> = Union3<A, B, Impossible>
 
 inline class Union(override val value: Any?) : Union4<Nothing, Nothing, Nothing, Nothing>
 
-// val x: Union<String, Int> = 0.0
-@Proof(of = [Subtyping])
+
+
+
+// val x: Union<String, Int> = 0
+
+@Proof(Subtyping)
 inline fun <A> A.first(): Union4<A, Any?, Any?, Any?> =
   Union(this)
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <A> A.second(): Union4<Any?, A, Any?, Any?> =
   Union(this)
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <A> A.third(): Union4<Any?, Any?, A, Any?> =
   Union(this)
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <A> A.fourth(): Union4<Any?, Any?, Any?, A> =
   Union(this)
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <reified A> Union4<A, Any?, Any?, Any?>.firstN(): A? =
   (this as Union).value as? A
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <reified A> Union4<Any?, A, Any?, Any?>.secondN(): A? =
   (this as Union).value as? A
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <reified A> Union4<Any?, Any?, A, Any?>.thirdN(): A? =
   (this as Union).value as? A
 
-@Proof(of = [Subtyping])
+@Proof(Subtyping)
 inline fun <reified A> Union4<Any?, Any?, Any?, A>.fourthN(): A? =
   (this as Union).value as? A

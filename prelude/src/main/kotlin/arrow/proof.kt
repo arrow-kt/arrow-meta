@@ -30,5 +30,5 @@ enum class TypeProof {
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 annotation class Proof(
-  vararg val of: TypeProof = []
+  val of: TypeProof
 )

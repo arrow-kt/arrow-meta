@@ -86,7 +86,6 @@ inline class Tupled(override val value: Array<Any?>) :
 
 data class Person(val name: String, val age: Int)
 
-Monoid -> Tuple2Monoid -> Tuple2 -> Person = Monoid Person
 @Proof(Subtyping)
 fun Person.tupled(): Tuple2<String, Int> =
   Tupled(arrayOf(name, age)).widen()
