@@ -5,7 +5,7 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.breakExpression
+import arrow.meta.quotes.continueExpression
 
 open class ContinueExpressionPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
@@ -17,10 +17,13 @@ val Meta.continueExpressionPlugin
   get() =
     "Continue Expression Scope Plugin" {
       meta(
-        breakExpression({ true }) { expression ->
+        continueExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """break$targetLabel""".`break`
+            newDeclaration = when {
+                targetLabel.value != null -> """continue$targetLabel""".`continue`
+                else -> """continue""".`continue`
+              }
           )
         }
       )

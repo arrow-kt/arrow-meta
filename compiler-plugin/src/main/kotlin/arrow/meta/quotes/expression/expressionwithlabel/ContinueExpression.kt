@@ -2,33 +2,35 @@ package arrow.meta.quotes.expression.expressionwithlabel
 
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtContinueExpression
-import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>"""break$targetLabel""".`break`</code>
+ * <code>"""continue""".`continue`</code>
  *
- * A template destructuring [Scope] for a [KtReturnExpression].
+ * A template destructuring [Scope] for a [KtContinueExpression].
  *
  *  ```
  * import arrow.meta.Meta
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.breakExpression
+ * import arrow.meta.quotes.continueExpression
  *
- * val Meta.reformatBreak: Plugin
+ * val Meta.reformatContinue: Plugin
  *  get() =
- *   "ReformatBreak" {
+ *   "ReformatContinue" {
  *    meta(
- *     breakExpression({ true }) { e ->
+ *     continueExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """continue$targetLabel""".`break`
+ *       newDeclaration = when {
+ *          targetLabel.value != null -> """continue$targetLabel""".`continue`
+ *          else -> """continue""".`continue`
+ *        }
  *      )
- *      }
- *     )
- *    }
+ *     }
+ *   )
+ * }
  * ```
  */
 class ContinueExpression(

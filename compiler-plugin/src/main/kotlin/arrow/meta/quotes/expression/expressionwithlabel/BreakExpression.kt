@@ -2,13 +2,12 @@ package arrow.meta.quotes.expression.expressionwithlabel
 
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtBreakExpression
-import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
  * <code>"""break$targetLabel""".`break`</code>
  *
- * A template destructuring [Scope] for a [KtReturnExpression].
+ * A template destructuring [Scope] for a [KtBreakExpression].
  *
  *  ```
  * import arrow.meta.Meta

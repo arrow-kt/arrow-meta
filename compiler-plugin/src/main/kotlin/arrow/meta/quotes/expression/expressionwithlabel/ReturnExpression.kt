@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>"""return $`return`""".`return`</code>
+ * <code>"""return""".`return`</code>
  *
  * A template destructuring [Scope] for a [KtReturnExpression].
  *
@@ -24,11 +24,15 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *     returnExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """return$`return`""".`return`
- *      )
- *      }
- *     )
- *    }
+ *       newDeclaration = when {
+ *          `return`.value != null -> """return $`return`""".`return`
+ *          targetLabel.value != null -> """return$targetLabel""".`return`
+ *          else -> """return""".`return`
+ *         }
+ *       )
+ *     }
+ *   )
+ * }
  * ```
  */
 class ReturnExpression(

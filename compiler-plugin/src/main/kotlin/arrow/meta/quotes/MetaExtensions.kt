@@ -19,6 +19,7 @@ import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
+import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -99,6 +101,15 @@ fun Meta.classDeclaration(
   map: ClassDeclaration.(KtClass) -> Transform<KtClass>
 ): ExtensionPhase =
   quote(match, map) { ClassDeclaration(it) }
+
+/**
+ * @see [ContinueExpression]
+ */
+fun Meta.continueExpression(
+  match: KtContinueExpression.() -> Boolean,
+  map: ContinueExpression.(KtContinueExpression) -> Transform<KtContinueExpression>
+): ExtensionPhase =
+  quote(match, map) { ContinueExpression(it) }
 
 /**
  * @see [DotQualifiedExpression]
