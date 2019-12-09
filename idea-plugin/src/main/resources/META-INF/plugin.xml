@@ -15,7 +15,8 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
-    <depends>org.jetbrains.plugins.gradle</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
     <project-components>

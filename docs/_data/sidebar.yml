@@ -94,7 +94,7 @@ options:
         url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
 
       - title: SyntaxHighlighterSyntax
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/add-syntax-highlighter.html
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/-syntax-highlighter-syntax/add-syntax-highlighter.html
 
 
   - title: Testing
