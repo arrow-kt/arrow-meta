@@ -1,6 +1,6 @@
 package arrow.meta.ide.phases.resolve.proofs
 
-import arrow.meta.ide.phases.resolve.toSynthetic
+import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.extensionCallables
 import arrow.meta.proofs.extensions

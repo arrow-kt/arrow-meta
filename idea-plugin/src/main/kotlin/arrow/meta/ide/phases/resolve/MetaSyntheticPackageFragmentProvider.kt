@@ -1,12 +1,12 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
-import arrow.meta.ide.phases.resolve.proofs.Log
-import arrow.meta.ide.phases.resolve.proofs.ProofsPackageFragmentDescriptor
 import arrow.meta.ide.phases.resolve.proofs.chainedMemberScope
-import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.phases.resolve.disposeProofCache
+import arrow.meta.phases.resolve.initializeProofCache
 import arrow.meta.phases.resolve.proofCache
+import arrow.meta.phases.resolve.synthetic
+import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
@@ -24,7 +24,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.PsiManagerImpl
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -39,9 +38,11 @@ import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeAndGetResult
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -74,7 +75,6 @@ import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProv
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
-import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageMemberScope
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
@@ -86,6 +86,33 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
+import kotlin.collections.Collection
+import kotlin.collections.List
+import kotlin.collections.MutableCollection
+import kotlin.collections.MutableList
+import kotlin.collections.MutableSet
+import kotlin.collections.Set
+import kotlin.collections.arrayListOf
+import kotlin.collections.emptyList
+import kotlin.collections.emptySet
+import kotlin.collections.filter
+import kotlin.collections.filterIsInstance
+import kotlin.collections.filterNot
+import kotlin.collections.filterNotNull
+import kotlin.collections.find
+import kotlin.collections.firstOrNull
+import kotlin.collections.flatMap
+import kotlin.collections.forEach
+import kotlin.collections.isNotEmpty
+import kotlin.collections.joinToString
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
+import kotlin.collections.plus
+import kotlin.collections.set
+import kotlin.collections.toList
+import kotlin.collections.toMap
+import kotlin.collections.toSet
 
 class MetaSyntheticPackageFragmentProvider(val project: Project) :
   PackageFragmentProviderExtension,
@@ -191,10 +218,29 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     ApplicationManager.getApplication().executeOnPooledThread {
       DumbService.getInstance(project).runReadActionInSmartMode {
         computeCache()
-
+        computeProofCache()
         // refresh the highlighting of the current editor, using the new cache
         DaemonCodeAnalyzer.getInstance(project).restart()
       }
+    }
+  }
+
+  @Synchronized
+  private fun computeProofCache() {
+    assert(ApplicationManager.getApplication().isReadAccessAllowed)
+    measureTimeMillis {
+      LOG.debug("initializing new PackageFragmentProvider")
+      proofCache.clear()
+      val modules = project.allModules().mapNotNull {
+        it.toDescriptor()
+      }
+      modules.forEach {
+        it.initializeProofCache()
+      }
+
+
+    }.let {
+      LOG.info("computeProofCache() took $it ms")
     }
   }
 
@@ -243,54 +289,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
       LOG.info("computeCache() took $it ms")
     }
   }
-
-  private fun LazyClassDescriptor.synthetic(declarationProvider: DeclarationProvider): SyntheticClassOrObjectDescriptor {
-    val ktDeclaration = this.ktClassOrObject()
-    return SyntheticClassOrObjectDescriptor(
-      c = this["c"],
-      parentClassOrObject = when (declarationProvider) {
-        is ClassMemberDeclarationProvider -> declarationProvider.correspondingClassOrObject
-        is StubBasedPackageMemberDeclarationProvider -> declarationProvider.getPackageFiles().firstOrNull {
-          it.declarations.any { declaration -> declaration == ktDeclaration }
-        }?.ktPureClassOrObject()
-        is PackageMemberDeclarationProvider -> declarationProvider.getPackageFiles().firstOrNull {
-          it.declarations.any { declaration -> declaration == ktDeclaration }
-        }?.ktPureClassOrObject()
-        else -> null
-      } ?: TODO("Unknown declaration provider $declarationProvider"),
-      containingDeclaration = containingDeclaration,
-      name = name,
-      source = SourceElement.NO_SOURCE,
-      outerScope = scopeForClassHeaderResolution,
-      modality = if (modality == Modality.SEALED) Modality.ABSTRACT else modality,
-      visibility = if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
-      annotations = annotations,
-      constructorVisibility = Visibilities.PUBLIC,
-      kind = kind,
-      isCompanionObject = isCompanionObject
-    ).also {
-      it.initialize(declaredTypeParameters)
-    }
-  }
-
-  private fun KtFile.ktPureClassOrObject(): KtPureClassOrObject =
-    object : KtPureClassOrObject {
-      override fun hasExplicitPrimaryConstructor(): Boolean = false
-      override fun getParent(): PsiElement = this@ktPureClassOrObject.psiOrParent
-      override fun getName(): String? = this@ktPureClassOrObject.name
-      override fun getPrimaryConstructorParameters(): List<KtParameter> = emptyList()
-      override fun getSecondaryConstructors(): List<KtSecondaryConstructor> = emptyList()
-      override fun hasPrimaryConstructor(): Boolean = false
-      override fun getContainingKtFile(): KtFile = this@ktPureClassOrObject
-      override fun getPrimaryConstructor(): KtPrimaryConstructor? = null
-      override fun getSuperTypeListEntries(): List<KtSuperTypeListEntry> = emptyList()
-      override fun getPsiOrParent(): KtElement = this@ktPureClassOrObject.psiOrParent
-      override fun getPrimaryConstructorModifierList(): KtModifierList? = null
-      override fun isLocal(): Boolean = false
-      override fun getCompanionObjects(): List<KtObjectDeclaration> = emptyList()
-      override fun getDeclarations(): List<KtDeclaration> = this@ktPureClassOrObject.declarations
-      override fun getBody(): KtClassBody? = null
-    }
 
   private fun DeclarationDescriptor.isMetaSynthetic(): Boolean =
     annotations.findAnnotation(FqName("arrow.synthetic")) != null
@@ -353,9 +351,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     removeIf { replacements[it] != null }
     addAll(replacements.values.filterNotNull().toSynthetic(declarationProvider))
   }
-
-  private fun List<LazyClassDescriptor>.toSynthetic(declarationProvider: DeclarationProvider): List<ClassDescriptor> =
-    map { it.synthetic(declarationProvider) }
 
   override fun generateSyntheticClasses(thisDescriptor: ClassDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: ClassMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {
@@ -459,14 +454,53 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
   }
 }
 
-internal fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
-  map { it.synthetic() }
+private fun LazyClassDescriptor.synthetic(declarationProvider: DeclarationProvider): SyntheticClassOrObjectDescriptor {
+  val ktDeclaration = this.ktClassOrObject()
+  return SyntheticClassOrObjectDescriptor(
+    c = this["c"],
+    parentClassOrObject = when (declarationProvider) {
+      is ClassMemberDeclarationProvider -> declarationProvider.correspondingClassOrObject
+      is StubBasedPackageMemberDeclarationProvider -> declarationProvider.getPackageFiles().firstOrNull {
+        it.declarations.any { declaration -> declaration == ktDeclaration }
+      }?.ktPureClassOrObject()
+      is PackageMemberDeclarationProvider -> declarationProvider.getPackageFiles().firstOrNull {
+        it.declarations.any { declaration -> declaration == ktDeclaration }
+      }?.ktPureClassOrObject()
+      else -> null
+    } ?: TODO("Unknown declaration provider $declarationProvider"),
+    containingDeclaration = containingDeclaration,
+    name = name,
+    source = SourceElement.NO_SOURCE,
+    outerScope = scopeForClassHeaderResolution,
+    modality = if (modality == Modality.SEALED) Modality.ABSTRACT else modality,
+    visibility = if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
+    annotations = annotations,
+    constructorVisibility = Visibilities.PUBLIC,
+    kind = kind,
+    isCompanionObject = isCompanionObject
+  ).also {
+    it.initialize(declaredTypeParameters)
+  }
+}
 
-internal inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
-  copy(
-    containingDeclaration,
-    modality,
-    if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    true
-  ) as C
+private fun KtFile.ktPureClassOrObject(): KtPureClassOrObject =
+  object : KtPureClassOrObject {
+    override fun hasExplicitPrimaryConstructor(): Boolean = false
+    override fun getParent(): PsiElement = this@ktPureClassOrObject.psiOrParent
+    override fun getName(): String? = this@ktPureClassOrObject.name
+    override fun getPrimaryConstructorParameters(): List<KtParameter> = emptyList()
+    override fun getSecondaryConstructors(): List<KtSecondaryConstructor> = emptyList()
+    override fun hasPrimaryConstructor(): Boolean = false
+    override fun getContainingKtFile(): KtFile = this@ktPureClassOrObject
+    override fun getPrimaryConstructor(): KtPrimaryConstructor? = null
+    override fun getSuperTypeListEntries(): List<KtSuperTypeListEntry> = emptyList()
+    override fun getPsiOrParent(): KtElement = this@ktPureClassOrObject.psiOrParent
+    override fun getPrimaryConstructorModifierList(): KtModifierList? = null
+    override fun isLocal(): Boolean = false
+    override fun getCompanionObjects(): List<KtObjectDeclaration> = emptyList()
+    override fun getDeclarations(): List<KtDeclaration> = this@ktPureClassOrObject.declarations
+    override fun getBody(): KtClassBody? = null
+  }
+
+fun List<LazyClassDescriptor>.toSynthetic(declarationProvider: DeclarationProvider): List<ClassDescriptor> =
+  map { it.synthetic(declarationProvider) }

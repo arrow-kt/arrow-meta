@@ -1,15 +1,12 @@
 package arrow.meta.ide.phases.resolve.proofs
 
-import arrow.meta.ide.phases.resolve.synthetic
-import arrow.meta.ide.phases.resolve.toSynthetic
+import arrow.meta.phases.resolve.synthetic
+import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensions
-import arrow.meta.proofs.subtyping
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.module

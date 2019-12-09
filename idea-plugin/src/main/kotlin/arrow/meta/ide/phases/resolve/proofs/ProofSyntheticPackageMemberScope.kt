@@ -1,6 +1,6 @@
 package arrow.meta.ide.phases.resolve.proofs
 
-import arrow.meta.ide.phases.resolve.toSynthetic
+import arrow.meta.phases.resolve.toSynthetic
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation

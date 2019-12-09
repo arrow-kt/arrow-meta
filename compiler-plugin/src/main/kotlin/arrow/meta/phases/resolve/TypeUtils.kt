@@ -6,12 +6,17 @@ import arrow.meta.proofs.isProof
 import arrow.meta.quotes.get
 import org.jetbrains.kotlin.config.KotlinTypeRefinerImpl
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
@@ -23,6 +28,8 @@ import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
@@ -89,10 +96,10 @@ val ModuleDescriptor.typeProofs: List<Proof>
         val cacheValue = proofCache[name]
         val packageFragmentProvider: PackageFragmentProvider? = this["packageFragmentProviderForModuleContent"]
         if (packageFragmentProvider != null) {
-          initializeProofCache()
+          //initializeProofCache()
         }
         when {
-          cacheValue != null && cacheValue.first === this -> {
+          cacheValue != null -> {
             println("Serving cached value for $this: ${cacheValue.second}")
             cacheValue.second
           }
@@ -132,6 +139,32 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   }.apply {
     val module = this@computeModuleProofs
     println("Recomputed cache: $module proofs: ${size}, module cache size: ${proofCache.size}")
+  }.synthetic()
+
+inline fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
+  map { it.synthetic() }
+
+inline fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor =
+  SimpleFunctionDescriptorImpl.create(
+    containingDeclaration,
+    Annotations.EMPTY,
+    name,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    source
+  )
+
+inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
+  copy(
+    containingDeclaration,
+    modality,
+    if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
+    CallableMemberDescriptor.Kind.SYNTHESIZED,
+    true
+  ) as C
+
+fun List<Proof>.synthetic(): List<Proof> =
+  map {
+    Proof(it.from, it.to, (it.through as SimpleFunctionDescriptor).synthetic(), it.proofType)
   }
 
 class ProofVertex(val type: KotlinType) {
