@@ -421,7 +421,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
   
-  override fun String.file(fileName: String): File = File(delegate.createPhysicalFile("$fileName.kt", this.trimIndent()))
+  override fun String.file(fileName: String): File = File(delegate.createFile("$fileName.kt", this.trimIndent()))
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral(expression.value as KtFunctionLiteral)
