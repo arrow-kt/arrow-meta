@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 // TODO: [KtTypeParameterListOwnerNotStubbed] is deprecated - rename package to JetTypeParameterListOwner when fully deprecated
 
 /**
- * <code>""" val $name = { $blockExpression }""".functionLiteral</code>
+ * <code>"""val $name = {$blockExpression}"""</code>
  *
  * A template destructuring [Scope] for a [KtFunctionLiteral].
  *
@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  *     functionLiteral({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ val $name = { $blockExpression }""".functionLiteral
+ *       newDeclaration = """val $name = {$blockExpression}""".functionLiteral
  *      )
  *      }
  *     )
