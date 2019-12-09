@@ -8,13 +8,13 @@ import org.assertj.core.api.Assertions.assertThat
 import java.io.File
 
 internal const val DEFAULT_FILENAME = "Source.kt"
-internal const val DEFAULT_CLASSNAME = "SourceKt"
 
 internal fun compile(data: CompilationData): Result =
   KotlinCompilation().apply {
-    sources = data.source.map { SourceFile.kotlin(DEFAULT_FILENAME, it) }
+    sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
+    compilerPlugins = data.metaPlugins
   }.compile()
 
 private fun classpathOf(dependency: String): File {

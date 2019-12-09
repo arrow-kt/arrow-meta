@@ -1,12 +1,6 @@
 package arrow.meta.plugin.testing
 
-import arrow.meta.Plugin
-
-/**
- * Represents all kind of code snippets: source code to be compiled, expressions, etc.
- * Avoid the use of a primitive type.
- */
-data class Source(val text: String)
+import arrow.meta.Meta
 
 /**
  * Represents a dependency from `<artifact-id>:<version>` string.
@@ -32,32 +26,35 @@ data class CompilerPlugin(
 internal typealias CompilerTestInterpreter = (CompilerTest) -> Unit
 
 /**
- * Allows to indicate the expected behaviour when testing plugins.
+ * Allows to provide configuration and code for the compilation and
+ * to indicate the expected behaviour.
  *
  * @see [assertThis]
  */
 data class CompilerTest(
   /**
-   * Necessary configuration to run the compilation: compiler plugins and dependencies.
+   * Necessary configuration to run the compilation.
    *
-   * @see [Config]
+   * @see [ConfigSyntax]
    */
   val config: Companion.() -> List<Config> = { emptyList() },
   /**
-   * Code snippet which will be compiled.
+   * Code snippet o snippets which will be compiled.
+   *
+   * @see [CodeSyntax]
    */
-  val code: Companion.() -> Source, // TODO: Sources
+  val code: Companion.() -> Code,
   /**
    * Expected behaviour during and after compilation.
    *
-   * @see [Assert]
+   * @see [AssertSyntax]
    */
-  val assert: Companion.() -> List<Assert> = { emptyList() }
+  val assert: Companion.() -> Assert
 ) {
   internal fun run(interpret: CompilerTestInterpreter): Unit =
     interpret(this)
 
-  companion object : ConfigSyntax by Config, AssertSyntax by Assert {
+  companion object : ConfigSyntax by Config, CodeSyntax by Code, AssertSyntax by Assert {
     operator fun invoke(f: Companion.() -> CompilerTest): CompilerTest =
       f(this)
   }
@@ -80,7 +77,7 @@ interface ConfigSyntax {
   /**
    * Adds the Meta Plugins to run the compilation.
    */
-  fun addMetaPlugins(vararg element: Plugin): Config =
+  fun addMetaPlugins(vararg element: Meta): Config =
     Config.Many(listOf(Config.AddMetaPlugins(element.toList())))
 
   /**
@@ -106,7 +103,7 @@ interface ConfigSyntax {
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
       val arrowVersion = System.getProperty("ARROW_VERSION")
-      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion:all")))
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion")))
       val arrowAnnotations = Dependency("arrow-annotations:$arrowVersion")
       return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations) + CompilerTest.addDependencies(prelude(currentVersion))
     }
@@ -117,7 +114,7 @@ interface ConfigSyntax {
  */
 sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
-  internal data class AddMetaPlugins(val plugins: List<Plugin>) : Config()
+  internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
@@ -127,23 +124,64 @@ sealed class Config {
   }
 }
 
+interface CodeSyntax {
+  val emptyCode: Code
+
+  /**
+   * Allows to indicate several sources to be compiled.
+   *
+   * @see [CompilerTest]
+   */
+  fun sources(vararg sources: Code.Source): Code =
+    Code.Sources(sources.toList())
+}
+
 /**
- * Provides expected behaviours.
+ * Represents the different types of [Code] which will be managed.
+ */
+sealed class Code {
+
+  /**
+   * Represents all kind of code snippets: source code to be compiled, expressions, etc.
+   */
+  data class Source(
+    /**
+     * Necessary filename to identify different code snippets.
+     */
+    val filename: String = DEFAULT_FILENAME,
+    /**
+     * Content of code snippet.
+     */
+    val text: String
+  ): Code()
+
+  /**
+   * It's possible to provide one or several sources to be compiled
+   */
+  internal data class Sources(val sources: List<Source>): Code()
+
+  internal companion object : CodeSyntax {
+    override val emptyCode: Code = Code.emptyCode
+  }
+}
+
+/**
+ * Allows to provide expected behaviours.
  *
  * @see [CompilerTest.assert]
  */
 interface AssertSyntax {
-  val emptyAssert: Assert
+  val emptyAssert: Assert.SingleAssert
 
   /**
    * Checks that code snippet compiles successfully.
    */
-  val compiles: Assert
+  val compiles: Assert.SingleAssert
 
   /**
    * Checks that code snippet fails.
    */
-  val fails: Assert
+  val fails: Assert.SingleAssert
 
   /**
    * Checks both that code snippet fails and the error message has a certain property which is
@@ -157,14 +195,14 @@ interface AssertSyntax {
    *
    * @param f function that must return true from the error message as an input.
    */
-  fun failsWith(f: (String) -> Boolean): Assert = Assert.FailsWith(f)
+  fun failsWith(f: (String) -> Boolean): Assert.SingleAssert = Assert.FailsWith(f)
 
   /**
    * Checks that quote output during the compilation matches with the code snippet provided.
    *
    * @param source Code snippet with the expected quote output.
    */
-  fun quoteOutputMatches(source: Source): Assert = Assert.QuoteOutputMatches(source)
+  fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert = Assert.QuoteOutputMatches(source)
 
   /**
    * Checks if a code snippet evals to a provided value after the compilation.
@@ -172,43 +210,46 @@ interface AssertSyntax {
    *
    * @param value Expected result after running the code snippet.
    */
-  infix fun Source.evalsTo(value: Any?): Assert = Assert.EvalsTo(this, value)
+  infix fun Code.Source.evalsTo(value: Any?): Assert.SingleAssert = Assert.EvalsTo(this, value)
 
   /**
    * Returns a Source object from a String.
    */
-  val String.source: Source get() = Source(this)
+  val String.source: Code.Source get() = Code.Source(text = this)
 
   /**
-   * Allows to combine [Assert].
+   * Allows to provide several [Assert.SingleAssert].
    */
-  operator fun Assert.plus(other: Assert): List<Assert> =
-    listOf(this, other)
+  operator fun Assert.SingleAssert.plus(other: Assert.SingleAssert): Assert =
+    Assert.Many(listOf(this, other))
 
   /**
-   * Creates a list of asserts.
+   * Allows to provide several [Assert.SingleAssert].
    */
-  fun allOf(vararg elements: Assert): List<Assert> =
-    if (elements.isNotEmpty()) elements.asList() else emptyList()
+  fun allOf(vararg elements: Assert.SingleAssert): Assert =
+    if (elements.isNotEmpty()) Assert.Many(elements.asList()) else Assert.Many(emptyList())
 }
 
 /**
  * Represents the different types of [Assert] which will be managed.
  */
 sealed class Assert {
-  internal sealed class CompilationResult : Assert() {
+
+  abstract class SingleAssert: Assert()
+  internal data class Many(val asserts: List<SingleAssert>) : Assert()
+
+  internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
+  internal data class EvalsTo(val source: Code.Source, val output: Any?) : SingleAssert()
+  internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
+  internal sealed class CompilationResult : SingleAssert() {
     object Compiles : CompilationResult()
     object Fails : CompilationResult()
   }
-
-  internal object Empty : Assert()
-  internal data class QuoteOutputMatches(val source: Source) : Assert()
-  internal data class EvalsTo(val source: Source, val output: Any?) : Assert()
-  internal data class FailsWith(val f: (String) -> Boolean) : Assert()
+  internal object Empty : SingleAssert()
 
   internal companion object : AssertSyntax {
-    override val emptyAssert: Assert = Empty
-    override val compiles: Assert = CompilationResult.Compiles
-    override val fails: Assert = CompilationResult.Fails
+    override val emptyAssert: SingleAssert = Empty
+    override val compiles: SingleAssert = CompilationResult.Compiles
+    override val fails: SingleAssert = CompilationResult.Fails
   }
 }

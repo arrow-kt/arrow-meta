@@ -6,7 +6,7 @@ import arrow.meta.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.classOrObject
+import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.ktClassNamed
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
@@ -30,7 +30,7 @@ val Meta.higherKindedTypes: Plugin
       meta(
         registerKindAwareTypeChecker(),
         suppressDiagnostic(Diagnostic::kindsTypeMismatch),
-        classOrObject(::isHigherKindedType) { c ->
+        classDeclaration(::isHigherKindedType) { c ->
           println("Processing Higher Kind: ${c.name}: ${c.superTypeIsSealedInFile()}")
           Transform.replace(c, listOfNotNull(
             /** Kind Marker **/
@@ -68,7 +68,7 @@ fun Diagnostic.kindsTypeMismatch(): Boolean =
       KotlinTypeChecker.DEFAULT.isSubtypeOf(a, b)
     } == true
 
-fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
+private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
   value.joinToString {
     it.text
       .replace("out ", "")
@@ -78,20 +78,20 @@ fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String 
       }.trim()
   }
 
-val KtClass.partialTypeParameters: String
+private val KtClass.partialTypeParameters: String
   get() = typeParameters
     .dropLast(1)
     .joinToString(separator = ", ") {
       it.nameAsSafeName.identifier
     }
 
-val KtClass.arity: Int
+private val KtClass.arity: Int
   get() = typeParameters.size
 
-val KtClass.kindAritySuffix: String
+private val KtClass.kindAritySuffix: String
   get() = arity.let { if (it > 1) "$it" else "" }
 
-val KtClass.partialKindAritySuffix: String
+private val KtClass.partialKindAritySuffix: String
   get() = (arity - 1).let { if (it > 1) "$it" else "" }
 
 fun isHigherKindedType(ktClass: KtClass): Boolean =
@@ -105,14 +105,14 @@ fun isHigherKindedType(ktClass: KtClass): Boolean =
 
 val higherKindAnnotation: Regex = Regex("@(arrow\\.)?higherkind")
 
-fun KtClass.superTypeIsSealedInFile(): Boolean =
+private fun KtClass.superTypeIsSealedInFile(): Boolean =
   superTypeListEntries.isNotEmpty() &&
     superTypeListEntries.any {
       val className = it.text?.substringBefore("<")
       it.containingKtFile.ktClassNamed(className) != null
     }
 
-fun KtClass.isNested(): Boolean =
+private fun KtClass.isNested(): Boolean =
   parent is KtClassOrObject
 
 val kindName: FqName = FqName("arrow.Kind")

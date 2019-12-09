@@ -1,20 +1,23 @@
 package arrow.meta.plugin.testing
 
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+
 /**
  * Compilation data is a Monoid that can accumulate in its element as it's
  * composed and merged with other CompilationData elements
  */
 internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
+  val metaPlugins: List<ComponentRegistrar> = emptyList(),
   val dependencies: List<String> = emptyList(),
-  val source: List<String> = emptyList()
+  val sources: List<Code.Source> = emptyList()
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
     copy(
       compilerPlugins = compilerPlugins + other.compilerPlugins,
       dependencies = dependencies + other.dependencies,
-      source = source + other.source
+      sources = sources + other.sources
     )
 
   companion object {

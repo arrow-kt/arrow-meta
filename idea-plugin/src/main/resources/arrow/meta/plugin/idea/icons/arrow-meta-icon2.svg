@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="12px" height="12px" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 60.1 (88133) - https://sketch.com -->
+    <title>arrow-meta-icon2-light-12</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="12" height="12"></rect>
+    </defs>
+    <g id="arrow-meta-icon2-light-12" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="arrow-meta-icon1-dark-12" transform="translate(6.000000, 6.000000) scale(-1, 1) translate(-6.000000, -6.000000) ">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <g id="bound"></g>
+            <path d="M7.83384615,10.2830769 L11.5569231,6.14769231 L7.83384615,2.01230769 L6.56,3.10769231 L7.42153846,4.04307692 C7.71282051,4.35487179 7.97128205,4.61333333 8.19692308,4.81846154 C8.4225641,5.02358974 8.65641026,5.20205128 8.89846154,5.35384615 L0.395629883,5.35384615 L0.395629883,6.94153846 L8.88,6.94153846 C8.40820513,7.2574359 7.92205128,7.69435897 7.42153846,8.25230769 L6.56,9.18769231 L7.83384615,10.2830769 Z" id="&gt;" fill="#2B3940" fill-rule="nonzero" opacity="0.5" mask="url(#mask-2)"></path>
+        </g>
+    </g>
+</svg>

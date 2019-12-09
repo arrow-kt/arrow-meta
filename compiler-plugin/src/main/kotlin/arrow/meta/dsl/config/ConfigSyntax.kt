@@ -17,16 +17,16 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 
 /**
  * The configuration phase allows changing the compiler configuration prior to compilation.
- * In this phase we can programmatically activate and change all compiler flags and system
+ * In this phase, we can programmatically activate and change all compiler flags and system
  * properties the compiler uses to enable/disable the different features in compilation.
  */
 interface ConfigSyntax {
 
   /**
-   * The [updateConfig] function provides access to the [CompilerConfiguration] which contains the map of properties used
+   * The [updateConfig] function provides access to the [CompilerConfiguration] that contains the map of properties used
    * to enable/disable the different features in compilation.
    *
-   * @updateConfiguration enables a DSL using [CompilerContext] and it can update [CompilerConfiguration] through it mutable API.
+   * @updateConfiguration enables a DSL using [CompilerContext], and it can update [CompilerConfiguration] through its mutable API.
    * @return [Config] [ExtensionPhase].
    */
   fun updateConfig(updateConfiguration: CompilerContext.(configuration: CompilerConfiguration) -> Unit): Config =
@@ -39,9 +39,9 @@ interface ConfigSyntax {
   /**
    * The [storageComponent] function allows access to the [StorageComponentContributor].
    * This is the Dependency Injector and service registry the compiler uses in all phases.
-   * In this function you can register new services or modify existing ones before the container is composed and sealed prior to compilation.
+   * In this function, you can register new services or modify existing ones before the container is composed and sealed prior to compilation.
    *
-   * @registerModuleComponents enables a DSL using [CompilerContext] and it can update the [StorageComponentContainer] and [ModuleDescriptor] to
+   * @registerModuleComponents enables a DSL using [CompilerContext], and it can update the [StorageComponentContainer] and [ModuleDescriptor] to
    * update the DI configuration of the compiler.
    */
   fun storageComponent(
@@ -67,7 +67,7 @@ interface ConfigSyntax {
    * The IR Backend is a part of the code generation phase and emits code in the IR format.
    * The IR Format is a tree structure with significant indentation that contains all the information needed to generate bytecode
    * for all platforms the Kotlin programming language targets.
-   * When the IR backend is disabled which is the current default in the Kotlin Compiler, the [JVM ASM Backend] is used instead.
+   * When the IR backend is disabled, which is the current default in the Kotlin Compiler, the [JVM ASM Backend] is used instead.
    *
    * [IR Example]
    */
@@ -80,7 +80,7 @@ interface ConfigSyntax {
 
   /**
    * The [typeChecker] function allows the user to provide a custom implementation of the [KotlinTypeChecker].
-   * With a custom [KotlinTypeChecker] we can redefine what subtyping and type equality means.
+   * With a custom [KotlinTypeChecker], we can redefine what subtyping and type equality means.
    */
   fun typeChecker(replace: (KotlinTypeChecker) -> KotlinTypeChecker): arrow.meta.phases.config.StorageComponentContainer =
     storageComponent(

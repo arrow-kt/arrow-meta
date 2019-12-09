@@ -36,20 +36,36 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-product.png")
   val PRODUCT: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-product.svg")
-  val INTERSECTION_PNG: Icon
-    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-intersection.png")
   val INTERSECTION: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-intersection.svg")
-  val NEGATION_PNG: Icon
-    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.png")
+  val INTERSECTION_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-intersection.png")
   val NEGATION: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.svg")
-  val REFINEMENT_PNG: Icon
-    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.png")
-  val REFINEMENT: Icon
-    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.svg")
-  val SUBTYPING_PNG: Icon
-    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.png")
+  val NEGATION_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.png")
   val SUBTYPING: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.svg")
+  val SUBTYPING_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.png")
+  val SUBTYPING2: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping2.svg")
+  val SUBTYPING2_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping2.png")
+  val ICON1: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon1.svg")
+  val ICON1_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon1.png")
+  val ICON2: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon2.svg")
+  val ICON2_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon2.png")
+  val ICON3: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon3.svg")
+  val ICON3_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon3.png")
+  val ICON4: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.svg")
+  val ICON4_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.png")
 }
