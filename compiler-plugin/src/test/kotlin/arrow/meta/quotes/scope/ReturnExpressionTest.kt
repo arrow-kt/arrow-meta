@@ -1,5 +1,6 @@
 package arrow.meta.quotes.scope
 
+import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
@@ -8,20 +9,44 @@ import org.junit.Test
 
 class ReturnExpressionTest {
 
-  private val returnExpression = """
-                         | //metadebug
-                         | 
-                         | fun whatTimeIsIt(): Long {
-                         |   return System.currentTimeMillis()
-                         | }
-                         | """.trimMargin().source
-
   @Test
   fun `Validate return expression scope properties`() {
+    validate("""
+        | fun whatTimeIsIt(): Long {
+        |   return System.currentTimeMillis()
+        | }
+        | """.returnExpression())
+  }
+
+  @Test
+  fun `Validate labeled return expression scope properties`() {
+    validate("""
+        | fun foo() {
+        |   run loop@{
+        |     listOf(1, 2, 3, 4, 5).forEach {
+        |       if (it == 3) return@loop
+        |       print(it)
+        |     }
+        |   }
+        | }
+        | """.returnExpression())
+  }
+
+  private fun validate(source: Code.Source) {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(ReturnExpressionPlugin())) },
-      code = { returnExpression },
-      assert = { quoteOutputMatches(returnExpression) }
+      code = { source },
+      assert = { quoteOutputMatches(source) }
     ))
+  }
+
+  private fun String.returnExpression(): Code.Source {
+    return """
+      | //metadebug
+      | 
+      | class Wrapper {
+      |   $this
+      | }
+      | """.trimMargin().trim().source
   }
 }

@@ -7,15 +7,15 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.breakExpression
 
-open class BreakExpressionPlugin : Meta {
+open class ContinueExpressionPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
-    breakExpressionPlugin
+    continueExpressionPlugin
   )
 }
 
-val Meta.breakExpressionPlugin
+val Meta.continueExpressionPlugin
   get() =
-    "Break Expression Scope Plugin" {
+    "Continue Expression Scope Plugin" {
       meta(
         breakExpression({ true }) { expression ->
           Transform.replace(
@@ -25,4 +25,3 @@ val Meta.breakExpressionPlugin
         }
       )
     }
-

@@ -1,12 +1,12 @@
 package arrow.meta.quotes.expression.expressionwithlabel
 
 import arrow.meta.quotes.Scope
-import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>"""return $`return`""".`return`</code>
+ * <code>"""break$targetLabel""".`break`</code>
  *
  * A template destructuring [Scope] for a [KtReturnExpression].
  *
@@ -15,24 +15,24 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.Plugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.returnExpression
+ * import arrow.meta.quotes.breakExpression
  *
- * val Meta.reformatReturn: Plugin
+ * val Meta.reformatBreak: Plugin
  *  get() =
- *   "ReformatReturn" {
+ *   "ReformatBreak" {
  *    meta(
- *     returnExpression({ true }) { e ->
+ *     breakExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """return$`return`""".`return`
+ *       newDeclaration = """continue$targetLabel""".`break`
  *      )
  *      }
  *     )
  *    }
  * ```
  */
-class ReturnExpression(
-  override val value: KtReturnExpression,
+class ContinueExpression(
+  override val value: KtContinueExpression,
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
-  val `return`: Scope<KtExpression> = Scope(value.returnedExpression)
-) : ExpressionWithLabel<KtReturnExpression>(value)
+  override val labelName: String? = value.getLabelName() ?: "continue"
+) : ExpressionWithLabel<KtContinueExpression>(value)
