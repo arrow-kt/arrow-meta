@@ -15,7 +15,7 @@ open class BreakExpressionPlugin : Meta {
 
 val Meta.breakExpressionPlugin
   get() =
-    "Return Expression Scope Plugin" {
+    "Break Expression Scope Plugin" {
       meta(
         breakExpression({ true }) { expression ->
           Transform.replace(

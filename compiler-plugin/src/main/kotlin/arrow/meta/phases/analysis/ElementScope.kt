@@ -23,6 +23,7 @@ import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
+import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
@@ -323,6 +324,8 @@ interface ElementScope {
   val String.`return`: ReturnExpression
 
   val String.`break`: BreakExpression
+
+  val String.`continue`: ContinueExpression
 
   val String.annotatedExpression: AnnotatedExpression
 
