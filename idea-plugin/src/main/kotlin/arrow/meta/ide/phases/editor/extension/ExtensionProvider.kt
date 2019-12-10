@@ -1,14 +1,15 @@
 package arrow.meta.ide.phases.editor.extension
 
+import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.core.JavaCoreApplicationEnvironment
 import com.intellij.lang.LanguageExtension
 import com.intellij.openapi.extensions.BaseExtensionPointName
+import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.fileTypes.FileTypeExtension
 import com.intellij.openapi.util.ClassExtension
-import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 
 /**
  * @see [ExtensionProviderSyntax]
@@ -40,10 +41,10 @@ sealed class ExtensionProvider<E> : ExtensionPhase {
   /**
    * @see [ExtensionProviderSyntax.registerExtensionPoint]
    */
-  data class RegisterBaseExtension<E>(val EP_NAME: BaseExtensionPointName<E>, val aClass: Class<E>) : ExtensionProvider<E>()
+  data class RegisterBaseExtension<E>(val EP_NAME: BaseExtensionPointName<E>, val aClass: Class<E>, val kind: ExtensionPoint.Kind) : ExtensionProvider<E>()
 
   /**
    * @see [ExtensionProviderSyntax.registerExtensionPoint]
    */
-  data class RegisterExtension<E>(val EP_NAME: ExtensionPointName<E>, val aClass: Class<E>) : ExtensionProvider<E>()
+  data class RegisterExtension<E>(val EP_NAME: ExtensionPointName<E>, val aClass: Class<E>, val kind: ExtensionPoint.Kind) : ExtensionProvider<E>()
 }
