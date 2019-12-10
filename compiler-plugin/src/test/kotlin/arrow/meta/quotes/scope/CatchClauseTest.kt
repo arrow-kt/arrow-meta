@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.CatchClausePlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class CatchClauseTest {
+class CatchClauseTest : AnnotationSpec() {
 
   private val catchClause = """
                          | //metadebug

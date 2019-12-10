@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ImportDirectivePlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ImportDirectiveTest {
+class ImportDirectiveTest : AnnotationSpec() {
 
   private val importDirective = """
                          | //metadebug
