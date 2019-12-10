@@ -1,11 +1,18 @@
 package arrow.meta.ide.dsl.extensions
 
+import arrow.meta.dsl.analysis.AnalysisSyntax
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
+import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
+import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
+import com.intellij.ide.IconProvider
 import com.intellij.lang.LanguageExtension
 import com.intellij.openapi.extensions.BaseExtensionPointName
+import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.fileTypes.FileTypeExtension
@@ -13,12 +20,6 @@ import com.intellij.openapi.util.ClassExtension
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
-import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
-import arrow.meta.dsl.analysis.AnalysisSyntax
-import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
-import arrow.meta.ide.dsl.editor.search.SearchSyntax
-import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
-import com.intellij.ide.IconProvider
 
 /**
  * The [ExtensionProvider] phase sits at the core of the main API in IntelliJ's Platform for ExtensionPoints.
@@ -114,9 +115,10 @@ interface ExtensionProviderSyntax {
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: BaseExtensionPointName<E>,
-    aClass: Class<E>
+    aClass: Class<E>,
+    kind: ExtensionPoint.Kind
   ): ExtensionPhase =
-    ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass)
+    ExtensionProvider.RegisterBaseExtension(EP_NAME, aClass, kind)
 
   /**
    * Interestingly enough, [ExtensionProvider] registers new workflows to the ide.
@@ -142,6 +144,7 @@ interface ExtensionProviderSyntax {
    * import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
    * import arrow.meta.invoke
    * import com.intellij.openapi.extensions.ExtensionPointName
+   * import com.intellij.openapi.extensions.ExtensionPoint
    * import javax.swing.Icon
    *
    * interface MetaProvider {
@@ -155,17 +158,19 @@ interface ExtensionProviderSyntax {
    * val IdeMetaPlugin.registeringIdeExtensions: Plugin
    *   get() = "Register ExtensionPoints" {
    *     meta(
-   *        registerExtensionPoint(MetaProvider.EP_NAME, MetaProvider::class.java)
+   *        registerExtensionPoint(MetaProvider.EP_NAME, MetaProvider::class.java, ExtensionPoint.Kind.INTERFACE)
    *     )
    *   }
    * //sampleEnd
    * ```
+   * @param kind There are more [resources] on the ExtensionPointKinds [here](http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_extension_points.html)
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
-    aClass: Class<E>
+    aClass: Class<E>,
+    kind: ExtensionPoint.Kind
   ): ExtensionPhase =
-    ExtensionProvider.RegisterExtension(EP_NAME, aClass)
+    ExtensionProvider.RegisterExtension(EP_NAME, aClass, kind)
 
   /**
    * registers a [ContainerProvider].

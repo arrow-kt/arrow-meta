@@ -7,6 +7,7 @@ import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 import arrow.meta.ide.dsl.editor.intention.IntentionSyntax
+import arrow.meta.ide.dsl.editor.kotlinextension.KotlinIndicesSyntax
 import arrow.meta.ide.dsl.editor.language.LanguageSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.liveTemplate.LiveTemplateSyntax
@@ -20,4 +21,4 @@ import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  UsageSyntax, ExtensionProviderSyntax, DocumentationProviderSyntax
+  UsageSyntax, ExtensionProviderSyntax, DocumentationProviderSyntax, KotlinIndicesSyntax
