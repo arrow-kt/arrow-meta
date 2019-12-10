@@ -6,6 +6,7 @@ import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
+import arrow.meta.ide.phases.editor.service.ServiceProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.internal.registry.InternalRegistry
@@ -27,9 +28,17 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
+import com.intellij.mock.MockApplication
+import com.intellij.mock.MockComponentManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ExtensionAreas
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import com.intellij.serviceContainer.ServiceManagerImpl
+import com.intellij.testFramework.registerServiceInstance
+import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -59,7 +68,16 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
       is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
       is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
+      is ServiceProvider -> registerSeriveProvider(currentPhase)
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+    }
+
+  fun registerSeriveProvider(phase: ServiceProvider, ideCtx: IdeContext = IdeContext): Unit =
+    when(phase){
+      is ServiceProvider.RegisterApplicationService<*, *> -> MockComponentManager(ApplicationManager.getApplication().picoContainer, ideCtx.dispose).let {
+         it.registerService(phase.serviceInterface, phase.service) }
+      }
+
     }
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =

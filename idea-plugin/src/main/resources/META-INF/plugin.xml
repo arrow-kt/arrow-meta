@@ -27,7 +27,15 @@
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
     </project-components>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Declare the application level service -->
+        <applicationService serviceInterface="Mypackage.MyApplicationService"
+                            serviceImplementation="Mypackage.MyApplicationServiceImpl" />
 
+        <!-- Declare the project level service -->
+        <projectService serviceInterface="Mypackage.MyProjectService"
+                        serviceImplementation="Mypackage.MyProjectServiceImpl" />
+    </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>
         <packageFragmentProviderExtension
