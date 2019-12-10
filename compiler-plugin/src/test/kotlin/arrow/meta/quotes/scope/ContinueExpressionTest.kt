@@ -7,29 +7,28 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ReturnExpressionPlugin
 import org.junit.Test
 
-class ReturnExpressionTest {
+class ContinueExpressionTest {
 
   @Test
-  fun `Validate return expression scope properties`() {
+  fun `Validate continue expression scope properties`() {
     validate("""
-        | fun whatTimeIsIt(): Long {
-        |   return System.currentTimeMillis()
-        | }
-        | """.returnExpression())
+        | loop@ for (i in 1..100) {
+        |   for (j in 1..100) {
+        |     if (j > 30) continue@loop
+        |   }
+        | } 
+        | """.continueExpression())
   }
 
   @Test
-  fun `Validate labeled return expression scope properties`() {
+  fun `Validate continue expression no labeled target scope properties`() {
     validate("""
-        | fun foo() {
-        |   run loop@{
-        |     listOf(1, 2, 3, 4, 5).forEach {
-        |       if (it == 3) return@loop
-        |       print(it)
-        |     }
-        |   }
+        | for(i in 0 until 100 step 3) {
+        |   if (i == 6) continue
+        |   if (i == 60) break
+        |   println(i)
         | }
-        | """.returnExpression())
+        | """.continueExpression())
   }
 
   private fun validate(source: Code.Source) {
@@ -40,12 +39,14 @@ class ReturnExpressionTest {
     ))
   }
 
-  private fun String.returnExpression(): Code.Source {
+  private fun String.continueExpression(): Code.Source {
     return """
       | //metadebug
       | 
       | class Wrapper {
-      |   $this
+      |   fun whatever() {
+      |     $this
+      |   }
       | }
       | """.trimMargin().trim().source
   }

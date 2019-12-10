@@ -23,6 +23,7 @@ import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
+import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
@@ -49,6 +50,7 @@ import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
+import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -422,6 +424,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`break`: BreakExpression
     get() = BreakExpression(expression.value as KtBreakExpression)
+
+  override val String.`continue`: ContinueExpression
+    get() = ContinueExpression(expression.value as KtContinueExpression)
 
   override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
