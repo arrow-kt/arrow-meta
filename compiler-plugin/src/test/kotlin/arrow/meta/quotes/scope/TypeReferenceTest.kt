@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.TypeReferencePlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class TypeReferenceTest {
+class TypeReferenceTest : AnnotationSpec() {
 
   private val typeReference = """
                          | //metadebug
