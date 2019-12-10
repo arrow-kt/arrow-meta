@@ -34,22 +34,34 @@ fun List<Proof>.chainedMemberScope(): MemberScope {
     override fun getClassifierNames(): Set<Name>? = synthProofs.map { it.name }.toSet()
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-      synthProofs.firstOrNull { it.name.asString().startsWith(name.asString()) }.safeAs()
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getContributedClassifier: $name $location $this" }) {
+        synthProofs.firstOrNull { it.name == name }.safeAs()
+      }
 
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
-      synthProofs.filter { nameFilter(it.name) }
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getContributedDescriptors: $kindFilter $nameFilter $this" }) {
+        synthProofs.filter { nameFilter(it.name) }
+      }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
-      synthProofs.filter { it.name.asString().startsWith(name.asString()) }
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getContributedFunctions: $name $location $this" }) {
+        synthProofs.filter { it.name == name }
+      }
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-      emptyList()
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getContributedVariables: $name $location $this" }) {
+        emptyList()
+      }
 
     override fun getFunctionNames(): Set<Name> =
-      synthProofs.map { it.name }.toSet()
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getFunctionNames: $this" }) {
+        synthProofs.map { it.name }.toSet()
+      }
 
     override fun getVariableNames(): Set<Name> =
-      emptySet()
+      Log.Verbose({ "ProofsPackageFragmentDescriptor.getVariableNames: $this" }) {
+        emptySet()
+      }
 
     override fun printScopeStructure(p: Printer) {
       println("printScopeStructure")

@@ -3,7 +3,6 @@ package arrow.meta.ide.phases.resolve.proofs
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensions
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerServiceInstance

@@ -23,12 +23,10 @@ private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheServ
     Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this" }) {
       val resolutionFacade = delegate.getResolutionFacade(elements)
       val module = resolutionFacade.moduleDescriptor
-      if (elements.firstOrNull().safeAs<KtFile>() != null) {
-        val cachedModule = proofCache[module.name]?.first
-        if (cachedModule != module) {
-          Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache ${resolutionFacade.moduleDescriptor} ${this.size}" }) {
-            resolutionFacade.moduleDescriptor.initializeProofCache()
-          }
+      val cachedModule = proofCache[module.name]?.first
+      if (cachedModule == null || cachedModule != module) {
+        Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache ${resolutionFacade.moduleDescriptor} ${this.size}" }) {
+          resolutionFacade.moduleDescriptor.initializeProofCache()
         }
       }
       resolutionFacade

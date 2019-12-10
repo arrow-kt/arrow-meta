@@ -197,7 +197,8 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     override fun getMemberScope(): MemberScope = scope
 
     private val scope by lazy {
-      module.typeProofs.chainedMemberScope()
+      if (module.typeProofs.isEmpty()) MemberScope.Empty
+      else module.typeProofs.chainedMemberScope()
     }
 
   }
