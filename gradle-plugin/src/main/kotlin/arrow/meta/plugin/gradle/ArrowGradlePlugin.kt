@@ -25,10 +25,6 @@ class ArrowGradlePlugin : Plugin<Project> {
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
-    project.buildscript.repositories.maven { m ->
-      m.setUrl("https://oss.jfrog.org/artifactory/oss-snapshot-local/")
-    }
-    project.buildscript.repositories.mavenCentral()
 
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
