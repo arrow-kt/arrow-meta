@@ -36,9 +36,9 @@ import arrow.meta.quotes.namedFunction
  * +  println("Hello ΛRROW Meta!")
  * ```
  *
- * Arrow Meta Compiler Plugin can be enabled in your project with Arrow Meta Gradle Plugin.
+ * The Arrow Meta Compiler Plugin can be enabled in your project with the Arrow Meta Gradle Plugin.
  *
- * It's published in [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.arrow-kt.arrow).
+ * It's published in the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.arrow-kt.arrow).
  *
  * It can be used with the plugins DSL for release versions:
  *
@@ -48,7 +48,7 @@ import arrow.meta.quotes.namedFunction
  * }
  * ```
  *
- * In case of using a snapshot version, it must be included with the legacy plugin application:
+ * If using a snapshot version, it must be included with the legacy plugin application:
  *
  * ```
  * buildscript {
@@ -64,7 +64,7 @@ import arrow.meta.quotes.namedFunction
  * apply plugin: "io.arrow-kt.arrow"
  * ```
  *
- * Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
+ * Take a look at the [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
  */
 val Meta.helloWorld: Plugin
   get() =
