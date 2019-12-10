@@ -1,5 +1,5 @@
 plugins {
-  id "org.jetbrains.intellij" version "$INTELLIJ_PLUGIN_VERSION"
+  id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
 }
 
 apply plugin: 'java'
