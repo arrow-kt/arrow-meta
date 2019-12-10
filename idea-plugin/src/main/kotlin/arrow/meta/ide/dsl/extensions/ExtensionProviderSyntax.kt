@@ -163,6 +163,7 @@ interface ExtensionProviderSyntax {
    *   }
    * //sampleEnd
    * ```
+   * @param kind There are more [resources] on the ExtensionPointKinds [here](http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_extension_points.html)
    */
   fun <E> IdeMetaPlugin.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
