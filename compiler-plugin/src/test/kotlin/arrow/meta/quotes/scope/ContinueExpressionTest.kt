@@ -48,6 +48,6 @@ class ContinueExpressionTest {
       |     $this
       |   }
       | }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

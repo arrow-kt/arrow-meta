@@ -19,7 +19,7 @@ class WhenEntryTest {
                          |     }
                          |   }
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate when entry scope properties`() {

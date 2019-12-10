@@ -19,7 +19,7 @@ class WhenConditionTest {
                          |     }
                          |   }
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate when condition scope properties`() {
