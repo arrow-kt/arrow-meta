@@ -16,7 +16,7 @@ class TryExpressionTest {
                          |      block()
                          |    } catch (throwable: Throwable) { println(throwable) }
                          |  }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate try expression scope properties`() {

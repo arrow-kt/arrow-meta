@@ -47,6 +47,6 @@ class ReturnExpressionTest {
       | class Wrapper {
       |   $this
       | }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

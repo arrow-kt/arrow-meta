@@ -18,7 +18,7 @@ class BreakExpressionTest {
                          |    }
                          |  }
                          |}
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate break expression scope properties`() {

@@ -23,7 +23,7 @@ class FinallySectionTest {
                          |      return System.currentTimeMillis() - start
                          |    }
                          |  }
-                         | """.trimMargin().trim().source
+                         | """.source
 
   @Ignore
   @Test

@@ -51,6 +51,6 @@ class LambdaExpressionTest {
       |    $this
       |   }
       |}  
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

@@ -14,7 +14,7 @@ class TypeAliasTest {
                          | //metadebug
                          | 
                          | typealias Predicate<T> = (T) -> Boolean
-                         | """.trimMargin().source
+                         | """.source
 
   @Ignore
   @Test

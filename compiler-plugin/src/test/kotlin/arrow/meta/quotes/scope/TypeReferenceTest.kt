@@ -12,7 +12,7 @@ class TypeReferenceTest {
                          | //metadebug
                          | 
                          | val aBoxedA: Int? = 13
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate type reference properties`() {
