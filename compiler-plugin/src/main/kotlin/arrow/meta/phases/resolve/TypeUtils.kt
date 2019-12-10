@@ -79,7 +79,7 @@ fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProj
 val KotlinType.unwrappedNotNullableType: UnwrappedType
   get() = makeNotNullable().unwrap()
 
-val proofCache: ConcurrentHashMap<Name, Pair<ModuleDescriptor, List<Proof>>> = ConcurrentHashMap()
+val proofCache: ConcurrentHashMap<ModuleDescriptor, List<Proof>> = ConcurrentHashMap()
 
 fun disposeProofCache(): Unit =
   proofCache.clear()
@@ -88,15 +88,11 @@ val ModuleDescriptor.typeProofs: List<Proof>
   get() =
     if (this is ModuleDescriptorImpl) {
       try {
-        val cacheValue = proofCache[name]
-        val packageFragmentProvider: PackageFragmentProvider? = this["packageFragmentProviderForModuleContent"]
-        if (packageFragmentProvider != null) {
-          //initializeProofCache()
-        }
+        val cacheValue = proofCache[this]
         when {
-          cacheValue != null && cacheValue.first == this -> {
-            println("Serving cached value for $this: ${cacheValue.second}")
-            cacheValue.second
+          cacheValue != null -> {
+            println("Serving cached value for $this: ${cacheValue}")
+            cacheValue
           }
           else -> emptyList()
         }
@@ -110,7 +106,7 @@ fun ModuleDescriptor.initializeProofCache(): List<Proof> =
   try {
     val moduleProofs: List<Proof> = computeModuleProofs()
     if (moduleProofs.isNotEmpty()) {
-      proofCache[module.name] = module to moduleProofs
+      proofCache[this] = moduleProofs
     }
     moduleProofs
   } catch (e: Throwable) {
@@ -146,9 +142,10 @@ inline fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor? =
     Visibilities.PUBLIC,
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     true
-  ).run {
-    newCopyBuilder().setDispatchReceiverParameter(extensionReceiverParameter).build()
-  }
+  )
+//    .run {
+//    newCopyBuilder().setDispatchReceiverParameter(extensionReceiverParameter).build()
+//  }
 
 inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
   copy(

@@ -32,7 +32,7 @@ class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
     lookupLocation: LookupLocation
   ) {
     Log.Verbose({ "ProofsKotlinIndicesHelperExtension.appendExtensionCallables($receiverTypes), result: $this" }) {
-      val extensions = proofCache[moduleDescriptor.name]?.second?.extensions(receiverTypes).orEmpty()
+      val extensions = moduleDescriptor.typeProofs.extensions(receiverTypes)
       val extensionCallables = extensions.flatMap {
         it.extensionCallables { true }
           .filterIsInstance<SimpleFunctionDescriptor>()

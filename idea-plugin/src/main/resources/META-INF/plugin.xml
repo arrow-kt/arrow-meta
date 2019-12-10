@@ -26,15 +26,13 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
-    </project-components>
-    <module-components>
-        <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
-        </component>
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaKotlinCacheService</implementation-class>
         </component>
-    </module-components>
+        <component>
+            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
+        </component>
+    </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <kotlinIndicesHelperExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsKotlinIndicesHelperExtension" />

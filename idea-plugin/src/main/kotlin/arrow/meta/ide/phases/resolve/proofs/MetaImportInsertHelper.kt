@@ -3,6 +3,7 @@ package arrow.meta.ide.phases.resolve.proofs
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensions
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerServiceInstance
@@ -74,9 +75,9 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
     }
 }
 
-class MetaImportInsertHelper(val project: Project) : ModuleComponent {
+class MetaImportInsertHelper(val project: Project) : ProjectComponent {
 
-  val delegate: ImportInsertHelper = project.getService(ImportInsertHelper::class.java)
+  val delegate: ImportInsertHelper = project.getComponent(ImportInsertHelper::class.java)
 
   override fun initComponent() {
     Log.Verbose({ "MetaImportInsertHelper.initComponent" }) {
@@ -97,7 +98,7 @@ class MetaImportInsertHelper(val project: Project) : ModuleComponent {
         if (instance != null) {
           val newInstance = f(instance)
           unregisterComponent(componentKey)
-          registerServiceInstance(ImportInsertHelper::class.java, newInstance)
+          registerComponentInstance(ImportInsertHelper::class.java, newInstance)
         }
       }
     }
