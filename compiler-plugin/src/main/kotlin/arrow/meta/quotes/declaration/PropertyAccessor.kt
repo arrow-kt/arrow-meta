@@ -1,4 +1,4 @@
-package arrow.meta.quotes.expression.expressionwithlabel
+package arrow.meta.quotes.declaration
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
