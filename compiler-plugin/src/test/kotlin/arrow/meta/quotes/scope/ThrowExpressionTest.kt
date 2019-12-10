@@ -14,7 +14,7 @@ class ThrowExpressionTest {
                          | fun throwAssertionError() {
                          |   throw AssertionError()
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate throw expression properties`() {

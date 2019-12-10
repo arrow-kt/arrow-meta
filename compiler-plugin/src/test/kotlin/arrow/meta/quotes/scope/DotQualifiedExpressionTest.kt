@@ -41,6 +41,6 @@ class DotQualifiedExpressionTest {
       |    $this
       |   }
       |  }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

@@ -17,7 +17,7 @@ class WhileExpressionTest {
                          |     println("INFINITE POWER")
                          |   }
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate while expression scope properties`() {

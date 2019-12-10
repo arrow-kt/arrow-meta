@@ -37,6 +37,6 @@ class ValueArgumentTest {
       |   }
       |   fun addNumbers(x: Int, y: Int): Int = x + y
       |  }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

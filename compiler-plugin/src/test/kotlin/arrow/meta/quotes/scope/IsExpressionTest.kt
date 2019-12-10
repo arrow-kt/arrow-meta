@@ -63,6 +63,6 @@ class IsExpressionTest {
       |     $this
       |   }
       | }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }
