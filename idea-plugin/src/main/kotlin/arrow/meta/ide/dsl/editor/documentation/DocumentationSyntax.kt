@@ -63,8 +63,8 @@ interface DocumentationSyntax {
    *    }
    * //sampleEnd
    * ```
-   * This example render's quickDocs on local declarations, but is insufficient for toplevel KtDeclarations.
-   * In addition, this implementation should not render the complete Doc's only the minimal amount of data.
+   * This example renders quickDocs on local declarations, but is insufficient for toplevel KtDeclarations.
+   * In addition, this implementation should not render the complete Docs only the minimal amount of data.
    * Hence, the KDoc's of this declaration should be added in [generateDoc].
    * @see quickDocumentationProvider
    */
