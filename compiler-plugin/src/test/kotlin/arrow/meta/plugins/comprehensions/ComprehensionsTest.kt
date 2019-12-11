@@ -2,9 +2,9 @@ package arrow.meta.plugins.comprehensions
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ComprehensionsTest {
+class ComprehensionsTest : AnnotationSpec() {
 
   companion object {
     const val IO_CLASS_4_TESTS =

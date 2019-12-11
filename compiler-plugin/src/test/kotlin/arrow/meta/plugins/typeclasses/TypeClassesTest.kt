@@ -4,9 +4,9 @@ import arrow.core.Some
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class TypeClassesTest {
+class TypeClassesTest : AnnotationSpec() {
 
   @Test
   fun `simple case`() {
