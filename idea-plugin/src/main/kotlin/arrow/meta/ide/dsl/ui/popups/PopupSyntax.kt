@@ -3,7 +3,6 @@ package arrow.meta.ide.dsl.ui.popups
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
-import arrow.meta.ide.dsl.editor.intention.IntentionExtensionProviderSyntax
 import arrow.meta.internal.Noop
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.BalloonBuilder
@@ -91,7 +90,8 @@ interface PopupSyntax {
 }
 
 /**
- * Default values from [com.intellij.openapi.ui.popup.util.BaseListPopupStep]
+ * [IdeListPopup] resembles one item of a [ListPopup]
+ * Default values are from [com.intellij.openapi.ui.popup.util.BaseListPopupStep]
  */
 data class IdeListPopup<A>(
   val element: A,
