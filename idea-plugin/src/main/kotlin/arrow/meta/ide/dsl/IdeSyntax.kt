@@ -2,7 +2,7 @@ package arrow.meta.ide.dsl
 
 import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.ide.dsl.editor.color.ColorSettingsSyntax
-import arrow.meta.ide.dsl.editor.documentation.DocumentationProviderSyntax
+import arrow.meta.ide.dsl.editor.documentation.DocumentationSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
@@ -21,4 +21,4 @@ import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  UsageSyntax, ExtensionProviderSyntax, DocumentationProviderSyntax, KotlinIndicesSyntax
+  UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinIndicesSyntax
