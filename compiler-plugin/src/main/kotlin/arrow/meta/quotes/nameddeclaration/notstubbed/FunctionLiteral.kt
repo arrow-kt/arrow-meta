@@ -49,4 +49,4 @@ class FunctionLiteral(
   override val value: KtFunctionLiteral,
   val name: Name? = value.nameAsName,
   val blockExpression: BlockExpression = BlockExpression(value.bodyBlockExpression)
-) : Scope<KtFunctionLiteral>(value)
+) : FunctionNotStubbed<KtFunctionLiteral>(value)

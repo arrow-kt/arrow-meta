@@ -15,12 +15,12 @@ open class FunctionLiteralPlugin : Meta {
 
 val Meta.functionLiteralPlugin
   get() =
-    "If Expression Scope Plugin" {
+    "Function Literal Scope Plugin" {
       meta(
         functionLiteral({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """val $name = {$blockExpression}""".functionLiteral
+            newDeclaration = """val $name: $returnType = {$`(params)`$blockExpression}""".functionLiteral
           )
         }
       )

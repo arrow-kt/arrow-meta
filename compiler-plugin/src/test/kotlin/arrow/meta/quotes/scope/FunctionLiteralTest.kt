@@ -5,12 +5,12 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.FunctionLiteralPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
 /**
  * Function Literals are a little unclear - see more here: https://kotlinlang.org/docs/reference/lambdas.html
  */
-class FunctionLiteralTest {
+class FunctionLiteralTest : AnnotationSpec() {
 
   @Test
   fun `Validate function literal scope properties`() {
