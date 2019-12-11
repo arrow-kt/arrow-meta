@@ -3,18 +3,17 @@ package arrow.meta.quotes.scope
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
 // TODO Ast to Expr Conversion needed
 
-class TypeAliasTest {
+class TypeAliasTest : AnnotationSpec() {
 
   private val typeAlias = """
                          | //metadebug
                          | 
                          | typealias Predicate<T> = (T) -> Boolean
-                         | """.trimMargin().source
+                         | """.source
 
   @Ignore
   @Test
