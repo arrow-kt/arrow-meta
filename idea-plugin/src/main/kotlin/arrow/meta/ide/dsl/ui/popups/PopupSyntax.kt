@@ -27,12 +27,50 @@ import javax.swing.event.HyperlinkEvent
  * Once the PopUp is created the user needs to call a `show()` method like [com.intellij.openapi.ui.popup.JBPopup.showUnderneathOf], this is an effectfull operation.
  */
 interface PopupSyntax {
-  fun <P : JBPopup> IdeMetaPlugin.popUp(f: JBPopupFactory.() -> P): P = f(JBPopupFactory.getInstance())
-  fun IdeMetaPlugin.balloon(f: JBPopupFactory.() -> BalloonBuilder): BalloonBuilder = f(JBPopupFactory.getInstance())
-  fun IdeMetaPlugin.componentPopUp(f: JBPopupFactory.() -> ComponentPopupBuilder): ComponentPopupBuilder = f(JBPopupFactory.getInstance())
-
+  /**
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.dsl.ui.popups.IdeListPopupItem
+   * import arrow.meta.ide.resources.ArrowIcons
+   * import arrow.meta.invoke
+   * import com.intellij.openapi.actionSystem.PlatformDataKeys
+   *
+   * val IdeMetaPlugin.showListPlugin: Plugin
+   *  get() = "Action to create ListPopUp" {
+   *    meta(
+   *      addAnAction(
+   *        "Unique",
+   *        anAction(
+   *          title = "Show ListPopUp",
+   *          description = "Shows one item of a ListPopUp",
+   *          icon = ArrowIcons.ICON4,
+   *          actionPerformed = { e ->
+   *            PlatformDataKeys.CONTEXT_COMPONENT.getData(e.dataContext)?.run {
+   *              listPopUp(
+   *                title = "TopLevelTitle",
+   *                sameIcon = ArrowIcons.ICON3, // every PopUp item will have this Icon
+   *                popUps = listOf(
+   *                  IdeListPopupItem(
+   *                    this,
+   *                    text = { "Teach your users about this Component: $this" }
+   *                  )
+   *                )
+   *              ).show(this)
+   *            }
+   *          }
+   *        )
+   *      )
+   *    )
+   *  }
+   * ```
+   * @param A does not necessarily have to be the same as the element you pass to a `show` Function
+   * @param canceled allows post-processing
+   * @param sameIcon can be specified to unify all ListPopUp items
+   * @see IdeListPopupItem
+   */
   fun <A> IdeMetaPlugin.listPopUp(
-    popUps: List<IdeListPopup<A>>,
+    popUps: List<IdeListPopupItem<A>>,
     title: String? = null,
     sameIcon: Icon? = null,
     canceled: () -> Unit = {}
@@ -87,13 +125,19 @@ interface PopupSyntax {
 
   fun IdeMetaPlugin.balloonBuilder(html: String, messageType: MessageType, transform: BalloonBuilder.() -> BalloonBuilder, link: (HyperlinkEvent) -> Unit = Noop.effect1): BalloonBuilder =
     balloon { transform(createHtmlTextBalloonBuilder(html, messageType, link)) }
+
+  fun <P : JBPopup> IdeMetaPlugin.popUp(f: JBPopupFactory.() -> P): P = f(JBPopupFactory.getInstance())
+  fun IdeMetaPlugin.balloon(f: JBPopupFactory.() -> BalloonBuilder): BalloonBuilder = f(JBPopupFactory.getInstance())
+  fun IdeMetaPlugin.componentPopUp(f: JBPopupFactory.() -> ComponentPopupBuilder): ComponentPopupBuilder = f(JBPopupFactory.getInstance())
+
 }
 
 /**
- * [IdeListPopup] resembles one item of a [ListPopup]
+ * [IdeListPopupItem] resembles one item of a [ListPopup]
  * Default values are from [com.intellij.openapi.ui.popup.util.BaseListPopupStep]
+ * @param iconForElement wont be used if you specify `sameIcon` in [arrow.meta.ide.dsl.ui.popups.PopupSyntax.listPopUp]
  */
-data class IdeListPopup<A>(
+data class IdeListPopupItem<A>(
   val element: A,
   val text: (element: A) -> String = { it.toString() },
   val iconForElement: Icon? = null,

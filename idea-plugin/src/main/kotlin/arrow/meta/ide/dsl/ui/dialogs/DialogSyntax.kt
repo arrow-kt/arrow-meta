@@ -20,19 +20,31 @@ import org.jetbrains.kotlin.idea.actions.NewKotlinFileAction
 import javax.swing.Icon
 
 /**
- * Dialogs can be described as a function (UserInput) -> (AnAction)
- * Therefore Dialogs have the ability to manipulate the editor environment as extensive as `AnAction` and
- * can be put where ever we can place `AnActions`
- * Consequently, we can treat `Dialogs` as `AnAction` with a display
+ * Dialogs are isomorphic to a function `(UserInput) -> (AnAction)`.
+ * Therefore Dialogs have the ability to manipulate the editor environment as extensive as `AnAction`.
+ * Consequently, we can treat `Dialogs` as `AnAction` with a display.
  */
 interface DialogSyntax {
   /**
-   * [actionId] has to be unique
-   * addFileAction("ExampleAction", "New File", "Creates a new File",
-   *  buildDialog = { project, directory ->
-   *   setTitle("CostumeTitle")
-   *   addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
-   * })
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.invoke
+   * import org.jetbrains.kotlin.idea.KotlinFileType
+   *
+   * val IdeMetaPlugin.createf=FilePlugin: Plugin
+   *  get() = "Create File Dialog" {
+   *   meta(
+   *     addFileAction("ExampleAction", "New File", "Creates a new File",
+   *       buildDialog = { project, directory ->
+   *         setTitle("CostumeTitle")
+   *         addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
+   *       }
+   *      )
+   *     )
+   *   }
+   * ```
+   * @param actionId has to be unique
    */
   fun IdeMetaPlugin.addFileAction(
     actionId: String,
