@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ForExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ForExpressionTest {
+class ForExpressionTest : AnnotationSpec() {
 
   private val forExpression = """
                          | //metadebug

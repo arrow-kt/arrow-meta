@@ -3,12 +3,11 @@ package arrow.meta.quotes.scope
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
 // TODO implement convertFinally in Converter to support FINALLY in AST
 
-class FinallySectionTest {
+class FinallySectionTest : AnnotationSpec() {
 
   private val finallySection = """
                          | package 47deg.arrow-meta

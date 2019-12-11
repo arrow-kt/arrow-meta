@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.LambdaExpressionsPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class LambdaExpressionTest {
+class LambdaExpressionTest : AnnotationSpec() {
 
   @Test
   fun `Validate lambda expression scope properties`() {
