@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -436,5 +437,8 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral(expression.value as KtFunctionLiteral)
+  
+  override val String.classBody: ClassBody
+    get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }
 

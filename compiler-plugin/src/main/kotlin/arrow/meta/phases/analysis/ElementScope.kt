@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -330,6 +331,8 @@ interface ElementScope {
   val String.annotatedExpression: AnnotatedExpression
 
   val String.functionLiteral: FunctionLiteral
+  
+  val String.classBody: ClassBody
 
   /**
    * Creates an expression that has reference to its context
