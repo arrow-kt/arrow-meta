@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ValueArgumentPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ValueArgumentTest {
+class ValueArgumentTest : AnnotationSpec() {
 
   @Test
   fun `Validate value argument scope properties`() {
@@ -37,6 +37,6 @@ class ValueArgumentTest {
       |   }
       |   fun addNumbers(x: Int, y: Int): Int = x + y
       |  }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

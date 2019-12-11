@@ -2,7 +2,7 @@ package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.modifierlist.TypeReference
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression

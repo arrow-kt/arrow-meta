@@ -19,7 +19,7 @@ dependencies {
     implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
     implementation project(':compiler-plugin')
 
-    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:$KOTLIN_TEST_VERSION"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
     testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
@@ -52,5 +52,4 @@ jar {
     }
 }
 
-//apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'

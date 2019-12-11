@@ -36,7 +36,7 @@ interface LineMarkerTestSyntax {
    * @receiver is a KtFile, which is deconstructed into a List.
    */
   fun List<PsiElement>.collectLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
-    LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
+    LineMarkerProviders.getInstance().allForLanguage(KotlinLanguage.INSTANCE)
       .mapNotNull { mapNotNull { p: PsiElement -> it.getLineMarkerInfo(p) } }.flatten()
       .filter { it.icon == icon }
 
@@ -45,7 +45,7 @@ interface LineMarkerTestSyntax {
    */
   fun List<PsiElement>.collectSlowLM(icon: Icon): List<LineMarkerInfo<PsiElement>> {
     val r = mutableListOf<LineMarkerInfo<PsiElement>>()
-    LineMarkerProviders.INSTANCE.allForLanguage(KotlinLanguage.INSTANCE)
+    LineMarkerProviders.getInstance().allForLanguage(KotlinLanguage.INSTANCE)
       .mapNotNull { it.collectSlowLineMarkers(this@collectSlowLM, r) }
     return r.filter { it.icon == icon }
   }
