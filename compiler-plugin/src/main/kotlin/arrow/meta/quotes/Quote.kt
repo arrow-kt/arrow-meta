@@ -277,7 +277,6 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(mutations
       Transform.Empty -> Unit
     }
   }
-  println("BLODER : ${Writer.write(dummyFile)}")
   return Writer.write(dummyFile)
 }
 

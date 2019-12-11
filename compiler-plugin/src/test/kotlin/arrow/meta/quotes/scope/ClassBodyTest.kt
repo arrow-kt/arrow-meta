@@ -31,7 +31,25 @@ class ClassBodyTest : AnnotationSpec() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(ClassBodyPlugin())) },
       code = { classBody },
-      assert = { quoteOutputMatches(classBody) }
+      assert = { quoteOutputMatches(
+        """
+        | class ClassBodyScopeTest {
+        |
+        |   private val x = "x"
+        |   private val y = "y"
+        |   private val z = "z"
+        |
+        |   companion object {
+        |     fun init() = ClassBodyScopeTest()
+        |   }
+        |
+        |   fun x() = x
+        |   fun y() = y
+        |   fun z() = z
+        |   fun test() = 0
+        | }
+        """.source
+      )}
     ))
   }
 }
