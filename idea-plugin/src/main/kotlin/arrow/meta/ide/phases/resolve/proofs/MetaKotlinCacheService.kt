@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategy
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
@@ -79,7 +81,7 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
 
   private fun AnalysisResult.checkProofed(): AnalysisResult {
     val (ctx, _, _) = this
-    ctx.resolveExtensionCalls()
+    //ctx.resolveExtensionCalls()
     return this
   }
 
@@ -101,7 +103,8 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
                 .also { it.isAccessible = true }.let {
                   it.get(this) as BindingContext
                 }
-              val trace: BindingTrace = innerContext.javaClass
+
+              val trace: BindingTrace = innerContext.safeAs<MetaBindingContext>()?.trace ?: innerContext.javaClass
                 .getDeclaredField("this$0")
                 .also { it.isAccessible = true }.let {
                   it.get(innerContext) as BindingTrace
@@ -111,7 +114,11 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
                 candidate, DelegatingBindingTrace(this, "Proof Resolution", callable, BindingTraceFilter(false)), TracingStrategy.EMPTY, MutableDataFlowInfoForArguments.WithoutArgumentsCheck(DataFlowInfo.EMPTY)
               )
               trace.record(BindingContext.RESOLVED_CALL, call, proofResolvedCall)
-              println("MetaResolutionFacade Recorded: ${call.callElement.text} to -> $callable")
+              call.callElement.safeAs<KtExpression>()?.apply {
+                trace.record(BindingContext.EXPRESSION_TYPE_INFO, this, KotlinTypeInfo(callable.returnType, DataFlowInfo.EMPTY, true, DataFlowInfo.EMPTY))
+                println("MetaResolutionFacade Recorded RESOLVED_CALL: ${call.callElement.text} to -> $callable")
+              }
+              println("MetaResolutionFacade Recorded EXPRESSION_TYPE_INFO: ${call.calleeExpression?.text}, ${callable.returnType}")
             }
           }
         }

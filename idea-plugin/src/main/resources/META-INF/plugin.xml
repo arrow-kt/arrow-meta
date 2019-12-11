@@ -32,6 +32,9 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
         </component>
+        <component>
+            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer</implementation-class>
+        </component>
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

@@ -77,7 +77,7 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
 
 class MetaImportInsertHelper(val project: Project) : ProjectComponent {
 
-  val delegate: ImportInsertHelper = project.getComponent(ImportInsertHelper::class.java)
+  val delegate: ImportInsertHelper = project.getService(ImportInsertHelper::class.java)
 
   override fun initComponent() {
     Log.Verbose({ "MetaImportInsertHelper.initComponent" }) {
@@ -94,11 +94,11 @@ class MetaImportInsertHelper(val project: Project) : ProjectComponent {
   private inline fun Project.replaceImportsInsertHelper(f: (ImportInsertHelper) -> ImportInsertHelper): Unit {
     picoContainer.safeAs<DefaultPicoContainer>()?.apply {
       getComponentAdapterOfType(ImportInsertHelper::class.java)?.apply {
-        val instance = getComponentInstance(componentKey) as? ImportInsertHelper
+        val instance = project.getService(ImportInsertHelper::class.java)
         if (instance != null) {
           val newInstance = f(instance)
           unregisterComponent(componentKey)
-          registerComponentInstance(ImportInsertHelper::class.java, newInstance)
+          registerServiceInstance(ImportInsertHelper::class.java, newInstance)
         }
       }
     }
