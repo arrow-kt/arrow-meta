@@ -117,7 +117,7 @@ interface HintingSyntax {
    *  }
    *
    * /**
-   * * evaluates the SelectionTextRang of [PsiElement]'s`containedFile`,
+   * * evaluates the SelectionTextRange of [PsiElement]'s `containedFile`,
    * * when the current Editor is a [TextEditor].
    * */
    * private fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
