@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -220,7 +219,7 @@ interface ElementScope {
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
-  val emptyClassBody: Scope<KtClassBody>
+  val emptyClassBody: ClassBody
   
   val String.classParameter: Parameter
   
