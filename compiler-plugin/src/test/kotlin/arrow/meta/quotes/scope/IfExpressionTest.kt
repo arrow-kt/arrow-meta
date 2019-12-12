@@ -22,7 +22,11 @@ class IfExpressionTest  {
 
   @Test
   fun `Do not validate if expression without else scope properties`() {
-    // TODO
+    validate(
+      """
+      | if (2 == 3) {
+      |   println("FAKE NEWS")
+      | }""".ifExpression())
   }
 
   @Test
@@ -34,7 +38,7 @@ class IfExpressionTest  {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(IfExpressionPlugin())) },
       code = { source },
-      assert = { compiles }// quoteOutputMatches(source) }
+      assert = { quoteOutputMatches(source) }
     ))
   }
 
@@ -48,5 +52,13 @@ class IfExpressionTest  {
       |   }
       |  }
       | """.source
+  }
+}
+
+class Wrapper {
+  fun whatever() {
+    if (2 == 3) {
+      println("FAKE NEWS")
+    }
   }
 }

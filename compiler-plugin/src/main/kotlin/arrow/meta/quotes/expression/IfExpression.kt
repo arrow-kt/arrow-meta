@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 
 /**
- * <code>"""if ($condition) $`else`""".`if`</code>
+ * <code>"""if ($condition) $then else $`else`""".`if`</code>
  *
  * A template destructuring [Scope] for a [KtIfExpression].
  *
@@ -18,17 +18,20 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  * import arrow.meta.quotes.ifExpression
  *
  * val Meta.reformatIf: Plugin
- *  get() =
- *  "ReformatIf" {
- *   meta(
- *    ifExpression({ true }) { e ->
- *     Transform.replace(
- *      replacing = e,
- *      newDeclaration = """if ($condition) $`else`""".`if`
- *     )
- *    }
- *   )
- *  }
+ *    get() =
+ *      "Reformat If Expression" {
+ *        meta(
+ *          ifExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = when {
+ *                `else`.value == null -> """if ($condition) $then""".`if`
+ *                else -> """if ($condition) $then else $`else`""".`if`
+ *              }
+ *            )
+ *          }
+ *        )
+ *      }
  *```
  */
 class IfExpression(
