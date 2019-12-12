@@ -26,6 +26,7 @@ import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -112,12 +113,6 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.expressionOrNull: Scope<KtExpression>
     get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
-
-  override val thisExpression: Scope<KtThisExpression>
-    get() = Scope(delegate.createThisExpression())
-
-  override val String.thisExpression: Scope<KtThisExpression>
-    get() = Scope(delegate.createThisExpression(trimMargin().trim()))
 
   override val String.callArguments: Scope<KtValueArgumentList>
     get() = Scope(delegate.createCallArguments(trimMargin().trim()))
@@ -428,6 +423,9 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`continue`: ContinueExpression
     get() = ContinueExpression(expression.value as KtContinueExpression)
+
+  override val String.`this`: ThisExpression
+    get() = ThisExpression(expression.value as KtThisExpression)
 
   override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))

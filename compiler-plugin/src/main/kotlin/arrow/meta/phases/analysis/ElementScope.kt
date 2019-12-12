@@ -26,6 +26,7 @@ import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -64,7 +65,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
-import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeCodeFragment
 import org.jetbrains.kotlin.psi.KtTypeElement
@@ -86,10 +86,6 @@ interface ElementScope {
   val String.dotQualifiedExpression: DotQualifiedExpression
 
   val String.expressionOrNull: Scope<KtExpression>
-  
-  val thisExpression: Scope<KtThisExpression>
-  
-  val String.thisExpression: Scope<KtThisExpression>
   
   val String.callArguments: Scope<KtValueArgumentList>
   
@@ -326,6 +322,8 @@ interface ElementScope {
   val String.`break`: BreakExpression
 
   val String.`continue`: ContinueExpression
+
+  val String.`this`: ThisExpression
 
   val String.annotatedExpression: AnnotatedExpression
 
