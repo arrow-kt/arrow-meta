@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenConditionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class WhenConditionTest {
+class WhenConditionTest : AnnotationSpec() {
 
   private val whenCondition = """
                          | //metadebug
@@ -19,7 +19,7 @@ class WhenConditionTest {
                          |     }
                          |   }
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate when condition scope properties`() {

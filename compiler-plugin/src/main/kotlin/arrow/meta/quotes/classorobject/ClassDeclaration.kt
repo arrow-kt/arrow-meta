@@ -3,7 +3,6 @@ package arrow.meta.quotes.classorobject
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.psi.KtTypeParameter
@@ -117,8 +116,3 @@ class ClassDeclaration(
   val `(params)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
   val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries)
 ) : ClassOrObjectScope<KtClass>(value)
-
-data class ClassBody(val value: KtClassBody?) {
-  override fun toString(): String =
-    value?.text?.drop(1)?.dropLast(1) ?: ""
-}

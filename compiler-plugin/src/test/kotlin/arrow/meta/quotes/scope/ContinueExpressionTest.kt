@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ReturnExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ContinueExpressionTest {
+class ContinueExpressionTest : AnnotationSpec() {
 
   @Test
   fun `Validate continue expression scope properties`() {
@@ -48,6 +48,6 @@ class ContinueExpressionTest {
       |     $this
       |   }
       | }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

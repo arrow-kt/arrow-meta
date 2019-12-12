@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ThrowExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class ThrowExpressionTest {
+class ThrowExpressionTest : AnnotationSpec() {
 
   private val throwExpression = """
                          | //metadebug
@@ -14,7 +14,7 @@ class ThrowExpressionTest {
                          | fun throwAssertionError() {
                          |   throw AssertionError()
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate throw expression properties`() {

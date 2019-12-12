@@ -114,6 +114,9 @@ open class Visitor {
         visitChildren(args)
         visitChildren(members)
       }
+      is Node.Decl.ClassBody -> {
+        visitChildren(members)
+      }
       is Node.TypeParam -> {
         visitChildren(mods)
         visitChildren(type)
