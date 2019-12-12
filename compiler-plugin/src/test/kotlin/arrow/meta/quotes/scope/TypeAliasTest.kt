@@ -1,27 +1,43 @@
 package arrow.meta.quotes.scope
 
+import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.quotes.scope.plugins.TypeAliasPlugin
+import io.kotlintest.specs.AbstractAnnotationSpec
 import io.kotlintest.specs.AnnotationSpec
-
-// TODO Ast to Expr Conversion needed
 
 class TypeAliasTest : AnnotationSpec() {
 
-  private val typeAlias = """
+  @Test
+  fun `Validate type alias properties`() {
+    val typeAlias = """
+                         | //metadebug
+                         | 
+                         | typealias IntegerPredicate = (Int) -> Boolean
+                         | """.source
+
+    validate(typeAlias)
+  }
+
+  @AbstractAnnotationSpec.Ignore // issues with type erasure when AST parsing the compiled code?
+  @AbstractAnnotationSpec.Test
+  fun `Validate type alias properties with generics`() {
+    val typeAlias = """
                          | //metadebug
                          | 
                          | typealias Predicate<T> = (T) -> Boolean
                          | """.source
 
-  @Ignore
-  @Test
-  fun `Validate type alias properties`() {
+    validate(typeAlias)
+  }
+
+  private fun validate(source: Code.Source) {
     assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins()) }, // TODO create a scope plugin for finally section
-      code = { typeAlias },
-      assert = { quoteOutputMatches(typeAlias) }
+      config = { listOf(addMetaPlugins(TypeAliasPlugin())) },
+      code = { source },
+      assert = { quoteOutputMatches(source) }
     ))
   }
 }

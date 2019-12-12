@@ -37,4 +37,4 @@ class TypeAlias(
   val name: Name? = value.nameAsName,
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val type: Scope<KtTypeReference> = Scope(value.getTypeReference())
-  ) : Scope<KtTypeAlias>(value)
+) : TypeParameterListOwner<KtTypeAlias>(value)

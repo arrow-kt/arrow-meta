@@ -31,6 +31,7 @@ import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
@@ -55,6 +56,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtWhenCondition
@@ -303,6 +305,15 @@ fun Meta.tryExpression(
   map: TryExpression.(KtTryExpression) -> Transform<KtTryExpression>
 ): ExtensionPhase =
   quote(match, map) { TryExpression(it) }
+
+/**
+ * @see [TypeAlias]
+ */
+fun Meta.typeAlias(
+  match: KtTypeAlias.() -> Boolean,
+  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
+): ExtensionPhase =
+  quote(match, map) { TypeAlias(it) }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""
