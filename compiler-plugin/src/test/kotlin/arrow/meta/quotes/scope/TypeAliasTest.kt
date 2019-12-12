@@ -30,8 +30,7 @@ class TypeAliasTest : AnnotationSpec() {
 
     validate(typeAlias)
   }
-
-  @Ignore // issues with type erasure when AST parsing the compiled code?
+  
   @Test
   fun `Validate type alias properties with generics`() {
     val typeAlias = """
