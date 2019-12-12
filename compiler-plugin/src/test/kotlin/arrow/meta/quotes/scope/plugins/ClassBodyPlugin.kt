@@ -13,6 +13,12 @@ open class ClassBodyPlugin : Meta {
   )
 }
 
+open class EnumBodyPlugin : Meta {
+  override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
+    enumBody
+  )
+}
+
 private val Meta.classBody
   get() =
     "Class Body Scope Plugin" {
@@ -26,6 +32,28 @@ private val Meta.classBody
             |  $properties
             |
             |  $companionObjects
+            |
+            |  $functions
+            |
+            |  fun test() = 0
+            | }
+            """.classBody
+          )
+        }
+      )
+    }
+
+private val Meta.enumBody
+  get() =
+    "Enum Body Scope Plugin" {
+      meta(
+        classBody({ true }) { c ->
+          Transform.replace(
+            replacing = c,
+            newDeclaration =
+            """
+            | {
+            |  $enumEntries
             |
             |  $functions
             |
