@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -44,7 +45,6 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -219,7 +219,7 @@ interface ElementScope {
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
-  val emptyClassBody: Scope<KtClassBody>
+  val emptyClassBody: ClassBody
   
   val String.classParameter: Parameter
   
@@ -330,6 +330,8 @@ interface ElementScope {
   val String.annotatedExpression: AnnotatedExpression
 
   val String.functionLiteral: FunctionLiteral
+  
+  val String.classBody: ClassBody
 
   /**
    * Creates an expression that has reference to its context

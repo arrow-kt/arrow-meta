@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -48,7 +49,6 @@ import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -90,6 +90,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
+
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
  */
@@ -270,8 +271,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val anonymousInitializer: Scope<KtAnonymousInitializer>
     get() = Scope(delegate.createAnonymousInitializer())
 
-  override val emptyClassBody: Scope<KtClassBody>
-    get() = Scope(delegate.createEmptyClassBody())
+  override val emptyClassBody: ClassBody
+    get() = ClassBody(delegate.createEmptyClassBody())
 
   override val String.classParameter: Parameter
     get() = Parameter(delegate.createParameter(trimMargin()))
@@ -436,5 +437,8 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral(expression.value as KtFunctionLiteral)
+  
+  override val String.classBody: ClassBody
+    get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }
 

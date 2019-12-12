@@ -80,26 +80,13 @@ open class Writer(
             children(parents, ", ")
           }
           childTypeConstraints(typeConstraints)
-          if (members.isNotEmpty()) lineEnd(" {").indented {
-            // First, do all the enum entries if there are any
-            val enumEntries = members.map { it as? Node.Decl.EnumEntry }.takeWhile { it != null }
-            enumEntries.forEachIndexed { index, enumEntry ->
-              lineBegin().also { children(enumEntry) }
-              when (index) {
-                members.size - 1 -> lineEnd()
-                enumEntries.size - 1 -> lineEnd(";").line()
-                else -> lineEnd(",")
-              }
-            }
-            // Now the rest of the members
-            childrenLines(members.drop(enumEntries.size), extraMidLines = 1)
-          }.lineBegin("}")
+          children(members)
 
           // As a special case, if an object is nameless and bodyless, we should give it an empty body
           // to avoid ambiguities with the next item
           // See: https://youtrack.jetbrains.com/issue/KT-25581
           if ((form == Node.Decl.Structured.Form.COMPANION_OBJECT ||
-              form == Node.Decl.Structured.Form.OBJECT) && name == "Companion" && members.isEmpty())
+              form == Node.Decl.Structured.Form.OBJECT) && name == "Companion" && members?.members?.isEmpty() == true)
             append("{}")
         }
         is Node.Decl.Structured.Parent.CallConstructor -> {
@@ -196,6 +183,20 @@ open class Writer(
           if (args.isNotEmpty()) parenChildren(args)
           if (members.isNotEmpty()) lineEnd(" {").indented {
             childrenLines(members, extraMidLines = 1)
+          }.lineBegin("}")
+        }
+        is Node.Decl.ClassBody -> {
+          if (members.isNotEmpty()) lineEnd(" {").indented {
+            val enumEntries = members.map { it as? Node.Decl.EnumEntry }.takeWhile { it != null }
+            enumEntries.forEachIndexed { index, enumEntry ->
+              lineBegin().also { children(enumEntry) }
+              when (index) {
+                members.size - 1 -> lineEnd()
+                enumEntries.size - 1 -> lineEnd(";").line()
+                else -> lineEnd(",")
+              }
+            }
+            childrenLines(members.drop(enumEntries.size), extraMidLines = 1)
           }.lineBegin("}")
         }
         is Node.TypeParam -> {
@@ -576,7 +577,7 @@ open class Writer(
     // or ann+paren, we have to explicitly provide an empty brace set
     // See: https://youtrack.jetbrains.com/issue/KT-25578
     // TODO: is there a better place to do this?
-    if (v !is Node.Stmt.Decl || v.decl !is Node.Decl.Structured || v.decl.members.isNotEmpty() ||
+    if (v !is Node.Stmt.Decl || v.decl !is Node.Decl.Structured || v.decl.members?.members?.isNotEmpty() == true ||
       v.decl.form != Node.Decl.Structured.Form.CLASS) return false
     if (next !is Node.Stmt.Expr || (next.expr !is Node.Expr.Paren &&
         (next.expr !is Node.Expr.Annotated || next.expr.expr !is Node.Expr.Paren))) return false
