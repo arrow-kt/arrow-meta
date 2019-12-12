@@ -45,5 +45,4 @@ class IfExpression(
     `else`.value == null -> """if ($condition) $then""".`if`
     else -> """if ($condition) $then else $`else`""".`if`
   }
-
 }
