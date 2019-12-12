@@ -22,6 +22,7 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -51,6 +52,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
@@ -283,6 +285,15 @@ fun Meta.whileExpression(
   map: WhileExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
 ): ExtensionPhase =
   quote(match, map) { WhileExpression(it) }
+
+/**
+ * @see [ThisExpression]
+ */
+fun Meta.thisExpression(
+  match: KtThisExpression.() -> Boolean,
+  map: ThisExpression.(KtThisExpression) -> Transform<KtThisExpression>
+): ExtensionPhase =
+  quote(match, map) { ThisExpression(it) }
 
 /**
  * @see [TryExpression]
