@@ -64,7 +64,7 @@ sealed class Node {
       val parents: List<Parent>,
       val typeConstraints: List<TypeConstraint>,
       // TODO: Can include primary constructor
-      val members: List<Decl>
+      val members: ClassBody?
     ) : Decl(), WithModifiers {
       enum class Form {
         CLASS, ENUM_CLASS, INTERFACE, OBJECT, COMPANION_OBJECT
@@ -171,6 +171,9 @@ sealed class Node {
       val args: List<ValueArg>,
       val members: List<Decl>
     ) : Decl(), WithModifiers
+    data class ClassBody(
+      val members: List<Decl>
+    ) : Decl()
   }
 
   data class TypeParam(

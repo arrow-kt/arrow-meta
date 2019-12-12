@@ -2,6 +2,7 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -300,3 +302,12 @@ fun Meta.valueArgument(
   map: ValueArgument.(KtValueArgument) -> Transform<KtValueArgument>
 ): ExtensionPhase =
   quote(match, map) { ValueArgument(it) }
+
+/**
+ * @see [ClassBody]
+ */
+fun Meta.classBody(
+  match: KtClassBody.() -> Boolean,
+  map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
+): ExtensionPhase =
+  quote(match, map) { ClassBody(it) }
