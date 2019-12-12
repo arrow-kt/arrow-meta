@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.TypeAliasPlugin
-import io.kotlintest.specs.AbstractAnnotationSpec
 import io.kotlintest.specs.AnnotationSpec
 
 class TypeAliasTest : AnnotationSpec() {
@@ -21,8 +20,19 @@ class TypeAliasTest : AnnotationSpec() {
     validate(typeAlias)
   }
 
-  @AbstractAnnotationSpec.Ignore // issues with type erasure when AST parsing the compiled code?
-  @AbstractAnnotationSpec.Test
+  @Test
+  fun `Validate type alias with constraints properties`() {
+     val typeAlias = """
+                         | //metadebug
+                         | 
+                         | typealias Predicate<Int> = (Int) -> Boolean
+                         | """.source
+
+    validate(typeAlias)
+  }
+
+  @Ignore // issues with type erasure when AST parsing the compiled code?
+  @Test
   fun `Validate type alias properties with generics`() {
     val typeAlias = """
                          | //metadebug
