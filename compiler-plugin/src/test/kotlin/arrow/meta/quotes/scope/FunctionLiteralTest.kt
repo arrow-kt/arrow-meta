@@ -7,9 +7,6 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.FunctionLiteralPlugin
 import io.kotlintest.specs.AnnotationSpec
 
-/**
- * Function Literals are a little unclear - see more here: https://kotlinlang.org/docs/reference/lambdas.html
- */
 class FunctionLiteralTest : AnnotationSpec() {
 
   @Test
@@ -45,11 +42,5 @@ class FunctionLiteralTest : AnnotationSpec() {
       |   }
       |  }
       | """.trimMargin().trim().source
-  }
-}
-
-class Wrapper {
-  fun whatever() {
-    val a = { i: Int -> i + 1 }
   }
 }
