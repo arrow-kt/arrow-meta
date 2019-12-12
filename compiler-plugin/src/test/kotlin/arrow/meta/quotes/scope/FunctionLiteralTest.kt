@@ -19,7 +19,7 @@ class FunctionLiteralTest : AnnotationSpec() {
 
   @Test
   fun `Validate function literal as an anonymous function`() {
-    // TODO
+    validate("""val increment: (Int) -> Unit = fun(x) { x + 1 }""".functionLiteral())
   }
 
   @Test
@@ -31,7 +31,7 @@ class FunctionLiteralTest : AnnotationSpec() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(FunctionLiteralPlugin())) },
       code = { source },
-      assert = { compiles } //quoteOutputMatches(source) }
+      assert = { quoteOutputMatches(source) }
     ))
   }
 
