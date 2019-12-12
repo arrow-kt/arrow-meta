@@ -18,17 +18,17 @@ import org.jetbrains.kotlin.psi.KtExpression
  * import arrow.meta.quotes.dotQualifiedExpression
  *
  * val Meta.reformatDotQualifiedExpression: Plugin
- *  get() =
- *  "ReformatDotQualifiedExpression" {
- *   meta(
- *    dotQualifiedExpression({ true }) { e ->
- *     Transform.replace(
- *      replacing = e,
- *      newDeclaration = """$receiverExpression.$selectorExpression""".dotQualifiedExpression
- *     )
- *    }
- *   )
- *  }
+ *    get() =
+ *      "Reformat Dot Qualified Expression" {
+ *        meta(
+ *          dotQualifiedExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = """$receiverExpression.$selectorExpression""".dotQualifiedExpression
+ *            )
+ *          }
+ *        )
+ *      }
  *```
  */
 class DotQualifiedExpression(

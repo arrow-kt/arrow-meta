@@ -18,17 +18,17 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.quotes.breakExpression
  *
  * val Meta.reformatBreak: Plugin
- *  get() =
- *   "ReformatBreak" {
- *    meta(
- *     breakExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """break$targetLabel""".`break`
- *      )
+ *    get() =
+ *      "Reformat Break Expression" {
+ *        meta(
+ *          breakExpression({ true }) { expressionWithLabel ->
+ *            Transform.replace(
+ *              replacing = expressionWithLabel,
+ *              newDeclaration = """break$targetLabel""".`break`
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class BreakExpression(

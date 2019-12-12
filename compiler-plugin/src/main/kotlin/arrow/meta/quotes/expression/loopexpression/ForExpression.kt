@@ -19,17 +19,17 @@ import org.jetbrains.kotlin.psi.KtForExpression
  * import arrow.meta.quotes.forExpression
  *
  * val Meta.reformatFor: Plugin
- *   get() =
- *     "ReformatFor" {
- *       meta(
- *        forExpression({ true }) { e ->
+ *    get() =
+ *    "Reformat For Expression" {
+ *      meta(
+ *        forExpression({ true }) { loopExpression ->
  *          Transform.replace(
- *            replacing = e,
+ *            replacing = loopExpression,
  *            newDeclaration = """for ($`(param)` in $loopRange) $body""".`for`
  *          )
  *        }
- *       )
- *     }
+ *      )
+ *    }
  * ```
  */
 class ForExpression(

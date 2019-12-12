@@ -19,17 +19,17 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  * import arrow.meta.quotes.binaryExpression
  *
  * val Meta.reformatBinary: Plugin
- *  get() =
- *   "ReformatBinary" {
- *    meta(
- *     binaryExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """$left $operationReference $right""".binaryExpression
- *      )
+ *    get() =
+ *      "Reformat Binary Expression" {
+ *        meta(
+ *          binaryExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = e,
+ *              newDeclaration = """$left $operationReference $right""".binaryExpression
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class BinaryExpression(

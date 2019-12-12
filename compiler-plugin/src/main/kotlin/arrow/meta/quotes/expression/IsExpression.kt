@@ -2,6 +2,7 @@ package arrow.meta.quotes.expression
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.modifierlist.TypeReference
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -20,25 +21,27 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  * import arrow.meta.quotes.isExpression
  *
  * val Meta.reformatIs: Plugin
- *  get() =
- *  "ReformatIs" {
- *   meta(
- *    isExpression({ true }) { e ->
- *     Transform.replace(
- *      replacing = e,
- *      newDeclaration = """$left $operation $type""".`is`
- *     )
- *    }
- *   )
- *  }
+ *    get() =
+ *      "Reformat Is Expression" {
+ *        meta(
+ *          isExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = """$left $operation $type""".`is`
+ *            )
+ *          }
+ *        )
+ *      }
  *```
  */
 class IsExpression(
   override val value: KtIsExpression?,
   val left: Scope<KtExpression> = Scope(value?.leftHandSide),
   val operation: Scope<KtSimpleNameExpression> = Scope(value?.operationReference),
-  val type: Scope<KtTypeReference> = Scope(value?.typeReference)
+  val type: TypeReference = TypeReference(value?.typeReference)
 ) : Scope<KtIsExpression>(value) {
+
   override fun ElementScope.identity(): IsExpression =
     """$left $operation $type""".`is`
+
 }

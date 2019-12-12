@@ -18,17 +18,17 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  * import arrow.meta.quotes.whileExpression
  *
  * val Meta.reformatWhile: Plugin
- *  get() =
- *    "ReformatWhile" {
- *      meta(
- *       whileExpression({ true }) { e ->
- *        Transform.replace(
- *         replacing = e,
- *         newDeclaration = """while ($condition) $body""".`while`
+ *    get() =
+ *      "Reformat While Expression" {
+ *        meta(
+ *          whileExpression({ true }) { loopExpression ->
+ *            Transform.replace(
+ *              replacing = loopExpression,
+ *              newDeclaration = """"while ($condition) $body""".`while`
+ *            )
+ *          }
  *        )
- *       }
- *      )
- *     }
+ *      }
  * ```
  */
 class WhileExpression(

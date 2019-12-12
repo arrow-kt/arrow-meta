@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *        meta(
  *          ifExpression({ true }) { expression ->
  *            Transform.replace(
- *              replacing = expression,
  *              newDeclaration = when {
  *                `else`.value == null -> """if ($condition) $then""".`if`
  *                else -> """if ($condition) $then else $`else`""".`if`

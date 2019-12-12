@@ -19,21 +19,21 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.quotes.returnExpression
  *
  * val Meta.reformatReturn: Plugin
- *  get() =
- *   "ReformatReturn" {
- *    meta(
- *     returnExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = when {
- *          `return`.value != null -> """return $`return`""".`return`
- *          targetLabel.value != null -> """return$targetLabel""".`return`
- *          else -> """return""".`return`
- *         }
- *       )
- *     }
- *   )
- * }
+ *    get() =
+ *      "Reformat Return Expression" {
+ *        meta(
+ *          returnExpression({ true }) { expressionWithLabel ->
+ *            Transform.replace(
+ *              replacing = expressionWithLabel,
+ *              newDeclaration = when {
+ *                `return`.value != null -> """return $`return`""".`return`
+ *                targetLabel.value != null -> """return$targetLabel""".`return`
+ *                else -> """return""".`return`
+ *              }
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class ReturnExpression(

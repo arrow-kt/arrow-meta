@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 
 /**
- * <code> """$statements""".block </code>
+ * <code>"""$statements""".block</code>
  *
  * A template destructuring [Scope] for a [KtBlockExpression].
  *
@@ -19,12 +19,12 @@ import org.jetbrains.kotlin.psi.KtExpression
  * import arrow.meta.quotes.blockExpression
  *
  * val Meta.reformatBlock: Plugin
- *  get() =
- *   "BlockExpression" {
- *    meta(
- *     blockExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
+ *    get() =
+ *      "Reformat Block Expression" {
+ *        meta(
+ *          blockExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
  *       newDeclaration = """$statements""".block
  *      )
  *     }
