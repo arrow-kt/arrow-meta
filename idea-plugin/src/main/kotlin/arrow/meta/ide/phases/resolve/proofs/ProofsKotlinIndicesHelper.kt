@@ -36,7 +36,6 @@ class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
       val extensionCallables = extensions.flatMap {
         it.extensionCallables { true }
           .filterIsInstance<SimpleFunctionDescriptor>()
-          .filter { it.isExtension }
           .mapNotNull { it.newCopyBuilder()
             .setModality(Modality.FINAL)
             .build() }

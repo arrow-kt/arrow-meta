@@ -135,14 +135,6 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
 inline fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
   mapNotNull { it.synthetic() }
 
-inline fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor? =
-  copy(
-    containingDeclaration,
-    Modality.FINAL,
-    Visibilities.PUBLIC,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    true
-  )
 //    .run {
 //    newCopyBuilder().setDispatchReceiverParameter(extensionReceiverParameter).build()
 //  }

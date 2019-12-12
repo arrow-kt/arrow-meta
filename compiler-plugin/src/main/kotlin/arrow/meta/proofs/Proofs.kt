@@ -6,14 +6,24 @@ import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.provesWithBaselineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
@@ -21,8 +31,9 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.inference.substituteAndApproximateCapturedTypes
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.getImportableDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.scopes.receivers.CastImplicitClassReceiver
+import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeApproximator
 import org.jetbrains.kotlin.types.UnwrappedType
@@ -104,23 +115,54 @@ fun List<Proof>.subtyping(vararg types: KotlinType): List<Proof> =
       } else null
     }
 
+fun ClassDescriptor.syntheticMemberFunction(fn: SimpleFunctionDescriptor): SimpleFunctionDescriptorImpl {
+  val dispatchReceiver = ReceiverParameterDescriptorImpl(this, CastImplicitClassReceiver(this, defaultType), Annotations.EMPTY)
+  return fn.syntheticFunction(this, null, dispatchReceiver, fn.source)
+}
+
+private fun SimpleFunctionDescriptor.syntheticFunction(
+  containingDeclaration: DeclarationDescriptor?,
+  extensionReceiver: ReceiverParameterDescriptor?,
+  dispatchReceiver: ReceiverParameterDescriptor?,
+  source: SourceElement
+): SimpleFunctionDescriptorImpl {
+  return SimpleFunctionDescriptorImpl.create(
+    containingDeclaration ?: this.containingDeclaration,
+    Annotations.EMPTY,
+    name,
+    kind,
+    source
+  ).also {
+    it.initialize(
+      extensionReceiver,
+      dispatchReceiver,
+      typeParameters,
+      valueParameters,
+      returnType,
+      Modality.FINAL,
+      Visibilities.PUBLIC
+    )
+  }
+}
+
 fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<CallableMemberDescriptor> =
   if (proofType == ProofStrategy.Extension) {
     to.memberScope
       .getContributedDescriptors(nameFilter = descriptorNameFilter)
       .toList()
       .filterIsInstance<CallableMemberDescriptor>()
-      .mapNotNull {
-        when (it) {
+      .mapNotNull { fn ->
+        when (fn) {
           is FunctionDescriptor -> {
-            val packageReceiver = through.containingDeclaration
-            if (it.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) null
-            else it.copy(packageReceiver, it.modality, it.visibility, it.kind, true).newCopyBuilder()
-              .setDispatchReceiverParameter(through.extensionReceiverParameter?.copy(packageReceiver))
-              .setExtensionReceiverParameter(through.extensionReceiverParameter)
-              .build()
+            when {
+              fn.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE -> null
+              fn is SimpleFunctionDescriptorImpl -> {
+                fn.syntheticFunction(null, fn.extensionReceiverParameter, fn.dispatchReceiverParameter, fn.original.source)
+              }
+              else -> fn
+            }
           }
-          else -> it
+          else -> fn
         }
       }
   } else emptyList()
@@ -185,10 +227,7 @@ fun FunctionDescriptor.applyConversion(conversionCandidate: ProofCandidate): Fun
   substituteAndApproximateCapturedTypes(
     conversionCandidate.typeSubstitutor,
     TypeApproximator(module.builtIns)
-  ).run {
-    this as FunctionDescriptor
-    newCopyBuilder().setModality(Modality.FINAL).build()
-  }
+  ) as? FunctionDescriptor
 
 fun Diagnostic.suppressProvenTypeMismatch(proofs: List<Proof>): Boolean = //TODO this should only go through if the implicit conversion is true
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
