@@ -166,7 +166,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         println("END quote.doAnalysis: $files")
           files.forEach {
             val fileText = it.text
-            if (fileText.contains("//metadebug")) {
+            if (fileText.contains(META_DEBUG_COMMENT)) {
               File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
               println("""|
               |ktFile: $it
