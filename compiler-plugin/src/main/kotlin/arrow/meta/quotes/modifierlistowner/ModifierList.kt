@@ -1,4 +1,4 @@
-package arrow.meta.quotes.modifierlist
+package arrow.meta.quotes.modifierlistowner
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
@@ -19,18 +19,18 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.modifierList
  *
- * val Meta.reformatModifier: Plugin
- *  get() =
- *  "ReformatModifier" {
- *   meta(
- *    modifierList({ true }){ l ->
- *     Transform.replace(
- *      replacing = l,
- *      newDeclaration = """ $`@annotations` $modifier value """.`modifierList`
- *     )
- *    }
- *   )
- *  }
+ * val Meta.reformatModifierList: Plugin
+ *    get() =
+ *      "Reformat ModifierList" {
+ *        meta(
+ *          modifierList({ true }){ modifierList ->
+ *            Transform.replace(
+ *              replacing = modifierList,
+ *              newDeclaration = """ $`@annotations` $modifier value """.`modifierList`
+ *            )
+ *          }
+ *        )
+ *      }
  *```
  */
 class ModifierList(

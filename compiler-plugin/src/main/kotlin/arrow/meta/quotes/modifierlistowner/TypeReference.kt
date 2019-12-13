@@ -1,4 +1,4 @@
-package arrow.meta.quotes.modifierlist
+package arrow.meta.quotes.modifierlistowner
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
@@ -20,17 +20,17 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  * import arrow.meta.quotes.typeReference
  *
  * val Meta.changeTypeReference: Plugin
- *  get() =
- *  "ReformatModifier" {
- *   meta(
- *    typeReference({ true }) { l ->
- *     Transform.replace(
- *      replacing = l,
- *      newDeclaration = """$`@annotations` $typeElement""".type
- *     )
- *    }
- *   )
- *  }
+ *    get() =
+ *      "ReformatModifier" {
+ *        meta(
+ *          typeReference({ true }) { modifierListOwner ->
+ *            Transform.replace(
+ *              replacing = modifierListOwner,
+ *              newDeclaration = """$`@annotations` $typeElement""".type
+ *            )
+ *          }
+ *        )
+ *      }
  *```
  */
 class TypeReference(

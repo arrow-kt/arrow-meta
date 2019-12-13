@@ -1,7 +1,7 @@
 package arrow.meta.quotes.element
 
 import arrow.meta.quotes.Scope
-import org.jetbrains.kotlin.psi.KtBlockExpression
+import arrow.meta.quotes.expression.BlockExpression
 import org.jetbrains.kotlin.psi.KtFinallySection
 
 /**
@@ -32,5 +32,5 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  */
 class FinallySection(
   override val value: KtFinallySection?,
-  val `{ finallyExpression }`: Scope<KtBlockExpression> = Scope(value?.finalExpression)
+  val `{ finallyExpression }`: BlockExpression = BlockExpression(value?.finalExpression)
 ) : Scope<KtFinallySection>(value)

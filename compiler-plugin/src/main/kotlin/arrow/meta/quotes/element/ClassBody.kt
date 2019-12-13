@@ -1,4 +1,4 @@
-package arrow.meta.quotes.classorobject
+package arrow.meta.quotes.element
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
@@ -24,26 +24,24 @@ import org.jetbrains.kotlin.psi.KtProperty
  * import arrow.meta.quotes.classBody
  *
  * val Meta.classBody: Plugin
- *  get() =
- *   "ReformatClassBody" {
- *    meta(
- *     classBody({ true }) { c ->
- *      Transform.replace(
- *       replacing = c,
- *       newDeclaration =
- *       """
- *       | {
- *       |  $properties
- *       |
- *       |  $companionObjects
- *       |
- *       |  $functions
- *       | }
- *       """.classBody
- *      )
- *     }
- *    )
- *   }
+ *    get() =
+ *      "Reformat Class Body" {
+ *          meta(
+ *              classBody({ true }) { element ->
+ *                  Transform.replace(
+ *                      replacing = element,
+ *                      newDeclaration = """
+ *                          | {
+ *                          |  $properties
+ *                          |
+ *                          |  $companionObjects
+ *                          |
+ *                          |  $functions
+ *                          | }""".classBody
+ *                  )
+ *                }
+ *              )
+ *            }
  * ```
  */
 class ClassBody(
@@ -55,7 +53,6 @@ class ClassBody(
   val functions: ScopedList<KtNamedFunction> = ScopedList(value?.functions ?: listOf(), separator = "\n"),
   val properties: ScopedList<KtProperty> = ScopedList(value?.properties ?: listOf(), separator = "\n")
 ) : Scope<KtClassBody>(value) {
-    
     override fun toString(): String =
       if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
 

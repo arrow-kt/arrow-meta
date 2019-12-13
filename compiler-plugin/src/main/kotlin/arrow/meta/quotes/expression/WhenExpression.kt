@@ -19,19 +19,21 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  * import arrow.meta.quotes.whenExpression
  *
  * val Meta.reformatWhen: Plugin
- *  get() =
- *    "ReformatWhen" {
- *      meta(
- *       whenExpression({ true }) { e ->
- *        Transform.replace(
- *         replacing = e,
- *         newDeclaration =
- *         """|when $`(expression)` {
- *            | $entries
- *            | $`else`
- *            |} """.`when`
- *        )})
- *     }
+ *    get() =
+ *      "Reformat When Expression" {
+ *        meta(
+ *          whenExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration =
+ *                """|when $`(expression)` {
+ *                   | $entries
+ *                   | $`else`
+ *                   |} """.`when`
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class WhenExpression(
