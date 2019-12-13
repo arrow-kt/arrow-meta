@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenEntryPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class WhenEntryTest {
+class WhenEntryTest : AnnotationSpec() {
 
   private val whenEntry = """
                          | //metadebug
@@ -19,7 +19,7 @@ class WhenEntryTest {
                          |     }
                          |   }
                          | }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate when entry scope properties`() {

@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.TryExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class TryExpressionTest {
+class TryExpressionTest : AnnotationSpec() {
 
   private val tryExpression = """
                          | //metadebug
@@ -16,7 +16,7 @@ class TryExpressionTest {
                          |      block()
                          |    } catch (throwable: Throwable) { println(throwable) }
                          |  }
-                         | """.trimMargin().source
+                         | """.source
 
   @Test
   fun `Validate try expression scope properties`() {

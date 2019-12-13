@@ -3,9 +3,9 @@ package arrow.meta.plugins.lens
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class LensTest {
+class LensTest : AnnotationSpec() {
 
   @Test
   fun `Initial lens test`() {

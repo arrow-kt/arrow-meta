@@ -20,7 +20,7 @@ Writing compiler plugins, source transformations, IDEA plugins, linters, type se
 
 ## Λrrow Meta examples
 
+{:.gif}
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
 
 Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
-

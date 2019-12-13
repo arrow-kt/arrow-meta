@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtClassLiteralExpression
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
@@ -620,7 +621,7 @@ open class Converter {
     parentAnns = emptyList(),
     parents = v.superTypeListEntries.map(::convertParent),
     typeConstraints = v.typeConstraints.map(::convertTypeConstraint),
-    members = v.declarations.map(::convertDecl)
+    members = v.body?.let(::convertClassBody)
   ).map(v)
 
   open fun convertSuper(v: KtSuperExpression) = Node.Expr.Super(
@@ -796,6 +797,10 @@ open class Converter {
     body = convertExpr(v.body ?: error("No while body for $v")),
     doWhile = v is KtDoWhileExpression
   ).map(v)
+  
+  open fun convertClassBody(v: KtClassBody) = Node.Decl.ClassBody(
+    members = v.declarations.map(::convertDecl)
+  )
 
   protected open fun <T: Node> T.map(v: PsiElement) = also { onNode(it, v) }
 
@@ -926,13 +931,14 @@ open class Converter {
 internal val PsiElement.ast: Node get() = when(this) {
   is KtClassOrObject -> Converter.convertDecl(this)
   is KtNamedFunction -> Converter.convertFunc(this)
-  is KtExpression -> Converter.convertExpr(this)
+  is KtTypeAlias -> Converter.convertTypeAlias(this)
   is KtWhenCondition -> Converter.convertWhenCond(this)
   is KtWhenEntry -> Converter.convertWhenEntry(this)
   is KtCatchClause -> Converter.convertTryCatch(this)
   is KtImportDirective -> Converter.convertImport(this)
   is KtValueArgument -> Converter.convertValueArg(this)
-  is KtTypeAlias -> Converter.convertTypeAlias(this)
   is KtTypeReference -> Converter.convertTypeRef(this)
+  is KtClassBody -> Converter.convertClassBody(this)
+  is KtExpression -> Converter.convertExpr(this)
   else -> TODO("Unsupported ${this}")
 }
