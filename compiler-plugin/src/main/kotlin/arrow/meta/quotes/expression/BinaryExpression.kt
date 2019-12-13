@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -36,4 +37,7 @@ class BinaryExpression(
   val left: Scope<KtExpression>? = Scope(value.left),
   val right: Scope<KtExpression>? = Scope(value.right),
   val operationReference: Scope<KtOperationReferenceExpression>? = Scope(value.operationReference)
-): Scope<KtBinaryExpression>(value)
+): Scope<KtBinaryExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtBinaryExpression> =
+    """$left $operationReference $right""".binaryExpression
+}

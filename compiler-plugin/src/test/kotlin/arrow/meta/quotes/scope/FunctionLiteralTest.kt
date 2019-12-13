@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.FunctionLiteralPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class FunctionLiteralTest : AnnotationSpec() {
+class FunctionLiteralTest {
 
   @Test
   fun `Validate function literal scope properties`() {

@@ -21,7 +21,7 @@ val Meta.importDirectivePlugin
         importDirective({importPath != null}) { element ->
           Transform.replace(
             replacing = element,
-            newDeclaration = importDirective(ImportPath(importedFqName, isAllUnder, alias))
+            newDeclaration = identity()
           )
         }
       )

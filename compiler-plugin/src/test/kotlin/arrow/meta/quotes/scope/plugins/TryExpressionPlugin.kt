@@ -20,7 +20,7 @@ val Meta.tryExpressionPlugin
         tryExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """try $tryBlock$catchClauses$finallySection""".`try`
+            newDeclaration = identity()
           )
         }
       )

@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.phases.analysis.ElementScope
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -17,6 +18,8 @@ open class Scope<out K : KtElement>(open val value: K?) {
   companion object{
     fun <A> empty() = Scope(null)
   }// java null snicking in
+
+  open fun ElementScope.identity(): Scope<K> = TODO("not implemented")
 }
 
 fun <K : KtElement> Scope<K>?.orEmpty(): Scope<K> =

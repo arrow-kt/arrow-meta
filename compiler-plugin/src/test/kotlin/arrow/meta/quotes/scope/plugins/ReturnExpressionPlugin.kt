@@ -20,11 +20,7 @@ val Meta.returnExpressionPlugin
         returnExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = when {
-              `return`.value != null -> """return $`return`""".`return`
-              targetLabel.value != null -> """return$targetLabel""".`return`
-              else -> """return""".`return`
-            }
+            newDeclaration = identity()
           )
         }
       )

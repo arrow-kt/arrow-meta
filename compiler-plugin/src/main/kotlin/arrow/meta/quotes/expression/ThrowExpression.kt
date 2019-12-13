@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
@@ -33,4 +34,7 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
 class ThrowExpression(
   override val value: KtThrowExpression?,
   val thrownExpression: Scope<KtExpression> = Scope(value?.thrownExpression)
-) : Scope<KtThrowExpression>(value)
+) : Scope<KtThrowExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtThrowExpression> =
+    """throw $thrownExpression""".`throw`
+}

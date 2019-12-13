@@ -20,7 +20,7 @@ val Meta.valueArgumentPlugin
         valueArgument({ true }) { arg ->
           Transform.replace(
             replacing = arg,
-            newDeclaration = (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument
+            newDeclaration = identity()
           )
         }
       )

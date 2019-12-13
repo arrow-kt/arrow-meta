@@ -4,11 +4,12 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenExpressionPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Ignore
+import org.junit.Test
 
 // TODO failing compilation:  Expecting a when-condition, Expecting an expression, is-condition or in-condition
 
-class WhenExpressionTest : AnnotationSpec() {
+class WhenExpressionTest {
 
   private val whenExpression = """
                          | //metadebug

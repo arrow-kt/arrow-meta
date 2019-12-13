@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ThrowExpressionPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class ThrowExpressionTest : AnnotationSpec() {
+class ThrowExpressionTest {
 
   private val throwExpression = """
                          | //metadebug

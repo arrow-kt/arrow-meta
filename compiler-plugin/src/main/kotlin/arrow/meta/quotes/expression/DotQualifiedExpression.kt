@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -34,4 +35,7 @@ class DotQualifiedExpression(
   override val value: KtDotQualifiedExpression?,
   val receiverExpression: Scope<KtExpression> = Scope(value?.receiverExpression),
   val selectorExpression: Scope<KtExpression>? = Scope(value?.selectorExpression)
-) : Scope<KtDotQualifiedExpression>(value)
+) : Scope<KtDotQualifiedExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtDotQualifiedExpression> =
+    """$receiverExpression.$selectorExpression""".dotQualifiedExpression
+}

@@ -1,5 +1,6 @@
 package arrow.meta.quotes.classorobject
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -57,4 +58,17 @@ class ClassBody(
     
     override fun toString(): String =
       if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
+
+    override fun ElementScope.identity(): Scope<KtClassBody> =
+      """
+      | {
+      |  $properties
+      |
+      |  $companionObjects
+      |  
+      |  $enumEntries
+      |
+      |  $functions
+      | }
+      """.classBody
 }

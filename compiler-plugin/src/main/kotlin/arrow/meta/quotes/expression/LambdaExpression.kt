@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -36,4 +37,7 @@ class LambdaExpression(
   // val functionLiteral: FunctionLiteral = FunctionLiteral(value.functionLiteral),  // TODO locate an example or fix ValueArgument
   val `(params)`: ScopedList<KtParameter> = ScopedList(value = value.valueParameters),
   val bodyExpression: BlockExpression? = BlockExpression(value.bodyExpression)
-) : Scope<KtLambdaExpression>(value)
+) : Scope<KtLambdaExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtLambdaExpression> =
+    lambdaExpression("""$`(params)`""", """$bodyExpression""")
+}

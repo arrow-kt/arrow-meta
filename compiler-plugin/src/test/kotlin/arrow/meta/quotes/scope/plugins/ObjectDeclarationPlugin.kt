@@ -19,12 +19,8 @@ val Meta.objectDeclarationPlugin
       objectDeclaration({ name == "Test" }) { declaration ->
         Transform.replace(
           replacing = declaration,
-          newDeclaration =
-          """
-          | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
-          |   $body
-          | }
-          | """.`object`)
+          newDeclaration = identity()
+        )
       }
     )
   }

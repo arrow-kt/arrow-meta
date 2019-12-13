@@ -20,7 +20,7 @@ val Meta.lambdaExpressionPlugin
         lambdaExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = lambdaExpression("""$`(params)`""", """$bodyExpression""")
+            newDeclaration = identity()
           )
         }
       )

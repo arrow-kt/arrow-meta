@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.BreakExpressionPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class BreakExpressionTest : AnnotationSpec() {
+class BreakExpressionTest {
 
   private val breakExpression = """
                          | //metadebug

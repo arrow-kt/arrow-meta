@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.notstubbed
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.expression.BlockExpression
 import org.jetbrains.kotlin.name.Name
@@ -49,4 +50,7 @@ class FunctionLiteral(
   override val value: KtFunctionLiteral,
   val name: Name? = value.nameAsName,
   val blockExpression: BlockExpression = BlockExpression(value.bodyBlockExpression)
-) : FunctionNotStubbed<KtFunctionLiteral>(value)
+) : FunctionNotStubbed<KtFunctionLiteral>(value) {
+  override fun ElementScope.identity(): Scope<KtFunctionLiteral> =
+    """{$`(params)`$blockExpression}""".functionLiteral
+}

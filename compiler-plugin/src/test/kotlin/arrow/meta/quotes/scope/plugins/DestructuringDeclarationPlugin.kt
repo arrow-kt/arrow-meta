@@ -20,7 +20,7 @@ val Meta.destructuringDeclarationPlugin
          destructuringDeclaration({ true }) { declaration ->
             Transform.replace(
              replacing = declaration,
-             newDeclaration = """$valOrVar ($entries) = $initializer""".destructuringDeclaration
+             newDeclaration = identity()
             )
          }
       )

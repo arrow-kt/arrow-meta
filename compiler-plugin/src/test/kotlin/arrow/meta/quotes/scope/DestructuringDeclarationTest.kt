@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.DestructuringDeclarationPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class DestructuringDeclarationTest : AnnotationSpec() {
+class DestructuringDeclarationTest {
 
   private val destructuringDeclaration = """
                          | //metadebug

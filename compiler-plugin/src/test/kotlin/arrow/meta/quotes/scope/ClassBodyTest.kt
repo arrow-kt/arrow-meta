@@ -2,13 +2,13 @@ package arrow.meta.quotes.scope
 
 import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ClassBodyPlugin
 import arrow.meta.quotes.scope.plugins.EnumBodyPlugin
 
-class ClassBodyTest : AnnotationSpec() {
+class ClassBodyTest {
 
   @Test
   fun `validate class body scope properties are correctly generated`() {
@@ -30,7 +30,6 @@ class ClassBodyTest : AnnotationSpec() {
         |   fun x() = x
         |   fun y() = y
         |   fun z() = z
-        |   fun test() = 0
         | }
         """.source
       )}
@@ -48,7 +47,6 @@ class ClassBodyTest : AnnotationSpec() {
         |   FOO, BAR;
         |
         |   fun foo() = 0
-        |   fun test() = 0
         | }
         """.source
       )}
@@ -71,7 +69,6 @@ class ClassBodyTest : AnnotationSpec() {
         |   fun x() = x
         |   fun y() = y
         |   fun z() = z
-        |   fun test() = 0
         | }
         """.source
       )}

@@ -20,7 +20,7 @@ val Meta.blockExpressionPlugin
         blockExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$statements""".block
+            newDeclaration = identity()
           )
         }
       )

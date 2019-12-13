@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtTypeAlias
@@ -34,4 +35,7 @@ class TypeAlias(
   override val value: KtTypeAlias,
   val name: Name? = value.nameAsName,
   val type: Scope<KtTypeReference> = Scope(value.getTypeReference())
-) : TypeParameterListOwner<KtTypeAlias>(value)
+) : TypeParameterListOwner<KtTypeAlias>(value) {
+  override fun ElementScope.identity(): Scope<KtTypeAlias> =
+    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
+}

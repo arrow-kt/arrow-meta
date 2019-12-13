@@ -19,7 +19,7 @@ val Meta.whileExpressionPlugin
       whileExpression({ true }) { e ->
         Transform.replace(
           replacing = e,
-          newDeclaration = """while ($condition) $body""".`while`
+          newDeclaration = identity()
         )
       }
     )

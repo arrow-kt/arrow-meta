@@ -4,9 +4,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenEntryPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class WhenEntryTest : AnnotationSpec() {
+class WhenEntryTest {
 
   private val whenEntry = """
                          | //metadebug

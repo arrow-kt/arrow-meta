@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIsExpression
@@ -37,4 +38,7 @@ class IsExpression(
   val left: Scope<KtExpression> = Scope(value?.leftHandSide),
   val operation: Scope<KtSimpleNameExpression> = Scope(value?.operationReference),
   val type: Scope<KtTypeReference> = Scope(value?.typeReference)
-) : Scope<KtIsExpression>(value)
+) : Scope<KtIsExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtIsExpression> =
+    """$left $operation $type""".`is`
+}

@@ -26,18 +26,7 @@ private val Meta.classBody
         classBody({ true }) { c ->
           Transform.replace(
             replacing = c,
-            newDeclaration =
-            """
-            | {
-            |  $properties
-            |
-            |  $companionObjects
-            |
-            |  $functions
-            |
-            |  fun test() = 0
-            | }
-            """.classBody
+            newDeclaration = identity()
           )
         }
       )
@@ -50,16 +39,7 @@ private val Meta.enumBody
         classBody({ true }) { c ->
           Transform.replace(
             replacing = c,
-            newDeclaration =
-            """
-            | {
-            |  $enumEntries
-            |
-            |  $functions
-            |
-            |  fun test() = 0
-            | }
-            """.classBody
+            newDeclaration = identity()
           )
         }
       )

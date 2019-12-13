@@ -20,7 +20,7 @@ val Meta.typeAliasPlugin
         typeAlias({ true }) { element ->
           Transform.replace(
             replacing = element,
-            newDeclaration = typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
+            newDeclaration = identity()
           )
         }
       )

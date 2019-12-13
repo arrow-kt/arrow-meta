@@ -20,7 +20,7 @@ val Meta.isExpressionPlugin
         isExpression({true}) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$left $operation $type""".`is`
+            newDeclaration = identity()
           )
         }
       )

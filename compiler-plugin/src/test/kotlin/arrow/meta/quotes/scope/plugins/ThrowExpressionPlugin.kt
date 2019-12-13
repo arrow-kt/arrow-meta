@@ -20,7 +20,7 @@ val Meta.throwExpressionPlugin
         throwExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """throw $thrownExpression""".`throw`
+            newDeclaration = identity()
           )
         }
       )

@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ThisExpressionPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class ThisExpressionTest : AnnotationSpec() {
+class ThisExpressionTest {
 
   @Test
   fun `Validate this expression with labeled qualifiers scope properties`() {

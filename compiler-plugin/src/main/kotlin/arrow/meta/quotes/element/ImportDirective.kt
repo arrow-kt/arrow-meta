@@ -1,9 +1,11 @@
 package arrow.meta.quotes.element
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.resolve.ImportPath
 
 /**
  * <code>importDirective(ImportPath(importedFqName, isAllUnder, alias))</code>
@@ -37,4 +39,7 @@ class ImportDirective(
   val importedFqName: FqName = value?.importedFqName!!,
   val isAllUnder: Boolean = value?.isAllUnder == true,
   val alias: Name? = value?.aliasName?.let(Name::identifier)
-) : Scope<KtImportDirective>(value)
+) : Scope<KtImportDirective>(value) {
+  override fun ElementScope.identity(): Scope<KtImportDirective> =
+    importDirective(ImportPath(importedFqName, isAllUnder, alias))
+}

@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -36,4 +37,7 @@ class BlockExpression(
     separator = "\n",
     value = value?.statements.orEmpty()
   )
-) : Scope<KtBlockExpression>(value)
+) : Scope<KtBlockExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtBlockExpression> =
+    """$statements""".block
+}

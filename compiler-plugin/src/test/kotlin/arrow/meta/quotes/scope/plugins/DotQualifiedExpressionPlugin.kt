@@ -20,7 +20,7 @@ val Meta.dotQualifiedExpressionPlugin
         dotQualifiedExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$receiverExpression.$selectorExpression""".dotQualifiedExpression
+            newDeclaration = identity()
           )
         }
       )

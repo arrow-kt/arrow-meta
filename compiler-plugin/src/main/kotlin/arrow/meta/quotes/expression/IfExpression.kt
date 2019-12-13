@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
@@ -35,4 +36,7 @@ class IfExpression(
   val condition: Scope<KtExpression> = Scope(value?.condition),
   val then: Scope<KtExpression> = Scope(value),
   val `else`: Scope<KtExpression> = Scope(value?.`else`)
-) : Scope<KtIfExpression>(value)
+) : Scope<KtIfExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtIfExpression> =
+    """if ($condition) $`else`""".`if`  // {"""$then""".`if`} also works
+}

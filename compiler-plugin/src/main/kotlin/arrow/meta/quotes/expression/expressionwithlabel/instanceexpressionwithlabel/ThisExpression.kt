@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
@@ -36,4 +37,10 @@ import org.jetbrains.kotlin.psi.KtThisExpression
 class ThisExpression(
   override val value: KtThisExpression,
   override val labelName: String? = value.getLabelName()
-) : InstanceExpressionWithLabel<KtThisExpression>(value)
+) : InstanceExpressionWithLabel<KtThisExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtThisExpression> =
+    when {
+      targetLabel.value != null -> """$instanceReference$targetLabel""".`this`
+      else -> """$instanceReference""".`this`
+    }
+}
