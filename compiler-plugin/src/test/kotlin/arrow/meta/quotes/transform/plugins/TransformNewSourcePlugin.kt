@@ -20,7 +20,7 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
         Transform.newSources(
           """
             package arrow
-            //metadebug
+            
             class ${name}_Generated {
              fun sayHi() = println("Hi!")
             }
@@ -37,14 +37,14 @@ private val Meta.transformNewSourceMultipleGeneration: Plugin
         Transform.newSources(
           """
             package arrow
-            //metadebug
+            
             class ${name}_Generated {
              fun sayHi() = println("Hi!")
             }
           """.file("${name}_Generated"),
           """
             package arrow
-            //metadebug
+            
             class ${name}_Generated_2 {
              fun say(name: String) = println(name)
             }
@@ -89,7 +89,7 @@ private fun CompilerContext.removeBarPrint(context: KtClass, declaration: ClassD
 private fun CompilerContext.generateSupplierClass(declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.newSources(
   """
     package arrow
-    //metadebug
+    
     class ${name}_Generated {
       fun sayHello() = println("Hello!")
       fun say(name: String) = println(name)

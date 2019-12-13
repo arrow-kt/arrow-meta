@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
+import java.nio.file.Paths
 import java.util.*
 
 const val META_DEBUG_COMMENT = "//metadebug"
@@ -163,19 +164,18 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
-        files.forEach {
-          if (it.text.contains(META_DEBUG_COMMENT)) {
-              File(files.firstOrNull { it.name == DEFAULT_META_FILE_NAME }?.virtualFilePath?.let { path ->
-                  if (it.name != DEFAULT_META_FILE_NAME) path.substring(0, path.lastIndex - 2) + "_${it.name}" else path
-              } + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
-            println("""|
-            |ktFile: $it
-            |----
-            |${it.text}
-            |----
-          """.trimMargin())
+          files.forEach {
+            val fileText = it.text
+            if (fileText.contains("//metadebug")) {
+              File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
+              println("""|
+              |ktFile: $it
+              |----
+              |${it.text}
+              |----
+              """.trimMargin())
+            }
           }
-        }
         null
       },
       analysisCompleted = { project, module, bindingTrace, files ->
@@ -359,7 +359,7 @@ fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
   var virtualFile = rootFile.virtualFile
   if (file.name != DEFAULT_META_FILE_NAME) {
-      val directory = File("build/generated/source/kapt/main")
+      val directory = Paths.get("build", "generated", "source", "kapt", "main").toFile()
       directory.mkdirs()
       virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
           writeText(file.text)
