@@ -24,7 +24,7 @@ class IfExpressionTest : AnnotationSpec() {
   fun `Do not validate if expression without else scope properties`() {
     // TODO
   }
-  
+
   @Test
   fun `Validate if expression single line scope properties`() {
     validate("""if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression())
