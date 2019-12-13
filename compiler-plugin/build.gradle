@@ -12,7 +12,7 @@ dependencies {
 
 
     testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:$KOTLIN_TEST_VERSION"
     testImplementation project(":testing-plugin")
     testRuntimeOnly project(':compiler-plugin')
 
@@ -61,11 +61,11 @@ shadowJar {
 }
 
 test {
+    useJUnitPlatform()
     testLogging.showStandardStreams = true
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
 }
 
-//apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
 apply from: rootProject.file('gradle/upload-shadow.gradle')

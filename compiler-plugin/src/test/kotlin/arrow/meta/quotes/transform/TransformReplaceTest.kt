@@ -3,9 +3,9 @@ package arrow.meta.quotes.transform
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class TransformReplaceTest {
+class TransformReplaceTest : AnnotationSpec() {
 
   @Test
   fun `should replace function scope to print message`() {

@@ -114,9 +114,6 @@ options:
       - title: Compiler plugin
         url: /docs/apidocs/compiler-plugin/
 
-      - title: Gradle plugin
-        url: /docs/apidocs/gradle-plugin/
-
       - title: IntelliJ plugin
         url: /docs/apidocs/idea-plugin/
 

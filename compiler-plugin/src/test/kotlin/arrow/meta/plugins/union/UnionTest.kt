@@ -2,9 +2,9 @@ package arrow.meta.plugins.union
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class UnionTest {
+class UnionTest : AnnotationSpec() {
 
   @Test
   fun `Union accepts typed values in the union 2`() {

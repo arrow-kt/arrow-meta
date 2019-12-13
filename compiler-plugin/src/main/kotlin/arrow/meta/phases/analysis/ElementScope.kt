@@ -1,9 +1,11 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
@@ -21,8 +23,10 @@ import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.WhenExpression
-import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
+import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -42,7 +46,6 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -62,7 +65,6 @@ import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtSuperTypeEntry
-import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeCodeFragment
 import org.jetbrains.kotlin.psi.KtTypeElement
@@ -84,10 +86,6 @@ interface ElementScope {
   val String.dotQualifiedExpression: DotQualifiedExpression
 
   val String.expressionOrNull: Scope<KtExpression>
-  
-  val thisExpression: Scope<KtThisExpression>
-  
-  val String.thisExpression: Scope<KtThisExpression>
   
   val String.callArguments: Scope<KtValueArgumentList>
   
@@ -217,7 +215,7 @@ interface ElementScope {
   
   val anonymousInitializer: Scope<KtAnonymousInitializer>
   
-  val emptyClassBody: Scope<KtClassBody>
+  val emptyClassBody: ClassBody
   
   val String.classParameter: Parameter
   
@@ -321,9 +319,17 @@ interface ElementScope {
 
   val String.`return`: ReturnExpression
 
+  val String.`break`: BreakExpression
+
+  val String.`continue`: ContinueExpression
+
+  val String.`this`: ThisExpression
+
   val String.annotatedExpression: AnnotatedExpression
 
   val String.functionLiteral: FunctionLiteral
+  
+  val String.classBody: ClassBody
 
   /**
    * Creates an expression that has reference to its context

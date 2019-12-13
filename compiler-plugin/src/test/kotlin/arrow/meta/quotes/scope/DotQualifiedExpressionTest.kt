@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.DotQualifiedExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class DotQualifiedExpressionTest {
+class DotQualifiedExpressionTest : AnnotationSpec() {
 
   @Test
   fun `Validate dot qualified expression scope properties`() {
@@ -41,6 +41,6 @@ class DotQualifiedExpressionTest {
       |    $this
       |   }
       |  }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }

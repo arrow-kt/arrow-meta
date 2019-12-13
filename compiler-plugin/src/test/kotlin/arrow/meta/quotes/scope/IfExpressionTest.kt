@@ -5,9 +5,9 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.IfExpressionPlugin
-import org.junit.Test
+import io.kotlintest.specs.AnnotationSpec
 
-class IfExpressionTest {
+class IfExpressionTest : AnnotationSpec() {
 
   @Test
   fun `Validate if expression scope properties`() {
@@ -24,7 +24,7 @@ class IfExpressionTest {
   fun `Do not validate if expression without else scope properties`() {
     // TODO
   }
-  
+
   @Test
   fun `Validate if expression single line scope properties`() {
     validate("""if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression())
@@ -47,6 +47,6 @@ class IfExpressionTest {
       |    $this
       |   }
       |  }
-      | """.trimMargin().trim().source
+      | """.source
   }
 }
