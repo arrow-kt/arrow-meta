@@ -167,7 +167,7 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
           files.forEach {
             val fileText = it.text
             if (fileText.contains(META_DEBUG_COMMENT)) {
-              File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst("//metadebug", "//meta: ${Date()}"))
+              File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
               println("""|
               |ktFile: $it
               |----
