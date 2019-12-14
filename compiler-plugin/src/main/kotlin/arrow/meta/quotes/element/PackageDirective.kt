@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>""" package $`package` """.`package`</code>
+ * <code>""" $`package` """.`package`</code>
  *
  * A template destructuring [Scope] for a [KtPackageDirective].
  *
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *    packageDirective({ true }) { e ->
  *     Transform.replace(
  *      replacing = e,
- *      newDeclaration = """ package $`package` """.`package`
+ *      newDeclaration = """ $`package` """.`package`
  *     )
  *    }
  *   )

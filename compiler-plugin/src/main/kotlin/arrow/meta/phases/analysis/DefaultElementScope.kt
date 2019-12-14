@@ -66,7 +66,6 @@ import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -321,11 +320,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun stringTemplate(content: String): Scope<KtStringTemplateExpression> =
     Scope(delegate.createStringTemplate(content))
 
-  override val String.packageDirective: Scope<KtPackageDirective>
-    get() = Scope(delegate.createPackageDirective(FqName(trimMargin())))
+  override val String.`package`: PackageDirective
+    get() = PackageDirective(delegate.createPackageDirective(FqName(trimMargin())))
 
-  override val String.packageDirectiveOrNull: Scope<KtPackageDirective>
-    get() = Scope(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
+  override val String.packageDirectiveOrNull: PackageDirective
+    get() = PackageDirective(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
   override fun importDirective(importPath: ImportPath): ImportDirective =
     ImportDirective(delegate.createImportDirective(importPath))
@@ -439,8 +438,5 @@ class DefaultElementScope(project: Project) : ElementScope {
   
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
-  
-  override val String.`package`: PackageDirective
-    get() = PackageDirective(delegate.createFile(trimMargin()).packageDirective)
 }
 

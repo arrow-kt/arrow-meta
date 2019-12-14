@@ -56,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -255,9 +254,9 @@ interface ElementScope {
   
   fun stringTemplate(content: String): Scope<KtStringTemplateExpression>
   
-  val String.packageDirective: Scope<KtPackageDirective>
+  val String.`package`: PackageDirective
 
-  val String.packageDirectiveOrNull: Scope<KtPackageDirective>
+  val String.packageDirectiveOrNull: PackageDirective
   
   fun importDirective(importPath: ImportPath): ImportDirective
   
@@ -331,8 +330,6 @@ interface ElementScope {
   val String.functionLiteral: FunctionLiteral
   
   val String.classBody: ClassBody
-
-  val String.`package`: PackageDirective
   /**
    * Creates an expression that has reference to its context
    *

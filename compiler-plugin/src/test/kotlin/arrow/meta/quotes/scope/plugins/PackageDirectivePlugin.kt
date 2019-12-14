@@ -21,7 +21,7 @@ private val Meta.packageDirectivePlugin
       packageDirective({ packageNames.last().text == "test" }) { e ->
         Transform.replace(
           replacing = e,
-          newDeclaration = """ package $`package` """.`package`
+          newDeclaration = """ $`package` """.`package`
         )
       }
     )
@@ -33,7 +33,7 @@ private val Meta.packageDirectivePackageNames
       packageDirective({ packageNames.last().text == "package_names" }) { e ->
         Transform.replace(
           replacing = e,
-          newDeclaration = """ package ${packages.value.map { it.text }.reduce { acc, packageName -> "$acc.$packageName" }} """.`package`
+          newDeclaration = """ ${packages.value.map { it.text }.reduce { acc, packageName -> "$acc.$packageName" }} """.`package`
         )
       }
     )
@@ -45,7 +45,7 @@ private val Meta.packageDirectiveLastPackageName
       packageDirective({ packageNames.last().text == "package_last_name" }) { e ->
         Transform.replace(
           replacing = e,
-          newDeclaration = """ package arrow.meta.quotes.scope.$lastPackage """.`package`
+          newDeclaration = """ arrow.meta.quotes.scope.$lastPackage """.`package`
         )
       }
     )
