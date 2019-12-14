@@ -9,6 +9,7 @@ import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
@@ -331,6 +332,7 @@ interface ElementScope {
   
   val String.classBody: ClassBody
 
+  val String.`package`: PackageDirective
   /**
    * Creates an expression that has reference to its context
    *

@@ -9,6 +9,7 @@ import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
@@ -438,6 +439,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
-
+  
+  override val String.`package`: PackageDirective
+    get() = PackageDirective(delegate.createFile(trimMargin()).packageDirective)
 }
 
