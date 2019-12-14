@@ -1,6 +1,7 @@
 package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.phases.resolve.typeProofs
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -8,7 +9,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
 import org.jetbrains.kotlin.resolve.lazy.FileScopes
 import org.jetbrains.kotlin.resolve.lazy.ImportForceResolver
-import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
@@ -17,13 +17,12 @@ import org.jetbrains.kotlin.resolve.scopes.utils.addImportingScope
 import org.jetbrains.kotlin.utils.Printer
 
 class MetaFileScopeProvider(
-  val session: ResolveSession,
+  val module: ModuleDescriptor,
   val delegate: FileScopeProvider
 ) : FileScopeProvider by delegate {
   override fun getFileResolutionScope(file: KtFile): LexicalScope =
     Log.Verbose({ "MetaFileScopeProvider.getFileResolutionScope: $file, scope: $this" }) {
       val fileScope = delegate.getFileResolutionScope(file)
-      val module = session.moduleDescriptor
       val proofs = module.typeProofs
       if (proofs.isEmpty()) fileScope
       else {

@@ -22,32 +22,32 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class MetaBindingContext(val delegate: BindingContext, val trace: BindingTrace) : BindingContext by delegate {
   override fun <K : Any?, V : Any?> getKeys(p0: WritableSlice<K, V>?): Collection<K> =
-    Log.Verbose({ "MetaBindingTrace.getKeys $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.getKeys $p0 $this" }) {
       delegate.getKeys(p0)
     }
 
   override fun getType(p0: KtExpression): KotlinType? =
-    Log.Verbose({ "MetaBindingTrace.getType $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.getType $p0 $this" }) {
       delegate.getType(p0)
     }
 
   override fun <K : Any?, V : Any?> get(p0: ReadOnlySlice<K, V>?, p1: K): V? =
-    Log.Verbose({ "MetaBindingTrace.get $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.get $p0 $this" }) {
       delegate.get(p0, p1)
     }
 
   override fun getDiagnostics(): Diagnostics =
-    Log.Verbose({ "MetaBindingTrace.getDiagnostics $this" }) {
+    Log.Silent({ "MetaBindingTrace.getDiagnostics $this" }) {
       delegate.diagnostics
     }
 
   override fun addOwnDataTo(p0: BindingTrace, p1: Boolean) =
-    Log.Verbose({ "MetaBindingTrace.addOwnDataTo $p0 $p1 $this" }) {
+    Log.Silent({ "MetaBindingTrace.addOwnDataTo $p0 $p1 $this" }) {
       delegate.addOwnDataTo(p0, p1)
     }
 
   override fun <K : Any?, V : Any?> getSliceContents(p0: ReadOnlySlice<K, V>): ImmutableMap<K, V> =
-    Log.Verbose({ "MetaBindingTrace.getSliceContents $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.getSliceContents $p0 $this" }) {
       delegate.getSliceContents(p0)
     }
 }
@@ -57,59 +57,59 @@ class MetaBindingTrace(val delegate: BindingTrace) : BindingTrace by delegate {
   lateinit var module: ModuleDescriptor
 
   override fun report(p0: Diagnostic) =
-    Log.Verbose({ "MetaBindingTrace.report $this" }) {
+    Log.Silent({ "MetaBindingTrace.report $this" }) {
       delegate.report(p0)
     }
 
   override fun <K : Any?, V : Any?> getKeys(p0: WritableSlice<K, V>?): MutableCollection<K> =
-    Log.Verbose({ "MetaBindingTrace.getKeys $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.getKeys $p0 $this" }) {
       delegate.getKeys(p0)
     }
 
   override fun getBindingContext(): BindingContext =
-    Log.Verbose({ "MetaBindingTrace.getBindingContext $this" }) {
+    Log.Silent({ "MetaBindingTrace.getBindingContext $this" }) {
       MetaBindingContext(delegate.bindingContext, this)
     }
 
   override fun <K : Any?, V : Any?> record(p0: WritableSlice<K, V>?, p1: K, p2: V) =
-    Log.Verbose({ "MetaBindingTrace.record $this" }) { //rendering arguments will cause early descriptor init
+    Log.Silent({ "MetaBindingTrace.record $this" }) { //rendering arguments will cause early descriptor init
       delegate.record(p0, p1, p2)
     }
 
   override fun <K : Any?> record(p0: WritableSlice<K, Boolean>?, p1: K) =
-    Log.Verbose({ "MetaBindingTrace.record $this" }) { //rendering arguments will cause early descriptor init
+    Log.Silent({ "MetaBindingTrace.record $this" }) { //rendering arguments will cause early descriptor init
       delegate.record(p0, p1)
     }
 
   override fun getType(p0: KtExpression): KotlinType? =
-    Log.Verbose({ "MetaBindingTrace.getType $p0 $this" }) {
+    Log.Silent({ "MetaBindingTrace.getType $p0 $this" }) {
       delegate.getType(p0)
     }
 
   override fun wantsDiagnostics(): Boolean =
-    Log.Verbose({ "MetaBindingTrace.wantsDiagnostics $this" }) {
+    Log.Silent({ "MetaBindingTrace.wantsDiagnostics $this" }) {
       delegate.wantsDiagnostics()
     }
 
   override fun <K : Any?, V : Any?> get(p0: ReadOnlySlice<K, V>?, p1: K): V? =
-    Log.Verbose({ "MetaBindingTrace.get $p0 $p1" }) {
+    Log.Silent({ "MetaBindingTrace.get $p0 $p1" }) {
       delegate.get(p0, p1)
     }
 
   override fun recordType(p0: KtExpression, p1: KotlinType?) =
-    Log.Verbose({ "MetaBindingTrace.recordType $p0 $p1" }) {
+    Log.Silent({ "MetaBindingTrace.recordType $p0 $p1" }) {
       delegate.recordType(p0, p1)
     }
 }
 
 class MetaCodeAnalyzerInitializerHelper(val delegate: CodeAnalyzerInitializer) : CodeAnalyzerInitializer {
   override fun createTrace(): BindingTrace =
-    Log.Verbose({ "MetaCodeAnalyzerInitializerHelper.createTrace $this" }) {
+    Log.Silent({ "MetaCodeAnalyzerInitializerHelper.createTrace $this" }) {
       MetaBindingTrace(delegate.createTrace())
     }
 
   override fun initialize(trace: BindingTrace, module: ModuleDescriptor, codeAnalyzer: KotlinCodeAnalyzer) =
-    Log.Verbose({ "MetaCodeAnalyzerInitializerHelper.initialize $trace, $module, $codeAnalyzer" }) {
+    Log.Silent({ "MetaCodeAnalyzerInitializerHelper.initialize $trace, $module, $codeAnalyzer" }) {
       trace.safeAs<MetaBindingTrace>()?.apply {
         this.module = module
       }

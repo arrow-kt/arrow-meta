@@ -23,15 +23,15 @@
         <component>
             <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
         </component>
-<!--        <component>-->
-<!--            <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>-->
-<!--        </component>-->
+        <component>
+            <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
+        </component>
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaKotlinCacheService</implementation-class>
         </component>
-<!--        <component>-->
-<!--            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>-->
-<!--        </component>-->
+        <component>
+            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
+        </component>
 <!--        <component>-->
 <!--            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer</implementation-class>-->
 <!--        </component>-->
@@ -40,8 +40,8 @@
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
 <!--        <kotlinIndicesHelperExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsKotlinIndicesHelperExtension" />-->
 <!--        <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>-->
-<!--        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>-->
-<!--        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />-->
+        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
+        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />
 <!--        <diagnosticSuppressor implementation="arrow.meta.ide.phases.resolve.proofs.ProofsDiagnosticsSuppressor" />-->
         <syntheticScopeProviderExtension implementation="arrow.meta.ide.phases.resolve.proofs.MetaSyntheticScope" />
     </extensions>

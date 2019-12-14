@@ -115,34 +115,32 @@ fun List<Proof>.subtyping(vararg types: KotlinType): List<Proof> =
       } else null
     }
 
-fun ClassDescriptor.syntheticMemberFunction(fn: SimpleFunctionDescriptor): SimpleFunctionDescriptorImpl {
+fun ClassDescriptor.syntheticMemberFunction(fn: SimpleFunctionDescriptor): SimpleFunctionDescriptor? {
   val dispatchReceiver = ReceiverParameterDescriptorImpl(this, CastImplicitClassReceiver(this, defaultType), Annotations.EMPTY)
   return fn.syntheticFunction(this, null, dispatchReceiver, fn.source)
 }
 
-private fun SimpleFunctionDescriptor.syntheticFunction(
+fun SimpleFunctionDescriptor.syntheticFunction(
   containingDeclaration: DeclarationDescriptor?,
   extensionReceiver: ReceiverParameterDescriptor?,
   dispatchReceiver: ReceiverParameterDescriptor?,
   source: SourceElement
-): SimpleFunctionDescriptorImpl {
+): SimpleFunctionDescriptor? {
   return SimpleFunctionDescriptorImpl.create(
     containingDeclaration ?: this.containingDeclaration,
     Annotations.EMPTY,
     name,
-    kind,
+    CallableMemberDescriptor.Kind.DECLARATION,
     source
-  ).also {
-    it.initialize(
-      extensionReceiver,
-      dispatchReceiver,
-      typeParameters,
-      valueParameters,
-      returnType,
-      Modality.FINAL,
-      Visibilities.PUBLIC
-    )
-  }
+  ).initialize(
+    extensionReceiver,
+    dispatchReceiver,
+    typeParameters,
+    valueParameters,
+    returnType,
+    Modality.FINAL,
+    Visibilities.PUBLIC
+  ).newCopyBuilder().setOriginal(this@syntheticFunction).build()
 }
 
 fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<CallableMemberDescriptor> =

@@ -2,9 +2,9 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
+import arrow.meta.proofs.extensionCallables
 import arrow.meta.proofs.extensions
 import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.pico.DefaultPicoContainer
@@ -43,36 +43,34 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
         delegate.isImportedWithDefault(importPath, contextFile)
     }
 
-  private fun List<Proof>.containsImportPath(importFqName: FqName): Boolean =
-    Log.Verbose({ "MetaImportInsertHelper.containsImportPath: proofs size [${this@containsImportPath.size}] $importFqName, $this" }) {
-      val names = importableNames()
+  private fun List<Proof>.containsImportPath(importFqName: FqName): Boolean {
+    val names = importableNames()
+    return Log.Silent({ "MetaImportInsertHelper.containsImportPath: importable names [${names}] : $importFqName, $this" }) {
       names.any {
         it == importFqName
       }
     }
+  }
 
   private fun List<Proof>.importableNames(): Set<FqName> =
-    extensions().flatMap { extension ->
-      extension.through.returnType?.let { type ->
-        type.memberScope.getContributedDescriptors { true }.map {
-          FqName(
-            it.fqNameSafe.asString()
-              .replace(".${type.constructor.declarationDescriptor?.name}.", ".")
-          )
-        }
-      } ?: emptyList()
-    }.toSet()
-
+    extensions()
+      .flatMap { it.extensionCallables { true } }
+      .map { it.fqNameSafe }
+      .toSet()
 
   override fun isImportedWithLowPriorityDefaultImport(importPath: ImportPath, contextFile: KtFile): Boolean =
     Log.Verbose({ "MetaImportInsertHelper.isImportedWithLowPriorityDefaultImport: $importPath, $contextFile, $this" }) {
-      delegate.isImportedWithDefault(importPath, contextFile)
+      contextFile.findModuleDescriptor().typeProofs.containsImportPath(importPath.fqName) ||
+        delegate.isImportedWithDefault(importPath, contextFile)
     }
 
-  override fun mayImportOnShortenReferences(descriptor: DeclarationDescriptor): Boolean =
-    Log.Verbose({ "MetaImportInsertHelper.mayImportOnShortenReferences: $descriptor, $this" }) {
-      delegate.mayImportOnShortenReferences(descriptor)
+  override fun mayImportOnShortenReferences(descriptor: DeclarationDescriptor): Boolean {
+    val comparingPath = descriptor.importableFqName ?: descriptor.fqNameSafe
+    return Log.Verbose({ "MetaImportInsertHelper.mayImportOnShortenReferences: comparingPath $comparingPath $descriptor, $this" }) {
+      descriptor.module.typeProofs.containsImportPath(comparingPath) ||
+        delegate.mayImportOnShortenReferences(descriptor)
     }
+  }
 }
 
 class MetaImportInsertHelper(val project: Project) : ProjectComponent {

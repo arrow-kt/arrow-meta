@@ -128,22 +128,22 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
   }
 
   override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext =
-    Log.Verbose({ "MetaResolutionFacade.analyze $elements $bodyResolveMode $this" }) {
+    Log.Silent({ "MetaResolutionFacade.analyze" }) {
       delegate.analyze(elements, bodyResolveMode).apply { resolveExtensionCalls() }
     }
 
   override fun analyze(element: KtElement, bodyResolveMode: BodyResolveMode): BindingContext =
-    Log.Verbose({ "MetaResolutionFacade.analyze $element $bodyResolveMode $this" }) {
+    Log.Silent({ "MetaResolutionFacade.analyze" }) {
       delegate.analyze(element, bodyResolveMode).apply { resolveExtensionCalls() }
     }
 
   override fun analyzeWithAllCompilerChecks(elements: Collection<KtElement>): AnalysisResult =
-    Log.Verbose({ "MetaResolutionFacade.analyzeWithAllCompilerChecks $elements $this" }) {
+    Log.Silent({ "MetaResolutionFacade.analyzeWithAllCompilerChecks" }) {
       delegate.analyzeWithAllCompilerChecks(elements).checkProofed()
     }
 
   override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =
-    Log.Verbose({ "MetaResolutionFacade.resolveToDescriptor ${declaration.text} $bodyResolveMode $this" }) {
+    Log.Silent({ "MetaResolutionFacade.resolveToDescriptor" }) {
       delegate.resolveToDescriptor(declaration, bodyResolveMode)
     }
 }

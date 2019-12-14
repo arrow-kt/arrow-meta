@@ -236,31 +236,31 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
         message = {
           it.markerMessage()
         }
-      ),
-      syntheticResolver(
-        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
-          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
-            result.firstOrNull()?.ktFile()?.let {
-              Log.Verbose({ "resolveBodyWithExtensionsScope file $it" }) {
-                resolveBodyWithExtensionsScope(ctx as ResolveSession, it)
-              }
-            }
-          }
-        }
-      ),
-      addDiagnosticSuppressor { diagnostic ->
-        if (diagnostic.factory == Errors.UNRESOLVED_REFERENCE) {
-          Errors.UNRESOLVED_REFERENCE.cast(diagnostic).let {
-            module.typeProofs.extensions().any { ext ->
-              ext.to.memberScope.getContributedDescriptors { true }.any {
-                it.name.asString() == diagnostic.psiElement.text
-              }
-            }
-          }
-        } else false
-      },
-      addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) },
-      addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
+      )
+//      syntheticResolver(
+//        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
+//          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
+//            result.firstOrNull()?.ktFile()?.let {
+//              Log.Verbose({ "resolveBodyWithExtensionsScope file $it" }) {
+//                resolveBodyWithExtensionsScope(ctx as ResolveSession, it)
+//              }
+//            }
+//          }
+//        }
+//      ),
+//      addDiagnosticSuppressor { diagnostic ->
+//        if (diagnostic.factory == Errors.UNRESOLVED_REFERENCE) {
+//          Errors.UNRESOLVED_REFERENCE.cast(diagnostic).let {
+//            module.typeProofs.extensions().any { ext ->
+//              ext.to.memberScope.getContributedDescriptors { true }.any {
+//                it.name.asString() == diagnostic.psiElement.text
+//              }
+//            }
+//          }
+//        } else false
+//      },
+//      addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) },
+//      addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
     )
   }
 
@@ -336,7 +336,7 @@ class ProofsBodyResolveContent(
 
 private fun resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
   Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
-    session.fileScopeProvider = MetaFileScopeProvider(session, session.fileScopeProvider)
+    session.fileScopeProvider = MetaFileScopeProvider(session.moduleDescriptor, session.fileScopeProvider)
 //    val bodyResolver = analyzer?.createBodyResolver(
 //      session, session.trace, ktFile, StatementFilter.NONE
 //    )
