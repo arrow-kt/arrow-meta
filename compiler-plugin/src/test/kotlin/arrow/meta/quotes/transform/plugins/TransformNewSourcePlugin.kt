@@ -24,7 +24,7 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
             class ${name}_Generated {
              fun sayHi() = println("Hi!")
             }
-          """.file("${name}_Generated")
+          """.file("${name}_Generated.kt")
         )
       }
     )

@@ -145,20 +145,21 @@ private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolea
   assertThat(check(compilationResult.messages)).isTrue()
 }
 
-private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source) = assertQuoteFileMatches(
+private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit = assertQuoteFileMatches(
   compilationResult = compilationResult,
   expectedSource = expectedSource,
-  actualFilePath = Paths.get(compilationResult.outputDirectory.parent, "sources", "$DEFAULT_FILENAME.meta")
+  actualFileName = "$DEFAULT_FILENAME.meta",
+  actualFileDirectoryPath = Paths.get(compilationResult.outputDirectory.parent, "sources")
 )
 
 private fun assertQuoteFileMatches(
   compilationResult: Result,
-  actualFileName: String = "",
+  actualFileName: String,
   expectedSource: Code.Source,
-  actualFilePath: Path = Paths.get("build", "generated", "source", "kapt", "main", actualFileName)
-) {
+  actualFileDirectoryPath: Path = Paths.get("build", "generated", "source", "kapt", "main")
+): Unit {
   assertCompiles(compilationResult)
-  val actualSource = actualFilePath.toFile().readText()
+  val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
   val actualSourceWithoutCommands = removeCommands(actualSource)
   val expectedSourceWithoutCommands = removeCommands(expectedSource.text.trimMargin())
   assertThat(actualSourceWithoutCommands)
