@@ -56,16 +56,25 @@ class ClassBody(
     override fun toString(): String =
       if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
 
+    // TODO split up into two different elements to be able to use the identity method
     override fun ElementScope.identity(): Scope<KtClassBody> =
-      """
-      | {
-      |  $properties
-      |
-      |  $companionObjects
-      |  
-      |  $enumEntries
-      |
-      |  $functions
-      | }
-      """.classBody
+      if (enumEntries.toStringList().isEmpty()) {
+          """
+              | {
+              |  $properties
+              |
+              |  $companionObjects
+              |
+              |  $functions
+              | }
+              | """.classBody
+      } else {
+          """
+              | {
+              |  $enumEntries
+              |
+              |  $functions
+              | }
+              | """.classBody
+      }
 }

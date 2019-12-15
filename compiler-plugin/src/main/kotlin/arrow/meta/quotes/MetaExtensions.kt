@@ -20,6 +20,7 @@ import arrow.meta.quotes.expression.IsExpression
 import arrow.meta.quotes.expression.LambdaExpression
 import arrow.meta.quotes.expression.ThrowExpression
 import arrow.meta.quotes.expression.TryExpression
+import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
@@ -63,6 +64,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
+import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 
 /**
@@ -100,6 +102,15 @@ fun Meta.catchClause(
   map: CatchClause.(KtCatchClause) -> Transform<KtCatchClause>
 ): ExtensionPhase =
   quote(match, map) { CatchClause(it) }
+
+/**
+ * @see [ClassBody]
+ */
+fun Meta.classBody(
+  match: KtClassBody.() -> Boolean,
+  map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
+): ExtensionPhase =
+  quote(match, map) { ClassBody(it) }
 
 /**
  * @see [ClassDeclaration]
@@ -219,6 +230,15 @@ fun Meta.objectDeclaration(
   quote(match, map) { ObjectDeclaration(it) }
 
 /**
+ * @see [PackageDirective]
+ */
+fun Meta.packageDirective(
+  match: KtPackageDirective.() -> Boolean,
+  map: PackageDirective.(KtPackageDirective) -> Transform<KtPackageDirective>
+): ExtensionPhase =
+  quote(match, map) { PackageDirective(it) }
+
+/**
  * @see [Parameter]
  */
 fun Meta.parameter(
@@ -282,6 +302,15 @@ fun Meta.whenEntry(
   quote(match, map) { WhenEntry(it) }
 
 /**
+ * @see [WhenExpression]
+ */
+fun Meta.whenExpression(
+  match: KtWhenExpression.() -> Boolean,
+  map: WhenExpression.(KtWhenExpression) -> Transform<KtWhenExpression>
+): ExtensionPhase =
+  quote(match, map) { WhenExpression(it) }
+
+/**
  * @see [WhileExpression]
  */
 fun Meta.whileExpression(
@@ -326,21 +355,3 @@ fun Meta.valueArgument(
   map: ValueArgument.(KtValueArgument) -> Transform<KtValueArgument>
 ): ExtensionPhase =
   quote(match, map) { ValueArgument(it) }
-
-/**
- * @see [ClassBody]
- */
-fun Meta.classBody(
-  match: KtClassBody.() -> Boolean,
-  map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
-): ExtensionPhase =
-  quote(match, map) { ClassBody(it) }
-
-/**
- * @see [PackageDirective]
- */
-fun Meta.packageDirective(
-  match: KtPackageDirective.() -> Boolean,
-  map: PackageDirective.(KtPackageDirective) -> Transform<KtPackageDirective>
-): ExtensionPhase =
-  quote(match, map) { PackageDirective(it) }

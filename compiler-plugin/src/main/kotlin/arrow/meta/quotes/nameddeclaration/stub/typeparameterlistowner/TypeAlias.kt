@@ -5,7 +5,6 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.modifierlistowner.TypeReference
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtTypeAlias
-import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
  * <code>typeAlias("""$name""", `(typeParameters)`.toStringList() , """$type""")</code>
@@ -40,5 +39,5 @@ class TypeAlias(
 
   override fun ElementScope.identity(): TypeAlias =
     typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
-  
+
 }

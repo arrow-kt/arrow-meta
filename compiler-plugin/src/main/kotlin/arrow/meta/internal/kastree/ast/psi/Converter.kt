@@ -932,8 +932,6 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtClassOrObject -> Converter.convertDecl(this)
   is KtNamedFunction -> Converter.convertFunc(this)
   is KtTypeAlias -> Converter.convertTypeAlias(this)
-  is KtWhenCondition -> Converter.convertWhenCond(this)
-  is KtWhenEntry -> Converter.convertWhenEntry(this)
   is KtCatchClause -> Converter.convertTryCatch(this)
   is KtImportDirective -> Converter.convertImportDirective(this)
   is KtValueArgument -> Converter.convertValueArg(this)
@@ -941,5 +939,7 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtClassBody -> Converter.convertClassBody(this)
   is KtExpression -> Converter.convertExpr(this)
   is KtPackageDirective -> Converter.convertPackage(this)
+  is KtWhenCondition -> Converter.convertWhenCond(this)
+  is KtWhenEntry -> Converter.convertWhenEntry(this)
   else -> TODO("Unsupported ${this}")
 }
