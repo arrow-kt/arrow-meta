@@ -31,6 +31,18 @@ class ForExpressionTest : AnnotationSpec() {
                   |   """.forExpression())
   }
 
+  @Test
+  fun `Validate for expression destructuring declaration scope properties`() {
+    validate("""
+                  | fun destructuringDeclarationFunction() {
+                  |         for ((index, value) in listOf("a", "b", "c").withIndex()) {
+                  |              println("index: " + index)
+                  |              println("value: " + value)
+                  |         }
+                  | }
+                  |   """.forExpression())
+  }
+
   fun validate(source: Code.Source) {
     assertThis(CompilerTest(
             config = { listOf(addMetaPlugins(ForExpressionPlugin())) },
