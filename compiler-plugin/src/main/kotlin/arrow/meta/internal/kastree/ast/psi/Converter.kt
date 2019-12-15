@@ -940,5 +940,6 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtTypeReference -> Converter.convertTypeRef(this)
   is KtClassBody -> Converter.convertClassBody(this)
   is KtExpression -> Converter.convertExpr(this)
+  is KtPackageDirective -> Converter.convertPackage(this)
   else -> TODO("Unsupported ${this}")
 }
