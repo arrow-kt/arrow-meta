@@ -19,7 +19,7 @@ open class Scope<out K : KtElement>(open val value: K?) {
     fun <A> empty() = Scope(null)
   }// java null snicking in
 
-  open fun ElementScope.identity(): Scope<K> = TODO("not implemented")
+  open fun ElementScope.identity(): Scope<K> = Scope(value) // TODO:  TODO("not implemented")
 }
 
 fun <K : KtElement> Scope<K>?.orEmpty(): Scope<K> =
