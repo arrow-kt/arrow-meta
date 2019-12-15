@@ -39,6 +39,6 @@ class IsExpression(
   val operation: Scope<KtSimpleNameExpression> = Scope(value?.operationReference),
   val type: Scope<KtTypeReference> = Scope(value?.typeReference)
 ) : Scope<KtIsExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtIsExpression> =
+  override fun ElementScope.identity(): IsExpression =
     """$left $operation $type""".`is`
 }

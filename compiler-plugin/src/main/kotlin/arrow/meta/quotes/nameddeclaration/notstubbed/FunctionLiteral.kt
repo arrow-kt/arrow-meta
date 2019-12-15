@@ -51,6 +51,6 @@ class FunctionLiteral(
   val name: Name? = value.nameAsName,
   val blockExpression: BlockExpression = BlockExpression(value.bodyBlockExpression)
 ) : FunctionNotStubbed<KtFunctionLiteral>(value) {
-  override fun ElementScope.identity(): Scope<KtFunctionLiteral> =
+  override fun ElementScope.identity(): FunctionLiteral =
     """{$`(params)`$blockExpression}""".functionLiteral
 }

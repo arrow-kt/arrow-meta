@@ -40,6 +40,6 @@ class TryExpression(
   val catchClauses: ScopedList<KtCatchClause> = ScopedList(value = value?.catchClauses.orEmpty()),
   val finallySection: Scope<KtFinallySection> = Scope(value?.finallyBlock)
 ) : Scope<KtTryExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtTryExpression> =
+  override fun ElementScope.identity(): TryExpression =
     """try $tryBlock$catchClauses$finallySection""".`try`
 }

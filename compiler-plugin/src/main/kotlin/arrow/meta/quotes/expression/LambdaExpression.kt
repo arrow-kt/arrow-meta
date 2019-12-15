@@ -38,6 +38,6 @@ class LambdaExpression(
   val `(params)`: ScopedList<KtParameter> = ScopedList(value = value.valueParameters),
   val bodyExpression: BlockExpression? = BlockExpression(value.bodyExpression)
 ) : Scope<KtLambdaExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtLambdaExpression> =
+  override fun ElementScope.identity(): LambdaExpression =
     lambdaExpression("""$`(params)`""", """$bodyExpression""")
 }

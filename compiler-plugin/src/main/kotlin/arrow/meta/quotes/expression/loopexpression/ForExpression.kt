@@ -38,6 +38,6 @@ class ForExpression(
   val loopRange: Scope<KtExpression> = Scope(value.loopRange) // TODO KtExpression scope
   // val destructuringDeclaration: DestructuringDeclaration = DestructuringDeclaration(value.destructuringDeclaration)  TODO to get to
 ) : LoopExpression<KtForExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtForExpression> =
+  override fun ElementScope.identity(): ForExpression =
     """for ($`(param)` in $loopRange) $body""".`for`
 }

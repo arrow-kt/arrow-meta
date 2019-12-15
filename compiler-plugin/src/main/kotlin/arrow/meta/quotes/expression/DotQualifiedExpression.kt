@@ -36,6 +36,6 @@ class DotQualifiedExpression(
   val receiverExpression: Scope<KtExpression> = Scope(value?.receiverExpression),
   val selectorExpression: Scope<KtExpression>? = Scope(value?.selectorExpression)
 ) : Scope<KtDotQualifiedExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtDotQualifiedExpression> =
+  override fun ElementScope.identity(): DotQualifiedExpression =
     """$receiverExpression.$selectorExpression""".dotQualifiedExpression
 }

@@ -39,7 +39,7 @@ class ContinueExpression(
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "continue"
 ) : ExpressionWithLabel<KtContinueExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtContinueExpression> =
+  override fun ElementScope.identity(): ContinueExpression =
     when {
       targetLabel.value != null -> """continue$targetLabel""".`continue`
       else -> """continue""".`continue`

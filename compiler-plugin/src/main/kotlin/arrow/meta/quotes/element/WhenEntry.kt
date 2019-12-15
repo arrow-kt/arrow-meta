@@ -43,6 +43,6 @@ class WhenEntry(
   val expression: Scope<KtExpression> = Scope(value?.expression),
   val isElse: Boolean = value?.isElse == true
 ) : Scope<KtWhenEntry>(value) {
-  override fun ElementScope.identity(): Scope<KtWhenEntry> =
+  override fun ElementScope.identity(): WhenEntry =
     (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry
 }

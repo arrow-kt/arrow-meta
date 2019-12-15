@@ -36,6 +36,6 @@ class BreakExpression(
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "break"
   ) : ExpressionWithLabel<KtBreakExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtBreakExpression> =
+  override fun ElementScope.identity(): BreakExpression =
     """break$targetLabel""".`break`
 }

@@ -36,6 +36,6 @@ class TypeAlias(
   val name: Name? = value.nameAsName,
   val type: Scope<KtTypeReference> = Scope(value.getTypeReference())
 ) : TypeParameterListOwner<KtTypeAlias>(value) {
-  override fun ElementScope.identity(): Scope<KtTypeAlias> =
+  override fun ElementScope.identity(): TypeAlias =
     typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
 }

@@ -38,6 +38,6 @@ class BlockExpression(
     value = value?.statements.orEmpty()
   )
 ) : Scope<KtBlockExpression>(value) {
-  override fun ElementScope.identity(): Scope<KtBlockExpression> =
+  override fun ElementScope.identity(): BlockExpression =
     """$statements""".block
 }

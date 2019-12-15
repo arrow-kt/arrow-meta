@@ -40,6 +40,6 @@ class ImportDirective(
   val isAllUnder: Boolean = value?.isAllUnder == true,
   val alias: Name? = value?.aliasName?.let(Name::identifier)
 ) : Scope<KtImportDirective>(value) {
-  override fun ElementScope.identity(): Scope<KtImportDirective> =
+  override fun ElementScope.identity(): ImportDirective =
     importDirective(ImportPath(importedFqName, isAllUnder, alias))
 }
