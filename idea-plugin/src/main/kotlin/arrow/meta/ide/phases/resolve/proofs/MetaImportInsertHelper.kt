@@ -4,6 +4,7 @@ import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensionCallables
 import arrow.meta.proofs.extensions
+import arrow.meta.proofs.importableNames
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerServiceInstance
@@ -51,12 +52,6 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
       }
     }
   }
-
-  private fun List<Proof>.importableNames(): Set<FqName> =
-    extensions()
-      .flatMap { it.extensionCallables { true } }
-      .map { it.fqNameSafe }
-      .toSet()
 
   override fun isImportedWithLowPriorityDefaultImport(importPath: ImportPath, contextFile: KtFile): Boolean =
     Log.Verbose({ "MetaImportInsertHelper.isImportedWithLowPriorityDefaultImport: $importPath, $contextFile, $this" }) {

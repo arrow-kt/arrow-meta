@@ -7,12 +7,17 @@ import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
 import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.isAnnotatedWith
+import arrow.meta.phases.resolve.cachedModule
 import arrow.meta.phases.resolve.intersection
+import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
+import arrow.meta.proofs.extensionCallables
 import arrow.meta.proofs.extensions
+import arrow.meta.proofs.importableNames
 import arrow.meta.proofs.intersection
 import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
@@ -24,6 +29,7 @@ import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -33,7 +39,9 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.idea.caches.resolve.findModuleDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.name.Name
@@ -44,6 +52,8 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtScript
@@ -52,6 +62,7 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.psiUtil.blockExpressionsOrSingle
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BodiesResolveContext
+import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.TopDownAnalysisContext
 import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
@@ -77,7 +88,7 @@ fun KtNamedFunction.isProof(): Boolean =
 
 private fun KtNamedFunction.isProofOf(strategy: ProofStrategy): Boolean =
   isAnnotatedWith(proofAnnotation) && this.proofTypes().value.any {
-      it.text.endsWith(strategy.name)
+    it.text.endsWith(strategy.name)
   }
 
 fun KtNamedFunction.isExtensionProof(): Boolean = isProofOf(ProofStrategy.Extension)
@@ -163,7 +174,7 @@ fun Proof.subtypingMarkerMessage(name: Name?): String {
 
 fun KtNamedFunction.markerMessage(): String =
   NamedFunction(this).run {
-    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let {proof ->
+    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
       """
       <code lang="kotlin">${text}</code> 
 
@@ -236,7 +247,16 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
         message = {
           it.markerMessage()
         }
-      )
+      ),
+      extraImports {
+        Log.Verbose({ "extraImports: $this" }) {
+          val cachedModule = cachedModule()
+          cachedModule?.typeProofs?.importableNames()?.mapNotNull { fqName ->
+            println("import $fqName")
+            importDirective(ImportPath(fqName, true)).value
+          }.orEmpty()
+        }
+      },
 //      syntheticResolver(
 //        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
 //          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
@@ -259,11 +279,10 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
 //          }
 //        } else false
 //      },
-//      addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) },
+      addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) }
 //      addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
     )
   }
-
 
 class ProofsBodyResolveContent(
   val session: ResolveSession,

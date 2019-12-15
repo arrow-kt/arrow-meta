@@ -136,7 +136,8 @@ class IrUtils(
           from = from,
           to = to,
           subType = subType.unwrappedNotNullableType,
-          superType = superType.unwrappedNotNullableType
+          superType = superType.unwrappedNotNullableType,
+          through = conversion
         ).typeSubstitutor,
         initializer = initializer
       )

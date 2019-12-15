@@ -6,6 +6,7 @@ import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.provesWithBaselineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -22,21 +23,24 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
-import org.jetbrains.kotlin.resolve.calls.inference.substituteAndApproximateCapturedTypes
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.receivers.CastImplicitClassReceiver
-import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeApproximator
+import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
+import org.jetbrains.kotlin.types.TypeProjection
+import org.jetbrains.kotlin.types.TypeSubstitution
+import org.jetbrains.kotlin.types.TypeSubstitutor
+import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jgrapht.Graph
@@ -78,7 +82,8 @@ data class ProofCandidate(
   val from: KotlinType,
   val to: KotlinType,
   val subType: UnwrappedType,
-  val superType: UnwrappedType
+  val superType: UnwrappedType,
+  val through: FunctionDescriptor
 )
 
 fun Proof.intersection(): KotlinType =
@@ -140,7 +145,9 @@ fun SimpleFunctionDescriptor.syntheticFunction(
     returnType,
     Modality.FINAL,
     Visibilities.PUBLIC
-  ).newCopyBuilder().setOriginal(this@syntheticFunction).build()
+  ).newCopyBuilder()
+    .setOriginal(this@syntheticFunction)
+    .build()
 }
 
 fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<CallableMemberDescriptor> =
@@ -180,10 +187,11 @@ fun List<Proof>.matchingCandidates(
       from = from,
       to = to,
       subType = subType.unwrappedNotNullableType,
-      superType = superType.unwrappedNotNullableType
+      superType = superType.unwrappedNotNullableType,
+      through = proof
     )
-    val appliedConversion = proof.applyConversion(candidate)
-    appliedConversion?.provesWithBaselineTypeChecker(subType, superType) ?: false
+    val appliedConversion = candidate.applyConversion()
+    appliedConversion?.provesWithBaselineTypeChecker() ?: false
   }
 
 fun Graph<ProofVertex, Proof>.shortestPath(
@@ -204,14 +212,26 @@ fun Graph<ProofVertex, Proof>.shortestPath(
 val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
   get() {
     val fromArgsMap = from.typeArgumentsMap(subType)
-    val toArgsMap = to.typeArgumentsMap(superType)
+    //val toArgsMap = to.typeArgumentsMap(superType)
     val allArgsMap =
-      fromArgsMap.filter { it.key.type.isTypeParameter() } + toArgsMap.filter { it.key.type.isTypeParameter() }
+      fromArgsMap.filter { it.key.type.isTypeParameter() } + mapOf(
+        through.module.builtIns.nothingType.asTypeProjection() to TypeUtils.DONT_CARE.asTypeProjection()
+      )
+    //toArgsMap.filter { it.key.type.isTypeParameter() } +
     return NewTypeSubstitutorByConstructorMap(
       allArgsMap.map {
         it.key.type.constructor to it.value.type.unwrap()
       }.toMap()
     )
+//    val fromArgsMap = from.typeArgumentsMap(subType)
+//    val toArgsMap = to.typeArgumentsMap(superType)
+//    val allArgsMap =
+//      fromArgsMap.filter { it.key.type.isTypeParameter() } + toArgsMap.filter { it.key.type.isTypeParameter() }
+//    return NewTypeSubstitutorByConstructorMap(
+//      allArgsMap.map {
+//        it.key.type.constructor to it.value.type.unwrap()
+//      }.toMap()
+//    )
   }
 
 
@@ -221,17 +241,54 @@ fun Collection<Proof>.dump() {
   }}")
 }
 
-fun FunctionDescriptor.applyConversion(conversionCandidate: ProofCandidate): FunctionDescriptor? =
-  substituteAndApproximateCapturedTypes(
-    conversionCandidate.typeSubstitutor,
-    TypeApproximator(module.builtIns)
-  ) as? FunctionDescriptor
+fun List<Proof>.importableNames(): Set<FqName> =
+  extensions()
+    .flatMap { it.extensionCallables { true } }
+    .map { FqName(it.fqNameSafe.asString().replace(".${it.containingDeclaration.name}.", ".")) }
+    .toSet()
+
+fun CallableDescriptor.substituteAndApproximateCapturedTypes2(
+  substitutor: NewTypeSubstitutorByConstructorMap,
+  typeApproximator: TypeApproximator
+): CallableDescriptor {
+  val wrappedSubstitution = object : TypeSubstitution() {
+    override fun get(key: KotlinType): TypeProjection? {
+      return key.unwrap().substitutedType()?.asTypeProjection()
+    }
+
+    override fun prepareTopLevelType(topLevelType: KotlinType, position: Variance) =
+      substitutor.safeSubstitute(topLevelType.unwrap()).let { substitutedType ->
+        val candidate = typeApproximator.approximateToSuperType(substitutedType, TypeApproximatorConfiguration.CapturedAndIntegerLiteralsTypesApproximation)
+          ?: substitutedType
+        if (candidate.isTypeParameter()) { //attempt substitution based on name on type args for same functions
+          candidate.substitutedType() ?: candidate
+        } else candidate
+      }
+
+    private fun UnwrappedType.substitutedType(): UnwrappedType? =
+      substitutor.map.keys.find { it.toString() == toString() }?.let {
+        val newType = substitutor.map[it]
+        newType
+      }
+
+  }
+
+  return substitute(TypeSubstitutor.create(wrappedSubstitution))
+}
+
+fun ProofCandidate.applyConversion(): ProofCandidate? =
+  copy(
+    through = through.substituteAndApproximateCapturedTypes2(
+      typeSubstitutor,
+      TypeApproximator(through.module.builtIns)
+    ) as FunctionDescriptor
+  )
 
 fun Diagnostic.suppressProvenTypeMismatch(proofs: List<Proof>): Boolean = //TODO this should only go through if the implicit conversion is true
-  factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
-    safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
-      val subType = diagnosticWithParameters.a
-      val superType = diagnosticWithParameters.b
+  factory == Errors.TYPE_MISMATCH &&
+    safeAs<DiagnosticWithParameters2<KtExpression, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
+      val subType = diagnosticWithParameters.b
+      val superType = diagnosticWithParameters.a
       proofs.subtypingProof(subType, superType) != null
     } == true
 

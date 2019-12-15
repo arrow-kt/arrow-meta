@@ -1,15 +1,15 @@
 package arrow.meta.phases.resolve
 
+import arrow.meta.phases.CompilerContext
 import arrow.meta.proofs.Proof
+import arrow.meta.proofs.ProofCandidate
 import arrow.meta.proofs.ProofStrategy
 import arrow.meta.proofs.isProof
-import arrow.meta.quotes.get
+import arrow.meta.proofs.typeSubstitutor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -21,11 +21,14 @@ import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.jetbrains.kotlin.resolve.calls.inference.components.substituteTypeVariable
+import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import org.jetbrains.kotlin.resolve.calls.smartcasts.SingleSmartCast
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
@@ -37,6 +40,10 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.getAbbreviation
 import org.jetbrains.kotlin.types.replace
+import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
+import org.jetbrains.kotlin.types.typeUtil.builtIns
+import org.jetbrains.kotlin.types.typeUtil.isNothing
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
 import org.jetbrains.kotlin.types.typeUtil.substitute
@@ -50,27 +57,24 @@ import java.util.concurrent.ConcurrentHashMap
 val baseLineTypeChecker: KotlinTypeChecker =
   NewKotlinTypeCheckerImpl(KotlinTypeRefiner.Default)
 
-fun KotlinType.replaceTypeArgsWithUpperbounds(): KotlinType =
-  replace(arguments.map { typeProjection ->
-    typeProjection.substitute {
-      TypeUtils.getTypeParameterDescriptorOrNull(it)?.representativeUpperBound ?: it
-    }
-  })
+//    .run {
+//    if (this.isTypeParameter()) builtIns.nullableAnyType
+//    else this
+//  }
 
-fun CallableDescriptor.provesWithBaselineTypeChecker(from: KotlinType, to: KotlinType): Boolean =
-  extensionReceiverParameter?.type?.let { receiver ->
-    returnType?.let { returnType ->
-      val receiverWithUpperBounds = receiver.replaceTypeArgsWithUpperbounds()
-      val returnTypeWithUpperBounds = returnType.replaceTypeArgsWithUpperbounds()
+fun ProofCandidate.provesWithBaselineTypeChecker(): Boolean =
+  through.extensionReceiverParameter?.type?.let { receiver ->
+    through.returnType?.let { returnType ->
       val result = baseLineTypeChecker.run {
-        isSubtypeOf(from, receiverWithUpperBounds) && isSubtypeOf(to, returnTypeWithUpperBounds)
+        isSubtypeOf(subType, receiver) && isSubtypeOf(superType, returnType)
       }
       result
     }
   } ?: false
 
 fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProjection> =
-  arguments.mapIndexed { n, typeProjection ->
+  if (isTypeParameter()) mapOf(this.asTypeProjection() to other.asTypeProjection())
+  else arguments.mapIndexed { n, typeProjection ->
     other.arguments.getOrNull(n)?.let {
       typeProjection to it
     }
@@ -91,7 +95,7 @@ val ModuleDescriptor.typeProofs: List<Proof>
         val cacheValue = proofCache[this]
         when {
           cacheValue != null -> {
-            println("Serving cached value for $this: ${cacheValue}")
+            println("Serving cached value for $this: $cacheValue")
             cacheValue
           }
           else -> emptyList()
@@ -102,10 +106,17 @@ val ModuleDescriptor.typeProofs: List<Proof>
       }
     } else emptyList()
 
+fun CompilerContext.cachedModule(): ModuleDescriptor? =
+  proofCache.keys.firstOrNull { it.name == module.name }
+
+fun cachedModule(name: Name): ModuleDescriptor? =
+  proofCache.keys.firstOrNull { it.name == name }
+
 fun ModuleDescriptor.initializeProofCache(): List<Proof> =
   try {
     val moduleProofs: List<Proof> = computeModuleProofs()
-    if (moduleProofs.isNotEmpty()) {
+    if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
+      cachedModule(name)?.let { proofCache.remove(it) }
       proofCache[this] = moduleProofs
     }
     moduleProofs
@@ -117,22 +128,22 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   (getSubPackagesOf(FqName.ROOT) { true })
     .filter { !it.isRoot }
     .flatMap { packageName ->
-    getPackage(packageName).memberScope
-      .getContributedDescriptors { true }
-      .filterIsInstance<PackageViewDescriptor>()
-      .flatMap { packageViewDescriptor ->
-      packageViewDescriptor
-        .memberScope
+      getPackage(packageName).memberScope
         .getContributedDescriptors { true }
-        .filterIsInstance<FunctionDescriptor>()
-        .filter(FunctionDescriptor::isProof)
-    }.mapNotNull(FunctionDescriptor::asProof)
-  }.apply {
-    val module = this@computeModuleProofs
-    println("Recomputed cache: $module proofs: ${size}, module cache size: ${proofCache.size}")
-  }.synthetic()
+        .filterIsInstance<PackageViewDescriptor>()
+        .flatMap { packageViewDescriptor ->
+          packageViewDescriptor
+            .memberScope
+            .getContributedDescriptors { true }
+            .filterIsInstance<FunctionDescriptor>()
+            .filter(FunctionDescriptor::isProof)
+        }.mapNotNull(FunctionDescriptor::asProof)
+    }.apply {
+      val module = this@computeModuleProofs
+      println("Recomputed cache: $module proofs: ${size}, module cache size: ${proofCache.size}")
+    }.synthetic()
 
-inline fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
+fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
   mapNotNull { it.synthetic() }
 
 //    .run {
@@ -149,8 +160,8 @@ inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
   ) as C
 
 fun List<Proof>.synthetic(): List<Proof> =
-  mapNotNull {proof ->
-    (proof.through as SimpleFunctionDescriptor).synthetic()?.let { Proof(proof.from, proof.to, it, proof.proofType) }
+  mapNotNull { proof ->
+    Proof(proof.from, proof.to, (proof.through as SimpleFunctionDescriptor).synthetic(), proof.proofType)
   }
 
 class ProofVertex(val type: KotlinType) {
