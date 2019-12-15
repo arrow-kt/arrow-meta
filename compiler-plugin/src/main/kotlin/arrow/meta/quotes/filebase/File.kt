@@ -35,8 +35,7 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
  *          Transform.replace(
  *            replacing = f,
  *            newDeclaration = {
- *               val fileContents = """ $packageDirective $importList $classes """
- *               file(name, fileContents)
+ *               """ $packageDirective $importList $classes """.file(name)
  *            }
  *          )
  *        }
@@ -60,4 +59,4 @@ class File(
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
   val stub: KotlinFileStub? = value.stub,
   val classes: Array<PsiClass> = value.classes
-  ): Scope<KtFile>(value)
+): Scope<KtFile>(value)
