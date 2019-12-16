@@ -41,7 +41,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Sync with Kotlin version
-        title: Sync with Kotlin version: ${{ steps.update.outputs.version }}
+        title: "Sync with Kotlin version: ${{ steps.update.outputs.version }}"
         body: Generated automatically
         branch: sync/kotlin
         branch-suffix: short-commit-hash
