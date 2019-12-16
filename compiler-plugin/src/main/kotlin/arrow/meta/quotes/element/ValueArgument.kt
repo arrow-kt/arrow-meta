@@ -1,10 +1,10 @@
 package arrow.meta.quotes.element
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentName
-import org.jetbrains.kotlin.psi.ValueArgument
 
 /**
  * <code>(if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument</code>
@@ -37,4 +37,7 @@ class ValueArgument(
   override val value: KtValueArgument,
   val argumentExpression: Scope<KtExpression>? = Scope(value.getArgumentExpression()), // TODO KtExpression scope and quote template
   val argumentName: Scope<KtValueArgumentName>? = Scope(value.getArgumentName()) // TODO KtValueArgumentName scope and quote template
-): Scope<KtValueArgument>(value)
+): Scope<KtValueArgument>(value) {
+  override fun ElementScope.identity(): ValueArgument =
+    (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument
+}
