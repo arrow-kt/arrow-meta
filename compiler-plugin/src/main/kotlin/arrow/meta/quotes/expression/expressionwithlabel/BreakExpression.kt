@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression.expressionwithlabel
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -34,4 +35,7 @@ class BreakExpression(
   override val value: KtBreakExpression,
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "break"
-  ) : ExpressionWithLabel<KtBreakExpression>(value)
+  ) : ExpressionWithLabel<KtBreakExpression>(value) {
+  override fun ElementScope.identity(): BreakExpression =
+    """break$targetLabel""".`break`
+}

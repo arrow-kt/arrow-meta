@@ -9,6 +9,7 @@ import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
@@ -55,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -142,11 +142,6 @@ interface ElementScope {
   val companionObject: ObjectDeclaration
   
   val String.companionObject: ObjectDeclaration
-
-  fun file(
-    fileName: String,
-    text: String
-  ): File
 
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
@@ -254,9 +249,9 @@ interface ElementScope {
   
   fun stringTemplate(content: String): Scope<KtStringTemplateExpression>
   
-  val String.packageDirective: Scope<KtPackageDirective>
+  val String.`package`: PackageDirective
 
-  val String.packageDirectiveOrNull: Scope<KtPackageDirective>
+  val String.packageDirectiveOrNull: PackageDirective
   
   fun importDirective(importPath: ImportPath): ImportDirective
   
@@ -326,11 +321,12 @@ interface ElementScope {
   val String.`this`: ThisExpression
 
   val String.annotatedExpression: AnnotatedExpression
+  
+  fun String.file(fileName: String): File
 
   val String.functionLiteral: FunctionLiteral
   
   val String.classBody: ClassBody
-
   /**
    * Creates an expression that has reference to its context
    *

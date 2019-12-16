@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -38,4 +39,7 @@ class TryExpression(
   val tryBlock: Scope<KtBlockExpression> = Scope(value?.tryBlock),
   val catchClauses: ScopedList<KtCatchClause> = ScopedList(value = value?.catchClauses.orEmpty()),
   val finallySection: Scope<KtFinallySection> = Scope(value?.finallyBlock)
-) : Scope<KtTryExpression>(value)
+) : Scope<KtTryExpression>(value) {
+  override fun ElementScope.identity(): TryExpression =
+    """try $tryBlock$catchClauses$finallySection""".`try`
+}

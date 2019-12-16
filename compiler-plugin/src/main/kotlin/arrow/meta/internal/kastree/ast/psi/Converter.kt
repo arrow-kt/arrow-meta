@@ -386,7 +386,7 @@ open class Converter {
   open fun convertFile(v: KtFile) = Node.File(
     anns = convertAnnotationSets(v),
     pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
-    imports = v.importDirectives.map(::convertImport),
+    imports = v.importDirectives.map(::convertImportDirective),
     commands = convertCommands(v),
     decls = v.declarations.map(::convertDecl)
   ).map(v)
@@ -430,7 +430,7 @@ open class Converter {
     elseBody = v.`else`?.let(::convertExpr)
   ).map(v)
 
-  open fun convertImport(v: KtImportDirective) = Node.Import(
+  open fun convertImportDirective(v: KtImportDirective) = Node.Import(
     names = v.importedFqName?.pathSegments()?.map { it.asString() } ?: error("Missing import path"),
     wildcard = v.isAllUnder,
     alias = v.aliasName
@@ -935,10 +935,11 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtWhenCondition -> Converter.convertWhenCond(this)
   is KtWhenEntry -> Converter.convertWhenEntry(this)
   is KtCatchClause -> Converter.convertTryCatch(this)
-  is KtImportDirective -> Converter.convertImport(this)
+  is KtImportDirective -> Converter.convertImportDirective(this)
   is KtValueArgument -> Converter.convertValueArg(this)
   is KtTypeReference -> Converter.convertTypeRef(this)
   is KtClassBody -> Converter.convertClassBody(this)
   is KtExpression -> Converter.convertExpr(this)
+  is KtPackageDirective -> Converter.convertPackage(this)
   else -> TODO("Unsupported ${this}")
 }

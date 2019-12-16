@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.quotes.filebase.File
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
@@ -119,6 +120,40 @@ sealed class Transform<out K : KtElement> {
   data class Many<K : KtElement>(
     val transforms: ArrayList<Transform<K>>
   ) : Transform<K>()
+  
+  /**
+   * A Transform that allows code generation. See below:
+   *
+   * ```kotlin:ank:silent
+   * import arrow.meta.Meta
+   * import arrow.meta.Plugin
+   * import arrow.meta.invoke
+   * import arrow.meta.quotes.Transform
+   * import arrow.meta.quotes.classDeclaration
+   *
+   * val Meta.transformNewSource: Plugin
+   *  get() = "Transform New Source" {
+   *   meta(
+   *    classDeclaration({ name == "NewSource" }) {
+   *     Transform.newSources(
+   *      """
+   *      package arrow
+   *      //metadebug
+   *      class ${name}_Generated {
+   *       fun sayHi() = println("Hi!")
+   *      }
+   *      """.file("${name}_Generated")
+   *     )
+   *    }
+   *   )
+   *  }
+   *```
+   *
+   * @param files list of files to be generated
+   */
+  data class NewSource<K : KtElement>(
+    val files: List<File>
+  ) : Transform<K>()
 
   object Empty : Transform<Nothing>()
 
@@ -146,6 +181,10 @@ sealed class Transform<out K : KtElement> {
       removeIn: PsiElement,
       declarations: List<Scope<KtExpressionCodeFragment>>
     ): Transform<K> = Remove(removeIn, declarations)
+    
+    fun <K : KtElement> newSources(
+      vararg files: File
+    ): Transform<K> = NewSource(files.toList())
 
     val empty: Transform<Nothing> = Empty
   }

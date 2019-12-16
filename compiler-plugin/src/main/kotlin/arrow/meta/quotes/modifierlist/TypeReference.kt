@@ -1,5 +1,6 @@
 package arrow.meta.quotes.modifierlist
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -36,4 +37,7 @@ class TypeReference(
   override val value: KtTypeReference?,
   val typeElement: Scope<KtTypeElement>? = Scope(value?.typeElement), // TODO KtTypeElement scope and quote template
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(separator = " ", value = value?.annotationEntries.orEmpty())
-): Scope<KtTypeReference>(value)
+): Scope<KtTypeReference>(value) {
+  override fun ElementScope.identity(): TypeReference =
+    """$`@annotations`$typeElement""".type
+}

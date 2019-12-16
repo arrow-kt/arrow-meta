@@ -8,6 +8,7 @@ import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
 import arrow.meta.quotes.element.whencondition.WhenCondition
@@ -50,6 +51,7 @@ import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReturnExpression
@@ -333,3 +335,12 @@ fun Meta.classBody(
   map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
 ): ExtensionPhase =
   quote(match, map) { ClassBody(it) }
+
+/**
+ * @see [PackageDirective]
+ */
+fun Meta.packageDirective(
+  match: KtPackageDirective.() -> Boolean,
+  map: PackageDirective.(KtPackageDirective) -> Transform<KtPackageDirective>
+): ExtensionPhase =
+  quote(match, map) { PackageDirective(it) }
