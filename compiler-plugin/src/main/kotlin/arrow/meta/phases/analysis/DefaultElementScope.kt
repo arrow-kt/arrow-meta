@@ -9,6 +9,7 @@ import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
@@ -26,6 +27,7 @@ import arrow.meta.quotes.expression.WhenExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -57,14 +59,13 @@ import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtForExpression
-import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -112,12 +113,6 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.expressionOrNull: Scope<KtExpression>
     get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
-
-  override val thisExpression: Scope<KtThisExpression>
-    get() = Scope(delegate.createThisExpression())
-
-  override val String.thisExpression: Scope<KtThisExpression>
-    get() = Scope(delegate.createThisExpression(trimMargin().trim()))
 
   override val String.callArguments: Scope<KtValueArgumentList>
     get() = Scope(delegate.createCallArguments(trimMargin().trim()))
@@ -179,10 +174,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ObjectDeclaration(delegate.createCompanionObject())
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
-
-  override fun file(fileName: String, text: String): File =
-    File(delegate.createFile(fileName, text))
-
+  
   override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
@@ -325,11 +317,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun stringTemplate(content: String): Scope<KtStringTemplateExpression> =
     Scope(delegate.createStringTemplate(content))
 
-  override val String.packageDirective: Scope<KtPackageDirective>
-    get() = Scope(delegate.createPackageDirective(FqName(trimMargin())))
+  override val String.`package`: PackageDirective
+    get() = PackageDirective(delegate.createPackageDirective(FqName(trimMargin())))
 
-  override val String.packageDirectiveOrNull: Scope<KtPackageDirective>
-    get() = Scope(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
+  override val String.packageDirectiveOrNull: PackageDirective
+    get() = PackageDirective(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
   override fun importDirective(importPath: ImportPath): ImportDirective =
     ImportDirective(delegate.createImportDirective(importPath))
@@ -429,14 +421,19 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.`continue`: ContinueExpression
     get() = ContinueExpression(expression.value as KtContinueExpression)
 
+  override val String.`this`: ThisExpression
+    get() = ThisExpression(expression.value as KtThisExpression)
+
   override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
+  
+  override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
 
   override val String.functionLiteral: FunctionLiteral
-    get() = FunctionLiteral(expression.value as KtFunctionLiteral)
+    get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
   
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)

@@ -3,9 +3,9 @@ package arrow.meta.quotes.transform
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class TransformRemoveTest : AnnotationSpec() {
+class TransformRemoveTest {
 
   @Test
   fun `check if transformRemove function is deleted from AST`() {

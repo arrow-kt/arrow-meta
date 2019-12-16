@@ -2,9 +2,9 @@ package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
 import arrow.meta.plugin.testing.plugins.MetaPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class ExampleTest : AnnotationSpec() {
+class ExampleTest {
 
   @Test
   fun `checks that compiles`() {

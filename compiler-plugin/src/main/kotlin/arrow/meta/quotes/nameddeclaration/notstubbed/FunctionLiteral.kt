@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.notstubbed
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.expression.BlockExpression
 import org.jetbrains.kotlin.name.Name
@@ -8,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 // TODO: [KtTypeParameterListOwnerNotStubbed] is deprecated - rename package to JetTypeParameterListOwner when fully deprecated
 
 /**
- * <code>""" val $name = { $blockExpression }""".functionLiteral</code>
+ * <code>"""{$`(params)`$blockExpression}""".functionLiteral</code>
  *
  * A template destructuring [Scope] for a [KtFunctionLiteral].
  *
@@ -26,7 +27,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  *     functionLiteral({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """ val $name = { $blockExpression }""".functionLiteral
+ *       newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
  *      )
  *      }
  *     )
@@ -40,7 +41,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  * val increment: (Int) -> Unit = { x -> x + 1 }
  * ```
  *  #### Anonymous function
- *  An anonynous function is just another way to define a function:
+ *  An anonymous function is just another way to define a function:
  * ```kotlin:ank:silent
  * val increment: (Int) -> Unit = fun(x) { x + 1 }
  * ```
@@ -49,4 +50,7 @@ class FunctionLiteral(
   override val value: KtFunctionLiteral,
   val name: Name? = value.nameAsName,
   val blockExpression: BlockExpression = BlockExpression(value.bodyBlockExpression)
-) : Scope<KtFunctionLiteral>(value)
+) : FunctionNotStubbed<KtFunctionLiteral>(value) {
+  override fun ElementScope.identity(): FunctionLiteral =
+    """{$`(params)`$blockExpression}""".functionLiteral
+}
