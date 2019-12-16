@@ -73,8 +73,6 @@ open class GenericPlugin : Meta {
     )
 }
 
-
-// TODO: remove at the end
 fun transform(ktElement: KtElement): Scope<KtElement> {
   return when (ktElement) {
     is KtBinaryExpression -> BinaryExpression(ktElement)
