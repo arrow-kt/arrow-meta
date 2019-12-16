@@ -1,11 +1,13 @@
 package arrow.meta.quotes.expression.expressionwithlabel
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 /**
- * <code>"""return $`return`""".`return`</code>
+ * <code>"""return""".`return`</code>
  *
  * A template destructuring [Scope] for a [KtReturnExpression].
  *
@@ -23,14 +25,26 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
  *     returnExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """return $`return`""".`return`
- *      )
- *      }
- *     )
- *    }
+ *       newDeclaration = when {
+ *          `return`.value != null -> """return $`return`""".`return`
+ *          targetLabel.value != null -> """return$targetLabel""".`return`
+ *          else -> """return""".`return`
+ *         }
+ *       )
+ *     }
+ *   )
+ * }
  * ```
  */
 class ReturnExpression(
-  override val value: KtReturnExpression?,
-  val `return`: Scope<KtExpression> = Scope(value?.returnedExpression)
-) : Scope<KtReturnExpression>(value)
+  override val value: KtReturnExpression,
+  override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
+  val `return`: Scope<KtExpression> = Scope(value.returnedExpression)
+) : ExpressionWithLabel<KtReturnExpression>(value) {
+  override fun ElementScope.identity(): ReturnExpression =
+    when {
+      `return`.value != null -> """return $`return`""".`return`
+      targetLabel.value != null -> """return$targetLabel""".`return`
+      else -> """return""".`return`
+    }
+}

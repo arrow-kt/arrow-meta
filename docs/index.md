@@ -2,6 +2,7 @@
 layout: docs
 title: Quick Start
 permalink: /
+video: WKR384ZeBgk
 ---
 
 [![Latest snapshot](https://img.shields.io/maven-metadata/v?color=%230576b6&label=latest%20snapshot&metadataUrl=https%3A%2F%2Foss.jfrog.org%2Fartifactory%2Foss-snapshot-local%2Fio%2Farrow-kt%2Farrow-meta-compiler-plugin%2Fmaven-metadata.xml)](https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/arrow-meta-compiler-plugin/)
@@ -13,15 +14,13 @@ permalink: /
 
 # Functional companion to Kotlin's Compiler & IDE
 
-Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all it's phases bringing its full power to the community.
+Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all its phases, bringing its full power to the community.
 
-Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, automatic code refactoring,... are just a few of the use cases of the things that can be accomplished with Meta.
-
-<iframe title="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kotlin Compiler" style="width:560px; height:315px !important" src="https://www.youtube.com/embed/WKR384ZeBgk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, and automatic code refactoring are just a few of the things that can be accomplished with Meta.
 
 ## Λrrow Meta examples
 
+{:.gif}
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
 
-Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
-
+Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.

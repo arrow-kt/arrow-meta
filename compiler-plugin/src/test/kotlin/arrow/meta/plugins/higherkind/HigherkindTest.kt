@@ -4,7 +4,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
-class HigherkindTest {
+class HigherkindTest  {
 
   @Test
   fun `initial test`() {

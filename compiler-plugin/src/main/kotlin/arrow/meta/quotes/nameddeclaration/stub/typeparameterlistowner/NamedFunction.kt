@@ -54,7 +54,7 @@ class NamedFunction(
   ),
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
-) : Scope<KtNamedFunction>(value)
+) : TypeParameterListOwner<KtNamedFunction>(value)
 
 class FunctionBody(
   override val value: KtExpression

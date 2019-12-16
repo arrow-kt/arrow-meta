@@ -2,8 +2,8 @@ package arrow.meta.plugins.union
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
 import org.junit.Test
+import org.junit.Ignore
 
 class UnionTest {
 
