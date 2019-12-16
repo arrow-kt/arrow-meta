@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  *     binaryExpression({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """$left $operationReference $right""".binaryExpression
+ *       newDeclaration = """$left$operationReference$right""".binaryExpression
  *      )
  *      }
  *     )
@@ -39,5 +39,5 @@ class BinaryExpression(
   val operationReference: Scope<KtOperationReferenceExpression>? = Scope(value.operationReference)
 ): Scope<KtBinaryExpression>(value) {
   override fun ElementScope.identity(): BinaryExpression =
-    """$left $operationReference $right""".binaryExpression
+    """$left$operationReference$right""".binaryExpression
 }
