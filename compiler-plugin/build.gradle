@@ -9,7 +9,7 @@ dependencies {
     compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
 
     testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-    testImplementation "io.kotlintest:kotlintest-runner-junit5:$KOTLIN_TEST_VERSION"
+    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testImplementation project(":testing-plugin")
     testRuntimeOnly project(':compiler-plugin')
 
@@ -57,7 +57,6 @@ shadowJar {
 }
 
 test {
-    useJUnitPlatform()
     testLogging.showStandardStreams = true
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"

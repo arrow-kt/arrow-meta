@@ -2,11 +2,13 @@ package arrow.meta.quotes
 
 import arrow.meta.Meta
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
 import arrow.meta.quotes.element.whencondition.WhenCondition
@@ -21,6 +23,7 @@ import arrow.meta.quotes.expression.TryExpression
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
+import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithlabel.ThisExpression
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
@@ -29,11 +32,13 @@ import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -46,11 +51,14 @@ import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtWhenCondition
@@ -283,6 +291,15 @@ fun Meta.whileExpression(
   quote(match, map) { WhileExpression(it) }
 
 /**
+ * @see [ThisExpression]
+ */
+fun Meta.thisExpression(
+  match: KtThisExpression.() -> Boolean,
+  map: ThisExpression.(KtThisExpression) -> Transform<KtThisExpression>
+): ExtensionPhase =
+  quote(match, map) { ThisExpression(it) }
+
+/**
  * @see [TryExpression]
  */
 fun Meta.tryExpression(
@@ -290,6 +307,15 @@ fun Meta.tryExpression(
   map: TryExpression.(KtTryExpression) -> Transform<KtTryExpression>
 ): ExtensionPhase =
   quote(match, map) { TryExpression(it) }
+
+/**
+ * @see [TypeAlias]
+ */
+fun Meta.typeAlias(
+  match: KtTypeAlias.() -> Boolean,
+  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
+): ExtensionPhase =
+  quote(match, map) { TypeAlias(it) }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""
@@ -300,3 +326,21 @@ fun Meta.valueArgument(
   map: ValueArgument.(KtValueArgument) -> Transform<KtValueArgument>
 ): ExtensionPhase =
   quote(match, map) { ValueArgument(it) }
+
+/**
+ * @see [ClassBody]
+ */
+fun Meta.classBody(
+  match: KtClassBody.() -> Boolean,
+  map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
+): ExtensionPhase =
+  quote(match, map) { ClassBody(it) }
+
+/**
+ * @see [PackageDirective]
+ */
+fun Meta.packageDirective(
+  match: KtPackageDirective.() -> Boolean,
+  map: PackageDirective.(KtPackageDirective) -> Transform<KtPackageDirective>
+): ExtensionPhase =
+  quote(match, map) { PackageDirective(it) }

@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression.expressionwithlabel
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -37,4 +38,10 @@ class ContinueExpression(
   override val value: KtContinueExpression,
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "continue"
-) : ExpressionWithLabel<KtContinueExpression>(value)
+) : ExpressionWithLabel<KtContinueExpression>(value) {
+  override fun ElementScope.identity(): ContinueExpression =
+    when {
+      targetLabel.value != null -> """continue$targetLabel""".`continue`
+      else -> """continue""".`continue`
+    }
+}

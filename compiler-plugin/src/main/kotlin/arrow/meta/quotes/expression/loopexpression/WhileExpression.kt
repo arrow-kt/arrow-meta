@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression.loopexpression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
@@ -33,4 +34,7 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
 class WhileExpression(
   override val value: KtWhileExpression,
   val condition: Scope<KtExpression> = Scope(value.condition)
-) : LoopExpression<KtWhileExpression>(value)
+) : LoopExpression<KtWhileExpression>(value) {
+  override fun ElementScope.identity(): WhileExpression =
+    """while ($condition) $body""".`while`
+}
