@@ -17,5 +17,5 @@ const val binaryExpression =
   | //metadebug
   | 
   | fun binaryExpression(): Unit =
-  |     println(2 == 3)
+  |     println(7 / 8)
   | """

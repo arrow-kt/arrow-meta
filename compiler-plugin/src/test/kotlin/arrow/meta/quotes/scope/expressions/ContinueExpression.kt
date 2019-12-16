@@ -14,18 +14,5 @@ val continueExpressions =
     | } 
     |   }
     | }
-    | """,
-    """
-    | //metadebug
-    | 
-    | class Wrapper {
-    |   fun whatever() {
-    | for(i in 0 until 100 step 3) {
-    |   if (i == 6) continue
-    |   if (i == 60) break
-    |   println(i)
-    | }
-    |   }
-    | }
     | """
   )

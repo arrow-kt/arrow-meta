@@ -39,5 +39,5 @@ class BinaryExpression(
   val operationReference: Scope<KtOperationReferenceExpression>? = Scope(value.operationReference)
 ): Scope<KtBinaryExpression>(value) {
   override fun ElementScope.identity(): BinaryExpression =
-    """$left $operationReference $right""".binaryExpression
+    """$right$operationReference$left""".binaryExpression
 }
