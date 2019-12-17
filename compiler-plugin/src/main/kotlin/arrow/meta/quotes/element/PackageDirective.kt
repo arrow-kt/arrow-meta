@@ -47,5 +47,5 @@ data class PackageDirective(
     """$`package`""".`package`
 
   fun ElementScope.secondIdentity(): Scope<KtPackageDirective> =
-    """$packages.$lastPackage""".`package`
+    """$packages""".`package`
 }
