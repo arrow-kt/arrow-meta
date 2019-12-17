@@ -41,6 +41,7 @@ class ReturnExpression(
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   val `return`: Scope<KtExpression> = Scope(value.returnedExpression)
 ) : ExpressionWithLabel<KtReturnExpression>(value) {
+
   override fun ElementScope.identity(): ReturnExpression =
     when {
       `return`.value != null -> """return $`return`""".`return`

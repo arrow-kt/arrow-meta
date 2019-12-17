@@ -1,4 +1,4 @@
-package arrow.meta.quotes.scope
+package arrow.meta.quotes.scope.templates
 
 import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
@@ -11,9 +11,7 @@ class ForExpressionTest  {
 
     @Test
     fun `Validate for expression scope properties`() {
-        validate(""" 
-                | //metadebug
-                | 
+        validate("""
                 | fun someFunction() {
                 |   for (i in 1..10) {
                 |     println(i)

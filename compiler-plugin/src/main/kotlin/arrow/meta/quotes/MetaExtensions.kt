@@ -7,6 +7,7 @@ import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.ClassBody
+import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
 import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ValueArgument
@@ -44,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtIfExpression
@@ -156,6 +158,15 @@ fun Meta.file(
   map: File.(KtFile) -> Transform<KtFile>
 ): ExtensionPhase =
   quote(match, map) { File(it) }
+
+/**
+ * @see [FinallySection]
+ */
+fun Meta.finallySection(
+  match: KtFinallySection.() -> Boolean,
+  map: FinallySection.(KtFinallySection) -> Transform<KtFinallySection>
+) : ExtensionPhase =
+  quote(match, map) { FinallySection(it) }
 
 /**
  * @see [ForExpression]

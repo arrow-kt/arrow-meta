@@ -9,7 +9,6 @@ import arrow.meta.quotes.forExpression
 
 open class ForExpressionPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
-    blockExpressionPlugin,
     forExpressionPlugin
   )
 }

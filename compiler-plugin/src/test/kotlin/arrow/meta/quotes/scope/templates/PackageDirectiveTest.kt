@@ -1,4 +1,4 @@
-package arrow.meta.quotes.scope
+package arrow.meta.quotes.scope.templates
 
 import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
@@ -24,7 +24,7 @@ class PackageDirectiveTest  {
     validate("package_last_name")
   }
   
-  private fun validate(lastPackage: String): Unit {
+  private fun validate(lastPackage: String) {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(PackageDirectivePlugin())) },
       code = { packageDeclaration(lastPackage) },

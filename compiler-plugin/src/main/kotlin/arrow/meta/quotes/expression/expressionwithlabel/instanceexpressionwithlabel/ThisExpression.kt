@@ -38,6 +38,7 @@ class ThisExpression(
   override val value: KtThisExpression,
   override val labelName: String? = value.getLabelName()
 ) : InstanceExpressionWithLabel<KtThisExpression>(value) {
+
   override fun ElementScope.identity(): ThisExpression =
     when {
       targetLabel.value != null -> """$instanceReference$targetLabel""".`this`

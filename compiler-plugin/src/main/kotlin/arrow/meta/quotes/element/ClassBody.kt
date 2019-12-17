@@ -53,12 +53,13 @@ class ClassBody(
   val functions: ScopedList<KtNamedFunction> = ScopedList(value?.functions ?: listOf(), separator = "\n"),
   val properties: ScopedList<KtProperty> = ScopedList(value?.properties ?: listOf(), separator = "\n")
 ) : Scope<KtClassBody>(value) {
+
     override fun toString(): String =
       if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
 
     // TODO split up into two different elements to be able to use the identity method
     override fun ElementScope.identity(): Scope<KtClassBody> =
-      if (enumEntries.toStringList().isEmpty()) {
+      if (enumEntries.isEmpty()) {
           """
               | {
               |  $properties

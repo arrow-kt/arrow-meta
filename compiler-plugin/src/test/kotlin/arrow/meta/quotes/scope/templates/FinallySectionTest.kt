@@ -1,19 +1,17 @@
-package arrow.meta.quotes.scope
+package arrow.meta.quotes.scope.templates
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.quotes.scope.plugins.FinallySectionPlugin
 import org.junit.Ignore
 import org.junit.Test
-import arrow.meta.quotes.scope.plugins.FinallySectionPlugin
 
 // TODO implement convertFinally in Converter to support FINALLY in AST
 
 class FinallySectionTest  {
 
   private val finallySection = """
-                         | package 47deg.arrow-meta
-                         | 
                          | //metadebug
                          | 
                          | fun measureTimeMillis(block: () -> Unit): Long {

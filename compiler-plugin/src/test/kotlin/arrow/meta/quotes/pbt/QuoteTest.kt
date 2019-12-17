@@ -1,8 +1,5 @@
-package arrow.meta.quotes.scope
+package arrow.meta.quotes.pbt
 
-import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.assertThis
-import arrow.meta.quotes.scope.plugins.GenericPlugin
 import org.junit.Test
 
 class QuoteTest {

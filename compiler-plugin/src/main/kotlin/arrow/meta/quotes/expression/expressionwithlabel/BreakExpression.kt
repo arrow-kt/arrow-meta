@@ -39,5 +39,4 @@ class BreakExpression(
 
   override fun ElementScope.identity(): BreakExpression =
     """break$targetLabel""".`break`
-
 }

@@ -2,6 +2,7 @@ package arrow.meta.quotes.expression.loopexpression
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtForExpression
@@ -35,9 +36,14 @@ import org.jetbrains.kotlin.psi.KtForExpression
 class ForExpression(
   override val value: KtForExpression,
   val `(param)`: Parameter = Parameter(value.loopParameter),
-  val loopRange: Scope<KtExpression> = Scope(value.loopRange) // TODO KtExpression scope
-  // val destructuringDeclaration: DestructuringDeclaration = DestructuringDeclaration(value.destructuringDeclaration)  TODO to get to
+  val loopRange: Scope<KtExpression> = Scope(value.loopRange),
+  val destructuringDeclaration: DestructuringDeclaration = DestructuringDeclaration(value.destructuringDeclaration)
 ) : LoopExpression<KtForExpression>(value) {
+
   override fun ElementScope.identity(): ForExpression =
-    """for ($`(param)` in $loopRange) $body""".`for`
+    if (destructuringDeclaration.entries.isEmpty()) {
+      """for ($`(param)` in $loopRange) $body""".`for`
+    } else {
+      """for ((${destructuringDeclaration.entries}) in $loopRange) $body""".`for`
+    }
 }

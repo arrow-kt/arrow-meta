@@ -1,4 +1,4 @@
-package arrow.meta.quotes.scope
+package arrow.meta.quotes.scope.templates
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
