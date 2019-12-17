@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 class IfExpression(
   override val value: KtIfExpression?,
   val condition: Scope<KtExpression> = Scope(value?.condition),
-  val then: Scope<KtExpression> = Scope(value),
+  val then: Scope<KtExpression> = Scope(value?.then),
   val `else`: Scope<KtExpression> = Scope(value?.`else`)
 ) : Scope<KtIfExpression>(value) {
 
