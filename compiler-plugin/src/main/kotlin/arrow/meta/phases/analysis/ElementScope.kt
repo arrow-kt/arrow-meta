@@ -271,12 +271,6 @@ interface ElementScope {
   
   fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment>
   
-  fun `if`(
-    condition: KtExpression,
-    thenExpr: KtExpression,
-    elseExpr: KtExpression? = null
-  ): IfExpression
-  
   fun argument(
     expression: KtExpression?,
     name: Name? = null,

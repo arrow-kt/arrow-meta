@@ -350,9 +350,6 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
     Scope(delegate.createBlockCodeFragment(trimMargin(), context))
 
-  override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpression =
-    IfExpression(delegate.createIf(condition, thenExpr, elseExpr))
-
   override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgument =
     ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
 

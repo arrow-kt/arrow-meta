@@ -25,4 +25,3 @@ val Meta.ifExpressionPlugin
         }
       )
     }
-
