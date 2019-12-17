@@ -21,7 +21,7 @@ class PackageDirectiveTest  {
   
   @Test
   fun `validate last package name is transformed correctly`() {
-    validate("package_last_name")
+    validate("package_last_name")   // TODO
   }
   
   private fun validate(lastPackage: String) {

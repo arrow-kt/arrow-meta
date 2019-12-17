@@ -36,11 +36,16 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 data class PackageDirective(
   override val value: KtPackageDirective?,
   val `package`: Scope<KtElement> = Scope(value?.packageNameExpression),
-  val packages: ScopedList<KtSimpleNameExpression> = ScopedList(value?.packageNames ?: listOf()),
+  val packages: ScopedList<KtSimpleNameExpression> = ScopedList(
+    value = value?.packageNames ?: listOf(),
+    separator = "."
+  ),
   val lastPackage: Scope<KtSimpleNameExpression> = Scope(value?.lastReferenceExpression)
 ) : Scope<KtPackageDirective>(value) {
 
-  override fun ElementScope.identity(): Scope<KtPackageDirective> {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-  }
+  override fun ElementScope.identity(): Scope<KtPackageDirective> =
+    """$`package`""".`package`
+
+  fun ElementScope.secondIdentity(): Scope<KtPackageDirective> =
+    """$packages.$lastPackage""".`package`
 }
