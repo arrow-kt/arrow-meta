@@ -40,6 +40,10 @@ class IfExpression(
   val then: Scope<KtExpression> = Scope(value),
   val `else`: Scope<KtExpression> = Scope(value?.`else`)
 ) : Scope<KtIfExpression>(value) {
-  override fun ElementScope.identity(): IfExpression =
-    """if ($condition) $`else`""".`if`  // {"""$then""".`if`} also works
+
+  override fun ElementScope.identity(): IfExpression = when {
+    `else`.value == null -> """if ($condition) $then""".`if`
+    else -> """if ($condition) $then else $`else`""".`if`
+  }
+
 }
