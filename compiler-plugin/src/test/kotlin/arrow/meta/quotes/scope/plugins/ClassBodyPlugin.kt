@@ -41,14 +41,7 @@ private val Meta.enumBody
         classBody({ true }) { c ->
           Transform.replace(
             replacing = c,
-            newDeclaration =
-            """
-            | {
-            |  $enumEntries
-            |
-            |  $functions
-            | }
-            """.classBody
+            newDeclaration = identity()
           )
         }
       )

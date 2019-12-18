@@ -19,11 +19,7 @@ val Meta.whenExpressionPlugin
       whenExpression({ true }) { e ->
         Transform.replace(
           replacing = e,
-          newDeclaration =
-          """
-            | when $`(expression)`{ 
-            |   $entries
-            | }""".`when`
+          newDeclaration = identity()
         )
       }
     )
