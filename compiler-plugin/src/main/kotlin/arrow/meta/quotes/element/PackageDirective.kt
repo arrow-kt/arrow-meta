@@ -44,8 +44,8 @@ data class PackageDirective(
 ) : Scope<KtPackageDirective>(value) {
 
   override fun ElementScope.identity(): Scope<KtPackageDirective> =
-    """$`package`""".`package`
-
-  fun ElementScope.secondIdentity(): Scope<KtPackageDirective> =
-    """$packages""".`package`
+    when {
+      packages.isEmpty() -> """$`package`""".`package`
+      else -> """$packages""".`package`
+    }
 }
