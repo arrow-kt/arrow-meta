@@ -12,14 +12,7 @@ import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
 import arrow.meta.quotes.element.whencondition.WhenCondition
-import arrow.meta.quotes.expression.BinaryExpression
-import arrow.meta.quotes.expression.BlockExpression
-import arrow.meta.quotes.expression.DotQualifiedExpression
-import arrow.meta.quotes.expression.IfExpression
-import arrow.meta.quotes.expression.IsExpression
-import arrow.meta.quotes.expression.LambdaExpression
-import arrow.meta.quotes.expression.ThrowExpression
-import arrow.meta.quotes.expression.TryExpression
+import arrow.meta.quotes.expression.*
 import arrow.meta.quotes.expression.expressionwithlabel.BreakExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ContinueExpression
 import arrow.meta.quotes.expression.expressionwithlabel.ReturnExpression
@@ -33,37 +26,7 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtBreakExpression
-import org.jetbrains.kotlin.psi.KtCatchClause
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassBody
-import org.jetbrains.kotlin.psi.KtContinueExpression
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtForExpression
-import org.jetbrains.kotlin.psi.KtFunctionLiteral
-import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtIsExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtReturnExpression
-import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtThrowExpression
-import org.jetbrains.kotlin.psi.KtTryExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtWhenCondition
-import org.jetbrains.kotlin.psi.KtWhenEntry
-import org.jetbrains.kotlin.psi.KtWhileExpression
+import org.jetbrains.kotlin.psi.*
 
 /**
  * @see [BinaryExpression]
@@ -154,6 +117,15 @@ fun Meta.forExpression(
   map: ForExpression.(KtForExpression) -> Transform<KtForExpression>
 ): ExtensionPhase =
   quote(match, map) { ForExpression(it) }
+
+/**
+ * @see [WhenExpression]
+ */
+fun Meta.whenExpression(
+  match: KtWhenExpression.() -> Boolean,
+  map: WhenExpression.(KtWhenExpression) -> Transform<KtWhenExpression>
+): ExtensionPhase =
+  quote(match, map) { WhenExpression(it) }
 
 /**
  * @see [FunctionLiteral]
