@@ -31,16 +31,16 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
  *   get() =
  *     "ReformatFile" {
  *       meta(
- *        file({ true }) { f ->
+ *        file({ true }) { file ->
  *          Transform.replace(
- *            replacing = f,
+ *            replacing = file,
  *            newDeclaration = {
- *               """ $packageDirective $importList $classes """.file(name)
+ *              """$packageDirective$importList$classes""".file(name)
  *            }
  *          )
  *        }
- *       )
- *     }
+ *      )
+ *    }
  * ```
  */
 class File(

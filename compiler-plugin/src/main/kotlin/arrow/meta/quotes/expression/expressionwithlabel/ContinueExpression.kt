@@ -18,20 +18,20 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.quotes.continueExpression
  *
  * val Meta.reformatContinue: Plugin
- *  get() =
- *   "ReformatContinue" {
- *    meta(
- *     continueExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = when {
- *          targetLabel.value != null -> """continue$targetLabel""".`continue`
- *          else -> """continue""".`continue`
- *        }
- *      )
- *     }
- *   )
- * }
+ *    get() =
+ *      "Reformat Continue Expression" {
+ *        meta(
+ *          continueExpression({ true }) { expressionWithLabel ->
+ *            Transform.replace(
+ *              replacing = expressionWithLabel,
+ *              newDeclaration = when {
+ *                targetLabel.value != null -> """continue$targetLabel""".`continue`
+ *                else -> """continue""".`continue`
+ *              }
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class ContinueExpression(
@@ -39,6 +39,7 @@ class ContinueExpression(
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "continue"
 ) : ExpressionWithLabel<KtContinueExpression>(value) {
+
   override fun ElementScope.identity(): ContinueExpression =
     when {
       targetLabel.value != null -> """continue$targetLabel""".`continue`

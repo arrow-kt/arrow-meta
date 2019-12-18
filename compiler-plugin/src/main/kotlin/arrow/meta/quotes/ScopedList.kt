@@ -10,6 +10,7 @@ data class ScopedList<K : KtElement>(
   val forceRenderSurroundings: Boolean = false,
   val transform: (K) -> String = { it.text }
 ) {
+
   override fun toString(): String =
     if (value.isEmpty())
       if (forceRenderSurroundings) prefix + postfix
@@ -30,4 +31,6 @@ data class ScopedList<K : KtElement>(
     }
     return list
   }
+
+  fun isEmpty() = value.isEmpty()
 }
