@@ -19,7 +19,7 @@ val Meta.whenConditionPlugin
       whenCondition({ true }) { c ->
         Transform.replace(
           replacing = c,
-          newDeclaration = condition.whenCondition
+          newDeclaration = identity()
         )
       }
     )

@@ -20,10 +20,7 @@ val Meta.continueExpressionPlugin
         continueExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = when {
-                targetLabel.value != null -> """continue$targetLabel""".`continue`
-                else -> """continue""".`continue`
-              }
+            newDeclaration = identity()
           )
         }
       )

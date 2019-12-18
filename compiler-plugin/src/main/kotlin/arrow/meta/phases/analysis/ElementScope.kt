@@ -1,7 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.classorobject.ClassBody
+import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -9,6 +9,7 @@ import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
+import arrow.meta.quotes.element.PackageDirective
 import arrow.meta.quotes.element.ParameterList
 import arrow.meta.quotes.element.ValueArgument
 import arrow.meta.quotes.element.WhenEntry
@@ -30,8 +31,8 @@ import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithla
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.modifierlist.ModifierList
-import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.modifierlistowner.ModifierList
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
@@ -55,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtInitializerList
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
-import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -142,11 +142,6 @@ interface ElementScope {
   val companionObject: ObjectDeclaration
   
   val String.companionObject: ObjectDeclaration
-
-  fun file(
-    fileName: String,
-    text: String
-  ): File
 
   val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
   
@@ -254,9 +249,9 @@ interface ElementScope {
   
   fun stringTemplate(content: String): Scope<KtStringTemplateExpression>
   
-  val String.packageDirective: Scope<KtPackageDirective>
+  val String.`package`: PackageDirective
 
-  val String.packageDirectiveOrNull: Scope<KtPackageDirective>
+  val String.packageDirectiveOrNull: PackageDirective
   
   fun importDirective(importPath: ImportPath): ImportDirective
   
@@ -275,12 +270,6 @@ interface ElementScope {
   fun String.expressionCodeFragment(context: PsiElement?): Scope<KtExpressionCodeFragment>
   
   fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment>
-  
-  fun `if`(
-    condition: KtExpression,
-    thenExpr: KtExpression,
-    elseExpr: KtExpression? = null
-  ): IfExpression
   
   fun argument(
     expression: KtExpression?,
@@ -326,11 +315,12 @@ interface ElementScope {
   val String.`this`: ThisExpression
 
   val String.annotatedExpression: AnnotatedExpression
+  
+  fun String.file(fileName: String): File
 
   val String.functionLiteral: FunctionLiteral
   
   val String.classBody: ClassBody
-
   /**
    * Creates an expression that has reference to its context
    *

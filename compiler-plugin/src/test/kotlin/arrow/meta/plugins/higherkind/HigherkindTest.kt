@@ -2,9 +2,9 @@ package arrow.meta.plugins.higherkind
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.Test
 
-class HigherkindTest  : AnnotationSpec() {
+class HigherkindTest  {
 
   @Test
   fun `initial test`() {

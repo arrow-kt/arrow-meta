@@ -20,7 +20,7 @@ val Meta.binaryExpressionPlugin
         binaryExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$left $operationReference $right""".binaryExpression
+            newDeclaration = identity()
           )
         }
       )

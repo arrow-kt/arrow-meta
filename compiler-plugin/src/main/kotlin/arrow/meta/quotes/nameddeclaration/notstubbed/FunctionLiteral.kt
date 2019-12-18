@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.notstubbed
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.expression.BlockExpression
 import org.jetbrains.kotlin.name.Name
@@ -20,17 +21,17 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  * import arrow.meta.quotes.functionLiteral
  *
  * val Meta.reformatFunctionLiteral: Plugin
- *  get() =
- *   "ReformatFunctionLiteral" {
- *    meta(
- *     functionLiteral({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
- *      )
+ *    get() =
+ *      "Reformat Function Literal" {
+ *        meta(
+ *          functionLiteral({ true }) { functionNotStubbed ->
+ *            Transform.replace(
+ *              replacing = functionNotStubbed,
+ *              newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  *
  *  A function literal is a special notation to simplify how a function is defined.  There are two types of function literals in Kotlin:
@@ -49,4 +50,7 @@ class FunctionLiteral(
   override val value: KtFunctionLiteral,
   val name: Name? = value.nameAsName,
   val blockExpression: BlockExpression = BlockExpression(value.bodyBlockExpression)
-) : FunctionNotStubbed<KtFunctionLiteral>(value)
+) : FunctionNotStubbed<KtFunctionLiteral>(value) {
+  override fun ElementScope.identity(): FunctionLiteral =
+    """{$`(params)`$blockExpression}""".functionLiteral
+}

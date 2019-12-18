@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtExpression
@@ -19,19 +20,21 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  * import arrow.meta.quotes.whenExpression
  *
  * val Meta.reformatWhen: Plugin
- *  get() =
- *    "ReformatWhen" {
- *      meta(
- *       whenExpression({ true }) { e ->
- *        Transform.replace(
- *         replacing = e,
- *         newDeclaration =
- *         """|when $`(expression)` {
- *            | $entries
- *            | $`else`
- *            |} """.`when`
- *        )})
- *     }
+ *    get() =
+ *      "Reformat When Expression" {
+ *        meta(
+ *          whenExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration =
+ *                """|when $`(expression)` {
+ *                   | $entries
+ *                   | $`else`
+ *                   |} """.`when`
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class WhenExpression(
@@ -39,4 +42,9 @@ class WhenExpression(
   val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries.orEmpty()),
   val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
-) : Scope<KtWhenExpression>(value)
+) : Scope<KtWhenExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtWhenExpression> =
+    """|when ${if (`(expression)`.toString().isNotEmpty()) "($`(expression)`)" else `(expression)`} {
+           | ${entries.toStringList().joinToString("\n")}
+           |} """.`when`
+}

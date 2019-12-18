@@ -20,7 +20,7 @@ val Meta.functionLiteralPlugin
         functionLiteral({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
+            newDeclaration = identity()
           )
         }
       )

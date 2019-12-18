@@ -20,10 +20,7 @@ val Meta.thisExpressionPlugin
         thisExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = when {
-              targetLabel.value != null -> """$instanceReference$targetLabel""".`this`
-              else -> """$instanceReference""".`this`
-            }
+            newDeclaration = identity()
           )
         }
       )

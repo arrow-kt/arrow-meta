@@ -20,7 +20,7 @@ val Meta.typeReferencePlugin
         typeReference({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """$`@annotations`$typeElement""".type
+            newDeclaration = identity()
           )
         }
       )

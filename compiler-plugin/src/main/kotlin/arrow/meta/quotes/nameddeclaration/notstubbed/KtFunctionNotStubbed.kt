@@ -13,4 +13,4 @@ open class FunctionNotStubbed<out T: KtFunctionNotStubbed>(
   override val value: T,
   val `(params)`: ScopedList<KtParameter> = ScopedList(value = value.valueParameters, postfix = " -> "),
   val bodyExpression: Scope<KtExpression> = Scope(value.bodyExpression)
-  ) : Scope<T>(value)
+) : Scope<T>(value)

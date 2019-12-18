@@ -13,6 +13,7 @@ open class ClassBodyPlugin : Meta {
   )
 }
 
+// TODO remove after splitting elements apart
 open class EnumBodyPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
     enumBody
@@ -26,23 +27,13 @@ private val Meta.classBody
         classBody({ true }) { c ->
           Transform.replace(
             replacing = c,
-            newDeclaration =
-            """
-            | {
-            |  $properties
-            |
-            |  $companionObjects
-            |
-            |  $functions
-            |
-            |  fun test() = 0
-            | }
-            """.classBody
+            newDeclaration = identity()
           )
         }
       )
     }
 
+// TODO remove after splitting elements apart
 private val Meta.enumBody
   get() =
     "Enum Body Scope Plugin" {
@@ -50,16 +41,7 @@ private val Meta.enumBody
         classBody({ true }) { c ->
           Transform.replace(
             replacing = c,
-            newDeclaration =
-            """
-            | {
-            |  $enumEntries
-            |
-            |  $functions
-            |
-            |  fun test() = 0
-            | }
-            """.classBody
+            newDeclaration = identity()
           )
         }
       )

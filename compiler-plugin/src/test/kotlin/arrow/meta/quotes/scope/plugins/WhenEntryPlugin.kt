@@ -19,7 +19,7 @@ val Meta.whenEntryPlugin
          whenEntry({ true }) { e ->
             Transform.replace(
              replacing = e,
-              newDeclaration = (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry
+              newDeclaration = identity()
             )
          }
       )

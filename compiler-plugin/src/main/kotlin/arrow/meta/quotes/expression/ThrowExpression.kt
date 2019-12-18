@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
@@ -17,20 +18,23 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  * import arrow.meta.quotes.throwExpression
  *
  * val Meta.reformatThrow: Plugin
- *  get() =
- *   "ReformatThrow" {
- *    meta(
- *     throwExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """throw $thrownExpression""".`throw`
- *      )
+ *    get() =
+ *      "Reformat Throw Expression" {
+ *        meta(
+ *          throwExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = """throw $thrownExpression""".`throw`
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class ThrowExpression(
   override val value: KtThrowExpression?,
   val thrownExpression: Scope<KtExpression> = Scope(value?.thrownExpression)
-) : Scope<KtThrowExpression>(value)
+) : Scope<KtThrowExpression>(value) {
+  override fun ElementScope.identity(): ThrowExpression =
+    """throw $thrownExpression""".`throw`
+}

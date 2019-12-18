@@ -1,5 +1,6 @@
 package arrow.meta.quotes.element
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtExpression
@@ -41,4 +42,8 @@ class WhenEntry(
   ),
   val expression: Scope<KtExpression> = Scope(value?.expression),
   val isElse: Boolean = value?.isElse == true
-) : Scope<KtWhenEntry>(value)
+) : Scope<KtWhenEntry>(value) {
+
+  override fun ElementScope.identity(): WhenEntry =
+    (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry
+}

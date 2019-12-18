@@ -20,7 +20,7 @@ val Meta.breakExpressionPlugin
         breakExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """break$targetLabel""".`break`
+            newDeclaration = identity()
           )
         }
       )

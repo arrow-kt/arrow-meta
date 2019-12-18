@@ -20,7 +20,7 @@ val Meta.catchClausePlugin
         catchClause({ true }) { element ->
           Transform.replace(
             replacing = element,
-            newDeclaration = """catch ($parameter) $`{ catchBody }`""".catch
+            newDeclaration = identity()
           )
         }
       )

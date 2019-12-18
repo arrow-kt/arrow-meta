@@ -9,7 +9,6 @@ import arrow.meta.quotes.forExpression
 
 open class ForExpressionPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
-    blockExpressionPlugin,
     forExpressionPlugin
   )
 }
@@ -21,7 +20,7 @@ val Meta.forExpressionPlugin
         forExpression({ true }) { expression ->
           Transform.replace(
             replacing = expression,
-            newDeclaration = """for ($`(param)` in $loopRange) $body""".`for`
+            newDeclaration = identity()
           )
         }
       )

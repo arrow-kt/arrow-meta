@@ -1,5 +1,6 @@
 package arrow.meta.quotes.classorobject
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
@@ -16,23 +17,31 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  * import arrow.meta.quotes.objectDeclaration
  *
  * val Meta.reformatObjectDeclaration: Plugin
- *   get() =
- *     "ReformatObjectDeclaration" {
- *       meta(
- *         objectDeclaration({ isObjectLiteral() }) { c ->
- *           Transform.replace(
- *             replacing = c,
- *             newDeclaration = """
- *                 | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
- *                 |   $body
- *                 | }
- *                 | """.`object`
- *             )
- *           }
- *         )
- *       }
+ *    get() =
+ *      "ReformatObjectDeclaration" {
+ *        meta(
+ *          objectDeclaration({ isObjectLiteral() }) { c ->
+ *            Transform.replace(
+ *              replacing = c,
+ *              newDeclaration = """
+ *                  | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+ *                  |   $body
+ *                  | }
+ *                  | """.`object`
+ *              )
+ *            }
+ *          )
+ *        }
  * ```
  */
 class ObjectDeclaration(
   override val value: KtObjectDeclaration
-): ClassOrObjectScope<KtObjectDeclaration>(value)
+): ClassOrObjectScope<KtObjectDeclaration>(value) {
+
+  override fun ElementScope.identity(): ObjectDeclaration =
+    """
+    | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+    |   $body
+    | }
+    | """.`object`
+}
