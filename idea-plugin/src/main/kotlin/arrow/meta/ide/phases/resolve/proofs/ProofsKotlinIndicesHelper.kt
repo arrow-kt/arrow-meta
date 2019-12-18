@@ -1,5 +1,7 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs

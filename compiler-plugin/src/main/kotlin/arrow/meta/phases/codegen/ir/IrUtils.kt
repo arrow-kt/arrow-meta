@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.resolve.calls.CallResolver
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -122,13 +123,13 @@ class IrUtils(
     }
   }
 
-  fun proofCall(
+  fun CompilerContext.proofCall(
     proofs: List<Proof>,
     subType: KotlinType,
     superType: KotlinType,
     initializer: IrExpression?
   ): IrCall? {
-    val matchingCandidates = proofs.matchingCandidates(subType, superType)
+    val matchingCandidates = proofs.matchingCandidates(this, subType, superType)
     val proofs = matchingCandidates.map { (from, to, conversion) ->
       proofCall(
         fn = conversion,
@@ -145,7 +146,7 @@ class IrUtils(
     return proofs.firstOrNull() //TODO handle ambiguity and orphan selection
   }
 
-  fun insertProof(proofs: List<Proof>, it: IrVariable): IrVariable? {
+  fun CompilerContext.insertProof(proofs: List<Proof>, it: IrVariable): IrVariable? {
     val targetType = it.type.originalKotlinType
     val valueType = it.initializer?.type?.originalKotlinType
     return if (targetType != null && valueType != null) {
@@ -155,7 +156,7 @@ class IrUtils(
     } else it
   }
 
-  fun insertProof(proofs: List<Proof>, it: IrProperty): IrProperty? {
+  fun CompilerContext.insertProof(proofs: List<Proof>, it: IrProperty): IrProperty? {
     val targetType = it.descriptor.returnType
     val valueType = it.backingField?.initializer?.expression?.type?.originalKotlinType
     return if (targetType != null && valueType != null) {
@@ -169,7 +170,7 @@ class IrUtils(
     } else it
   }
 
-  fun insertProof(proofs: List<Proof>, it: IrReturn): IrReturn? {
+  fun CompilerContext.insertProof(proofs: List<Proof>, it: IrReturn): IrReturn? {
     val targetType = it.returnTarget.returnType
     val valueType = it.value.type.originalKotlinType
     return if (targetType != null && valueType != null) {

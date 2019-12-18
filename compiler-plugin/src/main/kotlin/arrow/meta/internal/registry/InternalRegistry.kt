@@ -23,7 +23,7 @@ import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import arrow.meta.plugins.higherkind.KindAwareTypeChecker
-import arrow.meta.quotes.get
+import arrow.meta.proofs.ProofsCallResolver
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.backend.common.BackendContext
@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
+import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.context.ProjectContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -112,7 +113,6 @@ interface InternalRegistry : ConfigSyntax {
           componentProvider: ComponentProvider
         ): AnalysisResult? {
           ctx.module = module
-          ctx.files = files
           ctx.componentProvider = componentProvider
           return null
         }
@@ -127,8 +127,13 @@ interface InternalRegistry : ConfigSyntax {
             platform: TargetPlatform,
             moduleDescriptor: ModuleDescriptor
           ) {
+            println("Replacing ${ctx.module} for $moduleDescriptor")
             ctx.module = moduleDescriptor
-            ctx.componentProvider = container
+            println("Replacing ${ctx.componentProvider} for $container")
+            if (ctx.componentProvider == null) {
+              ctx.componentProvider = container
+              container.useImpl<ProofsCallResolver>()
+            }
             super.registerModuleComponents(container, platform, moduleDescriptor)
           }
         }
@@ -172,8 +177,7 @@ interface InternalRegistry : ConfigSyntax {
 
     val initialPhases = listOf("Initial setup" {
       listOf(
-        compilerContextService(),
-        registerMetaAnalyzer()
+        compilerContextService()
       )
     })
     (initialPhases + intercept(ctx)).forEach { plugin ->

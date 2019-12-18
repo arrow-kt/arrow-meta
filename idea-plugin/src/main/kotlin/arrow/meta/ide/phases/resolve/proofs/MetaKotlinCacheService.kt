@@ -1,5 +1,7 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.disposeProofCache
 import arrow.meta.phases.resolve.initializeProofCache
 import arrow.meta.phases.resolve.proofCache
@@ -129,17 +131,17 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
 
   override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext =
     Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(elements, bodyResolveMode).apply { resolveExtensionCalls() }
+      delegate.analyze(elements, bodyResolveMode)//.apply { resolveExtensionCalls() }
     }
 
   override fun analyze(element: KtElement, bodyResolveMode: BodyResolveMode): BindingContext =
     Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(element, bodyResolveMode).apply { resolveExtensionCalls() }
+      delegate.analyze(element, bodyResolveMode)//.apply { resolveExtensionCalls() }
     }
 
   override fun analyzeWithAllCompilerChecks(elements: Collection<KtElement>): AnalysisResult =
     Log.Verbose({ "MetaResolutionFacade.analyzeWithAllCompilerChecks" }) {
-      delegate.analyzeWithAllCompilerChecks(elements).checkProofed()
+      delegate.analyzeWithAllCompilerChecks(elements)//.checkProofed()
     }
 
   override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =

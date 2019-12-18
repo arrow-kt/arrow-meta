@@ -1,13 +1,13 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
-import arrow.meta.ide.phases.resolve.proofs.chainedMemberScope
 import arrow.meta.phases.resolve.disposeProofCache
 import arrow.meta.phases.resolve.initializeProofCache
 import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.synthetic
 import arrow.meta.phases.resolve.toSynthetic
 import arrow.meta.phases.resolve.typeProofs
+import arrow.meta.proofs.chainedMemberScope
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer

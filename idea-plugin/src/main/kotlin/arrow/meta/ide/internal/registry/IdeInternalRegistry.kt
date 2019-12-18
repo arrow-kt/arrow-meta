@@ -1,7 +1,6 @@
 package arrow.meta.ide.internal.registry
 
 import arrow.meta.dsl.platform.ide
-import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
@@ -9,6 +8,8 @@ import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.internal.registry.InternalRegistry
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
@@ -25,29 +26,20 @@ import arrow.meta.phases.resolve.DeclarationAttributeAlterer
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
+import arrow.meta.proofs.ProofsCallResolver
 import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import org.jetbrains.kotlin.container.registerSingleton
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
+import org.jetbrains.kotlin.resolve.lazy.FileScopeProviderImpl
 
 internal interface IdeInternalRegistry : InternalRegistry {
-
-  override fun registerMetaAnalyzer(): ExtensionPhase =
-    ide {
-      storageComponent(
-        registerModuleComponents = { container, moduleDescriptor ->
-          //println("Registering meta analyzer")
-          container.useImpl<MetaIdeAnalyzer>()
-          //
-        },
-        check = { declaration, descriptor, context ->
-        }
-      )
-    } ?: ExtensionPhase.Empty
 
   override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
     when (currentPhase) {

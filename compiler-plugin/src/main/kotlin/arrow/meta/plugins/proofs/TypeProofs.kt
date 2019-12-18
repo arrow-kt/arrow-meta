@@ -15,27 +15,18 @@ import arrow.meta.phases.resolve.dump
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.phases.resolve.typeProofsGraph
-import arrow.meta.plugins.comprehensions.isBinding
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofTypeChecker
-import arrow.meta.proofs.dump
-import arrow.meta.proofs.hasProof
-import arrow.meta.proofs.matchingCandidates
-import arrow.meta.proofs.shortestPath
 import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
-import org.jetbrains.kotlin.diagnostics.Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNullableType
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
-import org.jetbrains.kotlin.utils.addToStdlib.cast
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jgrapht.Graph
 
 val Meta.typeProofs: Plugin
@@ -73,59 +64,8 @@ val Meta.typeProofs: Plugin
             null
           }
         ),
-        suppressDiagnostic { it.suppressProvenTypeMismatch(module.typeProofs) },
+        suppressDiagnostic { this.suppressProvenTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { it.suppressUpperboundViolated(module.typeProofs) },
-        suppressDiagnostic {
-          val proofs = module.typeProofs
-          val factory = it.factory
-          if (factory == UNRESOLVED_REFERENCE_WRONG_RECEIVER) {
-            UNRESOLVED_REFERENCE_WRONG_RECEIVER.cast(it).let {
-              val calls: List<ResolvedCall<*>> = it.a.toList()
-              calls.forEach {
-                val from = it.getReturnType()
-                val to = it.extensionReceiver?.type
-                if (to != null) {
-                  val hasProof = proofs.hasProof(from, to)
-                  if (proofGraph != null) {
-                    val path = proofGraph?.shortestPath(from, to)
-                    if (path != null)
-                      println("Found chained path: $path")
-                  }
-                  println("hasProof [$from -> $to] : $hasProof")
-                  if (hasProof) {
-                    val candidates = proofs.matchingCandidates(from, to)
-                    candidates.dump()
-                  }
-                }
-              }
-            }
-          }
-          true
-        },
-        suppressDiagnosticWithTrace {
-          val proofs = module.typeProofs
-          val parent = it.psiElement.parent
-          if (parent is KtCallExpression) {
-            val call = bindingContext.get(BindingContext.CALL, it.psiElement.cast())
-            val resolvedCall = call?.getResolvedCall(bindingContext)
-            val from = resolvedCall?.getReturnType()
-            val to = call?.explicitReceiver?.safeAs<ExpressionReceiver>()?.type
-            if (from != null && to != null) {
-              val hasProof = proofs.hasProof(from, to)
-              if (proofGraph != null) {
-                val path = proofGraph?.shortestPath(from, to)
-                println("Found chained path: $path")
-              }
-              println("hasProof [$from -> $to] : $hasProof")
-              if (hasProof) {
-                val candidates = proofs.matchingCandidates(from, to)
-                candidates.dump()
-              }
-            }
-            println("$it: [${it.psiElement.text}], resolvedCall: $resolvedCall")
-          }
-          false
-        },
         typeChecker { ProofTypeChecker(this) },
         irVariable { insertProof(module.typeProofs, it) },
         irProperty { insertProof(module.typeProofs, it) },
@@ -134,4 +74,5 @@ val Meta.typeProofs: Plugin
       )
     }
 
-
+fun KtParameter.isNullable(): Boolean =
+  typeReference?.typeElement is KtNullableType

@@ -1,6 +1,9 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.typeProofs
+import arrow.meta.proofs.chainedMemberScope
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation

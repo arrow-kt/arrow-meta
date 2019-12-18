@@ -1,14 +1,13 @@
 package arrow.meta.phases
 
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.phases.analysis.MetaAnalyzer
+import arrow.meta.proofs.Proof
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.container.ComponentProvider
-import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import arrow.meta.phases.resolve.typeProofs as tp
 
 /**
  * The Compiler Context represents the environment received by all plugins.
@@ -17,24 +16,26 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 class CompilerContext(
   val project: Project,
   val messageCollector: MessageCollector?,
-  val scope: ElementScope
-) : ElementScope by scope {
-
+  val scope: ElementScope,
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false)
-  val ctx: CompilerContext = this
-  lateinit var module: ModuleDescriptor
-  lateinit var files: Collection<KtFile>
-  lateinit var componentProvider: ComponentProvider
-  private lateinit var metaAnalyzerField: MetaAnalyzer
+) : ElementScope by scope {
+  private var md: ModuleDescriptor? = null
+  private var cp: ComponentProvider? = null
 
-  val analyzer: MetaAnalyzer?
-    get() = when {
-      ::metaAnalyzerField.isInitialized -> metaAnalyzerField
-      ::componentProvider.isInitialized -> {
-        //TODO sometimes we get in here before the DI container has finished composing and it blows up
-        metaAnalyzerField = componentProvider.get()
-        metaAnalyzerField
-      }
-      else -> null
+  val ModuleDescriptor?.typeProofs: List<Proof>
+    get() = this?.tp ?: emptyList()
+
+  var module: ModuleDescriptor?
+    get() = md
+    set(value) {
+      md = value
     }
+
+  var componentProvider: ComponentProvider?
+    get() = cp
+    set(value) {
+      cp = value
+    }
+
+  val ctx: CompilerContext = this
 }

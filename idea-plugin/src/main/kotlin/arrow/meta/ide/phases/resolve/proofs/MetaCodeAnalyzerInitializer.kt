@@ -1,5 +1,7 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project

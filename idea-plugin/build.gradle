@@ -36,7 +36,7 @@ jar {
 buildSearchableOptions.enabled = false
 
 intellij {
-  version = "LATEST-EAP-SNAPSHOT"
+  version = "2019.3"
   pluginName = "Arrow plugin"
   plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }

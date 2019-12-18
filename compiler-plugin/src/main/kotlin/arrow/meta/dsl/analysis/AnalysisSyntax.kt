@@ -69,9 +69,6 @@ interface AnalysisSyntax {
         bindingTrace: BindingTrace,
         componentProvider: ComponentProvider
       ): AnalysisResult? {
-        ctx.module = module
-        ctx.files = files
-        ctx.componentProvider = componentProvider
         return doAnalysis(project, module, projectContext, files, bindingTrace, componentProvider)
       }
 

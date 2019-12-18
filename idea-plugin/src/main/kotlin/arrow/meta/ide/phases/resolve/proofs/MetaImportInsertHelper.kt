@@ -1,5 +1,7 @@
 package arrow.meta.ide.phases.resolve.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.extensionCallables

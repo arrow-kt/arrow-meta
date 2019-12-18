@@ -6,7 +6,9 @@ import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.cachedModule
 import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeProofs
+import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.resolve.calls.CallResolver
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.isError
@@ -17,7 +19,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
     return if (!p0.isError && !p1.isError) {
       val result = p0.`isSubtypeOf(NewKotlinTypeChecker)`(p1)
       val subTypes = if (!result && !p0.isError && !p1.isError) {
-        compilerContext.module.typeProofs.subtypingProof(p0, p1) != null
+        compilerContext.module?.typeProofs?.subtypingProof(compilerContext, p0, p1) != null
       } else result
       println("typeConversion: $p0 : $p1 -> $subTypes")
       subTypes

@@ -107,22 +107,19 @@ val ModuleDescriptor.typeProofs: List<Proof>
     } else emptyList()
 
 fun CompilerContext.cachedModule(): ModuleDescriptor? =
-  proofCache.keys.firstOrNull { it.name == module.name }
+  proofCache.keys.firstOrNull { it.name == module?.name }
 
 fun cachedModule(name: Name): ModuleDescriptor? =
   proofCache.keys.firstOrNull { it.name == name }
 
-fun ModuleDescriptor.initializeProofCache(): List<Proof> =
-  try {
-    val moduleProofs: List<Proof> = computeModuleProofs()
-    if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
-      cachedModule(name)?.let { proofCache.remove(it) }
-      proofCache[this] = moduleProofs
-    }
-    moduleProofs
-  } catch (e: Throwable) {
-    emptyList()
+fun ModuleDescriptor.initializeProofCache(): List<Proof> {
+  val moduleProofs: List<Proof> = computeModuleProofs()
+  if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
+    cachedModule(name)?.let { proofCache.remove(it) }
+    proofCache[this] = moduleProofs
   }
+  return moduleProofs
+}
 
 private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   (getSubPackagesOf(FqName.ROOT) { true })
@@ -240,4 +237,3 @@ fun FunctionDescriptor.asProof(): Proof? =
       Proof(from, to, this, proofStrategy)
     }
   }
-

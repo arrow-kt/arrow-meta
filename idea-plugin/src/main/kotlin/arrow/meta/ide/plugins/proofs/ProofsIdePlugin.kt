@@ -2,34 +2,27 @@ package arrow.meta.ide.plugins.proofs
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.resolve.proofs.Log
 import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
-import arrow.meta.ide.phases.resolve.proofs.invoke
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
-import arrow.meta.phases.CompilerContext
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.phases.resolve.cachedModule
 import arrow.meta.phases.resolve.intersection
-import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
-import arrow.meta.proofs.extensionCallables
-import arrow.meta.proofs.extensions
 import arrow.meta.proofs.importableNames
 import arrow.meta.proofs.intersection
 import arrow.meta.proofs.suppressProvenTypeMismatch
-import arrow.meta.proofs.suppressUpperboundViolated
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.ktFile
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -38,10 +31,7 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
-import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.idea.caches.resolve.findModuleDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.name.Name
@@ -52,8 +42,6 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtScript
@@ -256,7 +244,7 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
             importDirective(ImportPath(fqName, true)).value
           }.orEmpty()
         }
-      },
+      }
 //      syntheticResolver(
 //        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
 //          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
@@ -279,7 +267,8 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
 //          }
 //        } else false
 //      },
-      addDiagnosticSuppressor { it.suppressProvenTypeMismatch(module.typeProofs) }
+      ,
+      addDiagnosticSuppressor { suppressProvenTypeMismatch(it, module.typeProofs) }
 //      addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
     )
   }

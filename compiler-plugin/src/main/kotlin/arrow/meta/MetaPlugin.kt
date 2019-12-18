@@ -5,7 +5,6 @@ import arrow.meta.plugins.comprehensions.comprehensions
 import arrow.meta.plugins.higherkind.higherKindedTypes2
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.proofs.typeProofs
-import arrow.meta.plugins.typeclasses.typeClasses
 import kotlin.contracts.ExperimentalContracts
 
 /**
