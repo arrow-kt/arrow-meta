@@ -30,7 +30,7 @@ class WhenExpressionTest  {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(WhenExpressionPlugin())) },
       code = { whenExpression },
-      assert = { compiles } //quoteOutputMatches(whenExpression) }
+      assert = { quoteOutputMatches(whenExpression) }
     ))
   }
 }

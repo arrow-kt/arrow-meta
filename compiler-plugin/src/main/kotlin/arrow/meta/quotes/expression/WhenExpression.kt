@@ -1,5 +1,6 @@
 package arrow.meta.quotes.expression
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtExpression
@@ -41,4 +42,10 @@ class WhenExpression(
   val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries.orEmpty()),
   val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
-) : Scope<KtWhenExpression>(value)
+) : Scope<KtWhenExpression>(value) {
+  override fun ElementScope.identity(): Scope<KtWhenExpression> =
+    """
+    | when $`(expression)`{ 
+    |   $entries
+    | }""".`when`
+}

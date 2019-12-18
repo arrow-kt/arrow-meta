@@ -33,7 +33,7 @@ private val Meta.packageDirectivePackageNames
       packageDirective({ packageNames.last().text == "package_names" }) { element ->
         Transform.replace(
           replacing = element,
-          newDeclaration = secondIdentity()
+          newDeclaration = identity()
         )
       }
     )
