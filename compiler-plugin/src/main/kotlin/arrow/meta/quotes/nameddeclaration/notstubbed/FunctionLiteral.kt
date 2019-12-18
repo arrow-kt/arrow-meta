@@ -21,17 +21,17 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  * import arrow.meta.quotes.functionLiteral
  *
  * val Meta.reformatFunctionLiteral: Plugin
- *  get() =
- *   "ReformatFunctionLiteral" {
- *    meta(
- *     functionLiteral({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
- *      )
+ *    get() =
+ *      "Reformat Function Literal" {
+ *        meta(
+ *          functionLiteral({ true }) { functionNotStubbed ->
+ *            Transform.replace(
+ *              replacing = functionNotStubbed,
+ *              newDeclaration = """{$`(params)`$blockExpression}""".functionLiteral
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  *
  *  A function literal is a special notation to simplify how a function is defined.  There are two types of function literals in Kotlin:

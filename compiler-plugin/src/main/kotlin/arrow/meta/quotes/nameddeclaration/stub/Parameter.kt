@@ -5,7 +5,7 @@ import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.expression.loopexpression.ForExpression
-import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -132,7 +132,6 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *     )
  *    }
  * ```
- *
  */
 
 class Parameter(

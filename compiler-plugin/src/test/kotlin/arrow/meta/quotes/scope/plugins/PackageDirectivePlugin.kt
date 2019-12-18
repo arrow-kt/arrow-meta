@@ -18,9 +18,9 @@ open class PackageDirectivePlugin : Meta {
 private val Meta.packageDirectivePlugin
   get() = "Package Directive Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "test" }) { e ->
+      packageDirective({ packageNames.last().text == "test" }) { element ->
         Transform.replace(
-          replacing = e,
+          replacing = element,
           newDeclaration = identity()
         )
       }
@@ -30,10 +30,10 @@ private val Meta.packageDirectivePlugin
 private val Meta.packageDirectivePackageNames
   get() = "Package Directive Package Names Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "package_names" }) { e ->
+      packageDirective({ packageNames.last().text == "package_names" }) { element ->
         Transform.replace(
-          replacing = e,
-          newDeclaration = identity()
+          replacing = element,
+          newDeclaration = secondIdentity()
         )
       }
     )
@@ -42,9 +42,9 @@ private val Meta.packageDirectivePackageNames
 private val Meta.packageDirectiveLastPackageName
   get() = "Package Directive Last Package Name Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "package_last_name" }) { e ->
+      packageDirective({ packageNames.last().text == "package_last_name" }) { element ->
         Transform.replace(
-          replacing = e,
+          replacing = element,
           newDeclaration = identity()
         )
       }

@@ -34,6 +34,7 @@ class WhenCondition(
   override val value: KtWhenCondition?,
   val condition: String = value?.text ?: ""
 ) : Scope<KtWhenCondition>(value) {
+
   override fun ElementScope.identity(): WhenCondition =
     condition.whenCondition
 }

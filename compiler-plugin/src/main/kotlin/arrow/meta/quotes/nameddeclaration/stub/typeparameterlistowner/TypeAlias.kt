@@ -2,9 +2,9 @@ package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtTypeAlias
-import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
  * <code>typeAlias("""$name""", `(typeParameters)`.toStringList() , """$type""")</code>
@@ -19,23 +19,25 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  * import arrow.meta.quotes.typeAlias
  *
  * val Meta.reformatTypeAlias: Plugin
- *  get() =
- *   "ReformatTypeAlias" {
- *    typeAlias({ true }) { typeAlias ->
- *      Transform.replace(
- *       replacing = typeAlias,
- *       newDeclaration = typeAlias("""$name""", `(typeParameters)`.toStringList() , """$type""")
+ *    get() =
+ *      "Reformat Type Alias" {
+ *        typeAlias({ true }) { typeParameterListOwner ->
+ *          Transform.replace(
+ *            replacing = typeParameterListOwner,
+ *            newDeclaration = typeAlias("""$name""", `(typeParameters)`.toStringList() , """$type""")
+ *          )
+ *        }
  *      )
- *      }
- *     )
  *    }
  * ```
  */
 class TypeAlias(
   override val value: KtTypeAlias,
   val name: Name? = value.nameAsName,
-  val type: Scope<KtTypeReference> = Scope(value.getTypeReference())
+  val type: TypeReference = TypeReference(value.getTypeReference())
 ) : TypeParameterListOwner<KtTypeAlias>(value) {
+
   override fun ElementScope.identity(): TypeAlias =
     typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
+
 }

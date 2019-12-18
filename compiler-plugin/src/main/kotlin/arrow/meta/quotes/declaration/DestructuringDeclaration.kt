@@ -21,17 +21,17 @@ import org.jetbrains.kotlin.psi.KtExpression
  * import arrow.meta.quotes.destructuringDeclaration
  *
  * val Meta.reformatDestructuringDeclaration: Plugin
- *  get() =
- *   "ReformatDestructuringDeclaration" {
- *    meta(
- *     destructuringDeclaration({ true }) { c ->
- *      Transform.replace(
- *       replacing = c,
- *       newDeclaration = """$valOrVar ($entries) = $initializer """.destructuringDeclaration
- *      )
- *     }
- *    )
- *   }
+ *    get() =
+ *      "Reformat Destructuring Declaration" {
+ *        meta(
+ *          destructuringDeclaration({ true }) { declaration ->
+ *            Transform.replace(
+ *              replacing = declaration,
+ *              newDeclaration = """$valOrVar ($entries) = $initializer """.destructuringDeclaration
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class DestructuringDeclaration(
@@ -44,6 +44,7 @@ class DestructuringDeclaration(
   val entries: ScopedList<KtDestructuringDeclarationEntry> = ScopedList(value?.entries.orEmpty()),
   val initializer: Scope<KtExpression> = Scope(value?.initializer)
 ) : Scope<KtDestructuringDeclaration>(value) {
+
   override fun ElementScope.identity(): DestructuringDeclaration =
     """$valOrVar ($entries) = $initializer""".destructuringDeclaration
 }
