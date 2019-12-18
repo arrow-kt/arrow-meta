@@ -1,7 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.classorobject.ClassBody
+import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -31,8 +31,8 @@ import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithla
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.modifierlist.ModifierList
-import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.modifierlistowner.ModifierList
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
@@ -270,12 +270,6 @@ interface ElementScope {
   fun String.expressionCodeFragment(context: PsiElement?): Scope<KtExpressionCodeFragment>
   
   fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment>
-  
-  fun `if`(
-    condition: KtExpression,
-    thenExpr: KtExpression,
-    elseExpr: KtExpression? = null
-  ): IfExpression
   
   fun argument(
     expression: KtExpression?,

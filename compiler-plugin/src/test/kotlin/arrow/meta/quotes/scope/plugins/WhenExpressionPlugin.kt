@@ -14,14 +14,13 @@ open class WhenExpressionPlugin : Meta {
 }
 
 val Meta.whenExpressionPlugin
-  get() =
-    "When Expression Scope Plugin" {
-      meta(
-        whenExpression({ true }) { expression ->
-          Transform.replace(
-            replacing = expression,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "When Expression Scope Plugin" {
+    meta(
+      whenExpression({ true }) { e ->
+        Transform.replace(
+          replacing = e,
+          newDeclaration = identity()
+        )
+      }
+    )
+  }

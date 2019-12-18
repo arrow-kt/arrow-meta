@@ -25,18 +25,18 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.namedFunction
  *
- * val Meta.reformatFile: Plugin
- *   get() =
- *     "ReformatFile" {
- *       meta(
- *        namedFunction({ true }) { f ->
- *          Transform.replace(
- *            replacing = f,
- *            newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
- *          )
- *        }
- *       )
- *     }
+ * val Meta.reformatNamedFunction: Plugin
+ *    get() =
+ *      "Reformat Named Function" {
+ *        meta(
+ *          namedFunction({ true }) { typeParameterListOwner ->
+ *            Transform.replace(
+ *              replacing = typeParameterListOwner,
+ *              newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
+ *            )
+ *          }
+ *        )
+ *      }
  * ```
  */
 class NamedFunction(
@@ -56,9 +56,7 @@ class NamedFunction(
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
 ) : TypeParameterListOwner<KtNamedFunction>(value)
 
-class FunctionBody(
-  override val value: KtExpression
-) : Scope<KtExpression>(value) {
+class FunctionBody(override val value: KtExpression) : Scope<KtExpression>(value) {
   override fun toString(): String =
     value.bodySourceAsExpression() ?: ""
 }

@@ -18,24 +18,25 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  * import arrow.meta.quotes.breakExpression
  *
  * val Meta.reformatBreak: Plugin
- *  get() =
- *   "ReformatBreak" {
- *    meta(
- *     breakExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """break$targetLabel""".`break`
- *      )
+ *    get() =
+ *      "Reformat Break Expression" {
+ *        meta(
+ *          breakExpression({ true }) { expressionWithLabel ->
+ *            Transform.replace(
+ *              replacing = expressionWithLabel,
+ *              newDeclaration = """break$targetLabel""".`break`
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class BreakExpression(
   override val value: KtBreakExpression,
   override val targetLabel: Scope<KtSimpleNameExpression> = Scope(value.getTargetLabel()),
   override val labelName: String? = value.getLabelName() ?: "break"
-  ) : ExpressionWithLabel<KtBreakExpression>(value) {
+) : ExpressionWithLabel<KtBreakExpression>(value) {
+
   override fun ElementScope.identity(): BreakExpression =
     """break$targetLabel""".`break`
 }
