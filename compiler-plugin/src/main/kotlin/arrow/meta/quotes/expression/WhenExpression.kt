@@ -44,8 +44,7 @@ class WhenExpression(
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
 ) : Scope<KtWhenExpression>(value) {
   override fun ElementScope.identity(): Scope<KtWhenExpression> =
-    """
-    | when $`(expression)`{ 
-    |   $entries
-    | }""".`when`
+    """|when ${if (`(expression)`.toString().isNotEmpty()) "($`(expression)`)" else `(expression)`} {
+           | ${entries.toStringList().joinToString("\n")}
+           |} """.`when`
 }
