@@ -53,11 +53,11 @@ import arrow.meta.quotes.namedFunction
  * ```
  * buildscript {
  *   repositories {
- *     maven { url "https://plugins.gradle.org/m2/" }
  *     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
  *   }
  *   dependencies {
- *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:arrow-meta-gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:arrow-meta-compiler-plugin:<snapshot-version>"
  *   }
  * }
  *
