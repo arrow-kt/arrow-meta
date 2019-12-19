@@ -1,7 +1,6 @@
 # Λrrow Meta
 
 [![Latest snapshot](https://img.shields.io/maven-metadata/v?color=%230576b6&label=latest%20snapshot&metadataUrl=https%3A%2F%2Foss.jfrog.org%2Fartifactory%2Foss-snapshot-local%2Fio%2Farrow-kt%2Farrow-meta-compiler-plugin%2Fmaven-metadata.xml)](https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/arrow-meta-compiler-plugin/)
-[![Latest Gradle Plugin Version](https://img.shields.io/maven-metadata/v?color=%230576b6&label=latest%20Gradle%20Plugin%20version&metadataUrl=https%3A%2F%2Fplugins.gradle.org%2Fm2%2Fio%2Farrow-kt%2Farrow%2Fio.arrow-kt.arrow.gradle.plugin%2Fmaven-metadata.xml)](https://plugins.gradle.org/plugin/io.arrow-kt.arrow)
 [![Publish artifacts](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Artifacts/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Artifacts%22)
 [![Publish documentation](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Documentation/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Documentation%22)
 [![Kotlin version badge](https://img.shields.io/badge/kotlin-1.3-blue.svg)](https://kotlinlang.org/docs/reference/whatsnew13.html)
