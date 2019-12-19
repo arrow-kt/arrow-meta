@@ -58,6 +58,33 @@
     };
 
     linkifyAllLevels(".doc-content, .blog-content");
+
+    /**
+     * This function generates the “unrolling” of the module dropdown
+     * secction by adding some classes to the element and applying a
+     * jQuery slide action
+     *
+     * @param el The DOM element on which to perform the action
+     * @param speed The desired speed to slide up/down the section
+     */
+    function activate(el, speed) {
+      if (!el.parent().hasClass('active')) {
+        $('.sidebar-nav li ul').slideUp(speed);
+        el.next().slideToggle(speed);
+        $('.sidebar-nav li').removeClass('active');
+        el.parent().addClass('active');
+      } else {
+        el.next().slideToggle(speed);
+        $('.sidebar-nav li').removeClass('active');
+      }
+    }
+
+    // On click slide down or up the module dropdown
+    $('.cat-dropdown').click(function(e) {
+      e.preventDefault();
+      activate($(this), 300);
+    });
+
   });
 })(jQuery);
 
