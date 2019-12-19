@@ -235,16 +235,16 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
         message = {
           it.markerMessage()
         }
-      ),
-      extraImports {
-        Log.Verbose({ "extraImports: $this" }) {
-          val cachedModule = cachedModule()
-          cachedModule?.typeProofs?.importableNames()?.mapNotNull { fqName ->
-            println("import $fqName")
-            importDirective(ImportPath(fqName, true)).value
-          }.orEmpty()
-        }
-      }
+      )
+//      extraImports {
+//        Log.Verbose({ "extraImports: $this" }) {
+//          val cachedModule = cachedModule()
+//          cachedModule?.typeProofs?.importableNames()?.mapNotNull { fqName ->
+//            println("import $fqName")
+//            importDirective(ImportPath(fqName, true)).value
+//          }.orEmpty()
+//        }
+//      }
 //      syntheticResolver(
 //        generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
 //          Log.Verbose({ "resolveBodyWithExtensionsScope $thisDescriptor $name" }) {
