@@ -1,39 +1,31 @@
 package arrow.union
 
+import arrow.`🔥`
 import arrow.`🚫`
 
 /**
- * A single interface the highest arity represents the most generic type of the Union
- */
-interface Union22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> {
-  val value: Any?
-}
-
-/**
- *
- *                    -'"".
- *                   \  |
- *                      :
- *                    |  \         ___
- * ASCII Skateboarding:  '._      /   '.
- * Big Ollie           \  / '._  /'    |
- *                      ''     '-.>   /
- * Lauri Kangas 11/99     \       '--.\_
- *                   .'"'. |            '.
- *                  /    /\|              \
- *                 /    /  '.    ___   _   \_
- *         .-._   /  _.'     '._/   \ | '__  '._ __
- *         |    \.  / .        |    | /    "'._ " _|
- *         '    ._.'   '.     /    / ;         ""'
- *          \     |      \   /    :  |
- *   .-..___ \__.'      __'/_   .' .'
- *  (_)     ""--..__   /  \  '.'..-'
- *   \\             "":.__ \ /lka
- *    \\            (_)   '''._
- *    (_)'-..___     \\        .
- *              ""-.__\\       |
- *                    (_).____.'
- */
+ * Quarterpipe Frontside
+ * Noseblunt Slide
+ * Lauri Kangas 01/2000
+ *                                                    (  :
+ *                                                     `. \
+ *                                                 ,""'. \ `.
+ *                                                (    |  \  \
+ *                                                 \   )-"._,'
+ *                                                  >-'    /
+ *                                                 /      ;
+ *                                                 |      |
+ *                                         _..____,'      ;
+ *                                       ,'       \      /
+ *                                      /   __   . `.   ;
+ *                              ,-.   ,'  ,'  '-,'   `./
+ *                              :("--'   /     /    _,'
+ *                              O\\    ,'     /   ,"
+ *                                \\_,'      /   /
+ *                                 \  \     /   /
+ *                           -._    \  \   /  ,'
+ *                               `-.O\ ,:-'  /
+ *                                   "`._ _,'lka*/
 typealias Union2<A, B> = Union3<A, B, `🚫`>
 typealias Union3<A, B, C> = Union4<A, B, C, `🚫`>
 typealias Union4<A, B, C, D> = Union5<A, B, C, D, `🚫`>
@@ -54,14 +46,11 @@ typealias Union18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R> = Union1
 typealias Union19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S> = Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, `🚫`>
 typealias Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T> = Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, `🚫`>
 typealias Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U> = Union22<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, `🚫`>
+interface Union22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> { val value: Any? }
+inline class Union(override val value: Any?) : Union22<`🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`>
 
 /**
- * The Union runtime proof is inlined and erasable
- */
-inline class Union(override val value: Any?) : First<Nothing>
-
-/**
- * An easy encoding for arity positions
+ * [A] on its Disjoint Union 🏴
  */
 typealias First<A> = Union22<A, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing>
 typealias Second<A> = Union22<Nothing, A, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing>
