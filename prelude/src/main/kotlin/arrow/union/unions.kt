@@ -1,40 +1,59 @@
 package arrow.union
 
-/**
- * Let the emoji party begin
- */
-class `🚫` private constructor()
+import arrow.`🚫`
 
 /**
- * A single compilation unit of the highest arity represents the most generic type of the Union
+ * A single interface the highest arity represents the most generic type of the Union
  */
 interface Union22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> {
   val value: Any?
 }
 
 /**
- * All others are just aliases to the same interface with impossible positions
+ *
+ *                    -'"".
+ *                   \  |
+ *                      :
+ *                    |  \         ___
+ * ASCII Skateboarding:  '._      /   '.
+ * Big Ollie           \  / '._  /'    |
+ *                      ''     '-.>   /
+ * Lauri Kangas 11/99     \       '--.\_
+ *                   .'"'. |            '.
+ *                  /    /\|              \
+ *                 /    /  '.    ___   _   \_
+ *         .-._   /  _.'     '._/   \ | '__  '._ __
+ *         |    \.  / .        |    | /    "'._ " _|
+ *         '    ._.'   '.     /    / ;         ""'
+ *          \     |      \   /    :  |
+ *   .-..___ \__.'      __'/_   .' .'
+ *  (_)     ""--..__   /  \  '.'..-'
+ *   \\             "":.__ \ /lka
+ *    \\            (_)   '''._
+ *    (_)'-..___     \\        .
+ *              ""-.__\\       |
+ *                    (_).____.'
  */
-typealias Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U> = Union22<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, `🚫`>
-typealias Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T> = Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, `🚫`>
-typealias Union19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S> = Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, `🚫`>
-typealias Union18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R> = Union19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, `🚫`>
-typealias Union17<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q> = Union18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, `🚫`>
-typealias Union16<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> = Union17<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, `🚫`>
-typealias Union15<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> = Union16<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, `🚫`>
-typealias Union14<A, B, C, D, E, F, G, H, I, J, K, L, M, N> = Union15<A, B, C, D, E, F, G, H, I, J, K, L, M, N, `🚫`>
-typealias Union13<A, B, C, D, E, F, G, H, I, J, K, L, M> = Union14<A, B, C, D, E, F, G, H, I, J, K, L, M, `🚫`>
-typealias Union12<A, B, C, D, E, F, G, H, I, J, K, L> = Union13<A, B, C, D, E, F, G, H, I, J, K, L, `🚫`>
-typealias Union11<A, B, C, D, E, F, G, H, I, J, K> = Union12<A, B, C, D, E, F, G, H, I, J, K, `🚫`>
-typealias Union10<A, B, C, D, E, F, G, H, I, J> = Union11<A, B, C, D, E, F, G, H, I, J, `🚫`>
-typealias Union9<A, B, C, D, E, F, G, H, I> = Union10<A, B, C, D, E, F, G, H, I, `🚫`>
-typealias Union8<A, B, C, D, E, F, G, H> = Union9<A, B, C, D, E, F, G, H, `🚫`>
-typealias Union7<A, B, C, D, E, F, G> = Union8<A, B, C, D, E, F, G, `🚫`>
-typealias Union6<A, B, C, D, E, F> = Union7<A, B, C, D, E, F, `🚫`>
-typealias Union5<A, B, C, D, E> = Union6<A, B, C, D, E, `🚫`>
-typealias Union4<A, B, C, D> = Union5<A, B, C, D, `🚫`>
-typealias Union3<A, B, C> = Union4<A, B, C, `🚫`>
 typealias Union2<A, B> = Union3<A, B, `🚫`>
+typealias Union3<A, B, C> = Union4<A, B, C, `🚫`>
+typealias Union4<A, B, C, D> = Union5<A, B, C, D, `🚫`>
+typealias Union5<A, B, C, D, E> = Union6<A, B, C, D, E, `🚫`>
+typealias Union6<A, B, C, D, E, F> = Union7<A, B, C, D, E, F, `🚫`>
+typealias Union7<A, B, C, D, E, F, G> = Union8<A, B, C, D, E, F, G, `🚫`>
+typealias Union8<A, B, C, D, E, F, G, H> = Union9<A, B, C, D, E, F, G, H, `🚫`>
+typealias Union9<A, B, C, D, E, F, G, H, I> = Union10<A, B, C, D, E, F, G, H, I, `🚫`>
+typealias Union10<A, B, C, D, E, F, G, H, I, J> = Union11<A, B, C, D, E, F, G, H, I, J, `🚫`>
+typealias Union11<A, B, C, D, E, F, G, H, I, J, K> = Union12<A, B, C, D, E, F, G, H, I, J, K, `🚫`>
+typealias Union12<A, B, C, D, E, F, G, H, I, J, K, L> = Union13<A, B, C, D, E, F, G, H, I, J, K, L, `🚫`>
+typealias Union13<A, B, C, D, E, F, G, H, I, J, K, L, M> = Union14<A, B, C, D, E, F, G, H, I, J, K, L, M, `🚫`>
+typealias Union14<A, B, C, D, E, F, G, H, I, J, K, L, M, N> = Union15<A, B, C, D, E, F, G, H, I, J, K, L, M, N, `🚫`>
+typealias Union15<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> = Union16<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, `🚫`>
+typealias Union16<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P> = Union17<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, `🚫`>
+typealias Union17<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q> = Union18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, `🚫`>
+typealias Union18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R> = Union19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, `🚫`>
+typealias Union19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S> = Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, `🚫`>
+typealias Union20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T> = Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, `🚫`>
+typealias Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U> = Union22<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, `🚫`>
 
 /**
  * The Union runtime proof is inlined and erasable
