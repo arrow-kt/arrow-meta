@@ -6,7 +6,8 @@ import arrow.Proof
 import arrow.TypeProof
 
 /**
- * Union2<A, Union2<B, C>> =:= Union2<Union2<A, B>> (A | B) | C
+ * Unions are associative
+ * Union2<A, Union2<B, C>> =:= Union2<Union2<A, B>, C>
  */
 @Proof(TypeProof.Subtyping)
 fun <A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>
