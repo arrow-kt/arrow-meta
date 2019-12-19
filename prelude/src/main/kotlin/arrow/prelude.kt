@@ -1,7 +1,7 @@
 package arrow
 
 /**
- * Type Proofs are an implementation of the Curry–Howard–Lambek correspondence over the Kotlin compiler and type system.
+ * Type Proofs are a partial implementation of the Curry–Howard–Lambek correspondence over the Kotlin compiler and type system.
  * https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence#Curry%E2%80%93Howard%E2%80%93Lambek_correspondence
  */
 
