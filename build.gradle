@@ -2,7 +2,6 @@ buildscript {
   repositories {
     mavenCentral()
     maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
-    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
   }
   dependencies {
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
@@ -43,7 +42,6 @@ allprojects {
     mavenCentral()
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap/' }
     maven { url 'https://jitpack.io' } 
   }
 }
