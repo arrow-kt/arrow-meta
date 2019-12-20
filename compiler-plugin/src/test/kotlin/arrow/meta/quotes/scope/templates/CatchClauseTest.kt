@@ -8,7 +8,8 @@ import org.junit.Test
 
 class CatchClauseTest  {
 
-  private val catchClause = """
+  companion object {
+    val catchClauseExpression = """
                          | //metadebug
                          | 
                          | fun measureTimeMillis(block: () -> Unit): Unit {
@@ -17,13 +18,14 @@ class CatchClauseTest  {
                          |    } catch (throwable: Throwable) { println(throwable) }
                          |  }
                          | """.source
+  }
 
   @Test
   fun `Validate catch clause scope properties`() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(CatchClausePlugin())) },
-      code = { catchClause },
-      assert = { quoteOutputMatches(catchClause) }
+      code = { catchClauseExpression },
+      assert = { quoteOutputMatches(catchClauseExpression) }
     ))
   }
 }

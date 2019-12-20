@@ -9,31 +9,57 @@ import org.junit.Test
 
 class IsExpressionTest  {
 
-  @Test
-  fun `Validate is expression scope properties`() {
-    validate("""
+  companion object {
+    private val isExpression = """
       |if (2 is Int) {
       |  println("2 is a number")
       |} else {
       |  println("2 is not a number")
       |}
-      |""".isExpression())
-  }
+      |""".isExpression()
 
-  @Test
-  fun `Validate true is expression scope properties`() {
-    validate("""
+    private val trueIsExpression = """
       |if (true) {
       |  println("2 is a number")
       |} else {
       |  println("2 is not a number")
       |}
-      |""".isExpression())
+      |""".isExpression()
+
+    private val asExpression = """val e = System.currentTimeMillis() as Number""".isExpression()
+
+    private fun String.isExpression(): Code.Source {
+      return """
+      | //metadebug
+      | 
+      | class Wrapper {
+      |   fun whatever() {
+      |     $this
+      |   }
+      | }
+      | """.source
+    }
+
+    val isExpressions = arrayOf(
+      isExpression,
+      trueIsExpression,
+      asExpression
+    )
+  }
+
+  @Test
+  fun `Validate is expression scope properties`() {
+    validate(isExpression)
+  }
+
+  @Test
+  fun `Validate true is expression scope properties`() {
+    validate(trueIsExpression)
   }
 
   @Test
   fun `Validate as expression scope properties`() {
-    validate("""val e = System.currentTimeMillis() as Number""".isExpression())
+    validate(asExpression)
   }
 
   @Test
@@ -50,19 +76,7 @@ class IsExpressionTest  {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(IsExpressionPlugin())) },
       code = { source },
-      assert = { compiles }//quoteOutputMatches(source) }
+      assert = { compiles }// }
     ))
-  }
-
-  private fun String.isExpression(): Code.Source {
-    return """
-      | //metadebug
-      | 
-      | class Wrapper {
-      |   fun whatever() {
-      |     $this
-      |   }
-      | }
-      | """.source
   }
 }

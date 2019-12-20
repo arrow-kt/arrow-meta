@@ -8,7 +8,8 @@ import org.junit.Test
 
 class TryExpressionTest  {
 
-  private val tryExpression = """
+  companion object {
+    val tryExpression = """
                          | //metadebug
                          | 
                          | fun measureTimeMillis(block: () -> Unit): Unit {
@@ -17,6 +18,7 @@ class TryExpressionTest  {
                          |    } catch (throwable: Throwable) { println(throwable) }
                          |  }
                          | """.source
+  }
 
   @Test
   fun `Validate try expression scope properties`() {

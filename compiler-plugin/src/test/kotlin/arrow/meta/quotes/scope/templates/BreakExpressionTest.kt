@@ -8,7 +8,8 @@ import org.junit.Test
 
 class BreakExpressionTest  {
 
-  private val breakExpression = """
+  companion object {
+    val breakExpression = """
                          | //metadebug
                          | 
                          | fun loop() {
@@ -19,6 +20,7 @@ class BreakExpressionTest  {
                          |  }
                          |}
                          | """.source
+  }
 
   @Test
   fun `Validate break expression scope properties`() {
