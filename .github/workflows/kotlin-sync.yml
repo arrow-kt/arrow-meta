@@ -18,7 +18,7 @@ jobs:
     - name: Test latest Kotlin EAP version
       run: |
         LATEST_KOTLIN_EAP_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-eap/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
-        echo "Kotlin=$LATEST_KOTLIN_EAP_VERSION" > versions
+        echo "Kotlin EAP version = $LATEST_KOTLIN_EAP_VERSION" > versions
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_EAP_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-eap\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_EAP_VERSION"
@@ -28,7 +28,7 @@ jobs:
         git checkout gradle.properties
         git checkout build.gradle
         LATEST_KOTLIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
-        echo "Kotlin=$LATEST_KOTLIN_DEV_VERSION" > versions
+        echo "Kotlin DEV version = $LATEST_KOTLIN_DEV_VERSION" > versions
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
