@@ -19,16 +19,19 @@ jobs:
       run: |
         LATEST_KOTLIN_EAP_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-eap/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
         echo "Kotlin EAP version = $LATEST_KOTLIN_EAP_VERSION" > versions
+        for patch in .github/workflows/sandbox/*.diff; do if [[ "$patch" == */$(echo $LATEST_KOTLIN_EAP_VERSION | cut -d- -f1)* ]]; then git apply $patch; fi; done
+        git status
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_EAP_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-eap\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_EAP_VERSION"
         ./gradlew clean :compiler-plugin:build 2> stderr
     - name: Test latest Kotlin DEV version
       run: |
-        git checkout gradle.properties
-        git checkout build.gradle
+        git checkout .
         LATEST_KOTLIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
         echo "Kotlin DEV version = $LATEST_KOTLIN_DEV_VERSION" > versions
+        for patch in .github/workflows/sandbox/*.diff; do if [[ "$patch" == */$(echo $LATEST_KOTLIN_DEV_VERSION | cut -d- -f1)* ]]; then git apply $patch; fi; done
+        git status
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
@@ -37,10 +40,11 @@ jobs:
       id: update
       run: |
         sudo apt-get install html2text
-        git checkout gradle.properties
-        git checkout build.gradle
+        git checkout .
         LATEST_KOTLIN_VERSION=$(curl https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
         echo "Latest Kotlin version: $LATEST_KOTLIN_VERSION"
+        for patch in .github/workflows/sandbox/*.diff; do if [[ "$patch" == */$(echo $LATEST_KOTLIN_VERSION | cut -d- -f1)* ]]; then git apply $patch; rm $patch; fi; done
+        git status
         curl -o intellij-idea-releases.html https://www.jetbrains.com/intellij-repository/releases/
         html2text -style pretty -o intellij-idea-releases.txt intellij-idea-releases.html
         LATEST_INTELLIJ_IDEA_VERSION=$(grep -A 100 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\+\.[0-9]\+\.\?[0-9]*' | head -2 | tail -1)
