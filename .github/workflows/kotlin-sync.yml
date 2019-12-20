@@ -94,7 +94,7 @@ jobs:
         echo -e "I've found this error:\n\n" > issue.log
         echo -e "* **VERSIONS**: $(cat versions)\n" >> issue.log
         echo -e "* **NOTE**: If you want to reproduce the error in a local environment, replace the versions in \`gradle.properties\` file and add \`https://dl.bintray.com/kotlin/kotlin-eap/\` repository or \`https://dl.bintray.com/kotlin/kotlin-dev/\` repository for Kotlin EAP version or Kotlin DEV version, respectively.\n" >> issue.log
-        echo -e "* **ERROR LOG**: https://github.com/rachelcarmena/test/commit/$GITHUB_SHA/checks\n" >> issue.log
+        echo -e "* **ERROR LOG**: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks\n" >> issue.log
         echo -e "* **ERROR**:\n\n$(cat stderr)\n" >> issue.log
         rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
         cd /home/runner/work/_actions/actions/github-script/0.3.0/
