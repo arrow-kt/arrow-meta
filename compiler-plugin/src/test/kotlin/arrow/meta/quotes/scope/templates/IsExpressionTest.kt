@@ -76,7 +76,7 @@ class IsExpressionTest  {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(IsExpressionPlugin())) },
       code = { source },
-      assert = { compiles }// }
+      assert = { quoteOutputMatches(source) }
     ))
   }
 }
