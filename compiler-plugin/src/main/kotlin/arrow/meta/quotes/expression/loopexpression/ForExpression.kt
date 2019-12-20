@@ -26,7 +26,11 @@ import org.jetbrains.kotlin.psi.KtForExpression
  *        forExpression({ true }) { loopExpression ->
  *          Transform.replace(
  *            replacing = loopExpression,
- *            newDeclaration = """for ($`(param)` in $loopRange) $body""".`for`
+ *            newDeclaration = if (destructuringDeclaration.entries.isEmpty()) {
+ *                                """for ($`(param)` in $loopRange) $body""".`for`
+ *                             } else {
+ *                                """for ((${destructuringDeclaration.entries}) in $loopRange) $body""".`for`
+ *                             }
  *          )
  *        }
  *      )
