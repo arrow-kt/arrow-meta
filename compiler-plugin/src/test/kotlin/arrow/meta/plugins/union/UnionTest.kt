@@ -212,7 +212,7 @@ class UnionTest {
            |""".source
       },
       assert = {
-        allOf(failsWith { it.contains("Type mismatch: inferred type is Union2<String, Int> /* = Union4<String, Int, Impossible, Impossible> */ but Double? was expected") })
+        allOf(failsWith { it.contains("but Double? was expected") })
       }
     ))
   }
