@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.substituteTypeVar
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import org.jetbrains.kotlin.resolve.calls.smartcasts.SingleSmartCast
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
@@ -125,16 +126,10 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   (getSubPackagesOf(FqName.ROOT) { true })
     .filter { !it.isRoot }
     .flatMap { packageName ->
-      getPackage(packageName).memberScope
-        .getContributedDescriptors { true }
-        .filterIsInstance<PackageViewDescriptor>()
-        .flatMap { packageViewDescriptor ->
-          packageViewDescriptor
-            .memberScope
-            .getContributedDescriptors { true }
-            .filterIsInstance<FunctionDescriptor>()
-            .filter(FunctionDescriptor::isProof)
-        }.mapNotNull(FunctionDescriptor::asProof)
+      getPackage(packageName).memberScope.getContributedDescriptors { true }
+        .filterIsInstance<FunctionDescriptor>()
+        .filter(FunctionDescriptor::isProof)
+        .mapNotNull(FunctionDescriptor::asProof)
     }.apply {
       val module = this@computeModuleProofs
       println("Recomputed cache: $module proofs: ${size}, module cache size: ${proofCache.size}")
@@ -228,12 +223,22 @@ fun FunctionDescriptor.asProof(): Proof? =
   extensionReceiverParameter?.type?.let { from ->
     returnType?.let { to ->
       val annotationArgs = annotations.first().allValueArguments
-      val value: ArrayValue? = annotationArgs[Name.identifier("of")] as? ArrayValue
-      val proofStrategy =
-        when ((value?.value?.getOrNull(0) as? EnumValue)?.enumEntryName?.asString()) {
-          ProofStrategy.Subtyping.name -> ProofStrategy.Subtyping
-          else -> ProofStrategy.Extension
+      val value: ConstantValue<*>? = annotationArgs[Name.identifier("of")]
+      val proofStrategy = when (value) {
+        is EnumValue -> {
+          val name = value.enumEntryName.asString()
+          when {
+            ProofStrategy.Subtyping.name == name -> ProofStrategy.Subtyping
+            ProofStrategy.Extension.name == name -> ProofStrategy.Extension
+            ProofStrategy.Refinement.name == name -> ProofStrategy.Refinement
+            ProofStrategy.Negation.name == name -> ProofStrategy.Negation
+            else -> null
+          }
         }
-      Proof(from, to, this, proofStrategy)
+        else -> null
+      }
+      proofStrategy?.let {
+        Proof(from, to, this, it)
+      }
     }
   }

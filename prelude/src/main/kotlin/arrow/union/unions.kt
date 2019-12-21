@@ -1,4 +1,4 @@
-package arrow.union
+package arrow
 
 import arrow.`🔥`
 import arrow.`🚫`

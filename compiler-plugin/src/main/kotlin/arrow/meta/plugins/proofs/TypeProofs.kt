@@ -12,6 +12,7 @@ import arrow.meta.phases.resolve.ProofVertex
 import arrow.meta.phases.resolve.`isSubtypeOf(NewKotlinTypeChecker)`
 import arrow.meta.phases.resolve.applySmartCast
 import arrow.meta.phases.resolve.dump
+import arrow.meta.phases.resolve.initializeProofCache
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.phases.resolve.typeProofsGraph
@@ -37,30 +38,24 @@ val Meta.typeProofs: Plugin
         enableIr(),
         analysis(
           doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-            proofGraph = module.typeProofsGraph
-            proofGraph?.dump()
-            null
-          }
-        ),
-        analysis(
-          doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+            module.initializeProofCache()
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            val calls = bindingTrace.bindingContext.getSliceContents(BindingContext.CALL)
-            module.typeProofs.forEach {
-              calls.forEach { ktElement, call ->
-                val resolvedCall = call.getResolvedCall(bindingTrace.bindingContext)
-                val callReturnType = resolvedCall?.getReturnType()
-                if (callReturnType != null && !callReturnType.isNothing() && !callReturnType.isError && callReturnType.`isSubtypeOf(NewKotlinTypeChecker)`(it.from)) {
-                  if (ktElement is KtExpression) {
-                    val intersection = it.to.intersection(callReturnType)
-                    println("Smart cast $call for ${ktElement.text} with $callReturnType type: $intersection")
-                    bindingTrace.applySmartCast(call, ktElement, intersection) //TODO apply this in the synth resolution instead as the type classes plugin does and same for the IDE
-                  }
-                }
-              }
-            }
+//            val calls = bindingTrace.bindingContext.getSliceContents(BindingContext.CALL)
+//            module.typeProofs.forEach {
+//              calls.forEach { ktElement, call ->
+//                val resolvedCall = call.getResolvedCall(bindingTrace.bindingContext)
+//                val callReturnType = resolvedCall?.getReturnType()
+//                if (callReturnType != null && !callReturnType.isNothing() && !callReturnType.isError && callReturnType.`isSubtypeOf(NewKotlinTypeChecker)`(it.from)) {
+//                  if (ktElement is KtExpression) {
+//                    val intersection = it.to.intersection(callReturnType)
+//                    println("Smart cast $call for ${ktElement.text} with $callReturnType type: $intersection")
+//                    bindingTrace.applySmartCast(call, ktElement, intersection) //TODO apply this in the synth resolution instead as the type classes plugin does and same for the IDE
+//                  }
+//                }
+//              }
+//            }
             null
           }
         ),
