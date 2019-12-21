@@ -7,152 +7,152 @@ import arrow.TypeProof
  * For All Union<A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> First<A>.firstN(): A? =
+inline fun <reified A> FirstN<A>.firstN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Second<A>.secondN(): A? =
+inline fun <reified A> SecondN<A>.secondN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Third<A>.thirdN(): A? =
+inline fun <reified A> ThirdN<A>.thirdN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Fourth<A>.fourthN(): A? =
+inline fun <reified A> FourthN<A>.fourthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Fifth<A>.fifthN(): A? =
+inline fun <reified A> FifthN<A>.fifthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Sixth<A>.sixthN(): A? =
+inline fun <reified A> SixthN<A>.sixthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Seventh<A>.seventhN(): A? =
+inline fun <reified A> SeventhN<A>.seventhN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Eighth<A>.eighthN(): A? =
+inline fun <reified A> EighthN<A>.eighthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Ninth<A>.ninthN(): A? =
+inline fun <reified A> NinthN<A>.ninthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Tenth<A>.tenthN(): A? =
+inline fun <reified A> TenthN<A>.tenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Eleventh<A>.eleventhN(): A? =
+inline fun <reified A> EleventhN<A>.eleventhN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Twelfth<A>.twelfthN(): A? =
+inline fun <reified A> TwelfthN<A>.twelfthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Thirteenth<A>.thirteenthN(): A? =
+inline fun <reified A> ThirteenthN<A>.thirteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Fourteenth<A>.fourteenthN(): A? =
+inline fun <reified A> FourteenthN<A>.fourteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Fifteenth<A>.fifteenthN(): A? =
+inline fun <reified A> FifteenthN<A>.fifteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Sixteenth<A>.sixteenthN(): A? =
+inline fun <reified A> SixteenthN<A>.sixteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Seventeenth<A>.seventeenthN(): A? =
+inline fun <reified A> SeventeenthN<A>.seventeenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Eighteenth<A>.eighteenthN(): A? =
+inline fun <reified A> EighteenthN<A>.eighteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Nineteenth<A>.nineteenthN(): A? =
+inline fun <reified A> NineteenthN<A>.nineteenthN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> Twentieth<A>.twentiethN(): A? =
+inline fun <reified A> TwentiethN<A>.twentiethN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> TwentyFirst<A>.twentyFirstN(): A? =
+inline fun <reified A> TwentyFirstN<A>.twentyFirstN(): A? =
   (this as Union).value as A
 
 /**
  * For All Union<..A,..> : A?
  */
 @Proof(TypeProof.Subtyping)
-inline fun <reified A> TwentySecond<A>.twentySecondN(): A? =
+inline fun <reified A> TwentySecondN<A>.twentySecondN(): A? =
   (this as Union).value as A

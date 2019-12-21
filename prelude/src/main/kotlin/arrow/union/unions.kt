@@ -74,3 +74,29 @@ typealias Nineteenth<A> = Union22<Nothing, Nothing, Nothing, Nothing, Nothing, N
 typealias Twentieth<A> = Union22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, A, Nothing, Nothing>
 typealias TwentyFirst<A> = Union22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, A, Nothing>
 typealias TwentySecond<A> = Union22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, A>
+
+/**
+ * [A] on its Disjoint Union 🏴
+ */
+typealias FirstN<A> = Union22<A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias SecondN<A> = Union22<*, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias ThirdN<A> = Union22<*, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias FourthN<A> = Union22<*, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias FifthN<A> = Union22<*, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias SixthN<A> = Union22<*, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias SeventhN<A> = Union22<*, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias EighthN<A> = Union22<*, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias NinthN<A> = Union22<*, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias TenthN<A> = Union22<*, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *, *>
+typealias EleventhN<A> = Union22<*, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *, *>
+typealias TwelfthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *, *>
+typealias ThirteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *, *>
+typealias FourteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *, *>
+typealias FifteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *, *>
+typealias SixteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *, *>
+typealias SeventeenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *, *>
+typealias EighteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *, *>
+typealias NineteenthN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *, *>
+typealias TwentiethN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *, *>
+typealias TwentyFirstN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A, *>
+typealias TwentySecondN<A> = Union22<*, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, *, A>

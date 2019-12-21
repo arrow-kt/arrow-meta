@@ -18,6 +18,7 @@ import arrow.meta.phases.resolve.typeProofs
 import arrow.meta.phases.resolve.typeProofsGraph
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofTypeChecker
+import arrow.meta.proofs.suppressConstantExpectedTypeMismatch
 import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
@@ -60,6 +61,7 @@ val Meta.typeProofs: Plugin
           }
         ),
         suppressDiagnostic { this.suppressProvenTypeMismatch(it, module.typeProofs) },
+        suppressDiagnostic { this.suppressConstantExpectedTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { it.suppressUpperboundViolated(module.typeProofs) },
         typeChecker { ProofTypeChecker(this) },
         irVariable { insertProof(module.typeProofs, it) },

@@ -1,5 +1,7 @@
 package arrow.meta.proofs
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.ProofVertex
 import arrow.meta.phases.resolve.`isSubtypeOf(NewKotlinTypeChecker)`
@@ -26,9 +28,9 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.BindingTraceContext
-import org.jetbrains.kotlin.resolve.calls.components.InferenceSession
+import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.GivenCandidate
@@ -38,7 +40,6 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.calls.tower.PSICallResolver
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -408,8 +409,31 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: L
     diagnostic.safeAs<DiagnosticWithParameters2<KtExpression, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
       val subType = diagnosticWithParameters.b
       val superType = diagnosticWithParameters.a
-      proofs.subtypingProof(this, subType, superType) != null
+      Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
+        proofs.subtypingProof(this, subType, superType) != null
+      }
     } == true
+
+fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+    diagnostic.factory == Errors.CONSTANT_EXPECTED_TYPE_MISMATCH &&
+      diagnostic.safeAs<DiagnosticWithParameters2<KtConstantExpression, String, KotlinType>>()?.let { diagnosticWithParameters ->
+        val superType = diagnosticWithParameters.b
+        val elementType = diagnosticWithParameters.psiElement.elementType.toString()
+        val subType = when (elementType) {
+          "INTEGER_CONSTANT" -> module?.builtIns?.intType
+          "CHARACTER_CONSTANT" -> module?.builtIns?.charType
+          "FLOAT_CONSTANT" -> module?.builtIns?.floatType
+          "BOOLEAN_CONSTANT" -> module?.builtIns?.booleanType
+          "NULL" -> module?.builtIns?.nullableAnyType
+          else -> null
+        }
+        Log.Verbose({ "suppressConstantExpectedTypeMismatch: $subType, $superType, $this" }) {
+          subType?.let {
+            proofs.subtypingProof(this, it, superType) != null
+          }
+        }
+      } == true
+
 
 fun Diagnostic.suppressUpperboundViolated(proofs: List<Proof>): Boolean = false
 //  factory == Errors.UPPER_BOUND_VIOLATED &&
