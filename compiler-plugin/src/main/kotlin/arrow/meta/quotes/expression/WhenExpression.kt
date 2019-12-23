@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
 /**
- * <code>""" $condition """.whenCondition</code>
+ * <code> """when $`(expression)` { $entries } """.`when` </code>
  *
  * A template destructuring [Scope] for a [KtWhenExpression].
  *
@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  *              newDeclaration =
  *                """|when $`(expression)` {
  *                   | $entries
- *                   | $`else`
  *                   |} """.`when`
  *            )
  *          }

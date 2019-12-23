@@ -8,13 +8,15 @@ import org.junit.Test
 
 class ThrowExpressionTest  {
 
-  private val throwExpression = """
+  companion object {
+    val throwExpression = """
                          | //metadebug
                          | 
                          | fun throwAssertionError() {
                          |   throw AssertionError()
                          | }
                          | """.source
+  }
 
   @Test
   fun `Validate throw expression properties`() {

@@ -9,41 +9,23 @@ import org.junit.Test
 
 class IfExpressionTest  {
 
-  @Test
-  fun `Validate if expression scope properties`() {
-    validate(
-      """
+  companion object {
+    private val ifExpression = """
       | if (2 == 3) {
       |   println("FAKE NEWS")
       | } else {
       |   println("success!")
-      | }""".ifExpression())
-  }
+      | }""".ifExpression()
 
-  @Test
-  fun `Do not validate if expression without else scope properties`() {
-    validate(
-      """
+    private val withoutElse = """
       | if (2 == 3) {
       |   println("FAKE NEWS")
-      | }""".ifExpression())
-  }
+      | }""".ifExpression()
 
-  @Test
-  fun `Validate if expression single line scope properties`() {
-    validate("""if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression())
-  }
+    private val singleLine = """if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression()
 
-  private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(IfExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
-  }
-
-  private fun String.ifExpression(): Code.Source {
-    return """
+    private fun String.ifExpression(): Code.Source {
+      return """
       | //metadebug
       | 
       | class Wrapper {
@@ -52,5 +34,35 @@ class IfExpressionTest  {
       |   }
       |  }
       | """.source
+    }
+
+    val ifExpressions = arrayOf(
+      ifExpression,
+      withoutElse,
+      singleLine
+    )
+  }
+
+  @Test
+  fun `Validate if expression scope properties`() {
+    validate(ifExpression)
+  }
+
+  @Test
+  fun `Do not validate if expression without else scope properties`() {
+    validate(withoutElse)
+  }
+
+  @Test
+  fun `Validate if expression single line scope properties`() {
+    validate(singleLine)
+  }
+
+  private fun validate(source: Code.Source) {
+    assertThis(CompilerTest(
+      config = { listOf(addMetaPlugins(IfExpressionPlugin())) },
+      code = { source },
+      assert = { quoteOutputMatches(source) }
+    ))
   }
 }

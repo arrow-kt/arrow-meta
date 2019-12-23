@@ -8,7 +8,8 @@ import org.junit.Test
 
 class WhenEntryTest  {
 
-  private val whenEntry = """
+  companion object {
+    val whenEntryExpression = """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -20,13 +21,14 @@ class WhenEntryTest  {
                          |   }
                          | }
                          | """.source
+  }
 
   @Test
   fun `Validate when entry scope properties`() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(WhenEntryPlugin())) },
-      code = { whenEntry },
-      assert = { quoteOutputMatches(whenEntry) }
+      code = { whenEntryExpression },
+      assert = { quoteOutputMatches(whenEntryExpression) }
     ))
   }
 }
