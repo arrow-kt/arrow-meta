@@ -8,7 +8,8 @@ import org.junit.Test
 
 class WhileExpressionTest  {
 
-  private val whileExpression = """
+  companion object {
+    val whileExpression = """
                          | //metadebug
                          | 
                          | fun power(x: Int) {
@@ -18,6 +19,7 @@ class WhileExpressionTest  {
                          |   }
                          | }
                          | """.source
+  }
 
   @Test
   fun `Validate while expression scope properties`() {

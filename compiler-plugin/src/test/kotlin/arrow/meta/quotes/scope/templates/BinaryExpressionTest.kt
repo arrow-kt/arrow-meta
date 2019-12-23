@@ -8,7 +8,8 @@ import org.junit.Test
 
 class BinaryExpressionTest {
 
-  private val binaryExpression = """
+  companion object {
+    val binaryExpression = """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -17,6 +18,7 @@ class BinaryExpressionTest {
                          |   }
                          | }
                          | """.source
+  }
 
   @Test
   fun `Validate when binary expression properties`() {

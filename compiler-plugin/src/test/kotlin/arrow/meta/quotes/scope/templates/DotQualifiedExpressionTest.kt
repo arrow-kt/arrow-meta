@@ -9,31 +9,15 @@ import org.junit.Test
 
 class DotQualifiedExpressionTest  {
 
-  @Test
-  fun `Validate dot qualified expression scope properties`() {
-    validate(
-      """
+  companion object {
+    private val dotQualifiedExpression =  """
       | val list = listOf("12", "33", "65")
       |     list.flatMap { it.toList() }""".dotQualifiedExpression()
-    )
-  }
 
-  @Test
-  fun `Validate multiple dot qualified expression scope properties`() {
-    validate(""""Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
-    )
-  }
+    private val mutableDotQualifiedExpression = """"Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
 
-  private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(DotQualifiedExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
-  }
-
-  private fun String.dotQualifiedExpression(): Code.Source {
-    return """
+    private fun String.dotQualifiedExpression(): Code.Source {
+      return """
       | //metadebug
       | 
       | class Wrapper {
@@ -42,5 +26,29 @@ class DotQualifiedExpressionTest  {
       |   }
       |  }
       | """.source
+    }
+
+    val dotQualifiedExpressions = arrayOf(
+      dotQualifiedExpression,
+      mutableDotQualifiedExpression
+    )
+  }
+
+  @Test
+  fun `Validate dot qualified expression scope properties`() {
+    validate(dotQualifiedExpression)
+  }
+
+  @Test
+  fun `Validate multiple dot qualified expression scope properties`() {
+    validate(mutableDotQualifiedExpression)
+  }
+
+  private fun validate(source: Code.Source) {
+    assertThis(CompilerTest(
+      config = { listOf(addMetaPlugins(DotQualifiedExpressionPlugin())) },
+      code = { source },
+      assert = { quoteOutputMatches(source) }
+    ))
   }
 }

@@ -8,11 +8,13 @@ import org.junit.Test
 
 class BlockExpressionTest {
 
-  private val blockExpression = """
+  companion object {
+    val blockExpression = """
                          | //metadebug
                          | 
                          | val x = {}
                          | """.source
+  }
 
   @Test
   fun `Validate block expression scope properties`() {

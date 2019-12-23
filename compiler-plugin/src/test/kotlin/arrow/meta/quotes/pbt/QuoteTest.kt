@@ -8,40 +8,40 @@ class QuoteTest {
   fun `Check identity law`() {
 
 //    listOf(
-//      binaryExpression,
+////      binaryExpression, // Todo: make this fail
 //      blockExpression,
 //      breakExpression,
 //      *forExpressions,
 //      catchClauseExpression,
 //      *classBodyExpressions,
 //      *continueExpressions,
-//      // destructuringDeclarationExpression, // TODO: data class
+////     destructuringDeclarationExpression, // TODO: data class
 //      *dotQualifiedExpressions,
-//      // finallySectionExpression, // TODO implement convertFinally in Converter to support FINALLY in AST
+////      // finallySectionExpression, // TODO implement convertFinally in Converter to support FINALLY in AST
 //      *functionalLiteralExpressions,
 //      *ifExpressions,
 //      importDirectiveExpression,
 //      *isExpressions,
-//      // *lambdaExpressions, // TODO: init
+////      // *lambdaExpressions, // TODO: init
 //      objectDeclarationExpression,
-//      packageExpression,
+//      *packageExpressions,
 //      *returnExpressions,
-//      // *thisExpressions, // TODO: inner class
+////      // *thisExpressions, // TODO: inner class
 //      throwExpression,
 //      tryExpression,
 //      *typeAliasExpressions,
 //      typeReferenceExpression,
-//      // *valueArgumentExpressions, // TODO: init
+////      // *valueArgumentExpressions, // TODO: init
 //      whenConditionExpression,
 //      whenEntryExpression,
-//      // whenExpression, // TODO failing compilation:  Expecting a when-condition, Expecting an expression, is-condition or in-condition
+//      *whenExpressions,
 //      whileExpression
-//    ).forEach { expression: String ->
+//    ).forEach { expression: Code.Source ->
 //      assertThis(CompilerTest(
 //        config = { listOf(addMetaPlugins(GenericPlugin())) },
-//        code = { expression.source },
-//        assert = { quoteOutputMatches(expression.source) }
+//        code = { expression },
+//        assert = { quoteOutputMatches(expression) }
 //      ))
 //    }
-  }
+    }
 }

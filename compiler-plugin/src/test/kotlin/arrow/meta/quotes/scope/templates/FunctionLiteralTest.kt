@@ -9,31 +9,15 @@ import org.junit.Test
 
 class FunctionLiteralTest  {
 
-  @Test
-  fun `Validate function literal scope properties`() {
-    validate("""val a = { i: Int -> i + 1 }""".functionLiteral())
-  }
+  companion object {
+    private val functionLiteral = """val a = { i: Int -> i + 1 }""".functionLiteral()
 
-  @Test
-  fun `Validate function literal as an anonymous function`() {
-    validate("""val increment: (Int) -> Unit = fun(x) { x + 1 }""".functionLiteral())
-  }
+    private val anonymousFunction = """val increment: (Int) -> Unit = fun(x) { x + 1 }""".functionLiteral()
 
-  @Test
-  fun `Validate function literal as a lambda expression`() {
-    validate("""val sum: (Int, Int) -> Int = { x: Int, y: Int -> x + y }""".functionLiteral())
-  }
+    private val lambdaExpression = """val sum: (Int, Int) -> Int = { x: Int, y: Int -> x + y }""".functionLiteral()
 
-  private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(FunctionLiteralPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
-  }
-
-  private fun String.functionLiteral(): Code.Source {
-    return """
+    private fun String.functionLiteral(): Code.Source {
+      return """
       | //metadebug
       | 
       | class Wrapper {
@@ -42,5 +26,35 @@ class FunctionLiteralTest  {
       |   }
       |  }
       | """.trimMargin().trim().source
+    }
+
+    val functionalLiteralExpressions = arrayOf(
+      functionLiteral,
+      anonymousFunction,
+      lambdaExpression
+    )
+  }
+
+  @Test
+  fun `Validate function literal scope properties`() {
+    validate(functionLiteral)
+  }
+
+  @Test
+  fun `Validate function literal as an anonymous function`() {
+    validate(anonymousFunction)
+  }
+
+  @Test
+  fun `Validate function literal as a lambda expression`() {
+    validate(lambdaExpression)
+  }
+
+  private fun validate(source: Code.Source) {
+    assertThis(CompilerTest(
+      config = { listOf(addMetaPlugins(FunctionLiteralPlugin())) },
+      code = { source },
+      assert = { quoteOutputMatches(source) }
+    ))
   }
 }

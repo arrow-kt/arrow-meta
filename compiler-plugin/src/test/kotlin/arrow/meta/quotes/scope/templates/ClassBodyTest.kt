@@ -9,9 +9,8 @@ import org.junit.Test
 
 class ClassBodyTest  {
 
-  @Test
-  fun `Validate class body scope properties`() {
-      validate("""
+  companion object {
+    private val classBodyScopeTest = """
         | //metadebug
         | 
         | class ClassBodyScopeTest {
@@ -28,12 +27,9 @@ class ClassBodyTest  {
         |   fun y() = y
         |   fun z() = z
         | }
-        """.source)
-  }
-  
-  @Test
-  fun `Validate enum body scope properties`() {
-    validate("""
+        """.source
+
+    private val enumBodyScopeTest = """
       | //metadebug
       | 
       | enum class EnumBodyScopeTest {
@@ -42,12 +38,9 @@ class ClassBodyTest  {
       |   fun foo() = 0
       |   fun test() = 0
       | }
-      | """.source)
-  }
-  
-  @Test
-  fun `Validate object body scope properties`() {
-    validate("""
+      | """.source
+
+    private val objectBodyScopeTest = """
       | //metadebug
       |
       | object ObjectBodyScopeTest {
@@ -60,7 +53,28 @@ class ClassBodyTest  {
       |   fun z() = z
       |   fun test() = 0
       | }
-      | """.source)
+      | """.source
+
+    val classBodyExpressions = arrayOf(
+      classBodyScopeTest,
+      enumBodyScopeTest,
+      objectBodyScopeTest
+    )
+  }
+
+  @Test
+  fun `Validate class body scope properties`() {
+      validate(classBodyScopeTest)
+  }
+  
+  @Test
+  fun `Validate enum body scope properties`() {
+    validate(enumBodyScopeTest)
+  }
+  
+  @Test
+  fun `Validate object body scope properties`() {
+    validate(objectBodyScopeTest)
   }
 
   private fun validate(source: Code.Source) {

@@ -8,18 +8,20 @@ import org.junit.Test
 
 class TypeReferenceTest  {
 
-  private val typeReference = """
+  companion object {
+    val typeReferenceExpression = """
                          | //metadebug
                          | 
                          | val aBoxedA: Int? = 13
                          | """.source
+  }
 
   @Test
   fun `Validate type reference properties`() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(TypeReferencePlugin())) },
-      code = { typeReference },
-      assert = { quoteOutputMatches(typeReference) }
+      code = { typeReferenceExpression },
+      assert = { quoteOutputMatches(typeReferenceExpression) }
     ))
   }
 }

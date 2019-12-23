@@ -9,36 +9,60 @@ import org.junit.Test
 
 class ForExpressionTest  {
 
-    @Test
-    fun `Validate for expression scope properties`() {
-        validate("""
+    companion object {
+        private val someFunction = """
                 | fun someFunction() {
                 |   for (i in 1..10) {
                 |     println(i)
                 |   }
                 | }
-                | """.forExpression())
-    }
+                | """.forExpression()
 
-    @Test
-    fun `Validate for expression single line scope properties`() {
-        validate("""
+      private val singleLineFunction = """
                   | fun singleLineFunction() {
                   |     for (i in 1..10) println(i)
                   | }
-                  |   """.forExpression())
-    }
+                  |   """.forExpression()
 
-    @Test
-    fun `Validate for expression destructuring declaration scope properties`() {
-        validate("""
+      private val destructuringDeclarationFunction = """
                   | fun destructuringDeclarationFunction() {
                   |         for ((index, value) in listOf("a", "b", "c").withIndex()) {
                   |              println("index: " + index)
                   |              println("value: " + value)
                   |         }
                   | }
-                  |   """.forExpression())
+                  |   """.forExpression()
+
+        private fun String.forExpression(): Code.Source {
+            return """
+                      | //metadebug
+                      | 
+                      | class Wrapper {
+                      |   $this
+                      | }
+                      | """.source
+        }
+
+        val forExpressions = arrayOf(
+          someFunction,
+          singleLineFunction,
+          destructuringDeclarationFunction
+        )
+    }
+
+    @Test
+    fun `Validate for expression scope properties`() {
+        validate(someFunction)
+    }
+
+    @Test
+    fun `Validate for expression single line scope properties`() {
+        validate(singleLineFunction)
+    }
+
+    @Test
+    fun `Validate for expression destructuring declaration scope properties`() {
+        validate(destructuringDeclarationFunction)
     }
 
     fun validate(source: Code.Source) {
@@ -47,15 +71,5 @@ class ForExpressionTest  {
             code = { source },
             assert = { quoteOutputMatches(source) }
         ))
-    }
-
-    private fun String.forExpression(): Code.Source {
-        return """
-      | //metadebug
-      | 
-      | class Wrapper {
-      |   $this
-      | }
-      | """.source
     }
 }

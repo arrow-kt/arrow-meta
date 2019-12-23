@@ -8,7 +8,8 @@ import org.junit.Test
 
 class WhenConditionTest  {
 
-  private val whenCondition = """
+  companion object {
+    val whenConditionExpression = """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -20,13 +21,14 @@ class WhenConditionTest  {
                          |   }
                          | }
                          | """.source
+  }
 
   @Test
   fun `Validate when condition scope properties`() {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(WhenConditionPlugin())) },
-      code = { whenCondition },
-      assert = { quoteOutputMatches(whenCondition) }
+      code = { whenConditionExpression },
+      assert = { quoteOutputMatches(whenConditionExpression) }
     ))
   }
 }
