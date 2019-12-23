@@ -28,18 +28,13 @@ jobs:
         ./gradlew :gradle-plugin:jar
         # :docs is considered in another workflow
         echo "Is there an upcoming version to check?"
-        for patch in .github/workflows/sandbox/*.diff; do
+        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
           echo "Checking $patch ..."
-          git checkout .
           NEXT_VERSION=$(basename -s .diff $patch)
           echo "For version $NEXT_VERSION ..."
           git apply $patch
           git status
           sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$NEXT_VERSION/g" gradle.properties
-          if [[ "$NEXT_VERSION" == *-dev-* ]]; then
-            sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-          else
-            sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-eap\/\" }/g" build.gradle
-          fi
           ./gradlew clean :compiler-plugin:build
         done

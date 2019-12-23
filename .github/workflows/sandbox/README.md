@@ -25,22 +25,9 @@ $> git diff > <latest-version>.diff
 
 ### What if a patch file for a related version already exists?
 
-For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev-180.diff` already exists (both of them are related to `1.4.0` version):
+For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev-180.diff` already exists (both of them are related to `1.4.0` version).
 
-1. Apply changes from `1.4.0-dev-180.diff`:
-```
-$> git apply .github/workflows/sandbox/1.4.0-dev-180.diff
-```
-2. Implement the new changes for `1.4.0-dev-325`.
-3. Create a patch file with all the changes:
-```
-$> git diff > 1.4.0-dev-325.diff
-```
-4. Replace the file:
-```
-$> cp 1.4.0-dev-325.diff .github/workflows/sandbox/1.4.0-dev-180.diff
-$> git mv .github/workflows/sandbox/1.4.0-dev-180.diff .github/workflows/sandbox/1.4.0-dev-325.diff
-```
+Create a new `.github/workflows/sandbox/1.4.0-dev-325.diff` with the new required changes.
 
 ## What will it be done with those patch files automatically?
 
@@ -50,7 +37,7 @@ It will create a workspace for every patch file:
 
 - Extract version from filename (e.g. `1.4.0-dev-180` for `.github/workflows/sandbox/1.4.0-dev-180.diff`).
 - Replace `KOTLIN_VERSION` by that version in `gradle.properties`.
-- Add Kotlin EAP repository (`https://dl.bintray.com/kotlin/kotlin-eap/`) or Kotlin DEV repository (`https://dl.bintray.com/kotlin/kotlin-dev/`) in `build.gradle` according to the version.
+- Add Kotlin DEV repository (`https://dl.bintray.com/kotlin/kotlin-dev/`) in `build.gradle`.
 - Apply changes from that patch file: `git apply <latest-version>.diff`.
 - Check Arrow Meta Compiler Plugin build: `./gradlew clean :compiler-plugin:build`
 
