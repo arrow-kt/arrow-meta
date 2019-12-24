@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
@@ -44,58 +43,21 @@ class ProofsSyntheticScope(val proofs: () -> List<Proof>) : SyntheticScope {
 
   override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticMemberFunctions [Proofs: ${proofs().size}] $this" }) {
-      proofs().extensions(receiverTypes).flatMap { proof ->
-        proof.extensionCallables { true }
-          .filterIsInstance<SimpleFunctionDescriptor>()
-          .filter { it.isExtension && it.extensionReceiverParameter?.type in receiverTypes }
-          .mapNotNull { fn ->
-            val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
-            result
-          }
-      }
+      proofs().syntheticMemberFunctions(receiverTypes)
     }
 
   override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticMemberFunctions [Proofs: ${proofs().size}] $this" }) {
-      proofs().extensions(receiverTypes).flatMap { proof ->
-        proof.extensionCallables { true }
-          .filterIsInstance<SimpleFunctionDescriptor>()
-          .filter { it.isExtension && it.name == name && it.extensionReceiverParameter?.type in receiverTypes }
-          .mapNotNull { fn ->
-            val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
-            result
-          }
-      }
+      proofs().syntheticMemberFunctions(receiverTypes, name)
     }
 
   override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticStaticFunctions($scope)" }) {
-      proofs().extensions().flatMap { proof ->
-        proof.extensionCallables { true }
-          .filterIsInstance<SimpleFunctionDescriptor>()
-          .filter { !it.isExtension }
-          .mapNotNull {
-            it.toStaticSynthetic(scope, proof)
-          }
-      }
+      proofs().syntheticStaticFunctions(scope)
     }
-
-  private fun SimpleFunctionDescriptor.toStaticSynthetic(scope: ResolutionScope, proof: Proof): SimpleFunctionDescriptor? {
-    val result = if (scope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND).isEmpty())
-      staticSyntheticFunction(proof)
-    else null
-    return result
-  }
 
   override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticStaticFunctions name: $name" }) {
-      proofs().extensions().flatMap { proof ->
-        proof.extensionCallables { true }
-          .filterIsInstance<SimpleFunctionDescriptor>()
-          .filter { !it.isExtension && it.name == name }
-          .mapNotNull {
-            it.toStaticSynthetic(scope, proof)
-          }
-      }
+      proofs().syntheticStaticFunctions(name, scope)
     }
 }

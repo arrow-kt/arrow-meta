@@ -6,6 +6,8 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.config.Config
 import arrow.meta.plugins.higherkind.KindAwareTypeChecker
+import com.intellij.openapi.project.Project
+import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.container.StorageComponentContainer
@@ -14,6 +16,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * The configuration phase allows changing the compiler configuration prior to compilation.

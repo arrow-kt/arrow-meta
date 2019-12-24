@@ -1,5 +1,6 @@
 package arrow.meta.dsl.resolve
 
+import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
@@ -27,8 +28,11 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
+import org.jetbrains.kotlin.resolve.lazy.LazyEntity
+import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
@@ -106,7 +110,6 @@ interface ResolveSyntax {
     syntheticStaticFunctions: CompilerContext.(scope: ResolutionScope) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
     syntheticStaticFunctionsForName: CompilerContext.(scope: ResolutionScope, name: Name, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection4()
   ): ExtensionPhase =
-    ide {
       object : SyntheticScopeProvider {
         override fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
           syntheticConstructor(constructor)
@@ -135,7 +138,7 @@ interface ResolveSyntax {
         override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
           syntheticStaticFunctionsForName(scope, name, location)
       }
-    } ?: ExtensionPhase.Empty
+
 
   /**
    * The [syntheticResolver] extension allows the user to change the top level class and nested class descriptors

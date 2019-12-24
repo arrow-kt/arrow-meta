@@ -4,6 +4,8 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofCandidate
 import arrow.meta.proofs.ProofStrategy
+import arrow.meta.proofs.extensionCallables
+import arrow.meta.proofs.extensions
 import arrow.meta.proofs.isProof
 import arrow.meta.proofs.typeSubstitutor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -84,7 +86,12 @@ fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProj
 val KotlinType.unwrappedNotNullableType: UnwrappedType
   get() = makeNotNullable().unwrap()
 
-val proofCache: ConcurrentHashMap<ModuleDescriptor, List<Proof>> = ConcurrentHashMap()
+data class ProofCacheValue(
+  val proofs: List<Proof>,
+  val extensionCallables: List<CallableMemberDescriptor> = proofs.extensions().flatMap { it.extensionCallables { true } }
+)
+
+val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofCacheValue> = ConcurrentHashMap()
 
 fun disposeProofCache(): Unit =
   proofCache.clear()
@@ -97,7 +104,7 @@ val ModuleDescriptor.typeProofs: List<Proof>
         when {
           cacheValue != null -> {
             println("Serving cached value for $this: $cacheValue")
-            cacheValue
+            cacheValue.proofs
           }
           else -> emptyList()
         }
@@ -117,7 +124,7 @@ fun ModuleDescriptor.initializeProofCache(): List<Proof> {
   val moduleProofs: List<Proof> = computeModuleProofs()
   if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
     cachedModule(name)?.let { proofCache.remove(it) }
-    proofCache[this] = moduleProofs
+    proofCache[this] = ProofCacheValue(moduleProofs)
   }
   return moduleProofs
 }

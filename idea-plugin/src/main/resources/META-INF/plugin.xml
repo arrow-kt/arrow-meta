@@ -41,7 +41,7 @@
 <!--        <kotlinIndicesHelperExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsKotlinIndicesHelperExtension" />-->
 <!--        <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>-->
         <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />
+<!--        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />-->
 <!--        <diagnosticSuppressor implementation="arrow.meta.ide.phases.resolve.proofs.ProofsDiagnosticsSuppressor" />-->
         <syntheticScopeProviderExtension implementation="arrow.meta.ide.phases.resolve.proofs.MetaSyntheticScope" />
     </extensions>

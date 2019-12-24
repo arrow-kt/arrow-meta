@@ -2,31 +2,24 @@ package arrow.meta.ide.plugins.proofs
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.resolve.proofs.MetaFileScopeProvider
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
-import arrow.meta.phases.resolve.cachedModule
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.typeProofs
+import arrow.meta.proofs.MetaFileScopeProvider
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofStrategy
-import arrow.meta.proofs.importableNames
 import arrow.meta.proofs.intersection
 import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
@@ -36,30 +29,16 @@ import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
-import org.jetbrains.kotlin.psi.KtAnonymousInitializer
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtScript
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.KtTypeAlias
 import org.jetbrains.kotlin.psi.psiUtil.blockExpressionsOrSingle
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BodiesResolveContext
-import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.resolve.TopDownAnalysisContext
-import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
-import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.SingleSmartCast
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
-import org.jetbrains.kotlin.resolve.lazy.descriptors.findPackageFragmentForFile
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
@@ -273,75 +252,6 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
     )
   }
 
-class ProofsBodyResolveContent(
-  val session: ResolveSession,
-  val delegate: TopDownAnalysisContext
-) : BodiesResolveContext by delegate {
-
-  override fun getFiles(): Collection<KtFile> =
-    Log.Verbose({ "ProofsBodyResolveContent.getFiles: $this" }) {
-      delegate.files
-    }
-
-  override fun getTypeAliases(): MutableMap<KtTypeAlias, TypeAliasDescriptor> =
-    Log.Verbose({ "ProofsBodyResolveContent.getTypeAliases: $this" }) {
-      delegate.typeAliases
-    }
-
-  override fun getScripts(): MutableMap<KtScript, ClassDescriptorWithResolutionScopes> =
-    Log.Verbose({ "ProofsBodyResolveContent.getScripts: $this" }) {
-      delegate.scripts
-    }
-
-  override fun getOuterDataFlowInfo(): DataFlowInfo =
-    Log.Verbose({ "ProofsBodyResolveContent.getOuterDataFlowInfo: $this" }) {
-      delegate.outerDataFlowInfo
-    }
-
-  override fun getDeclaredClasses(): MutableMap<KtClassOrObject, ClassDescriptorWithResolutionScopes> =
-    Log.Verbose({ "ProofsBodyResolveContent.getDeclaredClasses: $this" }) {
-      delegate.declaredClasses
-    }
-
-  override fun getSecondaryConstructors(): MutableMap<KtSecondaryConstructor, ClassConstructorDescriptor> =
-    Log.Verbose({ "ProofsBodyResolveContent.getSecondaryConstructors: $this" }) {
-      delegate.secondaryConstructors
-    }
-
-  override fun getProperties(): MutableMap<KtProperty, PropertyDescriptor> =
-    Log.Verbose({ "ProofsBodyResolveContent.getProperties: $this" }) {
-      delegate.properties
-    }
-
-  override fun getDestructuringDeclarationEntries(): MutableMap<KtDestructuringDeclarationEntry, PropertyDescriptor> =
-    Log.Verbose({ "ProofsBodyResolveContent.getDestructuringDeclarationEntries: $this" }) {
-      delegate.destructuringDeclarationEntries
-    }
-
-  override fun getTopDownAnalysisMode(): TopDownAnalysisMode =
-    Log.Verbose({ "ProofsBodyResolveContent.getTopDownAnalysisMode: $this" }) {
-      delegate.topDownAnalysisMode
-    }
-
-  override fun getFunctions(): MutableMap<KtNamedFunction, SimpleFunctionDescriptor> =
-    Log.Verbose({ "ProofsBodyResolveContent.getFunctions: $this" }) {
-      delegate.functions
-    }
-
-  override fun getAnonymousInitializers(): MutableMap<KtAnonymousInitializer, ClassDescriptorWithResolutionScopes> =
-    Log.Verbose({ "ProofsBodyResolveContent.getAnonymousInitializers: $this" }) {
-      delegate.anonymousInitializers
-    }
-
-  override fun getDeclaringScope(p0: KtDeclaration): LexicalScope? =
-    session.moduleDescriptor.run {
-      val currentScope = session.declarationScopeProvider.getResolutionScopeForDeclaration(p0)
-      findPackageFragmentForFile(p0.containingKtFile)?.let {
-        typeProofs.lexicalScope(currentScope, it)
-      }
-    }
-}
-
 private fun resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
   Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
     session.fileScopeProvider = MetaFileScopeProvider(session.moduleDescriptor, session.fileScopeProvider)
@@ -402,14 +312,3 @@ private fun applySmartCast(
 //}
 
 
-fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
-  val types = map { it.intersection(/* TODO substitutor */) }
-  return if (types.isEmpty()) currentScope
-  else types.reduce { acc, kotlinType -> acc.intersection(kotlinType) }.let { proofIntersection ->
-    val ownerDescriptor = AnonymousFunctionDescriptor(containingDeclaration, Annotations.EMPTY, CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE, false)
-    val extensionReceiver = ExtensionReceiver(ownerDescriptor, proofIntersection, null)
-    val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(ownerDescriptor, extensionReceiver, ownerDescriptor.annotations)
-    ownerDescriptor.initialize(extensionReceiverParamDescriptor, null, emptyList(), emptyList(), ownerDescriptor.returnType, null, Visibilities.PUBLIC)
-    LexicalScopeImpl(currentScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
-  }
-}

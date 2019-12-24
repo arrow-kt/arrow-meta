@@ -21,7 +21,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
       val subTypes = if (!result && !p0.isError && !p1.isError) {
         compilerContext.module?.typeProofs?.subtypingProof(compilerContext, p0, p1) != null
       } else result
-      println("typeConversion: $p0 : $p1 -> $subTypes")
+      println("typeConversion: ${p0.toString().take(20)} : ${p1.toString().take(20)} -> $subTypes")
       subTypes
     } else false
   }

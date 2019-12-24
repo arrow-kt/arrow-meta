@@ -163,6 +163,7 @@ interface InternalRegistry : ConfigSyntax {
     println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
+      SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }
     ide {
       println("it's the IDEA plugin")
@@ -255,7 +256,7 @@ interface InternalRegistry : ConfigSyntax {
       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
         phase.run {
           listOf(
-            object : SyntheticScope.Default() {
+            object : SyntheticScope {
               override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
                 phase.run { ctx.syntheticConstructor(constructor) }
 

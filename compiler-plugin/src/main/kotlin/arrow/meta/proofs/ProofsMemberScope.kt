@@ -14,22 +14,22 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-internal class ProofsMemberScope(private val synthProofs: List<SimpleFunctionDescriptor>) : MemberScope {
-  override fun getClassifierNames(): Set<Name>? = synthProofs.map { it.name }.toSet()
+internal class ProofsMemberScope(private val synthProofs: () -> List<SimpleFunctionDescriptor>) : MemberScope {
+  override fun getClassifierNames(): Set<Name>? = synthProofs().map { it.name }.toSet()
 
   override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
     Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedClassifier: $name $location $this" }) {
-      synthProofs.firstOrNull { it.name == name }.safeAs()
+      synthProofs().firstOrNull { it.name == name }.safeAs()
     }
 
   override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
     Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedDescriptors: $kindFilter $nameFilter $this" }) {
-      synthProofs.filter { nameFilter(it.name) }
+      synthProofs().filter { nameFilter(it.name) }
     }
 
   override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
     Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedFunctions: $name $location $this" }) {
-      synthProofs.filter { it.name == name }
+      synthProofs().filter { it.name == name }
     }
 
   override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
@@ -39,7 +39,7 @@ internal class ProofsMemberScope(private val synthProofs: List<SimpleFunctionDes
 
   override fun getFunctionNames(): Set<Name> =
     Log.Silent({ "ProofsPackageFragmentDescriptor.getFunctionNames: $this" }) {
-      synthProofs.map { it.name }.toSet()
+      synthProofs().map { it.name }.toSet()
     }
 
   override fun getVariableNames(): Set<Name> =

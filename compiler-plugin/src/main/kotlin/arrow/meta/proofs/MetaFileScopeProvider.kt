@@ -1,9 +1,8 @@
-package arrow.meta.ide.phases.resolve.proofs
+package arrow.meta.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.chainedMemberScope
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
@@ -26,15 +25,12 @@ class MetaFileScopeProvider(
   override fun getFileResolutionScope(file: KtFile): LexicalScope =
     Log.Verbose({ "MetaFileScopeProvider.getFileResolutionScope: $file, scope: $this" }) {
       val fileScope = delegate.getFileResolutionScope(file)
-      val proofs = module.typeProofs
-      if (proofs.isEmpty()) fileScope
-      else {
-        val proofsMemberScope = proofs.chainedMemberScope()
-        val proofsModifiedScope = fileScope.addImportingScope(
-          MemberScopeToImportingScopeAdapter(null, proofsMemberScope)
-        )
-        proofsModifiedScope
-      }
+      val proofsF = { module.typeProofs }
+      val proofsMemberScope = proofsF.chainedMemberScope()
+      val proofsModifiedScope = fileScope.addImportingScope(
+        MemberScopeToImportingScopeAdapter(null, proofsMemberScope)
+      )
+      proofsModifiedScope
     }
 
 

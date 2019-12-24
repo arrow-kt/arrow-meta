@@ -1,4 +1,4 @@
-package arrow.kinds
+package arrowx
 
 import arrow.`🔥`
 import arrow.`🚫`

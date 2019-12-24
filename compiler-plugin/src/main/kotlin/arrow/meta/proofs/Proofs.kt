@@ -7,6 +7,7 @@ import arrow.meta.phases.resolve.ProofVertex
 import arrow.meta.phases.resolve.`isSubtypeOf(NewKotlinTypeChecker)`
 import arrow.meta.phases.resolve.asProof
 import arrow.meta.phases.resolve.intersection
+import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeArgumentsMap
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
@@ -16,20 +17,26 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
@@ -43,8 +50,13 @@ import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
+import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.CastImplicitClassReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
@@ -182,10 +194,24 @@ fun SimpleFunctionDescriptor.extensionSyntheticFunction(proof: Proof): SimpleFun
     proof.through.original.source
   )
 
+fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
+  val types = map { it.intersection(/* TODO substitutor */) }
+  return if (types.isEmpty()) currentScope
+  else types.reduce { acc, kotlinType -> acc.intersection(kotlinType) }.let { proofIntersection ->
+    val ownerDescriptor = AnonymousFunctionDescriptor(containingDeclaration, Annotations.EMPTY, CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE, false)
+    val extensionReceiver = ExtensionReceiver(ownerDescriptor, proofIntersection, null)
+    val extensionReceiverParamDescriptor = ReceiverParameterDescriptorImpl(ownerDescriptor, extensionReceiver, ownerDescriptor.annotations)
+    ownerDescriptor.initialize(extensionReceiverParamDescriptor, null, emptyList(), emptyList(), ownerDescriptor.returnType, null, Visibilities.PUBLIC)
+    LexicalScopeImpl(currentScope, ownerDescriptor, true, extensionReceiverParamDescriptor, LexicalScopeKind.FUNCTION_INNER_SCOPE)
+  }
+}
 
-fun List<Proof>.chainedMemberScope(): MemberScope {
+fun ModuleDescriptor.cachedExtensions(): List<CallableMemberDescriptor> =
+  proofCache[this]?.extensionCallables ?: emptyList()
+
+fun (() -> List<Proof>).chainedMemberScope(): MemberScope {
   val synthProofs by lazy {
-    flatMap { proof ->
+    this().flatMap { proof ->
       proof.extensionCallables { true }
         .filterIsInstance<SimpleFunctionDescriptor>()
         .mapNotNull {
@@ -198,7 +224,7 @@ fun List<Proof>.chainedMemberScope(): MemberScope {
     }
   }
 
-  return ProofsMemberScope(synthProofs)
+  return ProofsMemberScope { synthProofs }
 }
 
 fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<CallableMemberDescriptor> =
@@ -396,6 +422,56 @@ fun CallableDescriptor.substituteAndApproximateCapturedTypes2(
   return substitute(TypeSubstitutor.create(wrappedSubstitution))
 }
 
+fun List<Proof>.syntheticStaticFunctions(scope: ResolutionScope): List<SimpleFunctionDescriptor> {
+  return extensions().flatMap { proof ->
+    proof.extensionCallables { true }
+      .filterIsInstance<SimpleFunctionDescriptor>()
+      .filter { !it.isExtension }
+      .mapNotNull {
+        it.toStaticSynthetic(scope, proof)
+      }
+  }
+}
+
+fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name): List<SimpleFunctionDescriptor> =
+  extensions(receiverTypes).flatMap { proof ->
+    proof.extensionCallables { true }
+      .filterIsInstance<SimpleFunctionDescriptor>()
+      .filter { it.isExtension && it.name == name && it.extensionReceiverParameter?.type in receiverTypes }
+      .mapNotNull { fn ->
+        val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
+        result
+      }
+  }
+
+fun List<Proof>.syntheticStaticFunctions(name: Name, scope: ResolutionScope): List<SimpleFunctionDescriptor> =
+  extensions().flatMap { proof ->
+    proof.extensionCallables { true }
+      .filterIsInstance<SimpleFunctionDescriptor>()
+      .filter { !it.isExtension && it.name == name }
+      .mapNotNull {
+        it.toStaticSynthetic(scope, proof)
+      }
+  }
+
+fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): List<SimpleFunctionDescriptor> =
+  extensions(receiverTypes).flatMap { proof ->
+    proof.extensionCallables { true }
+      .filterIsInstance<SimpleFunctionDescriptor>()
+      .filter { it.isExtension && it.extensionReceiverParameter?.type in receiverTypes }
+      .mapNotNull { fn ->
+        val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
+        result
+      }
+  }
+
+fun SimpleFunctionDescriptor.toStaticSynthetic(scope: ResolutionScope, proof: Proof): SimpleFunctionDescriptor? {
+  val result = if (scope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND).isEmpty())
+    staticSyntheticFunction(proof)
+  else null
+  return result
+}
+
 fun ProofCandidate.applyConversion(): ProofCandidate? =
   copy(
     through = through.substituteAndApproximateCapturedTypes2(
@@ -410,6 +486,22 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: L
       val subType = diagnosticWithParameters.b
       val superType = diagnosticWithParameters.a
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
+        proofs.subtypingProof(this, subType, superType) != null
+      }
+    } == true
+
+fun CompilerContext.suppressExtensionUnresolvedReference(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+  diagnostic.factory == Errors.UNRESOLVED_REFERENCE &&
+    diagnostic.safeAs<DiagnosticFactory1<KtReferenceExpression, KtReferenceExpression>>()?.let { diagnosticWithParameters ->
+      false
+    } == true
+
+fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+  diagnostic.factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
+    diagnostic.safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
+      val subType = diagnosticWithParameters.a
+      val superType = diagnosticWithParameters.b
+      Log.Verbose({ "suppressTypeInferenceExpectedTypeMismatch: $subType, $superType, $this" }) {
         proofs.subtypingProof(this, subType, superType) != null
       }
     } == true

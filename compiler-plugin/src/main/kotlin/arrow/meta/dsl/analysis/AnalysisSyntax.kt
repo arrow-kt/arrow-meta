@@ -150,15 +150,4 @@ interface AnalysisSyntax {
       )
     } ?: ExtensionPhase.Empty
 
-
-  fun MutableList<Proof>.initializeProofs(): AnalysisHandler =
-    analysis(
-      doAnalysis = { _, module, _, _, _, _ ->
-        val proofs = module.typeProofs
-        println("Found proofs: ${proofs.joinToString("\n")}")
-        addAll(proofs)
-        dump()
-        null
-      }
-    )
 }

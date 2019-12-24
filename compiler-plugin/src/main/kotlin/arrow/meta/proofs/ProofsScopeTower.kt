@@ -1,6 +1,5 @@
 package arrow.meta.proofs
 
-import arrow.meta.phases.CompilerContext
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
@@ -35,7 +34,7 @@ class ProofsScopeTower(
     isOwnerDescriptorAccessibleByLabel = false,
     implicitReceiver = null,
     kind = LexicalScopeKind.SYNTHETIC,
-    memberScopes = listOf(proofs.chainedMemberScope())
+    memberScopes = listOf({ proofs }.chainedMemberScope())
   ).addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes { proofs }
