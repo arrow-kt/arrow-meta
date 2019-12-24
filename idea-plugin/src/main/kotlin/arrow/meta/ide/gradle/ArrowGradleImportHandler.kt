@@ -16,10 +16,10 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.nio.file.Paths
+import java.util.*
 
 const val notificationsEntry = "Arrow Meta Notifications"
 const val title = "Arrow Meta"
-const val arrowPlugin = """plugins { id "io.arrow-kt.arrow" }"""
 
 class ArrowGradleImportHandler : GradleProjectImportHandler {
 
@@ -27,8 +27,11 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
     when (sourceSetNode.data.moduleName) {
       "main" ->
         if (arrowExtensions(sourceSetNode) == 0) {
+          val properties = Properties()
+          properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
           val projectName = (sourceSetNode.parent?.data as ModuleData).moduleName
-          val notificationContent = createNotificationContent(projectName)
+          val arrowPlugin = arrowPluginContent(properties.getProperty("IDEA_PLUGIN_VERSION"))
+          val notificationContent = notificationContent(projectName, arrowPlugin)
           val notification = Notification(notificationsEntry, title, notificationContent, NotificationType.INFORMATION)
           notification.addAction(object : NotificationAction("Copy code") {
             override fun actionPerformed(e: AnActionEvent, notification: Notification) {
@@ -60,10 +63,18 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
       ?.flatMap { it.extensions.filter { extension -> extension.name == "arrow" } }
       ?.size
 
-  private fun createNotificationContent(projectId: String): String =
+  private fun arrowPluginContent(version: String): String =
     """
-    Gradle Plugin is missing in $projectId project:
-    <br /><br />$arrowPlugin
+    plugins {
+      id "io.arrow-kt.arrow" version "$version"
+    }
+    """
+
+  private fun notificationContent(projectId: String, code: String): String =
+    """
+    Gradle Plugin is missing in "$projectId" project:
+    <br /><br />
+    $code
     """
 
   override fun importByModule(facet: KotlinFacet, moduleNode: DataNode<ModuleData>) {}

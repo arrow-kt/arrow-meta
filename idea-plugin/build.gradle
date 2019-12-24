@@ -12,6 +12,14 @@ repositories {
   }
 }
 
+processResources {
+  filesMatching('**/plugin.properties') {
+    filter {
+      it.replace('%IDEA_PLUGIN_VERSION%', VERSION_NAME)
+    }
+  }
+}
+
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   compile "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
