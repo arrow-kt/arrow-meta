@@ -26,7 +26,6 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
         if (arrowExtensions(sourceSetNode) == 0) {
           val notificationContent = createNotificationContent((sourceSetNode.parent?.data as ModuleData).id)
           val notification = Notification(notificationsEntry, title, notificationContent, NotificationType.INFORMATION)
-
           notification.addAction(object : NotificationAction("Copy code") {
             override fun actionPerformed(e: AnActionEvent, notification: Notification) {
               Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(arrowPlugin), null)
