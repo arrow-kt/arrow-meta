@@ -29,31 +29,24 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
         if (arrowExtensions(sourceSetNode) == 0) {
           val properties = Properties()
           properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-          val projectName = (sourceSetNode.parent?.data as ModuleData).moduleName
           val arrowPlugin = arrowPluginContent(properties.getProperty("IDEA_PLUGIN_VERSION"))
+          val projectName = (sourceSetNode.parent?.data as ModuleData).moduleName
           val notificationContent = notificationContent(projectName, arrowPlugin)
           val notification = Notification(notificationsEntry, title, notificationContent, NotificationType.INFORMATION)
+
           notification.addAction(object : NotificationAction("Copy code") {
-            override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-              Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(arrowPlugin), null)
-            }
+            override fun actionPerformed(e: AnActionEvent, notification: Notification) { copyToClipboard(arrowPlugin) }
           })
           notification.addAction(object : NotificationAction("Open file") {
-            override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-              val fileEditorManager = FileEditorManager.getInstance(facet.module.project)
-              val splitModuleName = facet.module.name.split(".")
-              val gradleConfPath = Paths.get(
-                facet.module.project.basePath,
-                *splitModuleName.subList(1, splitModuleName.size - 1).toTypedArray(),
-                "build.gradle"
-              )
-              gradleConfPath.toFile().toVirtualFile()?.let { fileEditorManager.openFile(it, true) }
-            }
+            override fun actionPerformed(e: AnActionEvent, notification: Notification) { openGradleFile(facet) }
           })
           Notifications.Bus.notify(notification, facet.module.project)
         }
     }
   }
+
+  private fun copyToClipboard(text: String): Unit =
+    Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
 
   private fun arrowExtensions(sourceSetNode: DataNode<GradleSourceSetData>): Int? =
     sourceSetNode.parent
@@ -76,6 +69,17 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
     <br /><br />
     $code
     """
+
+  private fun openGradleFile(facet: KotlinFacet): Unit {
+    val fileEditorManager = FileEditorManager.getInstance(facet.module.project)
+    val splitModuleName = facet.module.name.split(".")
+    val gradleConfPath = Paths.get(
+      facet.module.project.basePath,
+      *splitModuleName.subList(1, splitModuleName.size - 1).toTypedArray(),
+      "build.gradle"
+    )
+    gradleConfPath.toFile().toVirtualFile()?.let { fileEditorManager.openFile(it, true) }
+  }
 
   override fun importByModule(facet: KotlinFacet, moduleNode: DataNode<ModuleData>) {}
 }
