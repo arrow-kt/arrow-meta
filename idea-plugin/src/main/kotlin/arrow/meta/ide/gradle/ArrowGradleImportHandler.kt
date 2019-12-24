@@ -48,8 +48,7 @@ class ArrowGradleImportHandler : GradleProjectImportHandler {
   private fun createNotificationContent(projectId: String): String =
     """
     Gradle Plugin is missing in $projectId project:
-    <br />
-    <code style="background-color:white"> $arrowPlugin </code>
+    <br /><br />$arrowPlugin
     """
 
   override fun importByModule(facet: KotlinFacet, moduleNode: DataNode<ModuleData>) {}
