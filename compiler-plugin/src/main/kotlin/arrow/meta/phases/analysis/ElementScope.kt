@@ -167,6 +167,8 @@ interface ElementScope {
   ): Property
   
   val String.property: Property
+
+  val String.`member`: Property
   
   fun propertyGetter(expression: KtExpression): PropertyAccessor
   
