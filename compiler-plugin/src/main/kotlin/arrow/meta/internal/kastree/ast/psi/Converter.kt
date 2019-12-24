@@ -378,6 +378,7 @@ open class Converter {
     is KtNamedFunction -> convertAnonFunc(v)
     is KtProperty -> convertPropertyExpr(v)
     is KtDestructuringDeclaration -> convertPropertyExpr(v)
+    is KtPropertyAccessor -> convertPropertyExpr(v)
     // TODO: this is present in a recovery test where an interface decl is on rhs of a gt expr
     is KtClass -> throw Unsupported("Class expressions not supported")
     else -> error("Unrecognized expression type from $v")
@@ -537,6 +538,8 @@ open class Converter {
     }
   ).map(v)
 
+  open fun convertProperty(v: KtPropertyAccessor) = convertProperty(v.property)
+
   open fun convertPropertyAccessor(v: KtPropertyAccessor) =
     if (v.isGetter) Node.Decl.Property.Accessor.Get(
       mods = convertModifiers(v),
@@ -555,6 +558,10 @@ open class Converter {
   ).map(v)
 
   open fun convertPropertyExpr(v: KtProperty) = Node.Expr.Property(
+    decl = convertProperty(v)
+  ).map(v)
+
+  open fun convertPropertyExpr(v: KtPropertyAccessor) = Node.Expr.Property(
     decl = convertProperty(v)
   ).map(v)
 

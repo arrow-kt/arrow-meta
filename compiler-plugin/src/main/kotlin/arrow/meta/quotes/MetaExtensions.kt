@@ -5,6 +5,7 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.element.FinallySection
@@ -35,39 +36,7 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtBreakExpression
-import org.jetbrains.kotlin.psi.KtCatchClause
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassBody
-import org.jetbrains.kotlin.psi.KtContinueExpression
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFinallySection
-import org.jetbrains.kotlin.psi.KtForExpression
-import org.jetbrains.kotlin.psi.KtFunctionLiteral
-import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtIsExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtReturnExpression
-import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtThrowExpression
-import org.jetbrains.kotlin.psi.KtTryExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtWhenCondition
-import org.jetbrains.kotlin.psi.KtWhenEntry
-import org.jetbrains.kotlin.psi.KtWhenExpression
-import org.jetbrains.kotlin.psi.KtWhileExpression
+import org.jetbrains.kotlin.psi.*
 
 /**
  * @see [BinaryExpression]
@@ -266,6 +235,15 @@ fun Meta.property(
   map: Property.(KtProperty) -> Transform<KtProperty>
 ): ExtensionPhase =
   quote(match, map) { Property(it) }
+
+/**
+ * @see [PropertyAccessor]
+ */
+fun Meta.propertyAccessor(
+  match: KtPropertyAccessor.() -> Boolean,
+  map: PropertyAccessor.(KtPropertyAccessor) -> Transform<KtPropertyAccessor>
+): ExtensionPhase =
+  quote(match, map) { PropertyAccessor(it) }
 
 /**
  * @see [ReturnExpression]

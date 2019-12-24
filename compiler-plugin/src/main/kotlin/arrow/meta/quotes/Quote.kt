@@ -12,6 +12,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.dfs
+import arrow.meta.quotes.declaration.PropertyAccessor
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -20,12 +21,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
@@ -319,12 +315,22 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
 
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
     if (element != null && element == getAst(context, replacing)) {
-        val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
+        val newContents = getNewContent(replacing, newDeclarations)
         println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
         element.dynamic = newContents
         element
     } else element
 }
+
+fun getNewContent(replacing: PsiElement, newDeclarations: List<Scope<KtElement>>): String? {
+  return if (replacing is KtPropertyAccessor) {
+    newDeclarations.joinToString("\n") { (it.value as KtPropertyAccessor).property?.text ?: "" }
+  } else {
+    newDeclarations.joinToString("\n") {
+      it.value?.text ?: "" }
+  }
+}
+
 
 fun getAst(context: PsiElement?, replacing: PsiElement): Node {
   return context?.ast ?: if (replacing.ast is Node.Expr.Property) {
