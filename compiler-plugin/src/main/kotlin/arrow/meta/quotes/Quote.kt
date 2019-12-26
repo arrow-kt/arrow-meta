@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
@@ -320,30 +319,12 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
 }
 
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
-    if (element != null && element == getAst(context, replacing)) {
-        val newContents = getNewContent(replacing, newDeclarations)
+    if (element != null && element == (context?.ast ?: replacing.ast)) {
+        val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
         println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
         element.dynamic = newContents
         element
     } else element
-}
-
-fun getNewContent(replacing: PsiElement, newDeclarations: List<Scope<KtElement>>): String? {
-  return if (replacing is KtPropertyAccessor) {
-    newDeclarations.joinToString("\n") { (it.value as KtPropertyAccessor).property?.text ?: "" }
-  } else {
-    newDeclarations.joinToString("\n") {
-      it.value?.text ?: "" }
-  }
-}
-
-
-fun getAst(context: PsiElement?, replacing: PsiElement): Node {
-  return context?.ast ?: if (replacing.ast is Node.Expr.Property) {
-      (replacing.ast as Node.Expr.Property).decl
-    } else {
-      replacing.ast
-    }
 }
 
 fun <K : KtElement> Transform.Remove<K>.remove(file: Node.File, context: PsiElement? = null): Node.File {

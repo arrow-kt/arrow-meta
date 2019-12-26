@@ -378,7 +378,7 @@ open class Converter {
     is KtNamedFunction -> convertAnonFunc(v)
     is KtProperty -> convertPropertyExpr(v)
     is KtDestructuringDeclaration -> convertPropertyExpr(v)
-    is KtPropertyAccessor -> convertPropertyExpr(v)
+    is KtPropertyAccessor -> convertPropertyAccessorExpr(v)
     // TODO: this is present in a recovery test where an interface decl is on rhs of a gt expr
     is KtClass -> throw Unsupported("Class expressions not supported")
     else -> error("Unrecognized expression type from $v")
@@ -538,7 +538,9 @@ open class Converter {
     }
   ).map(v)
 
-  open fun convertProperty(v: KtPropertyAccessor) = convertProperty(v.property)
+  open fun convertPropertyAccessorExpr(v: KtPropertyAccessor) = Node.Expr.PropertyAccessor(
+    decl = convertPropertyAccessor(v)
+  )
 
   open fun convertPropertyAccessor(v: KtPropertyAccessor) =
     if (v.isGetter) Node.Decl.Property.Accessor.Get(
@@ -558,10 +560,6 @@ open class Converter {
   ).map(v)
 
   open fun convertPropertyExpr(v: KtProperty) = Node.Expr.Property(
-    decl = convertProperty(v)
-  ).map(v)
-
-  open fun convertPropertyExpr(v: KtPropertyAccessor) = Node.Expr.Property(
     decl = convertProperty(v)
   ).map(v)
 
@@ -944,6 +942,8 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtValueArgument -> Converter.convertValueArg(this)
   is KtTypeReference -> Converter.convertTypeRef(this)
   is KtClassBody -> Converter.convertClassBody(this)
+  is KtProperty -> Converter.convertDecl(this)
+  is KtDestructuringDeclaration -> Converter.convertDecl(this)
   is KtExpression -> Converter.convertExpr(this)
   is KtPackageDirective -> Converter.convertPackage(this)
   is KtWhenCondition -> Converter.convertWhenCond(this)
