@@ -425,9 +425,6 @@ sealed class Node {
     data class Property(
       val decl: Decl.Property
     ) : Expr()
-    data class PropertyAccessor(
-      val decl: Decl.Property.Accessor
-    ) : Expr()
   }
 
   data class Block(val stmts: List<Stmt>) : Node()
