@@ -292,13 +292,9 @@ open class Converter {
     is KtNamedFunction -> convertFunc(v)
     is KtDestructuringDeclaration -> convertProperty(v)
     is KtProperty -> convertProperty(v)
+    is KtPropertyAccessor -> convertPropertyAccessor(v)
     is KtTypeAlias -> convertTypeAlias(v)
     is KtSecondaryConstructor -> convertConstructor(v)
-    else -> error("Unrecognized declaration type for $v")
-  }
-
-  open fun convertAccessor(v: KtDeclaration): Node.Decl.Property.Accessor = when (v) {
-    is KtPropertyAccessor -> convertPropertyAccessor(v)
     else -> error("Unrecognized declaration type for $v")
   }
 
@@ -943,7 +939,7 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtTypeReference -> Converter.convertTypeRef(this)
   is KtClassBody -> Converter.convertClassBody(this)
   is KtProperty -> Converter.convertDecl(this)
-  is KtPropertyAccessor -> Converter.convertAccessor(this)
+  is KtPropertyAccessor -> Converter.convertDecl(this)
   is KtDestructuringDeclaration -> Converter.convertDecl(this)
   is KtExpression -> Converter.convertExpr(this)
   is KtPackageDirective -> Converter.convertPackage(this)
