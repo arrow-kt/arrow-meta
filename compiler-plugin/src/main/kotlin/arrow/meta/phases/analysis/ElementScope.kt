@@ -145,9 +145,9 @@ interface ElementScope {
   
   fun propertySetter(expression: KtExpression): PropertyAccessor
 
-  val String.propertyAccessorGet: Scope<KtPropertyAccessor>
+  val String.propertyAccessorGet: PropertyAccessor
 
-  val String.propertyAccessorSet: Scope<KtPropertyAccessor>
+  val String.propertyAccessorSet: PropertyAccessor
   
   fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate>
   
