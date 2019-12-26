@@ -30,7 +30,8 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Paths
-import java.util.*
+import java.util.ArrayList
+import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"

@@ -132,7 +132,7 @@ sealed class Node {
         val first: Accessor,
         val second: Accessor?
       ) : Node()
-      sealed class Accessor : Node(), WithModifiers {
+      sealed class Accessor : Decl(), WithModifiers {
         data class Get(
           override val mods: List<Modifier>,
           val type: Type?,

@@ -1,12 +1,12 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
+import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
 import arrow.meta.quotes.element.PackageDirective
@@ -171,6 +171,10 @@ interface ElementScope {
   fun propertyGetter(expression: KtExpression): PropertyAccessor
   
   fun propertySetter(expression: KtExpression): PropertyAccessor
+
+  val String.propertyAccessorGet: PropertyAccessor
+
+  val String.propertyAccessorSet: PropertyAccessor
   
   fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate>
   
