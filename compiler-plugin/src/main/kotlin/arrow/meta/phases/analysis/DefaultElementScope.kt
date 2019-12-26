@@ -200,9 +200,6 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.property: Property
     get() = Property(delegate.createProperty(trimMargin().trim()))
 
-  override val String.`member`: Property
-    get() = property
-
   override fun propertyGetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
 
