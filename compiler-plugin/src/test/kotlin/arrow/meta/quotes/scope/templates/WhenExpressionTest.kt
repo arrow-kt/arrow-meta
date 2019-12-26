@@ -9,9 +9,8 @@ import org.junit.Test
 
 class WhenExpressionTest  {
 
-  @Test
-  fun `Validate when expression scope properties`() {
-    validate("""
+  companion object {
+    val doMaths = """
             | //metadebug
             |
             |   fun doMaths(x: Int) {
@@ -20,24 +19,18 @@ class WhenExpressionTest  {
             |       else -> { println("I cannot do maths") }
             |     }
             |   }
-            | """.source)
-  }
+            | """.source
 
-  @Test
-  fun `Validate when expression with single expression function`() {
-    validate("""
+    val singleExpressionFunction = """
             | //metadebug
             |
             |   fun doMaths(x: Int) = when(x) {
             |     in 1..10 -> { println("it's in the range") }
             |     else -> { println("not on it!") }
             |   }
-            | """.source)
-  }
+            | """.source
 
-  @Test
-  fun `Validate when expression with sealed classes`() {
-    validate("""
+    val sealedClass = """
             | //metadebug
             |   
             | sealed class SupportedMaths {
@@ -49,7 +42,28 @@ class WhenExpressionTest  {
             |     is SupportedMaths.Add -> println(x + y)
             |     is SupportedMaths.Multiply -> println(x * y)
             | }
-            | """.source)
+            | """.source
+
+    val whenExpressions = arrayOf(
+      doMaths,
+      singleExpressionFunction //,
+      // sealedClass Todo: Make PBT fails
+    )
+  }
+
+  @Test
+  fun `Validate when expression scope properties`() {
+    validate(doMaths)
+  }
+
+  @Test
+  fun `Validate when expression with single expression function`() {
+    validate(singleExpressionFunction)
+  }
+
+  @Test
+  fun `Validate when expression with sealed classes`() {
+    validate(sealedClass)
   }
 
   fun validate(source: Code.Source) {

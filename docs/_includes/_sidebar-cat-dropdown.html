@@ -1,0 +1,19 @@
+<div id="cat-meta-dropdown">
+  <ul class="sidebar-nav">
+    <li class="sidebar-nav-item">
+      <a href="#" class="cat-dropdown">
+        <span class="brand-title">Arrow Meta</span>
+        <i class="fa fa-angle-right"></i>
+      </a>
+      <ul>
+        {% for item in site.data.features.content %}
+        <li>
+          <a href="{{ item.url | relative_url }}">
+            <span>{{ item.title }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </li>
+  </ul>
+</div>

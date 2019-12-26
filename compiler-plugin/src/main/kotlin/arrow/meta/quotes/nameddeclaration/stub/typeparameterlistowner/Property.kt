@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.declaration.PropertyAccessor
@@ -144,11 +145,16 @@ class Property(
   val delegate: Scope<KtPropertyDelegate> = Scope(value.delegate), // TODO KtPropertyDelegate scope and quote template
   val delegateExpressionOrInitializer: Scope<KtExpression> = Scope(value.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
+  val initializer: ScopedList<KtExpression> = ScopedList(listOfNotNull(value.initializer), prefix = " = "),
   val valOrVar: Name = when {
     value.isVar -> "var"
     else -> "val"
   }.let(Name::identifier),
   val getter : PropertyAccessor = PropertyAccessor(value.getter),
   val setter : PropertyAccessor = PropertyAccessor(value.setter)
-) : TypeParameterListOwner<KtProperty>(value)
+) : TypeParameterListOwner<KtProperty>(value) {
+  override fun ElementScope.identity(): Scope<KtProperty> {
+    return """$modality $visibility $valOrVar $name $returnType $initializer $getter $setter""".property
+  }
+}
 

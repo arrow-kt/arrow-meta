@@ -9,18 +9,14 @@ import org.junit.Test
 
 class ReturnExpressionTest  {
 
-  @Test
-  fun `Validate return expression scope properties`() {
-    validate("""
+  companion object {
+    private val returnExpression = """
         | fun whatTimeIsIt(): Long {
         |   return System.currentTimeMillis()
         | }
-        | """.returnExpression())
-  }
+        | """.returnExpression()
 
-  @Test
-  fun `Validate labeled return expression scope properties`() {
-    validate("""
+    private val labeledReturnExpression = """
         | fun foo() {
         |   run loop@{
         |     listOf(1, 2, 3, 4, 5).forEach {
@@ -29,7 +25,32 @@ class ReturnExpressionTest  {
         |     }
         |   }
         | }
-        | """.returnExpression())
+        | """.returnExpression()
+
+    private fun String.returnExpression(): Code.Source {
+      return """
+      | //metadebug
+      | 
+      | class Wrapper {
+      |   $this
+      | }
+      | """.source
+    }
+
+    val returnExpressions = arrayOf(
+      returnExpression,
+      labeledReturnExpression
+    )
+  }
+
+  @Test
+  fun `Validate return expression scope properties`() {
+    validate(returnExpression)
+  }
+
+  @Test
+  fun `Validate labeled return expression scope properties`() {
+    validate(labeledReturnExpression)
   }
 
   private fun validate(source: Code.Source) {
@@ -38,15 +59,5 @@ class ReturnExpressionTest  {
       code = { source },
       assert = { quoteOutputMatches(source) }
     ))
-  }
-
-  private fun String.returnExpression(): Code.Source {
-    return """
-      | //metadebug
-      | 
-      | class Wrapper {
-      |   $this
-      | }
-      | """.source
   }
 }

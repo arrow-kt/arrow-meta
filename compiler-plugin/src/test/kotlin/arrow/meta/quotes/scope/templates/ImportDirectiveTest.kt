@@ -8,17 +8,19 @@ import org.junit.Test
 
 class ImportDirectiveTest  {
 
-  private val importDirective = """
+  companion object {
+    val importDirectiveExpression = """
                          | //metadebug
                          | import kotlin.assert as testMessage
                          | """.source
+  }
 
   @Test
   fun `Validate import directive scope properties`() {
     assertThis(CompilerTest(
       config = { metaDependencies + addMetaPlugins(ImportDirectivePlugin()) },
-      code = { importDirective },
-      assert = { quoteOutputMatches(importDirective) }
+      code = { importDirectiveExpression },
+      assert = { quoteOutputMatches(importDirectiveExpression) }
     ))
   }
 }

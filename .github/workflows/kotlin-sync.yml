@@ -15,12 +15,47 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Test latest Kotlin EAP version
+      run: |
+        LATEST_KOTLIN_EAP_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep eap | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
+        echo "Kotlin EAP version = $LATEST_KOTLIN_EAP_VERSION" > versions
+        LATEST_KOTLIN_EAP_VERSION_NUMBER=$(echo $LATEST_KOTLIN_EAP_VERSION | cut -d- -f1)
+        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+          PATCH_VERSION_NUMBER=$(basename -s .diff $patch | cut -d- -f1)
+          if [[ "$(echo -e "$LATEST_KOTLIN_EAP_VERSION_NUMBER\n$PATCH_VERSION_NUMBER" | sort -V | tail -1)" == "$LATEST_KOTLIN_EAP_VERSION_NUMBER" ]]; then git apply $patch; fi
+        done
+        git status
+        sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_EAP_VERSION/g" gradle.properties
+        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+        echo "Latest Kotlin version: $LATEST_KOTLIN_EAP_VERSION"
+        ./gradlew clean :compiler-plugin:build 2> stderr
+    - name: Test latest Kotlin DEV version
+      run: |
+        git checkout .
+        LATEST_KOTLIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep dev | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
+        echo "Kotlin DEV version = $LATEST_KOTLIN_DEV_VERSION" > versions
+        LATEST_KOTLIN_DEV_VERSION_NUMBER=$(echo $LATEST_KOTLIN_DEV_VERSION | cut -d- -f1)
+        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+          PATCH_VERSION_NUMBER=$(basename -s .diff $patch | cut -d- -f1)
+          if [[ "$(echo -e "$LATEST_KOTLIN_DEV_VERSION_NUMBER\n$PATCH_VERSION_NUMBER" | sort -V | tail -1)" == "$LATEST_KOTLIN_DEV_VERSION_NUMBER" ]]; then git apply $patch; fi
+        done
+        git status
+        sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
+        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+        echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
+        ./gradlew clean :compiler-plugin:build 2> stderr
     - name: Update versions
       id: update
       run: |
         sudo apt-get install html2text
+        git checkout .
         LATEST_KOTLIN_VERSION=$(curl https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
         echo "Latest Kotlin version: $LATEST_KOTLIN_VERSION"
+        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+          PATCH_VERSION_NUMBER=$(basename -s .diff $patch | cut -d- -f1)
+          if [[ "$(echo -e "$LATEST_KOTLIN_VERSION\n$PATCH_VERSION_NUMBER" | sort -V | tail -1)" == "$LATEST_KOTLIN_VERSION" ]]; then git apply $patch; rm $patch; fi
+        done
+        git status
         curl -o intellij-idea-releases.html https://www.jetbrains.com/intellij-repository/releases/
         html2text -style pretty -o intellij-idea-releases.txt intellij-idea-releases.html
         LATEST_INTELLIJ_IDEA_VERSION=$(grep -A 100 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\+\.[0-9]\+\.\?[0-9]*' | head -2 | tail -1)
@@ -39,23 +74,30 @@ jobs:
     - name: Build Arrow Meta
       if: steps.update.outputs.differences != ''
       run: |
-        ./gradlew :compiler-plugin:build 2> stderr
+        echo "Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}" > versions
+        ./gradlew clean :compiler-plugin:build 2> stderr
         ./gradlew :idea-plugin:build 2> stderr
         ./gradlew :testing-plugin:build 2> stderr
         ./gradlew :gradle-plugin:jar 2> stderr
     - name: Prepare the environment to create the pull request
+      id: prepare-pr
       if: steps.update.outputs.differences != ''
-      run: rm -f stderr
+      run: |
+        rm -f versions
+        rm -f stderr
+        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
+        echo "::set-output name=last-commit-hash::$LAST_COMMIT_HASH"
     - name: Create pull request
       if: steps.update.outputs.differences != ''
-      uses: peter-evans/create-pull-request@v1
+      uses: gr2m/create-or-update-pull-request-action@v1.2.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: Sync versions for Kotlin, Kotlin IDEA plugin and Intellij IDEA
         title: "Sync: Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}"
-        body: Generated automatically
-        branch: sync/kotlin
-        branch-suffix: short-commit-hash
+        body: "I've looked at [Maven Central](https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml) to get the latest Kotlin version. \n\nAnd I've looked at [Intellij IDEA releases](https://www.jetbrains.com/intellij-repository/releases/) to get the latest Intellij IDEA version (section `com.jetbrains.intellij.idea`).\n\nFrom both versions, I've built Kotlin IDEA version.\n\n :warning: **Don't wait for automatic checks** because they cannot be executed to prevent an infinite loop of GitHub Actions. If I created this pull request, everything is working as expected so you can merge it. Otherwise, I would have created an issue.\n\nIf you'd like to skip these versions, you can just close this PR.\n\nHave a fantastic day using Arrow Meta! :sparkles:"
+        branch: "sync/kotlin-${{ steps.prepare-pr.outputs.last-commit-hash }}"
+        commit-message: "Sync versions for Kotlin, Kotlin IDEA plugin and Intellij IDEA"
+        author: "raulraja <raulraja@users.noreply.github.com>"
     - name: Prepare environment to create the issue (Node)
       if: failure()
       uses: actions/setup-node@v1
@@ -64,8 +106,11 @@ jobs:
     - name: Prepare environment to create the issue (new package)
       if: failure()
       run: |
-        echo "Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}" > versions
-        echo "* LINK: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks" >> stderr
+        echo -e "I've found this error:\n\n" > issue.log
+        echo -e "* **VERSIONS**: $(cat versions)\n" >> issue.log
+        echo -e "* **NOTE**: If you want to reproduce the error in a local environment, replace the versions in \`gradle.properties\` file and add \`https://dl.bintray.com/kotlin/kotlin-dev/\` repository in \`build.gradle\`.\n" >> issue.log
+        echo -e "* **ERROR LOG**: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks\n" >> issue.log
+        echo -e "* **ERROR**:\n\n$(cat stderr)\n" >> issue.log
         rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
         cd /home/runner/work/_actions/actions/github-script/0.3.0/
         npm install
@@ -89,6 +134,6 @@ jobs:
           }
           await github.issues.create({...context.repo, 
             title: 'Sync: ' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/versions"), 
-            body: ' * FAILURE: \n' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/stderr"),
+            body: readFile("file:///home/runner/work/arrow-meta/arrow-meta/issue.log"),
             assignees: ['raulraja', 'i-walker', 'ahinchman1', 'rachelcarmena'],
             labels: ['critical', 'Kotlin version upgrade']});

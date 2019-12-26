@@ -206,6 +206,12 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun propertySetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
 
+  override val String.propertyAccessorGet: PropertyAccessor
+    get() = property.getter
+
+  override val String.propertyAccessorSet: PropertyAccessor
+    get() = property.setter
+
   override fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate> =
     Scope(delegate.createPropertyDelegate(expression))
 

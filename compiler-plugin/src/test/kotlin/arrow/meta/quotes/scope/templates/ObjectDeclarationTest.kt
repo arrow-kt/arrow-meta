@@ -8,20 +8,22 @@ import org.junit.Test
 
 class ObjectDeclarationTest  {
   
-  private val `object` = """
+  companion object {
+    val objectDeclarationExpression = """
                          | //metadebug
                          | 
                          | @Deprecated("Test") object Test {
                          |   fun test() { println("Test") }
                          |   fun test2() { println("Test2") }
                          | }""".source
+  }
   
   @Test
   fun `Validate object declaration scope properties`() {
     assertThis(CompilerTest(
       config = { metaDependencies + addMetaPlugins(ObjectDeclarationPlugin()) },
-      code = { `object` },
-      assert = { quoteOutputMatches(`object`) }
+      code = { objectDeclarationExpression },
+      assert = { quoteOutputMatches(objectDeclarationExpression) }
     ))
   }
 }
