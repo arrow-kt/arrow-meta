@@ -2,12 +2,14 @@ package arrowx
 
 import arrow.Proof
 import arrow.TypeProof
-import arrowx.Kind
-import arrowx.Kinded
 
-interface Applicative<C, F> {
-  fun <A> C.just(a: A): Kind<F, A>
-  fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
+interface Applicative<out F> {
+  fun <A> just(a: A): Kind<F, A>
+}
+
+interface ApplicativeOps<out F, out A> {
+  val fa: Kind<F, A>
+  fun <B> fmap(f: (A) -> B): Kind<F, B>
 }
 
 class ForId
@@ -24,15 +26,42 @@ class Id<out A>(val value: A) {
   companion object
 }
 
-object IdApplicative : Applicative<Id.Companion, ForId> {
-  override fun <A, B> Kind<ForId, A>.map(f: (A) -> B): Kind<ForId, B> =
-    Id(f(fix().value)).unfix()
-  override fun <A> Id.Companion.just(a: A): Kind<ForId, A> =
+object IdApplicative: Applicative<ForId> {
+  override fun <A> just(a: A): Kind<ForId, A> =
     Id(a).unfix()
 }
 
-@Proof(TypeProof.Extension)
-fun <A> Id<A>.applicative(): Applicative<Id.Companion, ForId> =
+class IdApplicativeOps<A>(override val fa: Kind<ForId, A>): ApplicativeOps<ForId, A> {
+  override fun <B> fmap(f: (A) -> B): Kind<ForId, B> =
+    Id(f(fa.fix().value)).unfix()
+}
+
+@Proof(TypeProof.Subtyping)
+fun Id.Companion.applicative(): Applicative<ForId> =
   IdApplicative
 
-fun <A> Id.Companion.just2(a: A): Kind<ForId, A> = TODO()
+@Proof(TypeProof.Subtyping)
+fun <A> Kind<ForId, A>.syntax(): ApplicativeOps<ForId, A> =
+  IdApplicativeOps(this)
+
+interface Monoid<A> {
+  fun mempty(): A
+  interface Ext<A> {
+    val value: A
+    fun mcombine(b: A): A
+  }
+}
+
+object StringMonoid : Monoid<String> {
+  override fun mempty(): String = ""
+}
+
+inline class StringMonoidExt(override val value: String) : Monoid.Ext<String> {
+  override fun mcombine(b: String): String = value + b
+}
+
+@Proof(TypeProof.Subtyping)
+fun String.Companion.monoid(): Monoid<String> = StringMonoid
+
+@Proof(TypeProof.Subtyping)
+fun String.monoidExt(): Monoid.Ext<String> = StringMonoidExt(this)

@@ -3,6 +3,7 @@ package arrow.meta.proofs
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.typeProofs
+import arrow.meta.plugins.proofs.ProofsDataFlowInfo
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptorWithResolutionScopes
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -22,6 +23,7 @@ import org.jetbrains.kotlin.resolve.BodiesResolveContext
 import org.jetbrains.kotlin.resolve.TopDownAnalysisContext
 import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
+import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfoFactory
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.descriptors.findPackageFragmentForFile
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
@@ -48,7 +50,7 @@ class ProofsBodyResolveContent(
 
   override fun getOuterDataFlowInfo(): DataFlowInfo =
     Log.Verbose({ "ProofsBodyResolveContent.getOuterDataFlowInfo: $this" }) {
-      delegate.outerDataFlowInfo
+      delegate.outerDataFlowInfo.and(ProofsDataFlowInfo())
     }
 
   override fun getDeclaredClasses(): MutableMap<KtClassOrObject, ClassDescriptorWithResolutionScopes> =

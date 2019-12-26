@@ -28,7 +28,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
 
   override fun equalTypes(p0: KotlinType, p1: KotlinType): Boolean {
     val result = baseLineTypeChecker.equalTypes(p0, p1)
-    //println("typeConversion:equalTypes: $p0 : $p1 -> $result")
+    println("typeConversion:equalTypes: $p0 : $p1 -> $result")
     return result
   }
 }

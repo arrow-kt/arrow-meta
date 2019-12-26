@@ -69,6 +69,7 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
+import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -126,14 +127,16 @@ fun FunctionDescriptor.isProof(): Boolean =
   annotations.hasAnnotation(ArrowProof)
 
 fun List<Proof>.extensions(): List<Proof> =
-  filter { it.proofType == ProofStrategy.Extension }
+  this//filter { it.proofType == ProofStrategy.Extension }
 
 fun List<Proof>.extensions(types: Collection<KotlinType>): List<Proof> =
   extensions(*types.toTypedArray())
 
 fun List<Proof>.extensions(vararg types: KotlinType): List<Proof> =
   extensions().mapNotNull { proof ->
-    val include = types.any { proof.from.`isSubtypeOf(NewKotlinTypeChecker)`(it) }
+    val include = types.any {
+      proof.from.isSubtypeOf(it)
+    }
     if (include) {
       proof
     } else null
@@ -148,12 +151,12 @@ fun List<Proof>.subtyping(vararg types: KotlinType): List<Proof> =
       } else null
     }
 
-fun ClassDescriptor.syntheticMemberFunction(fn: SimpleFunctionDescriptor): SimpleFunctionDescriptor? {
+fun ClassDescriptor.syntheticMemberFunction2(fn: SimpleFunctionDescriptor): SimpleFunctionDescriptor? {
   val dispatchReceiver = ReceiverParameterDescriptorImpl(this, CastImplicitClassReceiver(this, defaultType), Annotations.EMPTY)
-  return fn.syntheticFunction(this, null, dispatchReceiver, fn.source)
+  return fn.syntheticFunction2(this, null, dispatchReceiver, fn.source)
 }
 
-fun SimpleFunctionDescriptor.syntheticFunction(
+fun SimpleFunctionDescriptor.syntheticFunction2(
   containingDeclaration: DeclarationDescriptor?,
   extensionReceiver: ReceiverParameterDescriptor?,
   dispatchReceiver: ReceiverParameterDescriptor?,
@@ -174,25 +177,9 @@ fun SimpleFunctionDescriptor.syntheticFunction(
     Modality.FINAL,
     Visibilities.PUBLIC
   ).newCopyBuilder()
-    .setOriginal(this@syntheticFunction)
+    .setOriginal(this@syntheticFunction2)
     .build()
 }
-
-fun SimpleFunctionDescriptor.staticSyntheticFunction(proof: Proof): SimpleFunctionDescriptor? =
-  syntheticFunction(
-    proof.through.containingDeclaration,
-    null,
-    proof.through.dispatchReceiverParameter,
-    proof.through.original.source
-  )
-
-fun SimpleFunctionDescriptor.extensionSyntheticFunction(proof: Proof): SimpleFunctionDescriptor? =
-  syntheticFunction(
-    proof.through.containingDeclaration,
-    extensionReceiverParameter,
-    proof.through.dispatchReceiverParameter,
-    proof.through.original.source
-  )
 
 fun List<Proof>.lexicalScope(currentScope: LexicalScope, containingDeclaration: DeclarationDescriptor): LexicalScope {
   val types = map { it.intersection(/* TODO substitutor */) }
@@ -214,13 +201,6 @@ fun (() -> List<Proof>).chainedMemberScope(): MemberScope {
     this().flatMap { proof ->
       proof.extensionCallables { true }
         .filterIsInstance<SimpleFunctionDescriptor>()
-        .mapNotNull {
-          if (it.isExtension) {
-            it.extensionSyntheticFunction(proof)
-          } else {
-            it.staticSyntheticFunction(proof)
-          }
-        }
     }
   }
 
@@ -228,26 +208,21 @@ fun (() -> List<Proof>).chainedMemberScope(): MemberScope {
 }
 
 fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<CallableMemberDescriptor> =
-  if (proofType == ProofStrategy.Extension) {
-    to.memberScope
-      .getContributedDescriptors(nameFilter = descriptorNameFilter)
-      .toList()
-      .filterIsInstance<CallableMemberDescriptor>()
-      .mapNotNull { fn ->
-        when (fn) {
-          is FunctionDescriptor -> {
-            when {
-              fn.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE -> null
-              fn is SimpleFunctionDescriptorImpl -> {
-                fn.syntheticFunction(null, fn.extensionReceiverParameter, fn.dispatchReceiverParameter, fn.original.source)
-              }
-              else -> fn
-            }
+  to.memberScope
+    .getContributedDescriptors(nameFilter = descriptorNameFilter)
+    .toList()
+    .filterIsInstance<CallableMemberDescriptor>()
+    .mapNotNull { fn ->
+      when (fn) {
+        is FunctionDescriptor -> {
+          when (fn.kind) {
+            CallableMemberDescriptor.Kind.FAKE_OVERRIDE -> null
+            else -> fn
           }
-          else -> fn
         }
+        else -> fn
       }
-  } else emptyList()
+    }
 
 fun List<Proof>.hasProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Boolean =
   matchingCandidates(compilerContext, subType, superType).isNotEmpty()
@@ -389,96 +364,14 @@ fun List<Proof>.importableNames(): Set<FqName> =
     .map { FqName(it.fqNameSafe.asString().replace(".${it.containingDeclaration.name}.", ".")) }
     .toSet()
 
-fun CallableDescriptor.substituteAndApproximateCapturedTypes2(
-  substitutor: NewTypeSubstitutorByConstructorMap,
-  typeApproximator: TypeApproximator
-): CallableDescriptor {
-  val wrappedSubstitution = object : TypeSubstitution() {
-    override fun get(key: KotlinType): TypeProjection? {
-      return key.unwrap().substitutedType()?.asTypeProjection()
-    }
-
-    override fun prepareTopLevelType(topLevelType: KotlinType, position: Variance) =
-      substitutor.safeSubstitute(topLevelType.unwrap()).let { substitutedType ->
-        val candidate = typeApproximator.approximateToSuperType(substitutedType, TypeApproximatorConfiguration.CapturedAndIntegerLiteralsTypesApproximation)
-          ?: substitutedType
-        if (candidate.isTypeParameter()) { //attempt substitution based on name on type args for same functions
-          candidate.substitutedType() ?: candidate
-        } else candidate
-      }
-
-    private fun UnwrappedType.substitutedType(): UnwrappedType? =
-      substitutor.map.keys.find {
-        it.toString() ==
-          if (isTypeParameter() && isMarkedNullable)
-            toString().replace("?", "")
-          else toString()
-      }?.let {
-        val newType = substitutor.map[it]
-        if (isMarkedNullable) newType?.makeNullable()?.unwrap() else newType
-      }
-  }
-
-  return substitute(TypeSubstitutor.create(wrappedSubstitution))
-}
-
-fun List<Proof>.syntheticStaticFunctions(scope: ResolutionScope): List<SimpleFunctionDescriptor> {
-  return extensions().flatMap { proof ->
-    proof.extensionCallables { true }
-      .filterIsInstance<SimpleFunctionDescriptor>()
-      .filter { !it.isExtension }
-      .mapNotNull {
-        it.toStaticSynthetic(scope, proof)
-      }
-  }
-}
-
 fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name): List<SimpleFunctionDescriptor> =
-  extensions(receiverTypes).flatMap { proof ->
-    proof.extensionCallables { true }
-      .filterIsInstance<SimpleFunctionDescriptor>()
-      .filter { it.isExtension && it.name == name && it.extensionReceiverParameter?.type in receiverTypes }
-      .mapNotNull { fn ->
-        val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
-        result
-      }
-  }
-
-fun List<Proof>.syntheticStaticFunctions(name: Name, scope: ResolutionScope): List<SimpleFunctionDescriptor> =
-  extensions().flatMap { proof ->
-    proof.extensionCallables { true }
-      .filterIsInstance<SimpleFunctionDescriptor>()
-      .filter { !it.isExtension && it.name == name }
-      .mapNotNull {
-        it.toStaticSynthetic(scope, proof)
-      }
-  }
+  syntheticMemberFunctions(receiverTypes).filter { it.name == name }
 
 fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): List<SimpleFunctionDescriptor> =
   extensions(receiverTypes).flatMap { proof ->
     proof.extensionCallables { true }
       .filterIsInstance<SimpleFunctionDescriptor>()
-      .filter { it.isExtension && it.extensionReceiverParameter?.type in receiverTypes }
-      .mapNotNull { fn ->
-        val result = receiverTypes.first().constructor.declarationDescriptor?.safeAs<ClassDescriptor>()?.syntheticMemberFunction(fn)
-        result
-      }
   }
-
-fun SimpleFunctionDescriptor.toStaticSynthetic(scope: ResolutionScope, proof: Proof): SimpleFunctionDescriptor? {
-  val result = if (scope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND).isEmpty())
-    staticSyntheticFunction(proof)
-  else null
-  return result
-}
-
-fun ProofCandidate.applyConversion(): ProofCandidate? =
-  copy(
-    through = through.substituteAndApproximateCapturedTypes2(
-      typeSubstitutor,
-      TypeApproximator(through.module.builtIns)
-    ) as FunctionDescriptor
-  )
 
 fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
   diagnostic.factory == Errors.TYPE_MISMATCH &&
@@ -488,12 +381,6 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: L
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
         proofs.subtypingProof(this, subType, superType) != null
       }
-    } == true
-
-fun CompilerContext.suppressExtensionUnresolvedReference(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
-  diagnostic.factory == Errors.UNRESOLVED_REFERENCE &&
-    diagnostic.safeAs<DiagnosticFactory1<KtReferenceExpression, KtReferenceExpression>>()?.let { diagnosticWithParameters ->
-      false
     } == true
 
 fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
@@ -507,24 +394,24 @@ fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagno
     } == true
 
 fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
-    diagnostic.factory == Errors.CONSTANT_EXPECTED_TYPE_MISMATCH &&
-      diagnostic.safeAs<DiagnosticWithParameters2<KtConstantExpression, String, KotlinType>>()?.let { diagnosticWithParameters ->
-        val superType = diagnosticWithParameters.b
-        val elementType = diagnosticWithParameters.psiElement.elementType.toString()
-        val subType = when (elementType) {
-          "INTEGER_CONSTANT" -> module?.builtIns?.intType
-          "CHARACTER_CONSTANT" -> module?.builtIns?.charType
-          "FLOAT_CONSTANT" -> module?.builtIns?.floatType
-          "BOOLEAN_CONSTANT" -> module?.builtIns?.booleanType
-          "NULL" -> module?.builtIns?.nullableAnyType
-          else -> null
+  diagnostic.factory == Errors.CONSTANT_EXPECTED_TYPE_MISMATCH &&
+    diagnostic.safeAs<DiagnosticWithParameters2<KtConstantExpression, String, KotlinType>>()?.let { diagnosticWithParameters ->
+      val superType = diagnosticWithParameters.b
+      val elementType = diagnosticWithParameters.psiElement.elementType.toString()
+      val subType = when (elementType) {
+        "INTEGER_CONSTANT" -> module?.builtIns?.intType
+        "CHARACTER_CONSTANT" -> module?.builtIns?.charType
+        "FLOAT_CONSTANT" -> module?.builtIns?.floatType
+        "BOOLEAN_CONSTANT" -> module?.builtIns?.booleanType
+        "NULL" -> module?.builtIns?.nullableAnyType
+        else -> null
+      }
+      Log.Verbose({ "suppressConstantExpectedTypeMismatch: $subType, $superType, $this" }) {
+        subType?.let {
+          proofs.subtypingProof(this, it, superType) != null
         }
-        Log.Verbose({ "suppressConstantExpectedTypeMismatch: $subType, $superType, $this" }) {
-          subType?.let {
-            proofs.subtypingProof(this, it, superType) != null
-          }
-        }
-      } == true
+      }
+    } == true
 
 
 fun Diagnostic.suppressUpperboundViolated(proofs: List<Proof>): Boolean = false

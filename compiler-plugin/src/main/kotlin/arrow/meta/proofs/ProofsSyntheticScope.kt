@@ -17,27 +17,27 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class ProofsSyntheticScope(val proofs: () -> List<Proof>) : SyntheticScope {
   override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($constructor), result: $this" }) {
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticConstructor($constructor), result: $this" }) {
       null
     }
 
   override fun getSyntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($scope), result: $this" }) {
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticConstructor($scope), result: $this" }) {
       emptyList()
     }
 
   override fun getSyntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructors($scope), $name result: $this" }) {
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticConstructors($scope), $name result: $this" }) {
       emptyList()
     }
 
   override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticExtensionProperties($receiverTypes) result: $this" }) {
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticExtensionProperties($receiverTypes) result: $this" }) {
       emptyList()
     }
 
   override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticExtensionProperties($receiverTypes, $name) result: $this" }) {
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticExtensionProperties($receiverTypes, $name) result: $this" }) {
       emptyList()
     }
 
@@ -53,11 +53,11 @@ class ProofsSyntheticScope(val proofs: () -> List<Proof>) : SyntheticScope {
 
   override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticStaticFunctions($scope)" }) {
-      proofs().syntheticStaticFunctions(scope)
+      emptyList()
     }
 
   override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
     Log.Verbose({ "ProofsSyntheticScope.getSyntheticStaticFunctions name: $name" }) {
-      proofs().syntheticStaticFunctions(name, scope)
+      emptyList()
     }
 }

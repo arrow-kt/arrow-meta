@@ -103,7 +103,6 @@ val ModuleDescriptor.typeProofs: List<Proof>
         val cacheValue = proofCache[this]
         when {
           cacheValue != null -> {
-            println("Serving cached value for $this: $cacheValue")
             cacheValue.proofs
           }
           else -> emptyList()

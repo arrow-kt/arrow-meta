@@ -252,20 +252,6 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
     )
   }
 
-private fun resolveBodyWithExtensionsScope(session: ResolveSession, ktFile: KtFile): Unit {
-  Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
-    session.fileScopeProvider = MetaFileScopeProvider(session.moduleDescriptor, session.fileScopeProvider)
-//    val bodyResolver = analyzer?.createBodyResolver(
-//      session, session.trace, ktFile, StatementFilter.NONE
-//    )
-//    val analysisContext = topDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(ktFile), DataFlowInfo.EMPTY)
-//    val resolveContext = ProofsBodyResolveContent(
-//      session = session,
-//      delegate = analysisContext
-//    )
-//    bodyResolver?.resolveBodies(resolveContext)
-  }
-}
 //    modifiedScope.implicitReceiver?.type?.asSimpleType()?.let {
 //      applySmartCast(null, it, ktCallable, session)
 //    }

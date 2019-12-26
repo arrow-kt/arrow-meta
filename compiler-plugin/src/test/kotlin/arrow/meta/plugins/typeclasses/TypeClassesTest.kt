@@ -12,19 +12,13 @@ class TypeClassesTest {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
-       package test
-       
        import arrowx.*
       
        //metadebug
-        
-        val a2: Id<Int> = Id.just2(1)
-        val a: Id<Int> = Id.just(1)
-        
-        fun f(): Int {
-          val x : Id<Int> = a
-          return x.value
-        }
+        val aaaa = "1".monoidExt().mcombine("2").monoidExt().mcombine("3").monoidExt().mcombine("4")
+        val b = "1".mcombine("2").mcombine("3").mcombine("4").mcombine("5")
+        val c = String.mempty()
+        val d = c.mcombine(b)
       """
 
     assertThis(CompilerTest(
@@ -35,7 +29,7 @@ class TypeClassesTest {
         codeSnippet.source
       },
       assert = {
-        allOf("f()".source.evalsTo(2))
+        allOf("d".source.evalsTo("12345"))
       }
     ))
   }
