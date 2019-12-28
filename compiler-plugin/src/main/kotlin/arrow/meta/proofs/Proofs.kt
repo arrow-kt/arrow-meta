@@ -9,9 +9,9 @@ import arrow.meta.phases.resolve.asProof
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.phases.resolve.proofCache
 import arrow.meta.phases.resolve.typeArgumentsMap
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -27,17 +27,15 @@ import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
+import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtReferenceExpression
-import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
+import org.jetbrains.kotlin.resolve.calls.inference.InferenceErrorData
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.GivenCandidate
@@ -47,31 +45,24 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
+import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
 import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
-import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.CastImplicitClassReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeApproximator
-import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
-import org.jetbrains.kotlin.types.TypeProjection
-import org.jetbrains.kotlin.types.TypeSubstitution
-import org.jetbrains.kotlin.types.TypeSubstitutor
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
-import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
-import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jgrapht.Graph
 import org.jgrapht.GraphPath
@@ -135,7 +126,7 @@ fun List<Proof>.extensions(types: Collection<KotlinType>): List<Proof> =
 fun List<Proof>.extensions(vararg types: KotlinType): List<Proof> =
   extensions().mapNotNull { proof ->
     val include = types.any {
-      proof.from.isSubtypeOf(it)
+      !it.isTypeParameter() && proof.from.isSubtypeOf(it)
     }
     if (include) {
       proof
@@ -212,23 +203,21 @@ fun Proof.extensionCallables(descriptorNameFilter: (Name) -> Boolean): List<Call
     .getContributedDescriptors(nameFilter = descriptorNameFilter)
     .toList()
     .filterIsInstance<CallableMemberDescriptor>()
-    .mapNotNull { fn ->
-      when (fn) {
-        is FunctionDescriptor -> {
-          when (fn.kind) {
-            CallableMemberDescriptor.Kind.FAKE_OVERRIDE -> null
-            else -> fn
-          }
-        }
-        else -> fn
-      }
-    }
+    .mapNotNull(CallableMemberDescriptor::discardAnyFakeOverrides)
+
+private fun CallableMemberDescriptor.discardAnyFakeOverrides(): CallableMemberDescriptor? =
+  when (kind) {
+    CallableMemberDescriptor.Kind.FAKE_OVERRIDE ->
+      if (dispatchReceiverParameter?.type == builtIns.anyType) null
+      else this
+    else -> this
+  }
 
 fun List<Proof>.hasProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Boolean =
   matchingCandidates(compilerContext, subType, superType).isNotEmpty()
 
 fun List<Proof>.subtypingProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Proof? =
-  filter { it.proofType == ProofStrategy.Subtyping }.matchingCandidates(compilerContext, subType, superType).firstOrNull()
+  filter { it.proofType == ProofStrategy.Subtyping || it.proofType == ProofStrategy.Extension }.matchingCandidates(compilerContext, subType, superType).firstOrNull()
 
 fun FunctionDescriptor.dispatchTo(receiverValue: ReceiverValue): FunctionDescriptor =
   safeAs<SimpleFunctionDescriptor>()?.newCopyBuilder()?.setDispatchReceiverParameter(
@@ -243,39 +232,42 @@ fun List<Proof>.matchingCandidates(
   subType: KotlinType,
   superType: KotlinType
 ): List<Proof> =
-  compilerContext.run {
-    try {
-      module?.run {
-        componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-          val extensionReceiver = ProofReceiverValue(subType)
-          val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
-          val scopeTower = ProofsScopeTower(this, this@matchingCandidates)
-          val kotlinCall: KotlinCall = receiverValue.kotlinCall()
-          val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
-            scopeTower = scopeTower,
-            kotlinCall = kotlinCall,
-            expectedType = superType.unwrap(),
-            collectAllCandidates = true,
-            givenCandidates = this@matchingCandidates.map {
-              GivenCandidate(
-                descriptor = it.through,
-                dispatchReceiver = null,
-                knownTypeParametersResultingSubstitutor = null
-              )
-            },
-            extensionReceiver = receiverValue
-          )
-          return if (callResolutionResult is AllCandidatesResolutionResult) {
-            val selectedCandidates = callResolutionResult.allCandidates.filter {
-              it.diagnostics.isEmpty()
-            }
-            val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
-            proofs
-          } else emptyList()
-        }
-      } ?: emptyList()
-    } catch (e: ContainerConsistencyException) {
-      emptyList()
+  if (subType.isError || superType.isError) emptyList()
+  else {
+    compilerContext.run {
+      try {
+        module?.run {
+          componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
+            val extensionReceiver = ProofReceiverValue(subType)
+            val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
+            val scopeTower = ProofsScopeTower(this, this@matchingCandidates)
+            val kotlinCall: KotlinCall = receiverValue.kotlinCall()
+            val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
+              scopeTower = scopeTower,
+              kotlinCall = kotlinCall,
+              expectedType = superType.unwrap(),
+              collectAllCandidates = true,
+              givenCandidates = this@matchingCandidates.map {
+                GivenCandidate(
+                  descriptor = it.through,
+                  dispatchReceiver = null,
+                  knownTypeParametersResultingSubstitutor = null
+                )
+              },
+              extensionReceiver = receiverValue
+            )
+            return if (callResolutionResult is AllCandidatesResolutionResult) {
+              val selectedCandidates = callResolutionResult.allCandidates.filter {
+                it.diagnostics.isEmpty()
+              }
+              val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
+              proofs
+            } else emptyList()
+          }
+        } ?: emptyList<Proof>()
+      } catch (e: ContainerConsistencyException) {
+        emptyList<Proof>()
+      }
     }
   }
 
@@ -376,8 +368,8 @@ fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>):
 fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
   diagnostic.factory == Errors.TYPE_MISMATCH &&
     diagnostic.safeAs<DiagnosticWithParameters2<KtExpression, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
-      val subType = diagnosticWithParameters.b
-      val superType = diagnosticWithParameters.a
+      val subType = diagnosticWithParameters.a
+      val superType = diagnosticWithParameters.b
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
         proofs.subtypingProof(this, subType, superType) != null
       }
@@ -413,12 +405,12 @@ fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic,
       }
     } == true
 
-
-fun Diagnostic.suppressUpperboundViolated(proofs: List<Proof>): Boolean = false
-//  factory == Errors.UPPER_BOUND_VIOLATED &&
-//    safeAs<DiagnosticFactory2<KtTypeReference, KotlinType, KotlinType>>()?.let { factory ->
-//      factory.cast(this).run {
-//        //if this is the kind type checker then it will do the right thing otherwise this proceeds as usual with the regular type checker
-//        proofs.subtypingProof(a, b) != null
+fun CompilerContext.suppressUpperboundViolated(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+  diagnostic.factory == Errors.TYPE_INFERENCE_UPPER_BOUND_VIOLATED &&
+    diagnostic.safeAs<DiagnosticWithParameters1<PsiElement, InferenceErrorData>>()?.let { diagnosticWithParameters ->
+      val inferenceErrorData = diagnosticWithParameters.a
+      true
+//      Log.Verbose({ "suppressUpperboundViolated: $subType, $superType, $this" }) {
+//        proofs.subtypingProof(this, subType, superType) != null
 //      }
-//    } == true
+    } == true

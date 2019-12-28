@@ -1,5 +1,8 @@
 package arrow
 
+import java.lang.reflect.Type
+import kotlin.reflect.KClass
+
 /**
  * - Type Proofs
  *  - Introduction
@@ -85,7 +88,15 @@ enum class TypeProof {
 }
 
 @Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 annotation class Proof(
   val of: TypeProof
+)
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+@MustBeDocumented
+annotation class Ext(
+  val of: KClass<*>
 )

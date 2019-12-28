@@ -159,7 +159,9 @@ class IrUtils(
       it.apply {
         val proofCall = proofCall(proofs, valueType, targetType)
         proofCall?.extensionReceiver = initializer
-        initializer = proofCall
+        proofCall?.also {
+          initializer = it
+        }
       }
     } else it
   }
@@ -171,8 +173,8 @@ class IrUtils(
       }
     }
 
-  private fun CompilerContext.insertCallProof(expression: IrCall, proofs: List<Proof>): IrCall {
-    return Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
+  private fun CompilerContext.insertCallProof(expression: IrCall, proofs: List<Proof>): IrCall =
+    Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       val valueType = expression.dispatchReceiver?.type?.toKotlinType()
         ?: expression.extensionReceiver?.type?.toKotlinType()
       val targetType = expression.descriptor.dispatchReceiverParameter?.type
@@ -181,12 +183,13 @@ class IrUtils(
         expression.apply {
           val proofCall = proofCall(proofs, valueType, targetType)
           proofCall?.extensionReceiver = dispatchReceiver
-          dispatchReceiver = proofCall
+          proofCall?.also {
+            dispatchReceiver = it
+          }
         }
       }
       expression
     }
-  }
 
   fun IrCall.dfsCalls(): List<IrCall> {
     val calls = arrayListOf<IrCall>()

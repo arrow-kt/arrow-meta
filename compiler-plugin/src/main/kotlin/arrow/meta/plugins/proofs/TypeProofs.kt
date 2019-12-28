@@ -89,60 +89,6 @@ val Meta.typeProofs: Plugin
               }
           }
         },
-        syntheticResolver(
-          addSyntheticSupertypes = { thisDescriptor, supertypes ->
-            Log.Verbose({ "syntheticResolver.addSyntheticSupertypes $thisDescriptor, $supertypes" }) {
-
-            }
-          },
-          generatePackageSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
-            Log.Verbose({ "syntheticResolver.generatePackageSyntheticClasses $thisDescriptor, $name" }) {
-            }
-          },
-          generateSyntheticClasses = { thisDescriptor, name, ctx, declarationProvider, result ->
-            Log.Verbose({ "syntheticResolver.generateSyntheticClasses $thisDescriptor, $name" }) {
-
-            }
-          },
-          generateSyntheticMethods = { thisDescriptor, name, ctx, fromSuperTypes, result ->
-            Log.Verbose({ "syntheticResolver.generateSyntheticMethods $thisDescriptor, $name, $fromSuperTypes" }) {
-
-            }
-          },
-          generateSyntheticProperties = { thisDescriptor, name, ctx, fromSuperTypes, result ->
-            Log.Verbose({ "syntheticResolver.generateSyntheticProperties $thisDescriptor, $name, $fromSuperTypes" }) {
-
-            }
-          },
-          getSyntheticNestedClassNames = { thisDescriptor ->
-            Log.Verbose({ "syntheticResolver.getSyntheticNestedClassNames $thisDescriptor" }) {
-              emptyList()
-            }
-          },
-          getSyntheticCompanionObjectNameIfNeeded = { thisDescriptor ->
-            Log.Verbose({ "syntheticResolver.getSyntheticCompanionObjectNameIfNeeded $thisDescriptor" }) {
-              null
-            }
-          },
-          getSyntheticFunctionNames = { thisDescriptor ->
-            Log.Verbose({ "syntheticResolver.getSyntheticFunctionNames $thisDescriptor" }) {
-              emptyList()
-            }
-          }
-        ),
-//        packageFragmentProvider { project, module, storageManager, trace, moduleInfo, lookupTracker ->
-//          object : PackageFragmentProvider {
-//
-//            override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-//              listOf(ProofsPackageFragmentDescriptor(module, fqName) { module.typeProofs })
-//
-//            override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-//              emptySet()
-//          }
-//        },
-//        suppressDiagnostic {
-//          false
-//        },
         syntheticScopes(
           syntheticMemberFunctionsForName = { types, name, location ->
             Log.Verbose({ "syntheticScopes.syntheticMemberFunctionsForName $types $name $this" }) {
@@ -274,7 +220,7 @@ val Meta.typeProofs: Plugin
         suppressDiagnostic { this.suppressProvenTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { this.suppressConstantExpectedTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { this.suppressTypeInferenceExpectedTypeMismatch(it, module.typeProofs) },
-        suppressDiagnostic { it.suppressUpperboundViolated(module.typeProofs) },
+        suppressDiagnostic { this.suppressUpperboundViolated(it, module.typeProofs) },
         typeChecker { ProofTypeChecker(this) },
 //        irDump(),
         irCall { insertCallProofs(module.typeProofs, it) },
