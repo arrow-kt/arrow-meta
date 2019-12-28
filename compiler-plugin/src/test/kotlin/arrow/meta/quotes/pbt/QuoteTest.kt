@@ -36,7 +36,8 @@ class QuoteTest {
 //      whenEntryExpression,
 //      *whenExpressions,
 //      whileExpression,
-//      *propertyExpressions
+//      *propertyExpressions,
+//      *propertyAccessorExpressions
 //    ).forEach { expression: Code.Source ->
 //      assertThis(CompilerTest(
 //        config = { listOf(addMetaPlugins(GenericPlugin())) },
