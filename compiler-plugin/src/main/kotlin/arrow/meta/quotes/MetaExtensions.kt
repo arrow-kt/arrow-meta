@@ -5,6 +5,7 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
 import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.element.FinallySection
@@ -57,6 +58,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtThrowExpression
@@ -266,6 +268,15 @@ fun Meta.property(
   map: Property.(KtProperty) -> Transform<KtProperty>
 ): ExtensionPhase =
   quote(match, map) { Property(it) }
+
+/**
+ * @see [PropertyAccessor]
+ */
+fun Meta.propertyAccessor(
+  match: KtPropertyAccessor.() -> Boolean,
+  map: PropertyAccessor.(KtPropertyAccessor) -> Transform<KtPropertyAccessor>
+): ExtensionPhase =
+  quote(match, map) { PropertyAccessor(it) }
 
 /**
  * @see [ReturnExpression]
