@@ -9,23 +9,38 @@ import org.junit.Test
 
 class PropertyAccessorTest {
   companion object {
-    val propertyAccessorGet = """
+    private val propertyAccessorGet = """
             | //metadebug
             |
             | class Wrapper {
-            |   var isGePropertyAccessor: Boolean = true
+            |   var isPropertyAccessor: Boolean = true
             |    get() { return true }
             |  }
             | """.source
 
-    val propertyAccessorSet = """
+    private val propertyAccessorSet = """
             | //metadebug
             |
             | class Wrapper {
-            |   var isGePropertyAccessor: Boolean = true
+            |   var isPropertyAccessor: Boolean = true
             |    set(value) { field = !value }
             |  } 
             | """.source
+
+    private val propertyAccessorVisibility = """
+            | //metadebug
+            |
+            | class Wrapper {
+            |   var isPropertyAccessor: Boolean = true
+            |    private set(value) { field = !value }
+            |  } 
+            | """.source
+
+    val propertyAccessorExpressions = arrayOf(
+      propertyAccessorGet,
+      propertyAccessorSet,
+      propertyAccessorVisibility
+    )
   }
 
   @Test
@@ -36,6 +51,11 @@ class PropertyAccessorTest {
   @Test
   fun `validate property accessor set scope properties`() {
     validate(propertyAccessorSet)
+  }
+
+  @Test
+  fun `validate property accessor visibility scope properties`() {
+    validate(propertyAccessorVisibility)
   }
 
   fun validate(source: Code.Source) {

@@ -12,12 +12,45 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
+ * <code>""" var $name $returnType $initializer $visibility get $`(params)`$bodyExpression" "".propertyAccessorGet </code>
+ **
  * A template destructuring [Scope] for a [KtPropertyAccessor]
+ *
+ *
+ * ```
+ * import arrow.meta.Meta
+ * import arrow.meta.Plugin
+ * import arrow.meta.invoke
+ * import arrow.meta.phases.CompilerContext
+ * import arrow.meta.quotes.Transform
+ * import arrow.meta.quotes.propertyAccessor
+ *
+ * val Meta.reformatPropertySetter: Plugin
+ *  get() =
+ *   "Reformat Property Setter" {
+ *    meta(
+ *     property({ true }) { e ->
+ *      Transform.replace(
+ *       replacing = e,
+ *       newDeclaration = if (value != null && value.isGetter) {
+ *                            """var $name $returnType $initializer
+ *                                    $visibility get $`(params)`$bodyExpression""".propertyAccessorGet
+ *                         } else if(value != null && value.isSetter) {
+ *                            """var  $name $returnType $initializer
+ *                                  $visibility set $`(params)` $bodyExpression""".propertyAccessorSet
+ *                        } else {
+ *                            empty<KtPropertyAccessor>()
+ *                        }
+ *       )
+ *      }
+ *     )
+ *    }
+ * ```
  */
 class PropertyAccessor(
   override val value: KtPropertyAccessor?,
-  val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
-  val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),
+  val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier) ?: Name.identifier(""),
+  val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier) ?: Name.identifier(""),
   val bodyExpression: Scope<KtExpression> = Scope(value?.bodyExpression),
   val name: Name? = value?.property?.nameAsName,
   val `(params)`: ScopedList<KtParameter> = ScopedList(
@@ -28,16 +61,15 @@ class PropertyAccessor(
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value?.property?.typeReference), prefix = " : "),
   val initializer: ScopedList<KtExpression> = ScopedList(listOfNotNull(value?.property?.initializer), prefix = " = ")
 ) : Scope<KtPropertyAccessor>(value) {
-  override fun ElementScope.identity(): Scope<KtPropertyAccessor> {
-    return if (value != null && value.isGetter) {
+  override fun ElementScope.identity(): Scope<KtPropertyAccessor> =
+    if (value != null && value.isGetter) {
       """var $name $returnType $initializer 
-              get $`(params)`$bodyExpression""".propertyAccessorGet
+              $visibility get $`(params)`$bodyExpression""".propertyAccessorGet
     } else if(value != null && value.isSetter) {
-      """var $name $returnType $initializer
-              set $`(params)` $bodyExpression""".propertyAccessorSet
+      """var  $name $returnType $initializer
+              $visibility set $`(params)` $bodyExpression""".propertyAccessorSet
     } else {
       empty<KtPropertyAccessor>()
     }
-  }
 }
 
