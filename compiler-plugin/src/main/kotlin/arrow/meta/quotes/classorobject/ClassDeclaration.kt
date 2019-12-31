@@ -86,7 +86,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *                  |  fun void test(): Unit =
  *                  |    println("Implemented by ΛRROW Meta!")
  *                  |}
- *                  |""".`class`.synthetic
+ *                  |""".`class`.syntheticScope
  *           )
  *         }
  *       )
