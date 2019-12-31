@@ -76,7 +76,7 @@ val Meta.helloWorld: Plugin
             newDeclaration =
             """|fun helloWorld(): Unit = 
                |  println("Hello ΛRROW Meta!")
-               |""".function.synthetic
+               |""".function.syntheticScope
           )
         }
       )
