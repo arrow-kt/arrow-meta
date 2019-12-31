@@ -30,7 +30,7 @@ sealed class Transform<out K : KtElement> {
    *          newDeclaration =
    *          """|fun helloWorld(): Unit =
    *             |  println("Hello ΛRROW Meta!")
-   *             |""".function.synthetic
+   *             |""".function.syntheticScope
    *        )
    *      }
    *     )
