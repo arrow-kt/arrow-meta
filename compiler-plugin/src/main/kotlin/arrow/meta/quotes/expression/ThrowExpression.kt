@@ -18,17 +18,17 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  * import arrow.meta.quotes.throwExpression
  *
  * val Meta.reformatThrow: Plugin
- *  get() =
- *   "ReformatThrow" {
- *    meta(
- *     throwExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """throw $thrownExpression""".`throw`
- *      )
+ *    get() =
+ *      "Reformat Throw Expression" {
+ *        meta(
+ *          throwExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = """throw $thrownExpression""".`throw`
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class ThrowExpression(

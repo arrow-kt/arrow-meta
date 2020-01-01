@@ -1,6 +1,15 @@
 (function($) {
   "use strict";
 
+  var docsearchInputId = '#docsearch';
+
+  docsearch({
+   apiKey: '684751d463a8f3cac9bc4b2d8740642c',
+   indexName: 'arrow_meta',
+   inputSelector: docsearchInputId,
+   debug: false // Set debug to true if you want to inspect the dropdown
+  });
+
   $(document).ready(function() {
 
     // To focus the searchbar on load. Autofocus won't work since, in the end,
@@ -9,6 +18,7 @@
     // but it's not possible to detect current engine's support in a clean way (yet).
     // https://github.com/heycam/webidl/issues/107#issuecomment-399910305
     var actualPosition = window.scrollY;
+    document.querySelector(docsearchInputId).focus();
     // Hijacking the event loop order, since the focus() will trigger
     // internally an scroll that goes to the event loop
     setTimeout(function() {
@@ -58,6 +68,33 @@
     };
 
     linkifyAllLevels(".doc-content, .blog-content");
+
+    /**
+     * This function generates the “unrolling” of the module dropdown
+     * secction by adding some classes to the element and applying a
+     * jQuery slide action
+     *
+     * @param el The DOM element on which to perform the action
+     * @param speed The desired speed to slide up/down the section
+     */
+    function activate(el, speed) {
+      if (!el.parent().hasClass('active')) {
+        $('.sidebar-nav li ul').slideUp(speed);
+        el.next().slideToggle(speed);
+        $('.sidebar-nav li').removeClass('active');
+        el.parent().addClass('active');
+      } else {
+        el.next().slideToggle(speed);
+        $('.sidebar-nav li').removeClass('active');
+      }
+    }
+
+    // On click slide down or up the module dropdown
+    $('.cat-dropdown').click(function(e) {
+      e.preventDefault();
+      activate($(this), 300);
+    });
+
   });
 })(jQuery);
 

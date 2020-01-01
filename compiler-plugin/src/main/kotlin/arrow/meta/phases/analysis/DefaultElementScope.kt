@@ -1,12 +1,12 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.classorobject.ClassBody
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
 import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.element.CatchClause
+import arrow.meta.quotes.element.ClassBody
 import arrow.meta.quotes.element.FinallySection
 import arrow.meta.quotes.element.ImportDirective
 import arrow.meta.quotes.element.PackageDirective
@@ -31,8 +31,8 @@ import arrow.meta.quotes.expression.expressionwithlabel.instanceexpressionwithla
 import arrow.meta.quotes.expression.loopexpression.ForExpression
 import arrow.meta.quotes.expression.loopexpression.WhileExpression
 import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.modifierlist.ModifierList
-import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.modifierlistowner.ModifierList
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
@@ -206,6 +206,12 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun propertySetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
 
+  override val String.propertyAccessorGet: PropertyAccessor
+    get() = property.getter
+
+  override val String.propertyAccessorSet: PropertyAccessor
+    get() = property.setter
+
   override fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate> =
     Scope(delegate.createPropertyDelegate(expression))
 
@@ -349,9 +355,6 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
     Scope(delegate.createBlockCodeFragment(trimMargin(), context))
-
-  override fun `if`(condition: KtExpression, thenExpr: KtExpression, elseExpr: KtExpression?): IfExpression =
-    IfExpression(delegate.createIf(condition, thenExpr, elseExpr))
 
   override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgument =
     ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))

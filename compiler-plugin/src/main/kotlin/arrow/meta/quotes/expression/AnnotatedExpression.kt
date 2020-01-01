@@ -19,21 +19,21 @@ import org.jetbrains.kotlin.psi.KtExpression
  * import arrow.meta.quotes.annotatedExpression
  *
  * val Meta.reformatAnnotated: Plugin
- *  get() =
- *   "ReformatAnnotated" {
- *    meta(
- *     annotatedExpression({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """ $`@annotations` $expression """.annotatedExpression
- *      )
+ *    get() =
+ *      "Reformat Annotated Expression" {
+ *        meta(
+ *          annotatedExpression({ true }) { expression ->
+ *            Transform.replace(
+ *              replacing = expression,
+ *              newDeclaration = """ $`@annotations` $expression """.annotatedExpression
+ *            )
+ *          }
+ *        )
  *      }
- *     )
- *    }
  * ```
  */
 class AnnotatedExpression(
   override val value: KtAnnotatedExpression?,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries.orEmpty()),
   val expression: Scope<KtExpression> = Scope(value?.baseExpression)
-) : Scope<KtAnnotatedExpression>(value) {}
+) : Scope<KtAnnotatedExpression>(value)

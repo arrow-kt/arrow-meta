@@ -21,9 +21,9 @@ import org.jetbrains.kotlin.psi.KtThisExpression
  *  get() =
  *   "ReformatThis" {
  *     meta(
- *       thisExpression({ true }) { e ->
+ *       thisExpression({ true }) { instanceExpressionWithLabel ->
  *         Transform.replace(
- *           replacing = e,
+ *           replacing = instanceExpressionWithLabel,
  *           newDeclaration = when {
  *             targetLabel.value != null -> """$instanceReference$targetLabel""".`this`
  *             else -> """$instanceReference""".`this`
@@ -38,6 +38,7 @@ class ThisExpression(
   override val value: KtThisExpression,
   override val labelName: String? = value.getLabelName()
 ) : InstanceExpressionWithLabel<KtThisExpression>(value) {
+
   override fun ElementScope.identity(): ThisExpression =
     when {
       targetLabel.value != null -> """$instanceReference$targetLabel""".`this`

@@ -37,6 +37,7 @@ class CatchClause(
   val parameter: Parameter = Parameter(value?.catchParameter),
   val `{ catchBody }`: Scope<KtExpression> = Scope(value?.catchBody)
 ) : Scope<KtCatchClause>(value) {
+
   override fun ElementScope.identity(): CatchClause =
     """catch ($parameter) $`{ catchBody }`""".catch
 }
