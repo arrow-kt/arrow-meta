@@ -40,17 +40,16 @@ class TypeClassesTest {
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
        import arrowx.*
-       import arrow.given
-      
-        
-          
-      
+       import arrowx.given
+       
+       fun <A: @given Semigroup<A>> A.mappend(b: A): A =
+          this@mappend.combine(b)
+
        //metadebug
-       //TODO this is wrong because the returned proof is not applied to monoidExt and the applicative proof gets injected because of the A type arg
-       //TODO type susbtitution is not happening correctly in the returned proof
-        val result2 = "1".monoidSyntax().combine("2")
-        val result3 = "1".combine("2")
-        val result = "1".mappend("2")
+        val result1 = String.empty()
+        val result2 = "1".combine("1")
+        val result3 = "2".mappend("2")
+        val result = result1.combine(result2).combine(result3)
       """
     assertThis(CompilerTest(
       config = {
@@ -60,7 +59,7 @@ class TypeClassesTest {
         codeSnippet.source
       },
       assert = {
-        allOf("result".source.evalsTo("12"))
+        allOf("result".source.evalsTo("1122"))
       }
     ))
   }

@@ -32,7 +32,11 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *          namedFunction({ true }) { typeParameterListOwner ->
  *            Transform.replace(
  *              replacing = typeParameterListOwner,
- *              newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
+ *              newDeclaration =
+ *                """
+ *                  $modality $visibility fun $`(typeParameters)` $receiver $name $`(params)` $returnType =
+ *                    $body
+ *                """.function
  *            )
  *          }
  *        )
@@ -41,8 +45,8 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  */
 class NamedFunction(
   override val value: KtNamedFunction,
-  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
-  val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
+  val modality: Name = value.modalityModifierType()?.value?.let(Name::identifier) ?: Name.identifier(""),
+  val visibility: Name = value.visibilityModifierType()?.value?.let(Name::identifier) ?: Name.identifier(""),
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,

@@ -1,31 +1,35 @@
 package arrowx
 
 import arrow.Proof
+
 import arrow.TypeProof
 
 interface Semigroup<A> {
-  fun combine(other: A): A
+  fun A.combine(other: A): A
+  interface Syntax<A> {
+    val value: A
+    fun combine(other: A): A
+  }
 }
 
 interface Monoid<A> : Semigroup<A> {
-  val value: A
-  interface Companion<A> {
-    fun empty(): A
-  }
+  fun empty(): A
 }
 
-inline class StringMonoid(override val value: String) : Monoid<String> {
+object StringMonoid : Monoid<String> {
+  override fun String.combine(other: String): String = this + other
+  override fun empty(): String = ""
+}
+
+inline class StringSyntax(override val value: String): Semigroup.Syntax<String> {
   override fun combine(other: String): String = value + other
-  companion object : Monoid.Companion<String> {
-    override fun empty(): String = ""
-  }
 }
 
 @Proof(TypeProof.Subtyping)
-fun String.Companion.monoid(): Monoid.Companion<String> = StringMonoid.Companion
+fun String.Companion.monoid(): Monoid<String> = StringMonoid
 
 @Proof(TypeProof.Subtyping)
-fun String.monoidSyntax(): Monoid<String> = StringMonoid(this)
+fun String.semigroupSyntax(): Semigroup.Syntax<String> = StringSyntax(this)
 
 data class Id<A>(val value: A) {
   companion object
@@ -55,11 +59,10 @@ fun <A> Id<A>.kind(): Kind<Id.Companion, A> =
 inline class IdApplicative<A>(val id: Id<A>) : Applicative<Id.Companion, A> {
   override fun <B> map(f: (A) -> B): Kind<Id.Companion, B> =
     Id(f(id.value)).kind()
+
   companion object : Applicative.Companion<Id.Companion> {
     override fun <A> just(a: A): Kind<Id.Companion, A> =
       Id(a).kind()
   }
 }
 
-fun <A: Monoid<A>> A.mappend(b: A): A =
-  combine(b)

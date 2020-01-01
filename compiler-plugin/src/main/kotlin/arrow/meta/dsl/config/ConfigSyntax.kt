@@ -9,6 +9,7 @@ import arrow.meta.plugins.higherkind.KindAwareTypeChecker
 import com.intellij.openapi.project.Project
 import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor

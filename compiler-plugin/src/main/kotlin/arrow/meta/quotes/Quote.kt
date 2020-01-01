@@ -165,18 +165,18 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
-          files.forEach {
-            val fileText = it.text
-            if (fileText.contains(META_DEBUG_COMMENT)) {
-              File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
-              println("""|
+        files.forEach {
+          val fileText = it.text
+          if (fileText.contains(META_DEBUG_COMMENT)) {
+            File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
+            println("""|
               |ktFile: $it
               |----
               |${it.text}
               |----
               """.trimMargin())
-            }
           }
+        }
         null
       },
       analysisCompleted = { project, module, bindingTrace, files ->
@@ -227,11 +227,15 @@ inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
   val mutatingDocument = file.viewProvider.document
   val mutations = arrayListOf<Transform<K>>()
   if (mutatingDocument != null) {
-    val matches: List<KtElement> = file.dfs { element ->
+    val childrenMatch: List<KtElement> = file.dfs { element ->
       val result = K::class.java.isAssignableFrom(element.javaClass)
       result
     }
-    matches.forEach { element ->
+    //dfs does not send through the file which we have as quote too
+    val allMatches = if (K::class.java.isAssignableFrom(KtFile::class.java)) {
+      listOf(file) + childrenMatch
+    } else childrenMatch
+    allMatches.forEach { element ->
       val transformation = quoteFactory(
         containingDeclaration = element.psiOrParent as P,
         match = match,
@@ -268,7 +272,9 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
   mutations: java.util.ArrayList<Transform<K>>,
   noinline match: K.() -> Boolean
 ): List<KtFile> {
-  val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map { (it.first ?: ktFile) to it.second }
+  val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map {
+    (it.first ?: ktFile) to it.second
+  }
   val newFile = newSource.map { source -> changeSource(source.first, source.second, ktFile) }
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
@@ -300,7 +306,14 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
 }
 
 fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.File>> =
-  files.filter { it.value != null }.map { it.value!! to if (it.value.text.contains(META_DEBUG_COMMENT)) Converter.convertFile(it.value).copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT))) else Converter.convertFile(it.value) }
+  files.map {
+    it.value to
+      if (it.value.text.contains(META_DEBUG_COMMENT))
+        Converter
+          .convertFile(it.value)
+          .copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT)))
+      else Converter.convertFile(it.value)
+  }
 
 inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
   var dummyFile: KtFile = ktFile
@@ -319,36 +332,38 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
 }
 
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
-    if (element != null && element == (context?.ast ?: replacing.ast)) {
-        val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
-        println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
-        element.dynamic = newContents
-        element
-    } else element
+  if (element != null && element == (context?.ast ?: replacing.ast)) {
+    val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
+    println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
+    element.dynamic = newContents
+    element
+  } else element
 }
 
 fun <K : KtElement> Transform.Remove<K>.remove(file: Node.File, context: PsiElement? = null): Node.File {
-    val elementsToRemove = declarations.elementsFromItsContexts(context)
-    return MutableVisitor.preVisit(file) { element, _ ->
-        if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
-            println("Removing ${element.javaClass}")
-            it.dynamic = ""
-        } else element
-    }
+  val elementsToRemove = declarations.elementsFromItsContexts(context)
+  return MutableVisitor.preVisit(file) { element, _ ->
+    if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
+      println("Removing ${element.javaClass}")
+      it.dynamic = ""
+    } else element
+  }
 }
 
 private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(context: PsiElement? = null): List<PsiElement> = flatMap { scope ->
-    val psiElements = mutableListOf<PsiElement>()
-    (context ?: scope.value?.context)?.let { context -> MutableVisitor.preVisit(context.ast) { element, _ ->
-        if (element != null && element.psiElement?.text?.trim() == scope.value?.text?.trim()) element.also {
-            it.psiElement?.let { psi -> psiElements.add(psi) }
-        } else element
-    }}
-    psiElements
+  val psiElements = mutableListOf<PsiElement>()
+  (context ?: scope.value?.context)?.let { context ->
+    MutableVisitor.preVisit(context.ast) { element, _ ->
+      if (element != null && element.psiElement?.text?.trim() == scope.value?.text?.trim()) element.also {
+        it.psiElement?.let { psi -> psiElements.add(psi) }
+      } else element
+    }
+  }
+  psiElements
 }
 
 inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() -> Boolean): K? = source.dfs {
-    K::class.java.isAssignableFrom(it.javaClass)
+  K::class.java.isAssignableFrom(it.javaClass)
 }.firstOrNull { (it as K).match() } as K
 
 fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
@@ -360,11 +375,12 @@ fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
   var virtualFile = rootFile.virtualFile
   if (file.name != DEFAULT_META_FILE_NAME) {
-      val directory = Paths.get("build", "generated", "source", "kapt", "main").toFile()
-      directory.mkdirs()
-      virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
-          writeText(file.text)
-      })
+    val path = System.getProperty("arrow.meta.generated.source.output", "build/generated/source/kapt/main")
+    val directory = Paths.get("", *path.split("/").toTypedArray()).toFile()
+    directory.mkdirs()
+    virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
+      writeText(file.text)
+    })
   }
   return cli {
     KtFile(

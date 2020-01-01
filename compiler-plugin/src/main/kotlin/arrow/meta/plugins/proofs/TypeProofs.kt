@@ -11,6 +11,8 @@ import arrow.meta.invoke
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.analysis.ElementScope
+import arrow.meta.phases.analysis.dfs
 import arrow.meta.phases.resolve.initializeProofCache
 import arrow.meta.proofs.MetaFileScopeProvider
 import arrow.meta.proofs.ProofTypeChecker
@@ -21,6 +23,16 @@ import arrow.meta.proofs.suppressProvenTypeMismatch
 import arrow.meta.proofs.suppressTypeInferenceExpectedTypeMismatch
 import arrow.meta.proofs.suppressUpperboundViolated
 import arrow.meta.proofs.syntheticMemberFunctions
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.Transform
+import arrow.meta.quotes.file
+import arrow.meta.quotes.filebase.File
+import arrow.meta.quotes.foldIndexed
+import arrow.meta.quotes.map
+import arrow.meta.quotes.modifierlistowner.TypeReference
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
+import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.analyzer.common.CommonPlatformAnalyzerServices
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.container.get
@@ -34,9 +46,11 @@ import org.jetbrains.kotlin.frontend.di.createContainerForBodyResolve
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.CommonPlatforms
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtNullableType
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BodyResolver
@@ -53,27 +67,21 @@ import org.jetbrains.kotlin.types.FlexibleTypeImpl
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.asSimpleType
 
+val givenAnnotation: Regex = Regex("@(arrow\\.)?given")
+
 val Meta.typeProofs: Plugin
   get() =
     "Type Proofs" {
       meta(
         enableIr(),
-//        analysis(
-//          doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-//            Log.Verbose({ "analysis.doAnalysis" }) {
-//              val resolveSession: ResolveSession = componentProvider.get()
-//              val lazyTopDownAnalyzer: LazyTopDownAnalyzer = componentProvider.get()
-//              files.forEach {
-//                resolveBodyWithExtensionsScope(resolveSession, lazyTopDownAnalyzer, it)
-//              }
-//              null
-//            }
-//            //resolveBodyWithExtensionsScope
-//          },
-//          analysisCompleted = { project, module, bindingTrace, files ->
-//            null
-//          }
-//        ),
+        file(KtFile::containsGivenConstrains) {
+          Transform.newSources(
+            """
+              $importList
+              ${generateGivenSupportingFunctions(givenConstrainedDeclarations())}
+            """.formatCode().file("Extensions." + name)
+          )
+        },
         packageFragmentProvider { project, module, storageManager, trace, moduleInfo, lookupTracker ->
           object : PackageFragmentProvider {
 
@@ -137,65 +145,12 @@ val Meta.typeProofs: Plugin
             }
           }
         ),
-//        packageFragmentProvider { project, module, storageManager, trace, moduleInfo, lookupTracker ->
-//
-//          if (project is MockProject) {
-//
-//          }
-//          val synth: JavaSyntheticScopes? = componentProvider?.get()
-//          if (synth != null) {
-//            val scopes = synth.scopes
-//            if (scopes is MutableList) {
-//              scopes.removeIf { it is ProofsSyntheticScope }
-//              scopes.add(ProofsSyntheticScope { module.typeProofs })
-//            }
-//          }
-//          null
-//        },
-//        storageComponent(
-//          registerModuleComponents = { container, moduleDescriptor ->
-//            val storage: ComponentStorage = StorageComponentContainer::class.java.getDeclaredField("componentStorage").also { it.isAccessible = true }.get(container) as ComponentStorage
-//            val registry = ComponentStorage::class.java.getDeclaredField("descriptors").also { it.isAccessible = true }.get(storage) as LinkedHashSet<ValueDescriptor>
-//            val singletons = registry.filterIsInstance<SingletonTypeComponentDescriptor>()
-//            val componentDescriptor = singletons.find { it.klass == JavaSyntheticScopes::class.java }
-//            componentDescriptor?.let { singleton ->
-//              JavaSyntheticScopes()
-//            }
-//            val instance = component?.value as? JavaSyntheticScopes
-//            if (instance != null) {
-//              registrationMap.remove(classKey)
-//              container.useInstance(ProofsSyntheticScopes(instance) { moduleDescriptor.typeProofs })
-//            }
-//          },
-//          check = { declaration, descriptor, context ->
-//
-//          }
-//        ),
         analysis(
           doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
             module.initializeProofCache()
             val argumentTypeResolver: ArgumentTypeResolver = componentProvider.get()
             val typeCheckerField = ArgumentTypeResolver::class.java.getDeclaredField("kotlinTypeChecker").also { it.isAccessible = true }
             typeCheckerField.set(argumentTypeResolver, ProofTypeChecker(this))
-            null
-          },
-          analysisCompleted = { project, module, bindingTrace, files ->
-//            val typeInfoMap: ImmutableMap<KtExpression, KotlinTypeInfo> = bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO)
-//            typeInfoMap.entries.forEach { (expression, typeInfo) ->
-//              val smartCasts = typeInfo.type?.let { expressionType ->
-//                module.typeProofs.extensions(expressionType).mapNotNull {
-//                  it.extensionCallables { true }.firstOrNull()?.dispatchReceiverParameter?.type
-//                }
-//              }.orEmpty()
-//              val newKotlinTypeInfo = typeInfo?.type?.let {
-//                typeInfo.replaceDataFlowInfo(
-//                  subtyping(it, module, bindingTrace.bindingContext, typeInfo.dataFlowInfo, smartCasts)
-//                )
-//              }
-//              newKotlinTypeInfo?.also {
-//                bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, it)
-//              }
-//            }
             null
           }
         ),
@@ -221,6 +176,7 @@ val Meta.typeProofs: Plugin
         suppressDiagnostic { this.suppressConstantExpectedTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { this.suppressTypeInferenceExpectedTypeMismatch(it, module.typeProofs) },
         suppressDiagnostic { this.suppressUpperboundViolated(it, module.typeProofs) },
+        suppressDiagnostic { this.suppressTypeInferenceExpectedTypeMismatch(it, module.typeProofs) },
         typeChecker { ProofTypeChecker(this) },
 //        irDump(),
         irCall { insertCallProofs(module.typeProofs, it) },
@@ -231,57 +187,53 @@ val Meta.typeProofs: Plugin
       )
     }
 
-fun KtParameter.isNullable(): Boolean =
-  typeReference?.typeElement is KtNullableType
+private fun KtFile.containsGivenConstrains(): Boolean =
+  givenConstrainedDeclarations().isNotEmpty()
 
+private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
+  value.givenConstrainedDeclarations().map { NamedFunction(it) }
 
-fun createBodyResolver(
-  resolveSession: ResolveSession,
-  trace: BindingTrace,
-  file: KtFile,
-  statementFilter: StatementFilter
-): BodyResolver {
-  val globalContext = SimpleGlobalContext(resolveSession.storageManager, resolveSession.exceptionTracker)
-  val module = resolveSession.moduleDescriptor
-  return createContainerForBodyResolve(
-    globalContext.withProject(file.project).withModule(module),
-    trace,
-    CommonPlatforms.defaultCommonPlatform,
-    statementFilter,
-    CommonPlatformAnalyzerServices,
-    LanguageVersionSettingsImpl.DEFAULT,
-    ModuleStructureOracle.SingleModule
-  ).get()
-}
+private fun KtFile.givenConstrainedDeclarations(): List<KtNamedFunction> =
+  dfs {
+    it is KtNamedFunction && it.containsGivenConstrain()
+  }.filterIsInstance<KtNamedFunction>()
 
-fun resolveBodyWithExtensionsScope(session: ResolveSession, lazyTopDownAnalyzer: LazyTopDownAnalyzer, ktFile: KtFile): Unit {
-  Log.Verbose({ "resolveBodyWithExtensionsScope $ktFile" }) {
-    session.fileScopeProvider = MetaFileScopeProvider(session.moduleDescriptor, session.fileScopeProvider)
-    val bodyResolver = createBodyResolver(
-      session, session.trace, ktFile, StatementFilter.NONE
-    )
-    val analysisContext = lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(ktFile), DataFlowInfo.EMPTY)
-    val resolveContext = ProofsBodyResolveContent(
-      session = session,
-      delegate = analysisContext
-    )
-    bodyResolver.resolveBodies(resolveContext)
-  }
-}
+private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedFunction>): ScopedList<KtNamedFunction> =
+  ScopedList(functions.map {
+    it.run {
+      val `(unconstrainedTypeParams)` = `(typeParameters)`.map { "${it.name}".typeParameter.value }
+      val `(givenParams)` = `(typeParameters)`.foldIndexed(ScopedList.empty<KtParameter>()) { n, params, typeParam ->
+        val givenConstrain = typeParam.givenConstrain()?.toString()?.replace(givenAnnotation, "")
+        if (givenConstrain != null) params + "given$n: @arrowx.given $givenConstrain = arrow.given".parameter
+        else params
+      }
 
-fun CompilerContext.subtyping(
-  originalType: KotlinType,
-  module: ModuleDescriptor,
-  bindingContext: BindingContext,
-  dataFlowInfo: DataFlowInfo,
-  types: Collection<KotlinType>
-): DataFlowInfo {
-  val dataFlowValueFactory: DataFlowValueFactory? = componentProvider?.get()
-  return dataFlowValueFactory?.let { factory ->
-    val result = types.fold(dataFlowInfo) { info, type ->
-      val value = factory.createDataFlowValue(TransientReceiver(FlexibleTypeImpl(originalType.asSimpleType(), originalType.asSimpleType())), bindingContext, module)
-      info.establishSubtyping(value, type, LanguageVersionSettingsImpl.DEFAULT)
+      val `(paramsWithGiven)` = `(params)` + `(givenParams)`
+      """
+      public fun $`(unconstrainedTypeParams)` $receiver$name $`(paramsWithGiven)`$returnType =
+          ${runScope(this, `(givenParams)`)}
+      """.function.value
     }
-    result
-  } ?: dataFlowInfo
+  }, separator = lineSeparator)
+
+private fun ElementScope.runScope(namedFunction: NamedFunction, scopedList: ScopedList<KtParameter>): Scope<KtExpression> {
+  val body = namedFunction.body
+  return if (body != null)
+    scopedList.value.fold(body.toString().expression) { acc, parameter ->
+      """
+      with<${parameter.typeReference?.text}, ${namedFunction.returnType.copy(prefix = "")}>(${parameter.name}) { $acc }
+      """.expression
+    }
+  else Scope.empty<KtExpression>()
 }
+
+private fun KtTypeParameter.givenConstrain(): TypeReference? =
+  if (containsGivenConstrain()) TypeReference(extendsBound) else null
+
+private fun KtNamedFunction.containsGivenConstrain(): Boolean =
+  typeParameters.any { typeParameter ->
+    typeParameter.containsGivenConstrain()
+  }
+
+private fun KtTypeParameter.containsGivenConstrain(): Boolean =
+  extendsBound?.annotationEntries?.any { it.text.matches(givenAnnotation) } ?: false

@@ -79,144 +79,164 @@ import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
-interface IrRecursiveElementTransformer<in D> : IrElementTransformer<D> {
-  override fun visitElement(element: IrElement, data: D): IrElement {
+fun <A> identity(): (A) -> A = { it }
+
+class IrTransform(
+  val root: IrElement,
+  val element: (element: IrElement) -> IrElement = identity(),
+  val moduleFragment: (moduleFragment: IrModuleFragment) -> IrModuleFragment = identity(),
+  val file: (file: IrFile) -> IrFile = identity(),
+  val externalPackageFragment: (packageFragment: IrExternalPackageFragment) -> IrExternalPackageFragment = identity(),
+  val declaration: (declaration: IrDeclaration) -> IrStatement = identity(),
+  val body: (body: IrBody) -> IrBody = identity(),
+  val expression: (expression: IrExpression) -> IrExpression = identity(),
+  val spread: (spreadElement: IrSpreadElement) -> IrSpreadElement = identity(),
+  val catch: (catch: IrCatch) -> IrCatch = identity()
+) : IrElementTransformer<Unit> {
+
+  fun transform(): Unit {
+    root.transformChildren(this, Unit)
+  }
+
+  override fun visitElement(element: IrElement, data: Unit): IrElement {
     element.transformChildren(this, data)
-    return element
+    return element(element)
   }
 
-  override fun visitModuleFragment(declaration: IrModuleFragment, data: D): IrModuleFragment {
+  override fun visitModuleFragment(declaration: IrModuleFragment, data: Unit): IrModuleFragment {
     declaration.transformChildren(this, data)
-    return declaration
+    return moduleFragment(declaration)
   }
 
-  override fun visitFile(declaration: IrFile, data: D): IrFile {
+  override fun visitFile(declaration: IrFile, data: Unit): IrFile {
     declaration.transformChildren(this, data)
-    return declaration
+    return file(declaration)
   }
 
-  override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: D): IrExternalPackageFragment {
+  override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: Unit): IrExternalPackageFragment {
     declaration.transformChildren(this, data)
-    return declaration
+    return externalPackageFragment(declaration)
   }
 
-  override fun visitDeclaration(declaration: IrDeclaration, data: D): IrStatement {
+  override fun visitDeclaration(declaration: IrDeclaration, data: Unit): IrStatement {
     declaration.transformChildren(this, data)
-    return declaration
+    return declaration(declaration)
   }
 
-  override fun visitClass(declaration: IrClass, data: D) = visitDeclaration(declaration, data)
-  override fun visitFunction(declaration: IrFunction, data: D) = visitDeclaration(declaration, data)
-  override fun visitSimpleFunction(declaration: IrSimpleFunction, data: D) = visitFunction(declaration, data)
-  override fun visitConstructor(declaration: IrConstructor, data: D) = visitFunction(declaration, data)
-  override fun visitProperty(declaration: IrProperty, data: D) = visitDeclaration(declaration, data)
-  override fun visitField(declaration: IrField, data: D) = visitDeclaration(declaration, data)
-  override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: D) = visitDeclaration(declaration, data)
-  override fun visitEnumEntry(declaration: IrEnumEntry, data: D) = visitDeclaration(declaration, data)
-  override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: D) = visitDeclaration(declaration, data)
-  override fun visitVariable(declaration: IrVariable, data: D) = visitDeclaration(declaration, data)
-  override fun visitTypeParameter(declaration: IrTypeParameter, data: D) = visitDeclaration(declaration, data)
-  override fun visitValueParameter(declaration: IrValueParameter, data: D) = visitDeclaration(declaration, data)
-  override fun visitTypeAlias(declaration: IrTypeAlias, data: D) = visitDeclaration(declaration, data)
+  override fun visitClass(declaration: IrClass, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitFunction(declaration: IrFunction, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Unit) = visitFunction(declaration, data)
+  override fun visitConstructor(declaration: IrConstructor, data: Unit) = visitFunction(declaration, data)
+  override fun visitProperty(declaration: IrProperty, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitField(declaration: IrField, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitEnumEntry(declaration: IrEnumEntry, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitVariable(declaration: IrVariable, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitTypeParameter(declaration: IrTypeParameter, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitValueParameter(declaration: IrValueParameter, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitTypeAlias(declaration: IrTypeAlias, data: Unit) = visitDeclaration(declaration, data)
 
-  override fun visitBody(body: IrBody, data: D): IrBody {
+  override fun visitBody(body: IrBody, data: Unit): IrBody {
     body.transformChildren(this, data)
-    return body
+    return body(body)
   }
 
-  override fun visitExpressionBody(body: IrExpressionBody, data: D) = visitBody(body, data)
-  override fun visitBlockBody(body: IrBlockBody, data: D) = visitBody(body, data)
-  override fun visitSyntheticBody(body: IrSyntheticBody, data: D) = visitBody(body, data)
+  override fun visitExpressionBody(body: IrExpressionBody, data: Unit) = visitBody(body, data)
+  override fun visitBlockBody(body: IrBlockBody, data: Unit) = visitBody(body, data)
+  override fun visitSyntheticBody(body: IrSyntheticBody, data: Unit) = visitBody(body, data)
 
-  override fun visitSuspendableExpression(expression: IrSuspendableExpression, data: D) = visitExpression(expression, data)
-  override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: D) = visitExpression(expression, data)
+  override fun visitSuspendableExpression(expression: IrSuspendableExpression, data: Unit) = visitExpression(expression, data)
+  override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: Unit) = visitExpression(expression, data)
 
-  override fun visitExpression(expression: IrExpression, data: D): IrExpression {
+  override fun visitExpression(expression: IrExpression, data: Unit): IrExpression {
     expression.transformChildren(this, data)
-    return expression
+    return expression(expression)
   }
 
-  override fun <T> visitConst(expression: IrConst<T>, data: D) = visitExpression(expression, data)
-  override fun visitVararg(expression: IrVararg, data: D) = visitExpression(expression, data)
+  override fun <T> visitConst(expression: IrConst<T>, data: Unit) = visitExpression(expression, data)
+  override fun visitVararg(expression: IrVararg, data: Unit) = visitExpression(expression, data)
 
-  override fun visitSpreadElement(spread: IrSpreadElement, data: D): IrSpreadElement {
-    return spread.also { it.transformChildren(this, data) }
+  override fun visitSpreadElement(spread: IrSpreadElement, data: Unit): IrSpreadElement {
+    return spread.also {
+      it.transformChildren(this, data)
+    }.run(this.spread)
   }
 
-  override fun visitContainerExpression(expression: IrContainerExpression, data: D) = visitExpression(expression, data)
-  override fun visitBlock(expression: IrBlock, data: D) = visitContainerExpression(expression, data)
-  override fun visitComposite(expression: IrComposite, data: D) = visitContainerExpression(expression, data)
-  override fun visitStringConcatenation(expression: IrStringConcatenation, data: D) = visitExpression(expression, data)
+  override fun visitContainerExpression(expression: IrContainerExpression, data: Unit) = visitExpression(expression, data)
+  override fun visitBlock(expression: IrBlock, data: Unit) = visitContainerExpression(expression, data)
+  override fun visitComposite(expression: IrComposite, data: Unit) = visitContainerExpression(expression, data)
+  override fun visitStringConcatenation(expression: IrStringConcatenation, data: Unit) = visitExpression(expression, data)
 
-  override fun visitDeclarationReference(expression: IrDeclarationReference, data: D) = visitExpression(expression, data)
-  override fun visitSingletonReference(expression: IrGetSingletonValue, data: D) = visitDeclarationReference(expression, data)
-  override fun visitGetObjectValue(expression: IrGetObjectValue, data: D) = visitSingletonReference(expression, data)
-  override fun visitGetEnumValue(expression: IrGetEnumValue, data: D) = visitSingletonReference(expression, data)
-  override fun visitValueAccess(expression: IrValueAccessExpression, data: D) = visitDeclarationReference(expression, data)
-  override fun visitGetValue(expression: IrGetValue, data: D) = visitValueAccess(expression, data)
-  override fun visitSetVariable(expression: IrSetVariable, data: D) = visitValueAccess(expression, data)
-  override fun visitFieldAccess(expression: IrFieldAccessExpression, data: D) = visitDeclarationReference(expression, data)
-  override fun visitGetField(expression: IrGetField, data: D) = visitFieldAccess(expression, data)
-  override fun visitSetField(expression: IrSetField, data: D) = visitFieldAccess(expression, data)
-  override fun visitMemberAccess(expression: IrMemberAccessExpression, data: D): IrElement = visitExpression(expression, data)
-  override fun visitFunctionAccess(expression: IrFunctionAccessExpression, data: D): IrElement = visitMemberAccess(expression, data)
-  override fun visitCall(expression: IrCall, data: D) = visitFunctionAccess(expression, data)
-  override fun visitConstructorCall(expression: IrConstructorCall, data: D): IrElement = visitFunctionAccess(expression, data)
-  override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: D) = visitFunctionAccess(expression, data)
-  override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: D) = visitFunctionAccess(expression, data)
-  override fun visitGetClass(expression: IrGetClass, data: D) = visitExpression(expression, data)
+  override fun visitDeclarationReference(expression: IrDeclarationReference, data: Unit) = visitExpression(expression, data)
+  override fun visitSingletonReference(expression: IrGetSingletonValue, data: Unit) = visitDeclarationReference(expression, data)
+  override fun visitGetObjectValue(expression: IrGetObjectValue, data: Unit) = visitSingletonReference(expression, data)
+  override fun visitGetEnumValue(expression: IrGetEnumValue, data: Unit) = visitSingletonReference(expression, data)
+  override fun visitValueAccess(expression: IrValueAccessExpression, data: Unit) = visitDeclarationReference(expression, data)
+  override fun visitGetValue(expression: IrGetValue, data: Unit) = visitValueAccess(expression, data)
+  override fun visitSetVariable(expression: IrSetVariable, data: Unit) = visitValueAccess(expression, data)
+  override fun visitFieldAccess(expression: IrFieldAccessExpression, data: Unit) = visitDeclarationReference(expression, data)
+  override fun visitGetField(expression: IrGetField, data: Unit) = visitFieldAccess(expression, data)
+  override fun visitSetField(expression: IrSetField, data: Unit) = visitFieldAccess(expression, data)
+  override fun visitMemberAccess(expression: IrMemberAccessExpression, data: Unit): IrElement = visitExpression(expression, data)
+  override fun visitFunctionAccess(expression: IrFunctionAccessExpression, data: Unit): IrElement = visitMemberAccess(expression, data)
+  override fun visitCall(expression: IrCall, data: Unit) = visitFunctionAccess(expression, data)
+  override fun visitConstructorCall(expression: IrConstructorCall, data: Unit): IrElement = visitFunctionAccess(expression, data)
+  override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: Unit) = visitFunctionAccess(expression, data)
+  override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Unit) = visitFunctionAccess(expression, data)
+  override fun visitGetClass(expression: IrGetClass, data: Unit) = visitExpression(expression, data)
 
-  override fun visitCallableReference(expression: IrCallableReference, data: D) = visitMemberAccess(expression, data)
-  override fun visitFunctionReference(expression: IrFunctionReference, data: D) = visitCallableReference(expression, data)
-  override fun visitPropertyReference(expression: IrPropertyReference, data: D) = visitCallableReference(expression, data)
-  override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference, data: D) =
+  override fun visitCallableReference(expression: IrCallableReference, data: Unit) = visitMemberAccess(expression, data)
+  override fun visitFunctionReference(expression: IrFunctionReference, data: Unit) = visitCallableReference(expression, data)
+  override fun visitPropertyReference(expression: IrPropertyReference, data: Unit) = visitCallableReference(expression, data)
+  override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference, data: Unit) =
     visitCallableReference(expression, data)
 
-  override fun visitFunctionExpression(expression: IrFunctionExpression, data: D): IrElement = visitExpression(expression, data)
+  override fun visitFunctionExpression(expression: IrFunctionExpression, data: Unit): IrElement = visitExpression(expression, data)
 
-  override fun visitClassReference(expression: IrClassReference, data: D) = visitDeclarationReference(expression, data)
+  override fun visitClassReference(expression: IrClassReference, data: Unit) = visitDeclarationReference(expression, data)
 
-  override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: D) = visitExpression(expression, data)
+  override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: Unit) = visitExpression(expression, data)
 
-  override fun visitTypeOperator(expression: IrTypeOperatorCall, data: D) = visitExpression(expression, data)
+  override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Unit) = visitExpression(expression, data)
 
-  override fun visitWhen(expression: IrWhen, data: D) = visitExpression(expression, data)
+  override fun visitWhen(expression: IrWhen, data: Unit) = visitExpression(expression, data)
 
-  override fun visitBranch(branch: IrBranch, data: D): IrBranch =
+  override fun visitBranch(branch: IrBranch, data: Unit): IrBranch =
     branch.also {
       it.condition = it.condition.transform(this, data)
       it.result = it.result.transform(this, data)
     }
 
-  override fun visitElseBranch(branch: IrElseBranch, data: D): IrElseBranch =
+  override fun visitElseBranch(branch: IrElseBranch, data: Unit): IrElseBranch =
     branch.also {
       it.condition = it.condition.transform(this, data)
       it.result = it.result.transform(this, data)
     }
 
-  override fun visitLoop(loop: IrLoop, data: D) = visitExpression(loop, data)
-  override fun visitWhileLoop(loop: IrWhileLoop, data: D) = visitLoop(loop, data)
-  override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: D) = visitLoop(loop, data)
-  override fun visitTry(aTry: IrTry, data: D) = visitExpression(aTry, data)
+  override fun visitLoop(loop: IrLoop, data: Unit) = visitExpression(loop, data)
+  override fun visitWhileLoop(loop: IrWhileLoop, data: Unit) = visitLoop(loop, data)
+  override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Unit) = visitLoop(loop, data)
+  override fun visitTry(aTry: IrTry, data: Unit) = visitExpression(aTry, data)
 
-  override fun visitCatch(aCatch: IrCatch, data: D): IrCatch {
+  override fun visitCatch(aCatch: IrCatch, data: Unit): IrCatch {
     aCatch.transformChildren(this, data)
     aCatch.transform(this, data)
-    return aCatch
+    return catch(aCatch)
   }
 
-  override fun visitBreakContinue(jump: IrBreakContinue, data: D) = visitExpression(jump, data)
-  override fun visitBreak(jump: IrBreak, data: D) = visitBreakContinue(jump, data)
-  override fun visitContinue(jump: IrContinue, data: D) = visitBreakContinue(jump, data)
+  override fun visitBreakContinue(jump: IrBreakContinue, data: Unit) = visitExpression(jump, data)
+  override fun visitBreak(jump: IrBreak, data: Unit) = visitBreakContinue(jump, data)
+  override fun visitContinue(jump: IrContinue, data: Unit) = visitBreakContinue(jump, data)
 
-  override fun visitReturn(expression: IrReturn, data: D) = visitExpression(expression, data)
-  override fun visitThrow(expression: IrThrow, data: D) = visitExpression(expression, data)
+  override fun visitReturn(expression: IrReturn, data: Unit) = visitExpression(expression, data)
+  override fun visitThrow(expression: IrThrow, data: Unit) = visitExpression(expression, data)
 
-  override fun visitDynamicExpression(expression: IrDynamicExpression, data: D) = visitExpression(expression, data)
-  override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression, data: D) = visitDynamicExpression(expression, data)
-  override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression, data: D) = visitDynamicExpression(expression, data)
+  override fun visitDynamicExpression(expression: IrDynamicExpression, data: Unit) = visitExpression(expression, data)
+  override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression, data: Unit) = visitDynamicExpression(expression, data)
+  override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression, data: Unit) = visitDynamicExpression(expression, data)
 
-  override fun visitErrorDeclaration(declaration: IrErrorDeclaration, data: D) = visitDeclaration(declaration, data)
-  override fun visitErrorExpression(expression: IrErrorExpression, data: D) = visitExpression(expression, data)
-  override fun visitErrorCallExpression(expression: IrErrorCallExpression, data: D) = visitErrorExpression(expression, data)
+  override fun visitErrorDeclaration(declaration: IrErrorDeclaration, data: Unit) = visitDeclaration(declaration, data)
+  override fun visitErrorExpression(expression: IrErrorExpression, data: Unit) = visitExpression(expression, data)
+  override fun visitErrorCallExpression(expression: IrErrorCallExpression, data: Unit) = visitErrorExpression(expression, data)
 }

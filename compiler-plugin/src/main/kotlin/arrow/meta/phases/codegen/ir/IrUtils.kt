@@ -4,12 +4,13 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.unwrappedNotNullableType
+import arrow.meta.proofs.GivenUpperBound
 import arrow.meta.proofs.Proof
 import arrow.meta.proofs.ProofCandidate
+import arrow.meta.proofs.givenTypeParametersAndUpperbounds
 import arrow.meta.proofs.matchingCandidates
 import arrow.meta.proofs.typeSubstitutor
 import org.jetbrains.kotlin.backend.common.BackendContext
-import org.jetbrains.kotlin.backend.common.lower.IrBuildingTransformer
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -19,14 +20,13 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrMemberAccessExpressionBase
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
+import org.jetbrains.kotlin.ir.expressions.putValueArgument
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
@@ -36,11 +36,9 @@ import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.referenceFunction
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.resolve.calls.CallResolver
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -54,12 +52,14 @@ class IrUtils(
       symbolTable = backendContext.ir.symbols.externalSymbolTable,
       languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,
       builtIns = backendContext.builtIns
-    ).apply {
+    ).apply translator@{
       constantValueGenerator =
         ConstantValueGenerator(
           moduleDescriptor = backendContext.ir.irModule.descriptor,
           symbolTable = backendContext.ir.symbols.externalSymbolTable
-        )
+        ).apply {
+          this.typeTranslator = this@translator
+        }
     }
 
   fun IrFunctionAccessExpression.defaultValues(): List<String> =
@@ -175,36 +175,73 @@ class IrUtils(
 
   private fun CompilerContext.insertCallProof(expression: IrCall, proofs: List<Proof>): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-      val valueType = expression.dispatchReceiver?.type?.toKotlinType()
-        ?: expression.extensionReceiver?.type?.toKotlinType()
-      val targetType = expression.descriptor.dispatchReceiverParameter?.type
-        ?: expression.descriptor.extensionReceiverParameter?.type
-      if (targetType != null && valueType != null && targetType != valueType) {
-        expression.apply {
-          val proofCall = proofCall(proofs, valueType, targetType)
-          proofCall?.extensionReceiver = dispatchReceiver
-          proofCall?.also {
-            dispatchReceiver = it
+      val givenTypeParamUpperBound: GivenUpperBound = expression.descriptor.givenTypeParametersAndUpperbounds()
+      val upperBound = givenTypeParamUpperBound.givenUpperBound
+      if (upperBound != null) {
+        irExtensionCallIfGivenUpperbounds(givenTypeParamUpperBound, proofs, expression)
+      } else {
+        val valueType = expression.dispatchReceiver?.type?.toKotlinType()
+          ?: expression.extensionReceiver?.type?.toKotlinType()
+        val targetType =
+          givenTypeParamUpperBound.givenUpperBound
+            ?: expression.descriptor.dispatchReceiverParameter?.type
+            ?: expression.descriptor.extensionReceiverParameter?.type
+        if (targetType != null && valueType != null && targetType != valueType) {
+          expression.apply {
+            val proofCall = proofCall(proofs, valueType, targetType)
+            when {
+              proofCall != null -> {
+                when {
+                  this.dispatchReceiver != null -> {
+                    proofCall.extensionReceiver = this.dispatchReceiver
+                    proofCall.also {
+                      dispatchReceiver = it
+                      extensionReceiver = null
+                    }
+                  }
+                  this.extensionReceiver != null -> {
+                    proofCall.extensionReceiver = this.extensionReceiver
+                    proofCall.also {
+                      dispatchReceiver = null
+                      extensionReceiver = it
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
       expression
     }
 
-  fun IrCall.dfsCalls(): List<IrCall> {
-    val calls = arrayListOf<IrCall>()
-    val recursiveVisitor = object : IrElementVisitor<Unit, Unit> {
-      override fun visitElement(element: IrElement, data: Unit) {
-        if (element is IrCall) {
-          calls.addAll(element.dfsCalls())
+  private fun CompilerContext.irExtensionCallIfGivenUpperbounds(
+    givenUpperBound: GivenUpperBound,
+    proofs: List<Proof>,
+    expression: IrCall
+  ): Unit {
+    val upperBound = givenUpperBound.givenUpperBound
+    if (upperBound != null) {
+      givenUpperBound.givenValueParameters.forEach { valueParameterDescriptor ->
+        val superType = valueParameterDescriptor.type
+        val candidateSubtype = superType.arguments.firstOrNull()?.type
+        val maybeCompanion = (candidateSubtype?.constructor?.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
+        if (maybeCompanion != null) {
+          val extensionCall = proofCall(proofs, maybeCompanion.defaultType, superType)?.also {
+            it.extensionReceiver = IrGetObjectValueImpl(
+              UNDEFINED_OFFSET,
+              UNDEFINED_OFFSET,
+              typeTranslator.translateType(maybeCompanion.defaultType),
+              backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
+            )
+          }
+          extensionCall?.apply {
+            expression.putValueArgument(valueParameterDescriptor, this)
+          }
         }
       }
     }
-    acceptChildren(recursiveVisitor, Unit)
-    calls.add(this)
-    return calls
   }
-
 
   fun CompilerContext.insertProof(proofs: List<Proof>, it: IrProperty): IrProperty? {
     val targetType = it.descriptor.returnType
@@ -240,3 +277,18 @@ class IrUtils(
   }
 
 }
+
+fun IrCall.dfsCalls(): List<IrCall> {
+  val calls = arrayListOf<IrCall>()
+  val recursiveVisitor = object : IrElementVisitor<Unit, Unit> {
+    override fun visitElement(element: IrElement, data: Unit) {
+      if (element is IrCall) {
+        calls.addAll(element.dfsCalls())
+      }
+    }
+  }
+  acceptChildren(recursiveVisitor, Unit)
+  calls.add(this)
+  return calls
+}
+

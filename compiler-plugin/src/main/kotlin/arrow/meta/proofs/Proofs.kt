@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.resolve.calls.inference.InferenceErrorData
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
@@ -61,6 +63,7 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
+import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -232,7 +235,7 @@ fun List<Proof>.matchingCandidates(
   subType: KotlinType,
   superType: KotlinType
 ): List<Proof> =
-  if (subType.isError || superType.isError) emptyList()
+  if (setOf(subType, superType).any { it.isError || it.isNothing() }) emptyList()
   else {
     compilerContext.run {
       try {
@@ -385,6 +388,16 @@ fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagno
       }
     } == true
 
+fun CompilerContext.suppressTypeArgumentNotWithinBounds(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+  diagnostic.factory == Errors.UPPER_BOUND_VIOLATED &&
+    diagnostic.safeAs<DiagnosticWithParameters2<KtTypeReference, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
+      val subType = diagnosticWithParameters.b
+      val superType = diagnosticWithParameters.a
+      Log.Verbose({ "suppressTypeArgumentNotWithinBounds: $subType, $superType, $this" }) {
+        subType.isSubtypeOf(superType)
+      }
+    } == true
+
 fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
   diagnostic.factory == Errors.CONSTANT_EXPECTED_TYPE_MISMATCH &&
     diagnostic.safeAs<DiagnosticWithParameters2<KtConstantExpression, String, KotlinType>>()?.let { diagnosticWithParameters ->
@@ -414,3 +427,33 @@ fun CompilerContext.suppressUpperboundViolated(diagnostic: Diagnostic, proofs: L
 //        proofs.subtypingProof(this, subType, superType) != null
 //      }
     } == true
+
+data class GivenUpperBound(
+  val givenValueParameters: List<ValueParameterDescriptor>,
+  val givenUpperBound: KotlinType?
+) {
+  companion object {
+    val Empty: GivenUpperBound =
+      GivenUpperBound(
+        givenValueParameters = emptyList(),
+        givenUpperBound = null
+      )
+  }
+}
+
+fun CallableMemberDescriptor.givenTypeParametersAndUpperbounds(): GivenUpperBound {
+  val givenValueParameters = valueParameters
+    .mapNotNull {
+      if (it.type.annotations.findAnnotation(FqName("arrowx.given")) != null)
+        it
+      else null
+    }
+  return if (givenValueParameters.isEmpty()) GivenUpperBound.Empty
+  else {
+    val intersection = givenValueParameters.fold(builtIns.nothingType as KotlinType) { a, b ->
+      if (a.isNothing()) b.type
+      else a.intersection(b.type)
+    }
+    GivenUpperBound(givenValueParameters, intersection)
+  }
+}

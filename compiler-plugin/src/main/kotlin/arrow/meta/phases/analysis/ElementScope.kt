@@ -216,7 +216,7 @@ interface ElementScope {
   
   val emptyClassBody: ClassBody
   
-  val String.classParameter: Parameter
+  val String.parameter: Parameter
   
   val String.loopParameter: Parameter
 
@@ -319,6 +319,8 @@ interface ElementScope {
   val String.`this`: ThisExpression
 
   val String.annotatedExpression: AnnotatedExpression
+
+  fun String.formatCode(): String
   
   fun String.file(fileName: String): File
 
@@ -339,6 +341,8 @@ interface ElementScope {
   ): BlockExpression
   
   val String.comment: PsiComment
+
+  val lineSeparator: String
 
   companion object  {
     fun default(project: Project): ElementScope =

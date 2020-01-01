@@ -27,3 +27,8 @@ fun <K : KtElement> Scope<K>?.orEmpty(): Scope<K> =
 
 fun <K : KtElement> K?.scope(): Scope<K> =
   Scope(this)
+
+fun <K : KtElement> Scope<K>.map(f: (K) -> K): Scope<K> {
+  val el = value
+  return if (el != null) Scope(f(el)) else Scope.empty<K>()
+}
