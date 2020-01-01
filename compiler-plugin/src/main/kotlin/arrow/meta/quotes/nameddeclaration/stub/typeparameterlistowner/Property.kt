@@ -16,92 +16,10 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * <code>""" $modifier $visibility $valOrVar $name: $typeReference = $delegateExpressionOrInitializer""".property</code>
+ * <code>""" $modality $visibility $valOrVar $name $returnType $initializer """.property</code>
  * *
  * A template destructuring [Scope] for a [KtProperty].
  *
- * ## Properties
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatProperty: Plugin
- *  get() =
- *   "ReformatProperty" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference = $delegateExpressionOrInitializer
- *                          |   $getter
- *                          |   $setter
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- * ## Delegate Properties
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatProperty: Plugin
- *  get() =
- *   "ReformatProperty" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference by $delegate {
- *                          |   $delegateExpressionOrInitializer
- *                          | }
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- * ## Getters
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatPropertyGetter: Plugin
- *  get() =
- *   "Reformat Property Getter" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference =
- *                          |    get() = $getter
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- *
- * ## Setters
  *
  * ```
  * import arrow.meta.Meta
@@ -117,10 +35,10 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     property({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference =
- *                          |    set() = $setter
- *                          """.property
+ *       newDeclaration = """$modality $visibility $valOrVar $name $returnType $initializer
+ *                              $getter
+ *                              $setter
+ *                              $delegate""".property
  *      )
  *      }
  *     )
@@ -154,7 +72,10 @@ class Property(
   val setter : PropertyAccessor = PropertyAccessor(value.setter)
 ) : TypeParameterListOwner<KtProperty>(value) {
   override fun ElementScope.identity(): Scope<KtProperty> {
-    return """$modality $visibility $valOrVar $name $returnType $initializer $getter $setter""".property
+    return """$modality $visibility $valOrVar $name $returnType $initializer
+                  $getter
+                  $setter
+                  $delegate""".property
   }
 }
 
