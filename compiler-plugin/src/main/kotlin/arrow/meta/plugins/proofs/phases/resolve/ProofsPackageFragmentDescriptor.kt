@@ -5,6 +5,7 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.resolve.scopes.memberScope
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider

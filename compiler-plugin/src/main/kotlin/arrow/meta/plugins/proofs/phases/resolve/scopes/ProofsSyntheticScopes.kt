@@ -1,4 +1,4 @@
-package arrow.meta.plugins.proofs.phases.resolve
+package arrow.meta.plugins.proofs.phases.resolve.scopes
 
 import arrow.meta.Meta
 import arrow.meta.log.Log

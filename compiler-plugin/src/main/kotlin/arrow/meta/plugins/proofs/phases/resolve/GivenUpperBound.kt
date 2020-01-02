@@ -13,6 +13,9 @@ data class GivenUpperBound(
   val givenUpperBound: KotlinType?
 ) {
   companion object {
+
+    val givenAnnotationName: FqName = FqName("arrowx.given")
+
     val Empty: GivenUpperBound =
       GivenUpperBound(
         givenValueParameters = emptyList(),
@@ -22,7 +25,7 @@ data class GivenUpperBound(
     operator fun invoke(callableMemberDescriptor: CallableMemberDescriptor): GivenUpperBound {
       val givenValueParameters = callableMemberDescriptor.valueParameters
         .mapNotNull {
-          if (it.type.annotations.findAnnotation(FqName("arrowx.given")) != null)
+          if (it.type.annotations.findAnnotation(givenAnnotationName) != null)
             it
           else null
         }
@@ -35,6 +38,7 @@ data class GivenUpperBound(
         GivenUpperBound(givenValueParameters, intersection)
       }
     }
+
   }
 }
 

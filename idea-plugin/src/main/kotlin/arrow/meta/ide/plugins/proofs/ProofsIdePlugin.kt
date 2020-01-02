@@ -8,7 +8,7 @@ import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
-import arrow.meta.plugins.proofs.phases.resolve.suppressProvenTypeMismatch
+import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor

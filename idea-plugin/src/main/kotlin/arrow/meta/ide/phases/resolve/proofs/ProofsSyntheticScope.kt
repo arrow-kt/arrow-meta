@@ -3,7 +3,7 @@ package arrow.meta.ide.phases.resolve.proofs
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.plugins.proofs.phases.proofs
-import arrow.meta.plugins.proofs.phases.resolve.ProofsSyntheticScope
+import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsSyntheticScope
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope

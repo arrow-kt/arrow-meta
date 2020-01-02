@@ -35,12 +35,9 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
-interface ProofsIrCodegen {
-
+class ProofsIrCodegen(
   val irUtils: IrUtils
-  val compilerContext: CompilerContext
-  val backendContext: BackendContext
-  val typeTranslator: TypeTranslator
+) {
 
   fun IrUtils.matchedCandidateProofCall(
     fn: FunctionDescriptor,
@@ -151,8 +148,8 @@ interface ProofsIrCodegen {
         val maybeCompanion = (candidateSubtype?.constructor?.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
         if (maybeCompanion != null) {
           val extensionCall = proofCall(proofs, maybeCompanion.defaultType, superType)?.also {
-            val companionType = typeTranslator.translateType(maybeCompanion.defaultType)
-            val companionClass = backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
+            val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
+            val companionClass = irUtils.backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
             it.extensionReceiver = companionCall(companionType, companionClass)
           }
           extensionCall?.apply {
@@ -196,12 +193,17 @@ interface ProofsIrCodegen {
         IrReturnImpl(
           UNDEFINED_OFFSET,
           UNDEFINED_OFFSET,
-          typeTranslator.translateType(targetType),
+          irUtils.typeTranslator.translateType(targetType),
           it.returnTargetSymbol,
           call
         )
       } ?: it
     } else it
+  }
+
+  companion object {
+    operator fun <A> invoke(irUtils: IrUtils, f: ProofsIrCodegen.() -> A): A =
+      f(ProofsIrCodegen(irUtils))
   }
 }
 
@@ -218,4 +220,6 @@ val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
         it.key.type.constructor to it.value.type.unwrap()
       }.toMap()
     )
+
+
   }

@@ -1,8 +1,10 @@
-package arrow.meta.plugins.proofs.phases.resolve
+package arrow.meta.plugins.proofs.phases.resolve.cache
 
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.isProof
+import arrow.meta.plugins.proofs.phases.resolve.asProof
+import arrow.meta.plugins.proofs.phases.resolve.scopes.synthetic
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor

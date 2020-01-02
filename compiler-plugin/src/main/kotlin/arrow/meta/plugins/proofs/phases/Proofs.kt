@@ -1,9 +1,9 @@
 package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.proofs.phases.resolve.discardPlatformBaseObjectFakeOverrides
+import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
-import arrow.meta.plugins.proofs.phases.resolve.proofCache
+import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor

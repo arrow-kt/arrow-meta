@@ -1,4 +1,4 @@
-package arrow.meta.plugins.proofs.phases.resolve
+package arrow.meta.plugins.proofs.phases.resolve.diagnostics
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke

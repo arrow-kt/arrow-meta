@@ -8,6 +8,7 @@ import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.subtypingProof
 import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver
 import org.jetbrains.kotlin.types.KotlinType
@@ -33,7 +34,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
 
 }
 
-fun Meta.registerProofTypeChecker(): AnalysisHandler =
+fun Meta.registerArgumentTypeResolver(): AnalysisHandler =
   analysis(
     doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
       module.initializeProofCache()

@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.resolve
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
+import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor

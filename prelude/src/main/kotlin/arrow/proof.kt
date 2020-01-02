@@ -1,8 +1,5 @@
 package arrow
 
-import java.lang.reflect.Type
-import kotlin.reflect.KClass
-
 /**
  * - Type Proofs
  *  - Introduction
@@ -63,7 +60,7 @@ import kotlin.reflect.KClass
  *
  * A [Proof] establishes a relationship of trust between an extension function and the Kotlin compiler.
  *
- * [TypeProof]'s can establish [Subtyping] relationship between types, enhance the member scope of a type with [Extension]'s or
+ * [TypeProof]'s can establish [Extension] relationship between types, enhance the member scope of a type with [Extension]'s or
  * perform type [Refinement] among other constrains.
  */
 enum class TypeProof {
@@ -81,7 +78,6 @@ enum class TypeProof {
    * fun Int.toPositiveInt(): PositiveInt? =
    * ```
    */
-  Subtyping,
   Extension,
   Refinement,
   Negation
@@ -92,11 +88,4 @@ enum class TypeProof {
 @MustBeDocumented
 annotation class Proof(
   val of: TypeProof
-)
-
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-@MustBeDocumented
-annotation class Ext(
-  val of: KClass<*>
 )

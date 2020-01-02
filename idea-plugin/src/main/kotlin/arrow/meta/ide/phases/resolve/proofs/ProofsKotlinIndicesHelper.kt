@@ -2,7 +2,7 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.plugins.proofs.phases.resolve.toSynthetic
+import arrow.meta.plugins.proofs.phases.resolve.scopes.toSynthetic
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending

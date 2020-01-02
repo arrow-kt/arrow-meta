@@ -2,9 +2,9 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.plugins.proofs.phases.resolve.disposeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.initializeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.proofCache
+import arrow.meta.plugins.proofs.phases.resolve.cache.disposeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending

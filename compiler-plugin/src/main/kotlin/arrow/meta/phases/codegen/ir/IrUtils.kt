@@ -22,13 +22,11 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 
 class IrUtils(
-  override val backendContext: BackendContext,
-  override val compilerContext: CompilerContext
-) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable, ProofsIrCodegen {
+  val backendContext: BackendContext,
+  val compilerContext: CompilerContext
+) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable {
 
-  override val irUtils: IrUtils = this
-
-  override val typeTranslator: TypeTranslator =
+  val typeTranslator: TypeTranslator =
     TypeTranslator(
       symbolTable = backendContext.ir.symbols.externalSymbolTable,
       languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,

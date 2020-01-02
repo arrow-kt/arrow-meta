@@ -1,6 +1,7 @@
 package arrow.meta.dsl.config
 
 import arrow.meta.dsl.platform.cli
+import arrow.meta.internal.Noop
 import arrow.meta.internal.registry.setFinalStatic
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -50,7 +51,7 @@ interface ConfigSyntax {
    */
   fun storageComponent(
     registerModuleComponents: CompilerContext.(container: StorageComponentContainer, moduleDescriptor: ModuleDescriptor) -> Unit,
-    check: CompilerContext.(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) -> Unit
+    check: CompilerContext.(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) -> Unit = Noop.effect4
   ): arrow.meta.phases.config.StorageComponentContainer =
     object : arrow.meta.phases.config.StorageComponentContainer {
       override fun CompilerContext.check(

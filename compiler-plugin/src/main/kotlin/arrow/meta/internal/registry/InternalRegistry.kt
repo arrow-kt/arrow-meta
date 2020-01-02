@@ -102,7 +102,6 @@ interface InternalRegistry : ConfigSyntax {
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
-      registerProofCallResolver(project, ctx, recycleComponentProvider = true)
       AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {
         override fun doAnalysis(
           project: Project,
@@ -118,31 +117,6 @@ interface InternalRegistry : ConfigSyntax {
         }
       })
     }
-    ide {
-      registerProofCallResolver(project, ctx, recycleComponentProvider = false)
-    }
-  }
-
-  fun registerProofCallResolver(project: Project, ctx: CompilerContext, recycleComponentProvider: Boolean = false) {
-    StorageComponentContainerContributor.registerExtension(
-      project,
-      object : StorageComponentContainerContributor {
-        override fun registerModuleComponents(
-          container: org.jetbrains.kotlin.container.StorageComponentContainer,
-          platform: TargetPlatform,
-          moduleDescriptor: ModuleDescriptor
-        ) {
-          println("Replacing ${ctx.module} for $moduleDescriptor")
-          ctx.module = moduleDescriptor
-          println("Replacing ${ctx.componentProvider} for $container")
-          if (recycleComponentProvider || ctx.componentProvider == null) {
-            ctx.componentProvider = container
-            container.useImpl<ProofsCallResolver>()
-          }
-          super.registerModuleComponents(container, platform, moduleDescriptor)
-        }
-      }
-    )
   }
 
   fun registerProjectComponents(
