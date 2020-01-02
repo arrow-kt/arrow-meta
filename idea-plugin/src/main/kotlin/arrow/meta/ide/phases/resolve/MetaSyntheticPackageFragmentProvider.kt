@@ -1,9 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
-import arrow.meta.plugins.proofs.phases.resolve.scopes.toSynthetic
-import arrow.meta.plugins.proofs.phases.proofs
-import arrow.meta.plugins.proofs.phases.resolve.scopes.memberScope
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -101,6 +98,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
         return System.currentTimeMillis() - start
       }
     }
+
   }
 
   /**
@@ -123,7 +121,7 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
       descriptorCache.keys().toList().map { packageName ->
         BuildCachePackageFragmentDescriptor(module, packageName)
-      } + ProofsPackageFragmentDescriptor(module, fqName)
+      }
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
       getPackageFragments(fqName).map { it.fqName }
@@ -159,16 +157,6 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
       override fun printScopeStructure(p: Printer) {
       }
     }
-  }
-
-  inner class ProofsPackageFragmentDescriptor(val module: ModuleDescriptor, fqName: FqName) : PackageFragmentDescriptorImpl(module, fqName) {
-    override fun getMemberScope(): MemberScope = scope
-
-    private val scope by lazy {
-      if (module.proofs.isEmpty()) MemberScope.Empty
-      else { { module.proofs }.memberScope() }
-    }
-
   }
 
   override fun dispose() {

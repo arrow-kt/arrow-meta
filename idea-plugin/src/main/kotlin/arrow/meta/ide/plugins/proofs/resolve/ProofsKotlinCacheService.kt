@@ -1,13 +1,11 @@
-package arrow.meta.ide.phases.resolve.proofs
+package arrow.meta.ide.plugins.proofs.resolve
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.resolve.cache.disposeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
-import arrow.meta.plugins.proofs.phases.proofs
-import arrow.meta.plugins.proofs.phases.callables
-import arrow.meta.plugins.proofs.phases.extending
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -16,30 +14,17 @@ import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.BindingTraceFilter
-import org.jetbrains.kotlin.resolve.DelegatingBindingTrace
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-import org.jetbrains.kotlin.resolve.calls.model.MutableDataFlowInfoForArguments
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCallImpl
-import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
-import org.jetbrains.kotlin.resolve.calls.tasks.ResolutionCandidate
-import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategy
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
-import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
+private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
   override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade =
     Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this" }) {
       delegate.getResolutionFacade(elements).initializeProofsIfNeeded()
@@ -100,13 +85,13 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
     }
 }
 
-class MetaKotlinCacheService(val project: Project) : ProjectComponent {
+class ProofsKotlinCacheService(val project: Project) : ProjectComponent {
 
   val delegate: KotlinCacheService = KotlinCacheService.getInstance(project)
 
   override fun initComponent() {
     Log.Verbose({ "MetaKotlinCacheService.initComponent" }) {
-      project.replaceKotlinCacheService { MetaKotlinCacheServiceHelper(delegate) }
+      project.replaceKotlinCacheService { ProofsKotlinCacheServiceHelper(delegate) }
     }
   }
 

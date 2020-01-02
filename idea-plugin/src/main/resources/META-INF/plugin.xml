@@ -27,16 +27,16 @@
             <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
         </component>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaKotlinCacheService</implementation-class>
+            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsKotlinCacheService</implementation-class>
         </component>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
+            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsImportInsertHelper</implementation-class>
         </component>
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-        <syntheticScopeProviderExtension implementation="arrow.meta.ide.phases.resolve.proofs.MetaSyntheticScope" />
+        <syntheticScopeProviderExtension implementation="arrow.meta.ide.plugins.proofs.resolve.ProofsIdeSyntheticScope" />
     </extensions>
 
 </idea-plugin>

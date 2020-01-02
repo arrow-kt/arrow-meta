@@ -1,4 +1,4 @@
-package arrow.meta.ide.phases.resolve.proofs
+package arrow.meta.ide.plugins.proofs.resolve
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
 import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 
-class MetaSyntheticScope : SyntheticScopeProviderExtension {
+class ProofsIdeSyntheticScope : SyntheticScopeProviderExtension {
   override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
     withReadAccess {
       Log.Verbose({ "MetaSyntheticScope.getScopes" }) {

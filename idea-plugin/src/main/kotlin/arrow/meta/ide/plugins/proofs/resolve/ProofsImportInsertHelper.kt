@@ -1,4 +1,4 @@
-package arrow.meta.ide.phases.resolve.proofs
+package arrow.meta.ide.plugins.proofs.resolve
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
@@ -73,7 +73,7 @@ private class Helper(private val delegate: ImportInsertHelper) : ImportInsertHel
   }
 }
 
-class MetaImportInsertHelper(val project: Project) : ProjectComponent {
+class ProofsImportInsertHelper(val project: Project) : ProjectComponent {
 
   val delegate: ImportInsertHelper = project.getService(ImportInsertHelper::class.java)
 

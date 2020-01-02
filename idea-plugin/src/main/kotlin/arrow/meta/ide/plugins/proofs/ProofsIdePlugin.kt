@@ -11,7 +11,7 @@ import arrow.meta.invoke
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-val IdeMetaPlugin.proofsIdePlugin: Plugin
+val IdeMetaPlugin.typeProofsIde: Plugin
   get() = "Type Proofs IDE" {
     meta(
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
