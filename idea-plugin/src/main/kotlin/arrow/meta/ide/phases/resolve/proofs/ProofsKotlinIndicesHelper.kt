@@ -2,18 +2,16 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.resolve.proofCache
-import arrow.meta.phases.resolve.toSynthetic
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.extensionCallables
-import arrow.meta.proofs.extensions
+import arrow.meta.plugins.proofs.phases.resolve.toSynthetic
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.callables
+import arrow.meta.plugins.proofs.phases.extending
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.idea.core.extension.KotlinIndicesHelperExtension
 import org.jetbrains.kotlin.incremental.components.LookupLocation
-import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.types.KotlinType
 
 class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
@@ -34,9 +32,9 @@ class ProofsKotlinIndicesHelperExtension : KotlinIndicesHelperExtension {
     lookupLocation: LookupLocation
   ) {
     Log.Verbose({ "ProofsKotlinIndicesHelperExtension.appendExtensionCallables($receiverTypes), result: $this" }) {
-      val extensions = moduleDescriptor.typeProofs.extensions(receiverTypes)
+      val extensions = moduleDescriptor.proofs.extending(receiverTypes)
       val extensionCallables = extensions.flatMap {
-        it.extensionCallables { true }
+        it.callables { true }
           .filterIsInstance<SimpleFunctionDescriptor>()
           .mapNotNull { it.newCopyBuilder()
             .setModality(Modality.FINAL)

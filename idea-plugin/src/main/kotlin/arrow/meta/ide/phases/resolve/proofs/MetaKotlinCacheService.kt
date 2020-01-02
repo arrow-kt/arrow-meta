@@ -2,13 +2,12 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.resolve.disposeProofCache
-import arrow.meta.phases.resolve.initializeProofCache
-import arrow.meta.phases.resolve.proofCache
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.extensionCallables
-import arrow.meta.proofs.extensions
-import arrow.meta.quotes.get
+import arrow.meta.plugins.proofs.phases.resolve.disposeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.initializeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.proofCache
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.callables
+import arrow.meta.plugins.proofs.phases.extending
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -26,7 +25,6 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.BindingTraceFilter
 import org.jetbrains.kotlin.resolve.DelegatingBindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -48,7 +46,7 @@ private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheServ
     }
 
   private fun ResolutionFacade.initializeProofsIfNeeded(): ResolutionFacade {
-    if (moduleDescriptor.typeProofs.isEmpty()) {
+    if (moduleDescriptor.proofs.isEmpty()) {
       Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache $moduleDescriptor ${this.size}" }) {
         println("Current cache size: ${proofCache.size}")
         moduleDescriptor.initializeProofCache()
@@ -94,9 +92,9 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
       if (resolvedCall == null) {
         call.explicitReceiver?.safeAs<ExpressionReceiver>()?.let {
           val from = it.type
-          val extensions = delegate.moduleDescriptor.typeProofs.extensions(from)
+          val extensions = delegate.moduleDescriptor.proofs.extending(from)
           extensions.forEach {
-            val callable = it.extensionCallables { true }.find {
+            val callable = it.callables { true }.find {
               it.name.asString() == call.callElement.text.substringBefore("(")
             }
             if (callable != null) {

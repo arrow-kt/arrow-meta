@@ -1,8 +1,9 @@
-package arrow.meta.proofs
+package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.log.Log
-import arrow.meta.log.Log.Silent
 import arrow.meta.log.invoke
+import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.callables
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -50,4 +51,14 @@ internal class ProofsMemberScope(private val synthProofs: () -> List<SimpleFunct
   override fun printScopeStructure(p: Printer) {
     println("printScopeStructure")
   }
+}
+
+fun (() -> List<Proof>).memberScope(): MemberScope {
+  val synthProofs by lazy {
+    this().flatMap { proof ->
+      proof.callables { true }
+        .filterIsInstance<SimpleFunctionDescriptor>()
+    }
+  }
+  return ProofsMemberScope { synthProofs }
 }

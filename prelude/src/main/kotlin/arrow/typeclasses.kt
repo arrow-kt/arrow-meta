@@ -25,10 +25,10 @@ inline class StringSyntax(override val value: String): Semigroup.Syntax<String> 
   override fun combine(other: String): String = value + other
 }
 
-@Proof(TypeProof.Subtyping)
+@Proof(TypeProof.Extension)
 fun String.Companion.monoid(): Monoid<String> = StringMonoid
 
-@Proof(TypeProof.Subtyping)
+@Proof(TypeProof.Extension)
 fun String.semigroupSyntax(): Semigroup.Syntax<String> = StringSyntax(this)
 
 data class Id<A>(val value: A) {
@@ -42,11 +42,11 @@ interface Applicative<F, A> : Kind<F, A> {
   }
 }
 
-@Proof(TypeProof.Subtyping)
+@Proof(TypeProof.Extension)
 fun Id.Companion.applicative(): Applicative.Companion<Id.Companion> =
   IdApplicative.Companion
 
-@Proof(TypeProof.Subtyping)
+@Proof(TypeProof.Extension)
 fun <A> Id<A>.applicative(): Applicative<Id.Companion, A> =
   IdApplicative(this)
 

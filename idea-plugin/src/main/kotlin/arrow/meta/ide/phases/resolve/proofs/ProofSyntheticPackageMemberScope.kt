@@ -2,7 +2,7 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.resolve.toSynthetic
+import arrow.meta.plugins.proofs.phases.resolve.toSynthetic
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation

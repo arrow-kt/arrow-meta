@@ -1,13 +1,13 @@
 package arrow.meta.phases
 
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.proofs.Proof
+import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import arrow.meta.phases.resolve.typeProofs as tp
+import arrow.meta.plugins.proofs.phases.proofs as tp
 
 /**
  * The Compiler Context represents the environment received by all plugins.
@@ -22,7 +22,7 @@ class CompilerContext(
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
 
-  val ModuleDescriptor?.typeProofs: List<Proof>
+  val ModuleDescriptor?.proofs: List<Proof>
     get() = this?.tp ?: emptyList()
 
   var module: ModuleDescriptor?

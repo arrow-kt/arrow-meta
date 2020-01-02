@@ -2,8 +2,8 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.ProofsSyntheticScope
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.resolve.ProofsSyntheticScope
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
@@ -14,7 +14,7 @@ class MetaSyntheticScope : SyntheticScopeProviderExtension {
   override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
     withReadAccess {
       Log.Verbose({ "MetaSyntheticScope.getScopes" }) {
-        listOf(ProofsSyntheticScope { moduleDescriptor.typeProofs })
+        listOf(ProofsSyntheticScope { moduleDescriptor.proofs })
       }
     }.orEmpty()
 }

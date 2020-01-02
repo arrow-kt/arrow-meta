@@ -1,18 +1,13 @@
 package arrow.meta.dsl.analysis
 
 import arrow.meta.dsl.platform.cli
+import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
-import arrow.meta.internal.Noop
-import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.resolve.applySmartCast
-import arrow.meta.phases.resolve.intersection
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.Proof
-import arrow.meta.proofs.dump
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -27,8 +22,7 @@ import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
-import java.util.ArrayList
-import java.util.Collections.addAll
+import java.util.*
 
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly.

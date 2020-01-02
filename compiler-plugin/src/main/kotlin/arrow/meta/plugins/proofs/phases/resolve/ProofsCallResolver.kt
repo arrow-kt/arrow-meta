@@ -1,4 +1,4 @@
-package arrow.meta.proofs
+package arrow.meta.plugins.proofs.phases.resolve
 
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.resolve.BindingTraceContext

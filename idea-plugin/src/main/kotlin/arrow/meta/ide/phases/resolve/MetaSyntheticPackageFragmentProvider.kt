@@ -1,13 +1,9 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
-import arrow.meta.phases.resolve.disposeProofCache
-import arrow.meta.phases.resolve.initializeProofCache
-import arrow.meta.phases.resolve.proofCache
-import arrow.meta.phases.resolve.synthetic
-import arrow.meta.phases.resolve.toSynthetic
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.chainedMemberScope
+import arrow.meta.plugins.proofs.phases.resolve.toSynthetic
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.resolve.memberScope
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -38,11 +34,9 @@ import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.caches.project.toDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeAndGetResult
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -86,33 +80,7 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
-import kotlin.collections.Collection
-import kotlin.collections.List
-import kotlin.collections.MutableCollection
-import kotlin.collections.MutableList
-import kotlin.collections.MutableSet
-import kotlin.collections.Set
-import kotlin.collections.arrayListOf
-import kotlin.collections.emptyList
-import kotlin.collections.emptySet
-import kotlin.collections.filter
-import kotlin.collections.filterIsInstance
-import kotlin.collections.filterNot
-import kotlin.collections.filterNotNull
-import kotlin.collections.find
-import kotlin.collections.firstOrNull
-import kotlin.collections.flatMap
-import kotlin.collections.forEach
-import kotlin.collections.isNotEmpty
-import kotlin.collections.joinToString
-import kotlin.collections.listOf
-import kotlin.collections.map
-import kotlin.collections.mapNotNull
-import kotlin.collections.plus
 import kotlin.collections.set
-import kotlin.collections.toList
-import kotlin.collections.toMap
-import kotlin.collections.toSet
 
 class MetaSyntheticPackageFragmentProvider(val project: Project) :
   PackageFragmentProviderExtension,
@@ -197,8 +165,8 @@ class MetaSyntheticPackageFragmentProvider(val project: Project) :
     override fun getMemberScope(): MemberScope = scope
 
     private val scope by lazy {
-      if (module.typeProofs.isEmpty()) MemberScope.Empty
-      else module.typeProofs.chainedMemberScope()
+      if (module.proofs.isEmpty()) MemberScope.Empty
+      else { { module.proofs }.memberScope() }
     }
 
   }

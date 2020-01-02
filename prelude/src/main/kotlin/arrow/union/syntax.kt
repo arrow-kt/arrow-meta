@@ -1,12 +1,9 @@
 package arrow
 
-import arrow.Proof
-import arrow.TypeProof
-
 /**
  * If A : C and B : C then Union2<A, B> : C
  */
-@Proof(TypeProof.Subtyping)
+@Proof(TypeProof.Extension)
 inline fun <A : C, B : C, reified C> Union2<A, B>.widden(): C =
   value as C
 

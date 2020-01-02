@@ -4,33 +4,21 @@ import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
-import arrow.meta.phases.resolve.intersection
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.MetaFileScopeProvider
-import arrow.meta.proofs.Proof
-import arrow.meta.proofs.ProofStrategy
-import arrow.meta.proofs.intersection
-import arrow.meta.proofs.suppressProvenTypeMismatch
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.ProofStrategy
+import arrow.meta.plugins.proofs.phases.resolve.suppressProvenTypeMismatch
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
-import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.blockExpressionsOrSingle
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -39,11 +27,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
-import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.LexicalScopeImpl
-import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
-import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -88,7 +72,7 @@ val FunctionDescriptor.to: String
     returnType?.toString().orEmpty()
 
 fun FunctionDescriptor.proof(): Proof? =
-  module.typeProofs.find { it.through.fqNameSafe == fqNameSafe }
+  module.proofs.find { it.through.fqNameSafe == fqNameSafe }
 
 fun Proof.extensionMarkerMessage(name: Name?): String {
   return """
@@ -247,7 +231,7 @@ val IdeMetaPlugin.proofsIdePlugin: Plugin
 //        } else false
 //      },
       ,
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it, module.typeProofs) }
+      addDiagnosticSuppressor { suppressProvenTypeMismatch(it, module.proofs) }
 //      addDiagnosticSuppressor { it.suppressUpperboundViolated(module.typeProofs) }
     )
   }

@@ -1,7 +1,8 @@
-package arrow.meta.proofs
+package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -17,10 +18,12 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.LocalRedeclarationChecker
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
+import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.resolve.scopes.utils.addImportingScope
 import org.jetbrains.kotlin.resolve.scopes.utils.memberScopeAsImportingScope
+import org.jetbrains.kotlin.synthetic.JavaSyntheticScopes
 import org.jetbrains.kotlin.types.TypeApproximator
 
 class ProofsScopeTower(
@@ -39,7 +42,7 @@ class ProofsScopeTower(
     isOwnerDescriptorAccessibleByLabel = false,
     implicitReceiver = null,
     kind = LexicalScopeKind.SYNTHETIC,
-    memberScopes = listOf({ proofs }.chainedMemberScope())
+    memberScopes = listOf({ proofs }.memberScope())
   ).addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes { proofs }
@@ -49,5 +52,12 @@ class ProofsScopeTower(
   override fun interceptCandidates(resolutionScope: ResolutionScope, name: Name, initialResults: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
     Log.Verbose({"ProofsScopeTower.interceptCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
       emptyList()
+    }
+}
+
+class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, proofs: () -> List<Proof>) : SyntheticScopes {
+  override val scopes: Collection<SyntheticScope> =
+    Log.Verbose({ "ProofsSyntheticScopes.scopes $this" }) {
+      delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(proofs))
     }
 }

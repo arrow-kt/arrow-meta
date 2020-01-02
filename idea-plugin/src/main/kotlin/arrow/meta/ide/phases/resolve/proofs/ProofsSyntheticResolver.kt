@@ -2,13 +2,10 @@ package arrow.meta.ide.phases.resolve.proofs
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.resolve.synthetic
-import arrow.meta.phases.resolve.toSynthetic
-import arrow.meta.phases.resolve.typeProofs
-import arrow.meta.proofs.Proof
-import arrow.meta.proofs.extensionCallables
-import arrow.meta.proofs.extensions
-import arrow.meta.proofs.subtyping
+import arrow.meta.plugins.proofs.phases.proofs
+import arrow.meta.plugins.proofs.phases.callables
+import arrow.meta.plugins.proofs.phases.extending
+import arrow.meta.plugins.proofs.phases.fromSubtyping
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -59,9 +56,6 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
     supertypes: MutableList<KotlinType>
   ) {
     Log.Verbose({ "MetaSyntheticResolver.addSyntheticSupertypes: $thisDescriptor, supertypes: $supertypes: $this" }) {
-      thisDescriptor.module.typeProofs
-        .subtyping(thisDescriptor.defaultType)
-        .mapTo(supertypes, Proof::to)
     }
   }
 
@@ -72,12 +66,12 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
     fromSupertypes: List<SimpleFunctionDescriptor>,
     result: MutableCollection<SimpleFunctionDescriptor>
   ) {
-    val proofs = thisDescriptor.module.typeProofs
+    val proofs = thisDescriptor.module.proofs
     Log.Verbose({ "MetaSyntheticResolver.generateSyntheticMethods: $thisDescriptor, name: $name, proofs: $proofs result: $this" }) {
       proofs
-        .extensions(thisDescriptor.defaultType)
+        .extending(thisDescriptor.defaultType)
         .flatMapTo(result) {
-          it.extensionCallables { true }
+          it.callables { true }
             .filterIsInstance<SimpleFunctionDescriptor>()
             .map {
               it.copy(thisDescriptor, Modality.FINAL, Visibilities.PUBLIC, CallableMemberDescriptor.Kind.SYNTHESIZED, true)
@@ -99,10 +93,10 @@ class ProofsSyntheticResolver : SyntheticResolveExtension {
 
   override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> =
     Log.Verbose({ "MetaSyntheticResolver.getSyntheticFunctionNames: $thisDescriptor, result: $this" }) {
-      thisDescriptor.module.typeProofs
-        .extensions(thisDescriptor.defaultType)
+      thisDescriptor.module.proofs
+        .extending(thisDescriptor.defaultType)
         .flatMap { proof ->
-          proof.extensionCallables { true }.map { it.name }
+          proof.callables { true }.map { it.name }
         }
     }
 
