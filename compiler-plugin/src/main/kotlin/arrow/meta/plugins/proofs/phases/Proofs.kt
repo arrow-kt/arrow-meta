@@ -53,7 +53,7 @@ fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<Ca
     .filterIsInstance<CallableMemberDescriptor>()
     .mapNotNull(CallableMemberDescriptor::discardPlatformBaseObjectFakeOverrides)
 
-fun List<Proof>.subtypingProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Proof? =
+fun List<Proof>.extensionProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Proof? =
   filter { it.proofType == ProofStrategy.Extension }.matchingCandidates(compilerContext, subType, superType).firstOrNull()
 
 val ModuleDescriptor.proofs: List<Proof>

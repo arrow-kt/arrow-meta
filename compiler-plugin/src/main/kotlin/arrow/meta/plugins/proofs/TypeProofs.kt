@@ -17,7 +17,7 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressUpperboundVi
 
 val Meta.typeProofs: Plugin
   get() =
-    "Type Proofs" {
+    "Type Proofs CLI" {
       meta(
         enableIr(),
         enableProofCallResolver(),

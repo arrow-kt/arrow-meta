@@ -32,6 +32,7 @@ allprojects {
   }
 
   repositories {
+    mavenLocal()
     maven { url "https://kotlin.bintray.com/kotlinx" }
     maven {
       url "https://dl.bintray.com/arrow-kt/arrow-kt/"
@@ -53,6 +54,7 @@ subprojects { project ->
 
   apply plugin: 'kotlin'
   apply plugin: 'org.jetbrains.dokka'
+  apply plugin: 'maven-publish'
 
   //dokka log spam `Can't find node by signature` comes from https://github.com/Kotlin/dokka/issues/269
   dokka {

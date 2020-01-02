@@ -6,7 +6,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.resolve.baseLineTypeChecker
-import arrow.meta.plugins.proofs.phases.subtypingProof
+import arrow.meta.plugins.proofs.phases.extensionProof
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import org.jetbrains.kotlin.container.get
@@ -24,7 +24,7 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : KotlinTyp
       if (!p0.isError && !p1.isError) {
         val result = baseLineTypeChecker.isSubtypeOf(p0, p1)
         if (!result && !p0.isError && !p1.isError) {
-          compilerContext.module?.proofs?.subtypingProof(compilerContext, p0, p1) != null
+          compilerContext.module?.proofs?.extensionProof(compilerContext, p0, p1) != null
         } else result
       } else false
     }

@@ -5,7 +5,6 @@ import arrow.meta.log.invoke
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending
-import arrow.meta.plugins.proofs.phases.fromSubtyping
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor

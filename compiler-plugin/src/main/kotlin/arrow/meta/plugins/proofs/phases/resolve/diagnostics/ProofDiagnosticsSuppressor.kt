@@ -4,7 +4,7 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.subtypingProof
+import arrow.meta.plugins.proofs.phases.extensionProof
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
@@ -25,7 +25,7 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: L
       val subType = diagnosticWithParameters.a
       val superType = diagnosticWithParameters.b
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
-        proofs.subtypingProof(this, subType, superType) != null
+        proofs.extensionProof(this, subType, superType) != null
       }
     } == true
 
@@ -35,7 +35,7 @@ fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagno
       val subType = diagnosticWithParameters.a
       val superType = diagnosticWithParameters.b
       Log.Verbose({ "suppressTypeInferenceExpectedTypeMismatch: $subType, $superType, $this" }) {
-        proofs.subtypingProof(this, subType, superType) != null
+        proofs.extensionProof(this, subType, superType) != null
       }
     } == true
 
@@ -64,7 +64,7 @@ fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic,
       }
       Log.Verbose({ "suppressConstantExpectedTypeMismatch: $subType, $superType, $this" }) {
         subType?.let {
-          proofs.subtypingProof(this, it, superType) != null
+          proofs.extensionProof(this, it, superType) != null
         }
       }
     } == true
