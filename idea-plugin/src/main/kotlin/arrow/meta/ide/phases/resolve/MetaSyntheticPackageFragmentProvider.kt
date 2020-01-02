@@ -1,6 +1,7 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.phases.config.buildFolders
+import arrow.meta.plugins.proofs.phases.resolve.scopes.toSynthetic
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
