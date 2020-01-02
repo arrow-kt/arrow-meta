@@ -17,8 +17,12 @@ import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.ide.dsl.editor.usage.UsageSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
+import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
+import arrow.meta.ide.dsl.ui.notification.NotificationSyntax
+import arrow.meta.ide.dsl.ui.popups.PopupSyntax
 
 interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinIndicesSyntax
+  UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinIndicesSyntax, DialogSyntax, PopupSyntax,
+  NotificationSyntax
