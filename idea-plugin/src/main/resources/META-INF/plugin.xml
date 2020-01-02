@@ -32,25 +32,11 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper</implementation-class>
         </component>
-<!--        <component>-->
-<!--            <implementation-class>arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer</implementation-class>-->
-<!--        </component>-->
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-<!--        <kotlinIndicesHelperExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsKotlinIndicesHelperExtension" />-->
-<!--        <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>-->
         <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-<!--        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.proofs.ProofsSyntheticResolver" />-->
-<!--        <diagnosticSuppressor implementation="arrow.meta.ide.phases.resolve.proofs.ProofsDiagnosticsSuppressor" />-->
         <syntheticScopeProviderExtension implementation="arrow.meta.ide.phases.resolve.proofs.MetaSyntheticScope" />
-    </extensions>
-
-    <extensions defaultExtensionNs="com.intellij">
-<!--        <projectService serviceInterface="org.jetbrains.kotlin.idea.util.ImportInsertHelper"-->
-<!--                        serviceImplementation="arrow.meta.ide.phases.resolve.proofs.MetaImportInsertHelper"/>-->
-<!--        <projectService serviceInterface="org.jetbrains.kotlin.resolve.CodeAnalyzerInitializer"-->
-<!--                        serviceImplementation="arrow.meta.ide.phases.resolve.proofs.MetaCodeAnalyzerInitializer"/>-->
     </extensions>
 
 </idea-plugin>
