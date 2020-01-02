@@ -57,7 +57,7 @@ class ProofsScopeTower(
 
 class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, proofs: () -> List<Proof>) : SyntheticScopes {
   override val scopes: Collection<SyntheticScope> =
-    Log.Verbose({ "ProofsSyntheticScopes.scopes $this" }) {
+    Log.Silent({ "ProofsSyntheticScopes.scopes $this" }) {
       delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(proofs))
     }
 }

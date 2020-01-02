@@ -34,7 +34,7 @@ fun Meta.proofsPackageFragmentProvider(): PackageProvider {
 
 
       override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-        Log.Verbose({ "packageFragmentProvider.getSubPackagesOf $fqName" }) {
+        Log.Silent({ "packageFragmentProvider.getSubPackagesOf $fqName" }) {
           emptyList()
         }
     }

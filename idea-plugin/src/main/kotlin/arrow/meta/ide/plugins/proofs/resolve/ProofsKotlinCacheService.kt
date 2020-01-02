@@ -26,14 +26,13 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
   override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade =
-    Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this" }) {
+    Log.Silent({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this" }) {
       delegate.getResolutionFacade(elements).initializeProofsIfNeeded()
     }
 
   private fun ResolutionFacade.initializeProofsIfNeeded(): ResolutionFacade {
     if (moduleDescriptor.proofs.isEmpty()) {
       Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache $moduleDescriptor ${this.size}" }) {
-        println("Current cache size: ${proofCache.size}")
         moduleDescriptor.initializeProofCache()
       }
     }
@@ -41,48 +40,38 @@ private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheSe
   }
 
   override fun getResolutionFacade(elements: List<KtElement>, platform: TargetPlatform): ResolutionFacade =
-    Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $platform $this" }) {
+    Log.Silent({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $platform $this" }) {
       delegate.getResolutionFacade(elements, platform).initializeProofsIfNeeded()
     }
 
   override fun getResolutionFacadeByFile(file: PsiFile, platform: TargetPlatform): ResolutionFacade? =
-    Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacadeByFile $file $platform $this" }) {
+    Log.Silent({ "MetaKotlinCacheServiceHelper.getResolutionFacadeByFile $file $platform $this" }) {
       delegate.getResolutionFacadeByFile(file, platform)?.initializeProofsIfNeeded()
     }
 
   override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo, platform: TargetPlatform): ResolutionFacade? =
-    Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacadeByModuleInfo $moduleInfo $platform $this" }) {
+    Log.Silent({ "MetaKotlinCacheServiceHelper.getResolutionFacadeByModuleInfo $moduleInfo $platform $this" }) {
       delegate.getResolutionFacadeByModuleInfo(moduleInfo, platform)?.initializeProofsIfNeeded()
     }
 
   override fun getSuppressionCache(): KotlinSuppressCache =
-    Log.Verbose({ "MetaKotlinCacheServiceHelper.getSuppressionCache $this" }) {
-      delegate.getSuppressionCache()
-    }
+    delegate.getSuppressionCache()
 
 }
 
 class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by delegate {
 
   override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext =
-    Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(elements, bodyResolveMode)
-    }
+    delegate.analyze(elements, bodyResolveMode)
 
   override fun analyze(element: KtElement, bodyResolveMode: BodyResolveMode): BindingContext =
-    Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(element, bodyResolveMode)
-    }
+    delegate.analyze(element, bodyResolveMode)
 
   override fun analyzeWithAllCompilerChecks(elements: Collection<KtElement>): AnalysisResult =
-    Log.Verbose({ "MetaResolutionFacade.analyzeWithAllCompilerChecks" }) {
-      delegate.analyzeWithAllCompilerChecks(elements)
-    }
+    delegate.analyzeWithAllCompilerChecks(elements)
 
   override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =
-    Log.Verbose({ "MetaResolutionFacade.resolveToDescriptor" }) {
-      delegate.resolveToDescriptor(declaration, bodyResolveMode)
-    }
+    delegate.resolveToDescriptor(declaration, bodyResolveMode)
 }
 
 class ProofsKotlinCacheService(val project: Project) : ProjectComponent {

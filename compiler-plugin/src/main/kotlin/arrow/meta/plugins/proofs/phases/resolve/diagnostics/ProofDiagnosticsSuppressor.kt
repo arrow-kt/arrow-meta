@@ -22,8 +22,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
   diagnostic.factory == Errors.TYPE_MISMATCH &&
     diagnostic.safeAs<DiagnosticWithParameters2<KtExpression, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
-      val subType = diagnosticWithParameters.a
-      val superType = diagnosticWithParameters.b
+      val subType = diagnosticWithParameters.b
+      val superType = diagnosticWithParameters.a
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
         proofs.extensionProof(this, subType, superType) != null
       }

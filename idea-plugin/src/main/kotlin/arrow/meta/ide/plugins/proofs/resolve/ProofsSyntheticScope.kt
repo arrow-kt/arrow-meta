@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 class ProofsIdeSyntheticScope : SyntheticScopeProviderExtension {
   override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
     withReadAccess {
-      Log.Verbose({ "MetaSyntheticScope.getScopes" }) {
+      Log.Verbose({ "MetaSyntheticScope.getScopes $moduleDescriptor" }) {
         listOf(ProofsSyntheticScope { moduleDescriptor.proofs })
       }
     }.orEmpty()

@@ -1,5 +1,7 @@
 package arrow.meta.plugins.proofs.phases.resolve.cache
 
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.isProof
@@ -34,14 +36,13 @@ fun ModuleDescriptor.initializeProofCache(): List<Proof> {
 }
 
 private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
-  (getSubPackagesOf(FqName.ROOT) { true })
-    .filter { !it.isRoot }
-    .flatMap { packageName ->
-      getPackage(packageName).memberScope.getContributedDescriptors { true }
-        .filterIsInstance<FunctionDescriptor>()
-        .filter(FunctionDescriptor::isProof)
-        .mapNotNull(FunctionDescriptor::asProof)
-    }.apply {
-      val module = this@computeModuleProofs
-      println("Recomputed cache: $module proofs: ${size}, module cache size: ${proofCache.size}")
-    }.synthetic()
+  Log.Verbose({"Recomputed cache proofs: ${size}, module cache size: ${proofCache.size}"}) {
+    (getSubPackagesOf(FqName.ROOT) { true })
+      .filter { !it.isRoot }
+      .flatMap { packageName ->
+        getPackage(packageName).memberScope.getContributedDescriptors { true }
+          .filterIsInstance<FunctionDescriptor>()
+          .filter(FunctionDescriptor::isProof)
+          .mapNotNull(FunctionDescriptor::asProof)
+      }.synthetic()
+  }

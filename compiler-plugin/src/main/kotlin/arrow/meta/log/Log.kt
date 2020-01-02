@@ -10,10 +10,9 @@ sealed class Log {
 operator fun <A> Log.invoke(
   tag: A.() -> String,
   f: () -> A
-): A {
-  val (time, result) = measureTimeMillisWithResult(f)
+): A =
   if (this is Log.Verbose) {
+    val (time, result) = measureTimeMillisWithResult(f)
     println("${tag(result)} : [${time}ms]: $result")
-  }
-  return result
-}
+    result
+  } else f()
