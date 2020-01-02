@@ -1,10 +1,8 @@
 package arrow.meta.ide.dsl.editor.inspection
 
-import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.util.actualsForExpected
 import org.jetbrains.kotlin.idea.util.liftToExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtPsiFactory
 
 interface InspectionUtilitySyntax {
   fun KtDeclaration.withExpectedActuals(): List<KtDeclaration> {
