@@ -79,67 +79,19 @@ private class MetaKotlinCacheServiceHelper(private val delegate: KotlinCacheServ
 
 class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by delegate {
 
-  private fun AnalysisResult.checkProofed(): AnalysisResult {
-    val (ctx, _, _) = this
-    //ctx.resolveExtensionCalls()
-    return this
-  }
-
-  private fun BindingContext.resolveExtensionCalls() {
-    getSliceContents(BindingContext.CALL).forEach {
-      val (element, call) = it
-      val resolvedCall = call.getResolvedCall(this)
-      if (resolvedCall == null) {
-        call.explicitReceiver?.safeAs<ExpressionReceiver>()?.let {
-          val from = it.type
-          val extensions = delegate.moduleDescriptor.proofs.extending(from)
-          extensions.forEach {
-            val callable = it.callables { true }.find {
-              it.name.asString() == call.callElement.text.substringBefore("(")
-            }
-            if (callable != null) {
-              val innerContext: BindingContext = this.javaClass
-                .getDeclaredField("context")
-                .also { it.isAccessible = true }.let {
-                  it.get(this) as BindingContext
-                }
-
-              val trace: BindingTrace = innerContext.safeAs<MetaBindingContext>()?.trace ?: innerContext.javaClass
-                .getDeclaredField("this$0")
-                .also { it.isAccessible = true }.let {
-                  it.get(innerContext) as BindingTrace
-                }
-              val candidate: ResolutionCandidate<CallableMemberDescriptor> = ResolutionCandidate.create(call, callable)
-              val proofResolvedCall = ResolvedCallImpl.create(
-                candidate, DelegatingBindingTrace(this, "Proof Resolution", callable, BindingTraceFilter(false)), TracingStrategy.EMPTY, MutableDataFlowInfoForArguments.WithoutArgumentsCheck(DataFlowInfo.EMPTY)
-              )
-              trace.record(BindingContext.RESOLVED_CALL, call, proofResolvedCall)
-              call.callElement.safeAs<KtExpression>()?.apply {
-                trace.record(BindingContext.EXPRESSION_TYPE_INFO, this, KotlinTypeInfo(callable.returnType, DataFlowInfo.EMPTY, true, DataFlowInfo.EMPTY))
-                println("MetaResolutionFacade Recorded RESOLVED_CALL: ${call.callElement.text} to -> $callable")
-              }
-              println("MetaResolutionFacade Recorded EXPRESSION_TYPE_INFO: ${call.calleeExpression?.text}, ${callable.returnType}")
-            }
-          }
-        }
-        println("MetaResolutionFacade.checkProofed ${element.text}, call: $call, resolvedCall: $resolvedCall")
-      }
-    }
-  }
-
   override fun analyze(elements: Collection<KtElement>, bodyResolveMode: BodyResolveMode): BindingContext =
     Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(elements, bodyResolveMode)//.apply { resolveExtensionCalls() }
+      delegate.analyze(elements, bodyResolveMode)
     }
 
   override fun analyze(element: KtElement, bodyResolveMode: BodyResolveMode): BindingContext =
     Log.Verbose({ "MetaResolutionFacade.analyze" }) {
-      delegate.analyze(element, bodyResolveMode)//.apply { resolveExtensionCalls() }
+      delegate.analyze(element, bodyResolveMode)
     }
 
   override fun analyzeWithAllCompilerChecks(elements: Collection<KtElement>): AnalysisResult =
     Log.Verbose({ "MetaResolutionFacade.analyzeWithAllCompilerChecks" }) {
-      delegate.analyzeWithAllCompilerChecks(elements)//.checkProofed()
+      delegate.analyzeWithAllCompilerChecks(elements)
     }
 
   override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =
