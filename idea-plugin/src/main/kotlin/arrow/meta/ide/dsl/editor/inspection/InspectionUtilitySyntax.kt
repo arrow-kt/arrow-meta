@@ -15,7 +15,4 @@ interface InspectionUtilitySyntax {
 
   val ArrowPath: Array<String>
     get() = arrayOf("Kotlin", "Λrrow")
-
-  val Project.ktPsiFactory: KtPsiFactory
-    get() = KtPsiFactory(this)
 }
