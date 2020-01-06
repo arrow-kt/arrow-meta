@@ -5,8 +5,11 @@ import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.IntentionActionBean
+import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
+import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
@@ -15,6 +18,8 @@ import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.psi.KtElement
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 
 /**
  * The IDE analysis user code and provides [IntentionAction]'s to either signal error's to user's or resolve them if triggered.
