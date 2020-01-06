@@ -10,15 +10,19 @@ import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.ide.IconProvider
+import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.fileTypes.FileTypeExtension
+import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.util.ClassExtension
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor
 
 /**
@@ -84,9 +88,10 @@ interface ExtensionProviderSyntax {
    */
   fun <E> IdeMetaPlugin.extensionProvider(
     LE: LanguageExtension<E>,
-    impl: E
+    impl: E,
+    lang: Language = KotlinLanguage.INSTANCE
   ): ExtensionPhase =
-    ExtensionProvider.AddLanguageExtension(LE, impl)
+    ExtensionProvider.AddLanguageExtension(LE, impl, lang)
 
   /**
    * The [extensionProvider] function registers a concrete implementation for [FileTypeExtension]'s.
@@ -94,9 +99,10 @@ interface ExtensionProviderSyntax {
    */
   fun <E> IdeMetaPlugin.extensionProvider(
     FE: FileTypeExtension<E>,
-    impl: E
+    impl: E,
+    fileType: LanguageFileType = KotlinFileType.INSTANCE
   ): ExtensionPhase =
-    ExtensionProvider.AddFileTypeExtension(FE, impl)
+    ExtensionProvider.AddFileTypeExtension(FE, impl, fileType)
 
   /**
    * The [extensionProvider] extension registers a concrete implementation for [ClassExtension]'s.
