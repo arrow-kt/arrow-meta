@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * QuoteSystemCache is a project component which managees the transformations of KtFiles by the quote system.
+ * QuoteSystemCache is a project component which manages the transformations of KtFiles by the quote system.
  *
  * It currently transforms all .kt files of the current project.
  * This could be changed to incremental updates when necessary.
@@ -181,7 +181,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
       val start = System.currentTimeMillis()
       try {
-        // this replaces the files with transformed files in resultFiles
+        // this replaces the entries of resultFiles with transformed files, if transformations apply.
         // a file may be transformed multiple times
         context.updateFiles(resultFiles, mutations, ext.match)
       } finally {
