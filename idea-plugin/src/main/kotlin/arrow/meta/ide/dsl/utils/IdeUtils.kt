@@ -1,13 +1,92 @@
 package arrow.meta.ide.dsl.utils
 
+import arrow.meta.phases.analysis.resolveFunctionType
+import arrow.meta.phases.analysis.returns
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SyntaxTraverser
 import org.celtric.kotlin.html.BlockElement
 import org.celtric.kotlin.html.InlineElement
 import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
+import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object IdeUtils {
   fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
 }
+
+/**
+ * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
+ */
+fun <A : PsiElement, B> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B): List<B> =
+  SyntaxTraverser.psiTraverser(this).filter(on).map(f).toList()
+
+/**
+ * collects all Calls
+ */
+val KtElement.callElements: List<KtCallElement>
+  get() = traverseFilter(KtCallElement::class.java) { it }
+
+val KtCallElement.returnType: KotlinType?
+  get() = resolveToCall()?.resultingDescriptor?.returnType
+
+/**
+ * returns all ReturnTypes of each call starting from the receiver
+ */
+val KtElement.callReturnTypes: List<KotlinType>
+  get() = callElements.mapNotNull { it.returnType }
+
+/**
+ * traversal of depth 1 on returnTypes in Function [ktFunction] and all it's calls in the body
+ * [f] defines on what property two Types are equal
+ * TODO: add returns with a traversal of depth n by virtue of recursion
+ */
+@Suppress("UNCHECKED_CAST")
+fun <F : CallableDescriptor, A> F.returns(
+  f: (KotlinType) -> A = { it as A },
+  ktFunction: KtNamedFunction,
+  types: KotlinBuiltIns.() -> List<KotlinType>
+): Boolean =
+  returns(f, types) || returns(f, ktFunction.callReturnTypes, types)
+
+
+/**
+ * traversal of depth 1 on returnTypes in Property [prop] and all it's calls in the body
+ * [f] defines on what property two Types are equal
+ * TODO: add returns with a traversal of depth n by virtue of recursion
+ */
+@Suppress("UNCHECKED_CAST")
+fun <F : CallableDescriptor, A> F.returns(
+  f: (KotlinType) -> A = { it as A },
+  prop: KtProperty,
+  types: KotlinBuiltIns.() -> List<KotlinType>
+): Boolean =
+  returns(f, types) || returns(f, prop.callReturnTypes, types)
+
+/**
+ * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the initializer to their returnType
+ */
+fun <F : CallableDescriptor> F.returns(prop: KtProperty, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
+  returns(resolveFunctionType, prop, types)
+
+/**
+ * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the body to their returnType
+ */
+fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
+  returns(resolveFunctionType, ktFunction, types)
+
+/**
+ * reified PsiElement replacement
+ */
+inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
+  replace(to).safeAs()
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 

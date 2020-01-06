@@ -1,5 +1,6 @@
 package arrow.meta.quotes.element.whencondition
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtWhenCondition
 
@@ -32,4 +33,7 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
 class WhenCondition(
   override val value: KtWhenCondition?,
   val condition: String = value?.text ?: ""
-) : Scope<KtWhenCondition>(value)
+) : Scope<KtWhenCondition>(value) {
+  override fun ElementScope.identity(): WhenCondition =
+    condition.whenCondition
+}

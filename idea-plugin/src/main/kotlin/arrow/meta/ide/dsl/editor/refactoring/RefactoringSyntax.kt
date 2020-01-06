@@ -20,15 +20,15 @@ import com.intellij.refactoring.rename.RenamePsiFileProcessor
 
 interface RefactoringSyntax {
   fun IdeMetaPlugin.addImportOptimizer(
-    supports: (file: PsiFile?) -> Boolean,
-    processFile: (file: PsiFile?) -> Runnable
+    supports: (file: PsiFile) -> Boolean,
+    processFile: (file: PsiFile) -> Runnable
   ): ExtensionPhase =
     extensionProvider(
       INSTANCE,
       object : ImportOptimizer {
-        override fun supports(file: PsiFile?): Boolean = supports(file)
+        override fun supports(file: PsiFile): Boolean = supports(file)
 
-        override fun processFile(file: PsiFile?): Runnable = processFile(file)
+        override fun processFile(file: PsiFile): Runnable = processFile(file)
       }
     )
 

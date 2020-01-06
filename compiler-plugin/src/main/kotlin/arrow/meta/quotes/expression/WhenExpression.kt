@@ -2,7 +2,6 @@ package arrow.meta.quotes.expression
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhenExpression
@@ -38,7 +37,6 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
 class WhenExpression(
   override val value: KtWhenExpression?,
   val entries: ScopedList<KtWhenEntry> = ScopedList(value?.entries.orEmpty()),
-  val variable: Property = Property(value?.subjectVariable),
   val `(expression)`: Scope<KtExpression> = Scope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
 ) : Scope<KtWhenExpression>(value)

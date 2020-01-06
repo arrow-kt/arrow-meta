@@ -1,10 +1,11 @@
 package arrow.meta.plugin.testing
 
-import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode
+import com.tschuchort.compiletesting.KotlinCompilation.Result
 import org.assertj.core.api.Assertions.assertThat
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Path
 import java.nio.file.Paths
 
 private const val META_PREFIX = "//meta"
@@ -12,13 +13,12 @@ private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
 
 /**
- * Allows to check if a compiler plugin is working as expected.
+ * Allows checking if a compiler plugin is working as expected.
  *
- * It's not necessary to write assertions with actual and expected behaviour.
- * Just indicating the expected behaviour in a [CompilerTest], assertions will be built automatically
- * from it.
+ * It's not necessary to write assertions with actual and expected behavior.
+ * Assertions will be built automatically from simply indicating the expected behavior in a [CompilerTest].
  *
- * Running the compilation from the provided configuration and getting the results (status, classes and output
+ * Running the compilation from the provided configuration and getting the results (status, classes, and output
  * messages) is possible thanks to [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing),
  * a library developed by [Thilo Schuchort](https://github.com/tschuchortdev).
  *
@@ -35,7 +35,7 @@ private const val VARIABLE = "[^(]+"
  * ```
  *
  * Compilation will be executed with the provided configuration (`config`) and code snippets (`code`). Then,
- * the expected behaviour (`assert`) will be checked.
+ * the expected behavior (`assert`) will be checked.
  *
  * For instance:
  *
@@ -52,7 +52,7 @@ private const val VARIABLE = "[^(]+"
  *  )
  * ```
  *
- * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behaviour
+ * @param compilerTest necessary data to run the compilation, source code to be compiled and expected behavior
  * @see [CompilerTest]
  */
 fun assertThis(compilerTest: CompilerTest): Unit =
@@ -95,6 +95,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
+      is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
       else -> TODO()
     }
 
@@ -144,13 +145,23 @@ private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolea
   assertThat(check(compilationResult.messages)).isTrue()
 }
 
-private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit {
+private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit = assertQuoteFileMatches(
+  compilationResult = compilationResult,
+  expectedSource = expectedSource,
+  actualFileName = "$DEFAULT_FILENAME.meta",
+  actualFileDirectoryPath = Paths.get(compilationResult.outputDirectory.parent, "sources")
+)
+
+private fun assertQuoteFileMatches(
+  compilationResult: Result,
+  actualFileName: String,
+  expectedSource: Code.Source,
+  actualFileDirectoryPath: Path = Paths.get("build", "generated", "source", "kapt", "main")
+): Unit {
   assertCompiles(compilationResult)
-  val actualFilePath = Paths.get(compilationResult.outputDirectory.parent, "sources", "$DEFAULT_FILENAME.meta")
-  val actualSource = actualFilePath.toFile().readText()
+  val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
   val actualSourceWithoutCommands = removeCommands(actualSource)
   val expectedSourceWithoutCommands = removeCommands(expectedSource.text.trimMargin())
-
   assertThat(actualSourceWithoutCommands)
     .`as`("EXPECTED:${expectedSource.text.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison")
     .isEqualToIgnoringWhitespace(expectedSourceWithoutCommands)

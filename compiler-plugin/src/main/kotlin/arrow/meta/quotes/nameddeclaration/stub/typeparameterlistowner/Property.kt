@@ -2,7 +2,7 @@ package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.expression.expressionwithlabel.PropertyAccessor
+import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.modifierlist.TypeReference
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -127,28 +127,28 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * ```
  */
 class Property(
-  override val value: KtProperty?,
-  val modality: Name? = value?.modalityModifierType()?.value?.let(Name::identifier),
-  val visibility: Name? = value?.visibilityModifierType()?.value?.let(Name::identifier),
-  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value?.typeParameters
+  override val value: KtProperty,
+  val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
+  val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
+  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters
     ?: listOf(), postfix = ">"),
-  val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value?.receiverTypeReference), postfix = "."),
-  val name: Name? = value?.nameAsName,
-  val typeReference: TypeReference? = TypeReference(value?.typeReference),
+  val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
+  val name: Name? = value.nameAsName,
+  val typeReference: TypeReference? = TypeReference(value.typeReference),
   val `(params)`: ScopedList<KtParameter> = ScopedList(
     prefix = "(",
-    value = value?.valueParameters ?: listOf(),
+    value = value.valueParameters ?: listOf(),
     postfix = ")",
     forceRenderSurroundings = true
   ),
-  val delegate: Scope<KtPropertyDelegate> = Scope(value?.delegate), // TODO KtPropertyDelegate scope and quote template
-  val delegateExpressionOrInitializer: Scope<KtExpression> = Scope(value?.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
-  val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value?.typeReference), prefix = " : "),
+  val delegate: Scope<KtPropertyDelegate> = Scope(value.delegate), // TODO KtPropertyDelegate scope and quote template
+  val delegateExpressionOrInitializer: Scope<KtExpression> = Scope(value.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
+  val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val valOrVar: Name = when {
-    value?.isVar == true -> "var"
+    value.isVar -> "var"
     else -> "val"
   }.let(Name::identifier),
-  val getter : PropertyAccessor = PropertyAccessor(value?.getter),
-  val setter : PropertyAccessor = PropertyAccessor(value?.setter)
-) : Scope<KtProperty>(value)
+  val getter : PropertyAccessor = PropertyAccessor(value.getter),
+  val setter : PropertyAccessor = PropertyAccessor(value.setter)
+) : TypeParameterListOwner<KtProperty>(value)
 

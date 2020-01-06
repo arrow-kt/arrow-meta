@@ -1,5 +1,6 @@
 package arrow.meta.quotes.classorobject
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
@@ -35,4 +36,11 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  */
 class ObjectDeclaration(
   override val value: KtObjectDeclaration
-): ClassOrObjectScope<KtObjectDeclaration>(value)
+): ClassOrObjectScope<KtObjectDeclaration>(value) {
+  override fun ElementScope.identity(): ObjectDeclaration =
+    """
+    | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+    |   $body
+    | }
+    | """.`object`
+}

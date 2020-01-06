@@ -1,5 +1,6 @@
 package arrow.meta.quotes.element
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import org.jetbrains.kotlin.psi.KtCatchClause
@@ -35,4 +36,7 @@ class CatchClause(
   override val value: KtCatchClause?,
   val parameter: Parameter = Parameter(value?.catchParameter),
   val `{ catchBody }`: Scope<KtExpression> = Scope(value?.catchBody)
-) : Scope<KtCatchClause>(value)
+) : Scope<KtCatchClause>(value) {
+  override fun ElementScope.identity(): CatchClause =
+    """catch ($parameter) $`{ catchBody }`""".catch
+}
