@@ -1,5 +1,6 @@
 package arrow.meta.quotes.element
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import org.jetbrains.kotlin.psi.KtElement
@@ -35,6 +36,16 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 data class PackageDirective(
   override val value: KtPackageDirective?,
   val `package`: Scope<KtElement> = Scope(value?.packageNameExpression),
-  val packages: ScopedList<KtSimpleNameExpression> = ScopedList(value?.packageNames ?: listOf()),
+  val packages: ScopedList<KtSimpleNameExpression> = ScopedList(
+    value = value?.packageNames ?: listOf(),
+    separator = "."
+  ),
   val lastPackage: Scope<KtSimpleNameExpression> = Scope(value?.lastReferenceExpression)
-) : Scope<KtPackageDirective>(value)
+) : Scope<KtPackageDirective>(value) {
+
+  override fun ElementScope.identity(): Scope<KtPackageDirective> =
+    when {
+      packages.isEmpty() -> """$`package`""".`package`
+      else -> """$packages""".`package`
+    }
+}

@@ -1,9 +1,10 @@
 package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.declaration.PropertyAccessor
-import arrow.meta.quotes.modifierlist.TypeReference
+import arrow.meta.quotes.modifierlistowner.TypeReference
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtParameter
@@ -15,92 +16,10 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * <code>""" $modifier $visibility $valOrVar $name: $typeReference = $delegateExpressionOrInitializer""".property</code>
+ * <code>""" $modality $visibility $valOrVar $name $returnType $initializer """.property</code>
  * *
  * A template destructuring [Scope] for a [KtProperty].
  *
- * ## Properties
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatProperty: Plugin
- *  get() =
- *   "ReformatProperty" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference = $delegateExpressionOrInitializer
- *                          |   $getter
- *                          |   $setter
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- * ## Delegate Properties
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatProperty: Plugin
- *  get() =
- *   "ReformatProperty" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference by $delegate {
- *                          |   $delegateExpressionOrInitializer
- *                          | }
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- * ## Getters
- *
- * ```
- * import arrow.meta.Meta
- * import arrow.meta.Plugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.property
- *
- * val Meta.reformatPropertyGetter: Plugin
- *  get() =
- *   "Reformat Property Getter" {
- *    meta(
- *     property({ true }) { e ->
- *      Transform.replace(
- *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference =
- *                          |    get() = $getter
- *                          """.property
- *      )
- *      }
- *     )
- *    }
- * ```
- *
- *
- * ## Setters
  *
  * ```
  * import arrow.meta.Meta
@@ -116,10 +35,10 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     property({ true }) { e ->
  *      Transform.replace(
  *       replacing = e,
- *       newDeclaration = """
- *                          | $modality $visibility $valOrVar $name: $typeReference =
- *                          |    set() = $setter
- *                          """.property
+ *       newDeclaration = """$modality $visibility $valOrVar $name $returnType $initializer
+ *                              $getter
+ *                              $setter
+ *                              $delegate""".property
  *      )
  *      }
  *     )
@@ -144,11 +63,19 @@ class Property(
   val delegate: Scope<KtPropertyDelegate> = Scope(value.delegate), // TODO KtPropertyDelegate scope and quote template
   val delegateExpressionOrInitializer: Scope<KtExpression> = Scope(value.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
+  val initializer: ScopedList<KtExpression> = ScopedList(listOfNotNull(value.initializer), prefix = " = "),
   val valOrVar: Name = when {
     value.isVar -> "var"
     else -> "val"
   }.let(Name::identifier),
   val getter : PropertyAccessor = PropertyAccessor(value.getter),
   val setter : PropertyAccessor = PropertyAccessor(value.setter)
-) : TypeParameterListOwner<KtProperty>(value)
+) : TypeParameterListOwner<KtProperty>(value) {
+  override fun ElementScope.identity(): Scope<KtProperty> {
+    return """$modality $visibility $valOrVar $name $returnType $initializer
+                  $getter
+                  $setter
+                  $delegate""".property
+  }
+}
 

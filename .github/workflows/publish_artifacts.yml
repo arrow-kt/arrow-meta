@@ -30,29 +30,30 @@ jobs:
         # and it could fail when changing version
         ./gradlew :gradle-plugin:jar
         # :docs is considered in another workflow
+    - name: Check properties
+      id: properties
+      run: |
+        ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
+        if [[ "$ACTUAL_VERSION" == *-SNAPSHOT ]]; then echo "::set-output name=is-snapshot::true"; else echo "::set-output name=is-snapshot::false"; fi
+    - name: Updates when snapshot
+      if: steps.properties.outputs.is-snapshot == 'true'
+      run: |
+        echo "apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'" >> gradle-plugin/build.gradle 
     - name: Publish artifacts
       env:
         BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
         BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
       run: |
-        echo "NOTE: gradle-plugin and docs have their own publication workflows" 
-        echo "Uploading idea-plugin, testing-plugin and compiler-plugin..."
+        echo "NOTE: docs has its own publication workflows"
+        echo "Uploading artifacts..."
         ./gradlew uploadArchives
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
     - name: Publish Gradle Plugin
+      if: steps.properties.outputs.is-snapshot == 'false'
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
         GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
         GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
       run: |
-        ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
-        VERSION_NUMBER=$(echo $ACTUAL_VERSION | cut -d- -f1)
-        LATEST_VERSION=$(curl https://plugins.gradle.org/m2/io/arrow-kt/arrow/io.arrow-kt.arrow.gradle.plugin/maven-metadata.xml | grep latest | cut -d'>' -f2 | cut -d'<' -f1)
-        echo "Latest version: $LATEST_VERSION"
-        COUNT=$(echo $LATEST_VERSION | cut -d- -f2)
-        if [[ "$COUNT" == "$LATEST_VERSION" ]]; then NEXT_COUNT=0; else NEXT_COUNT=$(($COUNT + 1)); fi
-        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
-        echo "Checking if version ends with SNAPSHOT to add a commit hash ..."
-        echo $ACTUAL_VERSION | grep SNAPSHOT; if [[ $? -eq 0 ]]; then sed -i "s/^version = .*$/version = '$VERSION_NUMBER-$NEXT_COUNT-$LAST_COMMIT_HASH'/g" gradle-plugin/build.gradle; fi
-        echo "Publish artifact ..."
+        echo "Publish Gradle Plugin in Gradle Plugins Portal ..."
         ./gradlew -Dgradle.publish.key=$GRADLE_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PUBLISH_SECRET publishPlugins

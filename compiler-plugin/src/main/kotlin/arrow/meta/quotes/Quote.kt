@@ -30,7 +30,8 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Paths
-import java.util.*
+import java.util.ArrayList
+import java.util.Date
 import kotlin.reflect.KClass
 
 const val META_DEBUG_COMMENT = "//metadebug"

@@ -38,6 +38,7 @@ class ValueArgument(
   val argumentExpression: Scope<KtExpression>? = Scope(value.getArgumentExpression()), // TODO KtExpression scope and quote template
   val argumentName: Scope<KtValueArgumentName>? = Scope(value.getArgumentName()) // TODO KtValueArgumentName scope and quote template
 ): Scope<KtValueArgument>(value) {
+
   override fun ElementScope.identity(): ValueArgument =
     (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument
 }
