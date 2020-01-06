@@ -14,6 +14,10 @@ import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.progress.PerformInBackgroundOption
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -22,7 +26,10 @@ import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
@@ -33,6 +40,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
@@ -42,7 +50,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -51,7 +58,7 @@ import java.util.concurrent.atomic.AtomicLong
  * It currently transforms all .kt files of the current project.
  * This could be changed to incremental updates when necessary.
  */
-class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposable, AsyncFileListener, AsyncFileListener.ChangeApplier {
+class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposable, AsyncFileListener {
   companion object {
     fun getInstance(project: Project): QuoteSystemCache = project.getComponent(QuoteSystemCache::class.java)
 
@@ -90,37 +97,44 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
         // fixme skip if psiFile doesn't belong to the current project
 
-        if (psiFile is KtFile && psiFile.virtualFile != null && psiFile.isPhysical && !psiFile.isCompiled) {
-          if (FileIndexFacade.getInstance(project).isInSourceContent(psiFile.virtualFile)) {
-            LOG.info("transforming ${psiFile.text} after change in editor")
+        if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
+          val vFile = psiFile.virtualFile
+          if (vFile.isRelevantFile() && FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
+            LOG.info("transforming ${psiFile.name} after change in editor")
             // fixme avoid this, this slows down the editor.
             //  it would be better to take the text and send the text content to the quote system
             // psiMgr.commitDocument(doc)
 
             // fixme refresh in background?
-            // fixme make this interruptible?
-            refreshCache(collectProjectKtFiles().toKtFiles())
+            // fixme make this interruptile?
+            refreshCache(listOf(psiFile), false)
           }
         }
       }
     }, project)
-  }
 
-  override fun projectOpened() {
-    StartupManager.getInstance(project).runWhenProjectIsInitialized {
-      val files = collectProjectKtFiles()
-      refreshCache(files.toKtFiles())
+    // register startup activity to populate the cache with a transformation of all project files
+    StartupManager.getInstance(project).registerPostStartupActivity {
+      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta cache...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+        override fun run(indicator: ProgressIndicator) {
+          LOG.info("Initializing quote system cache...")
+          val files = readAction { collectProjectKtFiles() }
+          refreshCache(files.toKtFiles())
+        }
+      })
     }
   }
 
-  override fun projectClosed() {}
+  override fun projectClosed() {
+    reset()
+  }
 
   /**
    * Collects all Kotlin files of the current project which are source files for Meta transformations.
    */
   private fun collectProjectKtFiles(): List<VirtualFile> {
     val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, project.projectScope()).filter {
-      it.isValid && it.isInLocalFileSystem
+      it.isRelevantFile()
     }
     LOG.info("collectKtFiles(): ${files.size} kotlin files found for project ${project.name}")
     return files
@@ -220,11 +234,11 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       }
 
       // fixme: temporarily write metadata to disk
-      if (transformedFiles.isNotEmpty()) {
+      if (transformed.isNotEmpty()) {
         if (!ApplicationManager.getApplication().isUnitTestMode) {
           ApplicationManager.getApplication().invokeLater {
             WriteAction.run<Exception> {
-              transformedFiles.forEach { (original, transformed) ->
+              transformed.forEach { (original, transformed) ->
                 val metaFile = original.virtualFile.parent.findOrCreateChildData(this, transformed.name + ".txt")
                 metaFile.setBinaryContent(transformed.text.toByteArray())
               }
@@ -286,19 +300,43 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
-  /**
-   *  we only care about changes to Kotlin files
-   */
-  override fun prepareChange(events: MutableList<out VFileEvent>): AsyncFileListener.ChangeApplier? {
-    return when {
-      events.any { e -> e.isValid && e.file?.let { it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType } == true } -> this
-      else -> null
-    }
+  private fun VirtualFile.isRelevantFile(): Boolean {
+    return isValid &&
+      this.fileType is KotlinFileType &&
+      (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
   }
 
-  override fun afterVfsChange() {
-    LOG.debug("MetaSyntheticPackageFragmentProvider.afterVfsChange")
-    refreshCache(collectProjectKtFiles().toKtFiles())
+  /**
+   * We only care about changes to Kotlin files.
+   */
+  override fun prepareChange(events: MutableList<out VFileEvent>): AsyncFileListener.ChangeApplier? {
+    // fixme properly handle remove events
+    // fixme properly handle copy event: file is the source file, transform new file, too
+
+    val relevantFiles: List<VirtualFile> = events.mapNotNull {
+      val file = it.file
+      if (it !is VFileContentChangeEvent || it !is VFileMoveEvent || it !is VFileCopyEvent) {
+        return null
+      }
+
+      if (file != null && file.isRelevantFile()) {
+        file
+      } else {
+        null
+      }
+    }
+
+    return when {
+      relevantFiles.isNotEmpty() -> object : AsyncFileListener.ChangeApplier {
+        override fun afterVfsChange() {
+          LOG.info("afterVfsChange")
+          // fixme data may have changed between prepareChange and afterVfsChange, take care of this
+
+          refreshCache(relevantFiles.toKtFiles(), resetCache = false)
+        }
+      }
+      else -> null
+    }
   }
 
   override fun dispose() {
