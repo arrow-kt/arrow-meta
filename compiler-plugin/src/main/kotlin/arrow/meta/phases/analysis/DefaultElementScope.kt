@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -175,7 +176,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
   
-  override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
+  override val <A : KtDeclaration> Scope<A>.syntheticScope: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
       val declaration = value
@@ -186,6 +187,16 @@ class DefaultElementScope(project: Project) : ElementScope {
         }
         Scope(expression)
       } else this
+    }
+
+  @Suppress("UNCHECKED_CAST")
+  override val <A: SyntheticElement> A.syntheticElement: A
+    get() {
+      val synth = "@arrow.synthetic"
+      return when(this) {
+         is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}")) as A
+        else -> this
+      }
     }
 
   override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Property =
