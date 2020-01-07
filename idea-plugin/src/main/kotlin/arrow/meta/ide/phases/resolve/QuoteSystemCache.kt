@@ -3,7 +3,6 @@ package arrow.meta.ide.phases.resolve
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.analysisIdeExtensions
-import arrow.meta.quotes.ktFile
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -49,7 +48,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -80,13 +78,10 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
+  private val metaCache: MetaTransformationCache = DefaultMetaTransformationCache()
+
   // keep a pool per project, so that we're able to shut it down when the project is closed
   private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
-
-  // fixme must not be used in production, because caching PsiElement this way is bad
-  // fixme cache both per module? modules may define different ktfiles for the same package fqName
-  private val transformedFiles = ConcurrentHashMap<KtFile, KtFile>()
-  private val resolved = ConcurrentHashMap<FqName, List<DeclarationDescriptor>>()
 
   override fun initComponent() {
     VirtualFileManager.getInstance().addAsyncFileListener(this, this)
@@ -96,41 +91,26 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         val doc = event.document
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
 
-        // fixme skip if psiFile doesn't belong to the current project
-
         if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
           val vFile = psiFile.virtualFile
           if (vFile.isRelevantFile() && FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
             LOG.info("transforming ${psiFile.name} after change in editor")
             // fixme avoid this, this slows down the editor.
             //  it would be better to take the text and send the text content to the quote system
-            // psiMgr.commitDocument(doc)
-
-            // fixme make this interruptile?
+            // fixme this break in a ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
+            //   but doesn't fail in tests
+//            if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+//              psiMgr.commitDocument(doc)
+//            }
 
             // move this into the background to avoid blocking the editor
-            ApplicationManager.getApplication().executeOnPooledThread {
+            pool.submit {
               refreshCache(listOf(psiFile), resetCache = false)
             }
           }
         }
       }
     }, project)
-
-    // fixme: atm this is a workaround to trigger the initial editor update after the project is opened
-    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun selectionChanged(event: FileEditorManagerEvent) {
-        event.newFile?.run {
-          val cache: QuoteSystemCache = this@QuoteSystemCache
-          if (isRelevantFile()) {
-            // restart highlighting for the new file only
-            (PsiManager.getInstance(project).findFile(this) as? KtFile)?.let {
-              DaemonCodeAnalyzer.getInstance(project).restart(it)
-            }
-          }
-        }
-      }
-    })
   }
 
   override fun projectOpened() {
@@ -149,15 +129,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
-  fun packageList(): List<FqName> {
-    val packages = LinkedHashSet<FqName>()
-    transformedFiles.values.forEach { packages.add(it.packageFqName) }
-    return packages.toList()
-  }
+  fun packageList(): List<FqName> = metaCache.packageList()
 
-  fun resolved(name: FqName): List<DeclarationDescriptor>? {
-    return resolved[name]
-  }
+  fun resolved(name: FqName): List<DeclarationDescriptor>? = metaCache.resolved(name)
 
   /**
    * Applies the Quote system's transformations on the input files and returns a mapping of
@@ -214,7 +188,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       return
     }
 
-    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, cached ${transformedFiles.size} files")
+    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, cached ${metaCache.size} files")
     pool.submit {
       // fixme execute under progressManager?
       val transformed = ReadAction.compute<List<Pair<KtFile, KtFile>>, Exception> {
@@ -249,74 +223,51 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       // fixme this might be delayed, make sure we're handling this correctly
       DumbService.getInstance(project).runReadActionInSmartMode {
         if (resetCache) {
-          transformedFiles.clear()
+          metaCache.clear()
         }
 
-        // fixme make sure to remove all items from this.resolved,
-        //    which belong to older versions of the transformed files
-        //    add a testcase for this (e.g. by switching editors)
-        for (f in transformed) {
-          // fixme this update is slow, make it faster and more efficient
-          val oldTransformedFile = transformedFiles[f.first]
-          oldTransformedFile?.let { old ->
-            resolved[old.packageFqName]?.let { oldCached ->
-              val updatedCached = oldCached.filter { psi ->
-                psi.ktFile() != old
-              }
-              resolved[old.packageFqName] = updatedCached
+        LOG.info("resolving descriptors of transformed files: ${metaCache.size} files")
+        if (updatedFiles.isNotEmpty()) {
+          // clear descriptors of all updatedFiles, which don't have a transformation result
+          // e.g. because no meta-code is used anymore
+          // fixme atm a transformation of a kt file with syntax errors also returns an empty list of transformations
+          //    we probably should handle this, otherwise files with errors will show more unresolved references
+          for (source in updatedFiles) {
+            // fixme this lookup is slow (exponential?), it could be optimized when necesary
+            if (!transformed.any { it.first == source }) {
+              metaCache.removeTransformations(source)
             }
           }
-        }
 
-        transformedFiles.putAll(transformed)
+          // the facade needs files with source and target elements
+          val kotlinCache = KotlinCacheService.getInstance(project)
+          val facade = kotlinCache.getResolutionFacade(updatedFiles + transformed.map { it.second })
 
-        LOG.info("resolving descriptors of transformed files: $transformedFiles files")
-        val kotlinCache = KotlinCacheService.getInstance(project)
-
-        // the resolve facade must get all files in the project for a successful resolve
-        // files, which were transformed must not be passed, because the transformation result is already added
-        val transformedSourceFiles = transformedFiles.map { it.key }.toSet()
-        val untransformedSourceFiles = updatedFiles.filter { it !in transformedSourceFiles }
-        val transformationResults = transformedFiles.values
-
-        val filesForResolve = untransformedSourceFiles + transformationResults
-        if (filesForResolve.isNotEmpty()) {
-          if (resetCache) {
-            resolved.clear()
-          }
-
-          val facade = kotlinCache.getResolutionFacade(filesForResolve)
           // fixme: remove descriptors which belong to the newly transformed files
-          transformedFiles.forEach { (_, transformedFile) ->
-            val packageName = transformedFile.packageFqName
-
+          transformed.forEach { (sourceFile, transformedFile) ->
             // fixme this triggers a resolve which queries our synthetic resolve extensions
-            val newDeclarations = transformedFile.declarations.map { facade.resolveToDescriptor(it, BodyResolveMode.FULL) }
+            val synthDescriptors = transformedFile.declarations.mapNotNull {
+              val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
+              if (desc.isMetaSynthetic()) desc else null
+            }
 
-            val cachedDescriptors = resolved[packageName] ?: emptyList()
-            val leftovers = cachedDescriptors.filterNot { it in newDeclarations }
-            val newOrCachedPackageDescriptors = newDeclarations + leftovers
-
-            val synthDescriptors = newOrCachedPackageDescriptors.filter { it.isMetaSynthetic() }
             if (synthDescriptors.isNotEmpty()) {
               synthDescriptors.forEach { synthDescriptor ->
                 try {
-                  // fixme this also triggers a call to the .resolved()
+                  // fixme this triggers a call to the .resolved()
                   //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
                   if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
                 } catch (e: IndexNotReadyException) {
                   LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
                 }
               }
-              resolved[packageName] = synthDescriptors
             }
+
+            metaCache.updateTransformations(sourceFile, transformedFile, synthDescriptors)
           }
 
-          // fixme temp only
-          val cache: QuoteSystemCache = this@QuoteSystemCache
-
           // refresh the highlighting of editors of modified files, using the new cache
-          for ((originalPsiFile, _) in transformedFiles) {
+          for ((originalPsiFile, _) in transformed) {
             DaemonCodeAnalyzer.getInstance(project).restart(originalPsiFile)
           }
         }
@@ -363,20 +314,18 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   }
 
   override fun dispose() {
-    transformedFiles.clear()
-    resolved.clear()
-
     try {
       pool.shutdownNow()
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
+
+    metaCache.clear()
   }
 
   @TestOnly
   fun reset() {
-    transformedFiles.clear()
-    resolved.clear()
+    metaCache.clear()
   }
 
   @TestOnly
