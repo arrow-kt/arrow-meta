@@ -18,7 +18,7 @@ val Meta.helloWorld: Plugin
                | fun helloWorld(): String = 
                |   "Hello ΛRROW Meta!"
                |   
-               |""".function.synthetic
+               |""".function.syntheticScope
           )
         }
       )

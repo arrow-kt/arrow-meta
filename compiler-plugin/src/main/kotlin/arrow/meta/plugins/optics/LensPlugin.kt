@@ -5,11 +5,11 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.classorobject.ClassDeclaration
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -73,18 +73,18 @@ private fun ElementScope.lenses(classScope: ClassDeclaration): ScopedList<KtProp
     )
   }
 
-private fun ElementScope.lens(source: KtClass, focus: KtParameter): Scope<KtProperty> =
+private fun ElementScope.lens(source: KtClass, focus: KtParameter): Property =
   """|val ${focus.name}: arrow.optics.Lens<${source.name}, ${focus.typeReference!!.text}> = arrow.optics.Lens(
      |  get = { ${source.name!!.toLowerCase()} -> ${source.name!!.toLowerCase()}.${focus.name} },
      |  set = { ${source.name!!.toLowerCase()}, ${focus.name} -> ${source.name!!.toLowerCase()}.copy(${focus.name} = ${focus.name}) }
-     |)""".property.synthetic
+     |)""".property.syntheticElement
 
-private fun ElementScope.iso(classScope: ClassDeclaration): Scope<KtProperty> =
+private fun ElementScope.iso(classScope: ClassDeclaration): Property =
   classScope.run {
     """|val iso: arrow.optics.Iso<${value.name}, ${`(params)`.tupledType}> = arrow.optics.Iso(
        |  get = { (${`(params)`.destructured}) -> ${`(params)`.tupled} },
        |  reverseGet = { (${`(params)`.destructured}) -> ${value.name}(${`(params)`.destructured}) }
-       |)""".property.synthetic
+       |)""".property.syntheticElement
   }
 
 val ScopedList<KtParameter>.tupledType: String

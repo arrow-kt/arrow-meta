@@ -3,6 +3,7 @@ package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.modifierlistowner.TypeReference
 import org.jetbrains.kotlin.name.Name
@@ -70,7 +71,7 @@ class Property(
   }.let(Name::identifier),
   val getter : PropertyAccessor = PropertyAccessor(value.getter),
   val setter : PropertyAccessor = PropertyAccessor(value.setter)
-) : TypeParameterListOwner<KtProperty>(value) {
+) : TypeParameterListOwner<KtProperty>(value), SyntheticElement {
   override fun ElementScope.identity(): Scope<KtProperty> {
     return """$modality $visibility $valOrVar $name $returnType $initializer
                   $getter
