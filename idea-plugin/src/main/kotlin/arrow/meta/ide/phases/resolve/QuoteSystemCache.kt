@@ -3,6 +3,7 @@ package arrow.meta.ide.phases.resolve
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.analysisIdeExtensions
+import arrow.meta.quotes.ktFile
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -14,6 +15,8 @@ import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -62,8 +65,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   companion object {
     fun getInstance(project: Project): QuoteSystemCache = project.getComponent(QuoteSystemCache::class.java)
 
-    private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker thread") }
-
     private val messages: MessageCollector = object : MessageCollector {
       override fun clear() {}
 
@@ -79,12 +80,13 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
+  // keep a pool per project, so that we're able to shut it down when the project is closed
+  private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
+
   // fixme must not be used in production, because caching PsiElement this way is bad
   // fixme cache both per module? modules may define different ktfiles for the same package fqName
   private val transformedFiles = ConcurrentHashMap<KtFile, KtFile>()
   private val resolved = ConcurrentHashMap<FqName, List<DeclarationDescriptor>>()
-
-  private val psiManager = PsiManager.getInstance(project)
 
   override fun initComponent() {
     VirtualFileManager.getInstance().addAsyncFileListener(this, this)
@@ -92,8 +94,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
       override fun documentChanged(event: DocumentEvent) {
         val doc = event.document
-        val psiMgr = PsiDocumentManager.getInstance(project)
-        val psiFile = psiMgr.getPsiFile(doc)
+        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
 
         // fixme skip if psiFile doesn't belong to the current project
 
@@ -105,39 +106,47 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             //  it would be better to take the text and send the text content to the quote system
             // psiMgr.commitDocument(doc)
 
-            // fixme refresh in background?
             // fixme make this interruptile?
-            refreshCache(listOf(psiFile), false)
+
+            // move this into the background to avoid blocking the editor
+            ApplicationManager.getApplication().executeOnPooledThread {
+              refreshCache(listOf(psiFile), resetCache = false)
+            }
           }
         }
       }
     }, project)
 
-    // register startup activity to populate the cache with a transformation of all project files
-    StartupManager.getInstance(project).registerPostStartupActivity {
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta cache...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+    // fixme: atm this is a workaround to trigger the initial editor update after the project is opened
+    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        event.newFile?.run {
+          val cache: QuoteSystemCache = this@QuoteSystemCache
+          if (isRelevantFile()) {
+            // restart highlighting for the new file only
+            (PsiManager.getInstance(project).findFile(this) as? KtFile)?.let {
+              DaemonCodeAnalyzer.getInstance(project).restart(it)
+            }
+          }
+        }
+      }
+    })
+  }
+
+  override fun projectOpened() {
+    // register startup activity to populate the cache with a transformation of all project files,
+    // moving this into initComponent isn't working as the open files remain with errors
+    StartupManager.getInstance(project).runWhenProjectIsInitialized {
+      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
         override fun run(indicator: ProgressIndicator) {
           LOG.info("Initializing quote system cache...")
-          val files = readAction { collectProjectKtFiles() }
-          refreshCache(files.toKtFiles())
+          val files = readAction {
+            project.collectAllKtFiles()
+          }
+          refreshCache(files, resetCache = true)
         }
       })
     }
-  }
-
-  override fun projectClosed() {
-    reset()
-  }
-
-  /**
-   * Collects all Kotlin files of the current project which are source files for Meta transformations.
-   */
-  private fun collectProjectKtFiles(): List<VirtualFile> {
-    val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, project.projectScope()).filter {
-      it.isRelevantFile()
-    }
-    LOG.info("collectKtFiles(): ${files.size} kotlin files found for project ${project.name}")
-    return files
   }
 
   fun packageList(): List<FqName> {
@@ -148,18 +157,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   fun resolved(name: FqName): List<DeclarationDescriptor>? {
     return resolved[name]
-  }
-
-  private fun List<VirtualFile>.toKtFiles(): List<KtFile> {
-    return mapNotNull {
-      when {
-        // fixme make sure that files belong to the current project?
-        it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType ->
-          // fixme use ViewProvider's files instead?
-          psiManager.findFile(it) as? KtFile
-        else -> null
-      }
-    }
   }
 
   /**
@@ -247,14 +244,32 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         }
       }
 
-      if (resetCache) {
-        transformedFiles.clear()
-      }
-      transformedFiles.putAll(transformed)
-
       // update the resolved data when index access is possible
       // fixme protect against multiple transformations at once
+      // fixme this might be delayed, make sure we're handling this correctly
       DumbService.getInstance(project).runReadActionInSmartMode {
+        if (resetCache) {
+          transformedFiles.clear()
+        }
+
+        // fixme make sure to remove all items from this.resolved,
+        //    which belong to older versions of the transformed files
+        //    add a testcase for this (e.g. by switching editors)
+        for (f in transformed) {
+          // fixme this update is slow, make it faster and more efficient
+          val oldTransformedFile = transformedFiles[f.first]
+          oldTransformedFile?.let { old ->
+            resolved[old.packageFqName]?.let { oldCached ->
+              val updatedCached = oldCached.filter { psi ->
+                psi.ktFile() != old
+              }
+              resolved[old.packageFqName] = updatedCached
+            }
+          }
+        }
+
+        transformedFiles.putAll(transformed)
+
         LOG.info("resolving descriptors of transformed files: $transformedFiles files")
         val kotlinCache = KotlinCacheService.getInstance(project)
 
@@ -275,15 +290,19 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           transformedFiles.forEach { (_, transformedFile) ->
             val packageName = transformedFile.packageFqName
 
+            // fixme this triggers a resolve which queries our synthetic resolve extensions
             val newDeclarations = transformedFile.declarations.map { facade.resolveToDescriptor(it, BodyResolveMode.FULL) }
+
             val cachedDescriptors = resolved[packageName] ?: emptyList()
             val leftovers = cachedDescriptors.filterNot { it in newDeclarations }
-            val newCachedPackageDescriptors = newDeclarations + leftovers
+            val newOrCachedPackageDescriptors = newDeclarations + leftovers
 
-            val synthDescriptors = newCachedPackageDescriptors.filter { it.isMetaSynthetic() }
+            val synthDescriptors = newOrCachedPackageDescriptors.filter { it.isMetaSynthetic() }
             if (synthDescriptors.isNotEmpty()) {
               synthDescriptors.forEach { synthDescriptor ->
                 try {
+                  // fixme this also triggers a call to the .resolved()
+                  //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
                   if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
                 } catch (e: IndexNotReadyException) {
                   LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
@@ -293,17 +312,16 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             }
           }
 
-          // refresh the highlighting of the current editor, using the new cache
-          DaemonCodeAnalyzer.getInstance(project).restart()
+          // fixme temp only
+          val cache: QuoteSystemCache = this@QuoteSystemCache
+
+          // refresh the highlighting of editors of modified files, using the new cache
+          for ((originalPsiFile, _) in transformedFiles) {
+            DaemonCodeAnalyzer.getInstance(project).restart(originalPsiFile)
+          }
         }
       }
     }
-  }
-
-  private fun VirtualFile.isRelevantFile(): Boolean {
-    return isValid &&
-      this.fileType is KotlinFileType &&
-      (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
   }
 
   /**
@@ -326,22 +344,33 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       }
     }
 
-    return when {
-      relevantFiles.isNotEmpty() -> object : AsyncFileListener.ChangeApplier {
-        override fun afterVfsChange() {
-          LOG.info("afterVfsChange")
-          // fixme data may have changed between prepareChange and afterVfsChange, take care of this
+    if (relevantFiles.isEmpty()) {
+      return null
+    }
 
-          refreshCache(relevantFiles.toKtFiles(), resetCache = false)
+    return object : AsyncFileListener.ChangeApplier {
+      override fun afterVfsChange() {
+        LOG.info("afterVfsChange")
+        // fixme data may have changed between prepareChange and afterVfsChange, take care of this
+
+        // the docs of afterVfsChange states: "The implementations should be as fast as possible"
+        // therefore we're moving this operation into the background
+        ApplicationManager.getApplication().executeOnPooledThread {
+          refreshCache(relevantFiles.toKtFiles(project), resetCache = false)
         }
       }
-      else -> null
     }
   }
 
   override fun dispose() {
     transformedFiles.clear()
     resolved.clear()
+
+    try {
+      pool.shutdownNow()
+    } catch (e: Exception) {
+      LOG.warn("error shutting down pool", e)
+    }
   }
 
   @TestOnly
@@ -353,7 +382,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   @TestOnly
   fun forceRebuild() {
     reset()
-    refreshCache(collectProjectKtFiles().toKtFiles())
+    refreshCache(project.collectAllKtFiles())
     flush()
   }
 
@@ -362,3 +391,35 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     pool.submit { }.get(5000, TimeUnit.MILLISECONDS)
   }
 }
+
+private fun VirtualFile.isRelevantFile(): Boolean {
+  return isValid &&
+    this.fileType is KotlinFileType &&
+    (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
+}
+
+/**
+ * Collects all Kotlin files of the current project which are source files for Meta transformations.
+ */
+private fun Project.collectAllKtFiles(): List<KtFile> {
+  val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filter {
+    it.isRelevantFile()
+  }
+  LOG.info("collectKtFiles(): ${files.size} kotlin files found for project $name")
+
+  return files.toKtFiles(this)
+}
+
+private fun List<VirtualFile>.toKtFiles(project: Project): List<KtFile> {
+  val psiMgr = PsiManager.getInstance(project)
+  return mapNotNull {
+    when {
+      // fixme make sure that files belong to the current project?
+      it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType ->
+        // fixme use ViewProvider's files instead?
+        psiMgr.findFile(it) as? KtFile
+      else -> null
+    }
+  }
+}
+
