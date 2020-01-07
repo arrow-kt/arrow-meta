@@ -1,12 +1,11 @@
 <idea-plugin>
-    <id>arrow-plugin</id>
-    <name>Arrow</name>
+    <id>io.arrow-kt.arrow</id>
+    <name>Arrow Meta</name>
 
     <vendor email="hello@47deg.com" url="https://arrow-kt.io/">Arrow</vendor>
 
     <description><![CDATA[
-    The Arrow Intellij IDEA plugin.<br>
-    <em>most HTML tags may be used</em>
+    The Arrow Meta Intellij IDEA plugin.
     ]]></description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
