@@ -28,7 +28,6 @@
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <gradleProjectImportHandler implementation="arrow.meta.ide.gradle.ArrowGradleImportHandler"/>
         <packageFragmentProviderExtension
                 implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
         <!--        <syntheticResolveExtension implementation="arrow.meta.ide.MetaSyntheticPackageFragmentProvider" />-->
