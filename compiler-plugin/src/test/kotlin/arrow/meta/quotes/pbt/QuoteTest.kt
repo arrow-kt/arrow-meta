@@ -22,7 +22,7 @@ class QuoteTest {
 //      *ifExpressions,
 //      importDirectiveExpression,
 //      *isExpressions,
-////      // *lambdaExpressions, // TODO: init
+//      *lambdaExpressions, // TODO: init
 //      objectDeclarationExpression,
 //      *packageExpressions,
 //      *returnExpressions,
