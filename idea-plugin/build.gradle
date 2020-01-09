@@ -42,11 +42,11 @@ intellij {
   plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
-/*patchPluginXml {
-  changeNotes """
+patchPluginXml {
+  /*changeNotes """
       Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
-}*/
+      <em>most HTML tags may be used</em>"""*/
+}
 
 runIde {
   jvmArgs '-Xmx2G'
