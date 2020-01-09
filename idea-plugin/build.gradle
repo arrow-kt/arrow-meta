@@ -31,6 +31,7 @@ jar {
     attributes["Implementation-Title"] = "arrow.meta.plugin.idea"
     attributes["Implementation-Version"] = project.version
   }
+  from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 buildSearchableOptions.enabled = false
