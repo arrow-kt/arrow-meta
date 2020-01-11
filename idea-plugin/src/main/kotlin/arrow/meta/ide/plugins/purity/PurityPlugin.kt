@@ -4,6 +4,7 @@ import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.intersectFunction
 import arrow.meta.ide.dsl.utils.intersectProperty
+import arrow.meta.ide.dsl.utils.replace
 import arrow.meta.invoke
 import arrow.meta.phases.analysis.resolveFunctionTypeEq
 import arrow.meta.phases.analysis.typeConstructorEq
@@ -14,10 +15,14 @@ import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.util.nameIdentifierTextRangeInThis
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.createExpressionByPattern
 import org.jetbrains.kotlin.resolve.calls.tower.isSynthesized
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.purity: Plugin
   get() = "PurityPlugin" {
@@ -49,7 +54,7 @@ val IdeMetaPlugin.purity: Plugin
         inspectionText = { prop -> "Property: ${prop.name} has an impure initializer" },
         applyTo = { prop, project, editor ->
           // TODO: Find a refactoring strategy which works for some cases; for now just warn the user
-          /*prop.initializer?.replace { body ->
+          /*prop.initializer?.replace { body: KtExpression ->
               body.safeAs<KtLambdaExpression>()?.let {
                 createExpressionByPattern("$1$0", it.functionLiteral, createIdentifier("suspend"))
               } ?: createExpressionByPattern("suspend { $0 }", body)
