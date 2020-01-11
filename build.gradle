@@ -1,29 +1,26 @@
 buildscript {
-  ext {
-    kotlin_version = '1.3.50'
-    kotlin_test_version = '3.3.1'
-    assertj_version = '3.13.2'
-    dokka_version = '0.9.18'
-    class_graph_version = '4.8.47'
-    junit_vintage_version = '5.4.0'
-    kotlin_compile_testing = '1.2.4'
-  }
   repositories {
     mavenCentral()
     maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
   }
   dependencies {
-    classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-    classpath 'io.arrow-kt:ank-gradle-plugin:0.7.1'
+    classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
+    classpath "io.arrow-kt:ank-gradle-plugin:$ANK_GRADLE_PLUGIN_VERSION"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
+    classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$KOTLIN_VERSION"
   }
 }
 
 plugins {
-  id 'org.jetbrains.kotlin.jvm' version '1.3.50'
-  id 'org.jetbrains.kotlin.kapt' version '1.3.50'
-  id 'com.github.johnrengelman.shadow' version '5.0.0'
-  id 'com.jfrog.bintray' version "1.8.4"
+  // Replace plugin DSL by legacy plugin application to use EAP versions by Kotlin
+  // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
+  // id 'org.jetbrains.kotlin.kapt' version "$KOTLIN_VERSION"
+  id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
+  id 'com.jfrog.bintray' version "$BINTRAY_VERSION"
 }
+
+apply plugin: "org.jetbrains.kotlin.jvm"
+apply plugin: "org.jetbrains.kotlin.kapt"
 
 def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 
@@ -45,6 +42,7 @@ allprojects {
     mavenCentral()
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    maven { url 'https://jitpack.io' } 
   }
 }
 
@@ -60,23 +58,6 @@ subprojects { project ->
   dokka {
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
-
-    includes = ['README.md']
-    reportUndocumented = false
-
-    // Specifies the location of the project source code on the Web.
-    // If provided, Dokka generates "source" links for each declaration.
-    // Repeat for multiple mappings
-    linkMapping {
-      // Source directory
-      dir = "src/main/kotlin"
-
-      // URL showing where the source code can be accessed through the web browser
-      url = "https://github.com/arrow-kt/arrow/blob/master/${relativeProjectPath('src/main/kotlin')}"
-
-      // Suffix which is used to append the line number to the URL. Use #L for GitHub
-      suffix = "#L"
-    }
   }
 
   apply plugin: 'com.jfrog.bintray'
@@ -113,5 +94,5 @@ task publishAndRunIde {
 
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
-  gradleVersion = "5.6.1"
+  gradleVersion = "$GRADLE_VERSION"
 }

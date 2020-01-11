@@ -27,7 +27,6 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
-import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
@@ -66,20 +65,19 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {
       is SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter -> phase.run {
-        SyntaxHighlighterFactory.LANGUAGE_FACTORY
-          .addExplicitExtension(KotlinLanguage.INSTANCE, factory)
+        SyntaxHighlighterFactory.LANGUAGE_FACTORY.addExplicitExtension(language, factory)
       }
     }
 
   fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider): Unit =
     when (phase) {
-      is IntentionExtensionProvider.RegisterIntention -> phase.run {
-        IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category)
-          ?: LOG.warn("Couldn't register Intention:${intention.text} from $category")
-      }
       is IntentionExtensionProvider.RegisterIntentionWithMetaData -> phase.run {
+        IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category) // TODO: circumvent the ClassLoader in the internals
+          ?: LOG.warn("Couldn't register IntentionWithMetaData:${intention.text} from category:$category. Please, check if your MetaData is added at the right path.")
+      }
+      is IntentionExtensionProvider.RegisterIntention -> phase.run {
         IntentionManager.getInstance()?.addAction(intention)
-          ?: LOG.warn("Couldn't register IntentionWithMetaData:${intention.text}. Please, check if your MetaData is added at the right path.")
+          ?: LOG.warn("Couldn't register Intention:${intention.text}")
       }
       is IntentionExtensionProvider.UnregisterIntention -> phase.run {
         IntentionManager.getInstance()?.unregisterIntention(intention)
@@ -128,10 +126,10 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =
     when (phase) {
       is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose) }
-      is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(KotlinLanguage.INSTANCE, impl) }
-      is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(KotlinFileType.INSTANCE, impl) }
+      is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
+      is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(fileType, impl) }
       is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }
-      is ExtensionProvider.RegisterBaseExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
-      is ExtensionProvider.RegisterExtension -> phase.run { CoreApplicationEnvironment.registerExtensionPoint(Extensions.getRootArea(), EP_NAME, aClass) }
+      is ExtensionProvider.RegisterBaseExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
+      is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
     }
 }

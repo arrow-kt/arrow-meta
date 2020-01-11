@@ -1,27 +1,23 @@
 package arrow.meta.plugin.testing
 
-enum class CompilationStatus {
-  OK,
-  INTERNAL_ERROR,
-  COMPILATION_ERROR,
-  SCRIPT_EXECUTION_ERROR
-}
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
 /**
- * Compilation data is a Monoid that can accumulate in it's element as it's
- * composed and fushioned with other CompilationData elements
+ * Compilation data is a Monoid that can accumulate in its element as it's
+ * composed and merged with other CompilationData elements
  */
-data class CompilationData(
+internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
+  val metaPlugins: List<ComponentRegistrar> = emptyList(),
   val dependencies: List<String> = emptyList(),
-  val source: List<String> = emptyList()
+  val sources: List<Code.Source> = emptyList()
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
     copy(
       compilerPlugins = compilerPlugins + other.compilerPlugins,
       dependencies = dependencies + other.dependencies,
-      source = source + other.source
+      sources = sources + other.sources
     )
 
   companion object {

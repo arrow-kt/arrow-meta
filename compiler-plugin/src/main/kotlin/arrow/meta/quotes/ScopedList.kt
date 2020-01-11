@@ -10,6 +10,7 @@ data class ScopedList<K : KtElement>(
   val forceRenderSurroundings: Boolean = false,
   val transform: (K) -> String = { it.text }
 ) {
+
   override fun toString(): String =
     if (value.isEmpty())
       if (forceRenderSurroundings) prefix + postfix
@@ -20,4 +21,16 @@ data class ScopedList<K : KtElement>(
       postfix = postfix,
       transform = transform
     )
+
+  fun toStringList(): List<String> {
+    val list = arrayListOf<String>()
+    if (value.isEmpty()) {
+      if (forceRenderSurroundings) list.add(prefix + postfix)
+    } else {
+      list.addAll(value.mapNotNull {it.text})
+    }
+    return list
+  }
+
+  fun isEmpty() = value.isEmpty()
 }

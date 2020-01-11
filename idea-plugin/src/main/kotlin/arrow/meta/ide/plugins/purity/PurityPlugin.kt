@@ -2,6 +2,7 @@ package arrow.meta.ide.plugins.purity
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.returns
 import arrow.meta.invoke
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType

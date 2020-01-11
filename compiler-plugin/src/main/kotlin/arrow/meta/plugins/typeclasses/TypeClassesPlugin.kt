@@ -5,9 +5,9 @@ import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
-import arrow.meta.quotes.FunctionBodyScope
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.namedFunction
+import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.FunctionBody
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -18,7 +18,11 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
+import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.mapValueParameters
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -61,7 +65,7 @@ val Meta.typeClasses: Plugin
       )
     }
 
-private fun List<String?>.run(body: FunctionBodyScope?): String =
+private fun List<String?>.run(body: FunctionBody?): String =
   if (body != null)
     fold(body.toString()) { acc, scope -> "$scope.run { $acc }" }
   else ""
@@ -207,3 +211,7 @@ private fun KotlinType.dataTypeDescriptor(): ClassifierDescriptor? =
 private fun KotlinType.typeClassDescriptor(): ClassifierDescriptor? =
   constructor.declarationDescriptor
 
+fun Diagnostic.suppressUnusedParameter(): Boolean =
+  factory == Errors.UNUSED_PARAMETER && safeAs<DiagnosticWithParameters1<KtParameter, VariableDescriptor>>()?.let { diagnosticWithParameters ->
+    diagnosticWithParameters.psiElement.defaultValue?.text == "given"
+  } == true

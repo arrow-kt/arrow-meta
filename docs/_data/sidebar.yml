@@ -10,78 +10,102 @@ options:
       - title: Hello World
         url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
-      - title: Hello World IntelliJ IDEA
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.nothing/nothing-ide-plugin.html
+      - title: Hello World IntelliJ Platform
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
 
   - title: Quotes
 
     nested_options:
 
       - title: Index
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
 
-      - title: classOrObject
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/class-or-object.html
+      - title: ClassOrObject
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
 
-      - title: func
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/func.html
+      - title: Declaration
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
 
-      - title: property
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property.html
+      - title: Element
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
 
-      - title: propertyAccessor
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/property-accessor.html
+      - title: WhenCondition
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
 
-      - title: typeAlias
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/type-alias.html
+      - title: Expression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
+
+      - title: ExpressionWithLabel
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
+
+      - title: LoopExpression
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
+
+      - title: Filebase
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
+
+      - title: Modifierlist
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
+
+      - title: NamedDeclaration - NotStubbed
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
+
+      - title: NamedDeclaration - Stub
+        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
 
   - title: Compiler API
 
     nested_options:
 
       - title: Config
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/
 
       - title: Analysis
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/
 
       - title: Resolution
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/
 
       - title: ASM Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/
 
       - title: IR Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
+        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
-  - title: IntelliJ IDEA API
+  - title: IntelliJ Platform API
 
     nested_options:
 
-      - title: Config
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/index.html
+      - title: ExtensionProviderSyntax
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.extensions/-extension-provider-syntax/
 
-      - title: Analysis
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/index.html
+        nested_options:
 
-      - title: Resolution
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/index.html
+          - title: InspectionSyntax
+            url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.inspection/add-applicable-inspection.html
 
-      - title: ASM Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/index.html
+          - title: LineMarkerSyntax
+            url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.line-marker/add-line-marker-provider.html
 
-      - title: IR Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/index.html
+      - title: AnActionSyntax
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.action/-an-action-syntax/
+
+      - title: IntentionSyntax
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
+
+      - title: SyntaxHighlighterSyntax
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/-syntax-highlighter-syntax/add-syntax-highlighter.html
+
 
   - title: Testing
 
     nested_options:
 
       - title: Compiler Plugins Tests
-        url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/-compiler-test/index.html
+        url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/assert-this.html
 
-      - title: IntelliJ IDEA Plugin Tests
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl/-ide-test-syntax.html
+      - title: IntelliJ Plugin Tests
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl.env/ide-test.html
 
   - title: API Docs
 
@@ -90,10 +114,7 @@ options:
       - title: Compiler plugin
         url: /docs/apidocs/compiler-plugin/
 
-      - title: Gradle plugin
-        url: /docs/apidocs/gradle-plugin/
-
-      - title: Idea plugin
+      - title: IntelliJ plugin
         url: /docs/apidocs/idea-plugin/
 
       - title: Testing plugin

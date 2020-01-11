@@ -1,10 +1,13 @@
 package arrow.meta.internal.kastree.ast
 
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+
 const val COMMAND_PREFIX = "//meta"
 
 sealed class Node {
   var tag: Any? = null
   var dynamic: String? = null
+  var psiElement: PsiElement? = null
 
   interface WithAnnotations {
     val anns: List<Modifier.AnnotationSet>
@@ -61,7 +64,7 @@ sealed class Node {
       val parents: List<Parent>,
       val typeConstraints: List<TypeConstraint>,
       // TODO: Can include primary constructor
-      val members: List<Decl>
+      val members: ClassBody?
     ) : Decl(), WithModifiers {
       enum class Form {
         CLASS, ENUM_CLASS, INTERFACE, OBJECT, COMPANION_OBJECT
@@ -129,7 +132,7 @@ sealed class Node {
         val first: Accessor,
         val second: Accessor?
       ) : Node()
-      sealed class Accessor : Node(), WithModifiers {
+      sealed class Accessor : Decl(), WithModifiers {
         data class Get(
           override val mods: List<Modifier>,
           val type: Type?,
@@ -168,6 +171,9 @@ sealed class Node {
       val args: List<ValueArg>,
       val members: List<Decl>
     ) : Decl(), WithModifiers
+    data class ClassBody(
+      val members: List<Decl>
+    ) : Decl()
   }
 
   data class TypeParam(

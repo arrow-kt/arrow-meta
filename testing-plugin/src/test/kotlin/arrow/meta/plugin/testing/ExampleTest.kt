@@ -1,5 +1,7 @@
 package arrow.meta.plugin.testing
 
+import arrow.meta.plugin.testing.Code.Source
+import arrow.meta.plugin.testing.plugins.MetaPlugin
 import org.junit.Test
 
 class ExampleTest {
@@ -15,7 +17,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(compiles)
+        compiles
       }
     ))
   }
@@ -31,7 +33,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("hello()".source.evalsTo("Hello world!"))
+        "hello()".source.evalsTo("Hello world!")
       }
     ))
   }
@@ -46,7 +48,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(fails)
+        fails
       }
     ))
   }
@@ -61,7 +63,7 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf(failsWith { it.contains("Expecting a top level declaration") })
+        failsWith { it.contains("Expecting a top level declaration") }
       }
     ))
   }
@@ -77,7 +79,78 @@ class ExampleTest {
         """.source
       },
       assert = {
-        allOf("x".source.evalsTo("Hello world!"))
+        "x".source.evalsTo("Hello world!")
+      }
+    ))
+  }
+
+  @Test
+  fun `allows several sources with names to add associated asserts`() {
+    assertThis(CompilerTest(
+      code = {
+        sources(
+          Source(
+            filename = "LowerCase.kt",
+            text = """
+              |
+              | val x: String = "hello world!"
+              | 
+              """
+          ),
+          Source(
+            filename = "UpperCase.kt",
+            text = """
+              |
+              | val y: String = "HELLO WORLD!"
+              | 
+              """
+          ))
+      },
+      assert = {
+        allOf(
+          Source(filename = "LowerCaseKt", text = "x").evalsTo("hello world!"),
+          Source(filename = "UpperCaseKt", text = "y").evalsTo("HELLO WORLD!")
+        )
+      }
+    ))
+  }
+
+  @Test
+  fun `allows several sources without names because they don't matter`() {
+    assertThis(CompilerTest(
+      code = {
+        sources(
+          """
+          |
+          | val x: String = "hello world!"
+          | 
+          """.source,
+          """
+          |
+          | val y: String = "HELLO WORLD!"
+          | 
+          """.source)
+      },
+      assert = {
+        compiles
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to test a Meta plugin`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
+      code = {
+          """
+          | //metadebug
+          | 
+          | fun helloWorld(): String = TODO()
+          | 
+          """.source
+      },
+      assert = {
+        "helloWorld()".source.evalsTo("Hello ΛRROW Meta!")
       }
     ))
   }

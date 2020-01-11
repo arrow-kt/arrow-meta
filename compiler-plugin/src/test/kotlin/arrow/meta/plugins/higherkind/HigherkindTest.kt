@@ -4,7 +4,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
-class HigherkindTest {
+class HigherkindTest  {
 
   @Test
   fun `initial test`() {
@@ -24,7 +24,7 @@ class HigherkindTest {
         """.source
       },
       assert = {
-        allOf(quoteOutputMatches(
+        quoteOutputMatches(
           """
           | import arrow.higherkind
           | 
@@ -39,7 +39,7 @@ class HigherkindTest {
           | 
           | val x: Id2Of<Int> = Id2(1)
           | 
-          """.source))
+          """.source)
       }
     ))
   }

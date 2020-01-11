@@ -20,17 +20,72 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.quickfix.KotlinSuppressIntentionAction
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
- * More General Inspections can be build with [AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
+ * Loosely speaking, `Inspection's` are easily recognized as "QuickFixes" when the user hit's a KeyShortCut for missing imports.
+ * Interestingly enough, despite calling `Inspection's` proverbially "QuickFixes", IntelliJ defines a `QuickFix` as an aggregation of multiple `Intention's`.
+ * Whereas `Intention's` analysis your code and users can decide whether they want to apply a suggested Fix,
+ * Inspection's improve upon that very idea and are capable to block the user to compile code at the first place.
+ * Additionally, we can scope the Fix in `applyTo` locally, for each instance per file, or globally to the whole project, assuming it has a universal refactoring task.
+ * There are cases, where an universal Fix, might not be obvious, but that doesn't stop plugin developer's to notify and direct user's to helpful resources about this problem.
+ * @see [addApplicableInspection]
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
+  // TODO: Add more General `Inspection's` can be build with [org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
+
   /**
-   * Local Applicable Inspection with enhanced Scope to modify the element, project or editor at once within [applyTo]
+   * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
+   * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.phases.analysis.resolveFunctionType
+   * import arrow.meta.phases.analysis.returns
+   * import arrow.meta.invoke
+   * import com.intellij.codeHighlighting.HighlightDisplayLevel
+   * import com.intellij.codeInspection.ProblemHighlightType
+   * import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
+   * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
+   * import org.jetbrains.kotlin.lexer.KtTokens
+   * import org.jetbrains.kotlin.psi.KtNamedFunction
+   *
+   * //sampleStart
+   * val IdeMetaPlugin.simplyPure: Plugin
+   *  get() = "Draft PurityPlugin" {
+   *   meta(
+   *    addApplicableInspection(
+   *     defaultFixText = "Simplified PurityPlugin",
+   *     inspectionHighlightType = { ProblemHighlightType.ERROR },
+   *     kClass = KtNamedFunction::class.java,
+   *     inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
+   *     applyTo = { f, project, editor ->
+   *      f.addModifier(KtTokens.SUSPEND_KEYWORD)
+   *     },
+   *     isApplicable = { f: KtNamedFunction ->
+   *      !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
+   *      f.resolveToDescriptorIfAny()?.run {
+   *       !isSuspend && !isSuspendLambdaOrLocalFunction() &&
+   *        returns(resolveFunctionType, { listOf(unitType) })
+   *       // `returns` evaluates the returnType of the functionDescriptor of [f] and returns true if the list with `KotlinTypes` contains any collected returnType from the former computation.
+   *       // `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
+   *      } == true
+   *     },
+   *     level = HighlightDisplayLevel.ERROR,
+   *     groupPath = arrayOf("Meta", "SimplePlugin")
+   *    )
+   *   )
+   *  }
+   * //sampleEnd
+   * ```
+   * Needless to say, the latter implementation is not sufficient enough as a purityPlugin, as the function body of the underlying Call's may have impure Call's.
+   * This Plugin will be discoverable in the user setting's under the Path Meta and its groupDisplayName is `SimplePlugin`.
+   * In addition, depending on [inspectionHighlightType] and [level] the `lightBulb` changes it's color.
+   * @param groupPath
+   * @see addLocalInspection
+   * @sample arrow.meta.ide.plugins.purity.purity
    */
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IdeMetaPlugin.addApplicableInspection(
@@ -56,7 +111,10 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   /**
-   * Defines Inspection on a global scale or in other words on multiple Files and the entire Project Scope
+   * registers a GlobalInspection.
+   * [InspectionEP] is once again a wrapper over the actual [GlobalInspectionTool].
+   * @see addLocalInspection
+   * TODO: Add easy first issue for contributor's
    */
   fun IdeMetaPlugin.addGlobalInspection(
     inspectionTool: GlobalInspectionTool,
@@ -73,7 +131,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   /**
-   * Defines Inspection on local scale or in other words on the current user file
+   * registers a LocalInspection.
+   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is unsurprisingly a SubType of both [GlobalInspectionTool] and [LocalInspectionTool].
+   * @param groupDisplayName The displayed groupName in the user settings for Inspections.
+   * @param groupPath The specified path where your Inspection is located. Use Strings without spacing.
+   * @param shortName The displayed text, whenever [inspectionTool] is applicable.
    */
   fun IdeMetaPlugin.addLocalInspection(
     inspectionTool: LocalInspectionTool,
@@ -90,8 +152,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     )
 
   /**
-   * suppresses Warning[org.jetbrains.kotlin.idea.inspections.KotlinInspectionSuppressor]
-   * TODO: Add a representation of [KotlinSuppressIntentionAction]
+   * registers an [InspectionSuppressor] for the specified [PsiElement].
+   * @sample [org.jetbrains.kotlin.idea.inspections.KotlinInspectionSuppressor]
+   * TODO: Add a representation of [KotlinSuppressIntentionAction] with Meta
    */
   fun IdeMetaPlugin.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
@@ -102,9 +165,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       inspectionSuppressor(suppressFor, suppressAction)
     )
 
-  /**
-   * Is to be used in combination with [addInspectionSuppressor]
-   */
   fun InspectionSyntax.supressQuickFix(
     name: String,
     familyName: String,
@@ -129,7 +189,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
-      { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
+      { _: K -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
     enabledByDefault: Boolean = true
   ): AbstractApplicabilityBasedInspection<K> =
     object : AbstractApplicabilityBasedInspection<K>(kClass) {

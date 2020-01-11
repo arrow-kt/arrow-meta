@@ -10,12 +10,105 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.PsiWhiteSpace
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.*
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
+import org.jetbrains.kotlin.psi.KtAnnotation
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtAnnotationUseSiteTarget
+import org.jetbrains.kotlin.psi.KtAnonymousInitializer
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtBreakExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtCatchClause
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassBody
+import org.jetbrains.kotlin.psi.KtClassLiteralExpression
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
+import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtContinueExpression
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
+import org.jetbrains.kotlin.psi.KtDoWhileExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtDoubleColonExpression
+import org.jetbrains.kotlin.psi.KtDynamicType
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtEnumEntry
+import org.jetbrains.kotlin.psi.KtEscapeStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFileAnnotationList
+import org.jetbrains.kotlin.psi.KtForExpression
+import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.KtFunctionType
+import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtIsExpression
+import org.jetbrains.kotlin.psi.KtLabeledExpression
+import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtModifierList
+import org.jetbrains.kotlin.psi.KtModifierListOwner
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtNullableType
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtObjectLiteralExpression
+import org.jetbrains.kotlin.psi.KtPackageDirective
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtPrefixExpression
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtProjectionKind
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
+import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtSuperExpression
+import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
+import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
+import org.jetbrains.kotlin.psi.KtThisExpression
+import org.jetbrains.kotlin.psi.KtThrowExpression
+import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeAlias
+import org.jetbrains.kotlin.psi.KtTypeArgumentList
+import org.jetbrains.kotlin.psi.KtTypeConstraint
+import org.jetbrains.kotlin.psi.KtTypeElement
+import org.jetbrains.kotlin.psi.KtTypeParameter
+import org.jetbrains.kotlin.psi.KtTypeProjection
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.KtUnaryExpression
+import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtValueArgumentList
+import org.jetbrains.kotlin.psi.KtWhenCondition
+import org.jetbrains.kotlin.psi.KtWhenConditionInRange
+import org.jetbrains.kotlin.psi.KtWhenConditionIsPattern
+import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
+import org.jetbrains.kotlin.psi.KtWhenEntry
+import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.KtWhileExpressionBase
+import org.jetbrains.kotlin.psi.psiUtil.allChildren
+import org.jetbrains.kotlin.psi.psiUtil.children
+import org.jetbrains.kotlin.psi.psiUtil.nextLeaf
+import org.jetbrains.kotlin.psi.psiUtil.prevLeaf
+import org.jetbrains.kotlin.psi.psiUtil.siblings
 import java.util.*
 
 open class Converter {
-  protected open fun onNode(node: Node, elem: PsiElement) { }
+  protected open fun onNode(node: Node, elem: PsiElement) { node.psiElement = elem }
 
   open fun convertAnnotated(v: KtAnnotatedExpression) = Node.Expr.Annotated(
     anns = convertAnnotationSets(v),
@@ -199,6 +292,7 @@ open class Converter {
     is KtNamedFunction -> convertFunc(v)
     is KtDestructuringDeclaration -> convertProperty(v)
     is KtProperty -> convertProperty(v)
+    is KtPropertyAccessor -> convertPropertyAccessor(v)
     is KtTypeAlias -> convertTypeAlias(v)
     is KtSecondaryConstructor -> convertConstructor(v)
     else -> error("Unrecognized declaration type for $v")
@@ -293,7 +387,7 @@ open class Converter {
   open fun convertFile(v: KtFile) = Node.File(
     anns = convertAnnotationSets(v),
     pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
-    imports = v.importDirectives.map(::convertImport),
+    imports = v.importDirectives.map(::convertImportDirective),
     commands = convertCommands(v),
     decls = v.declarations.map(::convertDecl)
   ).map(v)
@@ -337,7 +431,7 @@ open class Converter {
     elseBody = v.`else`?.let(::convertExpr)
   ).map(v)
 
-  open fun convertImport(v: KtImportDirective) = Node.Import(
+  open fun convertImportDirective(v: KtImportDirective) = Node.Import(
     names = v.importedFqName?.pathSegments()?.map { it.asString() } ?: error("Missing import path"),
     wildcard = v.isAllUnder,
     alias = v.aliasName
@@ -528,7 +622,7 @@ open class Converter {
     parentAnns = emptyList(),
     parents = v.superTypeListEntries.map(::convertParent),
     typeConstraints = v.typeConstraints.map(::convertTypeConstraint),
-    members = v.declarations.map(::convertDecl)
+    members = v.body?.let(::convertClassBody)
   ).map(v)
 
   open fun convertSuper(v: KtSuperExpression) = Node.Expr.Super(
@@ -704,6 +798,10 @@ open class Converter {
     body = convertExpr(v.body ?: error("No while body for $v")),
     doWhile = v is KtDoWhileExpression
   ).map(v)
+  
+  open fun convertClassBody(v: KtClassBody) = Node.Decl.ClassBody(
+    members = v.declarations.map(::convertDecl)
+  )
 
   protected open fun <T: Node> T.map(v: PsiElement) = also { onNode(it, v) }
 
@@ -829,4 +927,23 @@ open class Converter {
         takeWhile { it.elementType != KtTokens.COLONCOLON }.
         count { it.elementType == KtTokens.QUEST }
   }
+}
+
+internal val PsiElement.ast: Node get() = when(this) {
+  is KtClassOrObject -> Converter.convertDecl(this)
+  is KtNamedFunction -> Converter.convertFunc(this)
+  is KtTypeAlias -> Converter.convertTypeAlias(this)
+  is KtCatchClause -> Converter.convertTryCatch(this)
+  is KtImportDirective -> Converter.convertImportDirective(this)
+  is KtValueArgument -> Converter.convertValueArg(this)
+  is KtTypeReference -> Converter.convertTypeRef(this)
+  is KtClassBody -> Converter.convertClassBody(this)
+  is KtProperty -> Converter.convertDecl(this)
+  is KtPropertyAccessor -> Converter.convertDecl(this)
+  is KtDestructuringDeclaration -> Converter.convertDecl(this)
+  is KtExpression -> Converter.convertExpr(this)
+  is KtPackageDirective -> Converter.convertPackage(this)
+  is KtWhenCondition -> Converter.convertWhenCond(this)
+  is KtWhenEntry -> Converter.convertWhenEntry(this)
+  else -> TODO("Unsupported ${this}")
 }
