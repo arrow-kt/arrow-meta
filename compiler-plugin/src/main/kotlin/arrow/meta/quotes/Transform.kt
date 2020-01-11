@@ -30,7 +30,7 @@ sealed class Transform<out K : KtElement> {
    *          newDeclaration =
    *          """|fun helloWorld(): Unit =
    *             |  println("Hello ΛRROW Meta!")
-   *             |""".function.synthetic
+   *             |""".function.syntheticScope
    *        )
    *      }
    *     )
@@ -106,7 +106,7 @@ sealed class Transform<out K : KtElement> {
    *   newDeclaration = """
    *   | private class $className {
    *   |   $body
-   *   | } """.`class`.synthetic
+   *   | } """.`class`.syntheticScope
    * )}
    *
    * fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(
