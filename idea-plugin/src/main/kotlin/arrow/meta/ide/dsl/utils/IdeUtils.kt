@@ -91,11 +91,7 @@ inline fun <reified K : PsiElement> K.replaceK(f: (K) -> K): K? =
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 
-/**
- * General helpers for HTML
- */
 fun <A> kotlin(a: A): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t$a\n" }
-
 fun kotlin(a: String): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t${text(a).content}\n" }
 fun <A> h1(a: A): BlockElement = org.celtric.kotlin.html.h1("$a")
 fun <A> code(a: A): InlineElement = code("\n\t$a\n")
