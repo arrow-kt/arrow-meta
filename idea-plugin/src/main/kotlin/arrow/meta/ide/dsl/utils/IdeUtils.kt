@@ -2,7 +2,6 @@ package arrow.meta.ide.dsl.utils
 
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
-import arrow.meta.phases.analysis.resolveFunctionTypeEq
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SyntaxTraverser
 import org.celtric.kotlin.html.BlockElement
@@ -70,18 +69,6 @@ fun <F : CallableDescriptor> F.intersectProperty(
   types: KotlinBuiltIns.() -> List<KotlinType>
 ): List<KotlinType> =
   intersect(eq, types) + intersect(eq, prop.callReturnTypes, types)
-
-/**
- * convenience function where FunctionTypes of subsequent calls in the initializer are reduced to their returnType
- */
-fun <F : CallableDescriptor> F.intersectProperty(prop: KtProperty, types: KotlinBuiltIns.() -> List<KotlinType>): List<KotlinType> =
-  intersectProperty(resolveFunctionTypeEq(), prop, types)
-
-/**
- * convenience function where FunctionTypes of subsequent calls the function body are reduced to their returnType
- */
-fun <F : CallableDescriptor> F.intersectFunction(ktFunction: KtNamedFunction, types: KotlinBuiltIns.() -> List<KotlinType>): List<KotlinType> =
-  intersectFunction(resolveFunctionTypeEq(), ktFunction, types)
 
 /**
  * reified PsiElement replacement

@@ -100,6 +100,7 @@ fun resolveFunctionTypeEq(): Eq<KotlinType> =
  * import org.jetbrains.kotlin.types.KotlinType
  * import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
  * import arrow.meta.phases.analysis.Eq
+ * import arrow.meta.phases.analysis.intersect
  * //sampleStart
  *
  * fun typeConstructorEq(): Eq<KotlinType> =

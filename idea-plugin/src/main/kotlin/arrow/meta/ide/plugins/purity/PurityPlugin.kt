@@ -35,7 +35,7 @@ val IdeMetaPlugin.purity: Plugin
           f.nameIdentifier != null && !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
             f.resolveToDescriptorIfAny()?.run {
               !isSuspend && !isSynthesized && !isSuspendLambdaOrLocalFunction() &&
-                intersectFunction(f) { impureTypes }.isNotEmpty()
+                intersectFunction(resolveFunctionTypeEq(), f) { impureTypes }.isNotEmpty()
             } == true
         },
         level = HighlightDisplayLevel.ERROR,
