@@ -1,18 +1,14 @@
 package arrow.meta.ide.dsl.utils
 
-import arrow.meta.phases.analysis.resolveFunctionType
-import arrow.meta.phases.analysis.returns
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SyntaxTraverser
+import arrow.meta.phases.analysis.Eq
+import arrow.meta.phases.analysis.intersect
+import arrow.meta.phases.analysis.resolveFunctionTypeEq
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SyntaxTraverser
 import org.celtric.kotlin.html.BlockElement
 import org.celtric.kotlin.html.InlineElement
 import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -27,27 +23,6 @@ object IdeUtils {
   fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
 }
 
-/**
- * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
- */
-fun <A : PsiElement, B> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B): List<B> =
-  SyntaxTraverser.psiTraverser(this).filter(on).map(f).toList()
-
-/**
- * Modify [element] based on [f]
- */
-inline fun <reified K : KtElement> KtPsiFactory.modify(element: K, noinline f: KtPsiFactory.(K) -> K?): K? =
-  f(this, element)?.run { element.replaceK(this) }
-
-/**
- * reified PsiElement replacement
- */
-inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
-  replace(to).safeAs()
-
-/**
- * clears null values within List
- */
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
  */
@@ -70,49 +45,49 @@ val KtElement.callReturnTypes: List<KotlinType>
   get() = callElements.mapNotNull { it.returnType }
 
 /**
- * traversal of depth 1 on returnTypes in Function [ktFunction] and all it's calls in the body
- * [f] defines on what property two Types are equal
+ * this extension traverses and collects intersecting [KotlinType]s given [eq]
+ * with the returnType of [F] and all it's calls in the function body.
+ * [intersectFunction] implements a traversal of depth 1.
  * TODO: add returns with a traversal of depth n by virtue of recursion
  */
-@Suppress("UNCHECKED_CAST")
-fun <F : CallableDescriptor, A> F.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <F : CallableDescriptor> F.intersectFunction(
+  eq: Eq<KotlinType>,
   ktFunction: KtNamedFunction,
   types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  returns(f, types) || returns(f, ktFunction.callReturnTypes, types)
+): List<KotlinType> =
+  intersect(eq, types) + intersect(eq, ktFunction.callReturnTypes, types)
 
 
 /**
- * traversal of depth 1 on returnTypes in Property [prop] and all it's calls in the body
- * [f] defines on what property two Types are equal
+ * this extension traverses and collects intersecting [KotlinType]s given [eq]
+ * with the returnType of [F] and all it's calls in the initializer of [prop].
+ * [intersectProperty] implements a traversal of depth 1.
  * TODO: add returns with a traversal of depth n by virtue of recursion
  */
-@Suppress("UNCHECKED_CAST")
-fun <F : CallableDescriptor, A> F.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <F : CallableDescriptor> F.intersectProperty(
+  eq: Eq<KotlinType>,
   prop: KtProperty,
   types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  returns(f, types) || returns(f, prop.callReturnTypes, types)
+): List<KotlinType> =
+  intersect(eq, types) + intersect(eq, prop.callReturnTypes, types)
 
 /**
- * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the initializer to their returnType
+ * convenience function where FunctionTypes of subsequent calls in the initializer are reduced to their returnType
  */
-fun <F : CallableDescriptor> F.returns(prop: KtProperty, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
-  returns(resolveFunctionType, prop, types)
+fun <F : CallableDescriptor> F.intersectProperty(prop: KtProperty, types: KotlinBuiltIns.() -> List<KotlinType>): List<KotlinType> =
+  intersectProperty(resolveFunctionTypeEq(), prop, types)
 
 /**
- * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the body to their returnType
+ * convenience function where FunctionTypes of subsequent calls the function body are reduced to their returnType
  */
-fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
-  returns(resolveFunctionType, ktFunction, types)
+fun <F : CallableDescriptor> F.intersectFunction(ktFunction: KtNamedFunction, types: KotlinBuiltIns.() -> List<KotlinType>): List<KotlinType> =
+  intersectFunction(resolveFunctionTypeEq(), ktFunction, types)
 
 /**
  * reified PsiElement replacement
  */
-inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
-  replace(to).safeAs()
+inline fun <reified K : PsiElement> K.replaceK(f: (K) -> K): K? =
+  replace(f(this)).safeAs()
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 
@@ -120,6 +95,7 @@ fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r:
  * General helpers for HTML
  */
 fun <A> kotlin(a: A): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t$a\n" }
+
 fun kotlin(a: String): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t${text(a).content}\n" }
 fun <A> h1(a: A): BlockElement = org.celtric.kotlin.html.h1("$a")
 fun <A> code(a: A): InlineElement = code("\n\t$a\n")

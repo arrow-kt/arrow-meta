@@ -2,8 +2,11 @@ package arrow.meta.ide.plugins.purity
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.returns
+import arrow.meta.ide.dsl.utils.intersectFunction
+import arrow.meta.ide.dsl.utils.intersectProperty
 import arrow.meta.invoke
+import arrow.meta.phases.analysis.resolveFunctionTypeEq
+import arrow.meta.phases.analysis.typeConstructorEq
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -32,7 +35,7 @@ val IdeMetaPlugin.purity: Plugin
           f.nameIdentifier != null && !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
             f.resolveToDescriptorIfAny()?.run {
               !isSuspend && !isSynthesized && !isSuspendLambdaOrLocalFunction() &&
-                returns(f) { impureTypes }
+                intersectFunction(f) { impureTypes }.isNotEmpty()
             } == true
         },
         level = HighlightDisplayLevel.ERROR,
@@ -46,8 +49,8 @@ val IdeMetaPlugin.purity: Plugin
         inspectionText = { prop -> "Property: ${prop.name} has an impure initializer" },
         applyTo = { prop, project, editor ->
           // TODO: Find a refactoring strategy which works for some cases; for now just warn the user
-          /*prop.initializer?.let { body: KtExpression ->
-            modify(body) { b: KtExpression ->
+          /*prop.initializer?.let { body ->
+            body.replaceK { b: KtExpression ->
               b.safeAs<KtLambdaExpression>()?.let {
                 createExpressionByPattern("$1$0", it.functionLiteral, createIdentifier("suspend"))
               } ?: createExpressionByPattern("suspend { $0 }", b)
@@ -56,10 +59,8 @@ val IdeMetaPlugin.purity: Plugin
         },
         isApplicable = { prop: KtProperty ->
           prop.resolveToDescriptorIfAny()?.run {
-            !returns(
-              f = { t: KotlinType -> t.constructor },
-              types = { suspendedFunctionTypes }
-            ) && returns(prop) { impureTypes }
+            intersectProperty(typeConstructorEq(), prop) { suspendedFunctionTypes }.isEmpty() &&
+              intersectProperty(resolveFunctionTypeEq(), prop) { impureTypes }.isNotEmpty()
           } == true
         },
         level = HighlightDisplayLevel.ERROR,
