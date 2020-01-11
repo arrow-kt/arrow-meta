@@ -49,12 +49,10 @@ val IdeMetaPlugin.purity: Plugin
         inspectionText = { prop -> "Property: ${prop.name} has an impure initializer" },
         applyTo = { prop, project, editor ->
           // TODO: Find a refactoring strategy which works for some cases; for now just warn the user
-          /*prop.initializer?.let { body ->
-            body.replaceK { b: KtExpression ->
-              b.safeAs<KtLambdaExpression>()?.let {
+          /*prop.initializer?.replace { body ->
+              body.safeAs<KtLambdaExpression>()?.let {
                 createExpressionByPattern("$1$0", it.functionLiteral, createIdentifier("suspend"))
-              } ?: createExpressionByPattern("suspend { $0 }", b)
-            }
+              } ?: createExpressionByPattern("suspend { $0 }", body)
           }*/
         },
         isApplicable = { prop: KtProperty ->

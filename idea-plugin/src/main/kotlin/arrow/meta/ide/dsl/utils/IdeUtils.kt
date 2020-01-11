@@ -73,7 +73,7 @@ fun <F : CallableDescriptor> F.intersectProperty(
 /**
  * reified PsiElement replacement
  */
-inline fun <reified K : PsiElement> K.replaceK(f: (K) -> K): K? =
+inline fun <reified K : PsiElement> K.replace(f: (K) -> K): K? =
   replace(f(this)).safeAs()
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
