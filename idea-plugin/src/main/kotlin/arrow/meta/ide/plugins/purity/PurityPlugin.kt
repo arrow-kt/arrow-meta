@@ -72,5 +72,8 @@ val IdeMetaPlugin.purity: Plugin
 private val KotlinBuiltIns.impureTypes: List<KotlinType>
   get() = listOf(unitType, nothingType, nullableNothingType)
 
+/**
+ * FunctionTypes have an arity of up to 42 https://kotlinlang.org/docs/reference/whatsnew13.html#functions-with-big-arity
+ */
 private val KotlinBuiltIns.suspendedFunctionTypes: List<KotlinType>
-  get() = (0..22).toList().map { getSuspendFunction(it).defaultType }
+  get() = (0..42).toList().map { getSuspendFunction(it).defaultType }
