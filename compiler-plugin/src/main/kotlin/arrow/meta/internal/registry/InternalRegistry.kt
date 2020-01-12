@@ -141,11 +141,10 @@ interface InternalRegistry : ConfigSyntax {
     ide {
       println("it's the IDEA plugin")
     }
-    val scope = ElementScope.default(project)
     val messageCollector: MessageCollector? =
       cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
 
-    val ctx = CompilerContext(project, messageCollector, scope)
+    val ctx = CompilerContext(project, messageCollector)
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {
@@ -570,12 +569,6 @@ interface InternalRegistry : ConfigSyntax {
       phase.run { ctx.check(declaration, descriptor, context) }
     }
   }
-
-  fun registerKindAwareTypeChecker(): StorageComponentContainer =
-    typeChecker {
-      if (it !is KindAwareTypeChecker) KindAwareTypeChecker(it)
-      else it
-    }
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(

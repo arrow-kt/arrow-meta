@@ -5,14 +5,17 @@ import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.ProofsCallResolver
 import org.jetbrains.kotlin.container.useImpl
+import org.jetbrains.kotlin.container.useInstance
 
 fun Meta.enableProofCallResolver(): ExtensionPhase =
   storageComponent(
     registerModuleComponents = { container, moduleDescriptor ->
       println("Replacing ${ctx.module} for $moduleDescriptor")
       ctx.module = moduleDescriptor
-      println("Replacing ${ctx.componentProvider} for $container")
-      if (cli { true } == true || ctx.componentProvider == null) {
+      container.useInstance(container)
+      println("Replacing ${ctx.componentProvider} for $container if ctx.componentProvider is null: $ctx.componentProvider")
+      if (ctx.componentProvider == null) {
+        println("Replacing ${ctx.componentProvider} for $container")
         ctx.componentProvider = container
         container.useImpl<ProofsCallResolver>()
       }

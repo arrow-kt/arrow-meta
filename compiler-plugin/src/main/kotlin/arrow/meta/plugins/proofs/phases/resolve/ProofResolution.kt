@@ -41,7 +41,7 @@ fun List<Proof>.matchingCandidates(
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
             val extensionReceiver = ProofReceiverValue(subType)
             val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
-            val scopeTower = ProofsScopeTower(this, this@matchingCandidates)
+            val scopeTower = ProofsScopeTower(this, this@matchingCandidates, compilerContext)
             val kotlinCall: KotlinCall = receiverValue.kotlinCall()
             val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
               scopeTower = scopeTower,
@@ -101,7 +101,7 @@ data class ProofCandidate(
   val through: FunctionDescriptor
 )
 
-private class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
+class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun replaceType(p0: KotlinType): ReceiverValue =
     ProofReceiverValue(p0)
 

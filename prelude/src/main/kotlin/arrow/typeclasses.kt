@@ -3,6 +3,7 @@ package arrowx
 import arrow.Proof
 
 import arrow.TypeProof
+import arrowx.StringMonoid.combine
 
 interface Semigroup<A> {
   fun A.combine(other: A): A
@@ -23,6 +24,22 @@ object StringMonoid : Monoid<String> {
 
 inline class StringSyntax(override val value: String): Semigroup.Syntax<String> {
   override fun combine(other: String): String = value + other
+}
+
+fun String.combine(other: String): String = this + other
+
+fun <A : @given Semigroup<A>> A.mappend(other: A): A =
+  this.combine(other)
+
+fun <A> A.mappend(other: A, semigroup: Semigroup<A> = TODO()): A =
+  semigroup.run { this@mappend.combine(other) }
+
+
+val x = "".mappend("")
+val y = Empty.mappend(Empty)
+
+object Empty : Semigroup<Empty> {
+  override fun Empty.combine(other: Empty): Empty = Empty
 }
 
 @Proof(TypeProof.Extension)

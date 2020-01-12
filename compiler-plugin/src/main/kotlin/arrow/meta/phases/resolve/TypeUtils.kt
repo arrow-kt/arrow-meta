@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 
-val baseLineTypeChecker: KotlinTypeChecker =
+val baseLineTypeChecker: NewKotlinTypeCheckerImpl =
   NewKotlinTypeCheckerImpl(KotlinTypeRefiner.Default)
 
 fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProjection> =

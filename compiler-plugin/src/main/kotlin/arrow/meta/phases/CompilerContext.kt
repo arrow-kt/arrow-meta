@@ -15,8 +15,8 @@ import arrow.meta.plugins.proofs.phases.proofs as tp
  */
 class CompilerContext(
   val project: Project,
-  val messageCollector: MessageCollector?,
-  val scope: ElementScope,
+  val messageCollector: MessageCollector? = null,
+  val scope: ElementScope = ElementScope.default(project),
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false)
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null

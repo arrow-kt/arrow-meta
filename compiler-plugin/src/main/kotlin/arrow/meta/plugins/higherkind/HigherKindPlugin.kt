@@ -28,7 +28,7 @@ val Meta.higherKindedTypes: Plugin
   get() =
     "higherKindedTypes" {
       meta(
-        registerKindAwareTypeChecker(),
+        //registerKindAwareTypeChecker(),
         suppressDiagnostic(Diagnostic::kindsTypeMismatch),
         classDeclaration(::isHigherKindedType) { c ->
           println("Processing Higher Kind: ${c.name}: ${c.superTypeIsSealedInFile()}")

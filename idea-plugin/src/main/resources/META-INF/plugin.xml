@@ -23,20 +23,20 @@
         <component>
             <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
         </component>
-        <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
-        </component>
+<!--        <component>-->
+<!--            <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>-->
+<!--        </component>-->
         <component>
             <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsKotlinCacheService</implementation-class>
         </component>
-        <component>
-            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsImportInsertHelper</implementation-class>
-        </component>
+<!--        <component>-->
+<!--            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsImportInsertHelper</implementation-class>-->
+<!--        </component>-->
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-        <syntheticScopeProviderExtension implementation="arrow.meta.ide.plugins.proofs.resolve.ProofsIdeSyntheticScope" />
+<!--        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>-->
+<!--        <syntheticScopeProviderExtension implementation="arrow.meta.ide.plugins.proofs.resolve.ProofsIdeSyntheticScope" />-->
     </extensions>
 
 </idea-plugin>

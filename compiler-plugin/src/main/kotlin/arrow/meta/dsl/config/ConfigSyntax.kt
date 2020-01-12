@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
@@ -87,14 +88,19 @@ interface ConfigSyntax {
    * The [typeChecker] function allows the user to provide a custom implementation of the [KotlinTypeChecker].
    * With a custom [KotlinTypeChecker], we can redefine what subtyping and type equality means.
    */
-  fun typeChecker(replace: (KotlinTypeChecker) -> KotlinTypeChecker): arrow.meta.phases.config.StorageComponentContainer =
+  fun typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): arrow.meta.phases.config.StorageComponentContainer =
     storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
         val defaultTypeChecker = KotlinTypeChecker.DEFAULT
+        val defaultTypeChecker2: NewKotlinTypeChecker = NewKotlinTypeChecker.Default
         val replacement = replace(defaultTypeChecker)
+        val replacement2 = replace(defaultTypeChecker2)
         if (replacement != defaultTypeChecker) {
           val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-          setFinalStatic(defaultTypeCheckerField, replace(defaultTypeChecker))
+          val defaultTypeCheckerField2 = NewKotlinTypeChecker.Companion::class.java.getDeclaredField("Default").also { it.isAccessible = true }
+          setFinalStatic(defaultTypeCheckerField, replacement)
+          //TODO just use the type refiner as impl
+          //defaultTypeCheckerField2.set(NewKotlinTypeChecker.Companion, replacement2)
         }
       },
       check = { _, _, _ ->
