@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -143,8 +144,10 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
-  val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
-  
+  val <A: KtDeclaration> Scope<A>.syntheticScope: Scope<A>
+
+  val <A: SyntheticElement> A.syntheticElement: A
+
   fun property(
     modifiers: String?,
     name: String,

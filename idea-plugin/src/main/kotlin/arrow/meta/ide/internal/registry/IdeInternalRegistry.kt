@@ -110,8 +110,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =
     when (phase) {
       is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose) }
-      is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(KotlinLanguage.INSTANCE, impl) }
-      is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(KotlinFileType.INSTANCE, impl) }
+      is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
+      is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(fileType, impl) }
       is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }
       is ExtensionProvider.RegisterBaseExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }

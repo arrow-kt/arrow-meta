@@ -3,6 +3,7 @@ package arrow.meta.quotes.expression
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.nameddeclaration.notstubbed.FunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtParameter
 
@@ -34,7 +35,7 @@ import org.jetbrains.kotlin.psi.KtParameter
  */
 class LambdaExpression(
   override val value: KtLambdaExpression,
-  // val functionLiteral: FunctionLiteral = FunctionLiteral(value.functionLiteral),  // TODO locate an example or fix ValueArgument
+  val functionLiteral: FunctionLiteral = FunctionLiteral(value.functionLiteral),  // TODO locate an example or fix ValueArgument
   val `(params)`: ScopedList<KtParameter> = ScopedList(value = value.valueParameters),
   val bodyExpression: BlockExpression? = BlockExpression(value.bodyExpression)
 ) : Scope<KtLambdaExpression>(value) {
