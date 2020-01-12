@@ -212,7 +212,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(clean))
 
-  override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
+  override val <A : KtDeclaration> Scope<A>.syntheticScope: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
       val declaration = value

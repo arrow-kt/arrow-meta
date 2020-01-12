@@ -16,23 +16,23 @@ val Meta.higherKindedTypes2: Plugin
         classDeclaration(::isHigherKindedType) { c ->
           Transform.replace(c, listOfNotNull(
             /** Kind Marker **/
-            "class For$name private constructor()".`class`.synthetic,
+            "class For$name private constructor()".`class`.syntheticScope,
             /** Single arg type alias **/
-            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrowx.Kind${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().synthetic,
+            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrowx.Kind${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope,
             """|@arrow.Proof(arrow.TypeProof.Subtyping)
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> ${name}Of<${`(typeParameters)`.invariant()}>.fix(): $name<${`(typeParameters)`.invariant()}> =
                |  (this as arrowx.Kinded).value as $name<${`(typeParameters)`.invariant()}>
-               |""".function.synthetic,
+               |""".function.syntheticScope,
             """|@arrow.Proof(arrow.TypeProof.Subtyping)
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> $name<${`(typeParameters)`.invariant()}>.unfix(): ${name}Of<${`(typeParameters)`.invariant()}> =
                |  arrowx.Kinded(this)
-               |""".function.synthetic,
+               |""".function.syntheticScope,
             /** generate partial aliases if this kind has > 1 type parameters **/
             /** generate partial aliases if this kind has > 1 type parameters **/
             if (c.arity > 1)
-              "typealias ${name}PartialOf<${c.partialTypeParameters}> = arrowx.Kind${c.partialKindAritySuffix}<For$name, ${c.partialTypeParameters}>".declaration<KtTypeAlias>().synthetic
+              "typealias ${name}PartialOf<${c.partialTypeParameters}> = arrowx.Kind${c.partialKindAritySuffix}<For$name, ${c.partialTypeParameters}>".declaration<KtTypeAlias>().syntheticScope
             else null,
             c.scope()
           )
