@@ -36,7 +36,7 @@ fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinTyp
       .filter { !it.isExtension }
       .mapNotNull {
         val receiver = ProofReceiverValue(proof.from)
-        val dispatchReceiver = ReceiverParameterDescriptorImpl(it, receiver, Annotations.EMPTY)//TODO()should be it not through
+        val dispatchReceiver = ReceiverParameterDescriptorImpl(it, receiver, Annotations.EMPTY)
         it.newCopyBuilder()
           .setDropOriginalInContainingParts()
           .setOriginal(it)

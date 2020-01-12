@@ -30,10 +30,11 @@ val Meta.typeProofs: Plugin
         suppressDiagnostic { ctx.suppressTypeInferenceExpectedTypeMismatch(it, module.proofs) },
         suppressDiagnostic { ctx.suppressUpperboundViolated(it, module.proofs) },
         typeChecker { ProofTypeChecker(ctx) },
-        irCall { ProofsIrCodegen(this) { proveNestedCalls(module.proofs, it) } },
-        irProperty { ProofsIrCodegen(this) { proveProperty(module.proofs, it) } },
-        irVariable { ProofsIrCodegen(this) { proveVariable(module.proofs, it) } },
-        irReturn { ProofsIrCodegen(this) { proveReturn(module.proofs, it) } },
+        irCall { ProofsIrCodegen(this) { proveNestedCalls(it) } },
+        irProperty { ProofsIrCodegen(this) { proveProperty(it) } },
+        irVariable { ProofsIrCodegen(this) { proveVariable(it) } },
+        irReturn { ProofsIrCodegen(this) { proveReturn(it) } },
+        irTypeOperator { ProofsIrCodegen(this) { proveTypeOperator(it) } },
         irDump()
       )
     }

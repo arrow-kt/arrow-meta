@@ -18,10 +18,10 @@ open class MetaPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<Plugin> =
     listOf(
       //higherKindedTypes2,
-      typeProofs
+      typeProofs,
       //typeClasses,
-      //comprehensions,
-      //lenses
+      comprehensions,
+      lenses
     )
 }
 

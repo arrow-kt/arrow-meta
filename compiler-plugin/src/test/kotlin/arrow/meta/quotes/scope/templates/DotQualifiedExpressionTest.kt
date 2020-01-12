@@ -12,7 +12,8 @@ class DotQualifiedExpressionTest  {
   companion object {
     private val dotQualifiedExpression =  """
       | val list = listOf("12", "33", "65")
-      |     list.flatMap { it.toList() }""".dotQualifiedExpression()
+      |     list.flatMap { it.toList() }
+      |""".dotQualifiedExpression()
 
     private val mutableDotQualifiedExpression = """"Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
 

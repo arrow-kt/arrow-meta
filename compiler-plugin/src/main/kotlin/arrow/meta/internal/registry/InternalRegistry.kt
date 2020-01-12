@@ -133,10 +133,13 @@ interface InternalRegistry : ConfigSyntax {
     project: Project,
     configuration: CompilerConfiguration
   ) {
-    println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
+    println("Project allowed extensions: ${extensionPoints.joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
-      SyntheticScopeProviderExtension.registerExtensionPoint(project)
+      if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name}) {
+        SyntheticScopeProviderExtension.registerExtensionPoint(project)
+      }
     }
     ide {
       println("it's the IDEA plugin")

@@ -1,6 +1,7 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
@@ -25,7 +26,10 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastI
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isError
+import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isNothing
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun List<Proof>.matchingCandidates(
@@ -51,7 +55,7 @@ fun List<Proof>.matchingCandidates(
               givenCandidates = givenCandidates(),
               extensionReceiver = receiverValue
             )
-            return callResolutionResult.matchingProofs()
+            return callResolutionResult.matchingProofs(subType, superType)
           }
         } ?: emptyList<Proof>()
       } catch (e: ContainerConsistencyException) {
@@ -63,12 +67,17 @@ fun List<Proof>.matchingCandidates(
 private fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
-private fun CallResolutionResult.matchingProofs(): List<Proof> =
+private fun CallResolutionResult.matchingProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   if (this is AllCandidatesResolutionResult) {
     val selectedCandidates = allCandidates.filter {
       it.diagnostics.isEmpty()
     }
     val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
+      .filter {
+        (it.from.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.from.replaceArgumentsWithStarProjections(), subType.replaceArgumentsWithStarProjections()))
+          &&
+          (it.to.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.to.replaceArgumentsWithStarProjections(), superType.replaceArgumentsWithStarProjections()))
+      }
     proofs
   } else emptyList()
 

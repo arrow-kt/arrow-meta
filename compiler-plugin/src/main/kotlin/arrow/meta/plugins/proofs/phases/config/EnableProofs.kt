@@ -14,10 +14,10 @@ fun Meta.enableProofCallResolver(): ExtensionPhase =
       ctx.module = moduleDescriptor
       container.useInstance(container)
       println("Replacing ${ctx.componentProvider} for $container if ctx.componentProvider is null: $ctx.componentProvider")
-      if (ctx.componentProvider == null) {
+      //if (ctx.componentProvider == null) {
         println("Replacing ${ctx.componentProvider} for $container")
         ctx.componentProvider = container
         container.useImpl<ProofsCallResolver>()
-      }
+      //}
     }
   )

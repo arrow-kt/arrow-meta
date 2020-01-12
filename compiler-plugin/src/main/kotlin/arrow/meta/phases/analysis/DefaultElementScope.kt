@@ -132,7 +132,7 @@ import org.jetbrains.kotlin.resolve.ImportPath
 class DefaultElementScope(project: Project) : ElementScope {
 
   private val String.clean
-    get() = trimIndent().trimMargin().trim()
+    get() = trimMargin().trimIndent()
 
   private val delegate = KtPsiFactory(project)
 
