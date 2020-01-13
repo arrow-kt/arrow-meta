@@ -1,15 +1,10 @@
 package arrow.meta.plugin.gradle
 
-import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import io.github.classgraph.ClassGraph
-import org.xml.sax.InputSource
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Properties
 
 /**
@@ -38,27 +33,14 @@ class ArrowGradlePlugin : Plugin<Project> {
         it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("arrow-meta-compiler-plugin:$compilerPluginVersion")}"
       }
     }
+    project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java)
 
-    // TODO: Do the same for release version
     when {
-      (System.getProperty("idea.active") == "true") -> {
-        val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
-        val pluginsDir = Paths.get(configDir, "plugins")
-        if (pluginsDir.toFile().listFiles().none { it.name.startsWith("arrow-meta-idea-plugin") }) {
-          println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
-          val parser = DOMParser()
-          parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
-          val artifactURL = parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
-          Files.copy(
-            URL(artifactURL).openStream(),
-            Paths.get(pluginsDir.toString(), File(artifactURL).name)
-          )
-          // TODO: dynamic plugin to avoid restarting
-          println("Restart Intellij IDEA to finish the installation!")
-        }
+      inIdea() && pluginsDirExists() && !ideaPluginExists() -> {
+        println("Arrow Meta IDEA Plugin is not installed!")
+        println("Run 'install-idea-plugin' Gradle task from Intellij IDEA to install it.")
       }
     }
-
   }
 
   private fun classpathOf(dependency: String): File {
