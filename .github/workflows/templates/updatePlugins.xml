@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugins>
-    <plugin id="io.arrow-kt.arrow" url="https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/arrow-meta-idea-plugin/%MAIN_VERSION%/arrow-meta-idea-plugin-%SPECIFIC_VERSION%.jar" version="%SPECIFIC_VERSION%">
+    <plugin id="io.arrow-kt.arrow" url="https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/idea-plugin/%MAIN_VERSION%/idea-plugin-%SPECIFIC_VERSION%.jar" version="%SPECIFIC_VERSION%">
         <idea-version since-build=%SINCE_BUILD% until-build=%UNTIL_BUILD% />
     </plugin>
 </plugins>
