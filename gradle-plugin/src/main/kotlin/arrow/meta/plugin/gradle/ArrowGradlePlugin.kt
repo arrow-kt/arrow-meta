@@ -35,7 +35,7 @@ class ArrowGradlePlugin : Plugin<Project> {
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
       p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("arrow-meta-compiler-plugin:$compilerPluginVersion")}"
+        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
     }
 
@@ -44,7 +44,7 @@ class ArrowGradlePlugin : Plugin<Project> {
       (System.getProperty("idea.active") == "true") -> {
         val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
         val pluginsDir = Paths.get(configDir, "plugins")
-        if (pluginsDir.toFile().listFiles().none { it.name.startsWith("arrow-meta-idea-plugin") }) {
+        if (pluginsDir.toFile().listFiles().none { it.name.startsWith("idea-plugin") }) {
           println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
           val parser = DOMParser()
           parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
