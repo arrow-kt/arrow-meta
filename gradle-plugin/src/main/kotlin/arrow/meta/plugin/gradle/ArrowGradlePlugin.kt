@@ -30,7 +30,7 @@ class ArrowGradlePlugin : Plugin<Project> {
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
       p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("arrow-meta-compiler-plugin:$compilerPluginVersion")}"
+        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
     }
     project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java)
