@@ -6,6 +6,7 @@ import arrow.meta.dsl.platform.ide
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.extensionProof
@@ -20,6 +21,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
@@ -48,11 +50,12 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : NewKotlin
     } else result
   }
 
+
   override fun equalTypes(p0: KotlinType, p1: KotlinType): Boolean =
     baseLineTypeChecker.equalTypes(p0, p1)
 
   @TypeRefinement
-  override val kotlinTypeRefiner: KotlinTypeRefiner = ProofsKotlinTypeRefiner(baseLineTypeChecker.kotlinTypeRefiner, compilerContext)
+  override val kotlinTypeRefiner: KotlinTypeRefiner = baseLineTypeChecker.kotlinTypeRefiner
 
   @TypeRefinement
   override val overridingUtil: OverridingUtil = OverridingUtil.createWithTypeRefiner(kotlinTypeRefiner)
@@ -64,80 +67,11 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : NewKotlin
 
 }
 
-/**
- * Follow the path of
- * isRefinementNeededForModule ->
- * isRefinementNeededForTypeConstructor ->
- * getOrPutScopeForClass ->
- */
-@TypeRefinement
-class ProofsKotlinTypeRefiner(val delegate: KotlinTypeRefiner, val compilerContext: CompilerContext) : KotlinTypeRefiner() {
-
-  init {
-    val refinerCapability = compilerContext.module?.getCapability(REFINER_CAPABILITY)?.value
-    if (refinerCapability == null) {
-      compilerContext.module?.getCapability(REFINER_CAPABILITY)?.value = this
-    }
-  }
-
-  @TypeRefinement
-  override fun findClassAcrossModuleDependencies(classId: ClassId): ClassDescriptor? =
-    Log.Silent({ "ProofsKotlinTypeRefiner.findClassAcrossModuleDependencies $classId: ClassId = $this" }) {
-      delegate.findClassAcrossModuleDependencies(classId)
-    }
-
-
-  @TypeRefinement
-  override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S =
-    Log.Silent({ "ProofsKotlinTypeRefiner.getOrPutScopeForClass $classDescriptor: ClassDescriptor = $this" }) {
-      delegate.getOrPutScopeForClass(classDescriptor, compute)
-    }
-
-  @TypeRefinement
-  override fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean =
-    Log.Silent({ "ProofsKotlinTypeRefiner.isRefinementNeededForModule $moduleDescriptor: ModuleDescriptor = $this" }) {
-      true
-    }
-
-
-  @TypeRefinement
-  override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean =
-    Log.Silent({ "ProofsKotlinTypeRefiner.isRefinementNeededForTypeConstructor $typeConstructor: TypeConstructor = $this" }) {
-      delegate.isRefinementNeededForTypeConstructor(typeConstructor) ||
-        compilerContext.module?.proofs?.any {
-          it.from.constructor == typeConstructor
-        } == true
-    }
-
-
-  @TypeRefinement
-  override fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor? =
-    Log.Verbose({ "ProofsKotlinTypeRefiner.refineDescriptor $descriptor: DeclarationDescriptor = $this" }) {
-      delegate.refineDescriptor(descriptor)
-    }
-
-
-  @TypeRefinement
-  override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> =
-    Log.Verbose({ "ProofsKotlinTypeRefiner.refineSupertypes $classDescriptor: ClassDescriptor = $this" }) {
-      delegate.refineSupertypes(classDescriptor)
-    }
-
-
-  @TypeRefinement
-  override fun refineType(type: KotlinType): KotlinType =
-    Log.Verbose({ "ProofsKotlinTypeRefiner.refineType $type: KotlinType = $this" }) {
-      delegate.refineType(type)
-    }
-
-}
-
 fun Meta.registerArgumentTypeResolver(): ExtensionPhase =
   cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         Log.Verbose({ "analysis.registerArgumentTypeResolver.initializeProofCache + replace type checker" }) {
-          module.initializeProofCache()
           replaceArgumentTypeResolverTypeChecker(componentProvider)
           null
         }

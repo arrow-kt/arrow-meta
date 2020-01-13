@@ -40,24 +40,24 @@ class ArrowGradlePlugin : Plugin<Project> {
     }
 
     // TODO: Do the same for release version
-    when {
-      (System.getProperty("idea.active") == "true") -> {
-        val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
-        val pluginsDir = Paths.get(configDir, "plugins")
-        if (pluginsDir.toFile().listFiles().none { it.name.startsWith("arrow-meta-idea-plugin") }) {
-          println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
-          val parser = DOMParser()
-          parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
-          val artifactURL = parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
-          Files.copy(
-            URL(artifactURL).openStream(),
-            Paths.get(pluginsDir.toString(), File(artifactURL).name)
-          )
-          // TODO: dynamic plugin to avoid restarting
-          println("Restart Intellij IDEA to finish the installation!")
-        }
-      }
-    }
+//    when {
+//      (System.getProperty("idea.active") == "true") -> {
+//        val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
+//        val pluginsDir = Paths.get(configDir, "plugins")
+//        if (pluginsDir.toFile().listFiles().none { it.name.startsWith("arrow-meta-idea-plugin") }) {
+//          println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
+//          val parser = DOMParser()
+//          parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
+//          val artifactURL = parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
+//          Files.copy(
+//            URL(artifactURL).openStream(),
+//            Paths.get(pluginsDir.toString(), File(artifactURL).name)
+//          )
+//          // TODO: dynamic plugin to avoid restarting
+//          println("Restart Intellij IDEA to finish the installation!")
+//        }
+//      }
+//    }
 
   }
 

@@ -2,6 +2,7 @@ package arrow.meta.phases
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.container.ComponentProvider

@@ -76,12 +76,12 @@ fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic,
       }
     } == true
 
-fun CompilerContext.suppressUpperboundViolated(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
-  diagnostic.factory == Errors.TYPE_INFERENCE_UPPER_BOUND_VIOLATED &&
-    diagnostic.safeAs<DiagnosticWithParameters1<PsiElement, InferenceErrorData>>()?.let { diagnosticWithParameters ->
-      val inferenceErrorData = diagnosticWithParameters.a
-      true
-//      Log.Verbose({ "suppressUpperboundViolated: $subType, $superType, $this" }) {
-//        proofs.subtypingProof(this, subType, superType) != null
-//      }
-    } == true
+//fun CompilerContext.suppressUpperboundViolated(diagnostic: Diagnostic, proofs: List<Proof>): Boolean =
+//  diagnostic.factory == Errors.TYPE_INFERENCE_UPPER_BOUND_VIOLATED &&
+//    diagnostic.safeAs<DiagnosticWithParameters1<PsiElement, InferenceErrorData>>()?.let { diagnosticWithParameters ->
+//      val inferenceErrorData = diagnosticWithParameters.a
+//      true
+////      Log.Verbose({ "suppressUpperboundViolated: $subType, $superType, $this" }) {
+////        proofs.subtypingProof(this, subType, superType) != null
+////      }
+//    } == true

@@ -76,3 +76,16 @@ pluginBundle {
     }
   }
 }
+
+
+class TestPlugin implements Plugin<Project> {
+  void apply(Project project) {
+    project.task('test-plugin') {
+      doLast {
+        System.getProperties().each { println it }
+      }
+    }
+  }
+}
+
+apply plugin: TestPlugin

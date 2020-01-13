@@ -156,7 +156,7 @@ private fun assertQuoteFileMatches(
   compilationResult: Result,
   actualFileName: String,
   expectedSource: Code.Source,
-  actualFileDirectoryPath: Path = Paths.get("build", "generated", "source", "kapt", "main")
+  actualFileDirectoryPath: Path = Paths.get("", *System.getProperty("arrow.meta.generated.source.output").split("/").toTypedArray())
 ): Unit {
   assertCompiles(compilationResult)
   val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()

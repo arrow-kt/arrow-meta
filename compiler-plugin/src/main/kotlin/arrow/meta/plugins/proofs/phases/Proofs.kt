@@ -2,6 +2,7 @@ package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.intersection
+import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
@@ -63,7 +64,7 @@ val ModuleDescriptor.proofs: List<Proof>
           cacheValue != null -> {
             cacheValue.proofs
           }
-          else -> emptyList()
+          else -> initializeProofCache()
         }
       } catch (e: RuntimeException) {
         println("TODO() Detected exception: ${e.printStackTrace()}")

@@ -27,7 +27,7 @@ fun ElementScope.generateGivenExtensionsFile(meta: Meta, compilerContext: Compil
       """
       $importList
       ${compilerContext.generateGivenSupportingFunctions(givenConstrainedDeclarations())}
-      """.formatCode().file("Extensions.$name")
+      """.file("Extensions.$name")
     )
   }
 
@@ -60,7 +60,7 @@ private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedF
           ${runScope(this, `(givenParams)`)}
       """.function.value
     }
-  }, separator = lineSeparator)
+  }, separator = "\n")
 
 private fun ElementScope.runScope(namedFunction: NamedFunction, scopedList: ScopedList<KtParameter>): Scope<KtExpression> {
   val body = namedFunction.body

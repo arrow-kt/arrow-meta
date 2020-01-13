@@ -26,7 +26,7 @@ fun disposeProofCache(): Unit =
 fun cachedModule(name: Name): ModuleDescriptor? =
   proofCache.keys.firstOrNull { it.name == name }
 
-fun ModuleDescriptor.initializeProofCache(): List<Proof> {
+internal fun ModuleDescriptor.initializeProofCache(): List<Proof> {
   val moduleProofs: List<Proof> = computeModuleProofs()
   if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
     cachedModule(name)?.let { proofCache.remove(it) }

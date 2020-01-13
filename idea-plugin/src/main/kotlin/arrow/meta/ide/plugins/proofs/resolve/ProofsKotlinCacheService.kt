@@ -2,29 +2,18 @@ package arrow.meta.ide.plugins.proofs.resolve
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.resolve.cache.disposeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.pico.DefaultPicoContainer
-import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
@@ -34,11 +23,6 @@ private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheSe
     }
 
   private fun ResolutionFacade.initializeProofsIfNeeded(): ResolutionFacade {
-    if (moduleDescriptor.proofs.isEmpty()) {
-      Log.Verbose({ "MetaKotlinCacheServiceHelper.initializeProofCache $moduleDescriptor ${this.size}" }) {
-        moduleDescriptor.initializeProofCache()
-      }
-    }
     return MetaResolutionFacade(this)
   }
 
