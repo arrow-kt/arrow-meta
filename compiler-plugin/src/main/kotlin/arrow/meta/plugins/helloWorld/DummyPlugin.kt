@@ -56,8 +56,8 @@ import arrow.meta.quotes.namedFunction
  *     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
  *   }
  *   dependencies {
- *     classpath "io.arrow-kt:arrow-meta-gradle-plugin:<snapshot-version>"
- *     classpath "io.arrow-kt:arrow-meta-compiler-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
  *   }
  * }
  *
