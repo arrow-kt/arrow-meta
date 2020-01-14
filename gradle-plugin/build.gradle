@@ -1,6 +1,5 @@
 plugins {
   id 'java-gradle-plugin'
-  id 'maven-publish'
   id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
 }
 
