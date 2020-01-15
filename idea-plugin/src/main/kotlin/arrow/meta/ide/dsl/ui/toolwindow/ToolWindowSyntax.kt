@@ -42,7 +42,7 @@ interface ToolWindowSyntax {
    * import org.jetbrains.kotlin.idea.actions.internal.FirExplorerToolWindow
    *
    * val IdeMetaPlugin.exampleToolWindow: Plugin
-   *   get() = "ShowFirIdePlugin" {
+   *   get() = "ShowFirInTheIde" {
    *     meta(
    *       addToolWindowFromAnAction(
    *         toolId = "Show Fir",
