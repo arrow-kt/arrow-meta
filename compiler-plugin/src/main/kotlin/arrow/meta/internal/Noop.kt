@@ -1,6 +1,7 @@
 package arrow.meta.internal
 
 object Noop {
+  val effect0: () -> Unit = {}
   val effect1: (Any?) -> Unit = { _ -> Unit }
   val effect2: (Any?, Any?) -> Unit = { _, _ -> Unit }
   val effect3: (Any?, Any?, Any?) -> Unit = { _, _, _ -> Unit }

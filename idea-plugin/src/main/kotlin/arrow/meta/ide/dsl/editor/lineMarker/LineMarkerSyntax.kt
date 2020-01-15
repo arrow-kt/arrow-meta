@@ -24,7 +24,6 @@ import javax.swing.Icon
  * In general, subscription techniques differ mainly in performance.
  */
 interface LineMarkerSyntax {
-  // TODO: Registration Impl may change to 2019.3 EAP
   // TODO: Add more Techniques such as the one from Elm
 
   /**
@@ -94,7 +93,6 @@ interface LineMarkerSyntax {
 
   /**
    * @param clickAction if null this will place a breakpoint on a mouse click otherwise it executes the action
-   * @param isDumbAware specifies whether this LineMarkerInfo is available during index updates
    */
   fun LineMarkerSyntax.lineMarkerInfo( // TODO:
     icon: Icon,

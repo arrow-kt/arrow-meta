@@ -8,6 +8,7 @@ import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.ide.phases.resolve.LOG
+import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.registry.InternalRegistry
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
@@ -30,9 +31,9 @@ import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.content.ContentFactory
 import org.jetbrains.kotlin.container.useImpl
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 
 internal interface IdeInternalRegistry : InternalRegistry {
 
@@ -59,7 +60,22 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
       is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
       is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
+      is ToolwindowProvider -> registerToolwindowProvider(currentPhase)
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+    }
+
+  fun registerToolwindowProvider(phase: ToolwindowProvider): Unit =
+    when (phase) {
+      is ToolwindowProvider.RegisterToolWindow -> phase.registerOrActivate()
+    }
+
+  fun ToolwindowProvider.RegisterToolWindow.registerOrActivate(): Unit =
+    ToolWindowManager.getInstance(project).let { manager ->
+      manager.getToolWindow(id)?.activate(null)
+        ?: manager.registerToolWindow(id, canCloseContent, anchor).let { window ->
+          window.icon = icon
+          window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
+        }
     }
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
