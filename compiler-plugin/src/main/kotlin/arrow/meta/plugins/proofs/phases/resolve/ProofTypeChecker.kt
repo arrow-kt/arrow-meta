@@ -66,31 +66,3 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : NewKotlin
     }
 
 }
-
-fun Meta.registerArgumentTypeResolver(): ExtensionPhase =
-  cli {
-    analysis(
-      doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-        Log.Verbose({ "analysis.registerArgumentTypeResolver.initializeProofCache + replace type checker" }) {
-          replaceArgumentTypeResolverTypeChecker(componentProvider)
-          null
-        }
-      }
-    )
-  } ?: ide {
-    packageFragmentProvider { project, module, storageManager, trace, moduleInfo, lookupTracker ->
-      componentProvider?.let(::replaceArgumentTypeResolverTypeChecker)
-      null
-    }
-  } ?: ExtensionPhase.Empty
-
-fun CompilerContext.replaceArgumentTypeResolverTypeChecker(componentProvider: ComponentProvider) {
-  val argumentTypeResolver: ArgumentTypeResolver = componentProvider.get()
-  replaceTypeChecker(argumentTypeResolver)
-}
-
-fun CompilerContext.replaceTypeChecker(argumentTypeResolver: ArgumentTypeResolver) =
-  Log.Verbose({ "replaceArgumentTypeResolverTypeChecker $argumentTypeResolver" }) {
-    val typeCheckerField = ArgumentTypeResolver::class.java.getDeclaredField("kotlinTypeChecker").also { it.isAccessible = true }
-    typeCheckerField.set(argumentTypeResolver, ProofTypeChecker(this))
-  }

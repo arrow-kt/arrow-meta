@@ -20,6 +20,7 @@ data class ProofsCache(
 )
 
 val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
+
 fun disposeProofCache(): Unit =
   proofCache.clear()
 

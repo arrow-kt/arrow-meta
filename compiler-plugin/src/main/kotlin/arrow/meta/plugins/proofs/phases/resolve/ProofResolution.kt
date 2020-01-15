@@ -24,9 +24,7 @@ import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isError
-import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
@@ -101,14 +99,6 @@ private fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
     override val typeArguments: List<TypeArgument> = emptyList()
     override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
-
-data class ProofCandidate(
-  val from: KotlinType,
-  val to: KotlinType,
-  val subType: UnwrappedType,
-  val superType: UnwrappedType,
-  val through: FunctionDescriptor
-)
 
 class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun replaceType(p0: KotlinType): ReceiverValue =

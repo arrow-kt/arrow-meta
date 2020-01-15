@@ -117,7 +117,7 @@ fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableM
     else -> this
   }
 
-fun Meta.registerProofSyntheticScope(): ExtensionPhase =
+fun Meta.provenSyntheticScope(): ExtensionPhase =
   syntheticScopes(
     syntheticMemberFunctionsForName = { types, name, _ ->
       Log.Silent({ "syntheticScopes.syntheticMemberFunctionsForName $types $name $this" }) {

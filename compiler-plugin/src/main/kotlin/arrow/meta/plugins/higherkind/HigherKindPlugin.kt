@@ -4,8 +4,8 @@ import arrow.meta.Meta
 import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
-import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.ktClassNamed
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
@@ -23,41 +22,6 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-
-val Meta.higherKindedTypes: Plugin
-  get() =
-    "higherKindedTypes" {
-      meta(
-        //registerKindAwareTypeChecker(),
-        suppressDiagnostic(Diagnostic::kindsTypeMismatch),
-        classDeclaration(::isHigherKindedType) { c ->
-          println("Processing Higher Kind: ${c.name}: ${c.superTypeIsSealedInFile()}")
-          Transform.replace(c, listOfNotNull(
-            /** Kind Marker **/
-            "class For$name private constructor() { companion object }".`class`.syntheticScope,
-            /** Single arg type alias **/
-            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrow.Kind${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope,
-            /** KindedJ Support **/
-            if (c.arity < 5)
-              "typealias ${name}KindedJ<${`(typeParameters)`.invariant()}> = arrow.HkJ${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope
-            else null,
-            """|fun <${`(typeParameters)`.invariant(true)}> ${name}Of<${`(typeParameters)`.invariant()}>.fix(): $name<${`(typeParameters)`.invariant()}> =
-               |  this as $name<${`(typeParameters)`.invariant()}>
-               |""".function.syntheticScope,
-            /** generate partial aliases if this kind has > 1 type parameters **/
-            if (c.arity > 1)
-              "typealias ${name}PartialOf<${c.partialTypeParameters}> = arrow.Kind${c.partialKindAritySuffix}<For$name, ${c.partialTypeParameters}>".declaration<KtTypeAlias>().syntheticScope
-            else null,
-            /** Class redefinition with kinded super type **/
-            """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : ${supertypes.."${name}Of<${`(typeParameters)`.invariant()}>"} {
-               |  $body
-               |}
-               |""".`class`.syntheticScope
-          )
-          )
-        }
-      )
-    }
 
 fun Diagnostic.kindsTypeMismatch(): Boolean =
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&

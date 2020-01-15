@@ -21,12 +21,12 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
-fun ElementScope.generateGivenExtensionsFile(meta: Meta, compilerContext: CompilerContext): ExtensionPhase =
+fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
   meta.file(KtFile::containsGivenConstrains) {
     Transform.newSources(
       """
       $importList
-      ${compilerContext.generateGivenSupportingFunctions(givenConstrainedDeclarations())}
+      ${generateGivenSupportingFunctions(givenConstrainedDeclarations())}
       """.file("Extensions.$name")
     )
   }
