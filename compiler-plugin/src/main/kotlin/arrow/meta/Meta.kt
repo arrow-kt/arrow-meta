@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
  *                               |  println("Hello ΛRROW Meta!")
- *                               |""".function.synthetic
+ *                               |""".function.syntheticScope
  *         )
  *       }
  *     )

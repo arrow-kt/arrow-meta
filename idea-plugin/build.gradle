@@ -31,20 +31,21 @@ jar {
     attributes["Implementation-Title"] = "arrow.meta.plugin.idea"
     attributes["Implementation-Version"] = project.version
   }
+  from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 buildSearchableOptions.enabled = false
 
 intellij {
   version = "$INTELLIJ_IDEA_VERSION"
-  pluginName = "Arrow plugin"
+  pluginName = "Arrow Meta Intellij IDEA Plugin"
   plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
 patchPluginXml {
-  changeNotes """
+  /*changeNotes """
       Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
+      <em>most HTML tags may be used</em>"""*/
 }
 
 runIde {

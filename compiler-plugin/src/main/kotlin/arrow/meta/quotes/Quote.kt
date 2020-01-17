@@ -70,7 +70,7 @@ const val DEFAULT_META_FILE_NAME = "Source.kt"
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
  *                               |  println("Hello ΛRROW Meta!")
- *                               |""".function.synthetic
+ *                               |""".function.syntheticScope
  *         )
  *       }
  *     )
