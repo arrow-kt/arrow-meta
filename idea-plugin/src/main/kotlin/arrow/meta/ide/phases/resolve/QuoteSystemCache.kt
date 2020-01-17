@@ -136,9 +136,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             //  it would be better to take the text and send the text content to the quote system
             // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
             //   but doesn't fail in tests
-            // if (ApplicationManager.getApplication().isWriteAccessAllowed) {
-            //    psiMgr.commitDocument(doc)
-            // }
+            if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+              PsiDocumentManager.getInstance(project).commitDocument(doc)
+            }
 
             // move this into the background to avoid blocking the editor
             // document listeners should be as fast as possible
