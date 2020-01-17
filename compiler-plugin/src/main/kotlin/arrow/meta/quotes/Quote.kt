@@ -152,13 +152,15 @@ inline fun <reified K : KtElement, S : Scope<K>> Meta.quote(
 ): ExtensionPhase =
   quote(QuoteFactory(transform), match, map)
 
-// fixme data class to store the information about registered analysis extensions to make this accessible to the IDE plugin later on
+// fixme: AnalysisDefinition and analysisIdeExtensions are in place until a better integration with the IDE is found
+// AnalysisDefinition is a data class to store the information about registered analysis extensions
+// to make this accessible to the IDE plugin later on
 data class AnalysisDefinition(val type: KClass<KtElement>,
                               val quoteFactory: Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
                               val match: KtElement.() -> Boolean,
                               val map: Scope<KtElement>.(KtElement) -> Transform<KtElement>)
 
-// fixme: the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemCache)
+// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemCache)
 val analysisIdeExtensions: MutableList<AnalysisDefinition> = ArrayList()
 
 @Suppress("UNCHECKED_CAST")

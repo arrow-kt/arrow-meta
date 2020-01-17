@@ -11,11 +11,11 @@ import java.util.concurrent.ConcurrentHashMap
  * Cache interface.
  * This simplifies testing and simplifies the implementation of QuoteSystemCache, which was doing
  * too many things at once.
- * This also enables thread-safe cache updates, when it's turns out that we need this.
+ * This also simplifies thread-safe cache updates, when it's turns out that we need this.
  */
 interface MetaTransformationCache {
   /**
-   * The count of source files managed by this cache.
+   * The number of source files managed by this cache.
    */
   val size: Int
 
@@ -25,24 +25,24 @@ interface MetaTransformationCache {
   fun packageList(): List<FqName>
 
   /**
-   * Nullable list of descriptors, which describe elements in pacakge 'name'.
+   * Nullable list of descriptors, which describe elements in package 'name'.
    */
   fun resolved(name: FqName): List<DeclarationDescriptor>?
 
   /**
-   * Returns if the given source file is contained in this cache
+   * Returns if the given source file is contained in this cache.
    */
   fun containsSourceFile(source: PsiFile): Boolean
 
   /**
-   * Removes all data from the cache, which belongs to the source file or a transformation of the source file
+   * Removes all data from the cache, which belongs to the source file or a transformation of the source file.
    */
   fun removeTransformations(source: KtFile)
 
   /**
-   * Updates the cache with new transformations.
+   * Updates the cache with new transformations of the source file.
    * 1. Old elements, which belong to previous transformations of the source file, are removed
-   * 2. The new descriptors are added to the package data of physicalSource
+   * 2. The new descriptors are added to the package data of the source file.
    */
   fun updateTransformations(source: KtFile, transformedFile: KtFile, descriptors: List<DeclarationDescriptor>)
 
@@ -59,12 +59,10 @@ class DefaultMetaTransformationCache : MetaTransformationCache {
   private val resolved = ConcurrentHashMap<FqName, MutableList<DeclarationDescriptor>>()
 
   override val size: Int
-    get() {
-      return transformedFiles.size
-    }
+    get() : Int = transformedFiles.size
 
   override fun resolved(name: FqName): List<DeclarationDescriptor>? {
-    // return a copy, we keep our mutable data private
+    // return a copy, we must not return mutable data, which is modified by this cache
     return resolved[name]?.toCollection(mutableListOf())
   }
 
