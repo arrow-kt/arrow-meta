@@ -8,6 +8,26 @@ import org.junit.Ignore
 class UnionTest {
 
   @Test
+  fun `Union accepts typed values in nested unions`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|import arrow.*
+           |
+           |fun f(): Union2<String, Union2<Int, Double>> = 2
+           |fun y(): Union3<String, Int, Double> = f()
+           |fun x(): Int? = y()
+           |""".source
+      },
+      assert = {
+        allOf("x()".source.evalsTo(2))
+      }
+    ))
+  }
+
+
+
+  @Test
   fun `Union accepts typed values in the union 2`() {
     assertThis(CompilerTest(
       config = { metaDependencies },

@@ -41,9 +41,12 @@ class ProofsIrCodegen(
     fn: FunctionDescriptor,
     typeSubstitutor: NewTypeSubstitutorByConstructorMap
   ): IrCall {
-    val irTypes = fn.substitutedIrTypes(typeSubstitutor)
+    val irTypes = fn.substitutedIrTypes(typeSubstitutor).filterNotNull()
     return fn.irCall().apply {
-      irTypes.forEachIndexed(this::putTypeArgument)
+      fn.typeParameters.forEachIndexed { n, descriptor ->
+        //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
+      }
     }
   }
 
@@ -216,7 +219,7 @@ class ProofsIrCodegen(
 
 val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
   get() {
-    val allArgsMap =
+     val allArgsMap =
       from.typeArgumentsMap(subType)
         .filter { it.key.type.isTypeParameter() } +
         mapOf(

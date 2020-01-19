@@ -21,6 +21,7 @@ dependencies {
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
+    testRuntimeOnly project(':prelude')
     testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
     }
