@@ -9,6 +9,7 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import java.util.jar.JarFile
 
 open class InstallIdeaPlugin: DefaultTask() {
 
@@ -52,25 +53,35 @@ internal fun inIdea(): Boolean =
 
 internal fun pluginsDirExists(): Boolean =
   when {
-    System.getProperty("idea.plugins.path") != null ->
-      File(System.getProperty("idea.plugins.path")).exists()
-    System.getProperty("jb.vmOptionsFile") != null ->
-      File(pluginsDirFromVmOptionsFile()).exists()
-    else ->
-      false
+    System.getProperty("idea.plugins.path") != null -> File(System.getProperty("idea.plugins.path")).exists()
+    System.getProperty("jb.vmOptionsFile") != null -> File(pluginsDirFromVmOptionsFile()).exists()
+    else -> false
   }
 
 private fun pluginsDir(): String =
   when {
-    System.getProperty("idea.plugins.path") != null ->
-      System.getProperty("idea.plugins.path")
-    else -> {
-      pluginsDirFromVmOptionsFile()
-    }
+    System.getProperty("idea.plugins.path") != null -> System.getProperty("idea.plugins.path")
+    else -> pluginsDirFromVmOptionsFile()
   }
 
 internal fun ideaPluginExists(): Boolean =
-  File(pluginsDir()).listFiles().any { it.name.startsWith("idea-plugin") }
+  File(pluginsDir()).listFiles().any {
+    it.name == "Arrow Meta Intellij IDEA Plugin" ||  isArrowMetaPlugin(it)
+  }
+
+private fun isArrowMetaPlugin(file: File): Boolean =
+  file.name.startsWith("idea-plugin")
+    && file.extension == "jar"
+    && hasArrowId(file.absolutePath)
+
+private fun hasArrowId(path: String): Boolean {
+  val artifact = JarFile(path)
+  val pluginFile = artifact.getEntry("META-INF/plugin.xml") ?: return false
+  val parser = DOMParser()
+  parser.parse(InputSource(artifact.getInputStream(pluginFile)))
+  val items = parser.document.getElementsByTagName("id")
+  return (items.length == 1) && (items.item(0).textContent == "io.arrow-kt.arrow")
+}
 
 private fun pluginsDirFromVmOptionsFile(): String {
   val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
