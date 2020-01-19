@@ -103,9 +103,46 @@ interface ToolWindowSyntax {
     ToolwindowProvider.RegisterToolWindow(id, icon, content, canCloseContent, anchor, isLockable, project)
 
   /**
-   * constructs a [JPanel] with an [Editor] inside
-   * @param dispose needs to be implemented using at least [EditorFactory.releaseEditor]
-   * @param layoutManager check all SubTypes for various use-cases
+   * constructs a [JPanel] with an [Editor] inside.
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.resources.ArrowIcons
+   * import arrow.meta.invoke
+   * import com.intellij.openapi.application.ApplicationManager
+   * import com.intellij.openapi.editor.Editor
+   * import com.intellij.openapi.wm.ToolWindowAnchor
+   * import org.jetbrains.kotlin.idea.KotlinFileType
+
+   * val IdeMetaPlugin.editorToolwindow: Plugin
+   *   get() = "TestEditor in Toolwindow" {
+   *     meta(
+   *       addToolWindowFromAnAction(
+   *         "TestEditor",
+   *         "Unique",
+   *         ArrowIcons.ICON4,
+   *         content = { project, toolWindow ->
+   *           toolWindowWithEditor(
+   *             project = project,
+   *             fileType = KotlinFileType.INSTANCE,
+   *             readOnly = false,
+   *             text = "val hello = 'Hello World'",
+   *             register = { editor, _ ->
+   *               add(editor.component) // register the editor to the displayed root content
+   *               editor.appendText("// Add more code, execute tasks or register more UI components to the editor")
+   *             })
+   *         },
+   *         anchor = ToolWindowAnchor.BOTTOM
+   *       )
+   *     )
+   *   }
+   *
+   * fun Editor.appendText(text: String): Unit =
+   *   ApplicationManager.getApplication().runReadAction { document.setText(document.text + text) }
+   * ```
+   * @param dispose needs to be implemented using at least [EditorFactory.releaseEditor], which is the default implementation.
+   * @param layoutManager check all SubTypes for various use-cases.
+   * @see addToolWindowFromAnAction
    */
   fun ToolWindowSyntax.toolWindowWithEditor(
     project: Project,
