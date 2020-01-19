@@ -23,14 +23,13 @@
             <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
         </component>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.FragmentProviderComponent</implementation-class>
+            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
         </component>
     </project-components>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <packageFragmentProviderExtension
-                implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-        <!--        <syntheticResolveExtension implementation="arrow.meta.ide.MetaSyntheticPackageFragmentProvider" />-->
+        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
+        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
     </extensions>
 
 </idea-plugin>
