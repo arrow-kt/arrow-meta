@@ -27,6 +27,10 @@ jobs:
         # and it could fail when changing version
         ./gradlew :gradle-plugin:jar
         # :docs is considered in another workflow
+    - name: Check next version
+      env:
+        JAVA_OPTS: -Xms512m -Xmx1024m
+      run: |
         echo "Is there an upcoming version to check?"
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         for patch in $(ls -v .github/workflows/sandbox/*.diff); do
