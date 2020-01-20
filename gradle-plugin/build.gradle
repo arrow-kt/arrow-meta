@@ -1,6 +1,5 @@
 plugins {
   id 'java-gradle-plugin'
-  id 'maven-publish'
   id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
 }
 
@@ -32,7 +31,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$KOTLIN_VERSION"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
-  runtimeOnly "io.arrow-kt:arrow-meta-compiler-plugin:$VERSION_NAME"
+  runtimeOnly "io.arrow-kt:compiler-plugin:$VERSION_NAME"
 }
 
 compileKotlin {
