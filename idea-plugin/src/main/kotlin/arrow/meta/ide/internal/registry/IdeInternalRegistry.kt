@@ -67,6 +67,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun registerToolwindowProvider(phase: ToolwindowProvider): Unit =
     when (phase) {
       is ToolwindowProvider.RegisterToolWindow -> phase.registerOrActivate()
+      is ToolwindowProvider.UnRegisterToolWindow -> phase.unregister()
+      is ToolwindowProvider.NotificationBalloon -> phase.register()
     }
 
   fun ToolwindowProvider.RegisterToolWindow.registerOrActivate(): Unit =
@@ -77,6 +79,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
           window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
         }
     }
+
+  fun ToolwindowProvider.UnRegisterToolWindow.unregister(): Unit =
+    ToolWindowManager.getInstance(project).unregisterToolWindow(id)
+
+  fun ToolwindowProvider.NotificationBalloon.register(): Unit =
+    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, listener)
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {

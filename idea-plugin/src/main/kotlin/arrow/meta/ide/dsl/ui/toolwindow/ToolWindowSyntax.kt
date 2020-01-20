@@ -13,18 +13,21 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
+import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
 import java.awt.LayoutManager
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.HyperlinkEvent
 
 /**
  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
- * [addToolWindowFromAnAction] and [registerToolWindow], or establishing a 'persistently' visible tool window the user can interact with at all time. Please refer to this
+ * [addToolWindowWithAction] and [registerToolWindow], or establishing a 'persistently' visible tool window the user can interact with at all time. Please refer to this
  * [link](http://www.jetbrains.org/intellij/sdk/docs/user_interface_components/tool_windows.html?search=tool) for the second scenario.
  */
 interface ToolWindowSyntax {
@@ -44,7 +47,7 @@ interface ToolWindowSyntax {
    * val IdeMetaPlugin.exampleToolWindow: Plugin
    *   get() = "ShowFirInTheIde" {
    *     meta(
-   *       addToolWindowFromAnAction(
+   *       addToolWindowWithAction(
    *         toolId = "Show Fir",
    *         actionId = "Unique",
    *         icon = ArrowIcons.ICON4,
@@ -62,7 +65,7 @@ interface ToolWindowSyntax {
    * @param anchor where the tool window is located at ide start
    * @param actionId needs to be unique
    */
-  fun IdeMetaPlugin.addToolWindowFromAnAction(
+  fun IdeMetaPlugin.addToolWindowWithAction(
     toolId: String,
     actionId: String,
     icon: Icon,
@@ -103,6 +106,99 @@ interface ToolWindowSyntax {
     ToolwindowProvider.RegisterToolWindow(id, icon, content, canCloseContent, anchor, isLockable, project)
 
   /**
+   * unregisters a Toolwindow with it's ToolId
+   */
+  fun IdeMetaPlugin.unregisterToolWindow(id: String, project: Project): ExtensionPhase =
+    ToolwindowProvider.UnRegisterToolWindow(id, project)
+
+  /**
+   * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
+   * ```kotlin:ank:playground
+   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.resources.ArrowIcons
+   * import arrow.meta.invoke
+   * import com.intellij.openapi.ui.MessageType
+   * import com.intellij.openapi.wm.ToolWindowId
+   *
+   * val IdeMetaPlugin.toolWindowBalloons: Plugin
+   *   get() = "ToolWindowBalloon" {
+   *     meta(
+   *       toolWindowNotification(
+   *         ToolWindowId.PROJECT_VIEW,
+   *         "Unique",
+   *         MessageType.INFO,
+   *         "Teach your users about this ToolWindow",
+   *         ArrowIcons.ICON2
+   *       )
+   *     )
+   *   }
+   * ```
+   */
+  fun IdeMetaPlugin.toolWindowNotification(
+    toolId: String,
+    actionId: String,
+    type: MessageType,
+    html: String,
+    icon: Icon? = null,
+    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    update: (AnActionEvent) -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    addAnAction(
+      actionId,
+      anAction(
+        toolId,
+        {
+          it.project?.let { p ->
+            ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+          }
+        },
+        update
+      )
+    )
+
+  /**
+   * this extension is a composition of [addToolWindowWithAction] and [toolWindowNotification]
+   */
+  fun IdeMetaPlugin.addToolWindowWithBalloon(
+    toolId: String,
+    actionId: String,
+    icon: Icon,
+    type: MessageType,
+    html: String,
+    content: (Project, ToolWindow) -> JComponent,
+    canCloseContent: Boolean = false,
+    anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
+    isLockable: Boolean = false,
+    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    update: (AnActionEvent) -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    addAnAction(
+      actionId,
+      anAction(
+        toolId,
+        {
+          it.project?.let { p ->
+            ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
+              .registerOrActivate()
+            ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+          }
+        },
+        update
+      )
+    )
+
+  fun IdeMetaPlugin.toolWindowNotifyBalloon(
+    id: String,
+    type: MessageType,
+    html: String,
+    project: Project,
+    icon: Icon? = null,
+    listener: (HyperlinkEvent) -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    ToolwindowProvider.NotificationBalloon(id, type, html, icon, listener, project)
+
+  /**
    * constructs a [JPanel] with an [Editor] inside.
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
@@ -117,7 +213,7 @@ interface ToolWindowSyntax {
    * val IdeMetaPlugin.editorToolwindow: Plugin
    *   get() = "TestEditor in Toolwindow" {
    *     meta(
-   *       addToolWindowFromAnAction(
+   *       addToolWindowWithAction(
    *         "TestEditor",
    *         "Unique",
    *         ArrowIcons.ICON4,
@@ -142,7 +238,7 @@ interface ToolWindowSyntax {
    * ```
    * @param dispose needs to be implemented using at least [EditorFactory.releaseEditor], which is the default implementation.
    * @param layoutManager check all SubTypes for various use-cases.
-   * @see addToolWindowFromAnAction
+   * @see addToolWindowWithAction
    */
   fun ToolWindowSyntax.toolWindowWithEditor(
     project: Project,
@@ -208,4 +304,7 @@ interface ToolWindowSyntax {
     toolbar.setTargetComponent(this)
     this.toolbar = toolbar.component
   }
+
+  fun ToolWindowSyntax.toolWindowIds(project: Project): List<String> =
+    ToolWindowManager.getInstance(project).toolWindowIds.toList()
 }
