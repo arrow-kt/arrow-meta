@@ -1072,10 +1072,19 @@ index e68aade..df4edaa 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-index 3a542dd7..f9b002e8 100644
+index 40a79d83..17354c6a 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-@@ -92,7 +92,7 @@ class ProofsIrCodegen(
+@@ -45,7 +45,7 @@ class ProofsIrCodegen(
+     return fn.irCall().apply {
+       fn.typeParameters.forEachIndexed { n, descriptor ->
+         //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+-        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
++        putTypeArgument(n, irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType })
+       }
+     }
+   }
+@@ -95,7 +95,7 @@ class ProofsIrCodegen(
  
    private fun CompilerContext.proveCall(expression: IrCall): IrCall =
      Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
@@ -1084,7 +1093,7 @@ index 3a542dd7..f9b002e8 100644
        val upperBound = givenTypeParamUpperBound.givenUpperBound
        if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
        else insertExtensionSyntaxCall(expression)
-@@ -103,8 +103,8 @@ class ProofsIrCodegen(
+@@ -106,8 +106,8 @@ class ProofsIrCodegen(
      val valueType = expression.dispatchReceiver?.type?.toKotlinType()
        ?: expression.extensionReceiver?.type?.toKotlinType()
      val targetType =
@@ -1095,7 +1104,7 @@ index 3a542dd7..f9b002e8 100644
      if (targetType != null && valueType != null && targetType != valueType) {
        expression.apply {
          val proofCall = proofCall(valueType, targetType)
-@@ -145,7 +145,7 @@ class ProofsIrCodegen(
+@@ -148,7 +148,7 @@ class ProofsIrCodegen(
          if (maybeCompanion != null) {
            val extensionCall = proofCall(maybeCompanion.defaultType, superType)?.also {
              val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
