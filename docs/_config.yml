@@ -11,9 +11,12 @@ url: https://meta.arrow-kt.io
 #-------------------------
 arrow_url: https://arrow-kt.io
 #-------------------------
+github_repo: https://github.com/arrow-kt/arrow-meta
+#-------------------------
 twitter_handle: "@arrow_kt"
 #-------------------------
-gitter_room: "arrow-kt/Lobby"
+slack_kotlin_channel: "https://slack.kotlinlang.org"
+slack_arrow_channel: "https://kotlinlang.slack.com/archives/C5UPMM0A0"
 #-------------------------
 markdown: kramdown
 sass:
