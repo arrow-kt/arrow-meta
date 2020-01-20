@@ -261,12 +261,12 @@ fun <K : KtElement, P : KtElement, S> processKtFile(
   val mutatingDocument = file.viewProvider.document
   val mutations = arrayListOf<Transform<K>>()
   if (mutatingDocument != null) {
-    val matches: List<KtElement> = file.dfs { element ->
+    val childrenMatch: List<KtElement> = file.dfs { element ->
       val result = elementType.java.isAssignableFrom(element.javaClass)
       result
     }
     //dfs does not send through the file which we have as quote too
-    val allMatches = if (K::class.java.isAssignableFrom(KtFile::class.java)) {
+    val allMatches = if (elementType.java.isAssignableFrom(KtFile::class.java)) {
       listOf(file) + childrenMatch
     } else childrenMatch
     allMatches.forEach { element ->
