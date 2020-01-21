@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtSuperTypeList
+import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.getOrCreateBody
 import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
@@ -28,7 +29,7 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   override val value: T,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
-  val superTypeList: KtSuperTypeList? = value.getSuperTypeList(),
+  val superTypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value = value.superTypeListEntries, prefix = if (value.superTypeListEntries.isEmpty()) "" else " : "),
   val body: ClassBody = ClassBody(value.body),
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, separator = "\n"),
   val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,

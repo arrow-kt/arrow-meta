@@ -51,7 +51,7 @@ private val Meta.transformManySimpleCase: Plugin
 
 private fun CompilerContext.cleanMethods(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
   replacing = context,
-  newDeclaration = """ private class $className {} """.`class`.synthetic
+  newDeclaration = """ private class $className {} """.`class`.syntheticScope
 )}
 
 private fun CompilerContext.createPrints(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
@@ -60,7 +60,7 @@ private fun CompilerContext.createPrints(className: String, context: KtClass, de
   | private class $className {
   |   fun printFirst() = println("Foo")
   |   fun printSecond() = println("Bar")
-  | } """.`class`.synthetic
+  | } """.`class`.syntheticScope
 )}
 
 private fun CompilerContext.changeClassVisibility(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.replace(
@@ -68,7 +68,7 @@ private fun CompilerContext.changeClassVisibility(className: String, context: Kt
   newDeclaration = """
     | private class $className {
     |   $body
-    | } """.`class`.synthetic
+    | } """.`class`.syntheticScope
 )}
 
 private fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(

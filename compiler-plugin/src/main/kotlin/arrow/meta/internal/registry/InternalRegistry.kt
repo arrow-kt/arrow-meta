@@ -10,7 +10,6 @@ import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.phases.codegen.asm.ClassBuilder
@@ -22,8 +21,6 @@ import arrow.meta.phases.resolve.DeclarationAttributeAlterer
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
-import arrow.meta.plugins.higherkind.KindAwareTypeChecker
-import arrow.meta.plugins.proofs.phases.resolve.ProofsCallResolver
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.backend.common.BackendContext
@@ -38,13 +35,13 @@ import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
-import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.context.ProjectContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -133,19 +130,19 @@ interface InternalRegistry : ConfigSyntax {
     project: Project,
     configuration: CompilerConfiguration
   ) {
-    println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
+    println("Project allowed extensions: ${extensionPoints.joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
-      SyntheticScopeProviderExtension.registerExtensionPoint(project)
+      registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
     }
     ide {
       println("it's the IDEA plugin")
     }
-    val scope = ElementScope.default(project)
     val messageCollector: MessageCollector? =
       cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
 
-    val ctx = CompilerContext(project, messageCollector, scope)
+    val ctx = CompilerContext(project, messageCollector)
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {
@@ -155,9 +152,7 @@ interface InternalRegistry : ConfigSyntax {
     installArrowPlugin()
 
     val initialPhases = listOf("Initial setup" {
-      listOf(
-        compilerContextService()
-      )
+      listOf(compilerContextService())
     })
     (initialPhases + intercept(ctx)).forEach { plugin ->
       println("Registering plugin: $plugin extensions: ${plugin.meta}")
@@ -167,12 +162,9 @@ interface InternalRegistry : ConfigSyntax {
             // Empty & Composite allow for composing ExtensionPhases
             is ExtensionPhase.Empty -> Unit
             is Composite -> phases.map(ExtensionPhase::registerPhase)
-
             is CollectAdditionalSources -> registerCollectAdditionalSources(project, this, ctx)
             is Config -> registerCompilerConfiguration(project, this, ctx)
-
             is ExtraImports -> registerExtraImports(project, this, ctx)
-
             is PreprocessedVirtualFileFactory -> registerPreprocessedVirtualFileFactory(project, this, ctx)
             is StorageComponentContainer -> registerStorageComponentContainer(project, this, ctx)
             is AnalysisHandler -> registerAnalysisHandler(project, this, ctx)
@@ -190,6 +182,12 @@ interface InternalRegistry : ConfigSyntax {
         currentPhase.registerPhase()
         ctx.registerIdeExclusivePhase(currentPhase)
       }
+    }
+  }
+
+  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
+    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
+      SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }
   }
 
@@ -570,12 +568,6 @@ interface InternalRegistry : ConfigSyntax {
       phase.run { ctx.check(declaration, descriptor, context) }
     }
   }
-
-  fun registerKindAwareTypeChecker(): StorageComponentContainer =
-    typeChecker {
-      if (it !is KindAwareTypeChecker) KindAwareTypeChecker(it)
-      else it
-    }
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(

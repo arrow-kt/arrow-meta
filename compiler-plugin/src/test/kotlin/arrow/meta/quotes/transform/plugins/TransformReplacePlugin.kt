@@ -16,7 +16,7 @@ private val Meta.transformReplaceFunction: Plugin
       namedFunction({ name == "transformReplace" }) { f ->
         Transform.replace(
           f,
-          """ fun transformReplace() = println("Transform Replace") """.function.synthetic
+          """ fun transformReplace() = println("Transform Replace") """.function.syntheticScope
         )
       }
     )
@@ -32,7 +32,7 @@ private val Meta.transformReplaceClass: Plugin
           | class FooModified {
           |   fun generatedFun() = println("Generated function")
           | }
-          """.`class`.synthetic
+          """.`class`.syntheticScope
         )
       }
     )

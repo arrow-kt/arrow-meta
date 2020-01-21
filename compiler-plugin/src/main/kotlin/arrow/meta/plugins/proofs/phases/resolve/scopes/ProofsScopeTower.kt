@@ -2,6 +2,7 @@ package arrow.meta.plugins.proofs.phases.resolve.scopes
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -28,9 +29,9 @@ import org.jetbrains.kotlin.types.TypeApproximator
 
 class ProofsScopeTower(
   module: ModuleDescriptor,
-  val proofs: List<Proof>
+  val proofs: List<Proof>,
+  compilerContext: CompilerContext
 ) : ImplicitScopeTower {
-  val memberScope = SimpleMemberScope(proofs.map { it.through })
   val scopeOwner = module
   val importingScope = LexicalScopeImpl(ImportingScope.Empty, scopeOwner, false, null, LexicalScopeKind.SYNTHETIC, LocalRedeclarationChecker.DO_NOTHING) {}
   override val dynamicScope: MemberScope = SimpleMemberScope(proofs.map { it.through })
@@ -43,9 +44,9 @@ class ProofsScopeTower(
     implicitReceiver = null,
     kind = LexicalScopeKind.SYNTHETIC,
     memberScopes = listOf({ proofs }.memberScope())
-  ).addImportingScope(memberScope.memberScopeAsImportingScope())
+  )//.addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
-  override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes { proofs }
+  override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes(null, compilerContext)
   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
 
@@ -55,9 +56,9 @@ class ProofsScopeTower(
     }
 }
 
-class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, proofs: () -> List<Proof>) : SyntheticScopes {
+class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: CompilerContext) : SyntheticScopes {
   override val scopes: Collection<SyntheticScope> =
     Log.Silent({ "ProofsSyntheticScopes.scopes $this" }) {
-      delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(proofs))
+      delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(ctx))
     }
 }

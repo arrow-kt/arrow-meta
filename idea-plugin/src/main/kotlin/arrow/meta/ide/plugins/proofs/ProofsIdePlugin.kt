@@ -17,7 +17,7 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it, module.proofs) }
+      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) }
     )
   }
 

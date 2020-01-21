@@ -32,7 +32,7 @@ class ProofsCallResolver(
   private val overloadingConflictResolver: NewOverloadingConflictResolver,
   private val callableReferenceResolver: CallableReferenceResolver,
   private val callComponents: KotlinCallComponents,
-  val psiCallResolver: PSICallResolver
+  private val psiCallResolver: PSICallResolver
 ) {
 
   fun resolveGivenCandidates(

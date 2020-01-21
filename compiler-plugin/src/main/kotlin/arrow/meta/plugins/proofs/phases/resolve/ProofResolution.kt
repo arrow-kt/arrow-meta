@@ -1,6 +1,7 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
@@ -23,9 +24,10 @@ import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun List<Proof>.matchingCandidates(
@@ -41,7 +43,7 @@ fun List<Proof>.matchingCandidates(
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
             val extensionReceiver = ProofReceiverValue(subType)
             val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
-            val scopeTower = ProofsScopeTower(this, this@matchingCandidates)
+            val scopeTower = ProofsScopeTower(this, this@matchingCandidates, compilerContext)
             val kotlinCall: KotlinCall = receiverValue.kotlinCall()
             val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
               scopeTower = scopeTower,
@@ -51,7 +53,7 @@ fun List<Proof>.matchingCandidates(
               givenCandidates = givenCandidates(),
               extensionReceiver = receiverValue
             )
-            return callResolutionResult.matchingProofs()
+            return callResolutionResult.matchingProofs(subType, superType)
           }
         } ?: emptyList<Proof>()
       } catch (e: ContainerConsistencyException) {
@@ -63,12 +65,17 @@ fun List<Proof>.matchingCandidates(
 private fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
-private fun CallResolutionResult.matchingProofs(): List<Proof> =
+private fun CallResolutionResult.matchingProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   if (this is AllCandidatesResolutionResult) {
     val selectedCandidates = allCandidates.filter {
       it.diagnostics.isEmpty()
     }
     val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
+      .filter {
+        (it.from.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.from.replaceArgumentsWithStarProjections(), subType.replaceArgumentsWithStarProjections()))
+          &&
+          (it.to.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.to.replaceArgumentsWithStarProjections(), superType.replaceArgumentsWithStarProjections()))
+      }
     proofs
   } else emptyList()
 
@@ -93,15 +100,7 @@ private fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
     override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
 
-data class ProofCandidate(
-  val from: KotlinType,
-  val to: KotlinType,
-  val subType: UnwrappedType,
-  val superType: UnwrappedType,
-  val through: FunctionDescriptor
-)
-
-private class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
+class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun replaceType(p0: KotlinType): ReceiverValue =
     ProofReceiverValue(p0)
 

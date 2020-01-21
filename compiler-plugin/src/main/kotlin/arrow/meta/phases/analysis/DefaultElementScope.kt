@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -38,39 +39,6 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
-import com.pinterest.ktlint.core.KtLint
-import com.pinterest.ktlint.core.RuleSet
-import com.pinterest.ktlint.ruleset.experimental.ExperimentalRuleSetProvider
-import com.pinterest.ktlint.ruleset.standard.ChainWrappingRule
-import com.pinterest.ktlint.ruleset.standard.CommentSpacingRule
-import com.pinterest.ktlint.ruleset.standard.FilenameRule
-import com.pinterest.ktlint.ruleset.standard.FinalNewlineRule
-import com.pinterest.ktlint.ruleset.standard.ImportOrderingRule
-import com.pinterest.ktlint.ruleset.standard.IndentationRule
-import com.pinterest.ktlint.ruleset.standard.MaxLineLengthRule
-import com.pinterest.ktlint.ruleset.standard.ModifierOrderRule
-import com.pinterest.ktlint.ruleset.standard.NoBlankLineBeforeRbraceRule
-import com.pinterest.ktlint.ruleset.standard.NoConsecutiveBlankLinesRule
-import com.pinterest.ktlint.ruleset.standard.NoEmptyClassBodyRule
-import com.pinterest.ktlint.ruleset.standard.NoLineBreakAfterElseRule
-import com.pinterest.ktlint.ruleset.standard.NoLineBreakBeforeAssignmentRule
-import com.pinterest.ktlint.ruleset.standard.NoMultipleSpacesRule
-import com.pinterest.ktlint.ruleset.standard.NoSemicolonsRule
-import com.pinterest.ktlint.ruleset.standard.NoTrailingSpacesRule
-import com.pinterest.ktlint.ruleset.standard.NoUnitReturnRule
-import com.pinterest.ktlint.ruleset.standard.NoUnusedImportsRule
-import com.pinterest.ktlint.ruleset.standard.NoWildcardImportsRule
-import com.pinterest.ktlint.ruleset.standard.ParameterListWrappingRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundColonRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundCommaRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundCurlyRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundDotRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundKeywordRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundOperatorsRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundParensRule
-import com.pinterest.ktlint.ruleset.standard.SpacingAroundRangeOperatorRule
-import com.pinterest.ktlint.ruleset.standard.StandardRuleSetProvider
-import com.pinterest.ktlint.ruleset.standard.StringTemplateRule
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -130,9 +98,6 @@ import org.jetbrains.kotlin.resolve.ImportPath
  */
 class DefaultElementScope(project: Project) : ElementScope {
 
-  private val String.clean
-    get() = trimIndent().trimMargin().trim()
-
   private val delegate = KtPsiFactory(project)
 
   override val valKeyword: PsiElement
@@ -142,31 +107,31 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = delegate.createVarKeyword()
 
   override val String.expression: Scope<KtExpression>
-    get() = Scope(delegate.createExpression(clean))
+    get() = Scope(delegate.createExpression(trimMargin().trim()))
 
   override val String.dotQualifiedExpression: DotQualifiedExpression
     get() = DotQualifiedExpression(expression.value as KtDotQualifiedExpression)
 
   override val String.expressionOrNull: Scope<KtExpression>
-    get() = Scope(delegate.createExpressionIfPossible(clean))
+    get() = Scope(delegate.createExpressionIfPossible(trimMargin().trim()))
 
   override val String.callArguments: Scope<KtValueArgumentList>
-    get() = Scope(delegate.createCallArguments(clean))
+    get() = Scope(delegate.createCallArguments(trimMargin().trim()))
 
   override val String.typeArguments: Scope<KtTypeArgumentList>
-    get() = Scope(delegate.createTypeArguments(clean))
+    get() = Scope(delegate.createTypeArguments(trimMargin().trim()))
 
   override val String.typeArgument: Scope<KtTypeProjection>
-    get() = Scope(delegate.createTypeArgument(clean))
+    get() = Scope(delegate.createTypeArgument(trimMargin().trim()))
 
   override val String.type: TypeReference
-    get() = TypeReference(delegate.createType(clean))
+    get() = TypeReference(delegate.createType(trimMargin().trim()))
 
   override val KtTypeElement.type: TypeReference
     get() = TypeReference(delegate.createType(this))
 
   override val String.typeOrNull: Scope<KtTypeReference>
-    get() = Scope(delegate.createTypeIfPossible(clean))
+    get() = Scope(delegate.createTypeIfPossible(trimMargin()))
 
   override val KtTypeReference.functionTypeReceiver: Scope<KtFunctionTypeReceiver>
     get() = Scope(delegate.createFunctionTypeReceiver(this))
@@ -199,19 +164,19 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val whiteSpace: PsiElement
     get() = delegate.createWhiteSpace()
   override val String.whiteSpace: PsiElement
-    get() = delegate.createWhiteSpace(clean)
+    get() = delegate.createWhiteSpace(trimMargin())
   override val Int.newLine: PsiElement
     get() = delegate.createNewLine()
   override val String.`class`: ClassDeclaration
-    get() = ClassDeclaration(delegate.createClass(clean))
+    get() = ClassDeclaration(delegate.createClass(trimMargin()))
   override val String.`object`: ObjectDeclaration
-    get() = ObjectDeclaration(delegate.createObject(clean))
+    get() = ObjectDeclaration(delegate.createObject(trimMargin()))
   override val companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject())
   override val String.companionObject: ObjectDeclaration
-    get() = ObjectDeclaration(delegate.createCompanionObject(clean))
+    get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
 
-  override val <A : KtDeclaration> Scope<A>.synthetic: Scope<A>
+  override val <A : KtDeclaration> Scope<A>.syntheticScope: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
       val declaration = value
@@ -224,6 +189,16 @@ class DefaultElementScope(project: Project) : ElementScope {
       } else this
     }
 
+  @Suppress("UNCHECKED_CAST")
+  override val <A: SyntheticElement> A.syntheticElement: A
+    get() {
+      val synth = "@arrow.synthetic"
+      return when(this) {
+        is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}")) as A
+        else -> this
+      }
+    }
+
   override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Property =
     Property(delegate.createProperty(modifiers, name, type, isVar, initializer))
 
@@ -234,7 +209,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     Property(delegate.createProperty(name, type, isVar))
 
   override val String.property: Property
-    get() = Property(delegate.createProperty(clean))
+    get() = Property(delegate.createProperty(trimMargin().trim()))
 
   override fun propertyGetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
@@ -252,43 +227,43 @@ class DefaultElementScope(project: Project) : ElementScope {
     Scope(delegate.createPropertyDelegate(expression))
 
   override val String.destructuringDeclaration: DestructuringDeclaration
-    get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(clean))
+    get() = DestructuringDeclaration(delegate.createDestructuringDeclaration(trimMargin().trim()))
 
   override fun <A : KtDeclaration> String.declaration(): Scope<A> =
-    Scope(delegate.createDeclaration(clean))
+    Scope(delegate.createDeclaration(trimMargin().trim()))
 
   override val String.nameIdentifier: PsiElement
-    get() = delegate.createNameIdentifier(clean)
+    get() = delegate.createNameIdentifier(trimMargin().trim())
 
   override val String.nameIdentifierIfPossible: PsiElement?
-    get() = delegate.createNameIdentifierIfPossible(clean)
+    get() = delegate.createNameIdentifierIfPossible(trimMargin())
 
   override val String.simpleName: Scope<KtSimpleNameExpression>
-    get() = Scope(delegate.createSimpleName(clean))
+    get() = Scope(delegate.createSimpleName(trimMargin().trim()))
 
   override val String.operationName: Scope<KtSimpleNameExpression>
-    get() = Scope(delegate.createOperationName(clean))
+    get() = Scope(delegate.createOperationName(trimMargin().trim()))
 
   override val String.identifier: PsiElement
-    get() = delegate.createIdentifier(clean)
+    get() = delegate.createIdentifier(trimMargin().trim())
 
   override val String.function: NamedFunction
-    get() = NamedFunction(delegate.createFunction(clean))
+    get() = NamedFunction(delegate.createFunction(trimMargin().trim()))
 
   override val String.binaryExpression: BinaryExpression
     get() = BinaryExpression(expression.value as KtBinaryExpression)
 
   override val String.callableReferenceExpression: Scope<KtCallableReferenceExpression>
-    get() = Scope(delegate.createCallableReferenceExpression(clean))
+    get() = Scope(delegate.createCallableReferenceExpression(trimMargin().trim()))
 
   override val String.secondaryConstructor: Scope<KtSecondaryConstructor>
-    get() = Scope(delegate.createSecondaryConstructor(clean))
+    get() = Scope(delegate.createSecondaryConstructor(trimMargin().trim()))
 
   override fun modifierList(modifier: KtModifierKeywordToken): ModifierList =
     ModifierList(delegate.createModifierList(modifier))
 
   override val String.modifierList: ModifierList
-    get() = ModifierList(delegate.createModifierList(clean))
+    get() = ModifierList(delegate.createModifierList(trimMargin()))
 
   override val emptyModifierList: ModifierList
     get() = ModifierList(delegate.createEmptyModifierList())
@@ -297,7 +272,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     delegate.createModifier(modifier)
 
   override val String.annotationEntry: Scope<KtAnnotationEntry>
-    get() = Scope(delegate.createAnnotationEntry(clean))
+    get() = Scope(delegate.createAnnotationEntry(trimMargin()))
 
   override val emptyBody: BlockExpression
     get() = BlockExpression(delegate.createEmptyBody())
@@ -309,43 +284,43 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ClassBody(delegate.createEmptyClassBody())
 
   override val String.parameter: Parameter
-    get() = Parameter(delegate.createParameter(clean))
+    get() = Parameter(delegate.createParameter(trimMargin()))
 
   override val String.loopParameter: Parameter
-    get() = Parameter(delegate.createLoopParameter(clean))
+    get() = Parameter(delegate.createLoopParameter(trimMargin()))
 
   override val String.destructuringParameter: Parameter
-    get() = Parameter(delegate.createDestructuringParameter(clean))
+    get() = Parameter(delegate.createDestructuringParameter(trimMargin()))
 
   override val String.parameterList: ParameterList
-    get() = ParameterList(delegate.createParameterList(clean))
+    get() = ParameterList(delegate.createParameterList(trimMargin()))
 
   override val String.typeParameterList: Scope<KtTypeParameterList>
-    get() = Scope(delegate.createTypeParameterList(clean))
+    get() = Scope(delegate.createTypeParameterList(trimMargin()))
 
   override val String.typeParameter: Scope<KtTypeParameter>
-    get() = Scope(delegate.createTypeParameter(clean))
+    get() = Scope(delegate.createTypeParameter(trimMargin()))
 
   override val String.lambdaParameterListIfAny: ParameterList
-    get() = ParameterList(delegate.createLambdaParameterList(clean))
+    get() = ParameterList(delegate.createLambdaParameterList(trimMargin()))
 
   override val String.lambdaParameterList: ParameterList
-    get() = ParameterList(delegate.createLambdaParameterList(clean))
+    get() = ParameterList(delegate.createLambdaParameterList(trimMargin()))
 
   override fun lambdaExpression(parameters: String, body: String): LambdaExpression =
     LambdaExpression(delegate.createLambdaExpression(parameters, body))
 
   override val String.enumEntry: Scope<KtEnumEntry>
-    get() = Scope(delegate.createEnumEntry(clean))
+    get() = Scope(delegate.createEnumEntry(trimMargin()))
 
   override val enumEntryInitializerList: Scope<KtInitializerList>
     get() = Scope(delegate.createEnumEntryInitializerList())
 
   override val String.whenEntry: WhenEntry
-    get() = WhenEntry(delegate.createWhenEntry(clean))
+    get() = WhenEntry(delegate.createWhenEntry(trimMargin()))
 
   override val String.whenCondition: WhenCondition
-    get() = WhenCondition(delegate.createWhenCondition(clean))
+    get() = WhenCondition(delegate.createWhenCondition(trimMargin()))
 
   override fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression> =
     Scope(delegate.createBlockStringTemplateEntry(expression))
@@ -360,10 +335,10 @@ class DefaultElementScope(project: Project) : ElementScope {
     Scope(delegate.createStringTemplate(content))
 
   override val String.`package`: PackageDirective
-    get() = PackageDirective(delegate.createPackageDirective(FqName(clean)))
+    get() = PackageDirective(delegate.createPackageDirective(FqName(trimMargin())))
 
   override val String.packageDirectiveOrNull: PackageDirective
-    get() = PackageDirective(delegate.createPackageDirectiveIfNeeded(FqName(clean)))
+    get() = PackageDirective(delegate.createPackageDirectiveIfNeeded(FqName(trimMargin())))
 
   override fun importDirective(importPath: ImportPath): ImportDirective =
     ImportDirective(delegate.createImportDirective(importPath))
@@ -396,25 +371,25 @@ class DefaultElementScope(project: Project) : ElementScope {
     ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
 
   override val String.argument: ValueArgument
-    get() = ValueArgument(delegate.createArgument(clean))
+    get() = ValueArgument(delegate.createArgument(trimMargin()))
 
   override val String.superTypeCallEntry: Scope<KtSuperTypeCallEntry>
-    get() = Scope(delegate.createSuperTypeCallEntry(clean))
+    get() = Scope(delegate.createSuperTypeCallEntry(trimMargin()))
 
   override val String.superTypeEntry: Scope<KtSuperTypeEntry>
-    get() = Scope(delegate.createSuperTypeEntry(clean))
+    get() = Scope(delegate.createSuperTypeEntry(trimMargin()))
 
   override val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
-    get() = Scope(delegate.creareDelegatedSuperTypeEntry(clean))
+    get() = Scope(delegate.creareDelegatedSuperTypeEntry(trimMargin()))
 
   override val String.block: BlockExpression
-    get() = BlockExpression(delegate.createBlock(clean))
+    get() = BlockExpression(delegate.createBlock(trimMargin().trim()))
 
   override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpression =
     BlockExpression(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
 
   override val String.comment: PsiComment
-    get() = delegate.createComment(clean)
+    get() = delegate.createComment(trimMargin())
 
   override val String.`for`: ForExpression
     get() = ForExpression(expression.value as KtForExpression)
@@ -433,14 +408,14 @@ class DefaultElementScope(project: Project) : ElementScope {
       """
       |try { } 
       |$this
-      """.clean.`try`.catchClauses.value.first())
+      """.trimIndent().trim().`try`.catchClauses.value.first())
 
   override val String.finally: FinallySection
     get() = FinallySection(
       """
       |try { } 
       |$this
-      """.clean.`try`.finallySection.value)
+      """.trimIndent().trim().`try`.finallySection.value)
 
   override val String.`throw`: ThrowExpression
     get() = ThrowExpression(expression.value as KtThrowExpression)
@@ -464,31 +439,17 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ThisExpression(expression.value as KtThisExpression)
 
   override fun String.expressionIn(context: PsiElement): Scope<KtExpressionCodeFragment> =
-    Scope(delegate.createExpressionCodeFragment(clean, context))
+    Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
 
-  override fun String.formatCode(): String =
-    KtLint.format(KtLint.Params(
-      text = clean,
-      ruleSets = listOf(
-        StandardRuleSetProvider().get(),
-        ExperimentalRuleSetProvider().get()
-      ),
-      cb = { _, _ -> },
-      script = true,
-      debug = true
-    ))
-
-  override fun String.file(fileName: String): File = File(delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", clean))
+  override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
 
   override val String.classBody: ClassBody
-    get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta $clean").body)
-
-  override val lineSeparator: String = System.getProperty("line.separator")
+    get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }
 

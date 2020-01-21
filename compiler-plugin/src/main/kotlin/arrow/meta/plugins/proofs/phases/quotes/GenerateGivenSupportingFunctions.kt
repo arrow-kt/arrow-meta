@@ -21,13 +21,13 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
-fun ElementScope.generateGivenExtensionsFile(meta: Meta, compilerContext: CompilerContext): ExtensionPhase =
+fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
   meta.file(KtFile::containsGivenConstrains) {
     Transform.newSources(
       """
       $importList
-      ${compilerContext.generateGivenSupportingFunctions(givenConstrainedDeclarations())}
-      """.formatCode().file("Extensions.$name")
+      ${generateGivenSupportingFunctions(givenConstrainedDeclarations())}
+      """.file("Extensions.$name")
     )
   }
 
@@ -60,7 +60,7 @@ private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedF
           ${runScope(this, `(givenParams)`)}
       """.function.value
     }
-  }, separator = lineSeparator)
+  }, separator = "\n")
 
 private fun ElementScope.runScope(namedFunction: NamedFunction, scopedList: ScopedList<KtParameter>): Scope<KtExpression> {
   val body = namedFunction.body

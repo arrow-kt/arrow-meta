@@ -3,6 +3,7 @@ package arrowx
 import arrow.Proof
 
 import arrow.TypeProof
+import arrowx.StringMonoid.combine
 
 interface Semigroup<A> {
   fun A.combine(other: A): A

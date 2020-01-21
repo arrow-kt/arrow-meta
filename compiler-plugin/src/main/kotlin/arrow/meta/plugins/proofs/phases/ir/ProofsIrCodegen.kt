@@ -8,17 +8,16 @@ import arrow.meta.phases.codegen.ir.dfsCalls
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
-import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.resolve.ProofCandidate
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
-import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.putValueArgument
@@ -26,7 +25,6 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -43,19 +41,21 @@ class ProofsIrCodegen(
     fn: FunctionDescriptor,
     typeSubstitutor: NewTypeSubstitutorByConstructorMap
   ): IrCall {
-    val irTypes = fn.substitutedIrTypes(typeSubstitutor)
+    val irTypes = fn.substitutedIrTypes(typeSubstitutor).filterNotNull()
     return fn.irCall().apply {
-      irTypes.forEachIndexed(this::putTypeArgument)
+      fn.typeParameters.forEachIndexed { n, descriptor ->
+        //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
+      }
     }
   }
 
   fun CompilerContext.proofCall(
-    proofs: List<Proof>,
     subType: KotlinType,
     superType: KotlinType
   ): IrCall? =
     irUtils.run {
-      val matchingCandidates = proofs.matchingCandidates(this@proofCall, subType, superType)
+      val matchingCandidates = module.proofs.matchingCandidates(this@proofCall, subType, superType)
       val proofs = matchingCandidates.map { (from, to, conversion) ->
         matchedCandidateProofCall(
           fn = conversion,
@@ -72,12 +72,12 @@ class ProofsIrCodegen(
     }
 
 
-  fun CompilerContext.proveVariable(proofs: List<Proof>, it: IrVariable): IrVariable? {
+  fun CompilerContext.proveVariable(it: IrVariable): IrVariable? {
     val targetType = it.type.originalKotlinType
     val valueType = it.initializer?.type?.originalKotlinType
     return if (targetType != null && valueType != null) {
       it.apply {
-        val proofCall = proofCall(proofs, valueType, targetType)
+        val proofCall = proofCall(valueType, targetType)
         proofCall?.extensionReceiver = initializer
         proofCall?.also {
           initializer = it
@@ -86,31 +86,31 @@ class ProofsIrCodegen(
     } else it
   }
 
-  fun CompilerContext.proveNestedCalls(proofs: List<Proof>, expression: IrCall): IrCall? =
+  fun CompilerContext.proveNestedCalls(expression: IrCall): IrCall? =
     expression.apply {
       dfsCalls().forEach {
-        proveCall(it, proofs)
+        proveCall(it)
       }
     }
 
-  private fun CompilerContext.proveCall(expression: IrCall, proofs: List<Proof>): IrCall =
+  private fun CompilerContext.proveCall(expression: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
-      if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, proofs, expression)
-      else insertExtensionSyntaxCall(expression, proofs)
+      if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
+      else insertExtensionSyntaxCall(expression)
       expression
     }
 
-  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall, proofs: List<Proof>) {
+  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) {
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
     val targetType =
-      expression.descriptor.dispatchReceiverParameter?.type
+      (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
         ?: expression.descriptor.extensionReceiverParameter?.type
     if (targetType != null && valueType != null && targetType != valueType) {
       expression.apply {
-        val proofCall = proofCall(proofs, valueType, targetType)
+        val proofCall = proofCall(valueType, targetType)
         when {
           proofCall != null -> {
             when {
@@ -137,7 +137,6 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.insertExtensionGivenCall(
     givenUpperBound: GivenUpperBound,
-    proofs: List<Proof>,
     expression: IrCall
   ): Unit {
     val upperBound = givenUpperBound.givenUpperBound
@@ -147,7 +146,7 @@ class ProofsIrCodegen(
         val candidateSubtype = superType.arguments.firstOrNull()?.type
         val maybeCompanion = (candidateSubtype?.constructor?.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
         if (maybeCompanion != null) {
-          val extensionCall = proofCall(proofs, maybeCompanion.defaultType, superType)?.also {
+          val extensionCall = proofCall(maybeCompanion.defaultType, superType)?.also {
             val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
             val companionClass = irUtils.backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
             it.extensionReceiver = companionCall(companionType, companionClass)
@@ -168,13 +167,13 @@ class ProofsIrCodegen(
       companionClass
     )
 
-  fun CompilerContext.proveProperty(proofs: List<Proof>, it: IrProperty): IrProperty? {
+  fun CompilerContext.proveProperty(it: IrProperty): IrProperty? {
     val targetType = it.descriptor.returnType
     val valueType = it.backingField?.initializer?.expression?.type?.originalKotlinType
     return if (targetType != null && valueType != null && targetType != valueType) {
       it.backingField?.let { field ->
         val replacement = field.initializer?.expression?.let {
-          proofCall(proofs, valueType, targetType)?.apply {
+          proofCall(valueType, targetType)?.apply {
             extensionReceiver = it
           }
         }
@@ -184,11 +183,11 @@ class ProofsIrCodegen(
     } else it
   }
 
-  fun CompilerContext.proveReturn(proofs: List<Proof>, it: IrReturn): IrReturn? {
+  fun CompilerContext.proveReturn(it: IrReturn): IrReturn? {
     val targetType = it.returnTarget.returnType
     val valueType = it.value.type.originalKotlinType
     return if (targetType != null && valueType != null && targetType != valueType) {
-      proofCall(proofs, valueType, targetType)?.let { call ->
+      proofCall(valueType, targetType)?.let { call ->
         call.extensionReceiver = it.value
         IrReturnImpl(
           UNDEFINED_OFFSET,
@@ -201,6 +200,17 @@ class ProofsIrCodegen(
     } else it
   }
 
+  fun CompilerContext.proveTypeOperator(it: IrTypeOperatorCall): IrExpression? {
+    val targetType = it.type.toKotlinType()
+    val valueType = it.argument.type.toKotlinType()
+    return if (targetType != valueType) {
+      proofCall(valueType, targetType)?.let { call ->
+        call.extensionReceiver = it.argument
+        call
+      } ?: it
+    } else it
+  }
+
   companion object {
     operator fun <A> invoke(irUtils: IrUtils, f: ProofsIrCodegen.() -> A): A =
       f(ProofsIrCodegen(irUtils))
@@ -209,7 +219,7 @@ class ProofsIrCodegen(
 
 val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
   get() {
-    val allArgsMap =
+     val allArgsMap =
       from.typeArgumentsMap(subType)
         .filter { it.key.type.isTypeParameter() } +
         mapOf(

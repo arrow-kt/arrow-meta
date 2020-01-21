@@ -1,6 +1,8 @@
 package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.resolve.intersection
+import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
@@ -11,8 +13,7 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
-import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.TypeUtils
 
 val ArrowProof: FqName =
   FqName("arrow.Proof")
@@ -33,18 +34,13 @@ data class Proof(
 fun FunctionDescriptor.isProof(): Boolean =
   annotations.hasAnnotation(ArrowProof)
 
-fun List<Proof>.extending(types: Collection<KotlinType>): List<Proof> =
-  extending(*types.toTypedArray())
+fun CompilerContext.extending(types: Collection<KotlinType>): List<Proof> =
+  types.flatMap { extensionProofs(it, it.constructor.builtIns.nullableAnyType) }
 
-fun List<Proof>.extending(vararg types: KotlinType): List<Proof> =
-  mapNotNull { proof ->
-    val include = types.any {
-      !it.isTypeParameter() && proof.from.isSubtypeOf(it)
-    }
-    if (include) {
-      proof
-    } else null
-  }
+fun CompilerContext.provenIntersection(subType: KotlinType): KotlinType =
+  extensionProofs(subType, subType.constructor.builtIns.nullableAnyType)
+    .map { it.to }
+    .let { subType.intersection(*it.toTypedArray()) }
 
 fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<CallableMemberDescriptor> =
   to.memberScope
@@ -53,8 +49,11 @@ fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<Ca
     .filterIsInstance<CallableMemberDescriptor>()
     .mapNotNull(CallableMemberDescriptor::discardPlatformBaseObjectFakeOverrides)
 
-fun List<Proof>.extensionProof(compilerContext: CompilerContext, subType: KotlinType, superType: KotlinType): Proof? =
-  filter { it.proofType == ProofStrategy.Extension }.matchingCandidates(compilerContext, subType, superType).firstOrNull()
+fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): Proof? =
+  extensionProofs(subType, superType).firstOrNull()
+
+fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
+  module.proofs.filter { it.proofType == ProofStrategy.Extension }.matchingCandidates(this, subType, superType)
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =
@@ -65,7 +64,7 @@ val ModuleDescriptor.proofs: List<Proof>
           cacheValue != null -> {
             cacheValue.proofs
           }
-          else -> emptyList()
+          else -> initializeProofCache()
         }
       } catch (e: RuntimeException) {
         println("TODO() Detected exception: ${e.printStackTrace()}")

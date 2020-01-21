@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
+import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -143,8 +144,10 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
-  val <A: KtDeclaration> Scope<A>.synthetic: Scope<A>
-  
+  val <A: KtDeclaration> Scope<A>.syntheticScope: Scope<A>
+
+  val <A: SyntheticElement> A.syntheticElement: A
+
   fun property(
     modifiers: String?,
     name: String,
@@ -319,8 +322,6 @@ interface ElementScope {
   val String.`this`: ThisExpression
 
   val String.annotatedExpression: AnnotatedExpression
-
-  fun String.formatCode(): String
   
   fun String.file(fileName: String): File
 
@@ -341,8 +342,6 @@ interface ElementScope {
   ): BlockExpression
   
   val String.comment: PsiComment
-
-  val lineSeparator: String
 
   companion object  {
     fun default(project: Project): ElementScope =

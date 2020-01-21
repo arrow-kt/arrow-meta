@@ -3,31 +3,46 @@ package arrow.meta.plugins.proofs.phases.resolve.scopes
 import arrow.meta.Meta
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending
+import arrow.meta.plugins.proofs.phases.resolve.ProofReceiverValue
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.types.KotlinType
 
-fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name): List<SimpleFunctionDescriptor> =
+fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name): List<SimpleFunctionDescriptor> =
   syntheticMemberFunctions(receiverTypes)
     .filter { it.name == name }
 
-fun List<Proof>.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): List<SimpleFunctionDescriptor> =
+fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): List<SimpleFunctionDescriptor> =
   extending(receiverTypes).flatMap { proof ->
     proof.callables { true }
       .filterIsInstance<SimpleFunctionDescriptor>()
+      .filter { !it.isExtension }
+      .mapNotNull {
+        val receiver = ProofReceiverValue(proof.from)
+        val dispatchReceiver = ReceiverParameterDescriptorImpl(it, receiver, Annotations.EMPTY)
+        it.newCopyBuilder()
+          .setDropOriginalInContainingParts()
+          .setOriginal(it)
+          .setDispatchReceiverParameter(dispatchReceiver)
+          .build()
+      }
   }
 
 fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
@@ -47,7 +62,7 @@ fun List<Proof>.synthetic(): List<Proof> =
     Proof(proof.from, proof.to, (proof.through as SimpleFunctionDescriptor).synthetic(), proof.proofType)
   }
 
-class ProofsSyntheticScope(val proofs: () -> List<Proof>) : SyntheticScope {
+class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
   override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
     Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($constructor), result: $this" }) {
       null
@@ -74,13 +89,13 @@ class ProofsSyntheticScope(val proofs: () -> List<Proof>) : SyntheticScope {
     }
 
   override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
-    Log.Verbose({ "ProofsSyntheticScope.getSyntheticMemberFunctions types: $receiverTypes [Proofs: ${proofs().size}] $this" }) {
-      proofs().syntheticMemberFunctions(receiverTypes)
+    Log.Verbose({ "ProofsSyntheticScope.getSyntheticMemberFunctions types: $receiverTypes $this" }) {
+      ctx.syntheticMemberFunctions(receiverTypes)
     }
 
   override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticMemberFunctions [Proofs: ${proofs().size}] $this" }) {
-      proofs().syntheticMemberFunctions(receiverTypes, name)
+    Log.Silent({ "ProofsSyntheticScope.getSyntheticMemberFunctions $this" }) {
+      ctx.syntheticMemberFunctions(receiverTypes, name)
     }
 
   override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
@@ -102,17 +117,16 @@ fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableM
     else -> this
   }
 
-fun Meta.registerProofSyntheticScope(): ExtensionPhase {
-  return syntheticScopes(
+fun Meta.provenSyntheticScope(): ExtensionPhase =
+  syntheticScopes(
     syntheticMemberFunctionsForName = { types, name, _ ->
       Log.Silent({ "syntheticScopes.syntheticMemberFunctionsForName $types $name $this" }) {
-        val proofs = module?.proofs.orEmpty()
-        proofs.syntheticMemberFunctions(types, name)
+        syntheticMemberFunctions(types, name)
       }
     },
     syntheticMemberFunctions = { types ->
       Log.Silent({ "syntheticScopes.syntheticMemberFunctions $types $this" }) {
-        module?.proofs?.syntheticMemberFunctions(types).orEmpty()
+        syntheticMemberFunctions(types)
       }
     },
     syntheticStaticFunctions = { scope ->
@@ -151,4 +165,3 @@ fun Meta.registerProofSyntheticScope(): ExtensionPhase {
       }
     }
   )
-}

@@ -40,7 +40,7 @@ class ObjectDeclaration(
 
   override fun ElementScope.identity(): ObjectDeclaration =
     """
-    | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+    | $`@annotations` object $name $superTypes {
     |   $body
     | }
     | """.`object`
