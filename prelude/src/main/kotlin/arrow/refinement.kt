@@ -1,5 +1,6 @@
-package arrow
+package arrowx
 
+import arrow.Proof
 import arrow.TypeProof.Extension
 import arrow.TypeProof.Refinement
 
@@ -9,7 +10,13 @@ import arrow.TypeProof.Refinement
  * val impossible: PositiveInt = PositiveInt(-5) // fails at compile time
  * val result: PositiveInt = y.value?.let(Int::inc)
  */
-inline class PositiveInt(val value: Int?)
+inline class PositiveInt(val value: Int?) {
+  interface Syntax {
+    fun toInt(): Int
+  }
+}
+
+internal class PositiveIntSyntax
 
 @Proof(Refinement)
 @Suppress("NOTHING_TO_INLINE")
@@ -17,8 +24,7 @@ inline fun Int.toPositiveInt(): PositiveInt =
   if (this >= 0) PositiveInt(this) else PositiveInt(null)
 
 @Proof(Refinement)
-@Suppress("NOTHING_TO_INLINE")
-inline fun Int?.positive(): PositiveInt =
+fun Int?.positive(): PositiveInt =
   this?.toPositiveInt() ?: PositiveInt(this)
 
 @Proof(Extension)
