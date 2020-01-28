@@ -11,8 +11,13 @@ import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
+import org.jetbrains.kotlin.idea.fir.firResolveState
+import org.jetbrains.kotlin.idea.fir.getOrBuildFir
 import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
@@ -104,6 +109,12 @@ internal val IdeMetaPlugin.descriptorRender: DescriptorRenderer
 
 internal val DescriptorRenderer.Companion.`br`: String
   get() = "<br/>"
+
+/**
+ * this extension is an instance of the generalized version [getOrBuildFir]
+ */
+fun KtCallableDeclaration.toFir(phase: FirResolvePhase = FirResolvePhase.BODY_RESOLVE): FirCallableDeclaration<*> =
+  getOrBuildFir(firResolveState(), phase)
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 

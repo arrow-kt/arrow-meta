@@ -28,7 +28,6 @@ import javax.swing.Icon
  * In general, subscription techniques differ mainly in performance.
  */
 interface LineMarkerSyntax {
-  // TODO: Registration Impl may change to 2019.3 EAP
   // TODO: Add more Techniques such as the one from Elm
 
   /**
@@ -95,8 +94,8 @@ interface LineMarkerSyntax {
    *         icon = ArrowIcons.ICON2,
    *         message = { f ->
    *           HTML.withOptions { // check out DescriptorRenderer's companion for more options
-   *             unitReturnType = true
-   *             classifierNamePolicy = classifierNamePolicy()
+   *             unitReturnType = true // renders Unit Type
+   *             classifierNamePolicy = classifierNamePolicy() // define your own policies
    *             parameterNameRenderingPolicy = ParameterNameRenderingPolicy.ONLY_NON_SYNTHESIZED
    *           }.let { renderer ->
    *             f.resolveToDescriptorIfAny()?.let(renderer::render) ?: "Unresolved Descriptor"
