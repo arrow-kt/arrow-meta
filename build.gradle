@@ -106,6 +106,7 @@ task publishMeta {
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':idea-plugin:publishToMavenLocal'
   dependsOn ':testing-plugin:publishToMavenLocal'
+  dependsOn ':prelude:publishToMavenLocal'
 }
 
 task publishAndRunIde {
