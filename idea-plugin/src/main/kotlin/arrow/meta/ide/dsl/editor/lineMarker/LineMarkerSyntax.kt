@@ -1,5 +1,6 @@
 package arrow.meta.ide.dsl.editor.lineMarker
 
+import arrow.meta.dsl.platform.cli
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.dsl.utils.descriptorRender
@@ -63,11 +64,12 @@ interface LineMarkerSyntax {
     commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
       transform,
-      { mergeableLineMarkerInfo(icon, it, message as (PsiElement) -> String, commonIcon, mergeWith, placed, navigate) }
+      { mergeableLineMarkerInfo(icon, it, message as (PsiElement) -> String, commonIcon, mergeWith, placed, navigate, clickAction) }
     )
 
   /**
@@ -140,13 +142,14 @@ interface LineMarkerSyntax {
     commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
+    clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
       { transform(it)?.identifyingElement },
       { identifier: PsiElement ->
         PsiTreeUtil.getParentOfType(identifier, composite)?.let { psi: A ->
-          mergeableLineMarkerInfo(icon, identifier, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate)
+          mergeableLineMarkerInfo(icon, identifier, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }
     )
@@ -215,7 +218,8 @@ interface LineMarkerSyntax {
     commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT,
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    clickAction: AnAction? = null
   ): MergeableLineMarkerInfo<PsiElement> =
     object : MergeableLineMarkerInfo<PsiElement>(element, element.textRange, icon, message, navigate, placed) {
       override fun canMergeWith(info: MergeableLineMarkerInfo<*>): Boolean =
@@ -223,5 +227,10 @@ interface LineMarkerSyntax {
 
       override fun getCommonIcon(infos: MutableList<MergeableLineMarkerInfo<PsiElement>>): Icon =
         commonIcon(infos.toList())
+
+      override fun createGutterRenderer(): GutterIconRenderer =
+        object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
+          override fun getClickAction(): AnAction? = clickAction
+        }
     }
 }
