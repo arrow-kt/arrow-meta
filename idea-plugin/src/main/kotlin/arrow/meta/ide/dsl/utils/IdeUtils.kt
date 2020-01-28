@@ -1,5 +1,6 @@
 package arrow.meta.ide.dsl.utils
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
 import com.intellij.psi.PsiElement
@@ -15,6 +16,8 @@ import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -87,6 +90,20 @@ fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: Kotli
  */
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
+
+/**
+ * Renders descriptors with the specified options
+ * create
+ */
+internal val IdeMetaPlugin.descriptorRender: DescriptorRenderer
+  get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
+    textFormat = RenderingFormat.HTML
+    classifierNamePolicy = classifierNamePolicy()
+    unitReturnType = true
+  }
+
+internal val DescriptorRenderer.Companion.`br`: String
+  get() = "<br/>"
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 
