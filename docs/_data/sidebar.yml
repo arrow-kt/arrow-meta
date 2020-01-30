@@ -105,7 +105,7 @@ options:
         url: /docs/apidocs/testing-plugin/arrow.meta.plugin.testing/assert-this.html
 
       - title: IntelliJ Plugin Tests
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.dsl.env/ide-test.html
+        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.env/ide-test.html
 
   - title: API Docs
 

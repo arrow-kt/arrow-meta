@@ -1,6 +1,6 @@
 package arrow.meta.plugin.gradle
 
-import com.sun.org.apache.xerces.internal.parsers.DOMParser
+import org.apache.xerces.parsers.DOMParser
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.xml.sax.InputSource
