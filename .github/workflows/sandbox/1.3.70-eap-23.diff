@@ -878,7 +878,7 @@ index a064e8b..81332d0 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 7d3e08b..086b7b9 100644
+index 7d3e08b1..ec654916 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 @@ -25,8 +25,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
@@ -891,7 +891,16 @@ index 7d3e08b..086b7b9 100644
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
  import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-@@ -63,7 +63,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
+@@ -36,8 +36,6 @@ import org.jetbrains.kotlin.codegen.StackValue
+ import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
+ import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
+ import org.jetbrains.kotlin.com.intellij.mock.MockProject
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
+ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+ import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
+ import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
+@@ -63,7 +61,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.LookupTracker
@@ -900,7 +909,16 @@ index 7d3e08b..086b7b9 100644
  import org.jetbrains.kotlin.name.Name
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
-@@ -290,11 +290,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -154,7 +152,7 @@ interface InternalRegistry : ConfigSyntax {
+     project: Project,
+     configuration: CompilerConfiguration
+   ) {
+-    println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
++    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+     cli {
+       println("it's the CLI plugin")
+     }
+@@ -290,11 +288,11 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -916,7 +934,7 @@ index 7d3e08b..086b7b9 100644
        }
      })
    }
-@@ -438,7 +438,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -438,7 +436,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -924,7 +942,7 @@ index 7d3e08b..086b7b9 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -447,7 +446,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -447,7 +444,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -932,7 +950,7 @@ index 7d3e08b..086b7b9 100644
                isImplicitModality
              )
            }
-@@ -622,4 +620,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -622,4 +618,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)

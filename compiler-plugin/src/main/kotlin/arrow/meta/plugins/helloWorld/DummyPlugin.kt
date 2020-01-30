@@ -57,7 +57,27 @@ import arrow.meta.quotes.namedFunction
  *   }
  *   dependencies {
  *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
- *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
+ *   }
+ * }
+ *
+ * apply plugin: "io.arrow-kt.arrow"
+ * ```
+ *
+ * In case of debugging Arrow Meta Gradle Plugin, install local dependencies:
+ *
+ * ```
+ * $> ./gradlew publishMeta 
+ * ```
+ *
+ * and then:
+ *
+ * ```
+ * buildscript {
+ *   repositories {
+ *     mavenLocal()
+ *   }
+ *   dependencies {
+ *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
  *   }
  * }
  *
