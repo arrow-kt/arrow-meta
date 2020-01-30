@@ -98,7 +98,6 @@ inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
 
 /**
  * Renders descriptors with the specified options
- * create
  */
 internal val IdeMetaPlugin.descriptorRender: DescriptorRenderer
   get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {

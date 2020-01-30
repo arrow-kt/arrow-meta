@@ -1,6 +1,5 @@
 package arrow.meta.ide.dsl.editor.lineMarker
 
-import arrow.meta.dsl.platform.cli
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.dsl.utils.descriptorRender
@@ -55,6 +54,7 @@ interface LineMarkerSyntax {
   /**
    * Similar to [addLineMarkerProvider], but with mergeable LineMarkers, based on the predicate [mergeWith].
    * @param commonIcon defines the common Icon after the merge
+   * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderM(
@@ -132,6 +132,7 @@ interface LineMarkerSyntax {
   /**
    * Similar to [addLineMarkerProvider], but with mergeable LineMarkers, based on the predicate [mergeWith].
    * @param commonIcon defines the common Icon after the merge
+   * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addLineMarkerProviderM(
@@ -179,6 +180,7 @@ interface LineMarkerSyntax {
 
   /**
    * @param clickAction if null this will place a breakpoint on a mouse click otherwise it executes the action
+   * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   fun LineMarkerSyntax.lineMarkerInfo(
     icon: Icon,
@@ -210,6 +212,7 @@ interface LineMarkerSyntax {
   /**
    * `MergeableLineMarkerInfo` can merge multiple LineMarkerInfo's into one, if [mergeWith] is true.
    * @param commonIcon defines the common Icon after the merge
+   * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   fun LineMarkerSyntax.mergeableLineMarkerInfo(
     icon: Icon,
