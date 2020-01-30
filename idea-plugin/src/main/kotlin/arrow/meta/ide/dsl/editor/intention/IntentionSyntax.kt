@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import com.intellij.psi.PsiElementFactory
 
 /**
  * The IDE analysis user code and provides [IntentionAction]'s to either signal error's to user's or resolve them if triggered.
@@ -95,7 +96,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
 
   /**
    * [ktIntention] constructs [SelfTargetingIntention].
-   * @param applyTo allows to resolve the errors on this `element`, display refined errors through the `editor` and has many other use-cases.
+   * @param applyTo allows to resolve the errors on this `element` with [KtPsiFactory], display refined errors through the `editor` and has many other use-cases. For instance Java utilizes [PsiElementFactory]
    * @param text is the displayed text in the ide. In addition, [text] needs to be the same as `familyName` in order to create MetaData for an Intention.
    * @param isApplicableTo defines when this intention is available.
    * @param priority defines the position of this Intention - [PriorityAction.Priority.TOP] being the highest.
@@ -110,7 +111,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   ): SelfTargetingIntention<K> =
     object : SelfTargetingIntention<K>(kClass, text), PriorityAction {
       override fun applyTo(element: K, editor: Editor?): Unit =
-        editor?.let { it.project?.ktPsiFactory?.let { factory -> applyTo(factory, element, editor) } } ?: Unit
+        editor?.let { it.project?.ktPsiFactory?.let { factory -> applyTo(factory, element, it) } } ?: Unit
 
       override fun isApplicableTo(element: K, caretOffset: Int): Boolean =
         isApplicableTo(element, caretOffset)
