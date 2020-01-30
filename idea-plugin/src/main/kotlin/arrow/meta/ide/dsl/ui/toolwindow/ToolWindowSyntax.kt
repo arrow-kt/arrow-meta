@@ -5,16 +5,12 @@ import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
@@ -33,7 +29,8 @@ import javax.swing.event.HyperlinkEvent
 interface ToolWindowSyntax {
 
   /**
-   * registers an tool window with displayName [toolId] and activates it by invoking the Action with the title [toolId].
+   * registers an Action with the title [toolId] and [actionId].
+   * When the user executes the latter a tool window with displayName [toolId] is activated or registered by absence.
    * The following example enables the internal `Fir Explorer`, whenever the current document is a kotlin file.
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
@@ -61,8 +58,8 @@ interface ToolWindowSyntax {
    *     )
    *   }
    * ```
-   * @param content these extensions allow you to define JComponents [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace], [toolWindowWithEditor] or create your own costume implementation.
-   * @param anchor where the tool window is located at ide start
+   * @param content these extensions allow you to define JComponents [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace] or create your own implementation.
+   * @param anchor sets the tool window on its initially position
    * @param actionId needs to be unique
    */
   fun IdeMetaPlugin.addToolWindowWithAction(
@@ -85,17 +82,18 @@ interface ToolWindowSyntax {
               .registerOrActivate()
           }
         },
-        update
+        update = update
       )
     )
 
   /**
-   * registers a tool window with the [content]. Please refer to [toolWindowContent], [simpleWorkSpace], [simpleWorkSpace] or create a costume implementation.
-   * @param anchor where the Toolwindow is located at ide start
-   * @param
+   * registers a tool window with the [content].
+   * @param content Please refer to [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace] or create a costum implementation.
+   * @param anchor sets where the tool window is initially located
+   * @see addToolWindowWithAction
    */
   fun IdeMetaPlugin.registerToolWindow(
-    id: String,
+    toolId: String,
     icon: Icon,
     content: (Project, ToolWindow) -> JComponent,
     canCloseContent: Boolean = false,
@@ -103,13 +101,13 @@ interface ToolWindowSyntax {
     isLockable: Boolean = false,
     project: Project
   ): ExtensionPhase =
-    ToolwindowProvider.RegisterToolWindow(id, icon, content, canCloseContent, anchor, isLockable, project)
+    ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, project)
 
   /**
-   * unregisters a Toolwindow with it's ToolId
+   * unregisters a tool window with its [toolId]
    */
-  fun IdeMetaPlugin.unregisterToolWindow(id: String, project: Project): ExtensionPhase =
-    ToolwindowProvider.UnRegisterToolWindow(id, project)
+  fun IdeMetaPlugin.unregisterToolWindow(toolId: String, project: Project): ExtensionPhase =
+    ToolwindowProvider.UnRegisterToolWindow(toolId, project)
 
   /**
    * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
@@ -128,7 +126,7 @@ interface ToolWindowSyntax {
    *         ToolWindowId.PROJECT_VIEW,
    *         "Unique",
    *         MessageType.INFO,
-   *         "Teach your users about this ToolWindow",
+   *         "Teach your users about this tool window",
    *         ArrowIcons.ICON2
    *       )
    *     )
@@ -153,7 +151,7 @@ interface ToolWindowSyntax {
             ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
           }
         },
-        update
+        update = update
       )
     )
 
@@ -184,19 +182,19 @@ interface ToolWindowSyntax {
             ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
           }
         },
-        update
+        update = update
       )
     )
 
   fun IdeMetaPlugin.toolWindowNotifyBalloon(
-    id: String,
+    toolId: String,
     type: MessageType,
     html: String,
     project: Project,
     icon: Icon? = null,
     listener: (HyperlinkEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    ToolwindowProvider.NotificationBalloon(id, type, html, icon, listener, project)
+    ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, project)
 
   /**
    * constructs a [JPanel] with an [Editor] inside.
@@ -259,23 +257,6 @@ interface ToolWindowSyntax {
       }
     }
 
-  fun ToolWindowSyntax.simpleWorkSpace(
-    vertical: Boolean,
-    borderless: Boolean,
-    toolbar: ActionManager.(DefaultActionGroup) -> ActionToolbar,
-    register: SimpleToolWindowPanel.(ActionToolbar) -> Unit = { registerToolbar(it) },
-    data: SimpleToolWindowPanel.(dataId: String) -> Any? = Noop.effect2,
-    dispose: () -> Unit = Noop.effect0
-  ): SimpleToolWindowPanel =
-    object : SimpleToolWindowPanel(vertical, borderless), Disposable {
-      override fun dispose() = dispose()
-      override fun getData(dataId: String): Any? = data(this, dataId)
-
-      init {
-        register(this, toolbar(ActionManager.getInstance(), DefaultActionGroup()))
-      }
-    }
-
   fun ToolWindowSyntax.toolWindowContent(
     project: Project,
     register: JPanel.(Project) -> Unit,
@@ -296,14 +277,6 @@ interface ToolWindowSyntax {
    */
   fun ToolWindowSyntax.editor(project: Project, fileType: LanguageFileType, readOnly: Boolean, text: String): Editor =
     EditorFactory.getInstance().run { createEditor(createDocument(text), project, fileType, readOnly) }
-
-  /**
-   * this extension is a default registration method
-   */
-  fun SimpleToolWindowPanel.registerToolbar(toolbar: ActionToolbar): Unit {
-    toolbar.setTargetComponent(this)
-    this.toolbar = toolbar.component
-  }
 
   fun ToolWindowSyntax.toolWindowIds(project: Project): List<String> =
     ToolWindowManager.getInstance(project).toolWindowIds.toList()

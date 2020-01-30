@@ -37,7 +37,7 @@ interface DialogSyntax {
    *   meta(
    *     addFileAction("ExampleAction", "New File", "Creates a new File",
    *       buildDialog = { project, directory ->
-   *         setTitle("CostumeTitle")
+   *         setTitle("MyTitle")
    *         addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
    *       }
    *      )

@@ -70,7 +70,7 @@ interface ExtensionProviderSyntax {
    * ```
    * More importantly, using [extensionProvider] and all its variations lifts any ide workflow for `Extension's` to `Meta` and is evident
    * to all derived instances like [LineMarkerSyntax], [InspectionSyntax], [SearchSyntax] and many more.
-   * Hence, if a costume workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
+   * Hence, if a costum workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
    * @param impl is the concrete implementation
    * @param loadingOrder has to be set as [LoadingOrder.FIRST], whenever we introduce visual changes
    * @see ExtensionProviderSyntax
