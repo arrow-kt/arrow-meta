@@ -20,9 +20,10 @@ import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
 import arrow.meta.ide.dsl.ui.notification.NotificationSyntax
 import arrow.meta.ide.dsl.ui.popups.PopupSyntax
+import arrow.meta.ide.dsl.ui.toolwindow.ToolWindowSyntax
 
 interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinIndicesSyntax, DialogSyntax, PopupSyntax,
-  NotificationSyntax
+  NotificationSyntax, ToolWindowSyntax
