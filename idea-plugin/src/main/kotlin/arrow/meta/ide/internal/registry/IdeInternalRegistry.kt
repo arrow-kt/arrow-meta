@@ -95,10 +95,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
 
   fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider): Unit =
     when (phase) {
-      is IntentionExtensionProvider.RegisterIntentionWithMetaData -> phase.run {
-        IntentionManager.getInstance()?.registerIntentionAndMetaData(intention, category) // TODO: circumvent the ClassLoader in the internals
-          ?: LOG.warn("Couldn't register IntentionWithMetaData:${intention.text} from category:$category. Please, check if your MetaData is added at the right path.")
-      }
       is IntentionExtensionProvider.RegisterIntention -> phase.run {
         IntentionManager.getInstance()?.addAction(intention)
           ?: LOG.warn("Couldn't register Intention:${intention.text}")

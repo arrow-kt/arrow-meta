@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.editor.inspection
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeHighlighting.HighlightDisplayLevel
