@@ -1,5 +1,6 @@
 package arrow.meta.ide.dsl.utils
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
 import com.intellij.openapi.project.Project
@@ -11,12 +12,19 @@ import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
+import org.jetbrains.kotlin.idea.fir.firResolveState
+import org.jetbrains.kotlin.idea.fir.getOrBuildFir
 import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -89,6 +97,25 @@ fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: Kotli
  */
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
+
+/**
+ * Renders descriptors with the specified options
+ */
+internal val IdeMetaPlugin.descriptorRender: DescriptorRenderer
+  get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
+    textFormat = RenderingFormat.HTML
+    classifierNamePolicy = classifierNamePolicy()
+    unitReturnType = true
+  }
+
+internal val DescriptorRenderer.Companion.`br`: String
+  get() = "<br/>"
+
+/**
+ * this extension is an instance of the generalized version [getOrBuildFir]
+ */
+fun KtCallableDeclaration.toFir(phase: FirResolvePhase = FirResolvePhase.BODY_RESOLVE): FirCallableDeclaration<*> =
+  getOrBuildFir(firResolveState(), phase)
 
 val Project.ktPsiFactory: KtPsiFactory
   get() = KtPsiFactory(this)
