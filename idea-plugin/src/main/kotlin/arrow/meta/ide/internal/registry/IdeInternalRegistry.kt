@@ -68,7 +68,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     when (phase) {
       is ToolwindowProvider.RegisterToolWindow -> phase.registerOrActivate()
       is ToolwindowProvider.UnRegisterToolWindow -> phase.unregister()
-      is ToolwindowProvider.NotificationBalloon -> phase.register()
+      is ToolwindowProvider.Notification -> phase.register()
     }
 
   fun ToolwindowProvider.RegisterToolWindow.registerOrActivate(): Unit =
@@ -83,7 +83,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun ToolwindowProvider.UnRegisterToolWindow.unregister(): Unit =
     ToolWindowManager.getInstance(project).unregisterToolWindow(id)
 
-  fun ToolwindowProvider.NotificationBalloon.register(): Unit =
+  fun ToolwindowProvider.Notification.register(): Unit =
     ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, listener)
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =

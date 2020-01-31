@@ -21,6 +21,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 
 /**
  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
@@ -59,10 +60,10 @@ interface ToolWindowSyntax {
    *     )
    *   }
    * ```
-   * @param content these extensions allow you to define JComponents [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace] or create your own implementation.
+   * @param content these extensions allow you to define JComponents [toolWindowWithEditor], [toolWindowContent] or create your own implementation.
    * @param anchor sets the tool window on its initially position
    * @param actionId needs to be unique
-   * @see toolWindowAction Tool windows can also be passed to LineMarkers in `clickAction` [addLineMarkerProvider]
+   * @see toolWindowAction Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
   fun IdeMetaPlugin.addToolWindowFromAction(
     toolId: String,
@@ -98,9 +99,9 @@ interface ToolWindowSyntax {
 
   /**
    * registers a tool window with the [content].
-   * @param content Please refer to [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace] or create a costum implementation.
+   * @param content Please refer to [toolWindowWithEditor], [toolWindowContent] or create a costum implementation.
    * @param anchor sets where the tool window is initially located
-   * @see addToolWindowWithAction
+   * @see addToolWindowFromAction
    */
   fun IdeMetaPlugin.registerToolWindow(
     toolId: String,
@@ -142,6 +143,7 @@ interface ToolWindowSyntax {
    *     )
    *   }
    * ```
+   * @see toolWindowNotification Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
   fun IdeMetaPlugin.addToolWindowNotification(
     toolId: String,
@@ -166,16 +168,17 @@ interface ToolWindowSyntax {
       toolId,
       {
         it.project?.let { p ->
-          ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+          ToolwindowProvider.Notification(toolId, type, html, icon, listener, p).register()
         }
       },
       update = update
     )
 
   /**
-   * this extension is a composition of [addToolWindowWithAction] and [toolWindowNotification]
+   * this extension is a composition of [addToolWindowFromAction] and [toolWindowNotification]
+   * @see toolWindowWithNotification Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
-  fun IdeMetaPlugin.addToolWindowWithBalloon(
+  fun IdeMetaPlugin.addToolWindowWithNotification(
     toolId: String,
     actionId: String,
     icon: Icon,
@@ -188,9 +191,9 @@ interface ToolWindowSyntax {
     listener: (HyperlinkEvent) -> Unit = Noop.effect1,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addAnAction(actionId, toolWindowWithBalloon(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
+    addAnAction(actionId, toolWindowWithNotification(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
 
-  fun IdeMetaPlugin.toolWindowWithBalloon(
+  fun IdeMetaPlugin.toolWindowWithNotification(
     toolId: String,
     icon: Icon,
     type: MessageType,
@@ -208,13 +211,13 @@ interface ToolWindowSyntax {
         it.project?.let { p ->
           ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
             .registerOrActivate()
-          ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+          ToolwindowProvider.Notification(toolId, type, html, icon, listener, p).register()
         }
       },
       update = update
     )
 
-  fun IdeMetaPlugin.toolWindowNotificationBalloon(
+  fun IdeMetaPlugin.toolWindowNotification(
     toolId: String,
     type: MessageType,
     html: String,
@@ -222,7 +225,7 @@ interface ToolWindowSyntax {
     icon: Icon? = null,
     listener: (HyperlinkEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, project)
+    ToolwindowProvider.Notification(toolId, type, html, icon, listener, project)
 
   /**
    * constructs a [JPanel] with an [Editor] inside.

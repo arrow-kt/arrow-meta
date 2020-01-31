@@ -22,7 +22,7 @@ sealed class ToolwindowProvider : ExtensionPhase {
 
   data class UnRegisterToolWindow(val id: String, val project: Project) : ToolwindowProvider()
 
-  data class NotificationBalloon(
+  data class Notification(
     val id: String,
     val type: MessageType,
     val html: String,
