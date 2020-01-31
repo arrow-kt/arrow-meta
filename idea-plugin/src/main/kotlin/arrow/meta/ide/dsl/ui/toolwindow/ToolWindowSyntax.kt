@@ -5,6 +5,7 @@ import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -44,7 +45,7 @@ interface ToolWindowSyntax {
    * val IdeMetaPlugin.exampleToolWindow: Plugin
    *   get() = "ShowFirInTheIde" {
    *     meta(
-   *       addToolWindowWithAction(
+   *       addToolWindowFromAction(
    *         toolId = "Show Fir",
    *         actionId = "Unique",
    *         icon = ArrowIcons.ICON4,
@@ -61,8 +62,9 @@ interface ToolWindowSyntax {
    * @param content these extensions allow you to define JComponents [toolWindowWithEditor], [toolWindowContent], [simpleWorkSpace] or create your own implementation.
    * @param anchor sets the tool window on its initially position
    * @param actionId needs to be unique
+   * @see toolWindowAction Tool windows can also be passed to LineMarkers in `clickAction` [addLineMarkerProvider]
    */
-  fun IdeMetaPlugin.addToolWindowWithAction(
+  fun IdeMetaPlugin.addToolWindowFromAction(
     toolId: String,
     actionId: String,
     icon: Icon,
@@ -72,18 +74,26 @@ interface ToolWindowSyntax {
     isLockable: Boolean = false,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addAnAction(
-      actionId,
-      anAction(
-        toolId,
-        {
-          it.project?.let { p ->
-            ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
-              .registerOrActivate()
-          }
-        },
-        update = update
-      )
+    addAnAction(actionId, toolWindowAction(toolId, icon, content, canCloseContent, anchor, isLockable, update))
+
+  fun IdeMetaPlugin.toolWindowAction(
+    toolId: String,
+    icon: Icon,
+    content: (Project, ToolWindow) -> JComponent,
+    canCloseContent: Boolean = false,
+    anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
+    isLockable: Boolean = false,
+    update: (AnActionEvent) -> Unit = Noop.effect1
+  ): AnAction =
+    anAction(
+      toolId,
+      {
+        it.project?.let { p ->
+          ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
+            .registerOrActivate()
+        }
+      },
+      update = update
     )
 
   /**
@@ -122,7 +132,7 @@ interface ToolWindowSyntax {
    * val IdeMetaPlugin.toolWindowBalloons: Plugin
    *   get() = "ToolWindowBalloon" {
    *     meta(
-   *       toolWindowNotification(
+   *       addToolWindowNotification(
    *         ToolWindowId.PROJECT_VIEW,
    *         "Unique",
    *         MessageType.INFO,
@@ -133,7 +143,7 @@ interface ToolWindowSyntax {
    *   }
    * ```
    */
-  fun IdeMetaPlugin.toolWindowNotification(
+  fun IdeMetaPlugin.addToolWindowNotification(
     toolId: String,
     actionId: String,
     type: MessageType,
@@ -142,17 +152,24 @@ interface ToolWindowSyntax {
     listener: (HyperlinkEvent) -> Unit = Noop.effect1,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addAnAction(
-      actionId,
-      anAction(
-        toolId,
-        {
-          it.project?.let { p ->
-            ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
-          }
-        },
-        update = update
-      )
+    addAnAction(actionId, toolWindowNotification(toolId, type, html, icon, listener, update))
+
+  fun IdeMetaPlugin.toolWindowNotification(
+    toolId: String,
+    type: MessageType,
+    html: String,
+    icon: Icon? = null,
+    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    update: (AnActionEvent) -> Unit = Noop.effect1
+  ): AnAction =
+    anAction(
+      toolId,
+      {
+        it.project?.let { p ->
+          ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+        }
+      },
+      update = update
     )
 
   /**
@@ -171,22 +188,33 @@ interface ToolWindowSyntax {
     listener: (HyperlinkEvent) -> Unit = Noop.effect1,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addAnAction(
-      actionId,
-      anAction(
-        toolId,
-        {
-          it.project?.let { p ->
-            ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
-              .registerOrActivate()
-            ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
-          }
-        },
-        update = update
-      )
+    addAnAction(actionId, toolWindowWithBalloon(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
+
+  fun IdeMetaPlugin.toolWindowWithBalloon(
+    toolId: String,
+    icon: Icon,
+    type: MessageType,
+    html: String,
+    content: (Project, ToolWindow) -> JComponent,
+    canCloseContent: Boolean = false,
+    anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
+    isLockable: Boolean = false,
+    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    update: (AnActionEvent) -> Unit = Noop.effect1
+  ): AnAction =
+    anAction(
+      toolId,
+      {
+        it.project?.let { p ->
+          ToolwindowProvider.RegisterToolWindow(toolId, icon, content, canCloseContent, anchor, isLockable, p)
+            .registerOrActivate()
+          ToolwindowProvider.NotificationBalloon(toolId, type, html, icon, listener, p).register()
+        }
+      },
+      update = update
     )
 
-  fun IdeMetaPlugin.toolWindowNotifyBalloon(
+  fun IdeMetaPlugin.toolWindowNotificationBalloon(
     toolId: String,
     type: MessageType,
     html: String,
@@ -198,6 +226,7 @@ interface ToolWindowSyntax {
 
   /**
    * constructs a [JPanel] with an [Editor] inside.
+   *
    * ```kotlin:ank:playground
    * import arrow.meta.Plugin
    * import arrow.meta.ide.IdeMetaPlugin
@@ -234,9 +263,10 @@ interface ToolWindowSyntax {
    * fun Editor.appendText(text: String): Unit =
    *   ApplicationManager.getApplication().runReadAction { document.setText(document.text + text) }
    * ```
+   *
    * @param dispose needs to be implemented using at least [EditorFactory.releaseEditor], which is the default implementation.
    * @param layoutManager check all SubTypes for various use-cases.
-   * @see addToolWindowWithAction
+   * @see addToolWindowFromAction
    */
   fun ToolWindowSyntax.toolWindowWithEditor(
     project: Project,
