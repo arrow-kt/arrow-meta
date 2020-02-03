@@ -10,12 +10,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.PsiNavigateUtil
 import javax.swing.Icon
 
-/**
- * [GotoRelatedSyntax]
- */
 interface GotoRelatedSyntax {
+
   /**
    * one example is here org.jetbrains.kotlin.idea.goto.KotlinExpectOrActualGotoRelatedProvider
+   * @see com.intellij.navigation.GotoRelatedProvider
    */
   fun IdeMetaPlugin.addGotoRelatedProvider(
     psiBased: (psi: PsiElement) -> List<GotoRelatedItem> = Noop.emptyList1(),
