@@ -4,7 +4,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.dsl.utils.descriptorRender
 import arrow.meta.internal.Noop
-import org.jetbrains.kotlin.psi.KtClass
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -21,6 +20,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -78,6 +78,22 @@ interface LineMarkerSyntax {
     addLineMarkerProvider(
       transform,
       { lineMarkerInfo(icon, it, message as (PsiElement) -> String, placed, navigate, clickAction) }
+    )
+
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
+    icon: Icon,
+    transform: (PsiElement) -> A?,
+    targets: (A) -> List<GotoRelatedItem>,
+    message: (A) -> String = Noop.string1(),
+    pass: Int = Pass.LINE_MARKERS,
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    clickAction: AnAction? = null
+  ): ExtensionPhase =
+    relatedLineMarkerProvider(
+      transform,
+      { relatedLineMarkerInfo(icon, it, message as (PsiElement) -> String, targets(it), pass, placed, navigate, clickAction) }
     )
 
   /**
