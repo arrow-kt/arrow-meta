@@ -17,6 +17,7 @@
     <depends>com.intellij.gradle</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
+    <depends>org.intellij.plugins.markdown</depends>
 
     <project-components>
         <component>

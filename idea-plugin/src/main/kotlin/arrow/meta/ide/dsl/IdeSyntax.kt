@@ -11,6 +11,7 @@ import arrow.meta.ide.dsl.editor.kotlinextension.KotlinIndicesSyntax
 import arrow.meta.ide.dsl.editor.language.LanguageSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.liveTemplate.LiveTemplateSyntax
+import arrow.meta.ide.dsl.editor.mdhtml.MarkdownHtmlPanelSyntax
 import arrow.meta.ide.dsl.editor.navigation.NavigationSyntax
 import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
@@ -26,4 +27,4 @@ interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinIndicesSyntax, DialogSyntax, PopupSyntax,
-  NotificationSyntax, ToolWindowSyntax
+  NotificationSyntax, ToolWindowSyntax, MarkdownHtmlPanelSyntax

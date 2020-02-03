@@ -34,6 +34,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import org.jetbrains.kotlin.container.useImpl
+import javax.swing.event.HyperlinkListener
 
 internal interface IdeInternalRegistry : InternalRegistry {
 
@@ -75,7 +76,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     ToolWindowManager.getInstance(project).let { manager ->
       manager.getToolWindow(id)?.activate(null)
         ?: manager.registerToolWindow(id, canCloseContent, anchor).let { window ->
-          window.icon = icon
+          window.setIcon(icon)
           window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
         }
     }
@@ -84,7 +85,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     ToolWindowManager.getInstance(project).unregisterToolWindow(id)
 
   fun ToolwindowProvider.Notification.register(): Unit =
-    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, listener)
+    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, HyperlinkListener(listener))
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {
