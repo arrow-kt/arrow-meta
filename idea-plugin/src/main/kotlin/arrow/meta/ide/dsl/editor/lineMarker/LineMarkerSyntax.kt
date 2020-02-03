@@ -4,13 +4,17 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.dsl.utils.descriptorRender
 import arrow.meta.internal.Noop
+import org.jetbrains.kotlin.psi.KtClass
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
+import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
+import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
+import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
+import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
@@ -29,6 +33,31 @@ import javax.swing.Icon
  */
 interface LineMarkerSyntax {
   // TODO: Add more Techniques such as the one from Elm
+
+  fun IdeMetaPlugin.registerLineMarker(provider: LineMarkerProvider): ExtensionPhase =
+    extensionProvider(LineMarkerProviders.getInstance(), provider)
+
+  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+    transform: (PsiElement) -> A?,
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+  ): ExtensionPhase =
+    registerLineMarker(
+      object : LineMarkerProvider {
+        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
+          transform(element)?.let(
+            lineMarkerInfo)
+
+        override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
+          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
+            ProgressManager.checkCanceled()
+            transform(element)?.let { a ->
+              slowLineMarker(a)?.let { result.add(it) }
+            }
+          }
+        }
+      }
+    )
 
   /**
    * Due tu performance reason's it is advised that [A] is a leaf element (e.g: Psi(Identifier)) and not composite PsiElements such as [KtClass].
@@ -71,6 +100,13 @@ interface LineMarkerSyntax {
       transform,
       { mergeableLineMarkerInfo(icon, it, message as (PsiElement) -> String, commonIcon, mergeWith, placed, navigate, clickAction) }
     )
+
+  /**
+   * provides a function [f] from a Leaf PsiElement
+   * @receiver is the Leaf PsiElement
+   */
+  fun <A : PsiNameIdentifierOwner, L : LineMarkerInfo<PsiElement>> PsiElement.onComposite(composite: Class<A>, f: (A) -> L): L? =
+    PsiTreeUtil.getParentOfType(this, composite)?.let(f)
 
   /**
    * [addLineMarkerProvider] is a convenience extension, which registers the Leaf element of a composite PsiElement [A] e.g.: `KtClass`
@@ -122,9 +158,30 @@ interface LineMarkerSyntax {
   ): ExtensionPhase =
     addLineMarkerProvider(
       { transform(it)?.identifyingElement },
-      { identifier: PsiElement ->
-        PsiTreeUtil.getParentOfType(identifier, composite)?.let { psi: A ->
-          lineMarkerInfo(icon, identifier, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
+      {
+        it.onComposite(composite) { psi: A ->
+          lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
+        }
+      }
+    )
+
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addRelatedLineMarkerProvider(
+    icon: Icon,
+    transform: (PsiElement) -> A?,
+    composite: Class<A>,
+    targets: (A) -> List<GotoRelatedItem>,
+    message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
+    pass: Int = Pass.LINE_MARKERS,
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    clickAction: AnAction? = null
+  ): ExtensionPhase =
+    relatedLineMarkerProvider(
+      { transform(it)?.identifyingElement },
+      {
+        it.onComposite(composite) { psi: A ->
+          relatedLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, targets(psi), pass, placed, navigate, clickAction)
         }
       }
     )
@@ -148,32 +205,9 @@ interface LineMarkerSyntax {
   ): ExtensionPhase =
     addLineMarkerProvider(
       { transform(it)?.identifyingElement },
-      { identifier: PsiElement ->
-        PsiTreeUtil.getParentOfType(identifier, composite)?.let { psi: A ->
-          mergeableLineMarkerInfo(icon, identifier, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
-        }
-      }
-    )
-
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
-    transform: (PsiElement) -> A?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
-  ): ExtensionPhase =
-    extensionProvider(
-      LineMarkerProviders.getInstance(),
-      object : LineMarkerProvider {
-        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          transform(element)?.let(
-            lineMarkerInfo)
-
-        override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
-            ProgressManager.checkCanceled()
-            transform(element)?.let { a ->
-              slowLineMarker(a)?.let { result.add(it) }
-            }
-          }
+      {
+        it.onComposite(composite) { psi: A ->
+          mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }
     )
@@ -190,12 +224,7 @@ interface LineMarkerSyntax {
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
     clickAction: AnAction? = null
   ): LineMarkerInfo<PsiElement> =
-    object : LineMarkerInfo<PsiElement>(element, element.textRange, icon, message, null, placed) {
-      override fun getNavigationHandler(): GutterIconNavigationHandler<PsiElement>? =
-        GutterIconNavigationHandler { e, elt ->
-          navigate(e, elt)
-        }
-
+    object : LineMarkerInfo<PsiElement>(element, element.textRange, icon, message, navigate, placed) {
       override fun createGutterRenderer(): GutterIconRenderer =
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
@@ -231,6 +260,34 @@ interface LineMarkerSyntax {
       override fun getCommonIcon(infos: MutableList<MergeableLineMarkerInfo<PsiElement>>): Icon =
         commonIcon(infos.toList())
 
+      override fun createGutterRenderer(): GutterIconRenderer =
+        object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
+          override fun getClickAction(): AnAction? = clickAction
+        }
+    }
+
+  fun <A : PsiElement> IdeMetaPlugin.relatedLineMarkerProvider(
+    transform: (PsiElement) -> A?,
+    lineMarkerInfo: (a: A) -> RelatedItemLineMarkerInfo<PsiElement>?
+  ): ExtensionPhase =
+    registerLineMarker(
+      object : RelatedItemLineMarkerProvider() {
+        override fun getLineMarkerInfo(element: PsiElement): RelatedItemLineMarkerInfo<PsiElement>? =
+          transform(element)?.let(lineMarkerInfo)
+      }
+    )
+
+  fun LineMarkerSyntax.relatedLineMarkerInfo(
+    icon: Icon,
+    element: PsiElement,
+    message: (PsiElement) -> String,
+    targets: List<GotoRelatedItem>,
+    pass: Int = Pass.LINE_MARKERS,
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT,
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    clickAction: AnAction? = null
+  ): RelatedItemLineMarkerInfo<PsiElement> =
+    object : RelatedItemLineMarkerInfo<PsiElement>(element, element.textRange, icon, pass, message, navigate, placed, targets) {
       override fun createGutterRenderer(): GutterIconRenderer =
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
