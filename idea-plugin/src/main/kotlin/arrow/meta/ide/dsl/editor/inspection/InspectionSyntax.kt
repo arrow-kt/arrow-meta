@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
   // TODO: Add more General `Inspection's` can be build with [org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
+  // TODO: for more inspiration LocalQuickFixOnPsiElement
 
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
@@ -159,14 +160,14 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    */
   fun IdeMetaPlugin.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): ExtensionPhase =
     extensionProvider(
       LanguageInspectionSuppressors.INSTANCE,
       inspectionSuppressor(suppressFor, suppressAction)
     )
 
-  fun InspectionSyntax.supressQuickFix(
+  fun InspectionSyntax.suppressQuickFix(
     name: String,
     familyName: String,
     applyFix: (project: Project, descriptor: ProblemDescriptor) -> Unit,
@@ -217,11 +218,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   fun InspectionSyntax.inspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): InspectionSuppressor =
     object : InspectionSuppressor {
       override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> =
-        suppressAction(element, toolId)
+        suppressAction(element, toolId).toTypedArray()
 
       override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean =
         suppressFor(element, toolId)
