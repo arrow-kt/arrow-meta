@@ -1,4 +1,4 @@
-package arrow.meta.ide.dsl.editor.kotlinextension
+package arrow.meta.ide.dsl.editor.kotlinextensions
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.idea.core.extension.KotlinIndicesHelperExtension
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.types.KotlinType
 
-interface KotlinIndicesSyntax {
+interface KotlinExtensionSyntax {
   fun IdeMetaPlugin.addKotlinIndicesHelper(
     appendExtensionCallables: (consumer: MutableList<in CallableDescriptor>,
                                moduleDescriptor: ModuleDescriptor,
@@ -22,7 +22,7 @@ interface KotlinIndicesSyntax {
       ktIndicesHelperExtension(appendExtensionCallables)
     )
 
-  fun KotlinIndicesSyntax.ktIndicesHelperExtension(
+  fun KotlinExtensionSyntax.ktIndicesHelperExtension(
     appendExtensionCallables: (consumer: MutableList<in CallableDescriptor>,
                                moduleDescriptor: ModuleDescriptor,
                                receiverTypes: Collection<KotlinType>,
