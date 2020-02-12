@@ -29,7 +29,6 @@ class ArrowGradlePlugin : Plugin<Project> {
 
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
-      p.dependencies.add("compileOnly", "io.arrow-kt:compiler-plugin:$compilerPluginVersion")
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
