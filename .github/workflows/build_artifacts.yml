@@ -31,7 +31,8 @@ jobs:
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         for patch in $(ls -v .github/workflows/sandbox/*.diff); do
           echo "Checking $patch ..."
-          NEXT_VERSION=$(basename -s .diff $patch)
+          PATCH_VERSION=$(basename -s .diff $patch)
+          NEXT_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep $PATCH_VERSION | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
           echo "For version $NEXT_VERSION ..."
           git apply $patch
           git status
