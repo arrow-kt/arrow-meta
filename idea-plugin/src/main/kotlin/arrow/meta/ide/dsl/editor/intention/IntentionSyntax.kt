@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.intention
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.editor.quickFix.QuickFixSyntax
+import com.intellij.lang.annotation.Annotator
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
@@ -92,7 +92,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
 
   /**
-   * [ktIntention] constructs [SelfTargetingIntention]. SelfTargetingIntentions can be used in [QuickFixSyntax].
+   * [ktIntention] constructs [SelfTargetingIntention]. SelfTargetingIntentions can be used with [Annotator].
    * @param applyTo allows to resolve the errors on this `element` with [KtPsiFactory], display refined errors through the `editor` and has many other use-cases. For instance Java utilizes [PsiElementFactory]
    * @param text is the displayed text in the ide. In addition, [text] needs to be the same as `familyName` in order to create MetaData for an Intention.
    * @param isApplicableTo defines when this intention is available.

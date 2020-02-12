@@ -134,7 +134,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   /**
    * registers a LocalInspection.
-   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is unsurprisingly a SubType of both [GlobalInspectionTool] and [LocalInspectionTool].
+   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is a Subtype of both [GlobalInspectionTool] and [LocalInspectionTool].
    * @param groupDisplayName The displayed groupName in the user settings for Inspections.
    * @param groupPath The specified path where your Inspection is located. Use Strings without spacing.
    * @param shortName The displayed text, whenever [inspectionTool] is applicable.
