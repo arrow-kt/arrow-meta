@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.editor.lineMarker
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.IdeUtils
 import arrow.meta.ide.dsl.utils.descriptorRender
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -45,15 +44,12 @@ interface LineMarkerSyntax {
     registerLineMarker(
       object : LineMarkerProvider {
         override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
-          transform(element)?.let(
-            lineMarkerInfo)
+          transform(element)?.let(lineMarkerInfo)
 
         override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
-          for (element: PsiElement in elements.filter { IdeUtils.isNotNull(transform(it)) }) {
+          for (element: A in elements.mapNotNull { transform(it) }) {
             ProgressManager.checkCanceled()
-            transform(element)?.let { a ->
-              slowLineMarker(a)?.let { result.add(it) }
-            }
+            slowLineMarker(element)?.let { result.add(it) }
           }
         }
       }

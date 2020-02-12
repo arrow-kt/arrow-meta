@@ -37,17 +37,17 @@ inline fun <reified A : PsiElement> GotoRelatedSyntax.gotoRelatedItem(
   group: String = GotoRelatedItem.DEFAULT_GROUP_NAME,
   mnemonic: Int = -1,
   noinline navigate: (A) -> Unit = { PsiNavigateUtil.navigate(it) },
-  noinline costumName: (A) -> String? = Noop.nullable1(),
-  noinline costumIcon: (A) -> Icon? = Noop.nullable1()
+  noinline name: (A) -> String? = Noop.nullable1(),
+  noinline icon: (A) -> Icon? = Noop.nullable1()
 ): GotoRelatedItem =
   object : GotoRelatedItem(psi) {
     override fun navigate(): Unit = navigate(psi)
 
     override fun getGroup(): String = group
 
-    override fun getCustomName(): String? = costumName(psi)
+    override fun getCustomName(): String? = name(psi)
 
-    override fun getCustomIcon(): Icon? = costumIcon(psi)
+    override fun getCustomIcon(): Icon? = icon(psi)
 
     override fun getMnemonic(): Int = mnemonic
   }
