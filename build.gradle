@@ -92,6 +92,7 @@ task cleanMeta {
   dependsOn ':gradle-plugin:clean'
   dependsOn ':idea-plugin:clean'
   dependsOn ':testing-plugin:clean'
+  dependsOn ':prelude:clean'
 }
 
 task buildMeta {
@@ -99,6 +100,7 @@ task buildMeta {
   dependsOn ':gradle-plugin:jar'
   dependsOn ':idea-plugin:build'
   dependsOn ':testing-plugin:build'
+  dependsOn ':prelude:build'
 }
 
 task publishMeta {
@@ -106,6 +108,7 @@ task publishMeta {
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':idea-plugin:publishToMavenLocal'
   dependsOn ':testing-plugin:publishToMavenLocal'
+  dependsOn ':prelude:publishToMavenLocal'
 }
 
 task publishAndRunIde {
