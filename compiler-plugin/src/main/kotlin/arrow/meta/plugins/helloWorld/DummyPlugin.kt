@@ -57,6 +57,7 @@ import arrow.meta.quotes.namedFunction
  *   }
  *   dependencies {
  *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
  *   }
  * }
  *
@@ -78,6 +79,7 @@ import arrow.meta.quotes.namedFunction
  *   }
  *   dependencies {
  *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
  *   }
  * }
  *
