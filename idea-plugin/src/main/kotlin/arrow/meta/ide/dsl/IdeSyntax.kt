@@ -5,6 +5,7 @@ import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.dsl.editor.color.ColorSettingsSyntax
 import arrow.meta.ide.dsl.editor.documentation.DocumentationSyntax
+import arrow.meta.ide.dsl.editor.goto.GotoRelatedSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
@@ -29,4 +30,4 @@ interface IdeSyntax : IntentionSyntax, IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinExtensionSyntax, DialogSyntax, PopupSyntax,
-  NotificationSyntax, ToolWindowSyntax, AnnotatorSyntax, ParserSyntax, ApplicationSyntax
+  NotificationSyntax, ToolWindowSyntax, GotoRelatedSyntax, AnnotatorSyntax, ParserSyntax, ApplicationSyntax
