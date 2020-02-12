@@ -4,6 +4,7 @@ import arrow.meta.phases.analysis.body
 import arrow.meta.phases.analysis.bodySourceAsExpression
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.SyntheticElement
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -54,7 +55,7 @@ class NamedFunction(
   ),
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
-) : TypeParameterListOwner<KtNamedFunction>(value)
+) : TypeParameterListOwner<KtNamedFunction>(value), SyntheticElement
 
 class FunctionBody(override val value: KtExpression) : Scope<KtExpression>(value) {
   override fun toString(): String =
