@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.editor.intention
 
 import arrow.meta.ide.IdeMetaPlugin
-import com.intellij.lang.annotation.Annotator
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
@@ -9,10 +8,15 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
+import com.intellij.lang.annotation.Annotator
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElementFactory
+import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.idea.quickfix.KotlinIntentionActionsFactory
+import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
+import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
@@ -115,6 +119,28 @@ interface IntentionSyntax : IntentionUtilitySyntax {
 
       override fun getPriority(): PriorityAction.Priority =
         priority
+    }
+
+  /**
+   * The default values are derived from [KotlinIntentionActionsFactory].
+   * @see KotlinSingleIntentionActionFactory and all its Subtypes for examples
+   * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
+   * @param actionsForAll provide for all errors a list of generalized Fixes
+   */
+  fun IntentionSyntax.ktIntention(
+    action: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
+    isApplicableForCodeFragment: Boolean = false,
+    actionsForAll: (diagnostics: List<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
+  ): KotlinSingleIntentionActionFactory =
+    object : KotlinSingleIntentionActionFactory() {
+      override fun createAction(diagnostic: Diagnostic): IntentionAction? =
+        action(diagnostic)
+
+      override fun doCreateActionsForAllProblems(sameTypeDiagnostics: Collection<Diagnostic>): List<IntentionAction> =
+        actionsForAll(sameTypeDiagnostics.toList())
+
+      override fun isApplicableForCodeFragment(): Boolean =
+        isApplicableForCodeFragment
     }
 }
 
