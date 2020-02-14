@@ -121,7 +121,8 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
             // the docs of afterVfsChange states: "The implementations should be as fast as possible"
             // therefore we're moving this operation into the background
-            refreshCache(relevantFiles.toKtFiles(project), resetCache = false, backgroundTask = false)
+            // fixme handle background
+            refreshCache(relevantFiles.toKtFiles(project), resetCache = false)
           }
         }
       }
@@ -161,7 +162,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
       // move this into the background to avoid blocking the editor
       // document listeners should be as fast as possible
-      refreshCache(listOf(psiFile), resetCache = false, backgroundTask = true)
+      pool.submit {
+        refreshCache(listOf(psiFile), resetCache = false)
+      }
     }
   }
 
@@ -175,7 +178,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         val files = readAction {
           project.collectAllKtFiles()
         }
-        refreshCache(files, resetCache = true, backgroundTask = false)
+        refreshCache(files, resetCache = true)
       }
     }
   }
@@ -190,89 +193,81 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, backgroundTask: Boolean = true) {
+  private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true) {
     if (updatedFiles.isEmpty()) {
       return
     }
 
-    val task = {
-      // fixme execute under progressManager?
-      val transformed = ReadAction.compute<List<Pair<KtFile, KtFile>>, Exception> {
-        val start = System.currentTimeMillis()
-        try {
-          transformFiles(updatedFiles)
-        } catch (e: Exception) {
-          LOG.warn("error transforming files $updatedFiles. Falling back to empty transformation.", e)
-          emptyList()
-        } finally {
-          val duration = System.currentTimeMillis() - start
-          LOG.warn("kt file transformation: %d files, duration %d ms".format(updatedFiles.size, duration))
-        }
-      }
-
-      // update the resolved data as soon as index access is possible
-      // fixme protect against multiple transformations at once
-      // fixme this might be delayed, make sure we're handling this correctly with a test
-      DumbService.getInstance(project).runReadActionInSmartMode {
-        if (resetCache) {
-          metaCache.clear()
-        }
-
-        LOG.info("resolving descriptors of transformed files: ${metaCache.size} files")
-        if (updatedFiles.isNotEmpty()) {
-          // clear descriptors of all updatedFiles, which don't have a transformation result
-          // e.g. because no meta-code is used anymore
-          // fixme atm a transformation of a .kt file with syntax errors also returns an empty list of transformations
-          //    we probably need to handle this, otherwise files with errors will always have unresolved references
-          //    best would be partial transformation results for the valid parts of a file (Quote system changes needed)
-
-          // fixme this lookup is slow (exponential?), optimize when necesary
-          for (source in updatedFiles) {
-            if (!transformed.any { it.first == source }) {
-              metaCache.removeTransformations(source)
-            }
-          }
-
-          // the kotlin facade needs files with source and target elements
-          val kotlinCache = KotlinCacheService.getInstance(project)
-          val facade = kotlinCache.getResolutionFacade(updatedFiles + transformed.map { it.second })
-
-          // fixme: remove descriptors which belong to the newly transformed files
-          transformed.forEach { (sourceFile, transformedFile) ->
-            // fixme this triggers a resolve which already queries our synthetic resolve extensions
-            val synthDescriptors = transformedFile.declarations.mapNotNull {
-              val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
-              if (desc.isMetaSynthetic()) desc else null
-            }
-
-            if (synthDescriptors.isNotEmpty()) {
-              synthDescriptors.forEach { synthDescriptor ->
-                try {
-                  // fixme this triggers a call to the .resolved()
-                  //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
-                  if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
-                } catch (e: IndexNotReadyException) {
-                  LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
-                }
-              }
-            }
-
-            metaCache.updateTransformations(sourceFile, transformedFile, synthDescriptors)
-          }
-
-          // refresh the highlighting of editors of modified files, using the new cache
-          for ((originalPsiFile, _) in transformed) {
-            DaemonCodeAnalyzer.getInstance(project).restart(originalPsiFile)
-          }
-        }
+    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${metaCache.size} files")
+    val transformed = ReadAction.compute<List<Pair<KtFile, KtFile>>, Exception> {
+      val start = System.currentTimeMillis()
+      try {
+        transformFiles(updatedFiles)
+      } catch (e: IllegalStateException) {
+        // usually caused by syntax error, thrown by quote system
+        LOG.warn("error transforming files $updatedFiles. Falling back to empty transformation.", e)
+        emptyList()
+      } finally {
+        val duration = System.currentTimeMillis() - start
+        LOG.warn("kt file transformation: %d files, duration %d ms".format(updatedFiles.size, duration))
       }
     }
 
-    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${metaCache.size} files")
-    if (backgroundTask) {
-      pool.submit(task)
-    } else {
-      task()
+    // update the resolved data as soon as index access is possible
+    // fixme protect against multiple transformations at once
+    // fixme this might be delayed, make sure we're handling this correctly with a test
+    DumbService.getInstance(project).runReadActionInSmartMode {
+      if (resetCache) {
+        metaCache.clear()
+      }
+
+      LOG.info("resolving descriptors of transformed files: ${metaCache.size} files")
+      if (updatedFiles.isNotEmpty()) {
+        // clear descriptors of all updatedFiles, which don't have a transformation result
+        // e.g. because no meta-code is used anymore
+        // fixme atm a transformation of a .kt file with syntax errors also returns an empty list of transformations
+        //    we probably need to handle this, otherwise files with errors will always have unresolved references
+        //    best would be partial transformation results for the valid parts of a file (Quote system changes needed)
+
+        // fixme this lookup is slow (exponential?), optimize when necesary
+        for (source in updatedFiles) {
+          if (!transformed.any { it.first == source }) {
+            metaCache.removeTransformations(source)
+          }
+        }
+
+        // the kotlin facade needs files with source and target elements
+        val kotlinCache = KotlinCacheService.getInstance(project)
+        val facade = kotlinCache.getResolutionFacade(updatedFiles + transformed.map { it.second })
+
+        // fixme: remove descriptors which belong to the newly transformed files
+        transformed.forEach { (sourceFile, transformedFile) ->
+          // fixme this triggers a resolve which already queries our synthetic resolve extensions
+          val synthDescriptors = transformedFile.declarations.mapNotNull {
+            val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
+            if (desc.isMetaSynthetic()) desc else null
+          }
+
+          if (synthDescriptors.isNotEmpty()) {
+            synthDescriptors.forEach { synthDescriptor ->
+              try {
+                // fixme this triggers a call to the .resolved()
+                //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
+                if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
+              } catch (e: IndexNotReadyException) {
+                LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
+              }
+            }
+          }
+
+          metaCache.updateTransformations(sourceFile, transformedFile, synthDescriptors)
+        }
+
+        // refresh the highlighting of editors of modified files, using the new cache
+        for ((originalPsiFile, _) in transformed) {
+          DaemonCodeAnalyzer.getInstance(project).restart(originalPsiFile)
+        }
+      }
     }
   }
 
@@ -343,7 +338,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   @TestOnly
   fun forceRebuild() {
     reset()
-    refreshCache(project.collectAllKtFiles(), backgroundTask = false)
+    refreshCache(project.collectAllKtFiles())
     flush()
   }
 
