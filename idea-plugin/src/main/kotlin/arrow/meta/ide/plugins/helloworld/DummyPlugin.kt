@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
- * The following section exemplifies a Hello World Ide Plugin
+ * The following section exemplifies a Hello World IDE Plugin
  *
  * The Hello World plugin registers a LineMarker on every `helloWorld` function.
  *
@@ -33,10 +33,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
  *    }
  * ```
  *
- * For every function with the name `helloWorld`, our ide plugin will register a lineMarker with our custom icon. And whenever
+ * For every function with the name `helloWorld`, our IDE plugin will register a lineMarker with our custom icon. And whenever
  * the user hovers over the Icon, it will display the message.
  * @see [LineMarkerSyntax]
- * @sample [helloWorld]
  */
 val IdeMetaPlugin.helloWorld: Plugin // TODO: Add Animation or example picture
   get() = "Hello World" {

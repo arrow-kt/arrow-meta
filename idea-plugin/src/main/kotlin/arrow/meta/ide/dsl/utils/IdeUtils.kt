@@ -14,17 +14,20 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
 import org.jetbrains.kotlin.idea.fir.getOrBuildFir
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -97,6 +100,13 @@ fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: Kotli
  */
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
+
+/**
+ * returns the [BindingContext] for a successfully resolved file after Analysis
+ */
+internal val KtFile.ctx: BindingContext?
+  get() = analyzeWithAllCompilerChecks()
+    .takeIf { !it.isError() }?.bindingContext
 
 /**
  * Renders descriptors with the specified options
