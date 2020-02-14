@@ -8,18 +8,22 @@ import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
 import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -77,6 +81,8 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         }
       }
     }
+
+    private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
   }
 
   private val metaCache: MetaTransformationCache = DefaultMetaTransformationCache()
@@ -85,6 +91,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
   private val pool: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
+  private val docUpdaterPool: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
 
   private val editorUpdateQueue = MergingUpdateQueue("arrow doc worker", 300, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
 
@@ -123,8 +130,26 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : BulkAwareDocumentListener.Simple {
       override fun afterDocumentChange(document: Document) {
         editorUpdateQueue.queue(Update.create(document) {
-          readAction {
-            onDocUpdate(document)
+          //  cancel ongoing updates of the same document
+          KEY_DOC_UPDATE.get(document)?.let {
+            KEY_DOC_UPDATE.set(document, null)
+            it.cancel()
+          }
+
+          val indicator: ProgressIndicator = EmptyProgressIndicator(ModalityState.NON_MODAL)
+          KEY_DOC_UPDATE.set(document, indicator)
+
+          if (ApplicationManager.getApplication().isUnitTestMode) {
+            readAction {
+              onDocUpdate(document)
+            }
+          } else {
+            ReadAction.nonBlocking {
+              onDocUpdate(document)
+            }.cancelWith(indicator)
+              .expireWhen(indicator::isCanceled)
+              .expireWith(this@QuoteSystemCache)
+              .submit(docUpdaterPool)
           }
         })
       }
