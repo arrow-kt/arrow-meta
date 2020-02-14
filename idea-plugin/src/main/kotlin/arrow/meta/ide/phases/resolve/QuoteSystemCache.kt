@@ -10,13 +10,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
-import com.intellij.openapi.progress.PerformInBackgroundOption
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.editor.event.BulkAwareDocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -32,6 +30,11 @@ import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
+import com.intellij.testFramework.LightVirtualFile
+import com.intellij.util.Alarm
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -46,7 +49,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
@@ -82,7 +84,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
-  private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
+  private val pool: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
+
+  private val editorUpdateQueue = MergingUpdateQueue("arrow doc worker", 300, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
 
   override fun initComponent() {
     // register an async file listener.
@@ -123,30 +127,42 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       }
     }, this)
 
-    EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        val doc = event.document
-        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
-
-        if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
-          val vFile = psiFile.virtualFile
-          if (vFile.isRelevantFile() && FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
-            LOG.info("transforming ${psiFile.name} after change in editor")
-            // fixme avoid this, this slows down the editor.
-            //  it would be better to take the text and send the text content to the quote system
-            // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
-            //   but doesn't fail in tests
-            if (ApplicationManager.getApplication().isWriteAccessAllowed) {
-              PsiDocumentManager.getInstance(project).commitDocument(doc)
-            }
-
-            // move this into the background to avoid blocking the editor
-            // document listeners should be as fast as possible
-            refreshCache(listOf(psiFile), resetCache = false, backgroundTask = true)
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : BulkAwareDocumentListener.Simple {
+      override fun afterDocumentChange(document: Document) {
+        editorUpdateQueue.queue(Update.create(document) {
+          readAction {
+            onDocUpdate(document)
           }
-        }
+        })
       }
     }, project)
+  }
+
+  private fun onDocUpdate(doc: Document) {
+    val vFile = FileDocumentManager.getInstance().getFile(doc)
+    if (vFile == null || vFile is LightVirtualFile) {
+      return
+    }
+
+    if (!vFile.isRelevantFile() || !FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
+      return
+    }
+
+    val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
+    if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
+      LOG.info("transforming ${psiFile.name} after change in editor")
+      // fixme avoid this, this slows down the editor.
+      //  it would be better to take the text and send the text content to the quote system
+      // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
+      //   but doesn't fail in tests
+      if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+        PsiDocumentManager.getInstance(project).commitDocument(doc)
+      }
+
+      // move this into the background to avoid blocking the editor
+      // document listeners should be as fast as possible
+      refreshCache(listOf(psiFile), resetCache = false, backgroundTask = true)
+    }
   }
 
   override fun projectOpened() {
@@ -154,15 +170,13 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     // fixme sometimes initially opened files still show errors.
     //  This seems to be a timing issue between cache update and initial update.
     StartupManager.getInstance(project).runWhenProjectIsInitialized {
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-        override fun run(indicator: ProgressIndicator) {
-          LOG.info("Initializing quote system cache...")
-          val files = readAction {
-            project.collectAllKtFiles()
-          }
-          refreshCache(files, resetCache = true, backgroundTask = false)
+      runBackgroundableTask("Arrow Meta", project, cancellable = false) {
+        LOG.info("Initializing quote system cache...")
+        val files = readAction {
+          project.collectAllKtFiles()
         }
-      })
+        refreshCache(files, resetCache = true, backgroundTask = false)
+      }
     }
   }
 
@@ -195,20 +209,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           LOG.warn("kt file transformation: %d files, duration %d ms".format(updatedFiles.size, duration))
         }
       }
-
-      // debugging code to temporarily write transformed data to disk, next to the source file
-      /*if (transformed.isNotEmpty()) {
-        if (!ApplicationManager.getApplication().isUnitTestMode) {
-          ApplicationManager.getApplication().invokeLater {
-            WriteAction.run<Exception> {
-              transformed.forEach { (original, transformed) ->
-                val metaFile = original.virtualFile.parent.findOrCreateChildData(this, transformed.name + ".txt")
-                metaFile.setBinaryContent(transformed.text.toByteArray())
-              }
-            }
-          }
-        }
-      }*/
 
       // update the resolved data as soon as index access is possible
       // fixme protect against multiple transformations at once
