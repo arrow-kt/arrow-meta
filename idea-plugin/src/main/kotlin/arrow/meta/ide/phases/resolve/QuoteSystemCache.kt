@@ -99,11 +99,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
         val relevantFiles: List<VirtualFile> = events.mapNotNull {
           val file = it.file
-          if (it !is VFileContentChangeEvent || it !is VFileMoveEvent || it !is VFileCopyEvent) {
-            return null
-          }
-
-          if (file != null && file.isRelevantFile()) {
+          if (it is VFileContentChangeEvent && it is VFileMoveEvent && it is VFileCopyEvent && file != null && file.isRelevantFile()) {
             file
           } else {
             null
@@ -118,10 +114,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           override fun afterVfsChange() {
             LOG.info("afterVfsChange")
             // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-
-            // the docs of afterVfsChange states: "The implementations should be as fast as possible"
-            // therefore we're moving this operation into the background
-            // fixme handle background
             refreshCache(relevantFiles.toKtFiles(project), resetCache = false)
           }
         }
@@ -162,9 +154,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
       // move this into the background to avoid blocking the editor
       // document listeners should be as fast as possible
-      pool.submit {
-        refreshCache(listOf(psiFile), resetCache = false)
-      }
+      refreshCache(listOf(psiFile), resetCache = false)
     }
   }
 
@@ -194,6 +184,13 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
   private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true) {
+    // limit to the pool to avoid cache corruption
+    pool.submit {
+      doRefreshCache(updatedFiles, resetCache)
+    }
+  }
+
+  private fun doRefreshCache(updatedFiles: List<KtFile>, resetCache: Boolean) {
     if (updatedFiles.isEmpty()) {
       return
     }
@@ -344,6 +341,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   @TestOnly
   fun flush() {
+    editorUpdateQueue.flush()
     pool.submit { }.get(5000, TimeUnit.MILLISECONDS)
   }
 }
