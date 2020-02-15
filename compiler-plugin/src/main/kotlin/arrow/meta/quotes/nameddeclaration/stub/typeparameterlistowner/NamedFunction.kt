@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *          namedFunction({ true }) { typeParameterListOwner ->
  *            Transform.replace(
  *              replacing = typeParameterListOwner,
- *              newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
+ *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
  *            )
  *          }
  *        )
@@ -59,7 +59,7 @@ class NamedFunction(
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
 ) : TypeParameterListOwner<KtNamedFunction>(value) {
     override fun ElementScope.identity(): Scope<KtNamedFunction> {
-        return """ $modifiers fun $name $`(params)` $returnType = $body""".function
+        return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
     }
 }
 

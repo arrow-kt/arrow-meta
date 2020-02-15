@@ -16,6 +16,8 @@ class NamedFunctionTest {
 
         private val helloWorldInlineFunction = """ private inline fun helloWorld(): String = "Hello ΛRROW Meta!" """.namedFunction()
 
+        private val extensionFunction = """ fun Int.identity() = this """.namedFunction()
+
         private fun String.namedFunction(): Code.Source {
             return """
       | //metadebug
@@ -40,6 +42,11 @@ class NamedFunctionTest {
     @Test
     fun `function with modality modifier`() {
         validate(helloWorldInlineFunction)
+    }
+
+    @Test
+    fun `extension function`() {
+        validate(extensionFunction)
     }
 
     private fun validate(source: Code.Source) {
