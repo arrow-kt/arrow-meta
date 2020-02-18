@@ -28,15 +28,15 @@ class MetaRegistrar : ApplicationInitializedListener {
 private fun <A> Application.register(topic: Topic<A>, vararg listeners: A): Unit =
   listeners.toList().forEach { messageBus.connect(this).subscribe(topic, it) }
 
+private val metaPlugin = IdeMetaPlugin()
+
 /**
  * This extension registers a MetaPlugin for a given project.
  */
 private val metaProjectRegistrar: ProjectLifecycleListener
   get() = object : ProjectLifecycleListener, Disposable {
-    val metaPlugin = IdeMetaPlugin()
-    val LOG = Logger.getInstance("#arrow.metaProjectRegistrar")
-
     override fun projectComponentsInitialized(project: Project) {
+      val LOG = Logger.getInstance("#arrow.metaProjectRegistrarInProject:${project.name}")
       LOG.info("beforeProjectLoaded:${project.name}")
       val start = System.currentTimeMillis()
       val configuration = CompilerConfiguration()
