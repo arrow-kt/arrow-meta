@@ -18,12 +18,6 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
-    <project-components>
-        <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
-        </component>
-    </project-components>
-
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
     </extensions>
