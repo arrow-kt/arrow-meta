@@ -1,11 +1,8 @@
 package arrow.meta.ide.phases.resolve
 
-import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
-import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -49,53 +46,57 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 
-val quoteSystemCache: ProjectLifecycleListener
-  get() = object : ProjectLifecycleListener, Disposable {
-    override fun projectComponentsInitialized(project: Project): Unit =
-      QuoteSystemCache(project).initComponent()
+val quoteSystemCache: (QuoteSystemService) -> ProjectLifecycleListener
+  get() = { service ->
+    object : ProjectLifecycleListener, Disposable {
+      override fun projectComponentsInitialized(project: Project): Unit =
+        QuoteSystemCache(project).initComponent()
 
-    override fun beforeProjectLoaded(project: Project): Unit {
-      // Add optimizations if needed
-    }
+      override fun beforeProjectLoaded(project: Project): Unit {
+        // Add optimizations if needed
+      }
 
-    override fun afterProjectClosed(project: Project) {
-      super.afterProjectClosed(project)
-    }
+      override fun afterProjectClosed(project: Project) {
+        super.afterProjectClosed(project)
+      }
 
-    override fun postStartupActivitiesPassed(project: Project) {
-      super.postStartupActivitiesPassed(project)
-    }
+      override fun postStartupActivitiesPassed(project: Project) {
+        super.postStartupActivitiesPassed(project)
+      }
 
-    override fun dispose() {
-      TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+      override fun dispose() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+      }
     }
   }
 
+/**
+ * project level service with quote cache
+ */
 interface QuoteSystemService {
   /**
    * current project cache
    */
-  // val cache: MetaTransformationCache explicit dependency of a function
+  val cache: QuoteCache
 
   /**
-   * transforms all files in [src] and
+   * transforms all files in the receiver
    * @returns a List of transformed files (OldFile, NewFile)
    * @param extensions registered for quotes
    */
-  fun transform(src: List<KtFile>, project: Project, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>>
+  fun transform(files: List<KtFile>, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>>
 
-  companion object {
-    fun defaultInstance(): QuoteSystemService =
-      object : QuoteSystemService {
-        override val cache: MetaTransformationCache
-          get() = DefaultMetaTransformationCache()
-      }
-  }
+  /**
+   * refreshes [cache] with as its concurrent environment
+   */
+  fun ExecutorService.refreshCache(refresh: (files: List<KtFile>) -> Unit, resetCache: Boolean = true, backgroundTask: Boolean = true): Future<Unit>
 }
+
 
 /**
  * QuoteSystemCache is a project component which manages the transformations of KtFiles by the quote system.
@@ -335,8 +336,8 @@ class QuoteSystemCache(private val project: Project) : Disposable {
 
     // fixme is scope correct here? Unsure what CompilerContext is expecting here
     // fixme do we need to set more properties of the compiler context?
-    val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = sourceFiles
+    //val context = CompilerContext(project, messages, ElementScope.default(project))
+    //context.files = sourceFiles
 
     val resultFiles = arrayListOf<KtFile>()
     resultFiles.addAll(sourceFiles)
@@ -357,10 +358,10 @@ class QuoteSystemCache(private val project: Project) : Disposable {
       LOG.warn("created transformations for all quotes: duration $allDuration ms")
 
       val start = System.currentTimeMillis()
-      try {
+      try { // no need
         // this replaces the entries of resultFiles with transformed files, if transformations apply.
         // a file may be transformed multiple times
-        context.updateFiles(resultFiles, mutations, ext.match)
+        //context.updateFiles(resultFiles, mutations, ext.match)
       } finally {
         val updateDuration = System.currentTimeMillis() - start
         LOG.warn("update of ${resultFiles.size} files with ${mutations.size} mutations: duration $updateDuration ms")

@@ -3,9 +3,12 @@ package arrow.meta.ide.phases.resolve
 import arrow.meta.quotes.ktFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 /**
  * Cache interface.
@@ -51,6 +54,48 @@ interface MetaTransformationCache {
    */
   fun clear()
 }
+
+/**
+ * transformed KtFile and its declarations
+ */
+typealias QuotedFile = Pair<KtFile, List<DeclarationDescriptor>>
+
+/**
+ * a QuoteCache instance is a record type or data structure over the source files it operates over
+ */
+interface QuoteCache {
+
+  /**
+   * [cache] includes the original files, which are the `keys`, with their transformed files and new descriptors [QuotedFile] `values`.
+   */
+  val cache: ConcurrentMap<KtFile, QuotedFile>
+
+  fun clearCache(): Unit =
+    cache.clear()
+
+  fun removeQuotedFile(file: KtFile): QuotedFile? =
+    cache.remove(file)
+
+  fun update(origin: KtFile, transformed: QuotedFile): Unit {
+    cache[origin] = transformed
+  }
+
+  companion object {
+    /**
+     * @param transformedFiles contains files before the quote transformation `keys` and after `value`
+     */
+    fun default(cache: ConcurrentHashMap<KtFile, QuotedFile> = ConcurrentHashMap()): QuoteCache =
+      object : QuoteCache {
+        override val cache: ConcurrentMap<KtFile, QuotedFile> = cache
+      }
+  }
+} // packageList, containsSourceFile can be derived through keys
+
+/**
+ * returns the [DeclarationDescriptor]s
+ */
+fun descriptors(files: List<KtFile>, facade: ResolutionFacade, resolveMode: BodyResolveMode = BodyResolveMode.PARTIAL): List<Pair<KtFile, List<DeclarationDescriptor>>> =
+  files.map { file -> file to file.declarations.mapNotNull { facade.resolveToDescriptor(it, resolveMode) } }
 
 class DefaultMetaTransformationCache : MetaTransformationCache {
   // fixme must not be used in production, because caching PsiElement this way is bad
