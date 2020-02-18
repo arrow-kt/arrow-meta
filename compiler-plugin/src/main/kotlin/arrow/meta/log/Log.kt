@@ -13,6 +13,6 @@ operator fun <A> Log.invoke(
 ): A =
   if (this is Log.Verbose) {
     val (time, result) = measureTimeMillisWithResult(f)
-    println("${tag(result)} : [${time}ms]: $result")
+    println("${tag(result)} : [${time}ms]")
     result
   } else f()

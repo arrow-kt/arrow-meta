@@ -87,5 +87,7 @@ enum class TypeProof {
 @Target(AnnotationTarget.FUNCTION)
 @MustBeDocumented
 annotation class Proof(
-  val of: TypeProof
+  val of: TypeProof,
+  val refined: Array<String> = [],
+  val coerce: Boolean = true
 )

@@ -7,9 +7,14 @@ import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.load.java.descriptors.StringDefaultValue
+import org.jetbrains.kotlin.load.java.descriptors.getDefaultValueFromAnnotation
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.GivenCandidate
@@ -19,16 +24,20 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
+import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
+import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import kotlin.math.exp
 
 fun List<Proof>.matchingCandidates(
   compilerContext: CompilerContext,
@@ -131,4 +140,19 @@ fun FunctionDescriptor.asProof(): Proof? =
       }
     }
   }
+
+fun List<Proof>.refinementsFor(superType: KotlinType): List<Proof> =
+  filter { proof ->
+    baseLineTypeChecker.isSubtypeOf(superType.makeNotNullable(), proof.to)
+  }
+
+fun List<Proof>.refinementExpressionFor(superType: KotlinType): String? =
+  refinementsFor(superType)
+    .mapNotNull {
+      val refinedAnnotation = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.annotations?.findAnnotation(FqName("arrow.Refinement"))
+      if (refinedAnnotation != null) {
+        refinedAnnotation.argumentValue("predicate")?.value as? String
+      } else null
+    }.firstOrNull()
+
 

@@ -22,12 +22,12 @@ object StringMonoid : Monoid<String> {
   override fun empty(): String = ""
 }
 
-inline class StringSyntax(override val value: String): Semigroup.Syntax<String> {
+inline class StringSyntax(override val value: String) : Semigroup.Syntax<String> {
   override fun combine(other: String): String = value + other
 }
 
 @Proof(TypeProof.Extension)
-fun String.Companion.monoid(): Monoid<String> = StringMonoid
+internal fun String.Companion.monoid(): Monoid<String> = StringMonoid
 
 @Proof(TypeProof.Extension)
 fun String.semigroupSyntax(): Semigroup.Syntax<String> = StringSyntax(this)

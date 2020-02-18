@@ -37,11 +37,6 @@ fun FunctionDescriptor.isProof(): Boolean =
 fun CompilerContext.extending(types: Collection<KotlinType>): List<Proof> =
   types.flatMap { extensionProofs(it, it.constructor.builtIns.nullableAnyType) }
 
-fun CompilerContext.provenIntersection(subType: KotlinType): KotlinType =
-  extensionProofs(subType, subType.constructor.builtIns.nullableAnyType)
-    .map { it.to }
-    .let { subType.intersection(*it.toTypedArray()) }
-
 fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<CallableMemberDescriptor> =
   to.memberScope
     .getContributedDescriptors(nameFilter = descriptorNameFilter)
@@ -53,7 +48,8 @@ fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): 
   extensionProofs(subType, superType).firstOrNull()
 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
-  module.proofs.filter { it.proofType == ProofStrategy.Extension }.matchingCandidates(this, subType, superType)
+  module.proofs.filter { it.proofType == ProofStrategy.Extension }
+    .matchingCandidates(this, subType, superType)
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =

@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.types.KotlinType
 import java.util.concurrent.ConcurrentHashMap
 
 data class ProofsCache(
@@ -37,7 +38,7 @@ internal fun ModuleDescriptor.initializeProofCache(): List<Proof> {
 }
 
 private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
-  Log.Verbose({"Recomputed cache proofs: ${size}, module cache size: ${proofCache.size}"}) {
+  Log.Verbose({ "Recomputed cache proofs: ${size}, module cache size: ${proofCache.size}, \n ${show()}" }) {
     (getSubPackagesOf(FqName.ROOT) { true })
       .filter { !it.isRoot }
       .flatMap { packageName ->
@@ -46,4 +47,16 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
           .filter(FunctionDescriptor::isProof)
           .mapNotNull(FunctionDescriptor::asProof)
       }.synthetic()
+  }
+
+private fun KotlinType.show(length: Int): String {
+  val display = toString()
+  return if (display.length <= length) display
+  else "${display.substring(0, length)}..."
+}
+
+
+private fun List<Proof>.show(): String =
+  joinToString("\n") {
+    "${it.from.show(20)} -> ${it.proofType.name} -> ${it.to.show(20)}"
   }

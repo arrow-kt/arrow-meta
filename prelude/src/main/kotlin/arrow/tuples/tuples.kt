@@ -1,5 +1,6 @@
 package arrow.tuples
 
+import arrow.`🔥`
 import arrow.`🚫`
 
 /**
@@ -32,6 +33,10 @@ import arrow.`🚫`
  *                                   "'-._  _/  /lka
  *                                        ./   /-.
  *                                         /// */
+interface TupleN {
+  val value: Array<Any?>
+}
+typealias Tuple1<A> = Tuple2<A, `🚫`>
 typealias Tuple2<A, B> = Tuple3<A, B, `🚫`>
 typealias Tuple3<A, B, C> = Tuple4<A, B, C, `🚫`>
 typealias Tuple4<A, B, C, D> = Tuple5<A, B, C, D, `🚫`>
@@ -52,53 +57,46 @@ typealias Tuple18<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R> = Tuple1
 typealias Tuple19<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S> = Tuple20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, `🚫`>
 typealias Tuple20<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T> = Tuple21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, `🚫`>
 typealias Tuple21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U> = Tuple22<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, `🚫`>
-interface Tuple22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> {
-  val value: Array<Any?>
-  operator fun component1(): A
-  operator fun component2(): B
-  operator fun component3(): C
-  operator fun component4(): D
-  operator fun component5(): E
-  operator fun component6(): F
-  operator fun component7(): G
-  operator fun component8(): H
-  operator fun component9(): I
-  operator fun component10(): J
-  operator fun component11(): K
-  operator fun component12(): L
-  operator fun component13(): M
-  operator fun component14(): N
-  operator fun component15(): O
-  operator fun component16(): P
-  operator fun component17(): Q
-  operator fun component18(): R
-  operator fun component19(): S
-  operator fun component20(): T
-  operator fun component21(): U
-  operator fun component22(): V
+
+@Suppress("UNCHECKED_CAST")
+interface Tuple22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> : TupleN {
+  operator fun component1(): A = value[0] as A
+  operator fun component2(): B = value[0] as B
+  operator fun component3(): C = value[0] as C
+  operator fun component4(): D = value[0] as D
+  operator fun component5(): E = value[0] as E
+  operator fun component6(): F = value[0] as F
+  operator fun component7(): G = value[0] as G
+  operator fun component8(): H = value[0] as H
+  operator fun component9(): I = value[0] as I
+  operator fun component10(): J = value[0] as J
+  operator fun component11(): K = value[0] as K
+  operator fun component12(): L = value[0] as L
+  operator fun component13(): M = value[0] as M
+  operator fun component14(): N = value[0] as N
+  operator fun component15(): O = value[0] as O
+  operator fun component16(): P = value[0] as P
+  operator fun component17(): Q = value[0] as Q
+  operator fun component18(): R = value[0] as R
+  operator fun component19(): S = value[0] as S
+  operator fun component20(): T = value[0] as T
+  operator fun component21(): U = value[0] as U
+  operator fun component22(): V = value[0] as V
 }
 
-inline class Tupled(override val value: Array<Any?>) : Tuple22<Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?, Any?> {
-  override fun component1(): Any? = value[0]
-  override fun component2(): Any? = value[1]
-  override fun component3(): Any? = value[2]
-  override fun component4(): Any? = value[3]
-  override fun component5(): Any? = value[4]
-  override fun component6(): Any? = value[5]
-  override fun component7(): Any? = value[6]
-  override fun component8(): Any? = value[7]
-  override fun component9(): Any? = value[8]
-  override fun component10(): Any? = value[9]
-  override fun component11(): Any? = value[10]
-  override fun component12(): Any? = value[11]
-  override fun component13(): Any? = value[12]
-  override fun component14(): Any? = value[13]
-  override fun component15(): Any? = value[14]
-  override fun component16(): Any? = value[15]
-  override fun component17(): Any? = value[16]
-  override fun component18(): Any? = value[17]
-  override fun component19(): Any? = value[18]
-  override fun component20(): Any? = value[19]
-  override fun component21(): Any? = value[20]
-  override fun component22(): Any? = value[21]
-}
+inline class Tupled(override val value: Array<Any?>) : Tuple22<`🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`>
+
+fun <A, B> tupled(a: A, b: B): Tuple2<A, B> =
+  Tupled(arrayOf(a, b))
+
+fun <A, B, C> tupled(a: A, b: B, c: C): Tuple3<A, B, C> =
+  Tupled(arrayOf(a, b, c))
+
+fun <A, B, C, D> tupled(a: A, b: B, c: C, d: D): Tuple4<A, B, C, D> =
+  Tupled(arrayOf(a, b, c, d))
+
+fun <A, B, C, D, E> tupled(a: A, b: B, c: C, d: D, e: E): Tuple5<A, B, C, D, E> =
+  Tupled(arrayOf(a, b, c, d, e))
+
+fun <A, B, C, D, E, F> tupled(a: A, b: B, c: C, d: D, e: E, f: F): Tuple6<A, B, C, D, E, F> =
+  Tupled(arrayOf(a, b, c, d, e, f))
