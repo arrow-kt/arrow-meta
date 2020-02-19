@@ -5,6 +5,7 @@ import com.tschuchort.compiletesting.KotlinCompilation.Result
 import org.assertj.core.api.Assertions.assertThat
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -176,7 +177,8 @@ private fun call(className: String, expression: String, classesDirectory: File):
   val method = expressionParts[0]
   val property = expressionParts[1].removePrefix(".")
 
-  val resultForMethodCall: Any? = classLoader.loadClass(className).getMethod(method).invoke(null)
+  val fullClassName = getFullClassName(classesDirectory, className)
+  val resultForMethodCall: Any? = classLoader.loadClass(fullClassName).getMethod(method).invoke(null)
   return when {
     property.isNullOrBlank() -> resultForMethodCall
     else -> resultForMethodCall?.javaClass?.getMethod("get${property.capitalize()}")?.invoke(resultForMethodCall)
@@ -185,7 +187,14 @@ private fun call(className: String, expression: String, classesDirectory: File):
 
 private fun eval(className: String, expression: String, classesDirectory: File): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
-  val field = classLoader.loadClass(className).getDeclaredField(expression)
+  val fullClassName = getFullClassName(classesDirectory, className)
+  val field = classLoader.loadClass(fullClassName).getDeclaredField(expression)
   field.isAccessible = true
   return field.get(Object())
 }
+
+private fun getFullClassName(classesDirectory: File, className: String): String =
+  Files.walk(Paths.get(classesDirectory.toURI())).filter { it.toFile().name == "$className.class" }.toArray()[0].toString()
+    .removePrefix(classesDirectory.absolutePath + File.separator)
+    .removeSuffix(".class")
+    .replace(File.separator, ".")

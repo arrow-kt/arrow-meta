@@ -39,6 +39,24 @@ class ExampleTest {
   }
 
   @Test
+  fun `check an expression evaluation in a package`() {
+    assertThis(CompilerTest(
+      code = {
+        """
+        | package io.arrow.kt
+        | 
+        | fun hello(): String =
+        |   "Hello world!"
+        | 
+        """.source
+      },
+      assert = {
+        "hello()".source.evalsTo("Hello world!")
+      }
+    ))
+  }
+
+  @Test
   fun `check that fails`() {
     assertThis(CompilerTest(
       code = {
@@ -73,7 +91,24 @@ class ExampleTest {
     assertThis(CompilerTest(
       code = {
         """
-        |
+        | 
+        | val x: String = "Hello world!"
+        | 
+        """.source
+      },
+      assert = {
+        "x".source.evalsTo("Hello world!")
+      }
+    ))
+  }
+
+  @Test
+  fun `eval a variable in a package`() {
+    assertThis(CompilerTest(
+      code = {
+        """
+        | package test
+        | 
         | val x: String = "Hello world!"
         | 
         """.source
