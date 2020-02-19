@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.editor.inspection
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
   // TODO: Add more General `Inspection's` can be build with [org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
+  // TODO: for more inspiration LocalQuickFixOnPsiElement
 
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
@@ -132,7 +134,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   /**
    * registers a LocalInspection.
-   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is unsurprisingly a SubType of both [GlobalInspectionTool] and [LocalInspectionTool].
+   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is a Subtype of both [GlobalInspectionTool] and [LocalInspectionTool].
    * @param groupDisplayName The displayed groupName in the user settings for Inspections.
    * @param groupPath The specified path where your Inspection is located. Use Strings without spacing.
    * @param shortName The displayed text, whenever [inspectionTool] is applicable.
@@ -158,14 +160,14 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    */
   fun IdeMetaPlugin.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): ExtensionPhase =
     extensionProvider(
       LanguageInspectionSuppressors.INSTANCE,
       inspectionSuppressor(suppressFor, suppressAction)
     )
 
-  fun InspectionSyntax.supressQuickFix(
+  fun InspectionSyntax.suppressQuickFix(
     name: String,
     familyName: String,
     applyFix: (project: Project, descriptor: ProblemDescriptor) -> Unit,
@@ -216,11 +218,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   fun InspectionSyntax.inspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): InspectionSuppressor =
     object : InspectionSuppressor {
       override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> =
-        suppressAction(element, toolId)
+        suppressAction(element, toolId).toTypedArray()
 
       override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean =
         suppressFor(element, toolId)

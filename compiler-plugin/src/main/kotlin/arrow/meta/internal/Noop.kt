@@ -1,6 +1,7 @@
 package arrow.meta.internal
 
 object Noop {
+  val effect0: () -> Unit = {}
   val effect1: (Any?) -> Unit = { _ -> Unit }
   val effect2: (Any?, Any?) -> Unit = { _, _ -> Unit }
   val effect3: (Any?, Any?, Any?) -> Unit = { _, _, _ -> Unit }
@@ -25,4 +26,5 @@ object Noop {
   val boolean2False: (Any?, Any?) -> Boolean = { _, _ -> false }
   val boolean3True: (Any?, Any?, Any?) -> Boolean = { _, _, _ -> true }
   fun <A> string1(): (A) -> String = { _ -> "" }
+  fun <A, B> string2(): (A, B) -> String = { _, _ -> "" }
 }

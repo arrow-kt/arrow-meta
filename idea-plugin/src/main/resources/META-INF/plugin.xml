@@ -20,15 +20,16 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
-        </component>
-        <component>
             <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
         </component>
 <!--        <component>-->
 <!--            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsKotlinCacheService</implementation-class>-->
 <!--        </component>-->
     </project-components>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+    </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>

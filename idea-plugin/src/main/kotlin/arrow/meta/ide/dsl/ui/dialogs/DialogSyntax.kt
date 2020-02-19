@@ -32,12 +32,12 @@ interface DialogSyntax {
    * import arrow.meta.invoke
    * import org.jetbrains.kotlin.idea.KotlinFileType
    *
-   * val IdeMetaPlugin.createf=FilePlugin: Plugin
+   * val IdeMetaPlugin.createFilePlugin: Plugin
    *  get() = "Create File Dialog" {
    *   meta(
    *     addFileAction("ExampleAction", "New File", "Creates a new File",
    *       buildDialog = { project, directory ->
-   *         setTitle("CostumeTitle")
+   *         setTitle("MyTitle")
    *         addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
    *       }
    *      )
