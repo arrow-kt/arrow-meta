@@ -1,12 +1,13 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.dsl.application.projectLifecycleListener
 import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -31,6 +32,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
+import com.jetbrains.rd.util.first
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -44,36 +46,11 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
-
-
-val quoteSystemCache: (QuoteSystemService) -> ProjectLifecycleListener
-  get() = { service ->
-    object : ProjectLifecycleListener, Disposable {
-      override fun projectComponentsInitialized(project: Project): Unit =
-        QuoteSystemCache(project).initComponent()
-
-      override fun beforeProjectLoaded(project: Project): Unit {
-        // Add optimizations if needed
-      }
-
-      override fun afterProjectClosed(project: Project) {
-        super.afterProjectClosed(project)
-      }
-
-      override fun postStartupActivitiesPassed(project: Project) {
-        super.postStartupActivitiesPassed(project)
-      }
-
-      override fun dispose() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-      }
-    }
-  }
 
 /**
  * project level service with quote cache
@@ -84,6 +61,8 @@ interface QuoteSystemService {
    */
   val cache: QuoteCache
 
+  val exec: ExecutorService
+
   /**
    * transforms all files in the receiver
    * @returns a List of transformed files (OldFile, NewFile)
@@ -91,19 +70,111 @@ interface QuoteSystemService {
    */
   fun transform(files: List<KtFile>, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>>
 
+  fun refreshCache(files: List<KtFile>, resetCache: Boolean = true, backgroundTask: Boolean = true): Unit
+
   /**
-   * refreshes [cache] with as its concurrent environment
+   * refreshes [cache] with an [ExecutorService] if [backgroundTask] == true
    */
-  fun ExecutorService.refreshCache(refresh: (files: List<KtFile>) -> Unit, resetCache: Boolean = true, backgroundTask: Boolean = true): Future<Unit>
+  fun computeRefreshCache(files: List<KtFile>, refresh: () -> Unit, resetCache: Boolean = true, backgroundTask: Boolean = true): Unit {
+    if (backgroundTask) exec.submit(refresh) else refresh()
+  }
 }
 
+val quoteSystem: ProjectLifecycleListener
+  get() = projectLifecycleListener(
+    initialize = { project ->
+      project.getService(QuoteSystemService::class.java)?.let { service ->
+        // register an async file listener.
+        // We need to update the transformations of .kt files as soon as they were modified.
+        VirtualFileManager.getInstance().addAsyncFileListener(
+          AsyncFileListener { events: MutableList<out VFileEvent> ->
+            // fixme properly handle remove events
+            // fixme properly handle copy event: file is the source file, transform new file, too
+            val files: List<KtFile> =
+              events
+                .filter { vfile ->
+                  (vfile is VFileContentChangeEvent || vfile is VFileMoveEvent || vfile is VFileCopyEvent)
+                    && vfile.file?.run { isRelevantFile() && isInLocalFileSystem } ?: false
+                }
+                .mapNotNull { it.file }
+                .files(project)
+
+            object : AsyncFileListener.ChangeApplier {
+              override fun afterVfsChange(): Unit {
+                LOG.info("afterVfsChange")
+                // fixme data may have changed between prepareChange and afterVfsChange, take care of this
+                // the docs of afterVfsChange states: "The implementations should be as fast as possible"
+                // therefore we're moving this operation into the background
+                service.refreshCache(files, resetCache = false, backgroundTask = false)
+              }
+            }
+          }, project) // because there is no need to dispose the service
+
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
+          override fun documentChanged(event: DocumentEvent) {
+            val doc: Document = event.document
+            PsiDocumentManager.getInstance(project)?.getPsiFile(doc)
+              ?.safeAs<KtFile>()
+              ?.takeIf {
+                it.isPhysical && !it.isCompiled &&
+                  it.virtualFile?.run {
+                    isRelevantFile() && FileIndexFacade.getInstance(project).isInSourceContent(this)
+                  } ?: false
+              }
+              ?.let { file ->
+                LOG.info("transforming ${file.name} after change in editor")
+                // fixme avoid this, this slows down the editor.
+                //  it would be better to take the text and send the text content to the quote system
+                // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
+                //   but doesn't fail in tests
+                if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+                  PsiDocumentManager.getInstance(project).commitDocument(doc)
+                }
+                // move this into the background to avoid blocking the editor
+                // document listeners should be as fast as possible
+                service.refreshCache(listOf(file), resetCache = false, backgroundTask = true)
+              }
+          }
+        }, project)
+      }
+    },
+    postStartupActivitiesPassed = { project ->
+      // add a startup activity to populate the cache with a transformation of all project files
+      // fixme sometimes initially opened files still show errors.
+      //  This seems to be a timing issue between cache update and initial update.
+      project.getService(QuoteSystemService::class.java)?.let { service ->
+        StartupManager.getInstance(project).runWhenProjectIsInitialized {
+          // TODO: Check reference
+          ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+            override fun run(indicator: ProgressIndicator) {
+              LOG.info("Initializing quote system cache...")
+              val files = readAction {
+                project.quoteRelevantFiles()
+              }
+              service.refreshCache(files, resetCache = true, backgroundTask = false)
+            }
+          })
+        }
+      }
+    },
+    afterProjectClosed = { project ->
+      project.getService(QuoteSystemService::class.java)?.let { service ->
+        try {
+          service.exec.shutdown()
+        } catch (e: Exception) {
+          LOG.warn("error shutting down pool", e)
+        }
+        service.cache.clearCache()
+      }
+    }
+  )
 
 /**
  * QuoteSystemCache is a project component which manages the transformations of KtFiles by the quote system.
  *
  * When initialized, it transforms all .kt files of the project in a background thread.
  */
-class QuoteSystemCache(private val project: Project) : Disposable {
+class QuoteSystemCache(private val project: Project) {
   // TODO: redefine the QuoteSystem as a Service
   // TODO: the cache in QuoteSystemCache is a record type
 
@@ -128,98 +199,16 @@ class QuoteSystemCache(private val project: Project) : Disposable {
     }
   }
 
-  private val metaCache: MetaTransformationCache = DefaultMetaTransformationCache()
+  private val quoteCache: QuoteCache = QuoteCache.default()
 
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
   private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
 
-  fun initComponent() {
-    // register an async file listener.
-    // We need to update the transformations of .kt files as soon as they were modified.
-    VirtualFileManager.getInstance().addAsyncFileListener(object : AsyncFileListener {
-      // We only care about changes to Kotlin files.
-      override fun prepareChange(events: MutableList<out VFileEvent>): AsyncFileListener.ChangeApplier? {
-        // fixme properly handle remove events
-        // fixme properly handle copy event: file is the source file, transform new file, too
+  fun packageList(): List<FqName> = quoteCache.cache.keys.filterNotNull().mapNotNull { it.packageFqName }
 
-        val relevantFiles: List<VirtualFile> = events.mapNotNull {
-          val file = it.file
-          if (it !is VFileContentChangeEvent || it !is VFileMoveEvent || it !is VFileCopyEvent) {
-            return null
-          }
-
-          if (file != null && file.isRelevantFile()) {
-            file
-          } else {
-            null
-          }
-        }
-
-        if (relevantFiles.isEmpty()) {
-          return null
-        }
-
-        return object : AsyncFileListener.ChangeApplier {
-          override fun afterVfsChange() {
-            LOG.info("afterVfsChange")
-            // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-
-            // the docs of afterVfsChange states: "The implementations should be as fast as possible"
-            // therefore we're moving this operation into the background
-            refreshCache(relevantFiles.toKtFiles(project), resetCache = false, backgroundTask = false)
-          }
-        }
-      }
-    }, this)
-
-    EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        val doc = event.document
-        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
-
-        if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
-          val vFile = psiFile.virtualFile
-          if (vFile.isRelevantFile() && FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
-            LOG.info("transforming ${psiFile.name} after change in editor")
-            // fixme avoid this, this slows down the editor.
-            //  it would be better to take the text and send the text content to the quote system
-            // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
-            //   but doesn't fail in tests
-            if (ApplicationManager.getApplication().isWriteAccessAllowed) {
-              PsiDocumentManager.getInstance(project).commitDocument(doc)
-            }
-
-            // move this into the background to avoid blocking the editor
-            // document listeners should be as fast as possible
-            refreshCache(listOf(psiFile), resetCache = false, backgroundTask = true)
-          }
-        }
-      }
-    }, project)
-  }
-
-  fun projectOpened() {
-    // add a startup activity to populate the cache with a transformation of all project files
-    // fixme sometimes initially opened files still show errors.
-    //  This seems to be a timing issue between cache update and initial update.
-    StartupManager.getInstance(project).runWhenProjectIsInitialized {
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing arrow-meta...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-        override fun run(indicator: ProgressIndicator) {
-          LOG.info("Initializing quote system cache...")
-          val files = readAction {
-            project.collectAllKtFiles()
-          }
-          refreshCache(files, resetCache = true, backgroundTask = false)
-        }
-      })
-    }
-  }
-
-  fun packageList(): List<FqName> = metaCache.packageList()
-
-  fun resolved(name: FqName): List<DeclarationDescriptor>? = metaCache.resolved(name)
+  fun resolved(name: FqName): List<DeclarationDescriptor>? = quoteCache.cache.first{j -> }
 
   /**
    * refreshCache updates the given source files with new transformations.
@@ -266,10 +255,10 @@ class QuoteSystemCache(private val project: Project) : Disposable {
       // fixme this might be delayed, make sure we're handling this correctly with a test
       DumbService.getInstance(project).runReadActionInSmartMode {
         if (resetCache) {
-          metaCache.clear()
+          quoteCache.clear()
         }
 
-        LOG.info("resolving descriptors of transformed files: ${metaCache.size} files")
+        LOG.info("resolving descriptors of transformed files: ${quoteCache.size} files")
         if (updatedFiles.isNotEmpty()) {
           // clear descriptors of all updatedFiles, which don't have a transformation result
           // e.g. because no meta-code is used anymore
@@ -280,7 +269,7 @@ class QuoteSystemCache(private val project: Project) : Disposable {
           // fixme this lookup is slow (exponential?), optimize when necesary
           for (source in updatedFiles) {
             if (!transformed.any { it.first == source }) {
-              metaCache.removeTransformations(source)
+              quoteCache.removeTransformations(source)
             }
           }
 
@@ -308,7 +297,7 @@ class QuoteSystemCache(private val project: Project) : Disposable {
               }
             }
 
-            metaCache.updateTransformations(sourceFile, transformedFile, synthDescriptors)
+            quoteCache.updateTransformations(sourceFile, transformedFile, synthDescriptors)
           }
 
           // refresh the highlighting of editors of modified files, using the new cache
@@ -319,7 +308,7 @@ class QuoteSystemCache(private val project: Project) : Disposable {
       }
     }
 
-    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${metaCache.size} files")
+    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${quoteCache.size} files")
     if (backgroundTask) {
       pool.submit(task)
     } else {
@@ -376,25 +365,15 @@ class QuoteSystemCache(private val project: Project) : Disposable {
     return sourceFiles.zip(resultFiles).filter { it.first != it.second }
   }
 
-  override fun dispose() {
-    try {
-      pool.shutdownNow()
-    } catch (e: Exception) {
-      LOG.warn("error shutting down pool", e)
-    }
-
-    metaCache.clear()
-  }
-
   @TestOnly
   fun reset() {
-    metaCache.clear()
+    quoteCache.clear()
   }
 
   @TestOnly
   fun forceRebuild() {
     reset()
-    refreshCache(project.collectAllKtFiles(), backgroundTask = false)
+    refreshCache(project.quoteRelevantFiles(), backgroundTask = false)
     flush()
   }
 
@@ -410,33 +389,6 @@ private fun VirtualFile.isRelevantFile(): Boolean {
     (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
 }
 
-/**
- * Collects all Kotlin files of the current project which are source files for Meta transformations.
- */
-private fun Project.collectAllKtFiles(): List<KtFile> {
-  val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filter {
-    it.isRelevantFile()
-  }
-  LOG.info("collectKtFiles(): ${files.size} kotlin files found for project $name")
-
-  return files.toKtFiles(this)
-}
-
-/**
- * Maps the list of VirtualFiles to a list of KtFiles.
- */
-private fun List<VirtualFile>.toKtFiles(project: Project): List<KtFile> {
-  val psiMgr = PsiManager.getInstance(project)
-  return mapNotNull {
-    when {
-      it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType -> // filter
-        // fixme use ViewProvider's files instead?
-        psiMgr.findFile(it) as? KtFile
-      else -> null
-    }
-  }
-}
-
 @Suppress("UNCHECKED_CAST")
 fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
   mapNotNull { PsiManager.getInstance(project).findFile(it) as? F }
@@ -444,3 +396,27 @@ fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
 fun Project.ktFiles(): List<VirtualFile> =
   FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filterNotNull()
 
+/**
+ * Collects all Kotlin files of the current project which are source files for Meta transformations.
+ */
+fun Project.quoteRelevantFiles(): List<KtFile> =
+  ktFiles()
+    .filter { it.isRelevantFile() && it.isInLocalFileSystem }
+    .files(this)
+
+interface TestQuoteSystemService {
+  val service: QuoteSystemService
+
+  fun reset(): Unit = service.cache.clearCache()
+  fun flush(): Any? = service.exec.submit { }.get(5000, TimeUnit.MILLISECONDS)
+  fun forceRebuild(project: Project): Unit {
+    reset()
+    service.refreshCache(project.quoteRelevantFiles(), backgroundTask = false)
+    flush()
+  }
+}
+
+fun testEnv(service: QuoteSystemService): TestQuoteSystemService =
+  object : TestQuoteSystemService {
+    override val service: QuoteSystemService = service
+  }
