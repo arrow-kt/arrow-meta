@@ -54,7 +54,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *  }
    * ```
    *
-   * `MetaAction` is registered with the id `Unique` and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindowId is registered.
+   * `MetaAction` is registered with the id `Unique` and opens a tool window with a registered Id `MetaToolWindow`, assuming this ToolWindowId is registered.
    * User's are able to search this Action with its title: `MetaAction`.
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations

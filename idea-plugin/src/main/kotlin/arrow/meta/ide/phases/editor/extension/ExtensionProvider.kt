@@ -5,6 +5,8 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.core.JavaCoreApplicationEnvironment
 import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
+import com.intellij.lang.annotation.Annotator
+import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -26,6 +28,11 @@ sealed class ExtensionProvider<E> : ExtensionPhase {
    * @see [ExtensionProviderSyntax.extensionProvider]
    */
   data class AddLanguageExtension<E>(val LE: LanguageExtension<E>, val impl: E, val lang: Language) : ExtensionProvider<E>()
+
+  /**
+   * @see AnnotatorSyntax
+   */
+  data class AddLanguageAnnotator(val lang: Language, val impl: Annotator) : ExtensionProvider<Annotator>()
 
   /**
    * Examples are here: [JavaCoreApplicationEnvironment] line 57, 58
