@@ -1,8 +1,6 @@
 package arrow.meta.ide.internal.registry
 
-import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.dsl.application.ServiceKind
-import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
