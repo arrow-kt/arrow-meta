@@ -1,6 +1,8 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.testing.UnavailableService
 import arrow.meta.quotes.ktFile
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -14,9 +16,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
   fun testIncrementalCacheUpdate() {
     val file = myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
 
-    // this is the initial rebuild and the initial cache population
-    val cache = QuoteSystemCache.getInstance(project)
-    cache.forceRebuild()
+    project.testQuoteSystem()?.forceRebuild(project)
 
     val code = """
       package testArrow
@@ -58,9 +58,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     // fileThird is in a different package
     val fileThird = myFixture.addFileToProject("testArrowOther/third.kt", codeThird)
 
-    // this is the initial rebuild and the initial cache population
-    val cache = QuoteSystemCache.getInstance(project)
-    cache.forceRebuild()
+    project.testQuoteSystem()?.forceRebuild(project)
 
     updateAndAssertCache(fileFirst, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
       assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
@@ -80,24 +78,29 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     }
   }
 
-  private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
-    val cache = QuoteSystemCache.getInstance(project)
+  private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}): Unit =
+    project.testQuoteSystem()?.let { testEnv ->
+      val service: QuoteSystemService = testEnv.service
+      val packageFqName = (toUpdate as KtFile).packageFqName
+      val cachedElements = service.cache.descriptors(packageFqName)
+      assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
 
-    val packageFqName = (toUpdate as KtFile).packageFqName
-    val cachedElements = cache.resolved(packageFqName).orEmpty()
-    assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
+      runWriteAction {
+        myFixture.openFileInEditor(toUpdate.virtualFile)
+        myFixture.editor.document.setText(content)
+      }
+      testEnv.flush()
 
-    runWriteAction {
-      myFixture.openFileInEditor(toUpdate.virtualFile)
-      myFixture.editor.document.setText(content)
-    }
-    cache.flush()
+      val newCachedElements = service.cache.descriptors(packageFqName)
+      assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
 
-    val newCachedElements = cache.resolved(packageFqName).orEmpty()
-    assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
-
-    val retained = newCachedElements.filter { cachedElements.contains(it) }
-    assertRetained(retained)
-  }
+      val retained = newCachedElements.filter { cachedElements.contains(it) }
+      assertRetained(retained)
+    } ?: throw UnavailableService(QuoteSystemService::class.java)
 }
 
+/**
+ * this is the initial rebuild and the initial cache population
+ */
+fun Project.testQuoteSystem(): TestQuoteSystemService? =
+  getService(QuoteSystemService::class.java)?.let(::toTestEnv)

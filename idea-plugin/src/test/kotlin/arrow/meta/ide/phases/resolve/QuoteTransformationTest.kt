@@ -9,7 +9,7 @@ import org.junit.Test
 class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
   @After
   fun cleanup() {
-    QuoteSystemCache.getInstance(project).reset()
+    project.testQuoteSystem()?.reset()
   }
 
   @Test
@@ -29,7 +29,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id1Of"))
-    QuoteSystemCache.getInstance(project).forceRebuild()
+    project.testQuoteSystem()?.forceRebuild(project)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
   }
@@ -53,7 +53,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id2Of"))
 
-    QuoteSystemCache.getInstance(project).forceRebuild()
+    project.testQuoteSystem()?.forceRebuild(project)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
   }

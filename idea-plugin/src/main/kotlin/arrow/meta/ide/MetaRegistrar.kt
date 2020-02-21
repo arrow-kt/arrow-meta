@@ -1,6 +1,7 @@
 package arrow.meta.ide
 
 import arrow.meta.ide.dsl.application.projectLifecycleListener
+import arrow.meta.ide.phases.resolve.quoteSystem
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -24,7 +25,7 @@ class MetaRegistrar : ApplicationInitializedListener {
     ApplicationManager.getApplication()?.let { app ->
       LOG.info("subscribing meta registrars")
       val start = System.currentTimeMillis()
-      app.register(ProjectLifecycleListener.TOPIC, metaProjectRegistrar) // Alternative use ProjectManagerListener.TOPIC
+      app.register(ProjectLifecycleListener.TOPIC, metaProjectRegistrar, quoteSystem) // Alternative use ProjectManagerListener.TOPIC
       LOG.info("subscribing meta registrars took ${System.currentTimeMillis() - start}ms")
     }
     println("componentsInitialized")

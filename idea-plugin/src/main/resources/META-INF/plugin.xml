@@ -26,10 +26,11 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+        <projectService serviceInterface="arrow.meta.ide.phases.resolve.QuoteSystemService"
+                        serviceImplementation="arrow.meta.ide.phases.resolve.QuoteService"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
         <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
     </extensions>
 
