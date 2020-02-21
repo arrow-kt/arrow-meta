@@ -6,16 +6,9 @@ import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.PerformInBackgroundOption
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.idea.debugger.readAction
-import org.jetbrains.kotlin.psi.KtFile
 
 class MetaRegistrar : ApplicationInitializedListener {
   val LOG = Logger.getInstance("#arrow.AppRegistrar")
