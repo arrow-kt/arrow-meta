@@ -13,6 +13,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.extensions.LoadingOrder
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface ApplicationSyntax {
@@ -169,7 +170,7 @@ interface ApplicationSyntax {
    * @see StartupActivity.DumbAware and their Subtypes
    */
   fun IdeMetaPlugin.addPostStartupActivity(activity: StartupActivity): ExtensionPhase =
-    extensionProvider(StartupActivity.POST_STARTUP_ACTIVITY, activity)
+    extensionProvider(StartupActivity.POST_STARTUP_ACTIVITY, activity, LoadingOrder.FIRST)
 
   /**
    * registers an [StartupActivity.Background], which is isomorphic to [StartupActivity] only with a 5 second delay executing [StartupActivity.runActivity].
@@ -177,13 +178,13 @@ interface ApplicationSyntax {
    * @see StartupActivity.Background and their Subtypes
    */
   fun IdeMetaPlugin.addBackgroundPostStartupActivity(activity: StartupActivity.Background): ExtensionPhase =
-    extensionProvider(StartupActivity.BACKGROUND_POST_STARTUP_ACTIVITY, activity)
+    extensionProvider(StartupActivity.BACKGROUND_POST_STARTUP_ACTIVITY, activity, LoadingOrder.FIRST)
 
   fun IdeMetaPlugin.stopServicePreloading(): ExtensionPhase =
     ApplicationProvider.StopServicePreloading
 
   fun IdeMetaPlugin.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
-    extensionProvider(PreloadingActivity.EP_NAME, activity)
+    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
 
   /**
    * registers an activity, which is executed eagerly in the background on startup.
