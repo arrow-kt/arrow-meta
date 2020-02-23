@@ -12,6 +12,8 @@ object Noop {
   fun <A> nullable3(): (Any?, Any?, Any?) -> A? = { _, _, _ -> null }
   fun <A> nullable4(): (Any?, Any?, Any?, Any?) -> A? = { _, _, _, _ -> null }
   fun <A> nullable5(): (Any?, Any?, Any?, Any?, Any?) -> A? = { _, _, _, _, _ -> null }
+  fun <A> nullable6(): (Any?, Any?, Any?, Any?, Any?, Any?) -> A? = { _, _, _, _, _, _ -> null }
+  fun <A> nullable7(): (Any?, Any?, Any?, Any?, Any?, Any?, Any?) -> A? = { _, _, _, _, _, _, _ -> null }
   fun <A> emptyCollection1(): (Any?) -> Collection<A> = { emptyList() }
   fun <A> emptyList1(): (Any?) -> List<A> = { emptyList() }
   fun <A> emptyCollection2(): (Any?, Any?) -> Collection<A> = { _, _ -> emptyList() }

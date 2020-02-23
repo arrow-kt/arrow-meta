@@ -2,6 +2,11 @@ package arrow
 
 interface Refined<A> {
   val validate: A.() -> Map<String, Boolean>
+  fun validate(a: A): Map<String, Boolean> = validate.invoke(a)
+  fun isValid(a: A): Boolean = validate(a).all { it.value }
+  operator fun <B> invoke(a: A, f: (A) -> B) : B? =
+    if (isValid(a)) f(a)
+    else null
 }
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -11,15 +16,16 @@ annotation class Refinement(
   val predicate: String
 )
 
-//val runtime = "admin"
-//val x: TwitterHandle = TwitterHandle("@admin") //fail
-//val y: TwitterHandle = TwitterHandle("@whatever") //success
-//val z1: TwitterHandle = "@whatever" //
-//val z2: TwitterHandle? = "@whatever"
-//val z3: TwitterHandle? = "@admin" //
-//val z3: TwitterHandle? = runtime // null
 
-
+inline class NonEmptyArray(val value: Array<Int>) {
+  companion object : Refined<Array<Int>> {
+    override val validate: Array<Int>.() -> Map<String, Boolean> = {
+      mapOf(
+        "Should not be empty" to isNotEmpty()
+      )
+    }
+  }
+}
 
 
 

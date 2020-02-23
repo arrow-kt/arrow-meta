@@ -10,6 +10,34 @@ class RefinementTests {
     package test
     import arrow.*
     
+    inline class NonEmptyArray(val value: Array<Int>) {
+      companion object : Refined<Array<Int>> {
+        override val validate: Array<Int>.() -> Map<String, Boolean> = {
+          mapOf(
+            "Should not be empty" to isNotEmpty()
+          )
+        }
+      }
+    }
+    
+    @Proof(TypeProof.Extension, coerce = true)
+    fun Array<Int>.nonEmpty(): NonEmptyArray? =
+      NonEmptyArray(this, ::NonEmptyArray)
+    
+    inline class PositiveInt(val value: Int)  {
+      companion object : Refined<Int> {
+        override val validate: Int.() -> Map<String, Boolean> = {
+          mapOf(
+            "Should be >= 0" to (this >= 0)
+          )
+        }
+      }
+    }
+    
+    @Proof(TypeProof.Extension, coerce = true)
+    fun Int.positive(): PositiveInt? =
+      PositiveInt(this, ::PositiveInt)
+    
     inline class TwitterHandle(val handle: String)  {
       companion object : Refined<String> {
         override val validate: String.() -> Map<String, Boolean> = {
@@ -26,13 +54,28 @@ class RefinementTests {
     //Similar extensions can target Validation and Either not just nullable types
     @Proof(TypeProof.Extension, coerce = true)
     fun String.twitterHandle(): TwitterHandle? =
-      if (TwitterHandle.validate(this).values.all { true }) TwitterHandle(this)
-      else null
+      TwitterHandle(this, ::TwitterHandle)
       
   """.trimIndent()
 
   @Test
-  fun `Construction is validated with predicates`() {
+  fun `Construction is validated with arrays of literals`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|$prelude
+           |
+           |val x: NonEmptyArray = NonEmptyArray(emptyArray())
+           |""".source
+      },
+      assert = {
+        failsWith { it.contains("Should not be empty") }
+      }
+    ))
+  }
+
+  @Test
+  fun `Construction is validated with predicates 1`() {
     assertThis(CompilerTest(
       config = { metaDependencies },
       code = {
@@ -43,6 +86,38 @@ class RefinementTests {
       },
       assert = {
         failsWith { it.contains("Should not contain the word 'admin'") }
+      }
+    ))
+  }
+
+  @Test
+  fun `Construction is validated with predicates PositiveInt with negative value`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|$prelude
+           |
+           |val x: PositiveInt = PositiveInt(-1)
+           |""".source
+      },
+      assert = {
+        failsWith { it.contains("Should be >= 0") }
+      }
+    ))
+  }
+
+  @Test
+  fun `Construction is validated with PositiveInt value`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """|$prelude
+           |
+           |val x: PositiveInt = PositiveInt(1)
+           |""".source
+      },
+      assert = {
+        "x".source.evalsTo(1)
       }
     ))
   }
@@ -70,11 +145,11 @@ class RefinementTests {
       code = {
         """|$prelude
            |
-           |val x: TwitterHandle? = "@whatever"
+           |fun x(): TwitterHandle? = "@whatever"
            |""".source
       },
       assert = {
-        "x".source.evalsTo("@whatever")
+        "x()".source.evalsTo("@whatever")
       }
     ))
   }

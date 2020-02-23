@@ -16,5 +16,5 @@ internal fun ObjectDeclaration.objectWithSerializedRefinement(elementScope: Elem
   }
 
 
-internal fun KtObjectDeclaration.isRefined() =
+internal fun KtObjectDeclaration.isRefined(): Boolean =
   isCompanion() && superTypeListEntries.any { it.text.matches("Refined<(.*?)>".toRegex()) }
