@@ -182,14 +182,17 @@ class QuoteService(val project: Project) : QuoteSystemService {
     return files.zip(resultFiles).filter { it.first != it.second }
   }
 
+  /**
+   * TODO: remove implicit dependency of [arrow.meta.quotes.analysisIdeExtensions]
+   */
   override fun refreshCache(files: List<KtFile>, strategy: CacheStrategy): Unit =
-    computeRefreshCache(files, strategy) {
+    computeRefreshCache(strategy) {
       // fixme execute under progressManager?
       files.takeIf { it.isNotEmpty() }?.let { files ->
         val transformed: List<Pair<KtFile, KtFile>> = ReadAction.compute<List<Pair<KtFile, KtFile>>, Exception> {
           val start = System.currentTimeMillis()
           try {
-            transform(files, analysisIdeExtensions) // at runtime collected quote transformations
+            transform(files, analysisIdeExtensions) // analysisIdeExtensions are at runtime collected quote transformations
           } catch (e: Exception) {
             LOG.warn("error transforming files $files. Falling back to empty transformation.", e)
             emptyList()

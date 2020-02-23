@@ -108,7 +108,7 @@ interface QuoteSystemService {
   /**
    * refreshes [cache] with an computational context for instance [ExecutorService] if [CacheStrategy.backgroundTask] == true
    */
-  fun computeRefreshCache(files: List<KtFile>, strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true), refresh: () -> Unit): Unit {
+  fun computeRefreshCache(strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true), refresh: () -> Unit): Unit {
     if (strategy.backgroundTask) exec.submit(refresh) else refresh()
   }
 }

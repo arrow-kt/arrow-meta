@@ -19,7 +19,7 @@ import com.intellij.openapi.startup.StartupActivity
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface ApplicationSyntax {
-
+  // TODO: Add an service encoding like service: (Project) -> Class<A>
   /**
    * registers an service and the instance based on its [kind].
    * The IntelliJ Platform ensures that only one instance of [instance] is loaded, when [kind] is [ServiceKind.Application],
@@ -109,6 +109,7 @@ interface ApplicationSyntax {
    */
   fun <A : Any> IdeMetaPlugin.addService(service: Class<A>, kind: ServiceKind, instance: A): ExtensionPhase =
     ApplicationProvider.Service(service, instance, kind)
+
 
   /**
    * replaces a [service] with [instance].
