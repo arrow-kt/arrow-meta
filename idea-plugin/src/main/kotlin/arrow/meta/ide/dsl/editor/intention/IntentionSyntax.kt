@@ -1,31 +1,29 @@
 package arrow.meta.ide.dsl.editor.intention
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInsight.intention.IntentionActionBean
-import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
-import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
+import com.intellij.lang.annotation.Annotator
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiElementFactory
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.quickfix.KotlinIntentionActionsFactory
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
+import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 import org.jetbrains.kotlin.psi.KtElement
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
  * The IDE analysis user code and provides [IntentionAction]'s to either signal error's to user's or resolve them if triggered.
  */
 interface IntentionSyntax : IntentionUtilitySyntax {
-  // TODO: [addIntentionWithMetaData] Bails if there is no html and intentionDescription. Add MetaData in a function and not with through the resource folder.
 
   /**
    * registers [intention]
@@ -79,7 +77,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
-    applyTo: (element: K, editor: Editor?) -> Unit = Noop.effect2,
+    applyTo: KtPsiFactory.(element: K, editor: Editor) -> Unit = Noop.effect3,
     priority: PriorityAction.Priority = PriorityAction.Priority.LOW
   ): ExtensionPhase =
     addIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
@@ -98,23 +96,23 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
 
   /**
-   * [ktIntention] constructs [SelfTargetingIntention].
-   * @param applyTo allows to resolve the errors on this `element`, display refined errors through the `editor` and has many other use-cases.
+   * [ktIntention] constructs [SelfTargetingIntention]. SelfTargetingIntentions can be used with [Annotator].
+   * @param applyTo allows to resolve the errors on this `element` with [KtPsiFactory], display refined errors through the `editor` and has many other use-cases. For instance Java utilizes [PsiElementFactory]
    * @param text is the displayed text in the ide. In addition, [text] needs to be the same as `familyName` in order to create MetaData for an Intention.
    * @param isApplicableTo defines when this intention is available.
    * @param priority defines the position of this Intention - [PriorityAction.Priority.TOP] being the highest.
    */
-  @Suppress("UNCHECKED_CAST") // TODO: This extension can be composed with [addQuickFixContributor]
+  @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IntentionSyntax.ktIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
-    applyTo: (element: K, editor: Editor?) -> Unit = Noop.effect2,
+    applyTo: KtPsiFactory.(element: K, editor: Editor) -> Unit = Noop.effect3,
     priority: PriorityAction.Priority = PriorityAction.Priority.LOW
   ): SelfTargetingIntention<K> =
     object : SelfTargetingIntention<K>(kClass, text), PriorityAction {
       override fun applyTo(element: K, editor: Editor?): Unit =
-        applyTo(element, editor)
+        editor?.let { it.project?.ktPsiFactory?.let { factory -> applyTo(factory, element, it) } } ?: Unit
 
       override fun isApplicableTo(element: K, caretOffset: Int): Boolean =
         isApplicableTo(element, caretOffset)
@@ -124,41 +122,26 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     }
 
   /**
-   * The function [kotlinIntention] is mainly used for [QuickFixContributor].
    * The default values are derived from [KotlinIntentionActionsFactory].
+   * @see KotlinSingleIntentionActionFactory and all its Subtypes for examples
+   * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
+   * @param actionsForAll provide for all errors a list of generalized Fixes
    */
-  fun IntentionSyntax.kotlinIntention(
-    createAction: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
+  fun IntentionSyntax.ktIntention(
+    action: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
     isApplicableForCodeFragment: Boolean = false,
-    doCreateActionsForAllProblems: (sameTypeDiagnostics: Collection<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
+    actionsForAll: (diagnostics: List<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
   ): KotlinSingleIntentionActionFactory =
     object : KotlinSingleIntentionActionFactory() {
       override fun createAction(diagnostic: Diagnostic): IntentionAction? =
-        createAction(diagnostic)
+        action(diagnostic)
 
       override fun doCreateActionsForAllProblems(sameTypeDiagnostics: Collection<Diagnostic>): List<IntentionAction> =
-        doCreateActionsForAllProblems(sameTypeDiagnostics)
+        actionsForAll(sameTypeDiagnostics.toList())
 
       override fun isApplicableForCodeFragment(): Boolean =
         isApplicableForCodeFragment
     }
-
-  /* TODO: Deprecated until MetaData is in the Functionparameters
-  /**
-   * [addIntentionWithMetaData] extension registers an Intention with Metadata.
-   * There is an important note to this function.
-   * The internals of IntelliJ-based Ides will bail with an Exception, if the required `MetaData` - Html and intentionDescription - is not in the right folder within `resources`.
-   * The `MetaData` defines a Html file with a description of the Intention and under the path `/resource/intentionDescription/<IntentionName>` one `after` and `before` template file.
-   * Bare with us we will improve upon this issue at a later point.
-   * @param category are used to order Intentions
-   * @see com.intellij.codeInsight.intention.IntentionManager.registerIntentionAndMetaData
-   * @sample org.jetbrains.kotlin.idea.intentions.ValToObjectIntention
-   */
-  fun IdeMetaPlugin.addIntentionWithMetaData(
-    category: String,
-    intention: IntentionAction
-  ): ExtensionPhase =
-    IntentionExtensionProvider.RegisterIntentionWithMetaData(intention, category)*/
 }
 
 
