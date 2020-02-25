@@ -49,7 +49,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun generateSyntheticClasses(thisDescriptor: PackageFragmentDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: PackageMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {
       result.replaceWithSynthetics(thisDescriptor.fqName, declarationProvider)
-      cache.resolved(thisDescriptor.fqName)?.filterIsInstance<LazyClassDescriptor>()?.filter { !it.isMetaSynthetic() }?.let {
+      cache.resolved(thisDescriptor.fqName).filterIsInstance<LazyClassDescriptor>().filter { !it.isMetaSynthetic() }.let {
         LOG.debug("generatePackageSyntheticClasses: ${thisDescriptor.fqName}: $it, $name, result: $result")
         result.addAll(it.toSynthetic(declarationProvider))
       }
@@ -60,7 +60,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
         result.replaceWithSynthetics(packageName, declarationProvider)
-        cache.resolved(packageName)?.filterIsInstance<LazyClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<LazyClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val synthNestedClasses = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filter { it.isMetaSynthetic() }.filterIsInstance<LazyClassDescriptor>()
           LOG.debug("generateNestedSyntheticClasses: ${thisDescriptor.name}: $synthNestedClasses")
           result.addAll(synthNestedClasses.toSynthetic(declarationProvider))
@@ -73,7 +73,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
         //result.replaceWithSynthetics(packageName)
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val synthMemberFunctions = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filter { it.isMetaSynthetic() }.filterIsInstance<SimpleFunctionDescriptor>()
           LOG.debug("generateSyntheticMethods: ${thisDescriptor.name}: $synthMemberFunctions")
           result.addAll(synthMemberFunctions.toSynthetic())
@@ -85,7 +85,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun generateSyntheticProperties(thisDescriptor: ClassDescriptor, name: Name, bindingContext: BindingContext, fromSupertypes: ArrayList<PropertyDescriptor>, result: MutableSet<PropertyDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val syntMemberProperties = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filter { it.isMetaSynthetic() }.filterIsInstance<PropertyDescriptor>()
           LOG.debug("generateSyntheticProperties: ${thisDescriptor.name}: $syntMemberProperties")
           result.addAll(syntMemberProperties)
@@ -97,7 +97,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun generateSyntheticSecondaryConstructors(thisDescriptor: ClassDescriptor, bindingContext: BindingContext, result: MutableCollection<ClassConstructorDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val synthSecConstructors = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filterIsInstance<ClassConstructorDescriptor>().filter { !it.isPrimary && it.isMetaSynthetic() }
           LOG.debug("generateSyntheticSecondaryConstructors: ${thisDescriptor.name}: $synthSecConstructors")
           result.addAll(synthSecConstructors)
@@ -109,7 +109,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor): Name? =
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val name = classDescriptor.companionObjectDescriptor?.name
           LOG.debug("getSyntheticCompanionObjectNameIfNeeded: ${thisDescriptor.name}: $name")
           name
@@ -120,7 +120,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> =
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val synthFunctionNames = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filterIsInstance<SimpleFunctionDescriptor>().filter { it.isMetaSynthetic() }.map { it.name }
           LOG.debug("getSyntheticFunctionNames: ${thisDescriptor.name}: $synthFunctionNames")
           synthFunctionNames
@@ -132,7 +132,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> =
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.findPsi().safeAs<KtClassOrObject>()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.filterIsInstance<ClassDescriptor>()?.find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
+        cache.resolved(packageName).filterIsInstance<ClassDescriptor>().find { it.fqNameSafe == thisDescriptor.fqNameSafe }?.let { classDescriptor ->
           val synthClassNames = classDescriptor.unsubstitutedMemberScope.getContributedDescriptors { true }.filterIsInstance<ClassDescriptor>().filter { it.isMetaSynthetic() }.map { it.name }
           LOG.debug("getSyntheticFunctionNames: ${thisDescriptor.name}: $synthClassNames")
           synthClassNames
@@ -143,15 +143,14 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
   override fun addSyntheticSupertypes(thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>) {
     if (!thisDescriptor.isMetaSynthetic()) {
       thisDescriptor.ktClassOrObject()?.containingKtFile?.packageFqName?.let { packageName ->
-        cache.resolved(packageName)?.let { declarations ->
-          declarations.filterIsInstance<ClassDescriptor>().find {
-            thisDescriptor.fqNameSafe == it.fqNameSafe
-          }?.typeConstructor?.supertypes?.let { collection ->
-            //supertypes.clear()
-            val result = collection.filterNot { it.isError }
-            LOG.debug("Found synth supertypes: $result")
-            supertypes.addAll(result)
-          }
+        cache.resolved(packageName)
+          .filterIsInstance<ClassDescriptor>()
+          .find { thisDescriptor.fqNameSafe == it.fqNameSafe }
+          ?.typeConstructor?.supertypes?.let { collection ->
+          //supertypes.clear()
+          val result = collection.filterNot { it.isError }
+          LOG.debug("Found synth supertypes: $result")
+          supertypes.addAll(result)
         }
       }
     }
@@ -159,7 +158,7 @@ open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExt
 
   private fun MutableSet<ClassDescriptor>.replaceWithSynthetics(packageName: FqName, declarationProvider: DeclarationProvider): Unit {
     val replacements = map { existing ->
-      val synthDescriptors = cache.resolved(packageName)?.filterIsInstance<LazyClassDescriptor>() ?: emptyList()
+      val synthDescriptors = cache.resolved(packageName).filterIsInstance<LazyClassDescriptor>()
       val replacement = synthDescriptors.find { synth -> synth.fqNameOrNull() == existing.fqNameOrNull() }
       existing to replacement
     }.toMap()

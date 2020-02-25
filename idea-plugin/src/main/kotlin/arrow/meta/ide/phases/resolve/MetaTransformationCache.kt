@@ -1,11 +1,15 @@
 package arrow.meta.ide.phases.resolve
 
-import arrow.meta.quotes.ktFile
-import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.ConcurrentHashMap
+
+
+/**
+ * packageFqName and descriptors after quote transformations of a given KtFile
+ */
+typealias PackageInfo = Pair<FqName, List<DeclarationDescriptor>>
 
 /**
  * Cache interface.
@@ -13,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  * too many things at once.
  * This also simplifies thread-safe cache updates, when it's turns out that we need this.
  */
-interface MetaTransformationCache {
+interface QuoteCache {
   /**
    * The number of source files managed by this cache.
    */
@@ -22,29 +26,24 @@ interface MetaTransformationCache {
   /**
    * List of packages, which are managed by this cache.
    */
-  fun packageList(): List<FqName>
+  fun packages(): List<FqName>
 
   /**
-   * Nullable list of descriptors, which describe elements in package 'name'.
+   * All descriptors of package 'name'.
    */
-  fun resolved(name: FqName): List<DeclarationDescriptor>?
-
-  /**
-   * Returns if the given source file is contained in this cache.
-   */
-  fun containsSourceFile(source: PsiFile): Boolean
+  fun descriptors(packageFqName: FqName): List<DeclarationDescriptor>
 
   /**
    * Removes all data from the cache, which belongs to the source file or a transformation of the source file.
    */
-  fun removeTransformations(source: KtFile)
+  fun removeQuotedFile(file: KtFile): PackageInfo?
 
   /**
    * Updates the cache with new transformations of the source file.
    * 1. Old elements, which belong to previous transformations of the source file, are removed
    * 2. The new descriptors are added to the package data of the source file.
    */
-  fun updateTransformations(source: KtFile, transformedFile: KtFile, descriptors: List<DeclarationDescriptor>)
+  fun update(source: KtFile, transformed: PackageInfo)
 
   /**
    * Clears all data, which is managed by this cache.
@@ -52,46 +51,39 @@ interface MetaTransformationCache {
   fun clear()
 }
 
-class DefaultMetaTransformationCache : MetaTransformationCache {
+class DefaultQuoteCache : QuoteCache {
   // fixme must not be used in production, because caching PsiElement this way is bad
   // fixme cache both per module? modules may define different ktfiles for the same package fqName
-  private val transformedFiles = ConcurrentHashMap<KtFile, KtFile>()
-  private val resolved = ConcurrentHashMap<FqName, MutableList<DeclarationDescriptor>>()
+  private val transformedFiles = ConcurrentHashMap<KtFile, PackageInfo>()
+  //private val resolved = ConcurrentHashMap<FqName, List<DeclarationDescriptor>>()
 
   override val size: Int
     get() : Int = transformedFiles.size
 
-  override fun resolved(name: FqName): List<DeclarationDescriptor>? {
-    // return a copy, we must not return mutable data, which is modified by this cache
-    return resolved[name]?.toCollection(mutableListOf())
+  override fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> =
+    transformedFiles.values.filter { it.first == packageFqName }.map { it.second }.flatten()
+  //resolved[packageFqName]?.toList().orEmpty()
+
+  override fun packages(): List<FqName> =
+    transformedFiles.values.map { it.first }.distinct()
+
+  override fun removeQuotedFile(file: KtFile): PackageInfo? =
+    transformedFiles.remove(file)
+    /*transformedFiles.remove(file)?.let { quoted ->
+      resolved[file.packageFqName]?.let { descriptors ->
+        resolved[file.packageFqName] = descriptors.filterNot { it.ktFile() == quoted }
+      }
+    } ?: Unit*/
+
+  override fun update(source: KtFile, transformed: PackageInfo) {
+    transformedFiles[source] = transformed
+    /*removeQuotedFile(source)
+    transformedFiles[source] = transformed.first
+    resolved.compute(source.packageFqName) { _, list ->
+      transformed.second + (list ?: emptyList())
+    }*/
   }
 
-  override fun packageList(): List<FqName> {
-    val packages = LinkedHashSet<FqName>()
-    transformedFiles.values.forEach { packages.add(it.packageFqName) }
-    return packages.toList()
-  }
-
-  override fun containsSourceFile(source: PsiFile): Boolean {
-    return transformedFiles.containsKey(source)
-  }
-
-  override fun removeTransformations(source: KtFile) {
-    val transformedFile = transformedFiles[source] ?: return
-    resolved[source.packageFqName]?.removeIf {
-      transformedFile == it.ktFile()
-    }
-  }
-
-  override fun updateTransformations(source: KtFile, transformedFile: KtFile, descriptors: List<DeclarationDescriptor>) {
-    removeTransformations(source)
-
-    transformedFiles[source] = transformedFile
-    resolved.computeIfAbsent(source.packageFqName) { mutableListOf() }.addAll(descriptors)
-  }
-
-  override fun clear() {
-    resolved.clear()
+  override fun clear() =
     transformedFiles.clear()
-  }
 }

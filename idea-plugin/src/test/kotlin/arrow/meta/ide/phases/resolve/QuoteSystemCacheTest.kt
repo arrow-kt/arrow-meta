@@ -84,7 +84,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     val cache = QuoteSystemCache.getInstance(project)
 
     val packageFqName = (toUpdate as KtFile).packageFqName
-    val cachedElements = cache.resolved(packageFqName).orEmpty()
+    val cachedElements = cache.resolved(packageFqName)
     assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
 
     runWriteAction {

@@ -35,7 +35,7 @@ private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) 
 
       override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
         //fixme optimize this
-        return cache.packageList().filter { it.parent() == fqName }
+        return cache.packages().filter { it.parent() == fqName }
       }
     }
   }
@@ -46,26 +46,26 @@ private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, Quot
     object : PackageFragmentDescriptorImpl(module, fqName) {
       override fun getMemberScope(): MemberScope =
         object : MemberScope {
-          override fun getClassifierNames(): Set<Name>? =
-            cache.resolved(fqName)?.filterIsInstance<ClassifierDescriptor>()?.map { it.name }?.toSet()
+          override fun getClassifierNames(): Set<Name> =
+            cache.resolved(fqName).filterIsInstance<ClassifierDescriptor>().map { it.name }.toSet()
 
           override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-            cache.resolved(fqName)?.filterIsInstance<ClassifierDescriptor>()?.firstOrNull { it.name == name }
+            cache.resolved(fqName).filterIsInstance<ClassifierDescriptor>().firstOrNull { it.name == name }
 
           override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
-            cache.resolved(fqName)?.filter { it.name == name } ?: emptyList()
+            cache.resolved(fqName).filter { it.name == name }
 
           override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
-            cache.resolved(fqName)?.filterIsInstance<SimpleFunctionDescriptor>() ?: emptyList()
+            cache.resolved(fqName).filterIsInstance<SimpleFunctionDescriptor>()
 
           override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-            cache.resolved(fqName)?.filterIsInstance<PropertyDescriptor>() ?: emptyList()
+            cache.resolved(fqName).filterIsInstance<PropertyDescriptor>()
 
           override fun getFunctionNames(): Set<Name> =
-            cache.resolved(fqName)?.filterIsInstance<SimpleFunctionDescriptor>()?.map { it.name }?.toSet() ?: emptySet()
+            cache.resolved(fqName).filterIsInstance<SimpleFunctionDescriptor>().map { it.name }.toSet()
 
           override fun getVariableNames(): Set<Name> =
-            cache.resolved(fqName)?.filterIsInstance<PropertyDescriptor>()?.map { it.name }?.toSet() ?: emptySet()
+            cache.resolved(fqName).filterIsInstance<PropertyDescriptor>().map { it.name }.toSet()
 
           override fun printScopeStructure(p: Printer) {
           }
