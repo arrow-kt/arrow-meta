@@ -12,7 +12,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
 
     // this is the initial rebuild and the initial cache population
     val cache = QuoteSystemCache.getInstance(project)
-    //cache.forceRebuild() no need
+    cache.forceRebuild() //no need
 
     val code = """
       package testArrow
@@ -56,8 +56,8 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
 
     // this is the initial rebuild and the initial cache population
     val cache = QuoteSystemCache.getInstance(project)
-    // cache.forceRebuild()
-    cache.refreshCache(project.collectAllKtFiles(), backgroundTask = false)
+    cache.forceRebuild()
+    //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
 
     updateAndAssertCache(cache, project, myFixture, fileFirst, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
       assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })

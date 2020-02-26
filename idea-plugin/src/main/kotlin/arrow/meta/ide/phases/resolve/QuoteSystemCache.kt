@@ -25,7 +25,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -55,8 +54,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 
@@ -197,7 +194,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, indicator: ProgressIndicator) {
+  fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, indicator: ProgressIndicator) {
     LOG.assertTrue(indicator.isRunning)
     LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${cache.size} files")
 
