@@ -77,3 +77,24 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     }
   }
 }
+/**
+ * private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
+val cache = QuoteSystemCache.getInstance(project)
+
+val packageFqName = (toUpdate as KtFile).packageFqName
+val cachedElements = cache.resolved(packageFqName).orEmpty()
+assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
+
+runWriteAction {
+myFixture.openFileInEditor(toUpdate.virtualFile)
+myFixture.editor.document.setText(content)
+}
+cache.flushForTest()
+
+val newCachedElements = cache.resolved(packageFqName).orEmpty()
+assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
+
+val retained = newCachedElements.filter { cachedElements.contains(it) }
+assertRetained(retained)
+}
+ */
