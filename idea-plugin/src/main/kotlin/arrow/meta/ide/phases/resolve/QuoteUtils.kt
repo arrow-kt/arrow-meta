@@ -3,7 +3,6 @@ package arrow.meta.ide.phases.resolve
 import arrow.meta.quotes.AnalysisDefinition
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -12,76 +11,16 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.search.projectScope
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.ExecutorService
 
-/**
- * transformed KtFile and containing descriptors
- */
-typealias QuotedFile = Pair<KtFile, List<DeclarationDescriptor>>
-
-/**
- * a QuoteCache instance is a record type or data structure over the source files it operates over
- */
-interface QuoteCacheU {
-
-  /**
-   * [cache] includes the original files, which are the `keys`, with their transformed files and new descriptors [QuotedFile] `values`.
-   */
-  val cache: ConcurrentMap<KtFile, QuotedFile>
-
-  /**
-   * Clears all data, which is managed by this cache.
-   */
-  fun clearCache(): Unit =
-    cache.clear()
-
-  fun removeQuotedFile(file: KtFile): QuotedFile? =
-    cache.remove(file)
-
-  fun update(origin: KtFile, transformed: QuotedFile): Unit {
-    cache[origin] = transformed
-  }
-
-  fun packages(): List<FqName> =
-    cache.keys.filterNotNull().mapNotNull { it.packageFqName }
-
-  /**
-   * @param fqName is the package FqName
-   */
-  fun descriptors(fqName: FqName): List<DeclarationDescriptor> =
-    cache
-      .filterKeys { file: KtFile -> file.packageFqName == fqName }
-      .mapNotNull { it.value?.second }.flatten()
-
-  fun descriptors(file: KtFile): List<DeclarationDescriptor> =
-    cache[file]?.second ?: emptyList()
-
-  companion object {
-
-    /**
-     * @param cache contains files before the quote transformation `keys` and after `value`
-     */
-    fun default(cache: ConcurrentHashMap<KtFile, QuotedFile> = ConcurrentHashMap()): QuoteCacheU =
-      object : QuoteCacheU {
-        override val cache: ConcurrentMap<KtFile, QuotedFile> = cache
-      }
-  }
-}
 
 /**
  * returns the [DeclarationDescriptor]s of each File
  */
 fun KtFile.resolve(facade: ResolutionFacade, resolveMode: BodyResolveMode = BodyResolveMode.PARTIAL): Pair<KtFile, List<DeclarationDescriptor>> =
   this to declarations.mapNotNull { facade.resolveToDescriptor(it, resolveMode) }
-
-interface QuoteProjectLifecycle : ProjectLifecycleListener {
-  val cache: QuoteCache
-}
 
 /**
  * project level service for quote transformations

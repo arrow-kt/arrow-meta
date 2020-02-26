@@ -50,6 +50,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
+
 /**
  * QuoteSystemCache is a project component which manages the transformations of KtFiles by the quote system.
  *
@@ -60,12 +61,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     fun getInstance(project: Project): QuoteSystemCache = project.getComponent(QuoteSystemCache::class.java)
   }
 
-  private val metaCache: QuoteCache = DefaultQuoteCache()
+  val cache: QuoteCache = QuoteCache.default
 
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
-  private val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
+  val pool: ExecutorService = Executors.newFixedThreadPool(1) { runnable -> Thread(runnable, "arrow worker, ${project.name}") }
 
   override fun initComponent() {
     // register an async file listener.
@@ -149,9 +150,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
-  fun packages(): List<FqName> = metaCache.packages()
-
-  fun resolved(name: FqName): List<DeclarationDescriptor> = metaCache.descriptors(name)
+  fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> = cache.descriptors(packageFqName)
 
   /**
    * refreshCache updates the given source files with new transformations.
@@ -159,7 +158,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  private fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, backgroundTask: Boolean = true) {
+  fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, backgroundTask: Boolean = true) {
     if (updatedFiles.isEmpty()) {
       return
     }
@@ -198,10 +197,10 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       // fixme this might be delayed, make sure we're handling this correctly with a test
       DumbService.getInstance(project).runReadActionInSmartMode {
         if (resetCache) {
-          metaCache.clear()
+          cache.clear()
         }
 
-        LOG.info("resolving descriptors of transformed files: ${metaCache.size} files")
+        LOG.info("resolving descriptors of transformed files: ${cache.size} files")
         if (updatedFiles.isNotEmpty()) {
           // clear descriptors of all updatedFiles, which don't have a transformation result
           // e.g. because no meta-code is used anymore
@@ -212,7 +211,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           // fixme this lookup is slow (exponential?), optimize when necesary
           for (source in updatedFiles) {
             if (!transformed.any { it.first == source }) {
-              metaCache.removeQuotedFile(source)
+              cache.removeQuotedFile(source)
             }
           }
 
@@ -240,7 +239,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
               }
             }
 
-            metaCache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
+            cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
           }
 
           // refresh the highlighting of editors of modified files, using the new cache
@@ -251,7 +250,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       }
     }
 
-    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${metaCache.size} files")
+    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${cache.size} files")
     if (backgroundTask) {
       pool.submit(task)
     } else {
@@ -263,7 +262,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * Applies the Quote system's transformations on the input files and returns a mapping of
    * originalFile->transformedFile if the transformation changed the original file.
    */
-  private fun transformFiles(sourceFiles: List<KtFile>): List<Pair<KtFile, KtFile>> {
+  fun transformFiles(sourceFiles: List<KtFile>): List<Pair<KtFile, KtFile>> {
     ApplicationManager.getApplication().assertReadAccessAllowed()
 
     // fixme is scope correct here? Unsure what CompilerContext is expecting here
@@ -315,17 +314,11 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       LOG.warn("error shutting down pool", e)
     }
 
-    metaCache.clear()
+    cache.clear()
   }
 
-  @TestOnly
-  fun reset() {
-    metaCache.clear()
-  }
-
-  @TestOnly
   fun forceRebuild() {
-    reset()
+    // no need to clear()
     refreshCache(project.collectAllKtFiles(), backgroundTask = false)
     flush()
   }
@@ -345,7 +338,7 @@ private fun VirtualFile.isRelevantFile(): Boolean {
 /**
  * Collects all Kotlin files of the current project which are source files for Meta transformations.
  */
-private fun Project.collectAllKtFiles(): List<KtFile> {
+fun Project.collectAllKtFiles(): List<KtFile> {
   val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filter {
     it.isRelevantFile()
   }

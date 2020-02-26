@@ -7,10 +7,10 @@ import org.junit.After
 import org.junit.Test
 
 class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
-  @After
+  /*@After
   fun cleanup() {
     QuoteSystemCache.getInstance(project).reset()
-  }
+  }*/
 
   @Test
   fun higherKindTransformation() {
