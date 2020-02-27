@@ -2,11 +2,13 @@ package arrow.meta.ide.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
+import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
@@ -73,12 +75,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
-  private val cacheUpdaterPool: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
+  val cacheExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
   // pool where non-blocking read actions for document updates are executed
-  private val docUpdaterPool: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
+  val docExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
 
   // fixme find a good value for timeout (milliseconds)
-  private val editorUpdateQueue = MergingUpdateQueue("arrow doc worker", 500, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
+  val editorQueue: MergingUpdateQueue = MergingUpdateQueue("arrow doc worker", 500, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
 
   override fun initComponent() {
     // register an async file listener.
@@ -106,7 +108,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           override fun afterVfsChange() {
             LOG.info("afterVfsChange")
             // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-            refreshCache(relevantFiles.toKtFiles(project), resetCache = false, indicator = DumbProgressIndicator.INSTANCE)
+            refreshCache(project = project, files = relevantFiles.toKtFiles(project), resetCache = false, indicator = DumbProgressIndicator.INSTANCE)
           }
         }
       }
@@ -114,7 +116,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : BulkAwareDocumentListener.Simple {
       override fun afterDocumentChange(document: Document) {
-        editorUpdateQueue.queue(Update.create(document) {
+        editorQueue.queue(Update.create(document) {
           //  cancel ongoing updates of the same document
           KEY_DOC_UPDATE.get(document)?.let {
             KEY_DOC_UPDATE.set(document, null)
@@ -123,30 +125,30 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
           val indicator: ProgressIndicator = EmptyProgressIndicator(ModalityState.NON_MODAL)
           KEY_DOC_UPDATE.set(document, indicator)
-
-          if (ApplicationManager.getApplication().isUnitTestMode) {
+          val app: Application = ApplicationManager.getApplication()
+          if (app.isUnitTestMode) {
             readAction {
               ProgressManager.getInstance().runProcess({
-                onDocUpdate(document, indicator)
+                app.updateDoc(document, indicator, project)
               }, indicator)
             }
           } else {
             ReadAction.nonBlocking {
               ProgressManager.getInstance().runProcess({
-                onDocUpdate(document, indicator)
+                app.updateDoc(document, indicator, project)
               }, indicator)
             }.cancelWith(indicator)
               .expireWhen(indicator::isCanceled)
               .expireWith(this@QuoteSystemCache)
-              .submit(docUpdaterPool)
+              .submit(docExec)
           }
         })
       }
     }, project)
   }
 
-  private fun onDocUpdate(doc: Document, progressIndicator: ProgressIndicator) {
-    ApplicationManager.getApplication().assertReadAccessAllowed()
+  fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndicator, project: Project) {
+    assertReadAccessAllowed()
 
     val vFile = FileDocumentManager.getInstance().getFile(doc)
     if (vFile == null
@@ -163,11 +165,11 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
       //  it would be better to take the text and send the text content to the quote system
       // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
       //   but doesn't fail in tests
-      if (ApplicationManager.getApplication().isWriteAccessAllowed) {
+      if (isWriteAccessAllowed) {
         PsiDocumentManager.getInstance(project).commitDocument(doc)
       }
 
-      refreshCache(listOf(psiFile), resetCache = false, indicator = progressIndicator)
+      refreshCache(project = project, files = listOf(psiFile), resetCache = false, indicator = progressIndicator)
     }
   }
 
@@ -181,7 +183,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         val files = readAction {
           project.collectAllKtFiles()
         }
-        refreshCache(files, resetCache = true, indicator = DumbProgressIndicator.INSTANCE)
+        refreshCache(project = project, files = files, resetCache = true, indicator = DumbProgressIndicator.INSTANCE)
       }
     }
   }
@@ -194,11 +196,11 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  fun refreshCache(updatedFiles: List<KtFile>, resetCache: Boolean = true, indicator: ProgressIndicator) {
+  fun refreshCache(project: Project, files: List<KtFile>, resetCache: Boolean = true, indicator: ProgressIndicator) {
     LOG.assertTrue(indicator.isRunning)
-    LOG.info("refreshCache(): updating/adding ${updatedFiles.size} files, currently cached ${cache.size} files")
+    LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache.size} files")
 
-    if (updatedFiles.isEmpty()) {
+    if (files.isEmpty()) {
       return
     }
 
@@ -210,18 +212,19 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     ReadAction.nonBlocking<List<Pair<KtFile, KtFile>>> {
       val start = System.currentTimeMillis()
       try {
-        transformFiles(updatedFiles)
+        transform(files, analysisIdeExtensions, project)
       } finally {
         val duration = System.currentTimeMillis() - start
-        LOG.warn("kt file transformation: %d files, duration %d ms".format(updatedFiles.size, duration))
+        LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
       }
-    }.cancelWith(indicator)
-      .expireWhen({ indicator.isCanceled })
-      .submit(docUpdaterPool)
+    }
+      .cancelWith(indicator)
+      .expireWhen { indicator.isCanceled }
+      .submit(docExec)
       .then { transformed ->
         // limit to one pool to avoid cache corruption
         ProgressManager.getInstance().runProcess({
-          doRefreshCache(updatedFiles, transformed, resetCache, indicator)
+          performRefresh(files, transformed, resetCache, indicator, project)
         }, indicator)
       }.onError { e ->
         // fixme atm a transformation of a .kt file with syntax errors also returns an empty list of transformations
@@ -230,7 +233,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
         // IllegalStateExceptions are usually caused by syntax errors in the source files, thrown by quote system
         if (LOG.isDebugEnabled) {
-          LOG.debug("error transforming files $updatedFiles", e)
+          LOG.debug("error transforming files $files", e)
         }
       }
   }
@@ -240,7 +243,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * The execution of the cache update may be delayed.
    * This method takes care that only one cache update may happen at the same time by using a single-bounded executor.
    */
-  private fun doRefreshCache(updatedFiles: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, resetCache: Boolean, indicator: ProgressIndicator) {
+  fun performRefresh(files: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, resetCache: Boolean, indicator: ProgressIndicator, project: Project) {
     LOG.assertTrue(indicator.isRunning)
 
     ReadAction.nonBlocking {
@@ -253,20 +256,19 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         }
 
         LOG.info("resolving descriptors of transformed files: ${cache.size} files")
-        if (updatedFiles.isNotEmpty()) {
+        if (files.isNotEmpty()) {
           // clear descriptors of all updatedFiles, which don't have a transformation result
           // e.g. because meta-code isn't used anymore
 
-          // fixme this lookup is slow (exponential?), optimize when necesary
-          for (source in updatedFiles) {
+          // fixme this lookup is slow (exponential?), optimize when necessary
+          for (source in files) {
             if (!transformed.any { it.first == source }) {
               cache.removeQuotedFile(source)
             }
           }
 
           // the kotlin facade needs files with source and target elements
-          val kotlinCache = KotlinCacheService.getInstance(project)
-          val facade = kotlinCache.getResolutionFacade(updatedFiles + transformed.map { it.second })
+          val facade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
 
           // fixme: remove descriptors which belong to the newly transformed files
           transformed.forEach { (sourceFile, transformedFile) ->
@@ -287,42 +289,41 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
                 }
               }
             }
-
             cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
           }
 
           // refresh the highlighting of editors of modified files, using the new cache
-          for ((originalPsiFile, _) in transformed) {
-            DaemonCodeAnalyzer.getInstance(project).restart(originalPsiFile)
+          for ((origin, _) in transformed) {
+            DaemonCodeAnalyzer.getInstance(project).restart(origin)
           }
         }
       }, indicator)
     }.cancelWith(indicator)
-      .expireWhen({ indicator.isCanceled })
+      .expireWhen { indicator.isCanceled }
       .expireWith(this)
       .inSmartMode(project)
-      .submit(cacheUpdaterPool)
+      .submit(cacheExec)
   }
 
   /**
    * Applies the Quote system's transformations on the input files and returns a mapping of
    * originalFile->transformedFile if the transformation changed the original file.
    */
-  fun transformFiles(sourceFiles: List<KtFile>): List<Pair<KtFile, KtFile>> {
+  fun transform(files: List<KtFile>, extensions: List<AnalysisDefinition>, project: Project): List<Pair<KtFile, KtFile>> {
     ApplicationManager.getApplication().assertReadAccessAllowed()
     LOG.assertTrue(ProgressManager.getInstance().hasProgressIndicator())
 
     // fixme is scope correct here? Unsure what CompilerContext is expecting here
     // fixme do we need to set more properties of the compiler context?
     val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = sourceFiles
+    context.files = files
 
     val resultFiles = arrayListOf<KtFile>()
-    resultFiles.addAll(sourceFiles)
+    resultFiles.addAll(files)
 
     // fixme: remove debugging code before it's used in production
     val allDuration = AtomicLong(0)
-    analysisIdeExtensions.forEach { ext ->
+    extensions.forEach { ext ->
       ProgressManager.checkCanceled()
 
       val mutations = resultFiles.map {
@@ -360,29 +361,27 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     // now, restore the association of sourceFile to transformed file
     // don't keep files which were not transformed
     ProgressManager.checkCanceled()
-    return sourceFiles.zip(resultFiles).filter { it.first != it.second }
+    return files.zip(resultFiles).filter { it.first != it.second }
   }
 
   override fun dispose() {
     try {
-      cacheUpdaterPool.shutdownNow() // pool
+      cacheExec.shutdownNow()
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
-
     cache.clear()
   }
 
   fun forceRebuild() {
-    // no needreset()
-    refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
+    // no need reset()
+    refreshCache(project = project, files = project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
     flushForTest()
   }
 
   @TestOnly
   fun flushForTest() {
-    // priori pool.submit { }.get(5000, TimeUnit.MILLISECONDS
-    editorUpdateQueue.flush()
+    editorQueue.flush()
 
     // use sleep, until we find a better way to wait for non blocking read actions
     Thread.sleep(5000)

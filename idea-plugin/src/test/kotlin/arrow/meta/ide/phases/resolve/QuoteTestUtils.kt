@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.internal.Noop
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -7,12 +8,17 @@ import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestC
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.concurrent.TimeUnit
 
 interface TestQuoteSystemService {
   val service: QuoteSystemService
 
-  fun flush(): Any? = service.exec.submit { }.get(5000, TimeUnit.MILLISECONDS)
+  fun flush() {
+    //editorUpdateQueue.flush()
+
+    // use sleep, until we find a better way to wait for non blocking read actions
+    Thread.sleep(5000)
+  }
+
   fun forceRebuild(project: Project): Unit {
     //TODO: service.refreshCache(project, quoteSystem.cache, project.quoteRelevantFiles())
     flush()
@@ -27,8 +33,7 @@ fun toTestEnv(service: QuoteSystemService): TestQuoteSystemService =
 fun Project.testQuoteSystem(): TestQuoteSystemService? =
   getService(QuoteSystemService::class.java)?.let(::toTestEnv)
 
-
-fun updateAndAssertCache(cache: QuoteSystemCache, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
+fun updateAndAssertCache(cache: QuoteSystemCache, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1) {
   val packageFqName = (toUpdate as KtFile).packageFqName
   val cachedElements = cache.descriptors(packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)

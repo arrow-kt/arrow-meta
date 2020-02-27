@@ -2,6 +2,8 @@ package arrow.meta.ide.phases.resolve
 
 import arrow.meta.quotes.AnalysisDefinition
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.DumbProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -43,14 +45,14 @@ interface QuoteSystemService {
   /**
    * transforms [files] and repopulates the [cache] based on the [strategy]
    */
-  fun refreshCache(project: Project, cache: QuoteCache, files: List<KtFile>, strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true)): Unit
+  fun refreshCache(cache: QuoteCache, files: List<KtFile>, strategy: CacheStrategy = cacheStrategy(resetCache = true, indicator = DumbProgressIndicator.INSTANCE)): Unit
 
   /**
    * refreshes [cache] with an computational context for instance [ExecutorService] if [CacheStrategy.backgroundTask] == true
    */
-  fun computeRefreshCache(strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true), refresh: () -> Unit): Unit {
+  /*fun computeRefreshCache(strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true), refresh: () -> Unit): Unit {
     if (strategy.backgroundTask) exec.submit(refresh) else refresh()
-  }
+  }*/
 }
 
 /**
@@ -58,16 +60,16 @@ interface QuoteSystemService {
  */
 interface CacheStrategy {
   val resetCache: Boolean
-  val backgroundTask: Boolean
+  val indicator: ProgressIndicator
 }
 
 fun cacheStrategy(
-  resetCache: Boolean = true,
-  backgroundTask: Boolean = true
+  resetCache: Boolean,
+  indicator: ProgressIndicator = DumbProgressIndicator.INSTANCE
 ): CacheStrategy =
   object : CacheStrategy {
     override val resetCache: Boolean = resetCache
-    override val backgroundTask: Boolean = backgroundTask
+    override val indicator: ProgressIndicator = indicator
   }
 
 @Suppress("UNCHECKED_CAST")
