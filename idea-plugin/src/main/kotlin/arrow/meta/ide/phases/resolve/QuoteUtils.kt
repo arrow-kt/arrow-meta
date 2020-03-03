@@ -45,7 +45,7 @@ interface QuoteSystemService {
   /**
    * transforms [files] and repopulates the [cache] based on the [strategy]
    */
-  fun refreshCache(cache: QuoteCache, files: List<KtFile>, strategy: CacheStrategy = cacheStrategy(resetCache = true, indicator = DumbProgressIndicator.INSTANCE)): Unit
+  fun refreshCache(cache: QuoteCache, files: List<KtFile>, strategy: CacheStrategy): Unit
 
   /**
    * refreshes [cache] with an computational context for instance [ExecutorService] if [CacheStrategy.backgroundTask] == true
@@ -63,8 +63,11 @@ interface CacheStrategy {
   val indicator: ProgressIndicator
 }
 
+/**
+ * The default strategy resets the quote cache and uses the DumbProgressIndicator
+ */
 fun cacheStrategy(
-  resetCache: Boolean,
+  resetCache: Boolean = true,
   indicator: ProgressIndicator = DumbProgressIndicator.INSTANCE
 ): CacheStrategy =
   object : CacheStrategy {

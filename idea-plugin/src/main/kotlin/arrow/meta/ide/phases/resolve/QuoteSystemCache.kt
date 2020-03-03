@@ -17,7 +17,6 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.DumbProgressIndicator
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -108,7 +107,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           override fun afterVfsChange() {
             LOG.info("afterVfsChange")
             // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-            refreshCache(project = project, files = relevantFiles.toKtFiles(project), resetCache = false, indicator = DumbProgressIndicator.INSTANCE)
+            refreshCache(project, relevantFiles.toKtFiles(project), cacheStrategy(false))
           }
         }
       }
@@ -169,7 +168,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         PsiDocumentManager.getInstance(project).commitDocument(doc)
       }
 
-      refreshCache(project = project, files = listOf(psiFile), resetCache = false, indicator = progressIndicator)
+      refreshCache(project, listOf(psiFile), cacheStrategy(false, progressIndicator))
     }
   }
 
@@ -183,7 +182,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         val files = readAction {
           project.collectAllKtFiles()
         }
-        refreshCache(project = project, files = files, resetCache = true, indicator = DumbProgressIndicator.INSTANCE)
+        refreshCache(project, files, cacheStrategy())
       }
     }
   }
@@ -196,8 +195,8 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  fun refreshCache(project: Project, files: List<KtFile>, resetCache: Boolean = true, indicator: ProgressIndicator) {
-    LOG.assertTrue(indicator.isRunning)
+  fun refreshCache(project: Project, files: List<KtFile>, strategy: CacheStrategy) {
+    LOG.assertTrue(strategy.indicator.isRunning)
     LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache.size} files")
 
     if (files.isEmpty()) {
@@ -218,14 +217,14 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
         LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
       }
     }
-      .cancelWith(indicator)
-      .expireWhen { indicator.isCanceled }
+      .cancelWith(strategy.indicator)
+      .expireWhen { strategy.indicator.isCanceled }
       .submit(docExec)
       .then { transformed ->
         // limit to one pool to avoid cache corruption
         ProgressManager.getInstance().runProcess({
-          performRefresh(files, transformed, resetCache, indicator, project)
-        }, indicator)
+          performRefresh(files, transformed, strategy, project)
+        }, strategy.indicator)
       }.onError { e ->
         // fixme atm a transformation of a .kt file with syntax errors also returns an empty list of transformations
         //    we probably need to handle this, otherwise files with errors will always have unresolved references
@@ -243,15 +242,15 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    * The execution of the cache update may be delayed.
    * This method takes care that only one cache update may happen at the same time by using a single-bounded executor.
    */
-  fun performRefresh(files: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, resetCache: Boolean, indicator: ProgressIndicator, project: Project) {
-    LOG.assertTrue(indicator.isRunning)
+  private fun performRefresh(files: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, strategy: CacheStrategy, project: Project) {
+    LOG.assertTrue(strategy.indicator.isRunning)
 
     ReadAction.nonBlocking {
       ProgressManager.getInstance().runProcess({
-        LOG.assertTrue(indicator.isRunning)
+        LOG.assertTrue(strategy.indicator.isRunning)
         LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
 
-        if (resetCache) {
+        if (strategy.resetCache) {
           cache.clear()
         }
 
@@ -297,9 +296,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             DaemonCodeAnalyzer.getInstance(project).restart(origin)
           }
         }
-      }, indicator)
-    }.cancelWith(indicator)
-      .expireWhen { indicator.isCanceled }
+      }, strategy.indicator)
+    }.cancelWith(strategy.indicator)
+      .expireWhen { strategy.indicator.isCanceled }
       .expireWith(this)
       .inSmartMode(project)
       .submit(cacheExec)
@@ -375,7 +374,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   fun forceRebuild() {
     // no need reset()
-    refreshCache(project = project, files = project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
+    refreshCache(project, project.collectAllKtFiles(), cacheStrategy())
     flushForTest()
   }
 
