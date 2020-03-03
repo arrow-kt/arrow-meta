@@ -57,6 +57,7 @@ interface QuoteSystemService {
 
 /**
  * complements the quote service with a cache strategy
+ * It agregates the configs of caching quote transformations
  */
 interface CacheStrategy {
   val resetCache: Boolean
