@@ -3,7 +3,7 @@ package arrow.meta.ide.phases.resolve
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
-import org.junit.After
+import org.jetbrains.kotlin.name.FqName
 import org.junit.Test
 
 class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
@@ -56,5 +56,31 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     QuoteSystemCache.getInstance(project).forceRebuild()
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
+  }
+
+  // fixme: this test is still failing, see below for the reason
+  @Test
+  fun higherKindAllCacheItemsResolved() {
+    val code = """
+      package testArrow
+      import arrow.higherkind
+
+      @higherkind
+      class Old<caret>Id<out A>(val value: A)
+    """.trimIndent()
+
+    val cache = QuoteSystemCache.getInstance(project)
+
+    myFixture.configureByText(KotlinFileType.INSTANCE, code)
+    cache.forceRebuild()
+
+    val descriptors = cache.descriptors(FqName("testArrow"))
+    assertEquals(5, descriptors.size)
+    descriptors.forEach {
+      assertTrue(it.isMetaSynthetic())
+      // fixme @arrow.synthetic and @arrow.Kind are unresolved,
+      //  we need to create a module dependency to arrow-annotations in the test project (at runtime)
+      assertFalse("IntelliJ's error debug markers must not exist, as they indicate unresolved references: $it", it.toString().contains("@[ERROR"))
+    }
   }
 }

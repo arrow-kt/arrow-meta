@@ -39,6 +39,8 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.BoundedTaskExecutor
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.TestOnly
@@ -51,10 +53,12 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 
@@ -74,12 +78,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
-  val cacheExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
+  val cacheExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1) as BoundedTaskExecutor
   // pool where non-blocking read actions for document updates are executed
-  val docExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
+  val docExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1) as BoundedTaskExecutor
 
   // fixme find a good value for timeout (milliseconds)
-  val editorQueue: MergingUpdateQueue = MergingUpdateQueue("arrow doc worker", 500, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
+  val editorQueue: MergingUpdateQueue = MergingUpdateQueue("arrow doc events", 500, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
 
   override fun initComponent() {
     // register an async file listener.
@@ -380,10 +384,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   @TestOnly
   fun flushForTest() {
+    UIUtil.dispatchAllInvocationEvents()
+
     editorQueue.flush()
 
-    // use sleep, until we find a better way to wait for non blocking read actions
-    Thread.sleep(5000)
+    docExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    cacheExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
   }
 }
 
