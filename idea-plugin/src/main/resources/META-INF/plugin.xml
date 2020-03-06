@@ -25,11 +25,12 @@
     </project-components>
 
     <extensions defaultExtensionNs="com.intellij">
+        <highlightingPassFactory implementation="arrow.meta.ide.ArrowHighlightingPassFactory"/>
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
+        <!-- syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" /-->
     </extensions>
 
 </idea-plugin>

@@ -6,7 +6,6 @@ import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -40,7 +39,6 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.TestOnly
@@ -53,12 +51,12 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 
@@ -176,17 +174,35 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
+  private val initialized = AtomicBoolean(false)
+  private val initializedLatch = CountDownLatch(1)
+  fun waitForInitialize() {
+    if (!initialized.get()) {
+      initializedLatch.await(5, TimeUnit.SECONDS)
+    }
+  }
+
   override fun projectOpened() {
     // add a startup activity to populate the cache with a transformation of all project files
     // fixme sometimes initially opened files still show errors.
     //  This seems to be a timing issue between cache update and initial update.
     StartupManager.getInstance(project).runWhenProjectIsInitialized {
       runBackgroundableTask("Arrow Meta", project, cancellable = false) {
-        LOG.info("Initializing quote system cache...")
-        val files = readAction {
-          project.collectAllKtFiles()
+        try {
+          LOG.info("Initializing quote system cache...")
+          val files = readAction {
+            project.collectAllKtFiles()
+          }
+          refreshCache(project, files, cacheStrategy())
+        } finally {
+          try {
+            flushForTest()
+          } catch (e: Exception) {
+          }
+
+          initializedLatch.countDown()
+          initialized.set(true)
         }
-        refreshCache(project, files, cacheStrategy())
       }
     }
   }
@@ -296,9 +312,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           }
 
           // refresh the highlighting of editors of modified files, using the new cache
-          for ((origin, _) in transformed) {
-            DaemonCodeAnalyzer.getInstance(project).restart(origin)
-          }
+          //for ((origin, _) in transformed) {
+          //DaemonCodeAnalyzer.getInstance(project).restart(origin)
+          //}
         }
       }, strategy.indicator)
     }.cancelWith(strategy.indicator)
@@ -384,8 +400,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   @TestOnly
   fun flushForTest() {
-    UIUtil.dispatchAllInvocationEvents()
-
     editorQueue.flush()
 
     docExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
