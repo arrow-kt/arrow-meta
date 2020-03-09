@@ -63,5 +63,33 @@ class TypeClassesTest {
       }
     ))
   }
+
+  @Test
+  fun `given identity`() {
+    val arrowVersion = System.getProperty("ARROW_VERSION")
+    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
+    val codeSnippet = """
+       import arrowx.*
+       import arrowx.given
+       import arrow.tuples.*
+       
+       fun <A> given(evidence: @given A = arrow.given): A =
+          evidence
+
+       //metadebug
+        val result = given<Monoid<String>>().empty()
+      """
+    assertThis(CompilerTest(
+      config = {
+        metaDependencies + addDependencies(arrowCoreData)
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        allOf("result".source.evalsTo(""))
+      }
+    ))
+  }
 }
 

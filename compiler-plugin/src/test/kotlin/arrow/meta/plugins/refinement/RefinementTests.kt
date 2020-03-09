@@ -9,35 +9,10 @@ class RefinementTests {
   val prelude = """
     package test
     import arrow.*
-    
-    inline class NonEmptyArray(val value: Array<Int>) {
-      companion object : Refined<Array<Int>> {
-        override val validate: Array<Int>.() -> Map<String, Boolean> = {
-          mapOf(
-            "Should not be empty" to isNotEmpty()
-          )
-        }
-      }
-    }
-    
-    @Proof(TypeProof.Extension, coerce = true)
-    fun Array<Int>.nonEmpty(): NonEmptyArray? =
-      NonEmptyArray(this, ::NonEmptyArray)
-    
-    inline class PositiveInt(val value: Int)  {
-      companion object : Refined<Int> {
-        override val validate: Int.() -> Map<String, Boolean> = {
-          mapOf(
-            "Should be >= 0" to (this >= 0)
-          )
-        }
-      }
-    }
-    
-    @Proof(TypeProof.Extension, coerce = true)
-    fun Int.positive(): PositiveInt? =
-      PositiveInt(this, ::PositiveInt)
-    
+  """.trimIndent()
+
+  private fun twitterHandle(): String =
+    """
     inline class TwitterHandle(val handle: String)  {
       companion object : Refined<String> {
         override val validate: String.() -> Map<String, Boolean> = {
@@ -56,7 +31,42 @@ class RefinementTests {
     fun String.twitterHandle(): TwitterHandle? =
       TwitterHandle(this, ::TwitterHandle)
       
-  """.trimIndent()
+    """
+
+  private fun positiveInt(): String =
+    """
+      inline class PositiveInt(val value: Int)  {
+        companion object : Refined<Int> {
+          override val validate: Int.() -> Map<String, Boolean> = {
+            mapOf(
+              "Should be >= 0" to (this >= 0)
+            )
+          }
+        }
+      }
+      
+      @Proof(TypeProof.Extension, coerce = true)
+      fun Int.positive(): PositiveInt? =
+        PositiveInt(this, ::PositiveInt)
+    """
+
+
+  private fun nonEmptyArray(): String =
+    """
+    inline class NonEmptyArray(val value: Array<Int>) {
+      companion object : Refined<Array<Int>> {
+        override val validate: Array<Int>.() -> Map<String, Boolean> = {
+          mapOf(
+            "Should not be empty" to isNotEmpty()
+          )
+        }
+      }
+    }
+    
+    @Proof(TypeProof.Extension, coerce = true)
+    fun Array<Int>.nonEmpty(): NonEmptyArray? =
+      NonEmptyArray(this, ::NonEmptyArray)
+    """
 
   @Test
   fun `Construction is validated with arrays of literals`() {
@@ -64,7 +74,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${nonEmptyArray()}
            |val x: NonEmptyArray = NonEmptyArray(emptyArray())
            |""".source
       },
@@ -80,7 +90,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${twitterHandle()}
            |val x: TwitterHandle = TwitterHandle("@admin")
            |""".source
       },
@@ -96,7 +106,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${positiveInt()}
            |val x: PositiveInt = PositiveInt(-1)
            |""".source
       },
@@ -112,7 +122,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${positiveInt()}
            |val x: PositiveInt = PositiveInt(1)
            |""".source
       },
@@ -128,7 +138,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${positiveInt()}
            |val x: TwitterHandle? = "@admin"
            |""".source
       },
@@ -144,7 +154,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |
+           |${twitterHandle()}
            |fun x(): TwitterHandle? = "@whatever"
            |""".source
       },

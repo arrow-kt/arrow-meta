@@ -1,9 +1,7 @@
 package arrowx
 
 import arrow.Proof
-
 import arrow.TypeProof
-import arrowx.StringMonoid.combine
 
 interface Semigroup<A> {
   fun A.combine(other: A): A
@@ -22,15 +20,19 @@ object StringMonoid : Monoid<String> {
   override fun empty(): String = ""
 }
 
-inline class StringSyntax(override val value: String) : Semigroup.Syntax<String> {
-  override fun combine(other: String): String = value + other
+inline class StringSyntax(override val value: String)
+  : Semigroup.Syntax<String> {
+  override fun combine(other: String): String =
+    value + other
 }
 
 @Proof(TypeProof.Extension)
-internal fun String.Companion.monoid(): Monoid<String> = StringMonoid
+fun String.Companion.monoid(): Monoid<String> =
+  StringMonoid
 
 @Proof(TypeProof.Extension)
-fun String.semigroupSyntax(): Semigroup.Syntax<String> = StringSyntax(this)
+fun String.semigroupSyntax(): Semigroup.Syntax<String> =
+  StringSyntax(this)
 
 data class Id<A>(val value: A) {
   companion object

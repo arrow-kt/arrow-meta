@@ -89,5 +89,6 @@ enum class TypeProof {
 annotation class Proof(
   val of: TypeProof,
   val refined: Array<String> = [],
-  val coerce: Boolean = true
+  val coerce: Boolean = true,
+  val inductive: Boolean = false
 )

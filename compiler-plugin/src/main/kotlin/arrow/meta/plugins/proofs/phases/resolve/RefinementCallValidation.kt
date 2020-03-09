@@ -2,6 +2,8 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.Meta
 import arrow.meta.internal.Noop
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.isAnnotatedWith
@@ -36,8 +38,7 @@ internal fun CompilerContext.validateRefinedCalls(bindingTrace: BindingTrace) {
   val calls = bindingTrace.bindingContext.getSliceContents(BindingContext.CALL)
   calls
     .forEach { (element, call) ->
-      val resolvedCall: ResolvedCall<*> = call.getResolvedCall(bindingTrace.bindingContext) as ResolvedCall<*>
-      validateConstructorCall(resolvedCall)
+      call.getResolvedCall(bindingTrace.bindingContext)?.let(::validateConstructorCall)
     }
 }
 
@@ -89,7 +90,17 @@ internal fun CompilerContext.validateExpression(
       ${source}.run ${refinementExpression.text}
     """.trimIndent()
   val engine = ScriptEngineManager().getEngineByExtension("kts")
-  val expressionResult = engine.eval(constantChecker) as? Map<Any?, Any?>
+
+    Log.Verbose({ "eval refinement result [1] : \n$this" }) {
+      engine.eval("1")
+    }
+  Log.Verbose({ "eval refinement result [2] : \n$this" }) {
+    engine.eval("2")
+  }
+  val expressionResult =
+    Log.Verbose({ "eval refinement result : \n$this" }) {
+      engine.eval(constantChecker) as? Map<Any?, Any?>
+    }
   if (expressionResult != null) {
     val validationKeys = expressionResult.keys.filterIsInstance<String>()
     val validation = validationKeys.map {
