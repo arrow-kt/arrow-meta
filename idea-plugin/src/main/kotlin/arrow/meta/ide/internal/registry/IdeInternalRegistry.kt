@@ -1,6 +1,8 @@
 package arrow.meta.ide.internal.registry
 
+import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.dsl.application.ServiceKind
+import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
@@ -45,10 +47,21 @@ import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 
 internal interface IdeInternalRegistry : InternalRegistry {
+
+  override fun registerMetaAnalyzer(): ExtensionPhase =
+    ide {
+      storageComponent(
+        registerModuleComponents = { container, moduleDescriptor ->
+          //println("Registering meta analyzer")
+          container.useImpl<MetaIdeAnalyzer>()
+          //
+        },
+        check = { declaration, descriptor, context ->
+        }
+      )
+    } ?: ExtensionPhase.Empty
 
   override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
     when (currentPhase) {
