@@ -9,9 +9,8 @@ import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.load.java.descriptors.StringDefaultValue
-import org.jetbrains.kotlin.load.java.descriptors.getDefaultValueFromAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
@@ -24,10 +23,8 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
-import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
@@ -37,39 +34,64 @@ import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import kotlin.math.exp
 
 fun List<Proof>.matchingCandidates(
   compilerContext: CompilerContext,
   subType: KotlinType,
   superType: KotlinType
-): List<Proof> =
-  if (containsErrorsOrNothing(subType, superType)) emptyList()
+): List<Proof> {
+  val proofs = if (containsErrorsOrNothing(subType, superType)) emptyList()
   else {
     compilerContext.run {
       try {
         module?.run {
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-            val extensionReceiver = ProofReceiverValue(subType)
-            val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
-            val scopeTower = ProofsScopeTower(this, this@matchingCandidates, compilerContext)
-            val kotlinCall: KotlinCall = receiverValue.kotlinCall()
-            val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
-              scopeTower = scopeTower,
-              kotlinCall = kotlinCall,
-              expectedType = superType.unwrap(),
-              collectAllCandidates = true,
-              givenCandidates = givenCandidates(),
-              extensionReceiver = receiverValue
-            )
-            return callResolutionResult.matchingProofs(subType, superType)
+            val proofs = this@matchingCandidates.resolveProofs(subType, superType, compilerContext, proofsCallResolver, this)
+//            if (proofs.isEmpty()) {
+//
+//              val parts = subType.productTypes()
+//              if (parts.isEmpty()) proofs
+//              else { //inductive derivation of the whole from the parts
+//                val proofedParts = parts.map {
+//                  it to resolveProofs(it, superType, compilerContext, proofsCallResolver, this)
+//                }.toMap()
+//                proofs //TODO add inductive parts to a greater proof
+//              }
+//            } else {
+//              proofs
+//            }
+            proofs
           }
-        } ?: emptyList<Proof>()
+        } ?: emptyList()
       } catch (e: ContainerConsistencyException) {
         emptyList<Proof>()
       }
     }
   }
+  return proofs
+}
+
+private fun List<Proof>.resolveProofs(
+  subType: KotlinType,
+  superType: KotlinType,
+  compilerContext: CompilerContext,
+  proofsCallResolver: ProofsCallResolver,
+  moduleDescriptor: ModuleDescriptor
+): List<Proof> {
+  val extensionReceiver = ProofReceiverValue(subType)
+  val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
+  val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
+  val kotlinCall: KotlinCall = receiverValue.kotlinCall()
+  val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
+    scopeTower = scopeTower,
+    kotlinCall = kotlinCall,
+    expectedType = superType.unwrap(),
+    collectAllCandidates = true,
+    givenCandidates = givenCandidates(),
+    extensionReceiver = receiverValue
+  )
+  return callResolutionResult.matchingProofs(subType, superType)
+}
 
 private fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }

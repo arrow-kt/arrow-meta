@@ -333,7 +333,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     // fixme is scope correct here? Unsure what CompilerContext is expecting here
     // fixme do we need to set more properties of the compiler context?
     val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = sourceFiles // <- this needs to be commented for the ide to work
+   // context.files = sourceFiles // <- this needs to be commented for the ide to work
 
     val resultFiles = arrayListOf<KtFile>()
     resultFiles.addAll(sourceFiles)

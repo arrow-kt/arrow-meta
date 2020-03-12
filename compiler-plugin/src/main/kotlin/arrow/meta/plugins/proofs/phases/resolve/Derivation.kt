@@ -4,7 +4,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.constituentTypes
 
 /**
  * Given a subtype such as a data class or a tuple this function determines
