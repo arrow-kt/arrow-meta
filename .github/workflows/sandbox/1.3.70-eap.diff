@@ -879,15 +879,16 @@ index a064e8b..81332d0 100644
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 index 7d3e08b1..ec654916 100644
+index 903b59e9..317dc4f4 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-@@ -25,8 +25,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
- import arrow.meta.plugins.higherkind.KindAwareTypeChecker
+@@ -23,7 +23,7 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
+ import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
  import org.jetbrains.kotlin.analyzer.AnalysisResult
  import org.jetbrains.kotlin.analyzer.ModuleInfo
 -import org.jetbrains.kotlin.backend.common.BackendContext
- import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 +import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
  import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -901,6 +902,7 @@ index 7d3e08b1..ec654916 100644
  import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
  import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 @@ -63,7 +61,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
+@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.LookupTracker
@@ -909,16 +911,7 @@ index 7d3e08b1..ec654916 100644
  import org.jetbrains.kotlin.name.Name
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
-@@ -154,7 +152,7 @@ interface InternalRegistry : ConfigSyntax {
-     project: Project,
-     configuration: CompilerConfiguration
-   ) {
--    println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
-+    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
-     cli {
-       println("it's the CLI plugin")
-     }
-@@ -290,11 +288,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -267,11 +267,10 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -929,12 +922,11 @@ index 7d3e08b1..ec654916 100644
 +        pluginContext: IrPluginContext
        ) {
 -        phase.run { compilerContext.generate(file, backendContext, bindingContext) }
-+        phase.run { moduleFragment.files.forEach { compilerContext.generate(it, pluginContext) }
-+        }
++        phase.run { moduleFragment.files.forEach { compilerContext.generate(it, pluginContext) } }
        }
      })
    }
-@@ -438,7 +436,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -415,7 +414,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -942,7 +934,7 @@ index 7d3e08b1..ec654916 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -447,7 +444,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -424,7 +422,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -950,7 +942,7 @@ index 7d3e08b1..ec654916 100644
                isImplicitModality
              )
            }
-@@ -622,4 +618,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -593,4 +590,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)
@@ -984,20 +976,21 @@ index 2867bd7..0b19295 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-index 1e76d6c..40d276e 100644
+index 9e9dddef..d0b40ee3 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-@@ -1,7 +1,7 @@
+@@ -1,8 +1,7 @@
  package arrow.meta.phases.codegen.ir
  
  import arrow.meta.phases.CompilerContext
+-import arrow.meta.plugins.proofs.phases.ir.ProofsIrCodegen
 -import org.jetbrains.kotlin.backend.common.BackendContext
 +import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
  import org.jetbrains.kotlin.descriptors.ClassDescriptor
  import org.jetbrains.kotlin.descriptors.FunctionDescriptor
  import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-@@ -20,20 +20,20 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
- import org.jetbrains.kotlin.psi.KtParameter
+@@ -22,47 +21,45 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
  
  class IrUtils(
 -  val backendContext: BackendContext,
@@ -1014,18 +1007,17 @@ index 1e76d6c..40d276e 100644
 +      symbolTable = pluginContext.symbolTable,
 +      languageVersionSettings = pluginContext.languageVersionSettings,
 +      builtIns = pluginContext.builtIns
-     ).apply {
+     ).apply translator@{
        constantValueGenerator =
          ConstantValueGenerator(
 -          moduleDescriptor = backendContext.ir.irModule.descriptor,
 -          symbolTable = backendContext.ir.symbols.externalSymbolTable
 +          moduleDescriptor = pluginContext.moduleDescriptor,
 +          symbolTable = pluginContext.symbolTable
-         )
+         ).apply {
+           this.typeTranslator = this@translator
+         }
      }
- 
-@@ -43,27 +43,25 @@ class IrUtils(
-       .mapNotNull { it.defaultValue?.text }
  
    fun FunctionDescriptor.irCall(): IrCall {
 -    val irFunctionSymbol = backendContext.ir.symbols.externalSymbolTable.referenceFunction(this)
@@ -1035,7 +1027,7 @@ index 1e76d6c..40d276e 100644
        endOffset = UNDEFINED_OFFSET,
        type = irFunctionSymbol.owner.returnType,
        symbol = irFunctionSymbol,
--      descriptor = irFunctionSymbol.owner.descriptor,
+-      descriptor = irFunctionSymbol.descriptor,
        typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
        valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
      )
@@ -1054,7 +1046,7 @@ index 1e76d6c..40d276e 100644
          typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
          valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
        )
-@@ -71,14 +69,13 @@ class IrUtils(
+@@ -70,14 +67,13 @@ class IrUtils(
    }
  
    fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
@@ -1091,36 +1083,45 @@ index e68aade..df4edaa 100644
    ): Modality?
  }
 \ No newline at end of file
-diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/union/UnionsPlugin.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/union/UnionsPlugin.kt
-index 707956e..25aeb6a 100644
---- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/union/UnionsPlugin.kt
-+++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/union/UnionsPlugin.kt
-@@ -235,7 +235,7 @@ fun IrUtils.unionConversion(intercepted: IrVariable): IrVariable? =
-  * The arrow.Union inline class value holder
-  */
- private fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
--  backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
-+  pluginContext.moduleDescriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
+index 40a79d83..17354c6a 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
+@@ -45,7 +45,7 @@ class ProofsIrCodegen(
+     return fn.irCall().apply {
+       fn.typeParameters.forEachIndexed { n, descriptor ->
+         //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+-        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
++        putTypeArgument(n, irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType })
+       }
+     }
+   }
+@@ -95,7 +95,7 @@ class ProofsIrCodegen(
  
- /**
-  * @see [insertUnionConversion]
-diff --git a/compiler-plugin/src/test/kotlin/arrow/meta/plugins/typeclasses/TypeClassesTest.kt b/compiler-plugin/src/test/kotlin/arrow/meta/plugins/typeclasses/TypeClassesTest.kt
-index 74b6fcf..05f24eb 100755
---- a/compiler-plugin/src/test/kotlin/arrow/meta/plugins/typeclasses/TypeClassesTest.kt
-+++ b/compiler-plugin/src/test/kotlin/arrow/meta/plugins/typeclasses/TypeClassesTest.kt
-@@ -4,10 +4,15 @@ import arrow.core.Some
- import arrow.meta.plugin.testing.CompilerTest
- import arrow.meta.plugin.testing.Dependency
- import arrow.meta.plugin.testing.assertThis
-+import org.junit.Ignore
- import org.junit.Test
- 
- class TypeClassesTest {
- 
-+  // REASONS OF BEING IGNORED:
-+  // It raises an error: extension not found for Mappable<F>
-+  // It will be replaced by Type Proofs
-+  @Ignore
-   @Test
-   fun `simple case`() {
-     val arrowVersion = System.getProperty("ARROW_VERSION")
+   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
+     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
+-      val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
++      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.descriptor)
+       val upperBound = givenTypeParamUpperBound.givenUpperBound
+       if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
+       else insertExtensionSyntaxCall(expression)
+@@ -106,8 +106,8 @@ class ProofsIrCodegen(
+     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
+       ?: expression.extensionReceiver?.type?.toKotlinType()
+     val targetType =
+-      (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+-        ?: expression.descriptor.extensionReceiverParameter?.type
++      (expression.symbol.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
++        ?: expression.symbol.descriptor.extensionReceiverParameter?.type
+     if (targetType != null && valueType != null && targetType != valueType) {
+       expression.apply {
+         val proofCall = proofCall(valueType, targetType)
+@@ -148,7 +148,7 @@ class ProofsIrCodegen(
+         if (maybeCompanion != null) {
+           val extensionCall = proofCall(maybeCompanion.defaultType, superType)?.also {
+             val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
+-            val companionClass = irUtils.backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
++            val companionClass = irUtils.pluginContext.symbolTable.referenceClass(maybeCompanion)
+             it.extensionReceiver = companionCall(companionType, companionClass)
+           }
+           extensionCall?.apply {
