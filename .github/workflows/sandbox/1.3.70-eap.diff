@@ -878,6 +878,7 @@ index a064e8b..81332d0 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
+index 7d3e08b1..ec654916 100644
 index 903b59e9..317dc4f4 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
@@ -890,6 +891,17 @@ index 903b59e9..317dc4f4 100644
  import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+@@ -36,8 +36,6 @@ import org.jetbrains.kotlin.codegen.StackValue
+ import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
+ import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
+ import org.jetbrains.kotlin.com.intellij.mock.MockProject
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
+ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+ import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
+ import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
+@@ -63,7 +61,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
 @@ -62,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
