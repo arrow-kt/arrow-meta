@@ -143,6 +143,7 @@ interface InternalRegistry : ConfigSyntax {
       cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
 
     val ctx = CompilerContext(project, messageCollector)
+    ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {

@@ -5,6 +5,7 @@ import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -22,6 +23,8 @@ class CompilerContext(
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
+
+  var configuration: CompilerConfiguration? = null
 
   val ModuleDescriptor?.proofs: List<Proof>
     get() = this?.tp ?: emptyList()

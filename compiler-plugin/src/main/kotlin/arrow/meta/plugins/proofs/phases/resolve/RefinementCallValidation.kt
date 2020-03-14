@@ -12,6 +12,10 @@ import arrow.meta.quotes.orEmpty
 import arrow.meta.quotes.scope
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.repl.ReplEvalResult
+import org.jetbrains.kotlin.com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -21,18 +25,18 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
+import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
 import org.jetbrains.kotlin.types.KotlinType
-import javax.script.ScriptEngineManager
 
-internal fun Meta.cliValidateRefinedCalls(): AnalysisHandler {
-  return analysis(
+internal fun Meta.cliValidateRefinedCalls(): AnalysisHandler =
+  analysis(
     doAnalysis = Noop.nullable7<AnalysisResult>(),
     analysisCompleted = { project, module, bindingTrace, files ->
       validateRefinedCalls(bindingTrace)
       null
     }
   )
-}
 
 internal fun CompilerContext.validateRefinedCalls(bindingTrace: BindingTrace) {
   val calls = bindingTrace.bindingContext.getSliceContents(BindingContext.CALL)
@@ -42,7 +46,7 @@ internal fun CompilerContext.validateRefinedCalls(bindingTrace: BindingTrace) {
     }
 }
 
-internal fun CompilerContext.validateConstructorCall(call: ResolvedCall<*>) {
+fun CompilerContext.validateConstructorCall(call: ResolvedCall<*>) {
   val currentModule = module
   if (currentModule != null) {
     val targetType = call.getReturnType()
@@ -89,17 +93,18 @@ internal fun CompilerContext.validateExpression(
     """
       ${source}.run ${refinementExpression.text}
     """.trimIndent()
-  val engine = ScriptEngineManager().getEngineByExtension("kts")
+  val newConfig = configuration!!.copy()
+  newConfig.put(JVMConfigurationKeys.IR, false)
+  val interpreter = ReplInterpreter(Disposable { println("refinement interpreter disposed") }, newConfig, ConsoleReplConfiguration())
+//  val engine = KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine
 
-    Log.Verbose({ "eval refinement result [1] : \n$this" }) {
-      engine.eval("1")
-    }
-  Log.Verbose({ "eval refinement result [2] : \n$this" }) {
-    engine.eval("2")
-  }
   val expressionResult =
     Log.Verbose({ "eval refinement result : \n$this" }) {
-      engine.eval(constantChecker) as? Map<Any?, Any?>
+       val evaled = interpreter.eval(constantChecker)
+       when (evaled) {
+         is ReplEvalResult.ValueResult -> evaled.value as? Map<Any?, Any?>
+         else -> TODO("Unexpected eval result for refinement: $evaled")
+       }
     }
   if (expressionResult != null) {
     val validationKeys = expressionResult.keys.filterIsInstance<String>()

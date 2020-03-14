@@ -138,7 +138,7 @@ class RefinementTests {
       config = { metaDependencies },
       code = {
         """|$prelude
-           |${positiveInt()}
+           |${twitterHandle()}
            |val x: TwitterHandle? = "@admin"
            |""".source
       },
