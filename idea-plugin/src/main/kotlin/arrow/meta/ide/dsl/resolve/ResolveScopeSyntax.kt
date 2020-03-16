@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.resolve
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.phases.resolve.ResolveScopeProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -18,4 +19,22 @@ interface ResolveScopeSyntax {
               additionalResolveScope(file, project)
         }
       )
+
+    fun IdeMetaPlugin.addResolveScopeEnlarger(
+      searchScope: SearchScope
+    ): ExtensionPhase =
+      ResolveScopeProvider.RegisterSearchScope(searchScope)
+
+    fun ResolveScopeSyntax.searchScope(
+      containsFile: (file: VirtualFile) -> Boolean,
+      intersectWithScope: (scope: SearchScope) -> SearchScope,
+      unionScope: (scope: SearchScope) -> SearchScope
+    ): SearchScope =
+      object : SearchScope() {
+          override fun contains(file: VirtualFile): Boolean = containsFile(file)
+
+          override fun intersectWith(scope: SearchScope): SearchScope = intersectWithScope(scope)
+
+          override fun union(scope: SearchScope): SearchScope = unionScope(scope)
+      }
 }
