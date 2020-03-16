@@ -30,7 +30,7 @@
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <!-- syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" /-->
+        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
     </extensions>
 
 </idea-plugin>
