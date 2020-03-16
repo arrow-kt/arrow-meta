@@ -6,6 +6,7 @@ import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.analysisIdeExtensions
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -176,6 +177,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   private val initialized = AtomicBoolean(false)
   private val initializedLatch = CountDownLatch(1)
+
+  /**
+   * waits until the initial transformation, which is started after the project was initialized,
+   * is finished. This is necessary to implement fully working highlighting of .kt files, which
+   * access data from the Quote transformations during resolving.
+   */
   fun waitForInitialize() {
     if (!initialized.get()) {
       initializedLatch.await(5, TimeUnit.SECONDS)
@@ -184,8 +191,6 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
 
   override fun projectOpened() {
     // add a startup activity to populate the cache with a transformation of all project files
-    // fixme sometimes initially opened files still show errors.
-    //  This seems to be a timing issue between cache update and initial update.
     StartupManager.getInstance(project).runWhenProjectIsInitialized {
       runBackgroundableTask("Arrow Meta", project, cancellable = false) {
         try {
@@ -196,12 +201,12 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           refreshCache(project, files, cacheStrategy())
         } finally {
           try {
-            flushForTest()
+            flushData()
           } catch (e: Exception) {
           }
 
-          initializedLatch.countDown()
           initialized.set(true)
+          initializedLatch.countDown()
         }
       }
     }
@@ -312,9 +317,9 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           }
 
           // refresh the highlighting of editors of modified files, using the new cache
-          //for ((origin, _) in transformed) {
-          //DaemonCodeAnalyzer.getInstance(project).restart(origin)
-          //}
+          for ((origin, _) in transformed) {
+            DaemonCodeAnalyzer.getInstance(project).restart(origin)
+          }
         }
       }, strategy.indicator)
     }.cancelWith(strategy.indicator)
@@ -395,11 +400,10 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
   fun forceRebuild() {
     // no need reset()
     refreshCache(project, project.collectAllKtFiles(), cacheStrategy())
-    flushForTest()
+    flushData()
   }
 
-  @TestOnly
-  fun flushForTest() {
+  internal fun flushData() {
     editorQueue.flush()
 
     docExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
