@@ -4,15 +4,19 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
+import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
+import arrow.meta.quotes.classorobject.ObjectDeclaration
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
@@ -168,13 +172,21 @@ fun List<Proof>.refinementsFor(superType: KotlinType): List<Proof> =
     baseLineTypeChecker.isSubtypeOf(superType.makeNotNullable(), proof.to)
   }
 
-fun List<Proof>.refinementExpressionFor(superType: KotlinType): String? =
+fun List<Proof>.refinementExpressionFromAnnotation(superType: KotlinType): String? =
   refinementsFor(superType)
     .mapNotNull {
       val refinedAnnotation = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.annotations?.findAnnotation(FqName("arrow.Refinement"))
       if (refinedAnnotation != null) {
         refinedAnnotation.argumentValue("predicate")?.value as? String
       } else null
+    }.firstOrNull()
+
+fun List<Proof>.refinementExpressionFromPsi(superType: KotlinType): String? =
+  refinementsFor(superType)
+    .mapNotNull {
+      val refinedCompanionPsi = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.findPsi() as? KtObjectDeclaration
+      val objectDeclaration = refinedCompanionPsi?.let(::ObjectDeclaration)
+      objectDeclaration?.refinementExpression()
     }.firstOrNull()
 
 

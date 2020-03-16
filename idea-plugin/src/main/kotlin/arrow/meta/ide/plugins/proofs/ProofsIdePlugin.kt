@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 val IdeMetaPlugin.typeProofsIde: Plugin
   get() = "Type Proofs IDE" {
@@ -31,14 +32,22 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       addAnnotator(
         annotator = Annotator { element, holder -> // in some situations there are 2 or more error annotations
           element.safeAs<KtCallElement>()?.let { ktCall ->
-            val ctx = ktCall.analyze()
-            val call = ctx.get(BindingContext.CALL, ktCall)
-            val resolvedCall = call.getResolvedCall(ctx) as? ResolvedCall<*>
-            resolvedCall?.let {
-              val module = resolvedCall.resultingDescriptor.module
-              val ctx = CompilerContext(element.project)
-              ctx.validateConstructorCall(it)
+            val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
+            val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
+            calls.forEach { (call, resolvedCall) ->
+              resolvedCall?.let {
+                if (call.callElement == element) {
+                  val module = resolvedCall.resultingDescriptor.module
+                  val compilerContext = CompilerContext(element.project)
+                  compilerContext.module = module
+                  val validation = compilerContext.validateConstructorCall(it)
+                  validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->
+                    holder.createErrorAnnotation(element, msg)
+                  }
+                }
+              }
             }
+
 //            holder.createErrorAnnotation(f, "This is a call element")?.let { error ->
 //             // error.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
 //            }
