@@ -42,7 +42,7 @@ fun updateAndAssertCache(cache: QuoteSystemCache, project: Project, myFixture: C
     myFixture.openFileInEditor(toUpdate.virtualFile)
     myFixture.editor.document.setText(content)
   }
-  cache.flushForTest()
+  cache.flushData()
 
   val newCachedElements = cache.descriptors(packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
