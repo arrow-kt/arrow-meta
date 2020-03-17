@@ -45,7 +45,7 @@ class ProofsIrCodegen(
     return fn.irCall().apply {
       fn.typeParameters.forEachIndexed { n, descriptor ->
         //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
-        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
+        putTypeArgument(n, irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType })
       }
     }
   }
@@ -95,7 +95,7 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-      val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
+      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner.descriptor)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
@@ -106,8 +106,8 @@ class ProofsIrCodegen(
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
     val targetType =
-      (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
-        ?: expression.descriptor.extensionReceiverParameter?.type
+      (expression.symbol.owner.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+        ?: expression.symbol.owner.descriptor.extensionReceiverParameter?.type
     if (targetType != null && valueType != null && targetType != valueType) {
       expression.apply {
         val proofCall = proofCall(valueType, targetType)
@@ -148,7 +148,7 @@ class ProofsIrCodegen(
         if (maybeCompanion != null) {
           val extensionCall = proofCall(maybeCompanion.defaultType, superType)?.also {
             val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
-            val companionClass = irUtils.backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
+            val companionClass = irUtils.pluginContext.symbols.externalSymbolTable.referenceClass(maybeCompanion)
             it.extensionReceiver = companionCall(companionType, companionClass)
           }
           extensionCall?.apply {

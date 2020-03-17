@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
+import org.jetbrains.kotlin.ir.util.constructors
+import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 
@@ -43,7 +45,6 @@ class IrUtils(
             endOffset = UNDEFINED_OFFSET,
             type = irFunctionSymbol.owner.returnType,
             symbol = irFunctionSymbol,
-            descriptor = irFunctionSymbol.descriptor,
             typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
             valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
         )
