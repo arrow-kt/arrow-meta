@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 /**
- * packageFqName and descriptors after quote transformations based on an implicit KtFile
+ * packageFqName and descriptors after quote transformations based on an implicit KtFile.
  */
 typealias QuoteInfo = Pair<FqName, List<DeclarationDescriptor>>
 
