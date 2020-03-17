@@ -7,11 +7,11 @@ import org.junit.Test
 
 class TypeClassesTest {
 
-  //@Test
-  fun `simple case`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
-    val codeSnippet = """
+    //@Test
+    fun `simple case`() {
+        val arrowVersion = System.getProperty("ARROW_VERSION")
+        val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
+        val codeSnippet = """
        import arrowx.*
       
        //metadebug
@@ -21,18 +21,18 @@ class TypeClassesTest {
         val d = c.mcombine(b)
       """
 
-    assertThis(CompilerTest(
-      config = {
-        metaDependencies + addDependencies(arrowCoreData)
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        allOf("d".source.evalsTo("12345"))
-      }
-    ))
-  }
+        assertThis(CompilerTest(
+            config = {
+                metaDependencies + addDependencies(arrowCoreData)
+            },
+            code = {
+                codeSnippet.source
+            },
+            assert = {
+                allOf("d".source.evalsTo("12345"))
+            }
+        ))
+    }
 
   @Test
   fun `polymorphic constrain`() {
