@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *     }
  *    )
  *   }
+ * ```
  */
 class BlockExpression(
   override val value: KtBlockExpression?,
