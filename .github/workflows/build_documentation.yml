@@ -19,4 +19,5 @@ jobs:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
         set -ex
-        ./gradlew dokka :docs:runAnk
+        ./gradlew clean dokka
+        ./gradlew :docs:runAnk
