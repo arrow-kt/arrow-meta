@@ -95,7 +95,7 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner.descriptor)
+      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.descriptor)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
@@ -106,8 +106,8 @@ class ProofsIrCodegen(
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
     val targetType =
-      (expression.symbol.owner.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
-        ?: expression.symbol.owner.descriptor.extensionReceiverParameter?.type
+      (expression.symbol.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+        ?: expression.symbol.descriptor.extensionReceiverParameter?.type
     if (targetType != null && valueType != null && targetType != valueType) {
       expression.apply {
         val proofCall = proofCall(valueType, targetType)

@@ -19,6 +19,9 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.asSimpleType
 
 class IrUtils(
     val pluginContext: IrPluginContext,
@@ -38,15 +41,18 @@ class IrUtils(
                 )
         }
 
+    fun KotlinType.irType(): IrType =
+      typeTranslator.translateType(this)
+
     fun FunctionDescriptor.irCall(): IrCall {
         val irFunctionSymbol = pluginContext.symbolTable.referenceFunction(this)
         return IrCallImpl(
             startOffset = UNDEFINED_OFFSET,
             endOffset = UNDEFINED_OFFSET,
-            type = irFunctionSymbol.owner.returnType,
+            type = irFunctionSymbol.descriptor.returnTypeOrNothing.irType(),
             symbol = irFunctionSymbol,
-            typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
-            valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
+            typeArgumentsCount = irFunctionSymbol.descriptor.typeParameters.size,
+            valueArgumentsCount = irFunctionSymbol.descriptor.valueParameters.size
         )
     }
 
@@ -56,10 +62,10 @@ class IrUtils(
             IrCallImpl(
                 startOffset = UNDEFINED_OFFSET,
                 endOffset = UNDEFINED_OFFSET,
-                type = irSimpleFunctionSymbol.owner.returnType,
+                type = irSimpleFunctionSymbol.descriptor.returnTypeOrNothing.irType(),
                 symbol = irSimpleFunctionSymbol,
-                typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
-                valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+                typeArgumentsCount = irSimpleFunctionSymbol.descriptor.typeParameters.size,
+                valueArgumentsCount = irSimpleFunctionSymbol.descriptor.valueParameters.size
             )
         }
     }
@@ -70,10 +76,10 @@ class IrUtils(
             IrConstructorCallImpl(
                 startOffset = UNDEFINED_OFFSET,
                 endOffset = UNDEFINED_OFFSET,
-                type = irConstructorSymbol.owner.returnType,
+                type = irConstructorSymbol.descriptor.returnTypeOrNothing.irType(),
                 symbol = irConstructorSymbol,
-                typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
-                valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
+                typeArgumentsCount = irConstructorSymbol.descriptor.typeParameters.size,
+                valueArgumentsCount = irConstructorSymbol.descriptor.valueParameters.size,
                 constructorTypeArgumentsCount = declaredTypeParameters.size
             )
         }
