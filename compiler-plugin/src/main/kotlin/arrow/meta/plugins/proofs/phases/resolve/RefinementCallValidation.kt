@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
 import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
+import org.jetbrains.kotlin.types.KotlinType
 
 typealias Validation = Map<String, Boolean>
 
@@ -82,7 +83,7 @@ fun CompilerContext.validateConstructorCall(call: ResolvedCall<*>): Validation {
                         target
                         }()
                         """.expression
-                      validateExpression(expression, refinementExpression)
+                      validateExpression(targetType, argumentExpression, expression, refinementExpression)
                     }
                     else -> emptyMap()
                   }
@@ -107,6 +108,8 @@ private fun KtNamedFunction.isProof(): Boolean =
 
 @Suppress("UNCHECKED_CAST")
 internal fun CompilerContext.validateExpression(
+  targetType: KotlinType,
+  argumentExpression: Scope<KtExpression>,
   source: Scope<KtExpression>,
   refinementExpression: KtExpression
 ): Validation {
@@ -124,6 +127,11 @@ internal fun CompilerContext.validateExpression(
       val evaled = interpreter.eval(constantChecker)
       when (evaled) {
         is ReplEvalResult.ValueResult -> evaled.value as? Map<Any?, Any?>
+        is ReplEvalResult.Error.CompileTime -> mapOf("""
+          `$argumentExpression` is a runtime value disallowed in $targetType's constructor.
+          Replace with a constant value or use the safe constructor:
+          `$targetType.from($argumentExpression)`
+        """.trimIndent() to false)
         else -> TODO("Unexpected eval result for refinement: $evaled")
       }
     }

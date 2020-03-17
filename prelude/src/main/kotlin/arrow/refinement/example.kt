@@ -1,11 +1,12 @@
 package arrow
 
-interface Refined<A> {
+interface Refined<A, B> {
+  val constructor: (A) -> B
   val validate: A.() -> Map<String, Boolean>
   fun validate(a: A): Map<String, Boolean> = validate.invoke(a)
   fun isValid(a: A): Boolean = validate(a).all { it.value }
-  operator fun <B> invoke(a: A, f: (A) -> B) : B? =
-    if (isValid(a)) f(a)
+  fun from(a: A) : B? =
+    if (isValid(a)) constructor(a)
     else null
 }
 
@@ -15,17 +16,6 @@ interface Refined<A> {
 annotation class Refinement(
   val predicate: String
 )
-
-
-inline class NonEmptyArray(val value: Array<Int>) {
-  companion object : Refined<Array<Int>> {
-    override val validate: Array<Int>.() -> Map<String, Boolean> = {
-      mapOf(
-        "Should not be empty" to isNotEmpty()
-      )
-    }
-  }
-}
 
 
 

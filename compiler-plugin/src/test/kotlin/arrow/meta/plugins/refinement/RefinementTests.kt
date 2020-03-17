@@ -14,7 +14,8 @@ class RefinementTests {
   private fun twitterHandle(): String =
     """
     inline class TwitterHandle(val handle: String)  {
-      companion object : Refined<String> {
+      companion object : Refined<String, TwitterHandle> {
+        override val constructor = ::TwitterHandle
         override val validate: String.() -> Map<String, Boolean> = {
           mapOf(
             "Should start with '@'" to startsWith("@"),
@@ -29,14 +30,15 @@ class RefinementTests {
     //Similar extensions can target Validation and Either not just nullable types
     @Proof(TypeProof.Extension, coerce = true)
     fun String.twitterHandle(): TwitterHandle? =
-      TwitterHandle(this, ::TwitterHandle)
+      TwitterHandle.from(this)
       
     """
 
   private fun positiveInt(): String =
     """
       inline class PositiveInt(val value: Int)  {
-        companion object : Refined<Int> {
+        companion object : Refined<Int, PositiveInt> {
+          override val constructor = ::PositiveInt
           override val validate: Int.() -> Map<String, Boolean> = {
             mapOf(
               "Should be >= 0" to (this >= 0)
@@ -47,14 +49,15 @@ class RefinementTests {
       
       @Proof(TypeProof.Extension, coerce = true)
       fun Int.positive(): PositiveInt? =
-        PositiveInt(this, ::PositiveInt)
+        PositiveInt.from(this)
     """
 
 
   private fun nonEmptyArray(): String =
     """
     inline class NonEmptyArray(val value: Array<Int>) {
-      companion object : Refined<Array<Int>> {
+      companion object : Refined<Array<Int>, NonEmptyArray> {
+        override val constructor = ::NonEmptyArray
         override val validate: Array<Int>.() -> Map<String, Boolean> = {
           mapOf(
             "Should not be empty" to isNotEmpty()
@@ -65,7 +68,7 @@ class RefinementTests {
     
     @Proof(TypeProof.Extension, coerce = true)
     fun Array<Int>.nonEmpty(): NonEmptyArray? =
-      NonEmptyArray(this, ::NonEmptyArray)
+      NonEmptyArray.from(this)
     """
 
   @Test
