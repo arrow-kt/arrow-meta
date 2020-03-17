@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.classBody
  *
- * val Meta.classBody: Plugin
+ * val Meta.reformatClassBody: Plugin
  *    get() =
  *      "Reformat Class Body" {
  *          meta(
