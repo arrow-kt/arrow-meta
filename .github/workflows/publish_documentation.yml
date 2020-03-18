@@ -22,8 +22,7 @@ jobs:
         JAVA_OPTS: -Xms512m -Xmx1024m
       run: |
         set -ex
-        ./gradlew clean dokka
-        ./gradlew :docs:runAnk
+        ./gradlew dokka :docs:runAnk
     - name: Deploy
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m

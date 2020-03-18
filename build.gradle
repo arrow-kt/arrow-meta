@@ -70,22 +70,6 @@ subprojects { project ->
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
   }
-
-  apply plugin: 'com.jfrog.bintray'
-
-  bintray {
-      publish = true
-      user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-      key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-      configurations = ['archives']
-      pkg {
-          repo = 'arrow-kt'
-          name = project.name
-          userOrg = POM_DEVELOPER_ID
-          licenses = ['Apache-2.0']
-          vcsUrl = 'https://github.com/arrow-kt/arrow-meta.git'
-      }
-  }
 }
 
 task cleanMeta {
