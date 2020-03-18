@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.plugins.quotes.isMetaSynthetic
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.AnalysisDefinition
@@ -42,7 +43,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity

@@ -1,6 +1,7 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.phases.resolve.QuoteSystemCache
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor

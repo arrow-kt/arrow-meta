@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.plugins.quotes.isMetaSynthetic
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
