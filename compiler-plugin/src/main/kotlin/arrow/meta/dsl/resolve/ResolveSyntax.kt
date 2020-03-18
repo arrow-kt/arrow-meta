@@ -50,6 +50,7 @@ interface ResolveSyntax {
         declaration: DeclarationDescriptor?,
         containingDeclaration: DeclarationDescriptor?,
         currentModality: Modality,
+        bindingContext: BindingContext,
         isImplicitModality: Boolean
       ): Modality? =
         refineDeclarationModality(
@@ -57,6 +58,7 @@ interface ResolveSyntax {
           declaration,
           containingDeclaration,
           currentModality,
+          bindingContext,
           isImplicitModality
         )
     }
