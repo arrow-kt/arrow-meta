@@ -32,7 +32,6 @@ private object QuoteCacheService : PersistentService<ConcurrentHashMap<KtFile, Q
   override fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> =
     value.extract().values.filter { it.first == packageFqName }.map { it.second }.flatten()
 
-
   override fun removeQuotedFile(file: KtFile): QuoteInfo? =
     value.extract().remove(file).also { _ ->
       map { // update the cache

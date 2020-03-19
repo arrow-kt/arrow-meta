@@ -10,6 +10,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
+import com.intellij.util.Alarm
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -31,10 +34,27 @@ fun KtFile.resolve(facade: ResolutionFacade, resolveMode: BodyResolveMode = Body
 interface QuoteSystemService {
 
   /**
-   * [ExecutorService] is the computational context if [CacheStrategy.backgroundTask] == true
-   * @see computeRefreshCache default implementation
+   * computational context of [QuoteSystemService].
    */
-  val exec: ExecutorService
+  interface Ctx {
+
+    /**
+     * This pool executes quote system transformations.
+     * [ExecutorService] is the computational context if [CacheStrategy.backgroundTask] == true
+     * @see computeRefreshCache default implementation
+     */
+    val cacheExec: ExecutorService
+
+    /**
+     * This pool executes non-blocking read actions for document updates.
+     */
+    val docExec: ExecutorService
+
+    // fixme find a good value for timeout (milliseconds)
+    val editorQueue: MergingUpdateQueue
+  }
+
+  val ctx: QuoteSystemService.Ctx
 
   /**
    * transforms all [files] with registered [extensions]
@@ -54,6 +74,21 @@ interface QuoteSystemService {
   /*fun computeRefreshCache(strategy: CacheStrategy = cacheStrategy(resetCache = true, backgroundTask = true), refresh: () -> Unit): Unit {
     if (strategy.backgroundTask) exec.submit(refresh) else refresh()
   }*/
+
+  companion object {
+    fun defaultCtx(project: Project): Ctx =
+      object : Ctx {
+        /**
+         * This single thread pool avoids concurrent updates to the cache. // <- put this in the implementation
+         * This pool has to be shutdown, when the project closes.
+         */
+        override val cacheExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
+        override val docExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
+        override val editorQueue: MergingUpdateQueue =
+          MergingUpdateQueue("arrow doc events", 500, true, null, project, null, Alarm.ThreadToUse.POOLED_THREAD)
+      }
+  }
+
 }
 
 /**

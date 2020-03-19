@@ -56,7 +56,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -72,16 +74,18 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
   val cache: QuoteCache? = project.getService(QuoteCache::class.java)
 
+  val context: QuoteSystemService.Ctx = QuoteSystemService.defaultCtx(project)
+
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
-  val cacheExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1) as BoundedTaskExecutor
+  val cacheExec: ExecutorService = context.cacheExec
 
   // pool where non-blocking read actions for document updates are executed
-  val docExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1) as BoundedTaskExecutor
+  val docExec: ExecutorService = context.docExec
 
   // fixme find a good value for timeout (milliseconds)
-  val editorQueue: MergingUpdateQueue = MergingUpdateQueue("arrow doc events", 500, true, null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
+  val editorQueue: MergingUpdateQueue = context.editorQueue
 
   override fun initComponent() {
     // register an async file listener.
@@ -389,7 +393,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
   override fun dispose() {
     try {
-      cacheExec.shutdownNow()
+      cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
@@ -405,8 +409,8 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
   internal fun flushData() {
     editorQueue.flush()
 
-    docExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    cacheExec.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
   }
 }
 
