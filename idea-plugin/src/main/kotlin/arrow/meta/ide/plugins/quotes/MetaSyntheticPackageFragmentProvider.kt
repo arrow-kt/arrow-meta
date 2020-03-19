@@ -27,44 +27,44 @@ val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
 
 private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
   get() = { module, project ->
-    val quoteSystem: QuoteSystemComponent? = project.getComponent(QuoteSystemComponent::class.java)
+    val quoteCache: QuoteCache? = project.getService(QuoteCache::class.java)
     object : PackageFragmentProvider {
       // fixme always provide a value or only when a cached value exists?
       override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-        quoteSystem?.run { listOf(buildCachePackageFragmentDescriptor(module, fqName, this)) }.orEmpty()
+        quoteCache?.run { listOf(buildCachePackageFragmentDescriptor(module, fqName, this)) }.orEmpty()
 
       //fixme optimize this
       override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-        quoteSystem?.cache?.packages()?.filter { it.parent() == fqName }.orEmpty()
+        quoteCache?.packages()?.filter { it.parent() == fqName }.orEmpty()
     }
   }
 
 
-private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteSystemComponent) -> PackageFragmentDescriptorImpl
-  get() = { module, fqName, quoteSystem ->
+private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteCache) -> PackageFragmentDescriptorImpl
+  get() = { module, fqName, quoteCache ->
     object : PackageFragmentDescriptorImpl(module, fqName) {
       override fun getMemberScope(): MemberScope =
         object : MemberScope {
           override fun getClassifierNames(): Set<Name> =
-            quoteSystem.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().map { it.name }.toSet()
+            quoteCache.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().map { it.name }.toSet()
 
           override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-            quoteSystem.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().firstOrNull { it.name == name }
+            quoteCache.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().firstOrNull { it.name == name }
 
           override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
-            quoteSystem.descriptors(fqName).filter { it.name == name }
+            quoteCache.descriptors(fqName).filter { it.name == name }
 
           override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
-            quoteSystem.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>()
+            quoteCache.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>()
 
           override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-            quoteSystem.descriptors(fqName).filterIsInstance<PropertyDescriptor>()
+            quoteCache.descriptors(fqName).filterIsInstance<PropertyDescriptor>()
 
           override fun getFunctionNames(): Set<Name> =
-            quoteSystem.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>().map { it.name }.toSet()
+            quoteCache.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>().map { it.name }.toSet()
 
           override fun getVariableNames(): Set<Name> =
-            quoteSystem.descriptors(fqName).filterIsInstance<PropertyDescriptor>().map { it.name }.toSet()
+            quoteCache.descriptors(fqName).filterIsInstance<PropertyDescriptor>().map { it.name }.toSet()
 
           override fun printScopeStructure(p: Printer) {
           }

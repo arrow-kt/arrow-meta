@@ -75,12 +75,12 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
       class Old<caret>Id<out A>(val value: A)
     """.trimIndent()
 
-    project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
+    project.getComponent(QuoteSystemComponent::class.java)?.let { quoteService ->
 
       myFixture.configureByText(KotlinFileType.INSTANCE, code)
-      cache.forceRebuild()
+      quoteService.forceRebuild()
 
-      val descriptors = cache.descriptors(FqName("testArrow"))
+      val descriptors = quoteService.cache?.descriptors(FqName("testArrow")).orEmpty()
       assertEquals(5, descriptors.size)
       descriptors.forEach {
         assertTrue(it.isMetaSynthetic())

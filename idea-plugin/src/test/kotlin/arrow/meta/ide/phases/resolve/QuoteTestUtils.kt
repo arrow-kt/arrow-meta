@@ -33,18 +33,18 @@ fun toTestEnv(service: QuoteSystemService): TestQuoteSystemService =
 fun Project.testQuoteSystem(): TestQuoteSystemService? =
   getService(QuoteSystemService::class.java)?.let(::toTestEnv)
 
-fun updateAndAssertCache(cache: QuoteSystemComponent, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1) {
+fun updateAndAssertCache(service: QuoteSystemComponent, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1) {
   val packageFqName = (toUpdate as KtFile).packageFqName
-  val cachedElements = cache.descriptors(packageFqName)
+  val cachedElements = service.cache?.descriptors(packageFqName).orEmpty()
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
 
   runWriteAction {
     myFixture.openFileInEditor(toUpdate.virtualFile)
     myFixture.editor.document.setText(content)
   }
-  cache.flushData()
+  service.flushData()
 
-  val newCachedElements = cache.descriptors(packageFqName)
+  val newCachedElements = service.cache?.descriptors(packageFqName).orEmpty()
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
 
   val retained = newCachedElements.filter { cachedElements.contains(it) }

@@ -39,10 +39,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.util.Alarm
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
-import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -58,7 +55,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -75,17 +71,6 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
   val cache: QuoteCache? = project.getService(QuoteCache::class.java)
 
   val context: QuoteSystemService.Ctx = QuoteSystemService.defaultCtx(project)
-
-  // pool where the quote system transformations are executed.
-  // this is a single thread pool to avoid concurrent updates to the cache.
-  // we keep a pool per project, so that we're able to shut it down when the project is closed
-  val cacheExec: ExecutorService = context.cacheExec
-
-  // pool where non-blocking read actions for document updates are executed
-  val docExec: ExecutorService = context.docExec
-
-  // fixme find a good value for timeout (milliseconds)
-  val editorQueue: MergingUpdateQueue = context.editorQueue
 
   override fun initComponent() {
     // register an async file listener.
@@ -121,7 +106,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : BulkAwareDocumentListener.Simple {
       override fun afterDocumentChange(document: Document) {
-        editorQueue.queue(Update.create(document) {
+        context.editorQueue.queue(Update.create(document) {
           //  cancel ongoing updates of the same document
           KEY_DOC_UPDATE.get(document)?.let {
             KEY_DOC_UPDATE.set(document, null)
@@ -145,7 +130,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
               }.cancelWith(indicator)
               .expireWhen(indicator::isCanceled)
               .expireWith(this@QuoteSystemComponent)
-              .submit(docExec)
+              .submit(context.docExec)
           }
         })
       }
@@ -247,7 +232,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
       }
       .cancelWith(strategy.indicator)
       .expireWhen { strategy.indicator.isCanceled }
-      .submit(docExec)
+      .submit(context.docExec)
       .then { transformed ->
         // limit to one pool to avoid cache corruption
         ProgressManager.getInstance().runProcess({
@@ -329,7 +314,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
       .expireWhen { strategy.indicator.isCanceled }
       .expireWith(this)
       .inSmartMode(project)
-      .submit(cacheExec)
+      .submit(context.cacheExec)
   }
 
   /**
@@ -393,7 +378,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
   override fun dispose() {
     try {
-      cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
+      context.cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
@@ -407,10 +392,10 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
   }
 
   internal fun flushData() {
-    editorQueue.flush()
+    context.editorQueue.flush()
 
-    docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
-    cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    context.docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+    context.cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
   }
 }
 
