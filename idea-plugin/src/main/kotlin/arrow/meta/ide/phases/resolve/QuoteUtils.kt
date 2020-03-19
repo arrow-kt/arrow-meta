@@ -111,6 +111,7 @@ fun cacheStrategy(
     override val indicator: ProgressIndicator = indicator
   }
 
+// fixme use ViewProvider's files instead?
 @Suppress("UNCHECKED_CAST")
 fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
   mapNotNull { PsiManager.getInstance(project).findFile(it) as? F }
@@ -118,11 +119,10 @@ fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
 fun Project.ktFiles(): List<VirtualFile> =
   FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filterNotNull()
 
-fun VirtualFile.quoteRelevantFile(): Boolean {
-  return isValid &&
+fun VirtualFile.quoteRelevantFile(): Boolean =
+  isValid &&
     this.fileType is KotlinFileType &&
     (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
-}
 
 /**
  * Collects all Kotlin files of the current project which are source files for Meta transformations.

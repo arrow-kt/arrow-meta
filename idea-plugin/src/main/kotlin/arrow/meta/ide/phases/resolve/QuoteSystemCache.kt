@@ -36,7 +36,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.ui.update.Update
@@ -79,7 +78,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
         val relevantFiles: List<VirtualFile> = events.mapNotNull {
           val file = it.file
-          if (it is VFileContentChangeEvent && it is VFileMoveEvent && it is VFileCopyEvent && file != null && file.isRelevantFile()) {
+          if (it is VFileContentChangeEvent && it is VFileMoveEvent && it is VFileCopyEvent && file != null && file.quoteRelevantFile()) {
             file
           } else {
             null
@@ -94,7 +93,11 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
           override fun afterVfsChange() {
             LOG.info("afterVfsChange")
             // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-            refreshCache(project, relevantFiles.toKtFiles(project), cacheStrategy(false))
+            refreshCache(project,
+              relevantFiles
+                .filter { it.quoteRelevantFile() && it.isInLocalFileSystem }
+                .files(project),
+              cacheStrategy(false))
           }
         }
       }
@@ -139,7 +142,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
     val vFile = FileDocumentManager.getInstance().getFile(doc)
     if (vFile == null
       || vFile is LightVirtualFile
-      || !vFile.isRelevantFile()
+      || !vFile.quoteRelevantFile()
       || !FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
       return
     }
@@ -394,27 +397,6 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
     context.docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
     context.cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
-  }
-}
-
-private fun VirtualFile.isRelevantFile(): Boolean {
-  return isValid &&
-    this.fileType is KotlinFileType &&
-    (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
-}
-
-/**
- * Maps the list of VirtualFiles to a list of KtFiles.
- */
-private fun List<VirtualFile>.toKtFiles(project: Project): List<KtFile> {
-  val psiMgr = PsiManager.getInstance(project)
-  return mapNotNull {
-    when {
-      it.isValid && it.isInLocalFileSystem && it.fileType is KotlinFileType ->
-        // fixme use ViewProvider's files instead?
-        psiMgr.findFile(it) as? KtFile
-      else -> null
-    }
   }
 }
 
