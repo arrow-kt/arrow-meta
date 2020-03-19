@@ -20,7 +20,7 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
+            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemComponent</implementation-class>
         </component>
     </project-components>
 

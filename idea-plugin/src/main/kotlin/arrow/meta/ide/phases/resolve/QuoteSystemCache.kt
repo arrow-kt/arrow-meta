@@ -65,11 +65,11 @@ import java.util.concurrent.atomic.AtomicLong
 private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
 
 /**
- * QuoteSystemCache is a project component which manages the transformations of KtFiles by the quote system.
+ * QuoteSystemComponent is a project component which manages the transformations of KtFiles by the quote system.
  *
  * When initialized, it transforms all .kt files of the project in a background thread.
  */
-class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposable {
+class QuoteSystemComponent(private val project: Project) : ProjectComponent, Disposable {
 
   val cache: QuoteCache? = project.getService(QuoteCacheService::class.java)
 
@@ -141,7 +141,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
                 }, indicator)
               }.cancelWith(indicator)
               .expireWhen(indicator::isCanceled)
-              .expireWith(this@QuoteSystemCache)
+              .expireWith(this@QuoteSystemComponent)
               .submit(docExec)
           }
         })

@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.resolve.QuoteSystemCache
+import arrow.meta.ide.phases.resolve.QuoteSystemComponent
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -27,7 +27,7 @@ val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
 
 private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
   get() = { module, project ->
-    val quoteSystem: QuoteSystemCache? = project.getComponent(QuoteSystemCache::class.java)
+    val quoteSystem: QuoteSystemComponent? = project.getComponent(QuoteSystemComponent::class.java)
     object : PackageFragmentProvider {
       // fixme always provide a value or only when a cached value exists?
       override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
@@ -40,7 +40,7 @@ private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) 
   }
 
 
-private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteSystemCache) -> PackageFragmentDescriptorImpl
+private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteSystemComponent) -> PackageFragmentDescriptorImpl
   get() = { module, fqName, quoteSystem ->
     object : PackageFragmentDescriptorImpl(module, fqName) {
       override fun getMemberScope(): MemberScope =

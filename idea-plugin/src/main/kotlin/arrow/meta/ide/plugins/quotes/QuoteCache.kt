@@ -12,7 +12,7 @@ typealias QuoteInfo = Pair<FqName, List<DeclarationDescriptor>>
 
 /**
  * Cache interface.
- * This simplifies testing and simplifies the implementation of QuoteSystemCache, which was doing
+ * This simplifies testing and simplifies the implementation of QuoteSystemComponent, which was doing
  * too many things at once.
  * This also simplifies thread-safe cache updates, when it's turns out that we need this.
  */

@@ -12,7 +12,7 @@ import org.junit.Test
 class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
   /*@After
   fun cleanup() {
-    QuoteSystemCache.getInstance(project).reset()
+    c.getInstance(project).reset()
   }*/
 
   @Test
@@ -32,8 +32,8 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id1Of"))
-    project.getComponent(QuoteSystemCache::class.java)?.forceRebuild()
-      ?: throw UnavailableService(QuoteSystemCache::class.java)
+    project.getComponent(QuoteSystemComponent::class.java)?.forceRebuild()
+      ?: throw UnavailableService(QuoteSystemComponent::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
   }
@@ -57,8 +57,8 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id2Of"))
 
-    project.getComponent(QuoteSystemCache::class.java)?.forceRebuild()
-      ?: throw UnavailableService(QuoteSystemCache::class.java)
+    project.getComponent(QuoteSystemComponent::class.java)?.forceRebuild()
+      ?: throw UnavailableService(QuoteSystemComponent::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
   }
@@ -75,7 +75,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
       class Old<caret>Id<out A>(val value: A)
     """.trimIndent()
 
-    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
+    project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
 
       myFixture.configureByText(KotlinFileType.INSTANCE, code)
       cache.forceRebuild()
@@ -88,6 +88,6 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
         //  we need to create a module dependency to arrow-annotations in the test project (at runtime)
         assertFalse("IntelliJ's error debug markers must not exist, as they indicate unresolved references: $it", it.toString().contains("@[ERROR"))
       }
-    } ?: throw UnavailableService(QuoteSystemCache::class.java)
+    } ?: throw UnavailableService(QuoteSystemComponent::class.java)
   }
 }

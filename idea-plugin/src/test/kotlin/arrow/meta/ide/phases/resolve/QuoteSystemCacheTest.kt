@@ -5,14 +5,14 @@ import arrow.meta.quotes.ktFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.junit.Test
 
-class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
+class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
   /** This test updates a PsiFile in place and validated the cache afterwards. */
   @Test
   fun testIncrementalCacheUpdate() {
     val file = myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
 
     // this is the initial rebuild and the initial cache population
-    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
+    project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
       cache.forceRebuild() //no need
 
       val code = """
@@ -24,7 +24,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     """.trimIndent()
 
       updateAndAssertCache(cache, project, myFixture, file, code, 0, 5)
-    } ?: throw UnavailableService(QuoteSystemCache::class.java)
+    } ?: throw UnavailableService(QuoteSystemComponent::class.java)
   }
 
   /** This test creates two PsiFiles, updates one after the other in place and validates the cache state. */
@@ -57,7 +57,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     val fileThird = myFixture.addFileToProject("testArrowOther/third.kt", codeThird)
 
     // this is the initial rebuild and the initial cache population
-    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
+    project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
       cache.forceRebuild()
       //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
 
@@ -77,12 +77,12 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
       updateAndAssertCache(cache, project, myFixture, fileFirst, "package testArrow", 10, 5) { retained ->
         assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
       }
-    } ?: throw UnavailableService(QuoteSystemCache::class.java)
+    } ?: throw UnavailableService(QuoteSystemComponent::class.java)
   }
 }
 /**
  * private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
-val cache = QuoteSystemCache.getInstance(project)
+val cache = QuoteSystemComponent.getInstance(project)
 
 val packageFqName = (toUpdate as KtFile).packageFqName
 val cachedElements = cache.resolved(packageFqName).orEmpty()

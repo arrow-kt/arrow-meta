@@ -33,7 +33,7 @@ fun toTestEnv(service: QuoteSystemService): TestQuoteSystemService =
 fun Project.testQuoteSystem(): TestQuoteSystemService? =
   getService(QuoteSystemService::class.java)?.let(::toTestEnv)
 
-fun updateAndAssertCache(cache: QuoteSystemCache, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1) {
+fun updateAndAssertCache(cache: QuoteSystemComponent, project: Project, myFixture: CodeInsightTestFixture, toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1) {
   val packageFqName = (toUpdate as KtFile).packageFqName
   val cachedElements = cache.descriptors(packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
