@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.concurrent.ExecutorService
 
-
 /**
  * returns the [DeclarationDescriptor]s of each File
  */
@@ -54,7 +53,7 @@ interface QuoteSystemService {
     val editorQueue: MergingUpdateQueue
   }
 
-  val ctx: QuoteSystemService.Ctx
+  val ctx: Ctx
 
   /**
    * transforms all [files] with registered [extensions]

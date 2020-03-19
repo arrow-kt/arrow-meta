@@ -37,7 +37,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.FileTypeIndex
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.ui.update.Update
@@ -45,11 +44,8 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.debugger.readAction
-import org.jetbrains.kotlin.idea.search.projectScope
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
@@ -184,7 +180,9 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
         try {
           LOG.info("Initializing quote system cache...")
           val files = readAction {
-            project.collectAllKtFiles()
+            project.quoteRelevantFiles().also {
+              LOG.info("collected ${it.size} quote relevant files for Project:${project.name}")
+            }
           }
           refreshCache(project, files, cacheStrategy())
         } finally {
@@ -199,8 +197,6 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
       }
     }
   }
-
-  fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> = cache?.descriptors(packageFqName).orEmpty()
 
   /**
    * refreshCache updates the given source files with new transformations.
@@ -387,7 +383,9 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
   fun forceRebuild() {
     // no need reset()
-    refreshCache(project, project.collectAllKtFiles(), cacheStrategy())
+    val quoteFiles = project.quoteRelevantFiles()
+    LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
+    refreshCache(project, quoteFiles, cacheStrategy())
     flushData()
   }
 
@@ -403,18 +401,6 @@ private fun VirtualFile.isRelevantFile(): Boolean {
   return isValid &&
     this.fileType is KotlinFileType &&
     (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
-}
-
-/**
- * Collects all Kotlin files of the current project which are source files for Meta transformations.
- */
-fun Project.collectAllKtFiles(): List<KtFile> {
-  val files = FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filter {
-    it.isRelevantFile()
-  }
-  LOG.info("collectKtFiles(): ${files.size} kotlin files found for project $name")
-
-  return files.toKtFiles(this)
 }
 
 /**
