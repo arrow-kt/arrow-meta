@@ -63,7 +63,7 @@ private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate
  */
 class QuoteSystemComponent(private val project: Project) : ProjectComponent, Disposable {
 
-  val cache: QuoteCache? = project.getService(QuoteCache::class.java)
+  val cache: QuoteCache = project.getService(QuoteCache::class.java) // ill typed, fixme
 
   val context: QuoteSystemService.Ctx = QuoteSystemService.defaultCtx(project)
 
@@ -91,10 +91,13 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
           override fun afterVfsChange() {
             LOG.info("afterVfsChange")
             // fixme data may have changed between prepareChange and afterVfsChange, take care of this
-            refreshCache(project,
+            refreshCache(
+              cache,
+              project,
               relevantFiles
                 .filter { it.quoteRelevantFile() && it.isInLocalFileSystem }
                 .files(project),
+              analysisIdeExtensions,
               cacheStrategy(false))
           }
         }
@@ -154,7 +157,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
             if (isWriteAccessAllowed) {
               PsiDocumentManager.getInstance(project).commitDocument(doc)
             }
-            refreshCache(project, listOf(ktFile), cacheStrategy(false, progressIndicator))
+            refreshCache(cache, project, listOf(ktFile), analysisIdeExtensions, cacheStrategy(false, progressIndicator))
           }
       }
   }
@@ -184,7 +187,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
               LOG.info("collected ${it.size} quote relevant files for Project:${project.name}")
             }
           }
-          refreshCache(project, files, cacheStrategy())
+          refreshCache(cache, project, files, analysisIdeExtensions, cacheStrategy())
         } finally {
           try {
             flushData()
@@ -204,9 +207,9 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
    *
    * @param resetCache Defines if all previous transformations should be removed or not. Pass false for incremental updates.
    */
-  fun refreshCache(project: Project, files: List<KtFile>, strategy: CacheStrategy) {
+  fun refreshCache(cache: QuoteCache, project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>, strategy: CacheStrategy) {
     LOG.assertTrue(strategy.indicator.isRunning)
-    LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache?.size ?: 0} files")
+    LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache.size ?: 0} files")
 
     if (files.isEmpty()) {
       return
@@ -220,7 +223,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
     ReadAction.nonBlocking<List<Pair<KtFile, KtFile>>> {
         val start = System.currentTimeMillis()
         try {
-          transform(files, analysisIdeExtensions, project)
+          transform(files, extensions, project)
         } finally {
           val duration = System.currentTimeMillis() - start
           LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
@@ -232,7 +235,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
       .then { transformed ->
         // limit to one pool to avoid cache corruption
         ProgressManager.getInstance().runProcess({
-          performRefresh(files, transformed, strategy, project)
+          performRefresh(cache, files, transformed, strategy, project)
         }, strategy.indicator)
       }.onError { e ->
         // fixme atm a transformation of a .kt file with syntax errors also returns an empty list of transformations
@@ -251,7 +254,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
    * The execution of the cache update may be delayed.
    * This method takes care that only one cache update may happen at the same time by using a single-bounded executor.
    */
-  private fun performRefresh(files: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, strategy: CacheStrategy, project: Project) {
+  private fun performRefresh(cache: QuoteCache, files: List<KtFile>, transformed: List<Pair<KtFile, KtFile>>, strategy: CacheStrategy, project: Project) {
     LOG.assertTrue(strategy.indicator.isRunning)
 
     ReadAction.nonBlocking {
@@ -260,10 +263,10 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
           LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
 
           if (strategy.resetCache) {
-            cache?.clear()
+            cache.clear()
           }
 
-          LOG.info("resolving descriptors of transformed files: ${cache?.size ?: 0} files")
+          LOG.info("resolving descriptors of transformed files: ${cache.size} files")
           if (files.isNotEmpty()) {
             // clear descriptors of all updatedFiles, which don't have a transformation result
             // e.g. because meta-code isn't used anymore
@@ -271,7 +274,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
             // fixme this lookup is slow (exponential?), optimize when necessary
             for (source in files) {
               if (!transformed.any { it.first == source }) {
-                cache?.removeQuotedFile(source)
+                cache.removeQuotedFile(source)
               }
             }
 
@@ -295,7 +298,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
                     LOG.warn("Index wasn't ready to resolve: ${descriptor.name}")
                   }
                 }
-              cache?.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
+              cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
             }
 
             // refresh the highlighting of editors of modified files, using the new cache
@@ -376,14 +379,14 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
-    cache?.clear()
+    cache.clear()
   }
 
   fun forceRebuild() {
     // no need reset()
     val quoteFiles = project.quoteRelevantFiles()
     LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
-    refreshCache(project, quoteFiles, cacheStrategy())
+    refreshCache(cache, project, quoteFiles, analysisIdeExtensions, cacheStrategy())
     flushData()
   }
 

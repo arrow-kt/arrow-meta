@@ -1,5 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.plugins.quotes.QuoteCache
 import arrow.meta.ide.testing.UnavailableService
 import arrow.meta.quotes.ktFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
@@ -15,18 +16,19 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
       .safeAs<KtFile>()
       ?.let { file ->
         // this is the initial rebuild and the initial cache population
-        project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
-          cache.forceRebuild() //no need
+        project.getComponent(QuoteSystemComponent::class.java)?.let { service ->
+          service.forceRebuild() //no need
+          project.getService(QuoteCache::class.java)?.let { cache ->
+            val code = """
+                package testArrow
+                import arrow.higherkind
+          
+                @higherkind
+                class IdOriginal<out A>(val value: A)
+              """.trimIndent()
 
-          val code = """
-      package testArrow
-      import arrow.higherkind
-
-      @higherkind
-      class IdOriginal<out A>(val value: A)
-    """.trimIndent()
-
-          updateAndAssertCache(cache, myFixture, file, code, 0, 5)
+            updateAndAssertCache(cache, service, myFixture, file, code, 0, 5)
+          } ?: throw UnavailableService(QuoteCache::class.java)
         } ?: throw UnavailableService(QuoteSystemComponent::class.java)
       }
   }
@@ -61,28 +63,30 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
         myFixture.addFileToProject("testArrowOther/third.kt", codeThird).safeAs<KtFile>()?.let { third ->
 
           // this is the initial rebuild and the initial cache population
-          project.getComponent(QuoteSystemComponent::class.java)?.let { cache ->
-            cache.forceRebuild()
-            //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
+          project.getComponent(QuoteSystemComponent::class.java)?.let { service ->
+            project.getService(QuoteCache::class.java)?.let { cache ->
+              service.forceRebuild()
+              //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
 
-            updateAndAssertCache(cache, myFixture, first, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
-              assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
-            }
-            updateAndAssertCache(cache, myFixture, second, codeSecond.replace("IdOriginalSecond", "IdRenamedSecond"), 10, 10) { retained ->
-              assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("second") == true })
-            }
-            updateAndAssertCache(cache, myFixture, third, codeThird.replace("IdOriginalThird", "IdRenamedThird"), 5, 5) { retained ->
-              assertTrue("previously cached elements of the updated PsiFile must have been dropped from the cache: $retained",
-                retained.isEmpty())
-            }
+              updateAndAssertCache(cache, service, myFixture, first, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
+              }
+              updateAndAssertCache(cache, service, myFixture, second, codeSecond.replace("IdOriginalSecond", "IdRenamedSecond"), 10, 10) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("second") == true })
+              }
+              updateAndAssertCache(cache, service, myFixture, third, codeThird.replace("IdOriginalThird", "IdRenamedThird"), 5, 5) { retained ->
+                assertTrue("previously cached elements of the updated PsiFile must have been dropped from the cache: $retained",
+                  retained.isEmpty())
+              }
 
-            // remove all meta-related source from the first file
-            // and make sure that all the descriptors are removed from the cache
-            updateAndAssertCache(cache, myFixture, first, "package testArrow", 10, 5) { retained ->
-              assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
-            }
-          }
-        } ?: throw UnavailableService(QuoteSystemComponent::class.java)
+              // remove all meta-related source from the first file
+              // and make sure that all the descriptors are removed from the cache
+              updateAndAssertCache(cache, service, myFixture, first, "package testArrow", 10, 5) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
+              }
+            } ?: throw UnavailableService(QuoteCache::class.java)
+          } ?: throw UnavailableService(QuoteSystemComponent::class.java)
+        }
       }
     }
   }

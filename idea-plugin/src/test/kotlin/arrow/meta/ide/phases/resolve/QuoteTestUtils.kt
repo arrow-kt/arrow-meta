@@ -43,10 +43,11 @@ fun Project.testQuoteSystem(): TestQuoteSystemService? =
 /**
  * returns all descriptors in the quote cache of the package FqName of [file]
  */
-fun QuoteSystemComponent.descriptors(file: KtFile): List<DeclarationDescriptor> =
-  cache?.descriptors(file.packageFqName).orEmpty()
+private fun QuoteSystemComponent.descriptors(file: KtFile): List<DeclarationDescriptor> =
+  cache?.descriptors(file.packageFqName)
 
 fun updateAndAssertCache(
+  cache: QuoteCache,
   service: QuoteSystemComponent,
   myFixture: CodeInsightTestFixture,
   file: KtFile,
@@ -55,7 +56,7 @@ fun updateAndAssertCache(
   sizeAfter: Int,
   assertRetained: (List<DeclarationDescriptor>) -> Unit = Noop.effect1
 ) {
-  val cachedElements = service.descriptors(file)
+  val cachedElements = cache.descriptors(file.packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
 
   runWriteAction {
@@ -64,7 +65,7 @@ fun updateAndAssertCache(
   }
   service.flushData()
 
-  val newCachedElements = service.descriptors(file)
+  val newCachedElements = cache.descriptors(file.packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
 
   val retained = newCachedElements.filter { cachedElements.contains(it) }
