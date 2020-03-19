@@ -30,15 +30,16 @@ import org.jetbrains.kotlin.psi.KtExpression
  *     }
  *    )
  *   }
+ * ```
  */
 class BlockExpression(
-  override val value: KtBlockExpression?,
-  val statements: ScopedList<KtExpression> = ScopedList(
-    separator = "\n",
-    value = value?.statements.orEmpty()
-  )
+    override val value: KtBlockExpression?,
+    val statements: ScopedList<KtExpression> = ScopedList(
+        separator = "\n",
+        value = value?.statements.orEmpty()
+    )
 ) : Scope<KtBlockExpression>(value) {
 
-  override fun ElementScope.identity(): BlockExpression =
-    """$statements""".block
+    override fun ElementScope.identity(): BlockExpression =
+        """$statements""".block
 }

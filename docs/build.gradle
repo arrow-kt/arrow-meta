@@ -27,15 +27,4 @@ ank {
     classpath = sourceSets.main.runtimeClasspath
 }
 
-//gitPublish {
-//    repoUri = 'git@github.com:arrow-kt/arrow.git'
-//    branch = 'gh-pages'
-//
-//    contents {
-//        from 'build/site'
-//    }
-//
-//    commitMessage = 'update site'
-//}
-
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
