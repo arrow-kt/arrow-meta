@@ -70,11 +70,11 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposable {
   companion object {
-    fun getInstance(project: Project): QuoteSystemCache = project.getComponent(QuoteSystemCache::class.java)
+    fun getInstance(project: Project): QuoteSystemCache? = project.getComponent(QuoteSystemCache::class.java)
     private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
   }
 
-  val cache: QuoteCache = project.getService(QuoteCacheService::class.java)
+  val cache: QuoteCache? = project.getService(QuoteCacheService::class.java)
 
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
@@ -215,7 +215,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     }
   }
 
-  fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> = cache.descriptors(packageFqName)
+  fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> = cache?.descriptors(packageFqName).orEmpty()
 
   /**
    * refreshCache updates the given source files with new transformations.
@@ -225,7 +225,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
    */
   fun refreshCache(project: Project, files: List<KtFile>, strategy: CacheStrategy) {
     LOG.assertTrue(strategy.indicator.isRunning)
-    LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache.size} files")
+    LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache?.size ?: 0} files")
 
     if (files.isEmpty()) {
       return
@@ -279,10 +279,10 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
           LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
 
           if (strategy.resetCache) {
-            cache.clear()
+            cache?.clear()
           }
 
-          LOG.info("resolving descriptors of transformed files: ${cache.size} files")
+          LOG.info("resolving descriptors of transformed files: ${cache?.size ?: 0} files")
           if (files.isNotEmpty()) {
             // clear descriptors of all updatedFiles, which don't have a transformation result
             // e.g. because meta-code isn't used anymore
@@ -290,7 +290,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             // fixme this lookup is slow (exponential?), optimize when necessary
             for (source in files) {
               if (!transformed.any { it.first == source }) {
-                cache.removeQuotedFile(source)
+                cache?.removeQuotedFile(source)
               }
             }
 
@@ -316,7 +316,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
                   }
                 }
               }
-              cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
+              cache?.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
             }
 
             // refresh the highlighting of editors of modified files, using the new cache
@@ -397,7 +397,7 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     } catch (e: Exception) {
       LOG.warn("error shutting down pool", e)
     }
-    cache.clear()
+    cache?.clear()
   }
 
   fun forceRebuild() {

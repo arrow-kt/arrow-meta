@@ -1,4 +1,4 @@
-package arrow.meta.ide
+package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.phases.resolve.QuoteSystemCache
 import com.intellij.codeHighlighting.Pass
@@ -13,7 +13,7 @@ class ArrowHighlightingPassFactory : TextEditorHighlightingPassFactoryRegistrar 
   override fun registerHighlightingPassFactory(registrar: TextEditorHighlightingPassRegistrar, project: Project) {
     registrar.registerTextEditorHighlightingPass({ file: PsiFile, _: Editor ->
       if (file is KtFile) {
-        QuoteSystemCache.getInstance(project).waitForInitialize()
+        QuoteSystemCache.getInstance(project)?.waitForInitialize()
       }
       null
     }, TextEditorHighlightingPassRegistrar.Anchor.FIRST, Pass.UPDATE_FOLDING, false, false)

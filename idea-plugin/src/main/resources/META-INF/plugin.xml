@@ -25,7 +25,7 @@
     </project-components>
 
     <extensions defaultExtensionNs="com.intellij">
-        <highlightingPassFactory implementation="arrow.meta.ide.ArrowHighlightingPassFactory"/>
+        <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.ArrowHighlightingPassFactory"/>
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService"/>
     </extensions>

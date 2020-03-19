@@ -1,6 +1,7 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.plugins.quotes.isMetaSynthetic
+import arrow.meta.ide.testing.UnavailableService
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
@@ -31,7 +32,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id1Of"))
-    QuoteSystemCache.getInstance(project).forceRebuild()
+    QuoteSystemCache.getInstance(project)?.forceRebuild() ?: throw UnavailableService(QuoteSystemCache::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
   }
@@ -55,7 +56,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id2Of"))
 
-    QuoteSystemCache.getInstance(project).forceRebuild()
+    QuoteSystemCache.getInstance(project)?.forceRebuild() ?: throw UnavailableService(QuoteSystemCache::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
   }
@@ -72,18 +73,19 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
       class Old<caret>Id<out A>(val value: A)
     """.trimIndent()
 
-    val cache = QuoteSystemCache.getInstance(project)
+    QuoteSystemCache.getInstance(project)?.let { cache ->
 
-    myFixture.configureByText(KotlinFileType.INSTANCE, code)
-    cache.forceRebuild()
+      myFixture.configureByText(KotlinFileType.INSTANCE, code)
+      cache.forceRebuild()
 
-    val descriptors = cache.descriptors(FqName("testArrow"))
-    assertEquals(5, descriptors.size)
-    descriptors.forEach {
-      assertTrue(it.isMetaSynthetic())
-      // fixme @arrow.synthetic and @arrow.Kind are unresolved,
-      //  we need to create a module dependency to arrow-annotations in the test project (at runtime)
-      assertFalse("IntelliJ's error debug markers must not exist, as they indicate unresolved references: $it", it.toString().contains("@[ERROR"))
-    }
+      val descriptors = cache.descriptors(FqName("testArrow"))
+      assertEquals(5, descriptors.size)
+      descriptors.forEach {
+        assertTrue(it.isMetaSynthetic())
+        // fixme @arrow.synthetic and @arrow.Kind are unresolved,
+        //  we need to create a module dependency to arrow-annotations in the test project (at runtime)
+        assertFalse("IntelliJ's error debug markers must not exist, as they indicate unresolved references: $it", it.toString().contains("@[ERROR"))
+      }
+    } ?: throw UnavailableService(QuoteSystemCache::class.java)
   }
 }

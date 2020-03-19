@@ -27,15 +27,15 @@ val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
 
 private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
   get() = { module, project ->
-    val quoteSystem = QuoteSystemCache.getInstance(project)
+    val quoteSystem: QuoteSystemCache? = QuoteSystemCache.getInstance(project)
     object : PackageFragmentProvider {
       // fixme always provide a value or only when a cached value exists?
       override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-        listOf(buildCachePackageFragmentDescriptor(module, fqName, quoteSystem))
+        quoteSystem?.run { listOf(buildCachePackageFragmentDescriptor(module, fqName, this)) }.orEmpty()
 
       //fixme optimize this
       override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-        quoteSystem.cache.packages().filter { it.parent() == fqName }
+        quoteSystem?.cache?.packages()?.filter { it.parent() == fqName }.orEmpty()
     }
   }
 
