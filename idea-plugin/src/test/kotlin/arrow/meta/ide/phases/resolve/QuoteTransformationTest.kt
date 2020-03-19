@@ -32,7 +32,8 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id1Of"))
-    QuoteSystemCache.getInstance(project)?.forceRebuild() ?: throw UnavailableService(QuoteSystemCache::class.java)
+    project.getComponent(QuoteSystemCache::class.java)?.forceRebuild()
+      ?: throw UnavailableService(QuoteSystemCache::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
   }
@@ -56,7 +57,8 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id2Of"))
 
-    QuoteSystemCache.getInstance(project)?.forceRebuild() ?: throw UnavailableService(QuoteSystemCache::class.java)
+    project.getComponent(QuoteSystemCache::class.java)?.forceRebuild()
+      ?: throw UnavailableService(QuoteSystemCache::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
   }
@@ -73,7 +75,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
       class Old<caret>Id<out A>(val value: A)
     """.trimIndent()
 
-    QuoteSystemCache.getInstance(project)?.let { cache ->
+    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
 
       myFixture.configureByText(KotlinFileType.INSTANCE, code)
       cache.forceRebuild()

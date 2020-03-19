@@ -27,7 +27,7 @@ val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
 
 private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
   get() = { module, project ->
-    val quoteSystem: QuoteSystemCache? = QuoteSystemCache.getInstance(project)
+    val quoteSystem: QuoteSystemCache? = project.getComponent(QuoteSystemCache::class.java)
     object : PackageFragmentProvider {
       // fixme always provide a value or only when a cached value exists?
       override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =

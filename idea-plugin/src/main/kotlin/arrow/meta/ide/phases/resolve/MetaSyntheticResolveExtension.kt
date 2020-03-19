@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExtension {
-  private val quoteSystem: QuoteSystemCache? = QuoteSystemCache.getInstance(project)
+  private val quoteSystem: QuoteSystemCache? = project.getComponent(QuoteSystemCache::class.java)
 
   override fun generateSyntheticClasses(thisDescriptor: PackageFragmentDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: PackageMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) {
     if (!thisDescriptor.isMetaSynthetic()) {

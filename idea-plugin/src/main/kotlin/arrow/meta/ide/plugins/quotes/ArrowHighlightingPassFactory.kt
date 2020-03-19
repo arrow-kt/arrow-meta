@@ -13,7 +13,7 @@ class ArrowHighlightingPassFactory : TextEditorHighlightingPassFactoryRegistrar 
   override fun registerHighlightingPassFactory(registrar: TextEditorHighlightingPassRegistrar, project: Project) {
     registrar.registerTextEditorHighlightingPass({ file: PsiFile, _: Editor ->
       if (file is KtFile) {
-        QuoteSystemCache.getInstance(project)?.waitForInitialize()
+        project.getComponent(QuoteSystemCache::class.java)?.waitForInitialize()
       }
       null
     }, TextEditorHighlightingPassRegistrar.Anchor.FIRST, Pass.UPDATE_FOLDING, false, false)

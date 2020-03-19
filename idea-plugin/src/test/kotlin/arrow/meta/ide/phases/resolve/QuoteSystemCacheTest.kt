@@ -12,7 +12,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     val file = myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
 
     // this is the initial rebuild and the initial cache population
-    QuoteSystemCache.getInstance(project)?.let { cache ->
+    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
       cache.forceRebuild() //no need
 
       val code = """
@@ -57,7 +57,7 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
     val fileThird = myFixture.addFileToProject("testArrowOther/third.kt", codeThird)
 
     // this is the initial rebuild and the initial cache population
-    QuoteSystemCache.getInstance(project)?.let { cache ->
+    project.getComponent(QuoteSystemCache::class.java)?.let { cache ->
       cache.forceRebuild()
       //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
 
