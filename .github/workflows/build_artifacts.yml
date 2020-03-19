@@ -14,6 +14,14 @@ jobs:
       with:
         java-version: 1.8
         architecture: x64
+    - name: Set compatibility IDEA versions
+      run: |
+        KOTLIN_VERSION=$(grep KOTLIN_VERSION gradle.properties | cut -d= -f2)
+        BRANCH_NUMBER=$(grep INTELLIJ_IDEA_VERSION gradle.properties | cut -d= -f2 | cut -b 3-4,6)
+        curl -o plugin.xml https://raw.githubusercontent.com/JetBrains/kotlin/v$KOTLIN_VERSION/idea/resources/META-INF/plugin.xml.$BRANCH_NUMBER
+        SINCE_BUILD=$(cat plugin.xml | grep -o -e 'since-build="[^"]\+"' | cut -d= -f2)
+        UNTIL_BUILD=$(cat plugin.xml | grep -o -e 'until-build="[^"]\+"' | cut -d= -f2)
+        sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
     - name: Build with Gradle
       env:
         JAVA_OPTS: -Xms512m -Xmx1024m
