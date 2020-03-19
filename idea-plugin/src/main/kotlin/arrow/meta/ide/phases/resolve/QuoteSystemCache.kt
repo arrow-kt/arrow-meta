@@ -43,8 +43,8 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.debugger.readAction
+import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
@@ -76,14 +76,12 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
         // fixme properly handle remove events
         // fixme properly handle copy event: file is the source file, transform new file, too
 
-        val relevantFiles: List<VirtualFile> = events.mapNotNull {
-          val file = it.file
-          if (it is VFileContentChangeEvent && it is VFileMoveEvent && it is VFileCopyEvent && file != null && file.quoteRelevantFile()) {
-            file
-          } else {
-            null
-          }
-        }
+        val relevantFiles: List<VirtualFile> =
+          events.filter { vfile: VFileEvent ->
+              vfile is VFileContentChangeEvent && vfile is VFileMoveEvent && vfile is VFileCopyEvent
+              vfile.file?.quoteRelevantFile() ?: false
+            }
+            .mapNotNull { vFile: VFileEvent -> vFile.file }
 
         if (relevantFiles.isEmpty()) {
           return null
@@ -136,30 +134,29 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
     }, project)
   }
 
-  fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndicator, project: Project) {
+  fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndicator, project: Project): Unit {
     assertReadAccessAllowed()
-
-    val vFile = FileDocumentManager.getInstance().getFile(doc)
-    if (vFile == null
-      || vFile is LightVirtualFile
-      || !vFile.quoteRelevantFile()
-      || !FileIndexFacade.getInstance(project).isInSourceContent(vFile)) {
-      return
-    }
-
-    val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(doc)
-    if (psiFile is KtFile && psiFile.isPhysical && !psiFile.isCompiled) {
-      LOG.info("transforming ${psiFile.name} after change in editor")
-      // fixme avoid this, this slows down the editor.
-      //  it would be better to take the text and send the text content to the quote system
-      // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
-      //   but doesn't fail in tests
-      if (isWriteAccessAllowed) {
-        PsiDocumentManager.getInstance(project).commitDocument(doc)
+    FileDocumentManager.getInstance()
+      .getFile(doc)
+      // proceed unless
+      ?.takeUnless { it is LightVirtualFile || !it.quoteRelevantFile() || !FileIndexFacade.getInstance(project).isInSourceContent(it) }
+      ?.let { _ ->
+        PsiDocumentManager.getInstance(project)
+          .getPsiFile(doc)
+          ?.safeAs<KtFile>()
+          ?.takeIf { it.isPhysical && !it.isCompiled }
+          ?.let { ktFile ->
+            LOG.info("transforming ${ktFile.name} after change in editor")
+            // fixme avoid this, this slows down the editor.
+            //  it would be better to take the text and send the text content to the quote system
+            // fixme this breaks in a live ide with "com.intellij.util.IncorrectOperationException: Must not modify PSI inside save listener"
+            //   but doesn't fail in tests
+            if (isWriteAccessAllowed) {
+              PsiDocumentManager.getInstance(project).commitDocument(doc)
+            }
+            refreshCache(project, listOf(ktFile), cacheStrategy(false, progressIndicator))
+          }
       }
-
-      refreshCache(project, listOf(psiFile), cacheStrategy(false, progressIndicator))
-    }
   }
 
   private val initialized = AtomicBoolean(false)
@@ -279,27 +276,25 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
             }
 
             // the kotlin facade needs files with source and target elements
-            val facade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
+            val facade: ResolutionFacade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
 
             // fixme: remove descriptors which belong to the newly transformed files
             transformed.forEach { (sourceFile, transformedFile) ->
               // fixme this triggers a resolve which already queries our synthetic resolve extensions
-              val synthDescriptors = transformedFile.declarations.mapNotNull {
-                val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
-                if (desc.isMetaSynthetic()) desc else null
-              }
+              val synthDescriptors = transformedFile.resolve(facade, BodyResolveMode.FULL)
+                .second.filter { it.isMetaSynthetic() }
 
-              if (synthDescriptors.isNotEmpty()) {
-                synthDescriptors.forEach { synthDescriptor ->
+              synthDescriptors
+                .mapNotNull { descriptor -> descriptor.safeAs<LazyEntity>()?.let { descriptor to it } }
+                .forEach { (descriptor, entity) ->
                   try {
                     // fixme this triggers a call to the .resolved()
-                    //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
-                    if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
+                    // via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
+                    entity.forceResolveAllContents()
                   } catch (e: IndexNotReadyException) {
-                    LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
+                    LOG.warn("Index wasn't ready to resolve: ${descriptor.name}")
                   }
                 }
-              }
               cache?.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
             }
 
@@ -401,7 +396,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 }
 
 /**
- * messages is used to report messages generated by quote system via IntelliJ's log.
+ * messages used to report messages generated by quote system via IntelliJ's log.
  */
 private val messages: MessageCollector = object : MessageCollector {
   override fun clear() {}

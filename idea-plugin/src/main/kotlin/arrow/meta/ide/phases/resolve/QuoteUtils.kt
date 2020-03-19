@@ -22,12 +22,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.concurrent.ExecutorService
 
 /**
- * returns the [DeclarationDescriptor]s of each File
- */
-fun KtFile.resolve(facade: ResolutionFacade, resolveMode: BodyResolveMode = BodyResolveMode.PARTIAL): Pair<KtFile, List<DeclarationDescriptor>> =
-  this to declarations.mapNotNull { facade.resolveToDescriptor(it, resolveMode) }
-
-/**
  * project level service for quote transformations
  */
 interface QuoteSystemService {
@@ -131,3 +125,9 @@ fun Project.quoteRelevantFiles(): List<KtFile> =
   ktFiles()
     .filter { it.quoteRelevantFile() && it.isInLocalFileSystem }
     .files(this)
+
+/**
+ * returns the [DeclarationDescriptor]s of each File
+ */
+fun KtFile.resolve(facade: ResolutionFacade, resolveMode: BodyResolveMode = BodyResolveMode.PARTIAL): Pair<KtFile, List<DeclarationDescriptor>> =
+  this to declarations.map { facade.resolveToDescriptor(it, resolveMode) }
