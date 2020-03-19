@@ -1,5 +1,7 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.plugins.quotes.QuoteCache
+import arrow.meta.ide.plugins.quotes.QuoteCacheService
 import arrow.meta.ide.plugins.quotes.isMetaSynthetic
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
@@ -72,12 +74,13 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
   }
 
-  val cache: QuoteCache = QuoteCache.default
+  val cache: QuoteCache = project.getService(QuoteCacheService::class.java)
 
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.
   // we keep a pool per project, so that we're able to shut it down when the project is closed
   val cacheExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1) as BoundedTaskExecutor
+
   // pool where non-blocking read actions for document updates are executed
   val docExec: BoundedTaskExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1) as BoundedTaskExecutor
 
@@ -136,10 +139,10 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
             }
           } else {
             ReadAction.nonBlocking {
-              ProgressManager.getInstance().runProcess({
-                app.updateDoc(document, indicator, project)
-              }, indicator)
-            }.cancelWith(indicator)
+                ProgressManager.getInstance().runProcess({
+                  app.updateDoc(document, indicator, project)
+                }, indicator)
+              }.cancelWith(indicator)
               .expireWhen(indicator::isCanceled)
               .expireWith(this@QuoteSystemCache)
               .submit(docExec)
@@ -234,14 +237,14 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     // a blocking read action can lead to very bad editor experience, especially we're doing a lot with the PsiFiles
     // in the transformation
     ReadAction.nonBlocking<List<Pair<KtFile, KtFile>>> {
-      val start = System.currentTimeMillis()
-      try {
-        transform(files, analysisIdeExtensions, project)
-      } finally {
-        val duration = System.currentTimeMillis() - start
-        LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
+        val start = System.currentTimeMillis()
+        try {
+          transform(files, analysisIdeExtensions, project)
+        } finally {
+          val duration = System.currentTimeMillis() - start
+          LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
+        }
       }
-    }
       .cancelWith(strategy.indicator)
       .expireWhen { strategy.indicator.isCanceled }
       .submit(docExec)
@@ -271,58 +274,58 @@ class QuoteSystemCache(private val project: Project) : ProjectComponent, Disposa
     LOG.assertTrue(strategy.indicator.isRunning)
 
     ReadAction.nonBlocking {
-      ProgressManager.getInstance().runProcess({
-        LOG.assertTrue(strategy.indicator.isRunning)
-        LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
+        ProgressManager.getInstance().runProcess({
+          LOG.assertTrue(strategy.indicator.isRunning)
+          LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
 
-        if (strategy.resetCache) {
-          cache.clear()
-        }
-
-        LOG.info("resolving descriptors of transformed files: ${cache.size} files")
-        if (files.isNotEmpty()) {
-          // clear descriptors of all updatedFiles, which don't have a transformation result
-          // e.g. because meta-code isn't used anymore
-
-          // fixme this lookup is slow (exponential?), optimize when necessary
-          for (source in files) {
-            if (!transformed.any { it.first == source }) {
-              cache.removeQuotedFile(source)
-            }
+          if (strategy.resetCache) {
+            cache.clear()
           }
 
-          // the kotlin facade needs files with source and target elements
-          val facade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
+          LOG.info("resolving descriptors of transformed files: ${cache.size} files")
+          if (files.isNotEmpty()) {
+            // clear descriptors of all updatedFiles, which don't have a transformation result
+            // e.g. because meta-code isn't used anymore
 
-          // fixme: remove descriptors which belong to the newly transformed files
-          transformed.forEach { (sourceFile, transformedFile) ->
-            // fixme this triggers a resolve which already queries our synthetic resolve extensions
-            val synthDescriptors = transformedFile.declarations.mapNotNull {
-              val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
-              if (desc.isMetaSynthetic()) desc else null
-            }
-
-            if (synthDescriptors.isNotEmpty()) {
-              synthDescriptors.forEach { synthDescriptor ->
-                try {
-                  // fixme this triggers a call to the .resolved()
-                  //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
-                  if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
-                } catch (e: IndexNotReadyException) {
-                  LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
-                }
+            // fixme this lookup is slow (exponential?), optimize when necessary
+            for (source in files) {
+              if (!transformed.any { it.first == source }) {
+                cache.removeQuotedFile(source)
               }
             }
-            cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
-          }
 
-          // refresh the highlighting of editors of modified files, using the new cache
-          for ((origin, _) in transformed) {
-            DaemonCodeAnalyzer.getInstance(project).restart(origin)
+            // the kotlin facade needs files with source and target elements
+            val facade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
+
+            // fixme: remove descriptors which belong to the newly transformed files
+            transformed.forEach { (sourceFile, transformedFile) ->
+              // fixme this triggers a resolve which already queries our synthetic resolve extensions
+              val synthDescriptors = transformedFile.declarations.mapNotNull {
+                val desc = facade.resolveToDescriptor(it, BodyResolveMode.FULL)
+                if (desc.isMetaSynthetic()) desc else null
+              }
+
+              if (synthDescriptors.isNotEmpty()) {
+                synthDescriptors.forEach { synthDescriptor ->
+                  try {
+                    // fixme this triggers a call to the .resolved()
+                    //    via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
+                    if (synthDescriptor is LazyEntity) synthDescriptor.forceResolveAllContents()
+                  } catch (e: IndexNotReadyException) {
+                    LOG.warn("Index wasn't ready to resolve: ${synthDescriptor.name}")
+                  }
+                }
+              }
+              cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
+            }
+
+            // refresh the highlighting of editors of modified files, using the new cache
+            for ((origin, _) in transformed) {
+              DaemonCodeAnalyzer.getInstance(project).restart(origin)
+            }
           }
-        }
-      }, strategy.indicator)
-    }.cancelWith(strategy.indicator)
+        }, strategy.indicator)
+      }.cancelWith(strategy.indicator)
       .expireWhen { strategy.indicator.isCanceled }
       .expireWith(this)
       .inSmartMode(project)

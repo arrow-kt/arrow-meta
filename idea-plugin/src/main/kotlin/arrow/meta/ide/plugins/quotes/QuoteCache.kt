@@ -1,9 +1,8 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.concurrent.ConcurrentHashMap
 
 
 /**
@@ -47,35 +46,4 @@ interface QuoteCache {
    * Clears cache data
    */
   fun clear()
-
-  companion object {
-    /**
-     * fixme must not be used in production, because caching PsiElement this way is bad
-     * fixme cache both per module? modules may define different ktfiles for the same package fqName
-     */
-    val default: QuoteCache
-      get() = object : QuoteCache {
-
-        private val cache = ConcurrentHashMap<KtFile, QuoteInfo>()
-
-        override val size: Int
-          get() : Int = cache.size
-
-        override fun descriptors(packageFqName: FqName): List<DeclarationDescriptor> =
-          cache.values.filter { it.first == packageFqName }.map { it.second }.flatten()
-
-        override fun packages(): List<FqName> =
-          cache.values.map { it.first }.distinct()
-
-        override fun removeQuotedFile(file: KtFile): QuoteInfo? =
-          cache.remove(file)
-
-        override fun update(source: KtFile, transformed: QuoteInfo) {
-          cache[source] = transformed
-        }
-
-        override fun clear(): Unit =
-          cache.clear()
-      }
-  }
 }
