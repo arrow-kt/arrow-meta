@@ -1,7 +1,6 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.plugins.quotes.QuoteCache
-import arrow.meta.ide.plugins.quotes.QuoteCacheService
 import arrow.meta.ide.plugins.quotes.isMetaSynthetic
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
@@ -71,7 +70,7 @@ private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate
  */
 class QuoteSystemComponent(private val project: Project) : ProjectComponent, Disposable {
 
-  val cache: QuoteCache? = project.getService(QuoteCacheService::class.java)
+  val cache: QuoteCache? = project.getService(QuoteCache::class.java)
 
   // pool where the quote system transformations are executed.
   // this is a single thread pool to avoid concurrent updates to the cache.

@@ -27,7 +27,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.ArrowHighlightingPassFactory"/>
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
-        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService" serviceInterface="arrow.meta.ide.plugins.quotes.QuoteCache"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

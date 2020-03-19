@@ -10,6 +10,7 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
 
 class ArrowHighlightingPassFactory : TextEditorHighlightingPassFactoryRegistrar {
+  // TODO: register this via Meta
   override fun registerHighlightingPassFactory(registrar: TextEditorHighlightingPassRegistrar, project: Project) {
     registrar.registerTextEditorHighlightingPass({ file: PsiFile, _: Editor ->
       if (file is KtFile) {

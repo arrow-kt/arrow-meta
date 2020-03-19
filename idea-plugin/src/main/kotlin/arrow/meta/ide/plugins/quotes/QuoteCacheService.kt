@@ -16,9 +16,10 @@ import java.util.concurrent.ConcurrentHashMap
  * and the cache stored on disk get out of sync with external changes to the disk, projects sharing source files or other situations.
  * fixme must not be used in production, because caching PsiElement this way is bad
  * fixme cache both per module? modules may define different ktfiles for the same package fqName
+ * TODO: register this via Meta.
  */
 @State(name = "QuoteCache", storages = [Storage(StoragePathMacros.CACHE_FILE)])
-object QuoteCacheService : PersistentService<ConcurrentHashMap<KtFile, QuoteInfo>>, QuoteCache {
+private object QuoteCacheService : PersistentService<ConcurrentHashMap<KtFile, QuoteInfo>>, QuoteCache {
   override var value: Id<ConcurrentHashMap<KtFile, QuoteInfo>> =
     Id.just(ConcurrentHashMap<KtFile, QuoteInfo>())
 
