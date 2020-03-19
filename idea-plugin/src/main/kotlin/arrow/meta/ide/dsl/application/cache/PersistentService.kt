@@ -6,6 +6,7 @@ import com.intellij.openapi.components.PersistentStateComponent
  * [PersistentService] caches a [value] and solely allows monomorphic updates.
  * This Service is one way to replace global variables stored in components to their service representation,
  * store state in either project-level or application-level, as an effort to migrate to Services.
+ * This interface shouldn't be used to store PsiElements or VirtualFiles.
  */
 interface PersistentService<A> : PersistentStateComponent<Id<A>> {
   var value: Id<A>
