@@ -5,6 +5,8 @@ import arrow.meta.ide.plugins.quotes.QuoteCache
 import arrow.meta.ide.plugins.quotes.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.cacheStrategy
 import arrow.meta.ide.plugins.quotes.files
+import arrow.meta.ide.plugins.quotes.initialized
+import arrow.meta.ide.plugins.quotes.initializedLatch
 import arrow.meta.ide.plugins.quotes.isMetaSynthetic
 import arrow.meta.ide.plugins.quotes.quoteRelevantFile
 import arrow.meta.ide.plugins.quotes.quoteRelevantFiles
@@ -172,9 +174,6 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
       }
   }
 
-  private val initialized = AtomicBoolean(false)
-  private val initializedLatch = CountDownLatch(1)
-
   /**
    * waits until the initial transformation, which is started after the project was initialized,
    * is finished. This is necessary to implement fully working highlighting of .kt files, which
@@ -183,7 +182,9 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
   fun waitForInitialize() {
     if (!initialized.get()) {
       initializedLatch.await(5, TimeUnit.SECONDS)
+      println("BOOOOOOMMMMMMM")
     }
+    println("NOOO BOOOOM")
   }
 
   override fun projectOpened() {
