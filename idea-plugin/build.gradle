@@ -15,7 +15,7 @@ repositories {
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   //compileOnly project(':compiler-plugin')
-  runtime "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+  // runtime "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
 }
 
