@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.atomic.AtomicLong
 
-private class QuoteSystemServiceImpl(project: Project) : QuoteSystemService {
+private class QuoteSystem(project: Project) : QuoteSystemService {
   override val context: QuoteSystemService.Ctx = QuoteSystemService.defaultCtx(project)
 
   /**

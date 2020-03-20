@@ -31,7 +31,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
 
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id1Of"))
     project.testQuoteSystem()?.forceRebuild(project)
-      ?: throw UnavailableService(QuoteSystemService::class.java)
+      ?: throw UnavailableService(TestQuoteSystemService::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
   }
@@ -56,7 +56,7 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
     myFixture.editor.moveCaret(myFixture.file.text.indexOf("Id2Of"))
 
     project.testQuoteSystem()?.forceRebuild(project)
-      ?: throw UnavailableService(QuoteSystemService::class.java)
+      ?: throw UnavailableService(TestQuoteSystemService::class.java)
     val psi = myFixture.elementAtCaret
     assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
   }
@@ -73,8 +73,8 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
       class Old<caret>Id<out A>(val value: A)
     """.trimIndent()
 
-    project.testQuoteSystem()?.let { quoteService ->
-      project.getService(QuoteCache::class.java)?.let { cache ->
+    project.testQuoteSystem()?.let { quoteService: TestQuoteSystemService ->
+      project.getService(QuoteCache::class.java)?.let { cache: QuoteCache ->
         myFixture.configureByText(KotlinFileType.INSTANCE, code)
         quoteService.forceRebuild(project)
 
@@ -87,6 +87,6 @@ class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
           assertFalse("IntelliJ's error debug markers must not exist, as they indicate unresolved references: $it", it.toString().contains("@[ERROR"))
         }
       } ?: throw UnavailableService(QuoteCache::class.java)
-    } ?: throw UnavailableService(QuoteSystemService::class.java)
+    } ?: throw UnavailableService(TestQuoteSystemService::class.java)
   }
 }

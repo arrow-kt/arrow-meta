@@ -11,7 +11,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.ExecutorService
 
 /**
- * project level service for quote transformations
+ * Whereas the [QuoteCache] persists quote transformations,
+ * the [QuoteSystemService] is responsible for transforming KtFiles under a given [context].
  */
 interface QuoteSystemService {
 

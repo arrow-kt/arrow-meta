@@ -20,7 +20,7 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemComponent</implementation-class>
+            <implementation-class>arrow.meta.ide.plugins.quotes.QuoteSystemComponent</implementation-class>
         </component>
     </project-components>
 
@@ -30,7 +30,7 @@
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService"
                         serviceInterface="arrow.meta.ide.plugins.quotes.QuoteCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteHighlightingCache"/>
-        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteSystemServiceImpl"
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteSystem"
                         serviceInterface="arrow.meta.ide.plugins.quotes.QuoteSystemService"/>
     </extensions>
 

@@ -16,9 +16,9 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
       .safeAs<KtFile>()
       ?.let { file ->
         // this is the initial rebuild and the initial cache population
-        project.testQuoteSystem()?.let { service ->
+        project.testQuoteSystem()?.let { service: TestQuoteSystemService ->
           service.forceRebuild(project) //no need
-          project.getService(QuoteCache::class.java)?.let { cache ->
+          project.getService(QuoteCache::class.java)?.let { cache: QuoteCache ->
             val code = """
                 package testArrow
                 import arrow.higherkind
@@ -29,7 +29,7 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
 
             updateAndAssertCache(cache, service, myFixture, file, code, 0, 5)
           } ?: throw UnavailableService(QuoteCache::class.java)
-        } ?: throw UnavailableService(QuoteSystemComponent::class.java)
+        } ?: throw UnavailableService(TestQuoteSystemService::class.java)
       }
   }
 
@@ -63,8 +63,8 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
         myFixture.addFileToProject("testArrowOther/third.kt", codeThird).safeAs<KtFile>()?.let { third ->
 
           // this is the initial rebuild and the initial cache population
-          project.testQuoteSystem()?.let { service ->
-            project.getService(QuoteCache::class.java)?.let { cache ->
+          project.testQuoteSystem()?.let { service: TestQuoteSystemService ->
+            project.getService(QuoteCache::class.java)?.let { cache: QuoteCache ->
               service.forceRebuild(project)
 
               updateAndAssertCache(cache, service, myFixture, first, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
@@ -84,7 +84,7 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
                 assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
               }
             } ?: throw UnavailableService(QuoteCache::class.java)
-          } ?: throw UnavailableService(QuoteSystemComponent::class.java)
+          } ?: throw UnavailableService(TestQuoteSystemService::class.java)
         }
       }
     }
