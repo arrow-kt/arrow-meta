@@ -1,7 +1,11 @@
 package arrow.meta.ide.phases.resolve
 
 import arrow.meta.ide.plugins.quotes.QuoteCache
+import arrow.meta.ide.plugins.quotes.QuoteSystemService
+import arrow.meta.ide.plugins.quotes.cacheStrategy
+import arrow.meta.ide.plugins.quotes.quoteRelevantFiles
 import arrow.meta.internal.Noop
+import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
@@ -16,7 +20,7 @@ interface TestQuoteSystemService {
   val service: QuoteSystemService
 
   fun flush(): Unit =
-    service.ctx.run {
+    service.context.run {
       editorQueue.flush()
       docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
       cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
@@ -27,7 +31,7 @@ interface TestQuoteSystemService {
     val quoteFiles = project.quoteRelevantFiles()
     val cache = project.getService(QuoteCache::class.java)
     LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
-    service.refreshCache(cache, quoteFiles, cacheStrategy())
+    service.refreshCache(cache, project, quoteFiles, analysisIdeExtensions, cacheStrategy())
     flush()
   }
 }
