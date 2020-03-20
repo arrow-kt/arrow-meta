@@ -1,7 +1,7 @@
 package arrow.meta.phases.codegen.ir
 
 import arrow.meta.phases.CompilerContext
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -24,66 +24,69 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.asSimpleType
 
 class IrUtils(
-    val pluginContext: IrPluginContext,
-    val compilerContext: CompilerContext
-) : ReferenceSymbolTable by pluginContext.symbolTable {
+  val backendContext: BackendContext,
+  val compilerContext: CompilerContext
+) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable {
 
-    val typeTranslator: TypeTranslator =
-        TypeTranslator(
-            symbolTable = pluginContext.symbolTable,
-            languageVersionSettings = pluginContext.languageVersionSettings,
-            builtIns = pluginContext.builtIns
-        ).apply {
-            constantValueGenerator =
-                ConstantValueGenerator(
-                    moduleDescriptor = pluginContext.moduleDescriptor,
-                    symbolTable = pluginContext.symbolTable
-                )
-        }
+  val typeTranslator: TypeTranslator =
+    TypeTranslator(
+      symbolTable = backendContext.ir.symbols.externalSymbolTable,
+      languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,
+      builtIns = backendContext.builtIns
+    ).apply {
+      constantValueGenerator =
+        ConstantValueGenerator(
+          moduleDescriptor = backendContext.ir.irModule.descriptor,
+          symbolTable = backendContext.ir.symbols.externalSymbolTable
+        )
+    }
 
     fun KotlinType.irType(): IrType =
       typeTranslator.translateType(this)
 
-    fun FunctionDescriptor.irCall(): IrCall {
-        val irFunctionSymbol = pluginContext.symbolTable.referenceFunction(this)
-        return IrCallImpl(
-            startOffset = UNDEFINED_OFFSET,
-            endOffset = UNDEFINED_OFFSET,
-            type = irFunctionSymbol.descriptor.returnTypeOrNothing.irType(),
-            symbol = irFunctionSymbol,
-            typeArgumentsCount = irFunctionSymbol.descriptor.typeParameters.size,
-            valueArgumentsCount = irFunctionSymbol.descriptor.valueParameters.size
-        )
-    }
+  fun FunctionDescriptor.irCall(): IrCall {
+    val irFunctionSymbol = backendContext.ir.symbols.externalSymbolTable.referenceFunction(this)
+    return IrCallImpl(
+      startOffset = UNDEFINED_OFFSET,
+      endOffset = UNDEFINED_OFFSET,
+      type = irFunctionSymbol.owner.returnType,
+      symbol = irFunctionSymbol,
+      descriptor = irFunctionSymbol.owner.descriptor,
+      typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
+      valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
+    )
+  }
 
-    fun PropertyDescriptor.irGetterCall(): IrCall? {
-        val irField = pluginContext.symbolTable.referenceField(this)
-        return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let { irSimpleFunctionSymbol ->
-            IrCallImpl(
-                startOffset = UNDEFINED_OFFSET,
-                endOffset = UNDEFINED_OFFSET,
-                type = irSimpleFunctionSymbol.descriptor.returnTypeOrNothing.irType(),
-                symbol = irSimpleFunctionSymbol,
-                typeArgumentsCount = irSimpleFunctionSymbol.descriptor.typeParameters.size,
-                valueArgumentsCount = irSimpleFunctionSymbol.descriptor.valueParameters.size
-            )
-        }
+  fun PropertyDescriptor.irGetterCall(): IrCall? {
+    val irField = backendContext.ir.symbols.externalSymbolTable.referenceField(this)
+    return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let { irSimpleFunctionSymbol ->
+      IrCallImpl(
+        startOffset = UNDEFINED_OFFSET,
+        endOffset = UNDEFINED_OFFSET,
+        type = irSimpleFunctionSymbol.owner.returnType,
+        symbol = irSimpleFunctionSymbol,
+        descriptor = irSimpleFunctionSymbol.owner.descriptor,
+        typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
+        valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+      )
     }
+  }
 
-    fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
-        val irClass = pluginContext.symbolTable.referenceClass(this)
-        return irClass.constructors.firstOrNull()?.let { irConstructorSymbol ->
-            IrConstructorCallImpl(
-                startOffset = UNDEFINED_OFFSET,
-                endOffset = UNDEFINED_OFFSET,
-                type = irConstructorSymbol.descriptor.returnTypeOrNothing.irType(),
-                symbol = irConstructorSymbol,
-                typeArgumentsCount = irConstructorSymbol.descriptor.typeParameters.size,
-                valueArgumentsCount = irConstructorSymbol.descriptor.valueParameters.size,
-                constructorTypeArgumentsCount = declaredTypeParameters.size
-            )
-        }
+  fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
+    val irClass = backendContext.ir.symbols.externalSymbolTable.referenceClass(this)
+    return irClass.constructors.firstOrNull()?.let { irConstructorSymbol ->
+      IrConstructorCallImpl(
+        startOffset = UNDEFINED_OFFSET,
+        endOffset = UNDEFINED_OFFSET,
+        type = irConstructorSymbol.owner.returnType,
+        symbol = irConstructorSymbol,
+        descriptor = irConstructorSymbol.owner.descriptor,
+        typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
+        valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
+        constructorTypeArgumentsCount = declaredTypeParameters.size
+      )
     }
+  }
 
     fun FunctionDescriptor.substitutedIrTypes(typeSubstitutor: NewTypeSubstitutorByConstructorMap): List<IrType?> =
         typeParameters.mapIndexed { _, typeParamDescriptor ->
