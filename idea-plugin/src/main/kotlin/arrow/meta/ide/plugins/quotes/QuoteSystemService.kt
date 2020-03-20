@@ -48,11 +48,6 @@ interface QuoteSystemService {
    */
   fun refreshCache(cache: QuoteCache, project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>, strategy: CacheStrategy): Unit
 
-  /**
-   * TODO: transfer to a lifecycle extension
-   */
-  fun waitForInitialize(): Unit
-
   companion object {
     fun defaultCtx(project: Project): Ctx =
       object : Ctx {

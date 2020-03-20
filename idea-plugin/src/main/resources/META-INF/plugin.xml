@@ -25,13 +25,17 @@
     </project-components>
 
     <extensions defaultExtensionNs="com.intellij">
-        <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.ArrowHighlightingPassFactory"/>
+        <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.QuoteHighlightingPassFactory"/>
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
-        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService" serviceInterface="arrow.meta.ide.plugins.quotes.QuoteCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteCacheService"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.QuoteCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteHighlightingCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.QuoteSystemServiceImpl"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.QuoteSystemService"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
+        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension"/>
     </extensions>
 
 </idea-plugin>

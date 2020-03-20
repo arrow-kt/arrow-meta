@@ -44,15 +44,9 @@ fun toTestEnv(service: QuoteSystemService): TestQuoteSystemService =
 fun Project.testQuoteSystem(): TestQuoteSystemService? =
   getService(QuoteSystemService::class.java)?.let(::toTestEnv)
 
-/**
- * returns all descriptors in the quote cache of the package FqName of [file]
- */
-private fun QuoteSystemComponent.descriptors(file: KtFile): List<DeclarationDescriptor> =
-  cache?.descriptors(file.packageFqName)
-
 fun updateAndAssertCache(
   cache: QuoteCache,
-  service: QuoteSystemComponent,
+  service: TestQuoteSystemService,
   myFixture: CodeInsightTestFixture,
   file: KtFile,
   content: String,
@@ -67,7 +61,7 @@ fun updateAndAssertCache(
     myFixture.openFileInEditor(file.virtualFile)
     myFixture.editor.document.setText(content)
   }
-  service.flushData()
+  service.flush()
 
   val newCachedElements = cache.descriptors(file.packageFqName)
   LightPlatformCodeInsightFixture4TestCase.assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)

@@ -16,8 +16,8 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
       .safeAs<KtFile>()
       ?.let { file ->
         // this is the initial rebuild and the initial cache population
-        project.getComponent(QuoteSystemComponent::class.java)?.let { service ->
-          service.forceRebuild() //no need
+        project.testQuoteSystem()?.let { service ->
+          service.forceRebuild(project) //no need
           project.getService(QuoteCache::class.java)?.let { cache ->
             val code = """
                 package testArrow
@@ -63,10 +63,9 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
         myFixture.addFileToProject("testArrowOther/third.kt", codeThird).safeAs<KtFile>()?.let { third ->
 
           // this is the initial rebuild and the initial cache population
-          project.getComponent(QuoteSystemComponent::class.java)?.let { service ->
+          project.testQuoteSystem()?.let { service ->
             project.getService(QuoteCache::class.java)?.let { cache ->
-              service.forceRebuild()
-              //cache.refreshCache(project.collectAllKtFiles(), indicator = DumbProgressIndicator.INSTANCE)
+              service.forceRebuild(project)
 
               updateAndAssertCache(cache, service, myFixture, first, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
                 assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
@@ -91,24 +90,3 @@ class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
     }
   }
 }
-/**
- * private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
-val cache = QuoteSystemComponent.getInstance(project)
-
-val packageFqName = (toUpdate as KtFile).packageFqName
-val cachedElements = cache.resolved(packageFqName).orEmpty()
-assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
-
-runWriteAction {
-myFixture.openFileInEditor(toUpdate.virtualFile)
-myFixture.editor.document.setText(content)
-}
-cache.flushForTest()
-
-val newCachedElements = cache.resolved(packageFqName).orEmpty()
-assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
-
-val retained = newCachedElements.filter { cachedElements.contains(it) }
-assertRetained(retained)
-}
- */
