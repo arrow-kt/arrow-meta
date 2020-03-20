@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.resolve.QuoteSystemComponent
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -20,7 +19,7 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.Printer
 
-val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
+val IdeMetaPlugin.quoteSyntheticPackageFragmentProvider: ExtensionPhase
   get() = packageFragmentProvider { project, module, _, _, _, _ ->
     descriptorCachePackageFragmentProvider(module, project)
   }

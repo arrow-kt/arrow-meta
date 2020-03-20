@@ -7,6 +7,6 @@ import arrow.meta.invoke
 val IdeMetaPlugin.quotes: Plugin
   get() = "Quote Ide Plugin" {
     meta(
-      metaSyntheticPackageFragmentProvider
+      quoteSyntheticPackageFragmentProvider
     )
   }

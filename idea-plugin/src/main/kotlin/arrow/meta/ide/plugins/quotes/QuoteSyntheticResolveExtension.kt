@@ -1,7 +1,6 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
-import arrow.meta.ide.plugins.quotes.QuoteCache
-import arrow.meta.ide.plugins.quotes.isMetaSynthetic
+import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.quotes.get
 import arrow.meta.quotes.ktClassOrObject
 import com.intellij.openapi.project.Project
@@ -45,7 +44,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-open class MetaSyntheticResolveExtension(project: Project) : SyntheticResolveExtension {
+open class QuoteSyntheticResolveExtension(project: Project) : SyntheticResolveExtension {
   val quoteCache: QuoteCache? = project.getService(QuoteCache::class.java)
 
   override fun generateSyntheticClasses(thisDescriptor: PackageFragmentDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: PackageMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) {
