@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
+@Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
     val irUtils: IrUtils
 ) {
@@ -95,7 +96,7 @@ class ProofsIrCodegen(
 
     private fun CompilerContext.proveCall(expression: IrCall): IrCall =
         Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-            val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.descriptor)
+            val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
             val upperBound = givenTypeParamUpperBound.givenUpperBound
             if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
             else insertExtensionSyntaxCall(expression)
@@ -106,8 +107,8 @@ class ProofsIrCodegen(
         val valueType = expression.dispatchReceiver?.type?.toKotlinType()
             ?: expression.extensionReceiver?.type?.toKotlinType()
         val targetType =
-            (expression.symbol.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
-                ?: expression.symbol.descriptor.extensionReceiverParameter?.type
+            (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+                ?: expression.descriptor.extensionReceiverParameter?.type
         if (targetType != null && valueType != null && targetType != valueType) {
             expression.apply {
                 val proofCall = proofCall(valueType, targetType)
