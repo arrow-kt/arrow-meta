@@ -1,6 +1,8 @@
 package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.quotes.AnalysisDefinition
+import com.intellij.openapi.progress.DumbProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -62,3 +64,25 @@ interface QuoteSystemService {
       }
   }
 }
+
+/**
+ * complements the quote service with a cache strategy
+ * It aggregates the configs of caching quote transformations
+ */
+interface CacheStrategy {
+  val resetCache: Boolean
+  val indicator: ProgressIndicator
+}
+
+/**
+ * The default strategy resets the quote cache and uses the DumbProgressIndicator
+ * @param resetCache defines if all previous transformations should be removed or not. Pass false for incremental updates.
+ */
+fun cacheStrategy(
+  resetCache: Boolean = true,
+  indicator: ProgressIndicator = DumbProgressIndicator.INSTANCE
+): CacheStrategy =
+  object : CacheStrategy {
+    override val resetCache: Boolean = resetCache
+    override val indicator: ProgressIndicator = indicator
+  }

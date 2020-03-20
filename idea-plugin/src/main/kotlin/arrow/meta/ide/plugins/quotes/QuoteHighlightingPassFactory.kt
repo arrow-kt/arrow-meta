@@ -37,7 +37,6 @@ internal data class HighlightingCache(val initialized: AtomicBoolean = AtomicBoo
 
 /**
  * TODO: transfer this to a lifecycle extension
- * TODO: Invalidate Cache when project closes
  */
 @State(name = "QuoteHighlightingCache", storages = [Storage(StoragePathMacros.CACHE_FILE)])
 internal object QuoteHighlightingCache : PersistentService<HighlightingCache> {

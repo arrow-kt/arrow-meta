@@ -1,13 +1,13 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.dsl.utils.files
+import arrow.meta.ide.dsl.utils.quoteRelevantFile
+import arrow.meta.ide.dsl.utils.quoteRelevantFiles
 import arrow.meta.ide.plugins.quotes.HighlightingCache
 import arrow.meta.ide.plugins.quotes.QuoteCache
 import arrow.meta.ide.plugins.quotes.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.cacheStrategy
-import arrow.meta.ide.plugins.quotes.files
-import arrow.meta.ide.plugins.quotes.quoteRelevantFile
-import arrow.meta.ide.plugins.quotes.quoteRelevantFiles
 import arrow.meta.ide.testing.UnavailableService
 import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.Disposable
@@ -54,7 +54,7 @@ class QuoteSystemComponent(private val project: Project) : ProjectComponent, Dis
 
   val cache: QuoteCache = project.getService(QuoteCache::class.java) // ill typed, fixme
 
-  val context: QuoteSystemService.Ctx = QuoteSystemService.defaultCtx(project)
+  val context: QuoteSystemService.Ctx = project.getService(QuoteSystemService::class.java)?.context!!
 
   override fun initComponent() {
     // register an async file listener.

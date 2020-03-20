@@ -1,9 +1,9 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.dsl.utils.quoteRelevantFiles
 import arrow.meta.ide.plugins.quotes.QuoteCache
 import arrow.meta.ide.plugins.quotes.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.cacheStrategy
-import arrow.meta.ide.plugins.quotes.quoteRelevantFiles
 import arrow.meta.internal.Noop
 import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.project.Project

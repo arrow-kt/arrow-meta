@@ -3,21 +3,30 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.SyntaxTraverser
+import com.intellij.psi.search.FileTypeIndex
 import org.celtric.kotlin.html.BlockElement
 import org.celtric.kotlin.html.InlineElement
 import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
 import org.jetbrains.kotlin.idea.fir.getOrBuildFir
+import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -28,12 +37,12 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-object IdeUtils {
-  fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
-}
+internal fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
+
 
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
@@ -100,6 +109,33 @@ fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: Kotli
  */
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
+
+// fixme use ViewProvider's files instead?
+@Suppress("UNCHECKED_CAST")
+fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
+  mapNotNull { PsiManager.getInstance(project).findFile(it) as? F }
+
+fun Project.ktFiles(): List<VirtualFile> =
+  FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope()).filterNotNull()
+
+fun VirtualFile.quoteRelevantFile(): Boolean =
+  isValid &&
+    this.fileType is KotlinFileType &&
+    (isInLocalFileSystem || ApplicationManager.getApplication().isUnitTestMode)
+
+/**
+ * Collects all Kotlin files of the current project which are source files for Quote transformations.
+ */
+fun Project.quoteRelevantFiles(): List<KtFile> =
+  ktFiles()
+    .filter { it.quoteRelevantFile() && it.isInLocalFileSystem }
+    .files(this)
+
+/**
+ * returns the [DeclarationDescriptor]s of each File
+ */
+fun KtFile.resolve(facade: ResolutionFacade, resolveMode: BodyResolveMode = BodyResolveMode.PARTIAL): Pair<KtFile, List<DeclarationDescriptor>> =
+  this to declarations.map { facade.resolveToDescriptor(it, resolveMode) }
 
 /**
  * returns the [BindingContext] for a successfully resolved file after Analysis
