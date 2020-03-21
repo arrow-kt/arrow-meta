@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
+import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 val IdeMetaPlugin.typeProofsIde: Plugin
@@ -39,6 +40,9 @@ val IdeMetaPlugin.typeProofsIde: Plugin
                 if (call.callElement == element) {
                   val module = resolvedCall.resultingDescriptor.module
                   val compilerContext = CompilerContext(element.project)
+                  compilerContext.eval = {
+                    KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
+                  }
                   compilerContext.module = module
                   val validation = compilerContext.validateConstructorCall(it)
                   validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->

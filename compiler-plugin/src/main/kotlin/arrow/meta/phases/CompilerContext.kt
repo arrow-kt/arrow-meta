@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
 import arrow.meta.plugins.proofs.phases.proofs as tp
 
 /**
@@ -23,6 +24,7 @@ class CompilerContext(
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
+  var eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
 
   var configuration: CompilerConfiguration? = null
 

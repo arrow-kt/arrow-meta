@@ -13,8 +13,6 @@ import arrow.meta.quotes.scope
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.cli.common.repl.ReplEvalResult
-import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
@@ -27,9 +25,10 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
-import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
+//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
+//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
 import org.jetbrains.kotlin.types.KotlinType
+import javax.script.ScriptEngineManager
 
 typealias Validation = Map<String, Boolean>
 
@@ -119,20 +118,15 @@ internal fun CompilerContext.validateExpression(
     """.trimIndent()
   val newConfig = configuration?.copy() ?: CompilerConfiguration()
   newConfig.put(JVMConfigurationKeys.IR, false)
-  val interpreter = ReplInterpreter(Disposable { println("refinement interpreter disposed") }, newConfig, ConsoleReplConfiguration())
-//  val engine = KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine
+  //val interpreter = ReplInterpreter(Disposable { println("refinement interpreter disposed") }, newConfig, ConsoleReplConfiguration())
+  //val interpreter = ScriptEngineManager().getEngineByExtension("kts")
 
   val expressionResult =
     Log.Verbose({ "eval refinement result : \n$this" }) {
-      val evaled = interpreter.eval(constantChecker)
-      when (evaled) {
-        is ReplEvalResult.ValueResult -> evaled.value as? Map<Any?, Any?>
-        is ReplEvalResult.Error.CompileTime -> mapOf("""
-          `$argumentExpression` is a runtime value disallowed in $targetType's constructor.
-          Replace with a constant value or use the safe constructor:
-          `$targetType.from($argumentExpression)`
-        """.trimIndent() to false)
-        else -> TODO("Unexpected eval result for refinement: $evaled")
+      try {
+        eval(constantChecker) as? Map<Any?, Any?>
+      } catch (e: Throwable) {
+        mapOf(e.message to false)
       }
     }
   return if (expressionResult != null) {

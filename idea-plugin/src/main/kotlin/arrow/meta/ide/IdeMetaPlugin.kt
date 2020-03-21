@@ -11,9 +11,9 @@ import kotlin.contracts.ExperimentalContracts
 open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<Plugin> =
-    super.intercept(ctx) +
+    (super.intercept(ctx) +
       //purity +
       //comprehensionsIdePlugin +
       //opticsIdePlugin +
-      typeProofsIde
+      typeProofsIde)
 }

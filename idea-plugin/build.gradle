@@ -14,9 +14,12 @@ repositories {
 
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-  //compileOnly project(':compiler-plugin')
+  compileOnly project(':compiler-plugin')
   // runtime "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+  //runtime "org.jetbrains.kotlin:kotlin-scripting-jsr223-embeddable:$KOTLIN_VERSION"
+  //compile group: 'org.jline', name: 'jline-reader', version: '3.14.0'
   compile project(path: ':compiler-plugin', configuration: 'shadow')
+
 }
 
 compileKotlin {
