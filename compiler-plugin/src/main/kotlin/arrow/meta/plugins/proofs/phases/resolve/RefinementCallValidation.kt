@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 //import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
 import org.jetbrains.kotlin.types.KotlinType
 import javax.script.ScriptEngineManager
+import javax.script.ScriptException
 
 typealias Validation = Map<String, Boolean>
 
@@ -123,11 +124,7 @@ internal fun CompilerContext.validateExpression(
 
   val expressionResult =
     Log.Verbose({ "eval refinement result : \n$this" }) {
-      try {
-        eval(constantChecker) as? Map<Any?, Any?>
-      } catch (e: Throwable) {
-        mapOf(e.message to false)
-      }
+      evalConstantExpression(constantChecker, argumentExpression, targetType)
     }
   return if (expressionResult != null) {
     val validationKeys = expressionResult.keys.filterIsInstance<String>()
@@ -136,6 +133,21 @@ internal fun CompilerContext.validateExpression(
     }.toMap()
   } else emptyMap()
 }
+
+private fun CompilerContext.evalConstantExpression(constantChecker: String, argumentExpression: Scope<KtExpression>, targetType: KotlinType): Map<out Any?, Any?>? =
+  try {
+    eval(constantChecker) as? Map<Any?, Any?>
+  } catch (e: Throwable) {
+    when {
+      e is ScriptException && e.message?.contains("error: unresolved reference: $argumentExpression") == true ->
+        mapOf("""
+      `$argumentExpression` is a runtime value disallowed in $targetType's constructor.
+      Replace with a constant value or use the safe constructor:
+      `$targetType.from($argumentExpression)`
+    """.trimIndent() to false)
+      else -> throw e
+    }
+  }
 
 internal fun CompilerContext.reportValidationErrors(validation: Map<String, Boolean>, element: KtElement) {
   validation.forEach { (msg, valid) ->

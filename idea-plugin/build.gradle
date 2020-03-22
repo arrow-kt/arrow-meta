@@ -16,10 +16,13 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   compileOnly project(':compiler-plugin')
   // runtime "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-  //runtime "org.jetbrains.kotlin:kotlin-scripting-jsr223-embeddable:$KOTLIN_VERSION"
+//  compile "org.jetbrains.kotlin:kotlin-scripting-jsr223-embeddable:$KOTLIN_VERSION"
   //compile group: 'org.jline', name: 'jline-reader', version: '3.14.0'
+//  compile "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
+//  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+//  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:$KOTLIN_VERSION"
+//  compile "org.jetbrains.kotlin:kotlin-script-runtime:$KOTLIN_VERSION"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
-
 }
 
 compileKotlin {

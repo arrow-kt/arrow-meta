@@ -13,7 +13,7 @@ class RefinementTests {
 
   private fun twitterHandle(): String =
     """
-    inline class TwitterHandle(val handle: String)  {
+    class TwitterHandle(val handle: String)  {
       companion object : Refined<String, TwitterHandle> {
         override val constructor = ::TwitterHandle
         override val validate: String.() -> Map<String, Boolean> = {
