@@ -1,7 +1,7 @@
 package arrow.meta.phases.codegen.ir
 
 import arrow.meta.phases.CompilerContext
-import org.jetbrains.kotlin.backend.common.BackendContext
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -20,20 +20,20 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtParameter
 
 class IrUtils(
-  val backendContext: BackendContext,
+  val pluginContext: IrPluginContext,
   val compilerContext: CompilerContext
-) : ReferenceSymbolTable by backendContext.ir.symbols.externalSymbolTable {
+) : ReferenceSymbolTable by pluginContext.symbolTable {
 
   val typeTranslator: TypeTranslator =
     TypeTranslator(
-      symbolTable = backendContext.ir.symbols.externalSymbolTable,
-      languageVersionSettings = backendContext.irBuiltIns.languageVersionSettings,
-      builtIns = backendContext.builtIns
+      symbolTable = pluginContext.symbolTable,
+      languageVersionSettings = pluginContext.languageVersionSettings,
+      builtIns = pluginContext.builtIns
     ).apply {
       constantValueGenerator =
         ConstantValueGenerator(
-          moduleDescriptor = backendContext.ir.irModule.descriptor,
-          symbolTable = backendContext.ir.symbols.externalSymbolTable
+          moduleDescriptor = pluginContext.moduleDescriptor,
+          symbolTable = pluginContext.symbolTable
         )
     }
 
@@ -43,27 +43,25 @@ class IrUtils(
       .mapNotNull { it.defaultValue?.text }
 
   fun FunctionDescriptor.irCall(): IrCall {
-    val irFunctionSymbol = backendContext.ir.symbols.externalSymbolTable.referenceFunction(this)
+    val irFunctionSymbol = pluginContext.symbolTable.referenceFunction(this)
     return IrCallImpl(
       startOffset = UNDEFINED_OFFSET,
       endOffset = UNDEFINED_OFFSET,
       type = irFunctionSymbol.owner.returnType,
       symbol = irFunctionSymbol,
-      descriptor = irFunctionSymbol.owner.descriptor,
       typeArgumentsCount = irFunctionSymbol.owner.descriptor.typeParameters.size,
       valueArgumentsCount = irFunctionSymbol.owner.descriptor.valueParameters.size
     )
   }
 
   fun PropertyDescriptor.irGetterCall(): IrCall? {
-    val irField = backendContext.ir.symbols.externalSymbolTable.referenceField(this)
+    val irField = pluginContext.symbolTable.referenceField(this)
     return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let { irSimpleFunctionSymbol ->
       IrCallImpl(
         startOffset = UNDEFINED_OFFSET,
         endOffset = UNDEFINED_OFFSET,
         type = irSimpleFunctionSymbol.owner.returnType,
         symbol = irSimpleFunctionSymbol,
-        descriptor = irSimpleFunctionSymbol.owner.descriptor,
         typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
         valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
       )
@@ -71,14 +69,13 @@ class IrUtils(
   }
 
   fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
-    val irClass = backendContext.ir.symbols.externalSymbolTable.referenceClass(this)
+    val irClass = pluginContext.symbolTable.referenceClass(this)
     return irClass.constructors.firstOrNull()?.let { irConstructorSymbol ->
       IrConstructorCallImpl(
         startOffset = UNDEFINED_OFFSET,
         endOffset = UNDEFINED_OFFSET,
         type = irConstructorSymbol.owner.returnType,
         symbol = irConstructorSymbol,
-        descriptor = irConstructorSymbol.owner.descriptor,
         typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
         valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
         constructorTypeArgumentsCount = declaredTypeParameters.size

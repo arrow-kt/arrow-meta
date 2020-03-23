@@ -235,7 +235,7 @@ fun IrUtils.unionConversion(intercepted: IrVariable): IrVariable? =
  * The arrow.Union inline class value holder
  */
 private fun IrUtils.unionClassDescriptor(): ClassDescriptor? =
-  backendContext.ir.irModule.descriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
+  pluginContext.moduleDescriptor.findClassAcrossModuleDependencies(ClassId.fromString("Union"))
 
 /**
  * @see [insertUnionConversion]
