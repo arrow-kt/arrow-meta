@@ -28,7 +28,8 @@ data class Proof(
   val from: KotlinType,
   val to: KotlinType,
   val through: FunctionDescriptor,
-  val proofType: ProofStrategy
+  val proofType: ProofStrategy,
+  val coerce: Boolean = true
 )
 
 fun FunctionDescriptor.isProof(): Boolean =
@@ -49,6 +50,13 @@ fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): 
 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   module.proofs.filter { it.proofType == ProofStrategy.Extension }
+    .matchingCandidates(this, subType, superType)
+
+fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): Proof? =
+  extensionProofs(subType, superType).firstOrNull()
+
+fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
+  module.proofs.filter { it.coerce }
     .matchingCandidates(this, subType, superType)
 
 val ModuleDescriptor.proofs: List<Proof>
