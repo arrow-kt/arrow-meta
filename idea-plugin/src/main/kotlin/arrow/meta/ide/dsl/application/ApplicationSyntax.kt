@@ -269,7 +269,7 @@ interface ProjectLifecycle : ProjectLifecycleListener, Disposable
  * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
  */
 fun projectLifecycleListener(
-  initialize: ProjectLifecycle.(Project) -> Unit,
+  initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
   afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
   dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
   beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,

@@ -8,12 +8,14 @@ import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
+import arrow.meta.ide.testing.UnavailableServices
 import arrow.meta.ide.testing.unavailableServices
 import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
@@ -21,11 +23,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.roots.FileIndexFacade
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
@@ -37,15 +36,10 @@ import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.ui.update.Update
-import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.atomic.AtomicBoolean
-
-/**
- * [quoteLifecycle] addresses ide lifecycle specific manipulates utilizing the [QuoteSystemService], [QuoteCache] and [QuoteHighlightingCache].
- */
 
 data class QuoteConfigs(
   val quoteSystem: QuoteSystemService,
@@ -57,7 +51,7 @@ fun Project.quoteConfigs(): QuoteConfigs? =
     getService(QuoteCache::class.java)?.let { cache ->
       QuoteConfigs(quoteSystem, cache)
     }
-  }
+  } ?: throw UnavailableServices(listOf(QuoteSystemService::class.java, QuoteCache::class.java))
 
 internal fun quoteProjectOpened(project: Project): Unit = // previously in QuoteSystemCache.projectOpend()
   project.quoteConfigs()?.let { (quoteSystem: QuoteSystemService, cache: QuoteCache) ->
@@ -88,32 +82,6 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
     //}
   } ?: unavailableServices(QuoteCache::class.java, QuoteSystemService::class.java)
 
-
-/*get() = projectLifecycleListener(
-  beforeProjectLoaded = { project: Project ->
-
-  },
-  initialize = { project: Project ->
-    project.quoteConfigs()?.let { (quoteSystem, cache) ->
-      //initializeQuotes(project, quoteSystem, cache)
-    } ?: unavailableServices(QuoteSystemService::class.java, QuoteCache::class.java)
-  },
-  afterProjectClosed = { project: Project ->
-    *//*project.quoteConfigs()?.let { (quoteSystem, cache) ->
-        try {
-          quoteSystem.context.cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
-        } catch (e: Exception) {
-          LOG.warn("error shutting down pool", e)
-        }
-        cache.clear()
-        project.getService(QuoteHighlightingCache::class.java)?.map { // resets the highlighter
-          HighlightingCache()
-        } ?: unavailableServices(QuoteHighlightingCache::class.java)
-      } ?: unavailableServices(QuoteSystemService::class.java, QuoteCache::class.java)*//*
-    }
-  )*/
-
-private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
 
 internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache): Unit {
   // register an async file listener.
@@ -184,6 +152,9 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
     }
   }, project)
 }
+
+private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate")
+
 
 /**
  * lifecycle dependent
