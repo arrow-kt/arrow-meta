@@ -6,7 +6,6 @@ import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.lifecycle.initializeQuotes
 import arrow.meta.ide.plugins.quotes.lifecycle.quoteConfigs
-import arrow.meta.ide.plugins.quotes.lifecycle.quoteLifecycleRegistrar
 import arrow.meta.ide.plugins.quotes.resolve.HighlightingCache
 import arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
