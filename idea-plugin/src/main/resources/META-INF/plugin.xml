@@ -20,16 +20,23 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
+            <implementation-class>arrow.meta.ide.plugins.quotes.lifecycle.QuoteSystemComponent</implementation-class>
         </component>
     </project-components>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>
+        <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingPassFactory"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
+        <syntheticResolveExtension
+                implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteSyntheticResolveExtension"/>
     </extensions>
 
 </idea-plugin>

@@ -1,32 +1,36 @@
 package arrow.meta.ide.phases.resolve
 
+import arrow.meta.ide.plugins.quotes.cache.QuoteCache
+import arrow.meta.ide.testing.unavailable
 import arrow.meta.quotes.ktFile
-import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
 
-class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
+class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
   /** This test updates a PsiFile in place and validated the cache afterwards. */
   @Test
   fun testIncrementalCacheUpdate() {
-    val file = myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
+    myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
+      .safeAs<KtFile>()
+      ?.let { file ->
+        // this is the initial rebuild and the initial cache population
+        project.testQuoteSystem()?.let { service: TestQuoteSystemService ->
+          service.forceRebuild(project) //no need
+          project.getService(QuoteCache::class.java)?.let { cache: QuoteCache ->
+            val code = """
+                package testArrow
+                import arrow.higherkind
+          
+                @higherkind
+                class IdOriginal<out A>(val value: A)
+              """.trimIndent()
 
-    // this is the initial rebuild and the initial cache population
-    val cache = QuoteSystemCache.getInstance(project)
-    cache.forceRebuild()
-
-    val code = """
-      package testArrow
-      import arrow.higherkind
-
-      @higherkind
-      class IdOriginal<out A>(val value: A)
-    """.trimIndent()
-
-    updateAndAssertCache(file, code, 0, 5)
+            updateAndAssertCache(cache, service, myFixture, file, code, 0, 5)
+          } ?: throw unavailable(QuoteCache::class.java)
+        } ?: throw unavailable(TestQuoteSystemService::class.java)
+      }
   }
 
   /** This test creates two PsiFiles, updates one after the other in place and validates the cache state. */
@@ -53,51 +57,36 @@ class QuoteSystemCacheTest : LightPlatformCodeInsightFixture4TestCase() {
       class IdOriginalThird<out A>(val value: A)
     """.trimIndent()
 
-    val fileFirst = myFixture.addFileToProject("testArrow/first.kt", codeFirst)
-    val fileSecond = myFixture.addFileToProject("testArrow/second.kt", codeSecond)
-    // fileThird is in a different package
-    val fileThird = myFixture.addFileToProject("testArrowOther/third.kt", codeThird)
+    myFixture.addFileToProject("testArrow/first.kt", codeFirst).safeAs<KtFile>()?.let { first ->
+      myFixture.addFileToProject("testArrow/second.kt", codeSecond).safeAs<KtFile>()?.let { second ->
+        // fileThird is in a different package
+        myFixture.addFileToProject("testArrowOther/third.kt", codeThird).safeAs<KtFile>()?.let { third ->
 
-    // this is the initial rebuild and the initial cache population
-    val cache = QuoteSystemCache.getInstance(project)
-    cache.forceRebuild()
+          // this is the initial rebuild and the initial cache population
+          project.testQuoteSystem()?.let { service: TestQuoteSystemService ->
+            project.getService(QuoteCache::class.java)?.let { cache: QuoteCache ->
+              service.forceRebuild(project)
 
-    updateAndAssertCache(fileFirst, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
-      assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
+              updateAndAssertCache(cache, service, myFixture, first, codeFirst.replace("IdOriginalFirst", "IdRenamedFirst"), 10, 10) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
+              }
+              updateAndAssertCache(cache, service, myFixture, second, codeSecond.replace("IdOriginalSecond", "IdRenamedSecond"), 10, 10) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("second") == true })
+              }
+              updateAndAssertCache(cache, service, myFixture, third, codeThird.replace("IdOriginalThird", "IdRenamedThird"), 5, 5) { retained ->
+                assertTrue("previously cached elements of the updated PsiFile must have been dropped from the cache: $retained",
+                  retained.isEmpty())
+              }
+
+              // remove all meta-related source from the first file
+              // and make sure that all the descriptors are removed from the cache
+              updateAndAssertCache(cache, service, myFixture, first, "package testArrow", 10, 5) { retained ->
+                assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
+              }
+            } ?: throw unavailable(QuoteCache::class.java)
+          } ?: throw unavailable(TestQuoteSystemService::class.java)
+        }
+      }
     }
-    updateAndAssertCache(fileSecond, codeSecond.replace("IdOriginalSecond", "IdRenamedSecond"), 10, 10) { retained ->
-      assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("second") == true })
-    }
-    updateAndAssertCache(fileThird, codeThird.replace("IdOriginalThird", "IdRenamedThird"), 5, 5) { retained ->
-      assertTrue("previously cached elements of the updated PsiFile must have been dropped from the cache: $retained",
-        retained.isEmpty())
-    }
-
-    // remove all meta-related source from the first file
-    // and make sure that all the descriptors are removed from the cache
-    updateAndAssertCache(fileFirst, "package testArrow", 10, 5) { retained ->
-      assertTrue("nothing from the original file must be retained", retained.none { it.ktFile()?.name?.contains("first") == true })
-    }
-  }
-
-  private fun updateAndAssertCache(toUpdate: PsiFile, content: String, sizeBefore: Int, sizeAfter: Int, assertRetained: (List<DeclarationDescriptor>) -> Unit = {}) {
-    val cache = QuoteSystemCache.getInstance(project)
-
-    val packageFqName = (toUpdate as KtFile).packageFqName
-    val cachedElements = cache.resolved(packageFqName).orEmpty()
-    assertEquals("Unexpected number of cached items", sizeBefore, cachedElements.size)
-
-    runWriteAction {
-      myFixture.openFileInEditor(toUpdate.virtualFile)
-      myFixture.editor.document.setText(content)
-    }
-    cache.flushForTest()
-
-    val newCachedElements = cache.resolved(packageFqName).orEmpty()
-    assertEquals("Unexpected number of cached items", sizeAfter, newCachedElements.size)
-
-    val retained = newCachedElements.filter { cachedElements.contains(it) }
-    assertRetained(retained)
   }
 }
-
