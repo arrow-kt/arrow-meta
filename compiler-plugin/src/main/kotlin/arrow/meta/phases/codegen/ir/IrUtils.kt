@@ -41,7 +41,7 @@ class IrUtils(
         }
 
     fun FunctionDescriptor.irCall(): IrCall {
-        val irFunctionSymbol = backendContext.ir.symbols.externalSymbolTable.referenceFunction(this)
+        val irFunctionSymbol = backendContext.ir.symbols.externalSymbolTable.referenceDeclaredFunction(this)
         return IrCallImpl(
             startOffset = UNDEFINED_OFFSET,
             endOffset = UNDEFINED_OFFSET,

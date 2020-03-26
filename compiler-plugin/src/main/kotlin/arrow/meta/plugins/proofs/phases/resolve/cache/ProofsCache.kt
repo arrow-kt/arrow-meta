@@ -46,7 +46,7 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
           .filterIsInstance<FunctionDescriptor>()
           .filter(FunctionDescriptor::isProof)
           .mapNotNull(FunctionDescriptor::asProof)
-      }.synthetic()
+      }
   }
 
 private fun KotlinType.show(length: Int): String {

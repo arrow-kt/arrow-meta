@@ -2,7 +2,8 @@ package arrow
 
 
 /**
- * For All A : Union<A,...>
+ * For All A : Union<A,...
+ * val x: Union2<String, Int> = "abc"
  */
 @Proof(TypeProof.Extension)
 fun <A> A.first(): First<A> =

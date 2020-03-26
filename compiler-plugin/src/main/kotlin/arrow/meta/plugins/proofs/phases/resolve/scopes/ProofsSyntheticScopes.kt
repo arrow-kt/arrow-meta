@@ -57,11 +57,6 @@ inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
     true
   ) as C
 
-fun List<Proof>.synthetic(): List<Proof> =
-  mapNotNull { proof ->
-    Proof(proof.from, proof.to, (proof.through as SimpleFunctionDescriptor).synthetic(), proof.proofType)
-  }
-
 class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
   override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
     Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($constructor), result: $this" }) {

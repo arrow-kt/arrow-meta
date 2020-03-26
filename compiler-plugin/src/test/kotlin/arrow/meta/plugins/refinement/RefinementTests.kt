@@ -159,10 +159,11 @@ class RefinementTests {
         """|$prelude
            |${twitterHandle()}
            |fun x(): TwitterHandle? = "@whatever"
+           |val result = x()?.handle
            |""".source
       },
       assert = {
-        "x()".source.evalsTo("@whatever")
+        "result".source.evalsTo("@whatever")
       }
     ))
   }
