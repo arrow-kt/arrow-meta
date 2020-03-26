@@ -55,7 +55,6 @@ private fun KotlinType.show(length: Int): String {
   else "${display.substring(0, length)}..."
 }
 
-
 private fun List<Proof>.show(): String =
   joinToString("\n") {
     "${it.from.show(20)} -> ${it.proofType.name} -> ${it.to.show(20)}"
