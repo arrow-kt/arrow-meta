@@ -5,7 +5,6 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending
 import arrow.meta.plugins.proofs.phases.resolve.ProofReceiverValue
@@ -56,11 +55,6 @@ inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     true
   ) as C
-
-fun List<Proof>.synthetic(): List<Proof> =
-  mapNotNull { proof ->
-    proof.copy(through = (proof.through as SimpleFunctionDescriptor).synthetic())
-  }
 
 class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
   override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =

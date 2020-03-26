@@ -46,7 +46,7 @@ private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
           .filterIsInstance<FunctionDescriptor>()
           .filter(FunctionDescriptor::isProof)
           .mapNotNull(FunctionDescriptor::asProof)
-      }.synthetic()
+      }
   }
 
 private fun KotlinType.show(length: Int): String {
@@ -54,7 +54,6 @@ private fun KotlinType.show(length: Int): String {
   return if (display.length <= length) display
   else "${display.substring(0, length)}..."
 }
-
 
 private fun List<Proof>.show(): String =
   joinToString("\n") {
