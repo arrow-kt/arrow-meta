@@ -59,7 +59,7 @@ inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
 
 fun List<Proof>.synthetic(): List<Proof> =
   mapNotNull { proof ->
-    Proof(proof.from, proof.to, (proof.through as SimpleFunctionDescriptor).synthetic(), proof.proofType)
+    proof.copy(through = (proof.through as SimpleFunctionDescriptor).synthetic())
   }
 
 class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {

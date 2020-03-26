@@ -41,11 +41,11 @@ private const val logTypeSize: Int = 50
 
 class ProofTypeChecker(private val compilerContext: CompilerContext) : NewKotlinTypeChecker {
 
-  override fun isSubtypeOf(p0: KotlinType, p1: KotlinType): Boolean {
-    val result = baseLineTypeChecker.isSubtypeOf(p0, p1)
-    return if (!result && !p0.isError && !p1.isError) {
-      Log.Verbose({ "ProofTypeChecker.isSubtypeOf: ${p0.toString().take(logTypeSize)} : ${p1.toString().take(logTypeSize)} -> $this" }) {
-        compilerContext.extensionProof(p0, p1) != null
+  override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean {
+    val result = baseLineTypeChecker.isSubtypeOf(subtype, supertype)
+    return if (!result && !subtype.isError && !supertype.isError) {
+      Log.Verbose({ "ProofTypeChecker.isSubtypeOf: ${subtype.toString().take(logTypeSize)} : ${supertype.toString().take(logTypeSize)} -> $this" }) {
+        compilerContext.extensionProof(subtype, supertype) != null
       }
     } else result
   }

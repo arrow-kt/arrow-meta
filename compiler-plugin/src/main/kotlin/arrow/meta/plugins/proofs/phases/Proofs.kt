@@ -29,7 +29,7 @@ data class Proof(
   val to: KotlinType,
   val through: FunctionDescriptor,
   val proofType: ProofStrategy,
-  val coerce: Boolean = true
+  val coerce: Boolean
 )
 
 fun FunctionDescriptor.isProof(): Boolean =
@@ -53,7 +53,7 @@ fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType):
     .matchingCandidates(this, subType, superType)
 
 fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): Proof? =
-  extensionProofs(subType, superType).firstOrNull()
+  coerceProofs(subType, superType).firstOrNull()
 
 fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   module.proofs.filter { it.coerce }

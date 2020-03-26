@@ -148,7 +148,9 @@ fun FunctionDescriptor.asProof(): Proof? =
   extensionReceiverParameter?.type?.let { from ->
     returnType?.let { to ->
       val annotationArgs = annotations.first().allValueArguments
-      val value: ConstantValue<*>? = annotationArgs[Name.identifier("of")]
+      val value: ConstantValue<*> = annotationArgs.getValue(Name.identifier("of"))
+      val coerce: ConstantValue<Boolean> = annotationArgs.getValue(Name.identifier("coerce")) as ConstantValue<Boolean>
+//      val inductive: ConstantValue<*> = annotationArgs[Name.identifier("inductive")]
       val proofStrategy = when (value) {
         is EnumValue -> {
           val name = value.enumEntryName.asString()
@@ -162,7 +164,13 @@ fun FunctionDescriptor.asProof(): Proof? =
         else -> null
       }
       proofStrategy?.let {
-        Proof(from, to, this, it)
+        Proof(
+          from = from,
+          to = to,
+          through = this,
+          proofType = it,
+          coerce = coerce.value
+        )
       }
     }
   }
