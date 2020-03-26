@@ -1,6 +1,8 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.resolve.baseLineTypeChecker
@@ -36,20 +38,22 @@ private fun isPropertyCoerced(ktCall: KtProperty): Boolean {
 
   if (isSubtypeOf) return false
 
-  val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
-  val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
+  return Log.Verbose({ "Found ${if (this) "" else "no"} proof for $supertype $subtype on ${ktCall.text}" }) {
+    val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
+    val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
 
-  // Currently there are no calls for a property (?)
-  val isProofSubtype = calls.filter { (call, resolvedCall) -> resolvedCall != null }
-    .any { (call, resolvedCall) ->
-      val compilerContext = CompilerContext(project = call.callElement.project, eval = {
-        KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
-      }).apply {
-        this.module = resolvedCall.resultingDescriptor.module
+    // TODO Currently there are no calls for a property (?)
+    val isProofSubtype = calls.filter { (call, resolvedCall) -> resolvedCall != null }
+      .any { (call, resolvedCall) ->
+        val compilerContext = CompilerContext(project = call.callElement.project, eval = {
+          KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
+        }).apply {
+          this.module = resolvedCall.resultingDescriptor.module
+        }
+
+        compilerContext.coerceProof(subtype, supertype) != null
       }
 
-      compilerContext.coerceProof(subtype, supertype) != null
-    }
-
-  !isSubtypeOf && isProofSubtype
+    !isSubtypeOf && isProofSubtype
+  }
 }
