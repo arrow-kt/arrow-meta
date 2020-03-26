@@ -2,7 +2,6 @@ package arrow.meta.ide.plugins.proofs
 
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.returnType
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isNegationProof
@@ -15,12 +14,13 @@ import arrow.meta.plugins.proofs.phases.coerceProofs
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
 import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -57,26 +57,45 @@ val IdeMetaPlugin.typeProofsIde: Plugin
 //          }
           }
         }),
+      addAnnotator(
+        annotator = Annotator { element: PsiElement, holder -> // in some situations there are 2 or more error annotations
+          element.safeAs<KtCallElement>()?.let { ktCall ->
+            val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
+            val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
+            calls.filter { it.value != null }
+              .all { (call, resolvedCall) ->
+                if (call.callElement != element) false
+                else {
+                  val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(resolvedCall.getReturnType(), resolvedCall.candidateDescriptor.returnType!!)
+                  val module = resolvedCall.resultingDescriptor.module
+                  val compilerContext = CompilerContext(project = call.callElement.project, eval = {
+                    KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
+                  })
+                  compilerContext.module = module
+                  // val proofs = compilerContext.coerceProofs(ktCall.returnType!!, ktCall.calleeExpression?.getType(ctx)!!)
+                  val proofs = compilerContext.coerceProofs(resolvedCall.getReturnType(), resolvedCall.candidateDescriptor.returnType!!)
+                  isSubtypeOf && proofs.isNotEmpty()
+                }
+              }
+          }
+        }),
       addIntention(
         text = "Make explicit coercion to be implicit",
         kClass = KtCallElement::class.java,
         isApplicableTo = { ktCall: KtCallElement, caretOffset: Int ->
           val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
           val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
-          calls.forEach { (call, resolvedCall) ->
-            resolvedCall?.let {
-              val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(ktCall.returnType!!, ktCall.calleeExpression?.getType(ctx)!!)
+          calls.filter { it.value != null }
+            .all { (call, resolvedCall) ->
+              val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(resolvedCall.getReturnType(), resolvedCall.candidateDescriptor.returnType!!)
               val module = resolvedCall.resultingDescriptor.module
               val compilerContext = CompilerContext(project = call.callElement.project, eval = {
                 KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
               })
               compilerContext.module = module
-              val validation = compilerContext.validateConstructorCall(it)
-              val proofs = compilerContext.coerceProofs(ktCall.returnType!!, ktCall.calleeExpression?.getType(ctx)!!)
+              val proofs = compilerContext.coerceProofs(resolvedCall.getReturnType(), resolvedCall.candidateDescriptor.returnType!!)
+              isSubtypeOf && proofs.isNotEmpty()
             }
-          }
-          // return somehow isSubtypeOf && proofs.isNotEmpty()
-          true
         },
         applyTo = { ktCall, editor ->
           // apply proof previously found
