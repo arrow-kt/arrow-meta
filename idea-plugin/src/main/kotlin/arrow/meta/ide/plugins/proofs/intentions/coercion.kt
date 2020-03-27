@@ -42,11 +42,11 @@ private fun KtDotQualifiedExpression.isDotQualifiedExpressionCoerced(): Boolean 
       selectorExpression?.let { selectorExpression ->
         val (type, superType) = receiverExpression.resolveType() to selectorExpression.resolveType()
         val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(type, superType)
-        val compilerContext = CompilerContext(project = call.callElement.project, eval = {
+        val module = resolvedCall.resultingDescriptor.module
+        val compilerContext = CompilerContext(project = this.project, eval = {
           KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
-        }).apply {
-          module = resolvedCall.resultingDescriptor.module
-        }
+        })
+        compilerContext.module = module
         val proof = compilerContext.coerceProof(type, superType)
         !isSubtypeOf && proof != null
       } ?: false
