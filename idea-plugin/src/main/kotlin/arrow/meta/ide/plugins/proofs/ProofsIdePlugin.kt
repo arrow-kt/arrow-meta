@@ -21,6 +21,6 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       refinementAnnotator(),
-      coercionIntention()
+      coercionIntention(this)
     )
   }

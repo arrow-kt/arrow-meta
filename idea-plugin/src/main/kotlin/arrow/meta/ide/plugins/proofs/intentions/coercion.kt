@@ -18,23 +18,30 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-fun IdeMetaPlugin.coercionIntention(): ExtensionPhase =
+fun IdeMetaPlugin.coercionIntention(compilerContext: CompilerContext): ExtensionPhase =
   addIntention(
     text = "Make coercion explicit",
     kClass = KtElement::class.java,
     isApplicableTo = { ktCall: KtElement, caretOffset: Int ->
       when (ktCall) {
-        is KtDotQualifiedExpression -> ktCall.isDotQualifiedExpressionCoerced()
+        is KtDotQualifiedExpression -> {
+          ktCall.isDotQualifiedExpressionCoerced(compilerContext)
+        }
         is KtProperty -> ktCall.isCoerced()
         else -> false
       }
     },
-    applyTo = { ktCall, editor ->
-      // replace with proof previously found
+    applyTo = { ktCall: KtElement, editor ->
+      when (ktCall) {
+        is KtDotQualifiedExpression -> {
+          ktCall.replace(ktCall.receiverExpression)
+        }
+        else -> false
+      }
     }
   )
 
-private fun KtDotQualifiedExpression.isDotQualifiedExpressionCoerced(): Boolean {
+private fun KtDotQualifiedExpression.isDotQualifiedExpressionCoerced(compilerContext: CompilerContext): Boolean {
   val bindingContext: BindingContext = analyze(bodyResolveMode = BodyResolveMode.FULL)
   val calls = bindingContext.getSliceContents(BindingContext.RESOLVED_CALL)
   return calls.filter { (call, resolvedCall) -> resolvedCall != null }
@@ -42,11 +49,6 @@ private fun KtDotQualifiedExpression.isDotQualifiedExpressionCoerced(): Boolean 
       selectorExpression?.let { selectorExpression ->
         val (type, superType) = receiverExpression.resolveType() to selectorExpression.resolveType()
         val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(type, superType)
-        val module = resolvedCall.resultingDescriptor.module
-        val compilerContext = CompilerContext(project = this.project, eval = {
-          KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
-        })
-        compilerContext.module = module
         val proof = compilerContext.coerceProof(type, superType)
         !isSubtypeOf && proof != null
       } ?: false
