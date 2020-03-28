@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
@@ -28,6 +29,7 @@ class CompilerContext(
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
+  var files: List<KtFile> = emptyList()
 
   var configuration: CompilerConfiguration? = null
 
