@@ -53,7 +53,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
 
   override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
     when (currentPhase) {
-      is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
+      is ExtensionPhase.Empty, is CollectAdditionalSources, is Config, is ExtraImports,
       is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
       is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
       is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
@@ -63,6 +63,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
       is ToolwindowProvider -> registerToolwindowProvider(currentPhase)
       is ApplicationProvider -> registerApplicationProvider(currentPhase)
+      is Composite -> currentPhase.phases.forEach { registerIdeExclusivePhase(it) }
       else -> LOG.error("Unsupported ide extension phase: $currentPhase")
     }
 

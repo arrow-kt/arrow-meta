@@ -3,11 +3,21 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
+import com.intellij.codeInsight.documentation.DocumentationManagerProtocol
+import com.intellij.codeInsight.documentation.DocumentationManagerUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.impl.jar.CoreJarVirtualFile
+import com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SyntaxTraverser
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
+import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
@@ -128,4 +138,25 @@ val Project.ktPsiFactory: KtPsiFactory
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 
+val <K : KtElement> arrow.meta.quotes.Scope<K>.path: CompilerMessageLocation?
+  get() = value?.run {
+    containingFile?.let {
+      psiFileToMessageLocation(it, "<no path>", DiagnosticUtils.getLineAndColumnInPsiFile(it, textRange))
+    }
+  }
+
+fun psiFileToMessageLocation(
+  file: PsiFile,
+  defaultValue: String?,
+  lineAndColumn: PsiDiagnosticUtils.LineAndColumn
+): CompilerMessageLocation? {
+  val virtualFile = file.virtualFile
+  val path = (if (virtualFile != null) virtualFileToPath(virtualFile) else defaultValue)!!
+  return CompilerMessageLocation.create(path, lineAndColumn.line, lineAndColumn.column, lineAndColumn.lineContent)
+}
+
+fun virtualFileToPath(virtualFile: VirtualFile): String =
+  if (virtualFile is CoreLocalVirtualFile || virtualFile is CoreJarVirtualFile) {
+    FileUtil.toSystemDependentName(virtualFile.path)
+  } else virtualFile.path
 

@@ -19,5 +19,5 @@ fun ObjectDeclaration.refinementExpression(): String? =
   body.properties.value.find { it.name == "validate" }?.delegateExpressionOrInitializer?.text
 
 
-internal fun KtObjectDeclaration.isRefined(): Boolean =
+fun KtObjectDeclaration.isRefined(): Boolean =
   isCompanion() && superTypeListEntries.any { it.text.matches("Refined<(.*?)>".toRegex()) }

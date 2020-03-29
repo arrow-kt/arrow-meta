@@ -348,3 +348,6 @@ interface ElementScope {
       DefaultElementScope(project)
   }
 }
+
+fun <A> PsiElement.scoped(f: ElementScope.() -> A): A =
+  f(ElementScope.default(project))
