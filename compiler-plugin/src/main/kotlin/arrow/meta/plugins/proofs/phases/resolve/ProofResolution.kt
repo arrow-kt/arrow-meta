@@ -150,7 +150,6 @@ fun FunctionDescriptor.asProof(): Proof? =
       val annotationArgs = annotations.first().allValueArguments
       val value: ConstantValue<*>? = annotationArgs[Name.identifier("of")]
       val coerce: ConstantValue<*>? = annotationArgs[Name.identifier("coerce")]
-//      val inductive: ConstantValue<*> = annotationArgs[Name.identifier("inductive")]
       val proofStrategy = when (value) {
         is EnumValue -> {
           val name = value.enumEntryName.asString()
