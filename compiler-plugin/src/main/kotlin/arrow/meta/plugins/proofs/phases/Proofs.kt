@@ -1,7 +1,7 @@
 package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.resolve.intersection
+import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeUtils
 
 val ArrowProof: FqName =
   FqName("arrow.Proof")
@@ -58,6 +57,17 @@ fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): Pro
 fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   module.proofs.filter { it.coerce }
     .matchingCandidates(this, subType, superType)
+
+fun CompilerContext.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean {
+  val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(subType, supertype)
+
+  return if (!isSubtypeOf) {
+    val isProofSubtype = ctx.coerceProof(subType, supertype) != null
+
+    !isSubtypeOf && isProofSubtype
+
+  } else false
+}
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =
