@@ -17,15 +17,17 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.KotlinType
 
-fun IdeMetaPlugin.coercionIntention(): ExtensionPhase =
+//TODO to be split into explicit -> implicit and vice-versa
+fun IdeMetaPlugin.coercionIntention(ctx: CompilerContext): ExtensionPhase =
   addIntention(
     text = "Make coercion explicit",
     kClass = KtElement::class.java,
     isApplicableTo = { ktCall: KtElement, caretOffset: Int ->
       when (ktCall) {
         is KtDotQualifiedExpression -> ktCall.isDotQualifiedExpressionCoerced()
-        is KtProperty -> ktCall.isCoerced()
+        is KtProperty -> ktCall.isCoerced(ctx)
         else -> false
       }
     },
@@ -53,28 +55,26 @@ private fun KtDotQualifiedExpression.isDotQualifiedExpressionCoerced(): Boolean 
     }
 }
 
-private fun KtProperty.isCoerced(): Boolean {
+private fun KtProperty.isCoerced(ctx: CompilerContext): Boolean {
   val (supertype, subtype) = type()!! to initializer?.resolveType()!!
   val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(subtype, supertype)
 
   if (isSubtypeOf) return false
 
   return Log.Verbose({ "Found ${if (this) "" else "no"} proof for $supertype $subtype on $text" }) {
-    val ctx = analyze(bodyResolveMode = BodyResolveMode.FULL)
-    val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
-
-    // TODO Currently there are no resolved calls for a property (?)
-    val isProofSubtype = calls.filter { (call, resolvedCall) -> resolvedCall != null }
-      .any { (call, resolvedCall) ->
-        val compilerContext = CompilerContext(project = call.callElement.project, eval = {
-          KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
-        }).apply {
-          module = resolvedCall.resultingDescriptor.module
-        }
-
-        compilerContext.coerceProof(subtype, supertype) != null
-      }
+    val isProofSubtype = ctx.coerceProof(subtype, supertype) != null
 
     !isSubtypeOf && isProofSubtype
   }
+}
+
+fun CompilerContext.areTypesCoerced(supertype: KotlinType, subtype: KotlinType): Boolean {
+  val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(subtype, supertype)
+
+  return if (!isSubtypeOf) {
+    val isProofSubtype = ctx.coerceProof(subtype, supertype) != null
+
+    !isSubtypeOf && isProofSubtype
+
+  } else false
 }

@@ -10,6 +10,7 @@ import arrow.meta.ide.plugins.proofs.psi.isNegationProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -21,6 +22,6 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       refinementAnnotator(),
-      coercionIntention()
+      coercionIntention(ctx)
     )
   }
