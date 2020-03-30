@@ -53,8 +53,8 @@ private fun KtElement.participatingTypes(): Pair<KotlinType, KotlinType>? =
       selectorExpression?.let { receiverExpression.resolveType() to it.resolveType() }
 
     is KtProperty -> {
-      val subtype = type()
-      val supertype = initializer?.resolveType()
+      val supertype = type()
+      val subtype = initializer?.resolveType()
       if (subtype != null && supertype != null) subtype to supertype
       else null
     }
