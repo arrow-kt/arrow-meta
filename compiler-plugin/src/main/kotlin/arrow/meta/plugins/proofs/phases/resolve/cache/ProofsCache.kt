@@ -28,14 +28,18 @@ fun disposeProofCache(): Unit =
 fun cachedModule(name: Name): ModuleDescriptor? =
   proofCache.keys.firstOrNull { it.name == name }
 
-internal fun ModuleDescriptor.initializeProofCache(): List<Proof> {
-  val moduleProofs: List<Proof> = computeModuleProofs()
-  if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
-    cachedModule(name)?.let { proofCache.remove(it) }
-    proofCache[this] = ProofsCache(moduleProofs)
+fun ModuleDescriptor.initializeProofCache(): List<Proof> =
+  try {
+    val moduleProofs: List<Proof> = computeModuleProofs()
+    if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
+      cachedModule(name)?.let { proofCache.remove(it) }
+      proofCache[this] = ProofsCache(moduleProofs)
+    }
+    moduleProofs
+  } catch (e: Throwable) {
+    Log.Verbose({ "initializeProofCache found error $e" }) {}
+    emptyList()
   }
-  return moduleProofs
-}
 
 private fun ModuleDescriptor.computeModuleProofs(): List<Proof> =
   Log.Verbose({ "Recomputed cache proofs: ${size}, module cache size: ${proofCache.size}, \n ${show()}" }) {

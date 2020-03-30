@@ -1,10 +1,13 @@
 package arrow.meta.ide.plugins.proofs.annotators
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
 import com.intellij.lang.annotation.Annotator
+import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
@@ -13,6 +16,14 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.util.concurrent.Callable
+import javax.script.ScriptEngine
+
+var scriptEngine: ScriptEngine? = ApplicationManager.getApplication().executeOnPooledThread(Callable {
+  val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
+  engine.eval("0") //trigger initialization
+  engine
+}).get()
 
 fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
   addAnnotator(
@@ -24,8 +35,15 @@ fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
           resolvedCall?.let {
             if (call.callElement == element) {
               val module = resolvedCall.resultingDescriptor.module
-              val compilerContext = CompilerContext(project = element.project, eval = {
-                KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine.eval(it)
+              val compilerContext = CompilerContext(project = element.project, eval = { source ->
+                emptyMap<String, Boolean>()
+                try {
+                  scriptEngine?.eval(source) ?: emptyMap<String, Boolean>()
+                } catch (t: Error) { //this happens the first time this is called
+                  Log.Verbose({ "Detected $t initializing KotlinJsr223StandardScriptEngineFactory4Idea: for `$it`" }) {
+                    emptyMap<String, Boolean>()
+                  }
+                }
               })
               compilerContext.module = module
               val validation = compilerContext.validateConstructorCall(it)

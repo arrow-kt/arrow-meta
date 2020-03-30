@@ -6,6 +6,7 @@ import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.intentions.makeExplicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.intentions.makeImplicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
+import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isNegationProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
@@ -20,6 +21,7 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
+      refinementLineMarkers(),
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       refinementAnnotator(),
       makeExplicitCoercionIntention(ctx),

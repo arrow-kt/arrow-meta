@@ -22,9 +22,9 @@
         <component>
             <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
         </component>
-<!--        <component>-->
-<!--            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsKotlinCacheService</implementation-class>-->
-<!--        </component>-->
+        <component>
+            <implementation-class>arrow.meta.ide.plugins.proofs.resolve.ProofsKotlinCacheService</implementation-class>
+        </component>
     </project-components>
 
     <extensions defaultExtensionNs="com.intellij">
