@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import javax.swing.Icon
 
 fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
   addIntention(
@@ -69,4 +71,20 @@ private fun CompilerContext.areTypesCoerced(subtype: KotlinType, supertype: Kotl
     !isSubtypeOf && isProofSubtype
 
   } else false
+}
+
+fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon, compilerContext: CompilerContext): ExtensionPhase =
+  addLineMarkerProvider(
+    icon = icon,
+    composite = KtProperty::class.java,
+    transform = { psiElement ->
+      psiElement.safeAs<KtProperty>()?.takeIf { it.isCoerced(compilerContext) }
+    },
+    message = { "Coercion happening by proof" }
+  )
+
+private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean {
+  return participatingTypes()?.let { (subtype, supertype) ->
+    compilerContext.areTypesCoerced(subtype, supertype)
+  } ?: false
 }
