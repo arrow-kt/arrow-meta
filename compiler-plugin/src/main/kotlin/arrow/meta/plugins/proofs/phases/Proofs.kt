@@ -1,5 +1,6 @@
 package arrow.meta.plugins.proofs.phases
 
+import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
@@ -53,17 +54,17 @@ fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType):
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =
-    if (this is ModuleDescriptorImpl) {
-      try {
-        val cacheValue = proofCache[this]
-        when {
-          cacheValue != null -> {
-            cacheValue.proofs
+      if (this is ModuleDescriptorImpl) {
+        try {
+          val cacheValue = proofCache[this]
+          when {
+            cacheValue != null -> {
+              cacheValue.proofs
+            }
+            else -> cli { initializeProofCache() } ?: emptyList()
           }
-          else -> initializeProofCache()
+        } catch (e: RuntimeException) {
+          println("TODO() Detected exception: ${e.printStackTrace()}")
+          emptyList<Proof>()
         }
-      } catch (e: RuntimeException) {
-        println("TODO() Detected exception: ${e.printStackTrace()}")
-        emptyList<Proof>()
-      }
-    } else emptyList()
+      } else emptyList()
