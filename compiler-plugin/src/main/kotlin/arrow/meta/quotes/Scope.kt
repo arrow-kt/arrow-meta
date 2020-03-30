@@ -1,6 +1,8 @@
 package arrow.meta.quotes
 
 import arrow.meta.phases.analysis.ElementScope
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 
