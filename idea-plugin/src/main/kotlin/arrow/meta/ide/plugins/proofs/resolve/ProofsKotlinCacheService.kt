@@ -3,22 +3,16 @@ package arrow.meta.ide.plugins.proofs.resolve
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.plugins.proofs.phases.proofs
-import arrow.meta.plugins.proofs.phases.resolve.cache.disposeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
-import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.registerServiceInstance
-import com.intellij.util.pico.DefaultPicoContainer
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
+internal class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheService) : KotlinCacheService by delegate {
   override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade =
     Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this, Proof cache initialized in ide" }) {
       val facade = delegate.getResolutionFacade(elements)
@@ -50,39 +44,5 @@ private class ProofsKotlinCacheServiceHelper(private val delegate: KotlinCacheSe
 
   override fun getSuppressionCache(): KotlinSuppressCache =
     delegate.getSuppressionCache()
-
-}
-
-class ProofsKotlinCacheService(val project: Project) : ProjectComponent {
-
-  val delegate: KotlinCacheService = KotlinCacheService.getInstance(project)
-
-  override fun initComponent() {
-    Log.Verbose({ "MetaKotlinCacheService.initComponent" }) {
-      project.replaceKotlinCacheService {
-        ProofsKotlinCacheServiceHelper(delegate)
-      }
-    }
-  }
-
-  override fun disposeComponent() {
-    Log.Verbose({ "MetaKotlinCacheService.disposeComponent" }) {
-      disposeProofCache()
-      project.replaceKotlinCacheService { delegate }
-    }
-  }
-
-  private inline fun Project.replaceKotlinCacheService(f: (KotlinCacheService) -> KotlinCacheService): Unit {
-    picoContainer.safeAs<DefaultPicoContainer>()?.apply {
-      getComponentAdapterOfType(KotlinCacheService::class.java)?.apply {
-        val instance = getComponentInstance(componentKey) as? KotlinCacheService
-        if (instance != null) {
-          val newInstance = f(instance)
-          unregisterComponent(componentKey)
-          registerServiceInstance(KotlinCacheService::class.java, newInstance)
-        }
-      }
-    }
-  }
 
 }
