@@ -16,9 +16,12 @@ fun Meta.enableProofCallResolver(): ExtensionPhase =
       container.useInstance(container)
       println("Replacing ${ctx.componentProvider} for $container if ctx.componentProvider is null: $ctx.componentProvider")
       cli {
-        println("Replacing ${ctx.componentProvider} for $container")
-        ctx.componentProvider = container
-        container.useImpl<ProofsCallResolver>()
+        // TODO: should we check for ctx.componentProvider == null ?
+        if (ctx.componentProvider == null) {
+          println("Replacing ${ctx.componentProvider} for $container")
+          ctx.componentProvider = container
+          container.useImpl<ProofsCallResolver>()
+        }
       }
       ide {
         if (ctx.componentProvider == null) {

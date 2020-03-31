@@ -5,7 +5,6 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending
 import arrow.meta.plugins.proofs.phases.resolve.ProofReceiverValue

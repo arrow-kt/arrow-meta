@@ -105,3 +105,12 @@ fun IdeMetaPlugin.proofLineMarkers(icon: Icon, filter: KtNamedFunction.() -> Boo
       it.markerMessage()
     }
   )
+
+fun Proof.coercionMessage(): String {
+  return """
+        Coercion happening by proof:
+        <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
+        Link to proof declaration:
+        <code lang="kotlin">$through</code>
+        """.trimIndent()
+}

@@ -149,6 +149,7 @@ fun FunctionDescriptor.asProof(): Proof? =
     returnType?.let { to ->
       val annotationArgs = annotations.first().allValueArguments
       val value: ConstantValue<*>? = annotationArgs[Name.identifier("of")]
+      val coerce: ConstantValue<*>? = annotationArgs[Name.identifier("coerce")]
       val proofStrategy = when (value) {
         is EnumValue -> {
           val name = value.enumEntryName.asString()
@@ -162,7 +163,13 @@ fun FunctionDescriptor.asProof(): Proof? =
         else -> null
       }
       proofStrategy?.let {
-        Proof(from, to, this, it)
+        Proof(
+          from = from,
+          to = to,
+          through = this,
+          proofType = it,
+          coerce = coerce?.value.safeAs() ?: false
+        )
       }
     }
   }

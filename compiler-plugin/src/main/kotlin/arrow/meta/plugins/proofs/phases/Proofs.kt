@@ -2,7 +2,7 @@ package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.resolve.intersection
+import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeUtils
 
 val ArrowProof: FqName =
   FqName("arrow.Proof")
@@ -29,7 +28,8 @@ data class Proof(
   val from: KotlinType,
   val to: KotlinType,
   val through: FunctionDescriptor,
-  val proofType: ProofStrategy
+  val proofType: ProofStrategy,
+  val coerce: Boolean
 )
 
 fun FunctionDescriptor.isProof(): Boolean =
@@ -51,6 +51,24 @@ fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
   module.proofs.filter { it.proofType == ProofStrategy.Extension }
     .matchingCandidates(this, subType, superType)
+
+fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): Proof? =
+  coerceProofs(subType, superType).firstOrNull()
+
+fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
+  module.proofs.filter { it.coerce }
+    .matchingCandidates(this, subType, superType)
+
+fun CompilerContext.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean {
+  val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(subType, supertype)
+
+  return if (!isSubtypeOf) {
+    val isProofSubtype = ctx.coerceProof(subType, supertype) != null
+
+    !isSubtypeOf && isProofSubtype
+
+  } else false
+}
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =
