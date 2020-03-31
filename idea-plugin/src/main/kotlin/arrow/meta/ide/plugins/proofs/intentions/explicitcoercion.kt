@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
+import arrow.meta.plugins.proofs.phases.coerceProof
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -22,7 +23,16 @@ fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext
       } ?: false
     },
     applyTo = { ktCall: KtElement, _ ->
-      TODO()
+      when (ktCall) {
+        is KtProperty -> {
+          ktCall.participatingTypes()?.let { (subtype, supertype) ->
+            ktCall.initializer?.let { initializer ->
+              initializer.replace(createExpression(
+                "${initializer.text}.${compilerContext.coerceProof(subtype, supertype)?.through?.name}()"))
+            }
+          }
+        }
+      }
     }
   )
 
