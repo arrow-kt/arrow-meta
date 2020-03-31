@@ -19,7 +19,7 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic): Boolean 
       val subType = diagnosticWithParameters.b
       val superType = diagnosticWithParameters.a
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
-        extensionProof(subType, superType) != null
+        extensionProof(subType, superType)?.coerce
       }
     } == true
 
