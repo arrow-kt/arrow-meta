@@ -1,15 +1,18 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
@@ -17,26 +20,49 @@ fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext
     text = "Make coercion explicit",
     kClass = KtElement::class.java,
     isApplicableTo = { ktCall: KtElement, _ ->
-      ktCall.explicitParticipatingTypes()?.let { (subtype, supertype) ->
+      ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
         compilerContext.areTypesCoerced(subtype, supertype)
-      } ?: false
+      }
     },
     applyTo = { ktCall: KtElement, _ ->
 //      TODO()
     }
   )
 
+
 //TODO move elsewhere
-fun KtElement.explicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
-  when (this) {
-
-    is KtDotQualifiedExpression ->
-      receiverExpression.resolveType() toOrNull selectorExpression?.resolveType()
-
-    else -> null
+data class PairTypes(val subType: KotlinType, val superType: KotlinType) {
+  companion object {
+    infix fun KotlinType?.pairOrNull(b: KotlinType?): PairTypes? =
+      if (this != null && b != null) PairTypes(this, b)
+      else null
   }
+}
 
-//TODO move elsewhere
-infix fun <A, B> A?.toOrNull(b: B?): Pair<A, B>? =
-  if (this != null && b != null) this to b
-  else null
+fun KtElement.explicitParticipatingTypes(): List<PairTypes> =
+  when (this) {
+    is KtCallElement -> {
+      // Obtain the argument types from the current call
+      val subTypes = valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression()?.resolveType() }
+        ?: emptyList()
+
+      val superTypes = analyze(bodyResolveMode = BodyResolveMode.FULL)
+        .getSliceContents(BindingContext.RESOLVED_CALL)
+        // get the calls for the current element
+        .filter { (call, _) -> call.callElement == this }
+        // then the argument types
+        .entries.first().value.valueArguments
+        .map { it.key.type }
+
+      //TODO check for named and switched arguments!
+
+      subTypes.zip(superTypes, ::PairTypes)
+    }
+
+    is KtProperty -> {
+      val superType = type()
+      val subType = initializer?.resolveType()
+      (subType pairOrNull superType)?.let(::listOf) ?: emptyList()
+    }
+    else -> emptyList()
+  }
