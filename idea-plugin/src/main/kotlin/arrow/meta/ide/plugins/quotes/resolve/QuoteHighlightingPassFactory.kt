@@ -36,6 +36,7 @@ internal data class HighlightingCache(val initialized: AtomicBoolean = AtomicBoo
  * TODO: transfer this to a lifecycle extension
  */
 internal class QuoteHighlightingCache private constructor() : IdService<HighlightingCache> {
+  @Volatile
   override var value: Id<HighlightingCache> =
     Id.just(HighlightingCache())
 

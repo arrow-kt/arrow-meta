@@ -35,10 +35,12 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class QuoteConfigs(
@@ -67,10 +69,14 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
       }
       quoteSystem.refreshCache(cache, project, files, analysisIdeExtensions, cacheStrategy())
     } finally {
-      /*try { // why
-      flushData()
-    } catch (e: Exception) {
-    }*/
+      try {
+        quoteSystem.context.run {
+          editorQueue.flush()
+          docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+          cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+        }
+      } catch (e: Exception) {
+      }
       project.getService(QuoteHighlightingCache::class.java)?.run {
         map {
           it.copy(initialized = AtomicBoolean(true))
@@ -78,8 +84,6 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
         value.extract().latch.countDown()
       } ?: unavailableServices(QuoteHighlightingCache::class.java)
     }
-    // }
-    //}
   } ?: unavailableServices(QuoteCache::class.java, QuoteSystemService::class.java)
 
 
@@ -94,9 +98,9 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
 
       val relevantFiles: List<VirtualFile> =
         events.filter { vfile: VFileEvent ->
-            vfile is VFileContentChangeEvent && vfile is VFileMoveEvent && vfile is VFileCopyEvent
-            vfile.file?.quoteRelevantFile() ?: false
-          }
+          vfile is VFileContentChangeEvent && vfile is VFileMoveEvent && vfile is VFileCopyEvent
+          vfile.file?.quoteRelevantFile() ?: false
+        }
           .mapNotNull { vFile: VFileEvent -> vFile.file }
 
       if (relevantFiles.isEmpty()) {
@@ -140,10 +144,10 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
           }
         } else {
           ReadAction.nonBlocking {
-              ProgressManager.getInstance().runProcess({
-                app.updateDoc(document, indicator, project, quoteSystem, cache)
-              }, indicator)
-            }.cancelWith(indicator)
+            ProgressManager.getInstance().runProcess({
+              app.updateDoc(document, indicator, project, quoteSystem, cache)
+            }, indicator)
+          }.cancelWith(indicator)
             .expireWhen(indicator::isCanceled)
             .expireWith(project)
             .submit(quoteSystem.context.docExec)

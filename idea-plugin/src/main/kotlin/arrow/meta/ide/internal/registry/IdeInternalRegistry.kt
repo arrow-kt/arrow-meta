@@ -4,6 +4,7 @@ import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.dsl.application.ServiceKind
 import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
+import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
@@ -196,7 +197,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
 
   fun <E> registerExtensionProvider(phase: ExtensionProvider<E>): Unit =
     when (phase) {
-      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ApplicationManager.getApplication()) }
+      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, IdeContext.dispose) } // fixme: IdeContext needs to be removed
       is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
       is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(fileType, impl) }
       is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }
