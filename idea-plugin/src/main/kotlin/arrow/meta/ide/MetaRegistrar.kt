@@ -78,9 +78,6 @@ val quoteLifecycleRegistrar: ProjectLifecycle
           LOG.warn("error shutting down pool", e)
         } finally {
           cache.clear()
-          project.getService(QuoteHighlightingCache::class.java)?.map { // resets the highlighter
-            HighlightingCache()
-          } ?: unavailableServices(QuoteHighlightingCache::class.java)
         }
       }
     }
