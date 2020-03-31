@@ -7,7 +7,6 @@ import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
@@ -29,10 +28,20 @@ fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext
 //TODO move elsewhere
 fun KtElement.explicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
   when (this) {
+    is KtCallElement -> {
+//      //TODO implement for multiple args
+//      val subType = valueArgumentList?.arguments?.get(0)?.getArgumentExpression()?.resolveType()
+//      val superType = TODO() // extract expected argument types
+//      subType toOrNull superType
+      null
+    }
 
-    is KtDotQualifiedExpression ->
-      receiverExpression.resolveType() toOrNull selectorExpression?.resolveType()
+    is KtProperty -> {
+      val superType = type()
+      val subType = initializer?.resolveType()
+      subType toOrNull superType
 
+    }
     else -> null
   }
 
