@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.quotes.resolve
 
 import arrow.meta.ide.dsl.application.cache.Id
-import arrow.meta.ide.dsl.application.cache.PersistentService
+import arrow.meta.ide.dsl.application.cache.IdService
 import arrow.meta.ide.testing.unavailableServices
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeHighlighting.TextEditorHighlightingPassFactoryRegistrar
@@ -38,8 +38,7 @@ internal data class HighlightingCache(val initialized: AtomicBoolean = AtomicBoo
 /**
  * TODO: transfer this to a lifecycle extension
  */
-@State(name = "QuoteHighlightingCache", storages = [Storage(StoragePathMacros.CACHE_FILE)])
-internal class QuoteHighlightingCache private constructor() : PersistentService<HighlightingCache> {
+internal class QuoteHighlightingCache private constructor() : IdService<HighlightingCache> {
   override var value: Id<HighlightingCache> =
     Id.just(HighlightingCache())
 
