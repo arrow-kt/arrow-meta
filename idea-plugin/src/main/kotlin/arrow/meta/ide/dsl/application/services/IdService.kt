@@ -1,4 +1,4 @@
-package arrow.meta.ide.dsl.application.cache
+package arrow.meta.ide.dsl.application.services
 
 /**
  * [IdService] is a service wrapper over A [value] and solely allows monomorphic updates.

@@ -1,14 +1,11 @@
 package arrow.meta.ide.plugins.quotes.resolve
 
-import arrow.meta.ide.dsl.application.cache.Id
-import arrow.meta.ide.dsl.application.cache.IdService
+import arrow.meta.ide.dsl.application.services.Id
+import arrow.meta.ide.dsl.application.services.IdService
 import arrow.meta.ide.testing.unavailableServices
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeHighlighting.TextEditorHighlightingPassFactoryRegistrar
 import com.intellij.codeHighlighting.TextEditorHighlightingPassRegistrar
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile

@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.quotes.cache
 
-import arrow.meta.ide.dsl.application.cache.Id
-import arrow.meta.ide.dsl.application.cache.IdService
+import arrow.meta.ide.dsl.application.services.Id
+import arrow.meta.ide.dsl.application.services.IdService
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
