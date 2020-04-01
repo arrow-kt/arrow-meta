@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -13,62 +14,66 @@ import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
 fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
-  addIntention(
-    text = "Make coercion explicit",
-    kClass = KtElement::class.java,
-    isApplicableTo = { ktCall: KtElement, _ ->
-      //TODO we should handle the caret here to not show the intention for all KtCallElement args,
-      // but only the implicit ones
-      ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
-        compilerContext.areTypesCoerced(subtype, supertype)
-      }
-    },
-    applyTo = { ktCall: KtElement, _ ->
-      when (ktCall) {
-        //TODO this should only modify one element at a time
-        is KtCallElement -> {
-          // Get the coerced types from all arguments
-          val targetingTypes: List<PairTypes> = ktCall.explicitParticipatingTypes()
-            .filter { (subtype, supertype) -> compilerContext.areTypesCoerced(subtype, supertype) }
+  compilerContext.run {
+    addIntention(
+      text = "Make coercion explicit",
+      kClass = KtElement::class.java,
+      isApplicableTo = { ktCall: KtElement, _ ->
+        //TODO we should handle the caret here to not show the intention for all KtCallElement args,
+        // but only the implicit ones
+        ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
+          compilerContext.areTypesCoerced(subtype, supertype)
+        }
+      },
+      applyTo = { ktCall: KtElement, _ ->
+        when (ktCall) {
+          //TODO this should only modify one element at a time
+          is KtCallElement -> {
+            // Get the coerced types from all arguments
+            val targetingTypes: List<PairTypes> = ktCall.explicitParticipatingTypes()
+              .filter { (subtype, supertype) -> compilerContext.areTypesCoerced(subtype, supertype) }
 
-          // get all coerced call element args
-          ktCall.valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression() }
-            ?.mapNotNull { arg ->
-              val type = arg.resolveType()
-              targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
-                targetType to arg
+            // get all coerced call element args
+            ktCall.valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression() }
+              ?.mapNotNull { arg ->
+                val type = arg.resolveType()
+                targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
+                  targetType to arg
+                }
+              }
+              // replace them with the explicit version with the proof
+              ?.forEach { (targetType, arg) ->
+                replaceWithProof(arg, compilerContext, targetType)
+              }
+          }
+
+          is KtProperty -> {
+            ktCall.explicitParticipatingTypes().first().let { pairType ->
+              ktCall.initializer?.let { initializer ->
+                replaceWithProof(initializer, compilerContext, pairType)
               }
             }
-            // replace them with the explicit version with the proof
-            ?.forEach { (targetType, arg) ->
-              replaceWithProof(arg, compilerContext, targetType)
-            }
-        }
-
-        is KtProperty -> {
-          ktCall.explicitParticipatingTypes().first().let { pairType ->
-            ktCall.initializer?.let { initializer ->
-              replaceWithProof(initializer, compilerContext, pairType)
-            }
           }
+
         }
-
       }
-    }
-  )
-
-private fun KtPsiFactory.replaceWithProof(element: KtExpression, compilerContext: CompilerContext, pairType: PairTypes) {
-  element.replace(
-    createExpression(
-      "${element.text}.${compilerContext.coerceProof(pairType.subType, pairType.superType)?.through?.name}()"
     )
-  )
+  }
+
+private fun ElementScope.replaceWithProof(element: KtExpression, compilerContext: CompilerContext, pairType: PairTypes) {
+  // TODO: add imports
+//  val ktfile = element.containingKtFile
+//  importDirective()
+  val through = compilerContext.coerceProof(pairType.subType, pairType.superType)?.through?.name
+  val ktExpression: KtExpression? = "${element.text}.$through()".expression.value
+  ktExpression?.let {
+    element.replace(it)
+  }
 }
 
 //TODO move elsewhere
