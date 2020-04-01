@@ -15,7 +15,7 @@ val IdeMetaPlugin.quotes: Plugin
     meta(
       quoteSyntheticPackageFragmentProvider,
       addPostStartupActivity(
-        StartupActivity {
+        StartupActivity.DumbAware {
           quoteProjectOpened(it)
         }
       )
