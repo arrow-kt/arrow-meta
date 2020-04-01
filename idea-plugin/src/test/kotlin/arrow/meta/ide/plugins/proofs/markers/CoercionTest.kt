@@ -16,7 +16,8 @@ class CoercionTest : IdeTestSetUp() {
         test = { code, myFixture ->
           collectLM(code, myFixture, ArrowIcons.ICON4)
         },
-        result = resolves("LineMarkerTest for 1 LM ") {
+        result =
+        resolves("LineMarkerTest for 1 LM ") {
           it.takeIf { descriptor -> descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty() }
         }
       )

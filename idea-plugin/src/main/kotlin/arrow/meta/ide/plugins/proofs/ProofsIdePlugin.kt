@@ -23,10 +23,10 @@ val IdeMetaPlugin.typeProofsIde: Plugin
 //      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
 //      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
 //      refinementLineMarkers(),
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
+//      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       // refinementAnnotator(),
-      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      makeExplicitCoercionIntention(ctx),
-      makeImplicitCoercionIntention(ctx)
+//      makeExplicitCoercionIntention(ctx),
+//      makeImplicitCoercionIntention(ctx),
+      coerceProofLineMarker(ArrowIcons.ICON4, ctx)
     )
   }
