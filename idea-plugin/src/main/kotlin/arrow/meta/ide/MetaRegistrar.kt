@@ -2,24 +2,19 @@ package arrow.meta.ide
 
 import arrow.meta.ide.dsl.application.ProjectLifecycle
 import arrow.meta.ide.dsl.application.projectLifecycleListener
-import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.lifecycle.initializeQuotes
 import arrow.meta.ide.plugins.quotes.lifecycle.quoteConfigs
-import arrow.meta.ide.plugins.quotes.resolve.HighlightingCache
 import arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
-import arrow.meta.ide.testing.unavailableServices
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
-import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class MetaRegistrar : ApplicationInitializedListener {
   val LOG = Logger.getInstance("#arrow.AppRegistrar")
@@ -69,7 +64,8 @@ val quoteLifecycleRegistrar: ProjectLifecycle
       project.quoteConfigs()?.let { (system, cache) ->
         initializeQuotes(project, system, cache)
       }
-    },
+    }
+    /* project is already disposed at this point
     afterProjectClosed = { project: Project ->
       project.quoteConfigs()?.let { (quoteSystem, cache) ->
         try {
@@ -80,5 +76,5 @@ val quoteLifecycleRegistrar: ProjectLifecycle
           cache.clear()
         }
       }
-    }
+    }*/
   )
