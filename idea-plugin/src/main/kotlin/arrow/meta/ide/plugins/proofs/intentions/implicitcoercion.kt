@@ -31,8 +31,9 @@ fun KtElement.implicitParticipatingTypes(): List<PairTypes> =
   when (this) {
 
     is KtDotQualifiedExpression ->
-      (receiverExpression.resolveType() pairOrNull selectorExpression?.resolveType())?.let(::listOf)
-        ?: emptyList()
+      listOfNotNull(
+        (receiverExpression.resolveType() pairOrNull selectorExpression?.resolveType())
+      )
 
     else -> emptyList()
   }
