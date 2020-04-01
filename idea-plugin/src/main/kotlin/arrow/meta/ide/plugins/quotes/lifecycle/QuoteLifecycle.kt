@@ -79,7 +79,7 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
       }
       project.getService(QuoteHighlightingCache::class.java)?.run {
         map {
-          it.copy(initialized = AtomicBoolean(true))
+          it.copy(initialized = true)
         }
         value.extract().latch.countDown()
       } ?: unavailableServices(QuoteHighlightingCache::class.java)

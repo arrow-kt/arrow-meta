@@ -29,8 +29,10 @@ class QuoteHighlightingPassFactory : TextEditorHighlightingPassFactoryRegistrar 
 
 /**
  * default are the initial values when project opens. They have to be reset, when it is closed.
+ * Please note, that this cache is immutable, but it has to be used in a thread-safe way to make "waitToInitialize" work.
+ * Therefore, you have to make values of type "HighlightingCache" volatile.
  */
-internal data class HighlightingCache(val initialized: AtomicBoolean = AtomicBoolean(false), val latch: CountDownLatch = CountDownLatch(1))
+internal data class HighlightingCache(val initialized: Boolean = false, val latch: CountDownLatch = CountDownLatch(1))
 
 /**
  * TODO: transfer this to a lifecycle extension
@@ -47,7 +49,7 @@ internal class QuoteHighlightingCache private constructor() : IdService<Highligh
    */
   fun waitToInitialize(): Unit =
     value.extract().let { cache ->
-      if (!cache.initialized.get()) { // this is not executed anymore
+      if (!cache.initialized) { // this is not executed anymore
         cache.latch.await(5, TimeUnit.SECONDS)
         println("BOOOOOOMMMMMMM")
       }
