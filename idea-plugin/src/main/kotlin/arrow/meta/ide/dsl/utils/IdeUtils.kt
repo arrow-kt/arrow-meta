@@ -3,8 +3,6 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
-import com.intellij.codeInsight.documentation.DocumentationManagerProtocol
-import com.intellij.codeInsight.documentation.DocumentationManagerUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,8 +42,8 @@ object IdeUtils {
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
  */
-fun <A : PsiElement, B> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B): List<B> =
-  SyntaxTraverser.psiTraverser(this).filter(on).map(f).toList()
+fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B?): List<B> =
+  SyntaxTraverser.psiTraverser(this).filter(on).mapNotNull(f).toList()
 
 /**
  * collects all Calls
