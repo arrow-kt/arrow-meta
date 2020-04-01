@@ -65,7 +65,7 @@ val quoteLifecycleRegistrar: ProjectLifecycle
         initializeQuotes(project, system, cache)
       }
     }
-    /* project is already disposed at this point
+    /* TODO: project is already disposed at this point are the following functions needed to preserve the lifecycle
     afterProjectClosed = { project: Project ->
       project.quoteConfigs()?.let { (quoteSystem, cache) ->
         try {
