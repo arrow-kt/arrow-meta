@@ -12,7 +12,6 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 class QuoteHighlightingPassFactory : TextEditorHighlightingPassFactoryRegistrar {
   // TODO: register this via Meta
@@ -52,7 +51,8 @@ internal class QuoteHighlightingCache private constructor() : IdService<Highligh
       if (!cache.initialized) { // this is not executed anymore
         cache.latch.await(5, TimeUnit.SECONDS)
         println("BOOOOOOMMMMMMM")
+      } else {
+        println("NOOO BOOOOM")
       }
-      println("NOOO BOOOOM")
     }
 }
