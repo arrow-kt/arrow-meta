@@ -1,16 +1,16 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.resolve.isMetaSynthetic
+import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.unavailable
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Ignore
 import org.junit.Test
 
-class QuoteTransformationTest : LightPlatformCodeInsightFixture4TestCase() {
+class QuoteSystemTest : IdeTestSetUp() {
 
   @Test
   fun higherKindTransformation() {

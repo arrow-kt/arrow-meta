@@ -1,14 +1,14 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
+import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.unavailable
 import arrow.meta.quotes.ktFile
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
 
-class QuoteSystemComponentTest : LightPlatformCodeInsightFixture4TestCase() {
+class QuoteCacheTest : IdeTestSetUp() {
   /** This test updates a PsiFile in place and validated the cache afterwards. */
   @Test
   fun testIncrementalCacheUpdate() {

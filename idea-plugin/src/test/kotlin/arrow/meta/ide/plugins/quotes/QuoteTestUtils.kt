@@ -1,6 +1,7 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes
 
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
+import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy

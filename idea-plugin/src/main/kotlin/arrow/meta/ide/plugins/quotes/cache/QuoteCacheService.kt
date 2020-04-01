@@ -8,9 +8,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * a QuoteCache implementation as a IdService, which stores Quote transformations on disk.
- * This is an initial implementation, as it does not populate the index of other connected projects,
- * and the cache stored on disk get out of sync with external changes to the disk, projects sharing source files or other situations.
+ * a QuoteCache implementation as a IdService it is a shared container for Quote transformations and distributed per project.
+ * This is an initial implementation, as it does not populate the index of other connected projects.
  * fixme cache both per module? modules may define different ktFiles for the same package fqName
  * TODO: register this via Meta.
  */

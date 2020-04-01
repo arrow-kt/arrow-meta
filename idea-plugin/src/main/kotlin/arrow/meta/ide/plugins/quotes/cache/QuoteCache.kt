@@ -10,10 +10,8 @@ import org.jetbrains.kotlin.psi.KtFile
 typealias QuoteInfo = Pair<FqName, List<DeclarationDescriptor>>
 
 /**
- * Cache interface.
- * This simplifies testing and simplifies the implementation of QuoteSystemComponent, which was doing
- * too many things at once.
- * This also simplifies thread-safe cache updates, when it's turns out that we need this.
+ * The QuoteCache provides the following functions to manipulate its underlying data structure,
+ * that stores and updates quote transformations.
  */
 interface QuoteCache {
   /**
