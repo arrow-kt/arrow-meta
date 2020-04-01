@@ -11,7 +11,7 @@ class CoercionTest : IdeTestSetUp() {
   fun `test coercion line marker`() =
     ideTest(
       IdeTest(
-        code = CoercionTestCode.code2,
+        code = CoercionTestCode.code1,
         myFixture = myFixture,
         test = { code, myFixture ->
           collectLM(code, myFixture, ArrowIcons.ICON4)
