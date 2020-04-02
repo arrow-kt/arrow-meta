@@ -12,19 +12,6 @@ import com.intellij.util.KeyedLazyInstance
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 interface FoldingSyntax {
-  fun IdeMetaPlugin.languageFolding(
-    builder: FoldingBuilder,
-    lang: Language = KotlinLanguage.INSTANCE
-  ): ExtensionPhase =
-    extensionProvider(
-      LanguageFolding.EP_NAME,
-      object : KeyedLazyInstance<FoldingBuilder> {
-        override fun getKey(): String = lang.displayName
-
-        override fun getInstance(): FoldingBuilder = builder
-      }
-    )
-
   fun IdeMetaPlugin.addFoldingBuilder(
     placeHolderText: (node: ASTNode) -> String?,
     foldRegions: (node: ASTNode, document: Document) -> Array<FoldingDescriptor>,
@@ -42,5 +29,18 @@ interface FoldingSyntax {
         isCollapsedByDefault(node)
     },
       lang
+    )
+
+  fun IdeMetaPlugin.languageFolding(
+    builder: FoldingBuilder,
+    lang: Language = KotlinLanguage.INSTANCE
+  ): ExtensionPhase =
+    extensionProvider(
+      LanguageFolding.EP_NAME,
+      object : KeyedLazyInstance<FoldingBuilder> {
+        override fun getKey(): String = lang.displayName
+
+        override fun getInstance(): FoldingBuilder = builder
+      }
     )
 }
