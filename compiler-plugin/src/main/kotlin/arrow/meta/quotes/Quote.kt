@@ -160,7 +160,7 @@ data class AnalysisDefinition(val type: KClass<KtElement>,
                               val match: KtElement.() -> Boolean,
                               val map: Scope<KtElement>.(KtElement) -> Transform<KtElement>)
 
-// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemCache)
+// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemComponent)
 val analysisIdeExtensions: MutableList<AnalysisDefinition> = ArrayList()
 
 @Suppress("UNCHECKED_CAST")
