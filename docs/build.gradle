@@ -1,6 +1,5 @@
 apply plugin: 'ank-gradle-plugin'
 apply plugin: 'kotlin-kapt'
-//apply plugin: 'org.ajoberstar.git-publish'
 
 dependencies {
     compile project(':idea-plugin')
@@ -23,16 +22,5 @@ ank {
     target = file("${projectDir}/build/site")
     classpath = sourceSets.main.runtimeClasspath
 }
-
-//gitPublish {
-//    repoUri = 'git@github.com:arrow-kt/arrow.git'
-//    branch = 'gh-pages'
-//
-//    contents {
-//        from 'build/site'
-//    }
-//
-//    commitMessage = 'update site'
-//}
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]

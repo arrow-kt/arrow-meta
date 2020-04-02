@@ -3,7 +3,6 @@ package arrow.meta.ide.plugins.initial
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.resolve.LOG
-import arrow.meta.ide.phases.resolve.metaSyntheticPackageFragmentProvider
 import arrow.meta.invoke
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.openapi.extensions.ExtensionPoint
@@ -25,7 +24,6 @@ val IdeMetaPlugin.initialIdeSetUp: Plugin
         diagnostic.logSuppression(result)
         result
       },
-      metaSyntheticPackageFragmentProvider,
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
     )
