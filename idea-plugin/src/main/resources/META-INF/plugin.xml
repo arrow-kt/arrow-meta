@@ -26,10 +26,12 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+        <lang.foldingBuilder language="kotlin"
+                             implementationClass="arrow.meta.ide.dsl.editor.foldingbuilder.UnionFoldingBuilder"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
+        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension"/>
     </extensions>
 
 </idea-plugin>
