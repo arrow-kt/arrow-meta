@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.resolve
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.resolve.ResolveScopeProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -9,7 +8,7 @@ import com.intellij.psi.ResolveScopeEnlarger
 import com.intellij.psi.search.SearchScope
 
 interface ResolveScopeSyntax {
-    fun IdeMetaPlugin.resolveScope(
+    fun IdeMetaPlugin.addResolveScopeEnlarger(
       additionalResolveScope: (file: VirtualFile, project: Project) -> SearchScope
     ): ExtensionPhase =
       extensionProvider(
@@ -19,11 +18,6 @@ interface ResolveScopeSyntax {
               additionalResolveScope(file, project)
         }
       )
-
-    fun IdeMetaPlugin.addResolveScopeEnlarger(
-      searchScope: SearchScope
-    ): ExtensionPhase =
-      ResolveScopeProvider.RegisterSearchScope(searchScope)
 
     fun ResolveScopeSyntax.searchScope(
       containsFile: (file: VirtualFile) -> Boolean,
