@@ -7,6 +7,7 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
@@ -23,17 +24,18 @@ import org.jetbrains.kotlin.types.KotlinType
 
 fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
   compilerContext.run {
-    addIntention(
-      text = "Make coercion explicit",
+    addApplicableInspection(
+      defaultFixText = "Make_coercion_explicit",
+      enabledByDefault = true,
       kClass = KtElement::class.java,
-      isApplicableTo = { ktCall: KtElement, _ ->
+      isApplicable = { ktCall: KtElement ->
         //TODO we should handle the caret here to not show the intention for all KtCallElement args,
         // but only the implicit ones
         ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       },
-      applyTo = { ktCall: KtElement, _ ->
+      applyTo = { ktCall: KtElement, _, _ ->
         when (ktCall) {
           //TODO this should only modify one element at a time
           is KtCallElement -> {
@@ -64,7 +66,10 @@ fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext
           }
 
         }
-      }
+      },
+      inspectionText = { "TODO explicit " },
+      inspectionHighlightType = { ProblemHighlightType.INFORMATION },
+      groupPath = ArrowPath + arrayOf("Coercion ex")
     )
   }
 
