@@ -1,12 +1,12 @@
 package arrow.meta.ide.phases.editor.extension
 
+import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.core.JavaCoreApplicationEnvironment
 import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
 import com.intellij.lang.annotation.Annotator
-import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName

@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.navigation
 
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.phases.ExtensionPhase
 import com.intellij.navigation.ChooseByNameContributor
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.project.Project

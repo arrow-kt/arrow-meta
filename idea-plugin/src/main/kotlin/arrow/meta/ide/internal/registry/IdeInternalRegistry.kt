@@ -43,10 +43,6 @@ import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
-import org.jetbrains.kotlin.container.useImpl
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal interface IdeInternalRegistry : InternalRegistry {

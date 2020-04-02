@@ -9,7 +9,6 @@ import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
 import com.intellij.lang.annotation.Annotator
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.resolve.BindingContext
