@@ -3,8 +3,6 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.resolveFunctionType
 import arrow.meta.phases.analysis.returns
-import com.intellij.codeInsight.documentation.DocumentationManagerProtocol
-import com.intellij.codeInsight.documentation.DocumentationManagerUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,23 +42,30 @@ object IdeUtils {
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
  */
-fun <A : PsiElement, B> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B): List<B> =
-  SyntaxTraverser.psiTraverser(this).filter(on).map(f).toList()
+fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B?): List<B> =
+  SyntaxTraverser.psiTraverser(this).filter(on).mapNotNull(f).toList()
 
 /**
- * collects all Calls
+ * a convenient function that collects all child nodes [A] starting from [receiver]
+ * it applies [traverseFilter] with the identity function
+ */
+fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
+  traverseFilter(on) { it }
+
+/**
+ * collects all call-sites
  */
 val KtElement.callElements: List<KtCallElement>
-  get() = traverseFilter(KtCallElement::class.java) { it }
+  get() = sequence(KtCallElement::class.java)
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
 
 /**
- * returns all ReturnTypes of each call starting from the receiver
+ * returns all return types of each call-site starting from the receiver
  */
 val KtElement.callReturnTypes: List<KotlinType>
-  get() = callElements.mapNotNull { it.returnType }
+  get() = traverseFilter(KtCallElement::class.java) { it.returnType }
 
 /**
  * traversal of depth 1 on returnTypes in Function [ktFunction] and all it's calls in the body

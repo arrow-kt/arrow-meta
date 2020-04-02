@@ -1,10 +1,10 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.analysis.dfs
 import arrow.meta.plugins.proofs.phases.quotes.isRefined
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
@@ -157,7 +157,6 @@ fun KtClass.markerMessage(): String =
 
 private fun KtClass.predicatesFromPsi(): List<KtBinaryExpression> =
   companionObjects.firstOrNull()?.findPropertyByName("validate")
-    ?.dfs { it is KtBinaryExpression }
-    ?.filterIsInstance<KtBinaryExpression>()
-    ?.filter { it.operationReference.text == "to" }
-    .orEmpty()
+    ?.traverseFilter(KtBinaryExpression::class.java) {
+      it.takeIf { expr -> expr.operationReference.text == "to" }
+    }.orEmpty()
