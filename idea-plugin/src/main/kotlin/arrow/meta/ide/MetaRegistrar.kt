@@ -2,16 +2,13 @@ package arrow.meta.ide
 
 import arrow.meta.ide.dsl.application.ProjectLifecycle
 import arrow.meta.ide.dsl.application.projectLifecycleListener
+import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.lifecycle.initializeQuotes
 import arrow.meta.ide.plugins.quotes.lifecycle.quoteConfigs
 import arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
-import arrow.meta.ide.dsl.application.ProjectLifecycle
-import arrow.meta.ide.dsl.application.projectLifecycleListener
-import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import com.intellij.ide.ApplicationInitializedListener
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
