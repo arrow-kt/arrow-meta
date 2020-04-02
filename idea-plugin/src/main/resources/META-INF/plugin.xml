@@ -20,15 +20,15 @@
 
     <project-components>
         <component>
-            <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
-        </component>
-        <component>
             <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
         </component>
     </project-components>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+    </extensions>
+
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
         <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
     </extensions>
 

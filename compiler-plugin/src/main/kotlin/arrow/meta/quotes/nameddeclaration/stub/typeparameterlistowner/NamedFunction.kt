@@ -1,5 +1,6 @@
 package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 
+import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.body
 import arrow.meta.phases.analysis.bodySourceAsExpression
 import arrow.meta.quotes.Scope
@@ -7,6 +8,7 @@ import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.SyntheticElement
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
@@ -33,7 +35,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *          namedFunction({ true }) { typeParameterListOwner ->
  *            Transform.replace(
  *              replacing = typeParameterListOwner,
- *              newDeclaration = """ $modality $visibility fun $`(typeParameters)` $receiver.$name $`(params)` : $returnType = { $body } """.function
+ *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
  *            )
  *          }
  *        )
@@ -44,6 +46,7 @@ class NamedFunction(
   override val value: KtNamedFunction,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
+  val modifiers: Scope<KtModifierList> = Scope(value.modifierList),
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,
@@ -55,7 +58,11 @@ class NamedFunction(
   ),
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
-) : TypeParameterListOwner<KtNamedFunction>(value), SyntheticElement
+) : TypeParameterListOwner<KtNamedFunction>(value), SyntheticElement {
+    override fun ElementScope.identity(): Scope<KtNamedFunction> {
+        return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
+    }
+}
 
 class FunctionBody(override val value: KtExpression) : Scope<KtExpression>(value) {
   override fun toString(): String =

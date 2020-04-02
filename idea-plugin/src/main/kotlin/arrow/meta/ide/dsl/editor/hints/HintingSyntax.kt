@@ -405,7 +405,7 @@ interface HintingSyntax {
     )
 
   /**
-   * Used to modify a [DescriptorRenderer] for `TypeHinting`
+   * Used to modify a [DescriptorRenderer] for type Hinting
    */
   fun HintingSyntax.classifierNamePolicy(
     render: (classifier: ClassifierDescriptor, renderer: DescriptorRenderer) -> String =

@@ -8,16 +8,17 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
+import com.intellij.lang.annotation.Annotator
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiElementFactory
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.quickfix.KotlinIntentionActionsFactory
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
+import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import com.intellij.psi.PsiElementFactory
 
 /**
  * The IDE analysis user code and provides [IntentionAction]'s to either signal error's to user's or resolve them if triggered.
@@ -95,13 +96,13 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
 
   /**
-   * [ktIntention] constructs [SelfTargetingIntention].
+   * [ktIntention] constructs [SelfTargetingIntention]. SelfTargetingIntentions can be used with [Annotator].
    * @param applyTo allows to resolve the errors on this `element` with [KtPsiFactory], display refined errors through the `editor` and has many other use-cases. For instance Java utilizes [PsiElementFactory]
    * @param text is the displayed text in the ide. In addition, [text] needs to be the same as `familyName` in order to create MetaData for an Intention.
    * @param isApplicableTo defines when this intention is available.
    * @param priority defines the position of this Intention - [PriorityAction.Priority.TOP] being the highest.
    */
-  @Suppress("UNCHECKED_CAST") // TODO: This extension can be composed with [addQuickFixContributor]
+  @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IntentionSyntax.ktIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
@@ -121,20 +122,22 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     }
 
   /**
-   * The function [kotlinIntention] is mainly used for [QuickFixContributor].
    * The default values are derived from [KotlinIntentionActionsFactory].
+   * @see KotlinSingleIntentionActionFactory and all its Subtypes for examples
+   * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
+   * @param actionsForAll provide for all errors a list of generalized Fixes
    */
-  fun IntentionSyntax.kotlinIntention(
-    createAction: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
+  fun IntentionSyntax.ktIntention(
+    action: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
     isApplicableForCodeFragment: Boolean = false,
-    doCreateActionsForAllProblems: (sameTypeDiagnostics: Collection<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
+    actionsForAll: (diagnostics: List<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
   ): KotlinSingleIntentionActionFactory =
     object : KotlinSingleIntentionActionFactory() {
       override fun createAction(diagnostic: Diagnostic): IntentionAction? =
-        createAction(diagnostic)
+        action(diagnostic)
 
       override fun doCreateActionsForAllProblems(sameTypeDiagnostics: Collection<Diagnostic>): List<IntentionAction> =
-        doCreateActionsForAllProblems(sameTypeDiagnostics)
+        actionsForAll(sameTypeDiagnostics.toList())
 
       override fun isApplicableForCodeFragment(): Boolean =
         isApplicableForCodeFragment
