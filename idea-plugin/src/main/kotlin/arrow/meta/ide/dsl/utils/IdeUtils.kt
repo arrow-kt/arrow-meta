@@ -53,7 +53,7 @@ fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
   traverseFilter(on) { it }
 
 /**
- * collects all Calls
+ * collects all call-sites
  */
 val KtElement.callElements: List<KtCallElement>
   get() = sequence(KtCallElement::class.java)
@@ -62,10 +62,10 @@ val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
 
 /**
- * returns all ReturnTypes of each call starting from the receiver
+ * returns all return types of each call-site starting from the receiver
  */
 val KtElement.callReturnTypes: List<KotlinType>
-  get() = callElements.mapNotNull { it.returnType }
+  get() = traverseFilter(KtCallElement::class.java) { it.returnType }
 
 /**
  * traversal of depth 1 on returnTypes in Function [ktFunction] and all it's calls in the body
