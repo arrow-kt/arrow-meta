@@ -46,10 +46,17 @@ fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> 
   SyntaxTraverser.psiTraverser(this).filter(on).mapNotNull(f).toList()
 
 /**
+ * a convenient function that collects all child nodes [A] starting from [receiver]
+ * it applies [traverseFilter] with the identity function
+ */
+fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
+  traverseFilter(on) { it }
+
+/**
  * collects all Calls
  */
 val KtElement.callElements: List<KtCallElement>
-  get() = traverseFilter(KtCallElement::class.java) { it }
+  get() = sequence(KtCallElement::class.java)
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
