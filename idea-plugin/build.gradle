@@ -24,6 +24,7 @@ dependencies {
 //  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:$KOTLIN_VERSION"
 //  compile "org.jetbrains.kotlin:kotlin-script-runtime:$KOTLIN_VERSION"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
+  compile project(":prelude")
 }
 
 compileKotlin {

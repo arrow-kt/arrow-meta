@@ -1,40 +1,14 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 object CoercionTestCode {
-  val code1 =
-    """
-      interface Refined<A, B> {
-        val constructor: (A) -> B
-        val validate: A.() -> Map<String, Boolean>
-        fun validate(a: A): Map<String, Boolean> = validate.invoke(a)
-        fun isValid(a: A): Boolean = validate(a).all { it.value }
-        fun from(a: A) : B? =
-          if (isValid(a)) constructor(a)
-          else null
-      }
 
-      @Retention(AnnotationRetention.RUNTIME)
-      @Target(AnnotationTarget.CLASS)
-      @MustBeDocumented
-      annotation class Refinement(
-        val predicate: String
-      )
+  val twitterHandleDeclaration =
+    """
+      package consumer
       
-      enum class TypeProof {
-        Extension,
-        Refinement,
-        Negation
-      }
-      
-      @Retention(AnnotationRetention.RUNTIME)
-      @Target(AnnotationTarget.FUNCTION)
-      @MustBeDocumented
-      annotation class Proof(
-        val of: TypeProof,
-        val refined: Array<String> = [],
-        val coerce: Boolean = true,
-        val inductive: Boolean = false
-      )
+      import arrow.Proof
+      import arrow.Refined
+      import arrow.TypeProof
       
       inline class TwitterHandle(val handle: String) {
           companion object : Refined<String, TwitterHandle> {
@@ -58,7 +32,14 @@ object CoercionTestCode {
       @Proof(TypeProof.Extension, coerce = true)
       fun TwitterHandle.handle(): String =
           handle
-      
+          
       val implicit: TwitterHandle? = "@eeeeeee"
+    """.trimIndent()
+
+  val code1 =
+    """
+      package consumer
+      
+      val implicit2: TwitterHandle? = "@eeeeeee"
     """.trimIndent()
 }

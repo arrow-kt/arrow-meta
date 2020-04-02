@@ -7,6 +7,12 @@ import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.resolves
 
 class CoercionTest : IdeTestSetUp() {
+
+  override fun setUp() {
+    super.setUp()
+    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
+  }
+
   @org.junit.Test
   fun `test coercion line marker`() =
     ideTest(
