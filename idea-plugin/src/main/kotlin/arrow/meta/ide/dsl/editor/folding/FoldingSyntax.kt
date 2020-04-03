@@ -1,29 +1,31 @@
-package arrow.meta.ide.dsl.editor.foldingbuilder
+package arrow.meta.ide.dsl.editor.folding
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.lang.folding.FoldingBuilder
+import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.lang.folding.LanguageFolding
 import com.intellij.openapi.editor.Document
+import com.intellij.psi.PsiElement
 import com.intellij.util.KeyedLazyInstance
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 interface FoldingSyntax {
   fun IdeMetaPlugin.addFoldingBuilder(
     placeHolderText: (node: ASTNode) -> String?,
-    foldRegions: (node: ASTNode, document: Document) -> Array<FoldingDescriptor>,
+    foldRegions: (root: PsiElement, document: Document, quick: Boolean) -> List<FoldingDescriptor>,
     isCollapsedByDefault: (node: ASTNode) -> Boolean,
     lang: Language = KotlinLanguage.INSTANCE
   ): ExtensionPhase =
-    languageFolding(object : FoldingBuilder {
+    languageFolding(object : FoldingBuilderEx() {
       override fun getPlaceholderText(node: ASTNode): String? =
         placeHolderText(node)
 
-      override fun buildFoldRegions(node: ASTNode, document: Document): Array<FoldingDescriptor> =
-        foldRegions(node, document)
+      override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> =
+        foldRegions(root, document, quick).toTypedArray()
 
       override fun isCollapsedByDefault(node: ASTNode): Boolean =
         isCollapsedByDefault(node)

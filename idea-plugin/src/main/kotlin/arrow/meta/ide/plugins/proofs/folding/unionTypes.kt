@@ -1,9 +1,7 @@
 package arrow.meta.ide.plugins.proofs.folding
 
-import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.typeProjections
 import arrow.meta.ide.dsl.utils.typeReferences
-import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
@@ -13,7 +11,7 @@ import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.kotlin.psi.KtElement
 
 
-fun IdeMetaPlugin.addUnionFoldingBuilder(): ExtensionPhase =
+/*fun IdeMetaPlugin.addUnionFoldingBuilder(): ExtensionPhase =
   addFoldingBuilder(
     placeHolderText = { node: ASTNode ->
       "String | Int"
@@ -27,7 +25,7 @@ fun IdeMetaPlugin.addUnionFoldingBuilder(): ExtensionPhase =
     isCollapsedByDefault = { node: ASTNode ->
       true
     }
-  )
+  )*/
 
 class UnionFoldingBuilder : FoldingBuilderEx() {
   override fun getPlaceholderText(node: ASTNode): String? =
