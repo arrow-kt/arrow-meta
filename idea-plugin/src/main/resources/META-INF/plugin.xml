@@ -27,7 +27,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
         <lang.foldingBuilder language="kotlin"
-                             implementationClass="arrow.meta.ide.plugins.proofs.foldingbuilder.UnionFoldingBuilder"/>
+                             implementationClass="arrow.meta.ide.plugins.proofs.folding.UnionFoldingBuilder"/>
+        <lang.foldingBuilder language="kotlin"
+                             implementationClass="arrow.meta.ide.plugins.proofs.folding.TupleFoldingBuilder"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

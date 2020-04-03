@@ -1,4 +1,4 @@
-package arrow.meta.ide.plugins.proofs.foldingbuilder
+package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.typeProjections
@@ -49,7 +49,4 @@ class UnionFoldingBuilder : FoldingBuilderEx() {
 
   override fun isCollapsedByDefault(node: ASTNode): Boolean =
     true
-
-  private fun PsiElement.getFoldingDescriptor(): FoldingDescriptor? =
-    FoldingDescriptor(this, textRange)
 }
