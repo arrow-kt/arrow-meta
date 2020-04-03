@@ -24,7 +24,7 @@ val proofsLifecycle: ProjectLifecycleListener
     afterProjectClosed = { project ->
       Log.Verbose({ "MetaKotlinCacheService.disposeComponent" }) {
         disposeProofCache()
-        project.replaceKotlinCacheService { KotlinCacheService.getInstance(project) }
+        //project.replaceKotlinCacheService { KotlinCacheService.getInstance(project) } no need to replace the cache as this Listener will be disposed automatically
       }
     }
   )
