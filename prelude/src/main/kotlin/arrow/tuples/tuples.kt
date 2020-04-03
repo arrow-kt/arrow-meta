@@ -71,23 +71,3 @@ inline class tupleOf private constructor(override val value: Array<Any?>) : Tupl
       tupleOf(arrayOf(a, b, c, d))
   }
 }
-
-data class Account(val a: Int, val b: Int)
-
-interface Empty<out A> {
-  val id: A
-}
-
-object IntEmpty : Empty<Int> {
-  override val id: Int = 0
-}
-
-@Proof(TypeProof.Extension)
-fun Int.Companion.empty(): Empty<Int> =
-  IntEmpty
-
-data class Person(val name: String)
-
-fun main() {
-  val (a, b, c, d) = tupleOf(1, "2", 3, 4)
-}

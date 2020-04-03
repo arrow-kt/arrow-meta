@@ -3,7 +3,7 @@ package arrow
 /**
  * If A : C and B : C then Union2<A, B> : C
  */
-@Proof(TypeProof.Extension)
+@Proof(TypeProof.Extension, coerce = true)
 inline fun <A : C, B : C, reified C> Union2<A, B>.widden(): C =
   value as C
 

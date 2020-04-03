@@ -43,10 +43,6 @@ import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
-import org.jetbrains.kotlin.container.useImpl
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal interface IdeInternalRegistry : InternalRegistry {
@@ -184,9 +180,9 @@ internal interface IdeInternalRegistry : InternalRegistry {
       }
     }
 
-  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, ideCtx: IdeContext = IdeContext): Unit =
+  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>): Unit =
     when (phase) {
-      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, ideCtx.dispose) }
+      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, IdeContext.dispose) } // fixme: IdeContext needs to be removed
       is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
       is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(fileType, impl) }
       is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }

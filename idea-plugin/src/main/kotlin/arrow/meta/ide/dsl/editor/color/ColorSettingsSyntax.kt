@@ -7,6 +7,8 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.application.options.colors.FontEditorPreview
 import com.intellij.application.options.colors.InspectionColorSettingsPage
 import com.intellij.lang.Language
+import com.intellij.lang.annotation.Annotator
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileTypes.PlainSyntaxHighlighter
@@ -21,9 +23,7 @@ import com.intellij.ui.EditorCustomization
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.highlighter.KotlinColorSettingsPage
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import javax.swing.Icon
-import com.intellij.lang.annotation.Annotator
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
