@@ -30,6 +30,8 @@
                              implementationClass="arrow.meta.ide.plugins.proofs.folding.UnionFoldingBuilder"/>
         <lang.foldingBuilder language="kotlin"
                              implementationClass="arrow.meta.ide.plugins.proofs.folding.TupleFoldingBuilder"/>
+        <lang.foldingBuilder language="kotlin"
+                             implementationClass="arrow.meta.ide.plugins.proofs.folding.KindFoldingBuilder"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
