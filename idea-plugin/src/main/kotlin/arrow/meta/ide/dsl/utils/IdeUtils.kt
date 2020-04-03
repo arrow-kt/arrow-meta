@@ -40,6 +40,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtTypeProjection
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -68,6 +70,12 @@ fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
  */
 val KtElement.callElements: List<KtCallElement>
   get() = sequence(KtCallElement::class.java)
+
+val KtElement.typeReferences: List<KtTypeReference>
+  get() = sequence(KtTypeReference::class.java)
+
+val KtElement.typeProjections: List<KtTypeProjection>
+  get() = sequence(KtTypeProjection::class.java)
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
