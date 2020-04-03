@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.foldingbuilder
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.typeProjections
 import arrow.meta.ide.dsl.utils.typeReferences
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ASTNode
@@ -8,9 +9,8 @@ import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtVisitor
 
 
 fun IdeMetaPlugin.addUnionFoldingBuilder(): ExtensionPhase =
@@ -31,7 +31,15 @@ fun IdeMetaPlugin.addUnionFoldingBuilder(): ExtensionPhase =
 
 class UnionFoldingBuilder : FoldingBuilderEx() {
   override fun getPlaceholderText(node: ASTNode): String? =
-    "String | Int"
+    SourceTreeToPsiMap.treeElementToPsi(node)?.let { psiElement ->
+      (psiElement as KtElement).typeProjections
+        .filter { !it.text.startsWith("Union") }
+        .map { it.text }
+        .toString()
+        .replace("[", "")
+        .replace("]", "")
+        .replace(", ", " | ")
+    }
 
   override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> =
     (root as KtElement).typeReferences

@@ -50,6 +50,9 @@ val KtElement.callElements: List<KtCallElement>
 val KtElement.typeReferences: List<KtTypeReference>
   get() = traverseFilter(KtTypeReference::class.java) { it }
 
+val KtElement.typeProjections: List<KtTypeProjection>
+  get() = traverseFilter(KtTypeProjection::class.java) { it }
+
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
 

@@ -3,7 +3,6 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.foldingbuilder.addUnionFoldingBuilder
 import arrow.meta.ide.plugins.proofs.intentions.makeExplicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.intentions.makeImplicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
@@ -15,8 +14,6 @@ import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.invoke
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
-import com.intellij.lang.ASTNode
-import com.intellij.openapi.editor.Document
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 val IdeMetaPlugin.typeProofsIde: Plugin
@@ -30,7 +27,6 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       refinementAnnotator(),
       coerceProofLineMarker(ArrowIcons.ICON4, ctx),
       makeExplicitCoercionIntention(ctx),
-      makeImplicitCoercionIntention(ctx),
-      addUnionFoldingBuilder()
+      makeImplicitCoercionIntention(ctx)
     )
   }
