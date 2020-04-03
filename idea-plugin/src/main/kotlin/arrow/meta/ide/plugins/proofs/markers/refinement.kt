@@ -1,8 +1,10 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.sequence
 import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.resources.ArrowIcons
+import arrow.meta.internal.Noop
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.quotes.isRefined
@@ -13,6 +15,7 @@ import arrow.meta.quotes.expression.BinaryExpression
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol
 import com.intellij.codeInsight.javadoc.JavaDocUtil
 import com.intellij.icons.AllIcons
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentsOfType
 import org.celtric.kotlin.html.Node
@@ -36,10 +39,12 @@ import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import javax.swing.Icon
 import org.celtric.kotlin.html.body as htmlBody
 
 fun IdeMetaPlugin.refinementLineMarkers(): ExtensionPhase =
@@ -49,7 +54,7 @@ fun IdeMetaPlugin.refinementLineMarkers(): ExtensionPhase =
   )
 
 private fun IdeMetaPlugin.predicateLineMarker(): ExtensionPhase =
-  addLineMarkerProvider(
+  addLMForValueArgument(
     icon = AllIcons.Actions.Checked,
     transform = {
       it.safeAs<KtValueArgument>()?.takeIf(KtValueArgument::isRefinedPredicate)
@@ -57,6 +62,17 @@ private fun IdeMetaPlugin.predicateLineMarker(): ExtensionPhase =
     message = {
       it.markerMessage()
     }
+  )
+
+private fun IdeMetaPlugin.addLMForValueArgument(
+  icon: Icon,
+  transform: (PsiElement) -> KtValueArgument?,
+  message: (element: KtValueArgument) -> String = Noop.string1()
+): ExtensionPhase =
+  addLineMarkerProvider(
+    icon,
+    { transform(it)?.sequence(KtOperationReferenceExpression::class.java)?.firstOrNull()?.getIdentifier() },
+    { it.parentOfType<KtValueArgument>()?.let(message) ?: "Can't display constraint" }
   )
 
 fun KtValueArgument.markerMessage(): String =
