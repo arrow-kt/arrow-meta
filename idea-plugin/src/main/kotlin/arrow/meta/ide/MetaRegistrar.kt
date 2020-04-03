@@ -25,7 +25,8 @@ class MetaRegistrar : ApplicationInitializedListener {
     ApplicationManager.getApplication()?.let { app ->
       LOG.info("subscribing meta registrars")
       val start = System.currentTimeMillis()
-      app.register(ProjectLifecycleListener.TOPIC, metaProjectRegistrar, proofsLifecycle, quoteLifecycleRegistrar) // Alternative use ProjectManagerListener.TOPIC
+      app.register(ProjectLifecycleListener.TOPIC, metaProjectRegistrar, proofsLifecycle) // Alternative use ProjectManagerListener.TOPIC
+      // add quoteLifecycleRegistrar when it is integrated
       LOG.info("subscribing meta registrars took ${System.currentTimeMillis() - start}ms")
     }
     println("componentsInitialized")
