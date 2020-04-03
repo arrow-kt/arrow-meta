@@ -72,10 +72,10 @@ val KtElement.callElements: List<KtCallElement>
   get() = sequence(KtCallElement::class.java)
 
 val KtElement.typeReferences: List<KtTypeReference>
-  get() = traverseFilter(KtTypeReference::class.java) { it }
+  get() = sequence(KtTypeReference::class.java)
 
 val KtElement.typeProjections: List<KtTypeProjection>
-  get() = traverseFilter(KtTypeProjection::class.java) { it }
+  get() = sequence(KtTypeProjection::class.java)
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
