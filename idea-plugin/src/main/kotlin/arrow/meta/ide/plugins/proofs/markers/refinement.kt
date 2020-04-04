@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.sequence
 import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.internal.Noop
@@ -42,6 +41,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
@@ -71,8 +71,8 @@ private fun IdeMetaPlugin.addLMForValueArgument(
 ): ExtensionPhase =
   addLineMarkerProvider(
     icon,
-    { transform(it)?.sequence(KtOperationReferenceExpression::class.java)?.firstOrNull()?.getIdentifier() },
-    { it.parentOfType<KtValueArgument>()?.let(message) ?: "Can't display constraint" }
+    { transform(it)?.findDescendantOfType<KtOperationReferenceExpression>()?.getIdentifier() },
+    { it.parentOfType<KtValueArgument>()?.let(message).orEmpty() }
   )
 
 fun KtValueArgument.markerMessage(): String =
