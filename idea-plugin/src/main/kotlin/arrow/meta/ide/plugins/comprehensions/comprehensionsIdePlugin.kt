@@ -1,9 +1,9 @@
 package arrow.meta.ide.plugins.comprehensions
 
 import arrow.meta.Plugin
-import arrow.meta.invoke
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.resources.ArrowIcons
+import arrow.meta.invoke
 import arrow.meta.plugins.comprehensions.isBinding
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -23,5 +23,5 @@ val IdeMetaPlugin.comprehensionsIdePlugin: Plugin
     )
   }
 
-val KtExpression.identifier: PsiElement?
+private val KtExpression.identifier: PsiElement?
   get() = safeAs<KtProperty>()?.identifyingElement

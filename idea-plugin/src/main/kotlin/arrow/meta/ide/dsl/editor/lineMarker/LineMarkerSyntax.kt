@@ -4,7 +4,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.descriptorRender
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.daemon.LineMarkerProviders
@@ -12,7 +11,8 @@ import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
-import com.intellij.navigation.GotoRelatedItem
+import com.intellij.ide.util.DefaultPsiElementCellRenderer
+import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
@@ -77,19 +77,28 @@ interface LineMarkerSyntax {
     )
 
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
+  fun <A : PsiElement, B : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
-    targets: (A) -> List<GotoRelatedItem>,
-    message: (A) -> String = Noop.string1(),
-    pass: Int = Pass.LINE_MARKERS,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    clickAction: AnAction? = null
+    targets: (A) -> List<B>,
+    message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     relatedLineMarkerProvider(
       transform,
-      { relatedLineMarkerInfo(icon, it, message as (PsiElement) -> String, targets(it), pass, placed, navigate, clickAction) }
+      { element: A ->
+        val list: List<B> = targets(element)
+        navigationGutter(icon, element, targets) { element: A ->
+          setCellRenderer(cellRenderer)
+          setTarget(element)
+          popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
+          message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
+          setAlignment(placed)
+          createLineMarkerInfo(element)
+        }
+      }
     )
 
   /**
@@ -177,23 +186,34 @@ interface LineMarkerSyntax {
       }
     )
 
+  /**
+   * Algebra notes
+   * // com.intellij.psi.SmartPointerManager as the receiver #createSmartPsiElementPointer {
+   */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addRelatedLineMarkerProvider(
+  fun <A : PsiNameIdentifierOwner, B : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
     composite: Class<A>,
-    targets: (A) -> List<GotoRelatedItem>,
-    message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
-    pass: Int = Pass.LINE_MARKERS,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    clickAction: AnAction? = null
+    targets: (A) -> List<B>,
+    message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     relatedLineMarkerProvider(
       { transform(it)?.identifyingElement },
       {
         it.onComposite(composite) { psi: A ->
-          relatedLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, targets(psi), pass, placed, navigate, clickAction)
+          val list: List<B> = targets(psi)
+          navigationGutter(icon, psi, targets) { element: A ->
+            setCellRenderer(cellRenderer)
+            setTarget(element)
+            popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
+            message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
+            setAlignment(placed)
+            createLineMarkerInfo(it)
+          }
         }
       }
     )
@@ -243,12 +263,23 @@ interface LineMarkerSyntax {
         }
     }
 
-  fun <R> LineMarkerSyntax.navigationGutter(
+  /**
+   * creates a NavigationGutter
+   */
+  fun <A : PsiElement, R> LineMarkerSyntax.navigationGutter(
     icon: Icon,
-    element: PsiElement,
-    config: NavigationGutterIconBuilder<PsiElement>.(element: PsiElement) -> R
+    element: A,
+    config: NavigationGutterIconBuilder<PsiElement>.(A) -> R
   ): R =
     NavigationGutterIconBuilder.create(icon).config(element)
+
+  fun <A, R> LineMarkerSyntax.navigationGutter(
+    icon: Icon,
+    element: A,
+    targets: (A) -> List<PsiElement>,
+    config: NavigationGutterIconBuilder<A>.(A) -> R
+  ): R =
+    NavigationGutterIconBuilder.create(icon, targets).config(element)
 
   /**
    * `MergeableLineMarkerInfo` can merge multiple LineMarkerInfo's into one, if [mergeWith] is true.
@@ -278,6 +309,9 @@ interface LineMarkerSyntax {
         }
     }
 
+  /**
+   * registers a RelatedItemLineMarkerProvider
+   */
   fun <A : PsiElement> IdeMetaPlugin.relatedLineMarkerProvider(
     transform: (PsiElement) -> A?,
     lineMarkerInfo: (a: A) -> RelatedItemLineMarkerInfo<PsiElement>?
@@ -288,21 +322,4 @@ interface LineMarkerSyntax {
           transform(element)?.let(lineMarkerInfo)
       }
     )
-
-  fun LineMarkerSyntax.relatedLineMarkerInfo(
-    icon: Icon,
-    element: PsiElement,
-    message: (PsiElement) -> String,
-    targets: List<GotoRelatedItem>,
-    pass: Int = Pass.LINE_MARKERS,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT,
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    clickAction: AnAction? = null
-  ): RelatedItemLineMarkerInfo<PsiElement> =
-    object : RelatedItemLineMarkerInfo<PsiElement>(element, element.textRange, icon, pass, message, navigate, placed, targets) {
-      override fun createGutterRenderer(): GutterIconRenderer =
-        object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
-          override fun getClickAction(): AnAction? = clickAction
-        }
-    }
 }

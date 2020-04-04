@@ -1,9 +1,9 @@
 package arrow.meta.ide.phases.editor.intention
 
+import arrow.meta.ide.dsl.editor.intention.IntentionSyntax
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
-import arrow.meta.ide.dsl.editor.intention.IntentionSyntax
 
 /**
  * @see [IntentionSyntax]

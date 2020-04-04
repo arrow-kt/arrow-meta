@@ -1,8 +1,8 @@
 package arrow.meta.ide.dsl.editor.language
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.lang.jvm.JvmClass
 import com.intellij.lang.jvm.JvmMethod
