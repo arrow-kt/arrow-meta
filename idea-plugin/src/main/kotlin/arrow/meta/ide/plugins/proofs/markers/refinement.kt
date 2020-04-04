@@ -14,6 +14,8 @@ import arrow.meta.quotes.expression.BinaryExpression
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol
 import com.intellij.codeInsight.javadoc.JavaDocUtil
 import com.intellij.icons.AllIcons
+import com.intellij.ide.util.PsiElementListCellRenderer
+import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentsOfType
@@ -113,14 +115,30 @@ val validate: String.() -> Map<String, Boolean> = {
 }
 
 private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
-  addLineMarkerProvider(
+  addRelatedLineMarkerProvider(
     icon = ArrowIcons.REFINEMENT,
     composite = KtClass::class.java,
     transform = {
       it.safeAs<KtClass>()?.takeIf { it.companionObjects.any { it.isRefined() } }
     },
-    message = {
-      it.markerMessage()
+    targets = {
+      it.predicatesFromPsi()
+    },
+    popUpTitle = { refinedType, predicates ->
+      "${refinedType.name} is a Refined Type constrained by ${predicates.size} Predicates"
+    },
+    cellRenderer = object : PsiElementListCellRenderer<KtBinaryExpression>() {
+      override fun getContainerText(element: KtBinaryExpression, name: String): String =
+        "(in ${element.containingKtFile.packageFqName})"
+
+      override fun getIcon(element: PsiElement): Icon =
+        AllIcons.Actions.Checked
+
+      override fun getIconFlags(): Int = Iconable.ICON_FLAG_VISIBILITY
+
+      override fun getElementText(element: KtBinaryExpression): String =
+        element.left?.text ?: "Unspecified Predicate"
+
     }
   )
 
@@ -135,7 +153,7 @@ fun KtClass.markerMessage(): String =
         htmlBody {
           div {
             p {
-              "$name is a Refined Type constrained by:"
+              "$name :"
             } + table {
               thead {
                 tr {
