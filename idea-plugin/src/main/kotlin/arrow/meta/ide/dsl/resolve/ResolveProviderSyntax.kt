@@ -9,7 +9,7 @@ import com.intellij.psi.ResolveScopeProvider
 import com.intellij.psi.search.GlobalSearchScope
 
 interface ResolveProviderSyntax {
-    fun IdeMetaPlugin.getResolveScope(
+    fun IdeMetaPlugin.addResolveScopeProvider(
         getResolveScope: (file: VirtualFile, project: Project) -> GlobalSearchScope?
     ): ExtensionPhase =
             extensionProvider(
