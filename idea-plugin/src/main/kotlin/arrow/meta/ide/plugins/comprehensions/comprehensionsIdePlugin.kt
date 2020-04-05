@@ -23,5 +23,5 @@ val IdeMetaPlugin.comprehensionsIdePlugin: Plugin
     )
   }
 
-val KtExpression.identifier: PsiElement?
+private val KtExpression.identifier: PsiElement?
   get() = safeAs<KtProperty>()?.identifyingElement
