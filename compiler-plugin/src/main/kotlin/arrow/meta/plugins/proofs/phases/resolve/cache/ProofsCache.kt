@@ -6,7 +6,6 @@ import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.asProof
-import arrow.meta.plugins.proofs.phases.resolve.scopes.synthetic
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -16,8 +15,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import java.util.concurrent.ConcurrentHashMap
 
 data class ProofsCache(
-  val proofs: List<Proof>,
-  val extensionCallables: List<CallableMemberDescriptor> = proofs.flatMap { it.callables { true } }
+  val proofs: List<Proof>
 )
 
 val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
