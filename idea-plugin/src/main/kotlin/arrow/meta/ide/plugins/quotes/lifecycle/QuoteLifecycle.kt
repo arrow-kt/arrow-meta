@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.quotes.lifecycle
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.files
 import arrow.meta.ide.dsl.utils.quoteRelevantFile
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
@@ -10,6 +11,7 @@ import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
 import arrow.meta.ide.testing.UnavailableServices
 import arrow.meta.ide.testing.unavailableServices
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -41,7 +43,31 @@ import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
+
+/**
+ * [quoteLifecycle] addresses ide lifecycle specific manipulates utilizing the [QuoteSystemService], [QuoteCache] and [QuoteHighlightingCache].
+ */
+val IdeMetaPlugin.quoteLifecycle: ExtensionPhase
+  get() = addProjectLifecycle(
+    // the usual registration should be in `beforeProjectOpened`, but this is only possible when #446 is unlocked
+    initialize = { project: Project ->
+      project.quoteConfigs()?.let { (system, cache) ->
+        initializeQuotes(project, system, cache)
+      }
+    }
+    /* TODO: project is already disposed at this point are the following functions needed to preserve the lifecycle
+    afterProjectClosed = { project: Project ->
+      project.quoteConfigs()?.let { (quoteSystem, cache) ->
+        try {
+          quoteSystem.context.cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
+        } catch (e: Exception) {
+          LOG.warn("error shutting down pool", e)
+        } finally {
+          cache.clear()
+        }
+      }
+    }*/
+  )
 
 data class QuoteConfigs(
   val quoteSystem: QuoteSystemService,

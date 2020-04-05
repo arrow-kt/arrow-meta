@@ -125,17 +125,17 @@ interface LineMarkerSyntax {
    * and circumvents effort's to find the right PsiElement.
    * In addition, plugin developer's can compose sophisticated messages, as the whole scope of [A] can be exploited.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
    * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.renderer.ParameterNameRenderingPolicy
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.descriptorLineMarker: Plugin
+   * val IdeMetaPlugin.descriptorLineMarker: IdePlugin
    *   get() = "Render Descriptor Plugin" {
    *     meta(
    *       addLineMarkerProvider(

@@ -96,8 +96,6 @@ interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<CliPlugin>
 
-  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
-
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
       AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {
@@ -205,11 +203,10 @@ interface InternalRegistry : ConfigSyntax {
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
             //is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
-            else -> messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
+            else -> ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
           }
         }
         currentPhase.registerPhase()
-        //ctx.registerIdeExclusivePhase(currentPhase)
       }
     }
   }

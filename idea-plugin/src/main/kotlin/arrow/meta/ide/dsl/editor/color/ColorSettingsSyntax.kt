@@ -42,16 +42,16 @@ interface ColorSettingsSyntax {
    * This extension registers a [ColorSettingsPage].
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -82,16 +82,16 @@ interface ColorSettingsSyntax {
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -124,9 +124,9 @@ interface ColorSettingsSyntax {
    * Nonetheless, we can register tokens to be highlighted, assuming we already provide an ide extension instance with these added tokens - mainly with a `Parser` and [Annotator].
    *
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
@@ -136,7 +136,7 @@ interface ColorSettingsSyntax {
    * val Interface: String = "Interface"
    * val NamedArgument: String = "Named argument"
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -165,9 +165,9 @@ interface ColorSettingsSyntax {
    * We can achieve a similar visual representation with an empty instance [PlainSyntaxHighlighter] - which is the default for [highlighter].
    *
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    *
@@ -178,7 +178,7 @@ interface ColorSettingsSyntax {
    * val String: String = "String"
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
    *  get() = "Plain ColorSettingsPage" {
    *   meta(
    *    addColorSettingsPage(

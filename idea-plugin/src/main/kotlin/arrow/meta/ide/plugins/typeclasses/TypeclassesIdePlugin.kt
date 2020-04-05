@@ -1,10 +1,10 @@
 package arrow.meta.ide.plugins.typeclasses
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.ide.IdePlugin
 import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.invoke
+import arrow.meta.ide.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.typeclasses.hasExtensionDefaultValue
@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.typeclassesIdePlugin: Plugin
+val IdeMetaPlugin.typeclassesIdePlugin: IdePlugin
   get() = "TypeclassesIdePlugin" {
     meta(
       ideSyntheticBodyResolution()

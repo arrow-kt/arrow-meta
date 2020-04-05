@@ -1,13 +1,13 @@
 package arrow.meta.ide.plugins.nothing
 
-import arrow.meta.Plugin
-import arrow.meta.invoke
+import arrow.meta.ide.invoke
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.resources.ArrowIcons
 import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.nothingIdePlugin: Plugin
+val IdeMetaPlugin.nothingIdePlugin: IdePlugin
   get() = "NothingIdePlugin" {
     meta(
       addLineMarkerProvider(

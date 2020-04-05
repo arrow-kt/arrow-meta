@@ -20,17 +20,17 @@ interface AnnotatorSyntax {
    * @see KotlinSingleIntentionActionFactory and all its Subtypes for examples
    * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
    * ```kotlin:ank
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.plugins.purity.isImpure
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
    * import org.jetbrains.kotlin.idea.quickfix.AddModifierFix
    * import org.jetbrains.kotlin.lexer.KtTokens
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.purityAnnotator: Plugin
+   * val IdeMetaPlugin.purityAnnotator: IdePlugin
    *   get() = "PurityCheck Annotator" {
    *     meta(
    *       addAnnotator(
