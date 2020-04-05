@@ -73,6 +73,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     val start = System.currentTimeMillis()
     val ctx = IdeContext(app)
     intercept(ctx).forEach {
+      println("Registering ide plugin: $it extensions: ${it.meta}")
       it.meta(ctx).forEach { phase ->
         when (phase) {
           is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
