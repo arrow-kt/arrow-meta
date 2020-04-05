@@ -1,7 +1,7 @@
 package arrow.meta.plugins.optics
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.resolve.source.toSourceElement
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val Meta.lenses: Plugin
+val Meta.lenses: CliPlugin
   get() =
     "lenses" {
       meta(

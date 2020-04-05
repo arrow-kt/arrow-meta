@@ -1,6 +1,6 @@
 package arrow.meta.internal.registry
 
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.dsl.config.ConfigSyntax
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
@@ -94,7 +94,7 @@ import java.util.*
 
 interface InternalRegistry : ConfigSyntax {
 
-  fun intercept(ctx: CompilerContext): List<Plugin>
+  fun intercept(ctx: CompilerContext): List<CliPlugin>
 
   fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
 
@@ -209,7 +209,7 @@ interface InternalRegistry : ConfigSyntax {
           }
         }
         currentPhase.registerPhase()
-        ctx.registerIdeExclusivePhase(currentPhase)
+        //ctx.registerIdeExclusivePhase(currentPhase)
       }
     }
   }

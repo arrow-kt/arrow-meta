@@ -15,12 +15,12 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.functionLiteral
  *
- * val Meta.reformatFunctionLiteral: Plugin
+ * val Meta.reformatFunctionLiteral: CliPlugin
  *    get() =
  *      "Reformat Function Literal" {
  *        meta(
