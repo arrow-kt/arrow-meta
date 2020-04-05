@@ -1,4 +1,4 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.phases.analysis
 
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
