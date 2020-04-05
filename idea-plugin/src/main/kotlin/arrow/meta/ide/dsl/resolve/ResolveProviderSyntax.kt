@@ -20,7 +20,7 @@ interface ResolveProviderSyntax {
                     }
             )
 
-    fun IdeMetaPlugin.globalSearchScope(
+    fun ResolveProviderSyntax.globalSearchScope(
         containsFile: (file: VirtualFile) -> Boolean,
         isSearchInModuleContent: (module: Module) -> Boolean,
         isSearchInLibraries: () -> Boolean
