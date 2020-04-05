@@ -16,7 +16,6 @@ plugins {
   // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
   // id 'org.jetbrains.kotlin.kapt' version "$KOTLIN_VERSION"
   id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
-  id 'com.jfrog.bintray' version "$BINTRAY_VERSION"
   id 'maven-publish'
 }
 
@@ -28,7 +27,6 @@ def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 allprojects {
 
   clean.doFirst {
-    delete "${rootDir}/infographic/arrow-infographic.txt"
     delete pathApiDocs
   }
 
@@ -43,7 +41,6 @@ allprojects {
     mavenCentral()
     jcenter()
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-    maven { url 'https://jitpack.io' } 
   }
 }
 
@@ -68,22 +65,6 @@ subprojects { project ->
   dokka {
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
-  }
-
-  apply plugin: 'com.jfrog.bintray'
-
-  bintray {
-      publish = true
-      user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-      key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-      configurations = ['archives']
-      pkg {
-          repo = 'arrow-kt'
-          name = project.name
-          userOrg = POM_DEVELOPER_ID
-          licenses = ['Apache-2.0']
-          vcsUrl = 'https://github.com/arrow-kt/arrow-meta.git'
-      }
   }
 }
 

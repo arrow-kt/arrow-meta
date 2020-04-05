@@ -7,17 +7,19 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.extensions.LoadingOrder
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.impl.ProjectLifecycleListener
+import com.intellij.openapi.startup.StartupActivity
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface ApplicationSyntax {
-
+  // TODO: Add an service encoding like service: (Project) -> Class<A>
   /**
    * registers an service and the instance based on its [kind].
    * The IntelliJ Platform ensures that only one instance of [instance] is loaded, when [kind] is [ServiceKind.Application],
@@ -260,3 +262,31 @@ interface ApplicationSyntax {
 enum class ServiceKind {
   Application, Project
 }
+
+interface ProjectLifecycle : ProjectLifecycleListener, Disposable
+
+/**
+ * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
+ */
+fun projectLifecycleListener(
+  initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+  afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+  dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
+  beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+  postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+): ProjectLifecycle =
+  object : ProjectLifecycle {
+    override fun projectComponentsInitialized(project: Project): Unit =
+      initialize(this, project)
+
+    override fun beforeProjectLoaded(project: Project): Unit =
+      beforeProjectLoaded(this, project)
+
+    override fun afterProjectClosed(project: Project): Unit =
+      afterProjectClosed(this, project)
+
+    override fun postStartupActivitiesPassed(project: Project): Unit =
+      postStartupActivitiesPassed(this, project)
+
+    override fun dispose(): Unit = dispose(this)
+  }
