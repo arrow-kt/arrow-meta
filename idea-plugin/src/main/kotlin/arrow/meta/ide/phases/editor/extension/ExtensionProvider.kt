@@ -7,6 +7,7 @@ import com.intellij.core.JavaCoreApplicationEnvironment
 import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.folding.FoldingBuilder
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -39,6 +40,11 @@ sealed class ExtensionProvider<E> : ExtensionPhase {
    * @see [ExtensionProviderSyntax.extensionProvider]
    */
   data class AddFileTypeExtension<E>(val FE: FileTypeExtension<E>, val impl: E, val fileType: LanguageFileType) : ExtensionProvider<E>()
+
+  /**
+   * @see FoldingSyntax
+   */
+  data class AddFoldingExtension(val lang: Language, val impl: FoldingBuilder) : ExtensionProvider<FoldingBuilder>()
 
   /**
    * Examples are here: [JavaCoreApplicationEnvironment] line 72 - 77

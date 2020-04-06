@@ -3,6 +3,9 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
+import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnKinds
+import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnTuples
+import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnUnions
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -23,8 +26,11 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       refinementLineMarkers(),
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       refinementAnnotator(),
-      coerceProofLineMarker(ArrowIcons.ICON4, ctx)
+      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
       //makeExplicitCoercionIntention(ctx),
-      //makeImplicitCoercionIntention(ctx)
+      //makeImplicitCoercionIntention(ctx),
+      codeFoldingOnUnions,
+      codeFoldingOnTuples,
+      codeFoldingOnKinds
     )
   }

@@ -30,6 +30,7 @@ import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.lang.LanguageAnnotators
+import com.intellij.lang.folding.LanguageFolding
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -189,5 +190,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is ExtensionProvider.RegisterBaseExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+      is ExtensionProvider.AddFoldingExtension -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
     }
 }
