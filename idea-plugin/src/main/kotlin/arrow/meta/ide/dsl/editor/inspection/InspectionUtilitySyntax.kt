@@ -13,4 +13,7 @@ interface InspectionUtilitySyntax {
 
   val ArrowPath: Array<String>
     get() = arrayOf("Kotlin", "Λrrow")
+
+  val ProofPath: Array<String>
+    get() = ArrowPath + arrayOf("Type Proofs")
 }

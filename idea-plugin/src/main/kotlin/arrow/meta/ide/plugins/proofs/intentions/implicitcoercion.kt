@@ -27,5 +27,5 @@ fun IdeMetaPlugin.implicitCoercionIntention(compilerContext: CompilerContext): E
     },
     inspectionText = { "TODO impl" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
-    groupPath = ArrowPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf("Coercion")
   )
