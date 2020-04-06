@@ -44,6 +44,10 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.svg")
   val NEGATION_PNG: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.png")
+  val REFINEMENT: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.svg")
+  val REFINEMENT_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.png")
   val SUBTYPING: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.svg")
   val SUBTYPING_PNG: Icon

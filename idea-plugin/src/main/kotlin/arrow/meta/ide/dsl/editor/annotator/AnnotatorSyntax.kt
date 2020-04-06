@@ -6,8 +6,8 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.Annotator
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
+import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 
 interface AnnotatorSyntax {
   // TODO: consider [com.intellij.codeInsight.navigation.NavigationGutterIconBuilder.install(com.intellij.lang.annotation.AnnotationHolder, com.intellij.psi.PsiElement)

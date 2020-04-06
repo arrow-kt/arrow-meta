@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.ui.toolwindow
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -21,7 +22,6 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
-import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 
 /**
  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
