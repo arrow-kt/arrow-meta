@@ -1,8 +1,8 @@
 package arrow.meta.ide.dsl.editor.usage
 
+import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.find.findUsages.AbstractFindUsagesDialog
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandlerFactory
