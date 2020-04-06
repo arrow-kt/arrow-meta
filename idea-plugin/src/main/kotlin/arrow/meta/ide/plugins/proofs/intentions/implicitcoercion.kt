@@ -8,7 +8,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 
-fun IdeMetaPlugin.makeImplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
+fun IdeMetaPlugin.implicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
   addApplicableInspection(
     defaultFixText = "Make_coercion_implicit",
     kClass = KtElement::class.java,

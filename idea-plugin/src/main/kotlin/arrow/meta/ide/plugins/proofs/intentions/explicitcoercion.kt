@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.ImportPath
 
-fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
+fun IdeMetaPlugin.explicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
   compilerContext.run {
     addApplicableInspection(
       defaultFixText = "Make_coercion_explicit",

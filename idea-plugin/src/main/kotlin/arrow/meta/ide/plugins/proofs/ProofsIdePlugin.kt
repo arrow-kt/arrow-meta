@@ -3,8 +3,8 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.intentions.makeExplicitCoercionIntention
-import arrow.meta.ide.plugins.proofs.intentions.makeImplicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -26,7 +26,7 @@ val IdeMetaPlugin.typeProofsIde: Plugin
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
       refinementAnnotator(),
       coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      makeExplicitCoercionIntention(ctx),
-      makeImplicitCoercionIntention(ctx)
+      explicitCoercionIntention(ctx),
+      implicitCoercionIntention(ctx)
     )
   }
