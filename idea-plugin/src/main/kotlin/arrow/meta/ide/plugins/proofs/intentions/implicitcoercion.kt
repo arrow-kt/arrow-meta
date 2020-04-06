@@ -1,13 +1,10 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.traverseFilter
-import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeInspection.ProblemHighlightType
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 

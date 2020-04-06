@@ -5,6 +5,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
+import arrow.meta.quotes.ktFile
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
@@ -66,9 +67,10 @@ private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pair
   val through = coerceProof(pairType.subType, pairType.superType)!!.through
   val importList = containingKtFile.importList!!
   val importableFqName = through.importableFqName
+  val throughPackage = through.ktFile()?.packageFqName
 
   val notImported = !importList.imports.any { it.importedFqName == importableFqName }
-  val differentPackage = containingKtFile.packageFqName != importableFqName
+  val differentPackage = containingKtFile.packageFqName != throughPackage
 
   if (notImported && differentPackage) {
     val proofImport = importableFqName?.let {
