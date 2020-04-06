@@ -15,12 +15,12 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.namedFunction
    *
-   * val Meta.replacePlugin: Plugin
+   * val Meta.replacePlugin: CliPlugin
    *  get() =
    *   "Replace Transform" {
    *     meta(
@@ -51,12 +51,12 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.namedFunction
    *
-   * val Meta.replacePlugin: Plugin
+   * val Meta.replacePlugin: CliPlugin
    *  get() =
    *   "Remove Transform" {
    *     meta(
@@ -83,7 +83,7 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.phases.CompilerContext
    * import arrow.meta.quotes.classorobject.ClassDeclaration
@@ -92,7 +92,7 @@ sealed class Transform<out K : KtElement> {
    * import arrow.meta.quotes.plus
    * import org.jetbrains.kotlin.psi.KtClass
    *
-   * val Meta.transformManySimpleCase: Plugin
+   * val Meta.transformManySimpleCase: CliPlugin
    *  get() = "Transform Many" {
    *   meta(
    *      classDeclaration({ name == "ManySimpleCase" }) { c ->
@@ -126,12 +126,12 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.classDeclaration
    *
-   * val Meta.transformNewSource: Plugin
+   * val Meta.transformNewSource: CliPlugin
    *  get() = "Transform New Source" {
    *   meta(
    *    classDeclaration({ name == "NewSource" }) {

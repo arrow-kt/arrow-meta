@@ -27,9 +27,9 @@ interface SyntaxHighlighterSyntax {
    * @param tokenHighlights specifies the generated tokens from the lexer that need to be highlighted
    * The following example registers a sample amount of the generated Tokens from the KotlinLexer.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
    * import com.intellij.openapi.editor.colors.TextAttributesKey
    * import com.intellij.psi.tree.IElementType
@@ -38,7 +38,7 @@ interface SyntaxHighlighterSyntax {
    * import org.jetbrains.kotlin.lexer.KtTokens
    *
    * //sampleStart
-   * val IdeMetaPlugin.expressionHints: Plugin
+   * val IdeMetaPlugin.expressionHints: IdePlugin
    *  get() = "MiniKotlinHighlighter" {
    *   meta(
    *    addSyntaxHighlighter(

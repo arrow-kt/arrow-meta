@@ -1,19 +1,22 @@
 package arrow.meta.ide.plugins.quotes
 
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
+import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.quotes.lifecycle.quoteProjectOpened
 import arrow.meta.ide.plugins.quotes.resolve.quoteSyntheticPackageFragmentProvider
-import arrow.meta.invoke
+import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.quotes.lifecycle.quoteLifecycle
+import arrow.meta.invoke as cli
 import com.intellij.openapi.startup.StartupActivity
 
 /**
  * Please, view the sub directories `cache` , `resolve` and `system` for quotes related IDE features.
  */
-val IdeMetaPlugin.quotes: Plugin
+val IdeMetaPlugin.quotes: IdePlugin
   get() = "Quote Ide Plugin" {
     meta(
-      quoteSyntheticPackageFragmentProvider,
+      quoteLifecycle,
       addPostStartupActivity(
         StartupActivity.DumbAware {
           quoteProjectOpened(it)
@@ -21,3 +24,13 @@ val IdeMetaPlugin.quotes: Plugin
       )
     )
   }
+
+/**
+ * quotes cli integration with the Ide
+ */
+val IdeMetaPlugin.quotesCli: CliPlugin
+ get() = "Quotes Cli Integration".cli {
+   meta(
+     quoteSyntheticPackageFragmentProvider
+   )
+ }
