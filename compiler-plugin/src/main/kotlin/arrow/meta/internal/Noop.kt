@@ -29,4 +29,5 @@ object Noop {
   val boolean3True: (Any?, Any?, Any?) -> Boolean = { _, _, _ -> true }
   fun <A> string1(): (A) -> String = { _ -> "" }
   fun <A, B> string2(): (A, B) -> String = { _, _ -> "" }
+  fun <A, B, C> string3(): (A, B, C) -> String = { _, _, _ -> "" }
 }

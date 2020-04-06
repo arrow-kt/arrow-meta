@@ -1,8 +1,8 @@
 package arrow.meta.ide.testing.env
 
+import arrow.meta.ide.plugins.helloworld.helloWorld
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.IdeTestEnvironment
-import arrow.meta.ide.plugins.helloworld.helloWorld
 import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerTestSyntax
 import org.junit.Assert
 

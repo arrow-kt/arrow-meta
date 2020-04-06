@@ -2,7 +2,7 @@ package arrow.meta.ide.dsl.editor.icon
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
-import arrow.meta.ide.dsl.utils.IdeUtils
+import arrow.meta.ide.dsl.utils.isNotNull
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.IconProvider
@@ -95,7 +95,7 @@ interface IconProviderSyntax {
   fun <A : PsiElement> IdeMetaPlugin.addIcons(vararg values: TransformIcon<A>): ExtensionPhase =
     extensionProvider(
       IconProvider.EXTENSION_POINT_NAME,
-      iconProvider { p0, p1 -> values.toList().firstOrNull { IdeUtils.isNotNull(it.second(p0, p1)) }?.run { first } },
+      iconProvider { p0, p1 -> values.toList().firstOrNull { isNotNull(it.second(p0, p1)) }?.run { first } },
       LoadingOrder.FIRST
     )
 

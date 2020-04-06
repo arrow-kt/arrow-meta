@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.search
 
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.EmptyFindUsagesProvider
 import com.intellij.lang.findUsages.FindUsagesProvider

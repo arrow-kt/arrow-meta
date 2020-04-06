@@ -2,8 +2,8 @@ package arrow.meta.ide.testing.dsl.icon
 
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestTypeSyntax
-import com.intellij.openapi.util.Iconable
 import com.intellij.ide.IconProvider
+import com.intellij.openapi.util.Iconable
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import javax.swing.Icon
 

@@ -5,24 +5,31 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.extending
+import arrow.meta.plugins.proofs.phases.ir.ProofCandidate
+import arrow.meta.plugins.proofs.phases.ir.typeSubstitutor
 import arrow.meta.plugins.proofs.phases.resolve.ProofReceiverValue
+import org.jetbrains.kotlin.codegen.coroutines.createCustomCopy
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.calls.inference.substitute
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name): List<SimpleFunctionDescriptor> =
   syntheticMemberFunctions(receiverTypes)
@@ -33,28 +40,36 @@ fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinTyp
     proof.callables { true }
       .filterIsInstance<SimpleFunctionDescriptor>()
       .filter { !it.isExtension }
-      .mapNotNull {
-        val receiver = ProofReceiverValue(proof.from)
-        val dispatchReceiver = ReceiverParameterDescriptorImpl(it, receiver, Annotations.EMPTY)
-        it.newCopyBuilder()
-          .setDropOriginalInContainingParts()
-          .setOriginal(it)
-          .setDispatchReceiverParameter(dispatchReceiver)
-          .build()
+      .flatMap {
+        receiverTypes.map { receiverType ->
+          val substitutor = ProofCandidate(
+            from = proof.from,
+            to = proof.to,
+            subType = receiverType.unwrappedNotNullableType,
+            superType = proof.to.unwrappedNotNullableType,
+            through = it
+          ).typeSubstitutor
+          val targetType = substitutor.safeSubstitute(proof.to.unwrap())
+          val receiver = ProofReceiverValue(targetType)
+          val dispatchReceiver = ReceiverParameterDescriptorImpl(it, receiver, Annotations.EMPTY).substitute(substitutor) as ReceiverParameterDescriptorImpl
+          val resultingFunction =
+            it.substitute(substitutor).safeAs<SimpleFunctionDescriptor>()
+              ?.createCustomCopy {
+                setDispatchReceiverParameter(dispatchReceiver).setDropOriginalInContainingParts()
+                  .setOriginal(it)
+              }
+          val result = resultingFunction?.createCustomCopy {
+            setDispatchReceiverParameter(ReceiverParameterDescriptorImpl(resultingFunction, ProofReceiverValue(receiverType), Annotations.EMPTY))
+          }
+          result
+        }.filterIsInstance<SimpleFunctionDescriptor>()
+//        it.newCopyBuilder()
+//          .setDropOriginalInContainingParts()
+//          .setOriginal(it)
+//          .setDispatchReceiverParameter(dispatchReceiver)
+//          .build()
       }
   }
-
-fun List<SimpleFunctionDescriptor>.toSynthetic(): List<SimpleFunctionDescriptor> =
-  mapNotNull { it.synthetic() }
-
-inline fun <reified C : CallableMemberDescriptor> C.synthetic(): C =
-  copy(
-    containingDeclaration,
-    modality,
-    if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    true
-  ) as C
 
 class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
   override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
