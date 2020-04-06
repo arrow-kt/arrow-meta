@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
+import com.intellij.openapi.diagnostic.Logger
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.openapi.extensions.ExtensionPoint

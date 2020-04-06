@@ -1,10 +1,8 @@
 package arrow.meta.ide.internal.registry
 
-import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.dsl.application.ServiceKind
 import arrow.meta.ide.phases.IdeContext
-import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
@@ -48,7 +46,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.messages.Topic
-import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal interface IdeInternalRegistry : InternalRegistry {
@@ -62,20 +59,22 @@ internal interface IdeInternalRegistry : InternalRegistry {
     intercept(ctx).forEach {
       println("Registering ide plugin: $it extensions: ${it.meta}")
       it.meta(ctx).forEach { phase ->
-        when (phase) {
-          is ExtensionPhase.Empty, is CollectAdditionalSources, is Config, is ExtraImports,
-          is PreprocessedVirtualFileFactory, is StorageComponentContainer, is PackageProvider, is AnalysisHandler, is ClassBuilder,
-          is Codegen, is DeclarationAttributeAlterer, is SyntheticResolver,
-          is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
-          is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
-          is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)
-          is IntentionExtensionProvider -> registerIntentionExtensionProvider(phase)
-          is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(phase)
-          is ToolwindowProvider -> registerToolwindowProvider(phase)
-          is ApplicationProvider -> registerApplicationProvider(phase)
-          is Composite -> TODO()
-          else -> LOG.error("Unsupported ide extension phase: $phase")
-        }
+        fun rec(phase: ExtensionPhase): Unit =
+          when (phase) {
+            is ExtensionPhase.Empty, is CollectAdditionalSources, is Config, is ExtraImports,
+            is PreprocessedVirtualFileFactory, is StorageComponentContainer, is PackageProvider, is AnalysisHandler, is ClassBuilder,
+            is Codegen, is DeclarationAttributeAlterer, is SyntheticResolver,
+            is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
+            is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
+            is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)
+            is IntentionExtensionProvider -> registerIntentionExtensionProvider(phase)
+            is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(phase)
+            is ToolwindowProvider -> registerToolwindowProvider(phase)
+            is ApplicationProvider -> registerApplicationProvider(phase)
+            is Composite -> phase.phases.forEach { composite -> rec(composite) }
+            else -> LOG.error("Unsupported ide extension phase: $phase")
+          }
+        rec(phase)
       }
     }
     LOG.info("subscribing meta registrars took ${System.currentTimeMillis() - start}ms")
