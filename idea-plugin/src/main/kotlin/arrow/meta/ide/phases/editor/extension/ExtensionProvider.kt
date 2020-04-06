@@ -44,7 +44,7 @@ sealed class ExtensionProvider<E> : ExtensionPhase {
   /**
    * @see FoldingSyntax
    */
-  data class AddFoldingExtension(val lang: Language, val impl: FoldingBuilder) : ExtensionProvider<FoldingBuilder>()
+  data class AddFoldingBuilder(val lang: Language, val impl: FoldingBuilder) : ExtensionProvider<FoldingBuilder>()
 
   /**
    * Examples are here: [JavaCoreApplicationEnvironment] line 72 - 77

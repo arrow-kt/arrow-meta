@@ -7,30 +7,25 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
-import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.kotlin.psi.KtElement
 
 val IdeMetaPlugin.codeFoldingOnUnions: ExtensionPhase
-  get() = addFoldingBuilder(
-    foldingBuilder = createFoldingBuilder(
+  get() = registerFoldingBuilder(
+    foldingBuilder(
       placeHolderText = { node: ASTNode ->
-        SourceTreeToPsiMap.treeElementToPsi(node)?.let { psiElement ->
-          (psiElement as KtElement).typeProjections
-            .filter { !it.text.startsWith("Union") }
-            .map { it.text }
-            .toString()
-            .replace("[", "")
-            .replace("]", "")
-            .replace(", ", " | ")
-        }
+        (node.psi as KtElement).typeProjections
+          .filter { !it.text.startsWith("Union") }
+          .map { it.text }
+          .toString()
+          .replace("[", "")
+          .replace("]", "")
+          .replace(", ", " | ")
       },
-      buildFoldRegions = { node: ASTNode, _: Document ->
-        SourceTreeToPsiMap.treeElementToPsi(node)?.let { psiElement ->
-          (psiElement as KtElement).typeReferences
-            .filter { it.text.startsWith("Union") }
-            .map { FoldingDescriptor(it, it.textRange) }
-            .toTypedArray()
-        } ?: emptyArray()
+      foldRegions = { node: ASTNode, _: Document ->
+        (node.psi as KtElement).typeReferences
+          .filter { it.text.startsWith("Union") }
+          .map { FoldingDescriptor(it, it.textRange) }
+          .toTypedArray()
       },
       isCollapsedByDefault = {
         true

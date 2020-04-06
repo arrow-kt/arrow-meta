@@ -11,26 +11,22 @@ import com.intellij.psi.impl.source.SourceTreeToPsiMap
 import org.jetbrains.kotlin.psi.KtElement
 
 val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
-  get() = addFoldingBuilder(
-    foldingBuilder = createFoldingBuilder(
+  get() = registerFoldingBuilder(
+    foldingBuilder(
       placeHolderText = { node: ASTNode ->
-        SourceTreeToPsiMap.treeElementToPsi(node)?.let { psiElement ->
-          (psiElement as KtElement).typeProjections
-            .filter { !it.text.startsWith("Kind") }
-            .map { it.text }
-            .toString()
-            .replace("[", "")
-            .replaceFirst(", ", "<")
-            .replace("]", ">")
-        }
+        (node.psi as KtElement).typeProjections
+          .filter { !it.text.startsWith("Kind") }
+          .map { it.text }
+          .toString()
+          .replace("[", "")
+          .replaceFirst(", ", "<")
+          .replace("]", ">")
       },
-      buildFoldRegions = { node: ASTNode, _: Document ->
-        SourceTreeToPsiMap.treeElementToPsi(node)?.let { psiElement ->
-          (psiElement as KtElement).typeReferences
-            .filter { it.text.startsWith("Kind") }
-            .map { FoldingDescriptor(it, it.textRange) }
-            .toTypedArray()
-        } ?: emptyArray()
+      foldRegions = { node: ASTNode, _: Document ->
+        (node.psi as KtElement).typeReferences
+          .filter { it.text.startsWith("Kind") }
+          .map { FoldingDescriptor(it, it.textRange) }
+          .toTypedArray()
       },
       isCollapsedByDefault = {
         true

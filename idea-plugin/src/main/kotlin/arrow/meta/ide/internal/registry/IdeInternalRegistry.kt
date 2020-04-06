@@ -190,6 +190,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is ExtensionProvider.RegisterBaseExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
-      is ExtensionProvider.AddFoldingExtension -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+      is ExtensionProvider.AddFoldingBuilder -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
     }
 }
