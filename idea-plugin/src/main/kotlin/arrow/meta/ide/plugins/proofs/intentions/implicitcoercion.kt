@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -14,6 +15,7 @@ fun IdeMetaPlugin.makeImplicitCoercionIntention(compilerContext: CompilerContext
   addApplicableInspection(
     defaultFixText = "Make_coercion_implicit",
     kClass = KtElement::class.java,
+    enabledByDefault = true,
     isApplicable = { ktCall: KtElement ->
       ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
         compilerContext.areTypesCoerced(subtype, supertype)
@@ -28,16 +30,5 @@ fun IdeMetaPlugin.makeImplicitCoercionIntention(compilerContext: CompilerContext
     },
     inspectionText = { "TODO impl" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
-    groupPath = ArrowPath + arrayOf("Coercion impl")
+    groupPath = ArrowPath + arrayOf("Coercion")
   )
-
-fun KtElement.implicitParticipatingTypes(): List<PairTypes> =
-  when (this) {
-
-    is KtDotQualifiedExpression ->
-      listOfNotNull(
-        (receiverExpression.resolveType() pairOrNull selectorExpression?.resolveType())
-      )
-
-    else -> emptyList()
-  }
