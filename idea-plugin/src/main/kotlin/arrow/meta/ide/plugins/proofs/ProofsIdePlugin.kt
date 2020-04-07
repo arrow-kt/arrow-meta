@@ -19,13 +19,13 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 val IdeMetaPlugin.typeProofsIde: Plugin
   get() = "Type Proofs IDE" {
     meta(
-      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
-      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
-      refinementLineMarkers(),
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
-      refinementAnnotator(),
-      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
+//      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
+//      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
+//      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
+//      refinementLineMarkers(),
+//      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
+//      refinementAnnotator(),
+//      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
       explicitCoercionIntention(ctx),
       implicitCoercionIntention(ctx)
     )
