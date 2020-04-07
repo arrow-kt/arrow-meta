@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
@@ -51,6 +52,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
 
+internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]
 
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
@@ -72,6 +74,9 @@ val KtElement.callElements: List<KtCallElement>
   get() = sequence(KtCallElement::class.java)
 
 val KtElement.typeReferences: List<KtTypeReference>
+  get() = sequence(KtTypeReference::class.java)
+
+val KtTypeReference.argumentList: List<KtTypeReference>
   get() = sequence(KtTypeReference::class.java)
 
 val KtElement.typeProjections: List<KtTypeProjection>
