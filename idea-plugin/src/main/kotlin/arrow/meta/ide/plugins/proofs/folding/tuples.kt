@@ -15,19 +15,18 @@ import org.jetbrains.kotlin.types.KotlinType
 val IdeMetaPlugin.codeFoldingOnTuples: ExtensionPhase
   get() = registerFoldingBuilder(
     foldingBuilder(
-      placeHolderText = { node: ASTNode ->
-        (node.psi as KtElement).typeProjections
+      placeHolderText = { ktElement: KtElement ->
+        ktElement.typeProjections
           .filter { it.typeReference?.getType()?.isTupleType() == false }
           .map { it.text }
           .toString()
           .replace("[", "(")
           .replace("]", ")")
       },
-      foldRegions = { node: ASTNode, _: Document ->
-        (node.psi as KtElement).typeReferences
+      foldRegions = { ktElement: KtElement, _: Document ->
+        ktElement.typeReferences
           .filter { it.getType()?.isTupleType() == true }
           .map { FoldingDescriptor(it, it.textRange) }
-          .toTypedArray()
       },
       isCollapsedByDefault = {
         true

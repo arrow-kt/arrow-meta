@@ -18,8 +18,8 @@ import org.jetbrains.kotlin.types.KotlinType
 val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
   get() = registerFoldingBuilder(
     foldingBuilder(
-      placeHolderText = { node: ASTNode ->
-        (node.psi as KtElement).typeReferences
+      placeHolderText = { ktElement: KtElement ->
+        ktElement.typeReferences
           .filter { typeReference ->
             typeReference.getType()?.isKindType() == true &&
               typeReference.strictParents().all { psiElement ->
@@ -31,8 +31,8 @@ val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
           .replace("[", "")
           .replace("]", "")
       },
-      foldRegions = { node: ASTNode, _: Document ->
-        (node.psi as KtElement).typeReferences
+      foldRegions = { ktElement: KtElement, _: Document ->
+        ktElement.typeReferences
           .filter { typeReference ->
             typeReference.getType()?.isKindType() == true &&
               typeReference.strictParents().all { psiElement ->
@@ -40,7 +40,6 @@ val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
               }
           }
           .map { FoldingDescriptor(it, it.textRange) }
-          .toTypedArray()
       },
       isCollapsedByDefault = {
         true

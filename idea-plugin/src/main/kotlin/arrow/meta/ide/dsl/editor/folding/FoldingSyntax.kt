@@ -9,6 +9,7 @@ import com.intellij.lang.folding.FoldingBuilder
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtElement
 
 interface FoldingSyntax {
 
@@ -16,19 +17,19 @@ interface FoldingSyntax {
     ExtensionProvider.AddFoldingBuilder(lang, foldingBuilder)
 
   fun FoldingSyntax.foldingBuilder(
-    placeHolderText: (node: ASTNode) -> String?,
-    foldRegions: (node: ASTNode, document: Document) -> Array<FoldingDescriptor>,
-    isCollapsedByDefault: (node: ASTNode) -> Boolean,
+    placeHolderText: (ktElement: KtElement) -> String?,
+    foldRegions: (ktElement: KtElement, document: Document) -> List<FoldingDescriptor>,
+    isCollapsedByDefault: (ktElement: KtElement) -> Boolean,
     lang: Language = KotlinLanguage.INSTANCE
   ): FoldingBuilder =
     object : FoldingBuilder {
       override fun getPlaceholderText(node: ASTNode): String? =
-        placeHolderText(node)
+        placeHolderText(node.psi as KtElement)
 
       override fun buildFoldRegions(node: ASTNode, document: Document): Array<FoldingDescriptor> =
-        foldRegions(node, document)
+        foldRegions(node.psi as KtElement, document).toTypedArray()
 
       override fun isCollapsedByDefault(node: ASTNode): Boolean =
-        isCollapsedByDefault(node)
+        isCollapsedByDefault(node.psi as KtElement)
     }
 }
