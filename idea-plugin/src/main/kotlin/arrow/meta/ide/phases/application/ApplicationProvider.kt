@@ -1,6 +1,7 @@
 package arrow.meta.ide.phases.application
 
 import arrow.meta.ide.dsl.application.ApplicationSyntax
+import arrow.meta.ide.dsl.application.ProjectLifecycle
 import arrow.meta.ide.dsl.application.ServiceKind
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
@@ -21,6 +22,8 @@ sealed class ApplicationProvider : ExtensionPhase {
   data class Listener(val listener: ApplicationListener) : ApplicationProvider()
 
   data class AppListener(val listener: AppLifecycleListener) : ApplicationProvider()
+
+  data class ProjectListener(val listener: ProjectLifecycle) : ApplicationProvider()
 
   object StopServicePreloading : ApplicationProvider()
 

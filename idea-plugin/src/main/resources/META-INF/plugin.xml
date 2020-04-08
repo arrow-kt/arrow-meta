@@ -19,7 +19,7 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
+        <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
                         serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>

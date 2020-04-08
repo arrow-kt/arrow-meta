@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  *
  * * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.typeAlias
  *
- * val Meta.reformatTypeAlias: Plugin
+ * val Meta.reformatTypeAlias: CliPlugin
  *    get() =
  *      "Reformat Type Alias" {
  *        typeAlias({ true }) { typeParameterListOwner ->

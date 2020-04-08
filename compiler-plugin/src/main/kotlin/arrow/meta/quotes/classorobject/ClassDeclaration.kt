@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  * In particular, the [LensPlugin] is passing a function to whatever class or object type is a product type:
  *
  * ```
- *  val Meta.lenses: Plugin
+ *  val Meta.lenses: CliPlugin
  *    get() =
  *      "lenses" {
  *        meta {
@@ -67,12 +67,12 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.classDeclaration
  *
- * val Meta.example: Plugin
+ * val Meta.example: CliPlugin
  *   get() =
  *     "Example" {
  *       meta(

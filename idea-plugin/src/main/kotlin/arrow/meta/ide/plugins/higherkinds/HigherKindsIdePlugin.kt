@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.higherkinds
 
-import arrow.meta.Plugin
+import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.invoke
+import arrow.meta.ide.invoke
 import arrow.meta.ide.dsl.utils.code
 import arrow.meta.ide.dsl.utils.h1
 import arrow.meta.ide.dsl.utils.kotlin
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.higherKindsIdePlugin: Plugin
+val IdeMetaPlugin.higherKindsIdePlugin: IdePlugin
   get() = "HigherKindsIdePlugin" {
     meta(
       addLineMarkerProvider(

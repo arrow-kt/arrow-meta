@@ -1,7 +1,7 @@
 package arrow.meta.quotes.transform.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -10,10 +10,10 @@ import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
-val Meta.transformNewSource: List<Plugin>
+val Meta.transformNewSource: List<CliPlugin>
   get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration)
 
-private val Meta.transformNewSourceSingleGeneration: Plugin
+private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
     meta(
       classDeclaration({ name == "NewSource" }) {
@@ -30,7 +30,7 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
     )
   }
 
-private val Meta.transformNewSourceMultipleGeneration: Plugin
+private val Meta.transformNewSourceMultipleGeneration: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
       classDeclaration({ name == "NewMultipleSource" }) {
@@ -54,7 +54,7 @@ private val Meta.transformNewSourceMultipleGeneration: Plugin
     )
   }
 
-private val Meta.transformNewSourceWithManyTransformation: Plugin
+private val Meta.transformNewSourceWithManyTransformation: CliPlugin
   get() = "Transform New Source With Many Transformation" {
     meta(
       classDeclaration({ name == "NewSourceMany" }) { c ->
