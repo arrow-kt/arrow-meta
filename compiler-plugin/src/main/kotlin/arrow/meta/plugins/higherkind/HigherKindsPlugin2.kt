@@ -1,7 +1,7 @@
 package arrow.meta.plugins.higherkind
 
+import arrow.meta.CliPlugin
 import arrow.meta.Meta
-import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
@@ -9,7 +9,7 @@ import arrow.meta.quotes.scope
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
 
-val Meta.higherKindedTypes2: Plugin
+val Meta.higherKindedTypes2: CliPlugin
   get() =
     "higherKindedTypes2" {
       meta(

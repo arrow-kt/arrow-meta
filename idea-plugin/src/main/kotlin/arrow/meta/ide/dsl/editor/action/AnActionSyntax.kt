@@ -30,13 +30,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * ```kotlin:ank:playground
    * // import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.invoke
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import com.intellij.openapi.project.Project
    * import com.intellij.openapi.actionSystem.AnActionEvent
    *
-   * val IdeMetaPlugin.exampleAction: Plugin
+   * val IdeMetaPlugin.exampleAction: IdePlugin
    * get() = "Example Action" {
    *   meta(
    *   //sampleStart

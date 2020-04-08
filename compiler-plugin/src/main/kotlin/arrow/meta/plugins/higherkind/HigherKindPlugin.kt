@@ -1,7 +1,6 @@
 package arrow.meta.plugins.higherkind
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.quotes.ScopedList

@@ -36,12 +36,6 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
   override fun transform(project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>> {
     ApplicationManager.getApplication().assertReadAccessAllowed()
     LOG.assertTrue(ProgressManager.getInstance().hasProgressIndicator())
-
-    // fixme is scope correct here? Unsure what CompilerContext is expecting here
-    // fixme do we need to set more properties of the compiler context?
-    val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = files
-
     val resultFiles = arrayListOf<KtFile>()
     resultFiles.addAll(files)
 
@@ -72,7 +66,7 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
         // this replaces the entries of resultFiles with transformed files, if transformations apply.
         // a file may be transformed multiple times
         // fixme add checkCancelled to updateFiles? The API should be available
-        context.updateFiles(resultFiles, mutations, ext.match)
+        CompilerContext(project, messages).updateFiles(resultFiles, mutations, ext.match)
       } finally {
         val updateDuration = System.currentTimeMillis() - start
         LOG.warn("update of ${resultFiles.size} files with ${mutations.size} mutations: duration $updateDuration ms")
