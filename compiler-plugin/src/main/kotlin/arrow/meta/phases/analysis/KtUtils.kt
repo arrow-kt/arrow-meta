@@ -1,11 +1,11 @@
 package arrow.meta.phases.analysis
 
-import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -58,48 +58,89 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
   return found
 }
 
+interface Eq<A> { // from arrow
+  fun A.eqv(other: A): Boolean
+  fun A.neqv(other: A): Boolean = !eqv(other)
+
+  companion object {
+    inline operator fun <A> invoke(crossinline feqv: (A, A) -> Boolean): Eq<A> =
+      object : Eq<A> {
+        override fun A.eqv(other: A): Boolean = feqv(this, other)
+      }
+  }
+}
+
 /**
- * true if [types] contains the returnType of receiver [C]
- * [f] defines on what property two Types are equal
- * e.g.: [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc.
+ * defines Equality on the type constructor
+ */
+fun typeConstructorEq(): Eq<KotlinType> =
+  Eq { t1, t2 ->
+    t1.constructor == t2.constructor
+  }
+
+/**
+ * defines Equality on types, where FunctionTypes are reduced to their return type
+ */
+fun resolveFunctionTypeEq(): Eq<KotlinType> =
+  Eq { t1, t2 ->
+    resolveFunctionType(t1) == resolveFunctionType(t2)
+  }
+
+/**
+ * Given [eq] this function returns [KotlinType]s that [intersect] with the returnType from the list in [types].
  * One concrete example for equality on [TypeConstructor] may look like this:
  * ```kotlin:ank
  * import org.jetbrains.kotlin.descriptors.CallableDescriptor
  * import org.jetbrains.kotlin.builtins.KotlinBuiltIns
  * import org.jetbrains.kotlin.types.KotlinType
  * import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+ * import arrow.meta.phases.analysis.Eq
+ * import arrow.meta.phases.analysis.intersect
+ * //sampleStart
  *
- * fun <F : CallableDescriptor> F.returnsOnTypeConstructor(
+ * fun typeConstructorEq(): Eq<KotlinType> =
+ *  Eq { t1, t2 ->
+ *   t1.constructor == t2.constructor
+ *  }
+ *
+ * /**
+ * * this function yields true if the type constructor - short [TC] - of the returnType in F is equal to one TC in [types]
+ * */
+ * fun <F : CallableDescriptor> F.returns( //
  *   types: KotlinBuiltIns.() -> List<KotlinType>
  * ): Boolean =
- *   returnType?.let { result: KotlinType ->
- *    builtIns.types().map{ it.constructor }.contains(result.constructor)
- *   } ?: false
+ *   intersect(typeConstructorEq(), types).isNotEmpty()
+ * //sampleEnd
  * ```
- * More abstractions are here [org.jetbrains.kotlin.types.TypeUtils]
+ * @see [org.jetbrains.kotlin.types.TypeUtils] for more abstractions
+ * @param eq can be define for e.g.: [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc.
+ * @see functionTypeEq
  */
-@Suppress("UNCHECKED_CAST")
-fun <C : CallableDescriptor, A> C.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <C : CallableDescriptor> C.intersect(
+  eq: Eq<KotlinType>,
   types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  returnType?.let { result: KotlinType ->
-    builtIns.types().map(f).contains(f(result))
-  } ?: false
+): List<KotlinType> =
+  eq.run {
+    returnType?.let { result: KotlinType ->
+      builtIns.types().filter { it.eqv(result) }
+    } ?: emptyList()
+  }
 
 /**
- * true if any type of [list] is in [types]
- * [f] defines on what property two Types are equal
- * e.g.: [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc...
- * @see [returns]
+ * given [eq] this function returns a List of [KotlinType] that are contained by both [list] and [other]
+ * @param eq can be defined for [TypeConstructor], [MemberScope] or typeArguments List<[TypeProjection]>, etc.
+ * @see intersect
  */
-@Suppress("UNCHECKED_CAST")
-fun <D : DeclarationDescriptor, A> D.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <D : DeclarationDescriptor> D.intersect(
+  eq: Eq<KotlinType>,
   list: List<KotlinType>,
-  types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  list.any { type: KotlinType -> builtIns.types().map(f).contains(f(type)) }
+  other: KotlinBuiltIns.() -> List<KotlinType>
+): List<KotlinType> =
+  eq.run {
+    val set = list.toMutableList()
+    set.retainAll { t1 -> builtIns.other().any { t2 -> t1.eqv(t2) } }
+    set.toList()
+  }
 
 /**
  * resolves FunctionType to it's returnType

@@ -1,8 +1,9 @@
 package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.phases.analysis.Eq
+import arrow.meta.phases.analysis.intersect
 import arrow.meta.phases.analysis.resolveFunctionType
-import arrow.meta.phases.analysis.returns
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -92,43 +93,31 @@ val KtElement.callReturnTypes: List<KotlinType>
   get() = traverseFilter(KtCallElement::class.java) { it.returnType }
 
 /**
- * traversal of depth 1 on returnTypes in Function [ktFunction] and all it's calls in the body
- * [f] defines on what property two Types are equal
+ * this extension traverses and collects intersecting [KotlinType]s given [eq]
+ * with the returnType of [F] and all it's calls in the function body.
+ * [intersectFunction] implements a traversal of depth 1.
  * TODO: add returns with a traversal of depth n by virtue of recursion
  */
-@Suppress("UNCHECKED_CAST")
-fun <F : CallableDescriptor, A> F.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <F : CallableDescriptor> F.intersectFunction(
+  eq: Eq<KotlinType>,
   ktFunction: KtNamedFunction,
   types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  returns(f, types) || returns(f, ktFunction.callReturnTypes, types)
+): List<KotlinType> =
+  intersect(eq, types) + intersect(eq, ktFunction.callReturnTypes, types)
 
 
 /**
- * traversal of depth 1 on returnTypes in Property [prop] and all it's calls in the body
- * [f] defines on what property two Types are equal
+ * this extension traverses and collects intersecting [KotlinType]s given [eq]
+ * with the returnType of [F] and all it's calls in the initializer of [prop].
+ * [intersectProperty] implements a traversal of depth 1.
  * TODO: add returns with a traversal of depth n by virtue of recursion
  */
-@Suppress("UNCHECKED_CAST")
-fun <F : CallableDescriptor, A> F.returns(
-  f: (KotlinType) -> A = { it as A },
+fun <F : CallableDescriptor> F.intersectProperty(
+  eq: Eq<KotlinType>,
   prop: KtProperty,
   types: KotlinBuiltIns.() -> List<KotlinType>
-): Boolean =
-  returns(f, types) || returns(f, prop.callReturnTypes, types)
-
-/**
- * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the initializer to their returnType
- */
-fun <F : CallableDescriptor> F.returns(prop: KtProperty, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
-  returns(resolveFunctionType, prop, types)
-
-/**
- * convenience function where [f] reduces FunctionReturnTypes of subsequent calls in the body to their returnType
- */
-fun <F : CallableDescriptor> F.returns(ktFunction: KtNamedFunction, types: KotlinBuiltIns.() -> List<KotlinType>): Boolean =
-  returns(resolveFunctionType, ktFunction, types)
+): List<KotlinType> =
+  intersect(eq, types) + intersect(eq, prop.callReturnTypes, types)
 
 /**
  * reified PsiElement replacement

@@ -29,7 +29,6 @@ class CompilerContext(
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
-  var files: List<KtFile> = emptyList()
 
   var configuration: CompilerConfiguration? = null
 

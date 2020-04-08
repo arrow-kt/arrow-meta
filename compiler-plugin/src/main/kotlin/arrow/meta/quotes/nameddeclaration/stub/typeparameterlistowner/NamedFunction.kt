@@ -22,12 +22,12 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.namedFunction
  *
- * val Meta.reformatNamedFunction: Plugin
+ * val Meta.reformatNamedFunction: CliPlugin
  *    get() =
  *      "Reformat Named Function" {
  *        meta(

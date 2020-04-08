@@ -1,19 +1,19 @@
 package arrow.meta.quotes.scope.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.ifExpression
 
 open class IfExpressionPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
     ifExpressionPlugin
   )
 }
 
-val Meta.ifExpressionPlugin
+val Meta.ifExpressionPlugin : CliPlugin
   get() =
     "If Expression Scope Plugin" {
       meta(

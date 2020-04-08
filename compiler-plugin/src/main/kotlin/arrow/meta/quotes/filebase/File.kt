@@ -22,12 +22,12 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.file
  *
- * val Meta.reformatFile: Plugin
+ * val Meta.reformatFile: CliPlugin
  *   get() =
  *     "ReformatFile" {
  *       meta(
