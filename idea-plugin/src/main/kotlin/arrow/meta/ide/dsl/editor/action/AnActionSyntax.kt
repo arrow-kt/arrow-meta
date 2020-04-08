@@ -4,10 +4,16 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import com.intellij.codeInsight.folding.impl.actions.BaseFoldingHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.TimerListener
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.editor.Caret
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.actionSystem.EditorAction
+import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import javax.swing.Icon
 
 /**
@@ -266,4 +272,26 @@ interface AnActionSyntax : AnActionUtilitySyntax {
       override fun run(): Unit = run()
       override fun getModalityState(): ModalityState = modalityState
     }
+
+  fun AnActionSyntax.editorAction(
+    handler: EditorActionHandler
+  ): EditorAction =
+    object : EditorAction(handler) {}
+
+  fun AnActionSyntax.baseFoldingHandler(
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): BaseFoldingHandler =
+    object : BaseFoldingHandler() {
+      override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?): Unit =
+        execute(editor, caret, dataContext)
+    }
+
+  /**
+   * registers a [BaseFoldingHandler]
+   */
+  fun IdeMetaPlugin.addBaseFoldingHandler(
+    actionId: String,
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): ExtensionPhase =
+    addAnAction(actionId, editorAction(baseFoldingHandler(execute)))
 }
