@@ -28,7 +28,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
       refinementLineMarkers(),
       refinementAnnotator(),
-      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
       proofsLifecycle,
       //makeExplicitCoercionIntention(ctx),
       //makeImplicitCoercionIntention(ctx),

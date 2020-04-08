@@ -30,8 +30,8 @@ import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.lang.LanguageAnnotators
-import com.intellij.openapi.Disposable
 import com.intellij.lang.folding.LanguageFolding
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
