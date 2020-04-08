@@ -5,7 +5,6 @@ import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.resolve.isMetaSynthetic
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.processKtFile
 import arrow.meta.quotes.updateFiles
@@ -36,12 +35,6 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
   override fun transform(project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>> {
     ApplicationManager.getApplication().assertReadAccessAllowed()
     LOG.assertTrue(ProgressManager.getInstance().hasProgressIndicator())
-
-    // fixme is scope correct here? Unsure what CompilerContext is expecting here
-    // fixme do we need to set more properties of the compiler context?
-    val context = CompilerContext(project, messages, ElementScope.default(project))
-    context.files = files
-
     val resultFiles = arrayListOf<KtFile>()
     resultFiles.addAll(files)
 
@@ -72,7 +65,7 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
         // this replaces the entries of resultFiles with transformed files, if transformations apply.
         // a file may be transformed multiple times
         // fixme add checkCancelled to updateFiles? The API should be available
-        context.updateFiles(resultFiles, mutations, ext.match)
+        CompilerContext(project, messages).updateFiles(resultFiles, mutations, ext.match)
       } finally {
         val updateDuration = System.currentTimeMillis() - start
         LOG.warn("update of ${resultFiles.size} files with ${mutations.size} mutations: duration $updateDuration ms")
@@ -105,14 +98,14 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
     // a blocking read action can lead to very bad editor experience, especially we're doing a lot with the PsiFiles
     // in the transformation
     ReadAction.nonBlocking<List<Pair<KtFile, KtFile>>> {
-        val start = System.currentTimeMillis()
-        try {
-          transform(project, files, extensions)
-        } finally {
-          val duration = System.currentTimeMillis() - start
-          LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
-        }
+      val start = System.currentTimeMillis()
+      try {
+        transform(project, files, extensions)
+      } finally {
+        val duration = System.currentTimeMillis() - start
+        LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
       }
+    }
       .cancelWith(strategy.indicator)
       .expireWhen { strategy.indicator.isCanceled }
       .submit(context.docExec)
@@ -143,56 +136,56 @@ private fun QuoteSystemService.performRefresh(cache: QuoteCache, files: List<KtF
   LOG.assertTrue(strategy.indicator.isRunning)
 
   ReadAction.nonBlocking {
-      ProgressManager.getInstance().runProcess({
-        LOG.assertTrue(strategy.indicator.isRunning)
-        LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
+    ProgressManager.getInstance().runProcess({
+      LOG.assertTrue(strategy.indicator.isRunning)
+      LOG.info("resolving descriptors of transformed files: ${transformed.size} files")
 
-        if (strategy.resetCache) {
-          cache.clear()
+      if (strategy.resetCache) {
+        cache.clear()
+      }
+
+      LOG.info("resolving descriptors of transformed files: ${cache.size} files")
+      if (files.isNotEmpty()) {
+        // clear descriptors of all updatedFiles, which don't have a transformation result
+        // e.g. because meta-code isn't used anymore
+
+        // fixme this lookup is slow (exponential?), optimize when necessary
+        for (source in files) {
+          if (!transformed.any { it.first == source }) {
+            cache.removeQuotedFile(source)
+          }
         }
 
-        LOG.info("resolving descriptors of transformed files: ${cache.size} files")
-        if (files.isNotEmpty()) {
-          // clear descriptors of all updatedFiles, which don't have a transformation result
-          // e.g. because meta-code isn't used anymore
+        // the kotlin facade needs files with source and target elements
+        val facade: ResolutionFacade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
 
-          // fixme this lookup is slow (exponential?), optimize when necessary
-          for (source in files) {
-            if (!transformed.any { it.first == source }) {
-              cache.removeQuotedFile(source)
-            }
-          }
+        // fixme: remove descriptors which belong to the newly transformed files
+        transformed.forEach { (sourceFile, transformedFile) ->
+          // fixme this triggers a resolve which already queries our synthetic resolve extensions
+          val synthDescriptors = transformedFile.resolve(facade, BodyResolveMode.FULL)
+            .second.filter { it.isMetaSynthetic() }
 
-          // the kotlin facade needs files with source and target elements
-          val facade: ResolutionFacade = KotlinCacheService.getInstance(project).getResolutionFacade(files + transformed.map { it.second })
-
-          // fixme: remove descriptors which belong to the newly transformed files
-          transformed.forEach { (sourceFile, transformedFile) ->
-            // fixme this triggers a resolve which already queries our synthetic resolve extensions
-            val synthDescriptors = transformedFile.resolve(facade, BodyResolveMode.FULL)
-              .second.filter { it.isMetaSynthetic() }
-
-            synthDescriptors
-              .mapNotNull { descriptor -> descriptor.safeAs<LazyEntity>()?.let { descriptor to it } }
-              .forEach { (descriptor, entity) ->
-                try {
-                  // fixme this triggers a call to the .resolved()
-                  // via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
-                  entity.forceResolveAllContents()
-                } catch (e: IndexNotReadyException) {
-                  LOG.warn("Index wasn't ready to resolve: ${descriptor.name}")
-                }
+          synthDescriptors
+            .mapNotNull { descriptor -> descriptor.safeAs<LazyEntity>()?.let { descriptor to it } }
+            .forEach { (descriptor, entity) ->
+              try {
+                // fixme this triggers a call to the .resolved()
+                // via MetaSyntheticPackageFragmentProvider.BuildCachePackageFragmentDescriptor.Scope.getContributedClassifier
+                entity.forceResolveAllContents()
+              } catch (e: IndexNotReadyException) {
+                LOG.warn("Index wasn't ready to resolve: ${descriptor.name}")
               }
-            cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
-          }
-
-          // refresh the highlighting of editors of modified files, using the new cache
-          for ((origin, _) in transformed) {
-            DaemonCodeAnalyzer.getInstance(project).restart(origin)
-          }
+            }
+          cache.update(sourceFile, transformedFile.packageFqName to synthDescriptors)
         }
-      }, strategy.indicator)
-    }.cancelWith(strategy.indicator)
+
+        // refresh the highlighting of editors of modified files, using the new cache
+        for ((origin, _) in transformed) {
+          DaemonCodeAnalyzer.getInstance(project).restart(origin)
+        }
+      }
+    }, strategy.indicator)
+  }.cancelWith(strategy.indicator)
     .expireWhen { strategy.indicator.isCanceled }
     .expireWith(project)
     .inSmartMode(project)

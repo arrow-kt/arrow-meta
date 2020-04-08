@@ -1,9 +1,9 @@
 package arrow.meta.ide.plugins.purity
 
-import arrow.meta.Plugin
+import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.returns
-import arrow.meta.invoke
+import arrow.meta.ide.invoke
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluat
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 
-val IdeMetaPlugin.purity: Plugin
+val IdeMetaPlugin.purity: IdePlugin
   get() = "PurityPlugin" {
     meta(
       addApplicableInspection(

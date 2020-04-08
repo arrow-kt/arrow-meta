@@ -15,12 +15,12 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.whenExpression
  *
- * val Meta.reformatWhen: Plugin
+ * val Meta.reformatWhen: CliPlugin
  *    get() =
  *      "Reformat When Expression" {
  *        meta(
