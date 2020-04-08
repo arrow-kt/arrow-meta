@@ -1,25 +1,7 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
-import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
-import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.plugins.proofs.phases.areTypesCoerced
-import arrow.meta.plugins.proofs.phases.coerceProof
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
-import org.jetbrains.kotlin.nj2k.postProcessing.type
-import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
-
+/*
 fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
-  compilerContext.run {
     addIntention(
       text = "Make coercion explicit",
       kClass = KtElement::class.java,
@@ -112,3 +94,4 @@ fun KtElement.explicitParticipatingTypes(): List<PairTypes> =
     }
     else -> emptyList()
   }
+*/
