@@ -145,10 +145,10 @@ interface ExtensionProviderSyntax {
    * ```
    * Registering [MetaProvider] in `Meta` may look like this:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.extensions.ExtensionPointName
    * import com.intellij.openapi.extensions.ExtensionPoint
    * import javax.swing.Icon
@@ -161,7 +161,7 @@ interface ExtensionProviderSyntax {
    *   }
    * }
    * //sampleStart
-   * val IdeMetaPlugin.registeringIdeExtensions: Plugin
+   * val IdeMetaPlugin.registeringIdeExtensions: IdePlugin
    *   get() = "Register ExtensionPoints" {
    *     meta(
    *        registerExtensionPoint(MetaProvider.EP_NAME, MetaProvider::class.java, ExtensionPoint.Kind.INTERFACE)

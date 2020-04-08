@@ -16,6 +16,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface ApplicationSyntax {
@@ -40,16 +41,16 @@ interface ApplicationSyntax {
    * }
    * ```
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.dsl.application.ServiceKind
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.project.Project
    * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
-   * val IdeMetaPlugin.services: Plugin
+   * val IdeMetaPlugin.services: IdePlugin
    *   get() = "Register project- and application-level services" {
    *     meta(
    *       addService(
@@ -80,16 +81,16 @@ interface ApplicationSyntax {
    * ```
    * Now the instances are available at runtime.
    * ```kotlin:ank
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
    * import com.intellij.openapi.project.Project
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.logAnnotator: Plugin
+   * val IdeMetaPlugin.logAnnotator: IdePlugin
    *   get() = "Log Annotator" {
    *     meta(
    *       addAnnotator( // Annotators traverse PsiElements and are means to write language Plugins
@@ -114,17 +115,17 @@ interface ApplicationSyntax {
    * replaces a [service] with [instance].
    * The following plugin needs a different [instance] than what 3rd party plugins provide - from our example in [addService].
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.plugins.purity.isImpure
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.logAnnotator: Plugin
+   * val IdeMetaPlugin.logAnnotator: IdePlugin
    *   get() = "Log Function Annotator" {
    *     meta(
    *       replaceService(
@@ -201,11 +202,11 @@ interface ApplicationSyntax {
   /**
    * registers an [AppLifecycleListener].
    * ```kotlin:ank
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    *
-   * val IdeMetaPlugin.goodbye: Plugin
+   * val IdeMetaPlugin.goodbye: IdePlugin
    *   get() = "Goodbye after Application is closed" {
    *     meta(
    *       addAppLifecycleListener(
@@ -251,6 +252,56 @@ interface ApplicationSyntax {
       override fun appStarting(project: Project?): Unit = appStarting(project)
       override fun appWillBeClosed(restarted: Boolean): Unit = appWillBeClosed(restarted)
     }
+
+
+  fun IdeMetaPlugin.addProjectLifecycle(
+    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
+    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+  ): ExtensionPhase =
+    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded, postStartupActivitiesPassed))
+
+  /**
+   * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
+   */
+  fun ApplicationSyntax.projectLifecycleListener(
+    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
+    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+  ): ProjectLifecycle =
+    object : ProjectLifecycle {
+      override fun projectComponentsInitialized(project: Project): Unit =
+        initialize(this, project)
+
+      override fun beforeProjectLoaded(project: Project): Unit =
+        beforeProjectLoaded(this, project)
+
+      override fun afterProjectClosed(project: Project): Unit =
+        afterProjectClosed(this, project)
+
+      override fun postStartupActivitiesPassed(project: Project): Unit =
+        postStartupActivitiesPassed(this, project)
+
+      override fun dispose(): Unit = dispose(this)
+    }
+
+  /**
+   * convenience extension to register the CliPlugins from an [IdeMetaPlugin] Plugin
+   */
+  fun IdeMetaPlugin.registerMetaPlugin(
+    conf: CompilerConfiguration = CompilerConfiguration(),
+    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    addProjectLifecycle(
+      initialize = { project: Project ->
+        registerMetaComponents(project, conf)
+      },
+      dispose = dispose
+    )
 }
 
 /**
@@ -264,29 +315,3 @@ enum class ServiceKind {
 }
 
 interface ProjectLifecycle : ProjectLifecycleListener, Disposable
-
-/**
- * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
- */
-fun projectLifecycleListener(
-  initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-  afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-  dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
-  beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-  postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
-): ProjectLifecycle =
-  object : ProjectLifecycle {
-    override fun projectComponentsInitialized(project: Project): Unit =
-      initialize(this, project)
-
-    override fun beforeProjectLoaded(project: Project): Unit =
-      beforeProjectLoaded(this, project)
-
-    override fun afterProjectClosed(project: Project): Unit =
-      afterProjectClosed(this, project)
-
-    override fun postStartupActivitiesPassed(project: Project): Unit =
-      postStartupActivitiesPassed(this, project)
-
-    override fun dispose(): Unit = dispose(this)
-  }

@@ -1,6 +1,6 @@
 package arrow.meta.internal.registry
 
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.dsl.config.ConfigSyntax
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
@@ -94,9 +94,7 @@ import java.util.*
 
 interface InternalRegistry : ConfigSyntax {
 
-  fun intercept(ctx: CompilerContext): List<Plugin>
-
-  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
+  fun intercept(ctx: CompilerContext): List<CliPlugin>
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
@@ -205,11 +203,10 @@ interface InternalRegistry : ConfigSyntax {
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
             //is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
-            else -> messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
+            else -> ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
           }
         }
         currentPhase.registerPhase()
-        ctx.registerIdeExclusivePhase(currentPhase)
       }
     }
   }

@@ -12,12 +12,12 @@ import org.jetbrains.kotlin.psi.KtExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.dotQualifiedExpression
  *
- * val Meta.reformatDotQualifiedExpression: Plugin
+ * val Meta.reformatDotQualifiedExpression: CliPlugin
  *    get() =
  *      "Reformat Dot Qualified Expression" {
  *        meta(

@@ -11,12 +11,12 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
  *
  *  ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.whenCondition
  *
- * val Meta.reformatWhenCondition: Plugin
+ * val Meta.reformatWhenCondition: CliPlugin
  *  get() =
  *   "ReformatWhenCondition" {
  *    meta(
