@@ -15,12 +15,12 @@ import org.jetbrains.kotlin.psi.KtExpression
  *
  *  ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.destructuringDeclaration
  *
- * val Meta.reformatDestructuringDeclaration: Plugin
+ * val Meta.reformatDestructuringDeclaration: CliPlugin
  *    get() =
  *      "Reformat Destructuring Declaration" {
  *        meta(

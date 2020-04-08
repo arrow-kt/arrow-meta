@@ -27,8 +27,11 @@ class ProofTypeChecker(private val compilerContext: CompilerContext) : NewKotlin
   }
 
 
-  override fun equalTypes(p0: KotlinType, p1: KotlinType): Boolean =
-    baseLineTypeChecker.equalTypes(p0, p1)
+  override fun equalTypes(subtype: KotlinType, supertype: KotlinType): Boolean =
+    Log.Verbose({ "ProofTypeChecker.equalTypes: ${subtype.toString().take(logTypeSize)} : ${supertype.toString().take(logTypeSize)} -> $this" }) {
+      baseLineTypeChecker.equalTypes(subtype, supertype)
+    }
+
 
   @TypeRefinement
   override val kotlinTypeRefiner: KotlinTypeRefiner = baseLineTypeChecker.kotlinTypeRefiner

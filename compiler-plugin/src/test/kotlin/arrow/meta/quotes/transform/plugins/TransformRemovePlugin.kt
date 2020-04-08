@@ -1,15 +1,15 @@
 package arrow.meta.quotes.transform.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.namedFunction
 
-val Meta.transformRemove: List<Plugin>
+val Meta.transformRemove: List<CliPlugin>
   get() = listOf(transformRemoveSingleElement, transformRemoveSingleElementFromContext, transformRemoveElementsFromContext)
 
-private val Meta.transformRemoveSingleElement: Plugin
+private val Meta.transformRemoveSingleElement: CliPlugin
   get() =
     "Transform Remove Single Element" {
       meta(
@@ -19,7 +19,7 @@ private val Meta.transformRemoveSingleElement: Plugin
       )
     }
 
-private val Meta.transformRemoveSingleElementFromContext: Plugin
+private val Meta.transformRemoveSingleElementFromContext: CliPlugin
   get() =
     "Transform Remove Single Element from Context" {
       meta(
@@ -32,7 +32,7 @@ private val Meta.transformRemoveSingleElementFromContext: Plugin
       )
     }
 
-private val Meta.transformRemoveElementsFromContext: Plugin
+private val Meta.transformRemoveElementsFromContext: CliPlugin
   get() =
     "Transform Remove Multiple Elements from Context" {
       meta(

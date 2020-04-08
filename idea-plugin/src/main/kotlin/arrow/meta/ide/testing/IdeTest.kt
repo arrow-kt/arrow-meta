@@ -1,8 +1,8 @@
 package arrow.meta.ide.testing
 
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import arrow.meta.ide.testing.env.ideTest
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 typealias Source = String
 

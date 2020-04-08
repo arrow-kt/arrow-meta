@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.resolve.diagnostics
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
+import arrow.meta.plugins.proofs.phases.coerceProof
 import arrow.meta.plugins.proofs.phases.extensionProof
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
@@ -19,7 +20,7 @@ fun CompilerContext.suppressProvenTypeMismatch(diagnostic: Diagnostic): Boolean 
       val subType = diagnosticWithParameters.b
       val superType = diagnosticWithParameters.a
       Log.Verbose({ "suppressProvenTypeMismatch: $subType, $superType, $this" }) {
-        extensionProof(subType, superType)?.coerce
+        coerceProof(subType, superType) != null
       }
     } == true
 
@@ -29,7 +30,7 @@ fun CompilerContext.suppressTypeInferenceExpectedTypeMismatch(diagnostic: Diagno
       val subType = diagnosticWithParameters.a
       val superType = diagnosticWithParameters.b
       Log.Verbose({ "suppressTypeInferenceExpectedTypeMismatch: $subType, $superType, $this" }) {
-        extensionProof(subType, superType) != null
+        coerceProof(subType, superType) != null
       }
     } == true
 
@@ -48,7 +49,7 @@ fun CompilerContext.suppressConstantExpectedTypeMismatch(diagnostic: Diagnostic)
       }
       Log.Verbose({ "suppressConstantExpectedTypeMismatch: $subType, $superType, $this" }) {
         subType?.let {
-          extensionProof(it, superType) != null
+          coerceProof(it, superType) != null
         }
       }
     } == true

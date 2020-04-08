@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeSubstitutor
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
@@ -231,6 +232,4 @@ val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
                 it.key.type.constructor to it.value.type.unwrap()
             }.toMap()
         )
-
-
     }
