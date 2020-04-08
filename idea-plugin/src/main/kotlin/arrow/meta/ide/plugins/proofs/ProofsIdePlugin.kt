@@ -5,10 +5,10 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnKinds
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnTuples
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnUnions
+import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -16,25 +16,27 @@ import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isNegationProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
 import arrow.meta.ide.resources.ArrowIcons
+import arrow.meta.phases.Composite
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
-  get() = "Type Proofs IDE" {
-    meta(
-      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
-      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
-      refinementLineMarkers(),
-      refinementAnnotator(),
-      proofsLifecycle,
-      //makeExplicitCoercionIntention(ctx),
-      //makeImplicitCoercionIntention(ctx),
-      codeFoldingOnUnions,
-      codeFoldingOnTuples,
-      codeFoldingOnKinds
-    )
+  get() {
+    return "Type Proofs IDE" {
+      meta(
+        proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
+        proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
+        proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
+        refinementLineMarkers(),
+        refinementAnnotator(),
+        proofsLifecycle,
+        //makeExplicitCoercionIntention(ctx),
+        //makeImplicitCoercionIntention(ctx),
+        codeFolding
+      )
+    }
   }
 
 val IdeMetaPlugin.typeProofsCli: CliPlugin
@@ -44,3 +46,10 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
       addDiagnosticSuppressor { suppressProvenTypeMismatch(it) }
     )
   }
+
+private val IdeMetaPlugin.codeFolding: ExtensionPhase
+  get() = Composite(
+    codeFoldingOnUnions,
+    codeFoldingOnTuples,
+    codeFoldingOnKinds
+  )
