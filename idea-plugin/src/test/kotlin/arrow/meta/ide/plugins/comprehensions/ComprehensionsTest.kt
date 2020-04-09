@@ -9,7 +9,7 @@ import org.junit.Test
 
 class ComprehensionsTest : IdeTestSetUp() {
   @Test
-  fun `ComprehensionsTest for LineMarkers`() =
+  fun `ComprehensionsTest for LineMarkers`(): Unit =
     ideTest(
       IdeTest(
         code = ComprehensionsTestCode.code1,
