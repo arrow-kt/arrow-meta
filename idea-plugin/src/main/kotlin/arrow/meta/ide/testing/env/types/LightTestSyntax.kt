@@ -60,4 +60,7 @@ object LightTestSyntax {
    */
   fun KtFile.highlighting(myFixture: CodeInsightTestFixture, toIgnore: List<Int>, changes: (KtFile) -> Boolean = { it.isScript() }): List<HighlightInfo> =
     CodeInsightTestFixtureImpl.instantiateAndRun(this, myFixture.editor, toIgnore.toIntArray(), changes(this)).filterNotNull()
+
+
+
 }

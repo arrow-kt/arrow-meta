@@ -15,10 +15,10 @@ import org.junit.Assert
  * testing methods such as property-based testing, unit tests and many more.
  * @see [arrow.meta.ide.testing.env.interpreter]
  */
-fun <A, F : IdeSyntax> IdeTest<A, F>.runTest(
+fun <F : IdeSyntax, A> IdeTest<F, A>.runTest(
   fixture: CodeInsightTestFixture,
   ctx: F,
-  interpreter: (test: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture) -> Unit = ::interpreter
+  interpreter: (test: IdeTest<F, A>, ctx: F, fixture: CodeInsightTestFixture) -> Unit = ::interpreter
 ): Unit =
   interpreter(this, ctx, fixture)
 
@@ -26,7 +26,7 @@ fun <A, F : IdeSyntax> IdeTest<A, F>.runTest(
  * [testResult] evaluates the actual result within the [IdeEnvironment]
  * @param ctx plugin context
  */
-fun <A, F : IdeSyntax> IdeTest<A, F>.testResult(ctx: F, fixture: CodeInsightTestFixture): A =
+fun <F : IdeSyntax, A> IdeTest<F, A>.testResult(ctx: F, fixture: CodeInsightTestFixture): A =
   test(IdeEnvironment, code, fixture, ctx)
 
 /**
@@ -34,7 +34,7 @@ fun <A, F : IdeSyntax> IdeTest<A, F>.testResult(ctx: F, fixture: CodeInsightTest
  * In addition, it throws an [AssertionError] with the [ideTest.result.message],
  * whenever the expected [ideTest.result] doesn't match the actual result from [testResult].
  */
-fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture): Unit =
+fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: CodeInsightTestFixture): Unit =
   ideTest.run {
     val a = testResult(ctx, fixture)
     println("IdeTest results in $a")
@@ -123,9 +123,9 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  * @param myFixture is a key component of the underlying Intellij Testing API.
  * @param ctx is the plugin context if unspecified it will use the [IdeEnvironment]
  */
-fun <A, F : IdeSyntax> ideTest(
+fun <F : IdeSyntax, A> ideTest(
   myFixture: CodeInsightTestFixture,
   ctx: F = IdeEnvironment as F,
-  tests: IdeEnvironment.() -> List<IdeTest<A, F>>
+  tests: IdeEnvironment.() -> List<IdeTest<F, A>>
 ): Unit =
   tests(IdeEnvironment).forEach { it.runTest(myFixture, ctx) }
