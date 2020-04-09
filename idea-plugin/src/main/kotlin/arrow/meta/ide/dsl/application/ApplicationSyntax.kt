@@ -12,15 +12,24 @@ import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.extensions.LoadingOrder
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.util.Function
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
+/**
+ * Multi-purpose algebra to interact with the Ide lifecycle through manipulating, registering or replacing services and extensions that run at their respective phase.
+ * Services can be distributed across the ide in three different kinds at application-level, project-level or module-level.
+ * The intellij platform distributes an isolated instance depending on the level - isolated in terms of other instances -,
+ * that means an application-level service has solely one instance, whereas module-level services have an instance for each module.
+ * Though it is possible to register module-level services with Meta it is not advised to do so, due to high memory consumption.
+ */
 interface ApplicationSyntax {
-  // TODO: Add an service encoding like service: (Project) -> Class<A>
   /**
    * registers an service and the instance based on its [kind].
    * The IntelliJ Platform ensures that only one instance of [instance] is loaded, when [kind] is [ServiceKind.Application],
@@ -109,7 +118,7 @@ interface ApplicationSyntax {
    * @see arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
    */
   fun <A : Any> IdeMetaPlugin.addService(service: Class<A>, kind: ServiceKind, instance: A): ExtensionPhase =
-    ApplicationProvider.Service(service, instance, kind)
+    ApplicationProvider.AppService(service, instance)
 
   /**
    * replaces a [service] with [instance].
@@ -151,10 +160,10 @@ interface ApplicationSyntax {
    * ```
    */
   fun <A : Any> IdeMetaPlugin.replaceService(service: Class<A>, instance: A): ExtensionPhase =
-    ApplicationProvider.ReplaceService(service, instance)
+    ApplicationProvider.ReplaceAppService(service, instance)
 
   /**
-   * overrides a Service interface [from] with [to], when [override] == true.
+   * overrides a AppService interface [from] with [to], when [override] == true.
    * [from] and [to] need to have a type relationship, either through subtyping or other means like `type-proofs`.
    * The application will raise an error at runtime if the latter is not valid or
    * when [override] == false and there is already a service instance associated with [from].
@@ -211,7 +220,7 @@ interface ApplicationSyntax {
    *     meta(
    *       addAppLifecycleListener(
    *         appClosing = {
-   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!")
+   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!", "再见")
    *         }
    *       )
    *     )
@@ -302,16 +311,38 @@ interface ApplicationSyntax {
       },
       dispose = dispose
     )
+
+  /**
+   * registers an [ModuleListener]
+   */
+  fun IdeMetaPlugin.addModuleListener(
+    moduleAdded: (project: Project, module: Module) -> Unit,
+    moduleRemoved: (project: Project, module: Module) -> Unit,
+    beforeModuleRemoved: (project: Project, module: Module) -> Unit,
+    modulesRenamed: (project: Project, modules: List<Module>, oldNames: (Module) -> String) -> Unit
+  ): ExtensionPhase =
+    ApplicationProvider.MetaModuleListener(moduleListener(moduleAdded, moduleRemoved, beforeModuleRemoved, modulesRenamed))
+
+  fun ApplicationSyntax.moduleListener(
+    moduleAdded: (project: Project, module: Module) -> Unit,
+    moduleRemoved: (project: Project, module: Module) -> Unit,
+    beforeModuleRemoved: (project: Project, module: Module) -> Unit,
+    modulesRenamed: (project: Project, modules: List<Module>, oldNames: (Module) -> String) -> Unit
+  ): ModuleListener =
+    object : ModuleListener {
+      override fun moduleRemoved(project: Project, module: Module): Unit =
+        moduleRemoved(project, module)
+
+      override fun beforeModuleRemoved(project: Project, module: Module): Unit =
+        beforeModuleRemoved(project, module)
+
+      override fun modulesRenamed(project: Project, modules: MutableList<Module>, oldNameProvider: Function<Module, String>): Unit =
+        modulesRenamed(project, modules.toList()) { oldNameProvider.`fun`(it) }
+
+      override fun moduleAdded(project: Project, module: Module): Unit =
+        moduleAdded(project, module)
+    }
 }
 
-/**
- * Services can be distributed across the ide in three different kinds at application-level, project-level or module-level.
- * The platform provides an isolated instance depending on the level - isolated in terms of other instances -, that means an application-level service has solely one instance,
- * whereas module-level services have an instance for each module.
- * Though it is possible to construct module-level services with Meta it is not advised to do so, due to high memory consumption.
- */
-enum class ServiceKind {
-  Application, Project
-}
 
 interface ProjectLifecycle : ProjectLifecycleListener, Disposable
