@@ -14,12 +14,12 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.modifierList
  *
- * val Meta.reformatModifierList: Plugin
+ * val Meta.reformatModifierList: CliPlugin
  *    get() =
  *      "Reformat ModifierList" {
  *        meta(
