@@ -18,40 +18,28 @@ import org.jetbrains.kotlin.types.KotlinType
 
 val IdeMetaPlugin.codeFoldingOnUnions: ExtensionPhase
   get() = addFoldingBuilder(
-    placeHolderText = { node: ASTNode ->
-      (node.psi as? KtTypeReference)?.let {
-        if (it.parentTypeMatches()) {
-          it.toFoldString()
-        } else ""
-      }
-    },
-    foldRegions = { element: PsiElement, _: Document, _: Boolean ->
-      (element as KtElement).typeReferences
-        .filter { it.parentTypeMatches() }
-        .map { FoldingDescriptor(it, it.textRange) }
-    },
-    isCollapsedByDefault = {
-      true
-    })
+    isTypeMatching = ::parentTypeMatches,
+    toFoldString = ::foldString
+  )
 
-private fun KtTypeReference.parentTypeMatches(): Boolean =
-  getType()?.isTypeMatching() == true &&
-    strictParents().all { psiElement ->
+private fun parentTypeMatches(typeReference: KtTypeReference): Boolean =
+  typeReference.getType()?.isTypeMatching() == true &&
+    typeReference.strictParents().all { psiElement ->
       (psiElement as? KtTypeReference)?.getType()?.isTypeMatching() != true
     }
 
 private fun KotlinType.isTypeMatching() =
   constructor.declarationDescriptor?.fqNameSafe?.asString() == "arrow.Union22"
 
-private fun KtTypeReference.toFoldString(): String =
-  (firstChild as? KtUserType)?.typeArgumentList?.children?.toList()?.let { typeProjections ->
+private fun foldString(typeReferenceParent: KtTypeReference): String =
+  (typeReferenceParent.firstChild as? KtUserType)?.typeArgumentList?.children?.toList()?.let { typeProjections ->
     if (typeProjections.isEmpty()) ""
     else {
       val list = typeProjections.subList(1, typeProjections.size)
         .map {
           val typeReference = (it as? KtTypeProjection)?.typeReference
           if (typeReference?.getType()?.isTypeMatching() == true) {
-            typeReference.toFoldString()
+            foldString(typeReference)
           } else {
             it.text
           }
