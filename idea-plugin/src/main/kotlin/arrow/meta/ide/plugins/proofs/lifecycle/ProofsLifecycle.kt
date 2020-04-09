@@ -29,7 +29,9 @@ val IdeMetaPlugin.proofsLifecycle: ExtensionPhase
     }
   )
 
-
+/**
+ * TODO: use simpler Project-level ApplicationSyntax
+ */
 private inline fun Project.replaceKotlinCacheService(f: (KotlinCacheService) -> KotlinCacheService): Unit {
   picoContainer.safeAs<DefaultPicoContainer>()?.apply {
     getComponentAdapterOfType(KotlinCacheService::class.java)?.apply {
