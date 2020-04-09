@@ -1,5 +1,6 @@
 package arrow.meta.ide.testing
 
+import arrow.meta.ide.dsl.IdeSyntax
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -21,24 +22,24 @@ data class IdeTest<A>(
   val result: IdeResolution<A>
 )
 
-object IdeTestEnvironment : IdeTestSyntax
+object IdeTestEnvironment : IdeTestSyntax, IdeSyntax
 
 /**
  * [transform] defines a valid representation of the TestResult of Type [A], where [null] stands for a wrong or unexpected representation.
  * [fails], [failsWith], [empty] and [resolves] facilitate syntactic sugar to express semantic implications of an expected result.
  * @see ideTest
  */
-data class IdeResolution<A>(val message: String, val transform: (result: A) -> A? = { it })
+data class IdeResolution<A>(val message: String, val transform: IdeSyntax.(result: A) -> A? = { it })
 
 /**
  * @see IdeResolution
  */
-fun <A> failsWith(message: String, transform: (result: A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
+fun <A> failsWith(message: String, transform: IdeSyntax.(result: A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
 
 /**
  * @see IdeResolution
  */
-fun <A> resolves(message: String, transform: (result: A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
+fun <A> resolves(message: String, transform: IdeSyntax.(result: A) -> A?): IdeResolution<A> = IdeResolution(message, transform)
 
 /**
  * @see IdeResolution

@@ -30,7 +30,7 @@ fun <A> interpreter(ideTest: IdeTest<A>): Unit =
   ideTest.run {
     val a = testResult()
     println("IdeTest results in $a")
-    Assert.assertNotNull(result.message, result.transform(a))
+    Assert.assertNotNull(result.message, result.transform(IdeTestEnvironment, a))
   }
 
 /**
