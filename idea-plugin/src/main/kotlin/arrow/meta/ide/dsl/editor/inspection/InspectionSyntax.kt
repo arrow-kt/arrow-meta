@@ -105,12 +105,16 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   ): ExtensionPhase =
     addLocalInspection(
       applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
-      level,
-      defaultFixText,
-      defaultFixText,
       groupPath,
-      defaultFixText
+      level
     )
+
+  fun <K : KtElement> IdeMetaPlugin.addLocalInspection(
+    inspection: AbstractApplicabilityBasedInspection<K>,
+    groupPath: Array<String>,
+    level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
+  ): ExtensionPhase =
+    addLocalInspection(inspection, level, inspection.defaultFixText, inspection.defaultFixText, groupPath, inspection.defaultFixText)
 
   /**
    * registers a GlobalInspection.
