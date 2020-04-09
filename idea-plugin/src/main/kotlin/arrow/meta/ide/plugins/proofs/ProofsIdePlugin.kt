@@ -8,6 +8,7 @@ import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnKinds
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnTuples
 import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnUnions
+import arrow.meta.ide.plugins.proofs.folding.typeFoldingHandler
 import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
@@ -34,7 +35,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
         proofsLifecycle,
         //makeExplicitCoercionIntention(ctx),
         //makeImplicitCoercionIntention(ctx),
-        codeFolding
+        codeFolding,
+        typeFoldingHandler
       )
     }
   }
