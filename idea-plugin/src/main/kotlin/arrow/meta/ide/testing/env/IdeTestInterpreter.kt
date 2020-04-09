@@ -1,90 +1,131 @@
 package arrow.meta.ide.testing.env
 
+import arrow.meta.ide.dsl.IdeSyntax
 import arrow.meta.ide.plugins.helloworld.helloWorld
+import arrow.meta.ide.testing.IdeEnvironment
 import arrow.meta.ide.testing.IdeTest
-import arrow.meta.ide.testing.IdeTestEnvironment
+import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerTestSyntax
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.junit.Assert
 
 /**
- * [runTest] executes the test with a custom [interpreter], which facilitates to run a test in any environment.
+ * [runTest] executes the test with a custom [interpreter], which facilitates to run a test in any environment, based on a plugin context [F].
  * Hence, the Testing DSL for IntelliJ supports pure or impure Test environments and allows to compose them in a variety of
  * testing methods such as property-based testing, unit tests and many more.
  * @see [arrow.meta.ide.testing.env.interpreter]
  */
-fun <A> IdeTest<A>.runTest(interpreter: (test: IdeTest<A>) -> Unit = ::interpreter): Unit =
-  interpreter(this)
+fun <A, F : IdeSyntax> IdeTest<A, F>.runTest(
+  fixture: CodeInsightTestFixture,
+  ctx: F,
+  interpreter: (test: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture) -> Unit = ::interpreter
+): Unit =
+  interpreter(this, ctx, fixture)
 
 /**
- * [testResult] evaluates the actual result within the [IdeTestEnvironment]
+ * [testResult] evaluates the actual result within the [IdeEnvironment]
+ * @param ctx plugin context
  */
-fun <A> IdeTest<A>.testResult(): A =
-  test(IdeTestEnvironment, code, myFixture)
+fun <A, F : IdeSyntax> IdeTest<A, F>.testResult(ctx: F, fixture: CodeInsightTestFixture): A =
+  test(IdeEnvironment, code, fixture, ctx)
 
 /**
- * The default [interpreter] evaluates and prints the actual result in an impure Environment.
+ * The default [interpreter] evaluates and prints the actual result [A] on the console.
  * In addition, it throws an [AssertionError] with the [ideTest.result.message],
  * whenever the expected [ideTest.result] doesn't match the actual result from [testResult].
  */
-fun <A> interpreter(ideTest: IdeTest<A>): Unit =
+fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture): Unit =
   ideTest.run {
-    val a = testResult()
+    val a = testResult(ctx, fixture)
     println("IdeTest results in $a")
-    Assert.assertNotNull(result.message, result.transform(IdeTestEnvironment, a))
+    Assert.assertNotNull(result.message, result.transform(ctx, a))
   }
 
 /**
  * This extension runs each test for selected editor features.
- * Each Test class has to extend [IdeTestSetUp], in order to spin-up the underlying IntelliJ Testing Platform at RunTime.
+ * Each Test class has to extend [IdeTestSetUp], in order to spin-up the underlying Intellij Testing Platform at runtime.
+ * That also insures that the property [myFixture] is properly instantiated.
  * ```kotlin
  * class ExampleTest: IdeTestSetUp() {
  *   /** test features **/
  * }
  * ```
- * One IdeTest bundles the necessary components for a testSuit and the general schema looks like this:
+ * One IdeTest is composed by the source code, a test described with algebras in [IdeTestSyntax], and the expected result.
+ * Based on a dummy IdePlugin
  * ```kotlin
- * @Test
- * fun `test feature`(): Unit =
- *  ideTest(
- *   IdeTest(
- *     myFixture, // the IntelliJ test environment spins up this value automatically
- *     code = "val exampleCode = 2",
- *     test = { code, myFixture ->
- *       /**
- *       * In addition to the parameters above the [IdeTestEnvironment] is in Scope, which bundles test operations
- *       * over the [IdeSyntax] and implements [IdeTestSyntax]. The latter composes a symmetric API over [IdeSyntax] in respect to tests.
- *       * That means an interface such as [LineMarkerSyntax] from the [IdeSyntax] is tested with [LineMarkerTestSyntax] from the [IdeTestSyntax].
- *       **/
- *     },
- *     result = // here we define what behavior is expected
- *    ),
- *    ... // you may add more test suit's for the same feature with different code examples and test's
- *  )
+ * class MyIdePlugin : IdeSyntax, IdeInternalRegistry
  * ```
- *
+ * a general schema looks like this:
+ * ```kotlin:ank:playground
+ * import arrow.meta.ide.dsl.IdeSyntax
+ * import arrow.meta.ide.internal.registry.IdeInternalRegistry
+ * import arrow.meta.ide.testing.IdeTest
+ * import arrow.meta.ide.testing.Source
+ * import arrow.meta.ide.testing.env.IdeTestSetUp
+ * import arrow.meta.ide.testing.env.ideTest
+ * import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+ * import org.junit.Test
+ * //sampleStart
+ * class ExampleTest : IdeTestSetUp() {
+ *   @Test
+ *   fun `general test schema`(): Unit =
+ *     ideTest(
+ *       myFixture = myFixture, // the IntelliJ test environment spins up [myFixture] automatically at runtime.
+ *       ctx = MyIdePlugin() // add here your ide plugin, to get dependencies and created features in the scope of [test] and [result].
+ *     ) {
+ *       listOf(
+ *         IdeTest(
+ *           "val exampleCode = 2",
+ *           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: MyIdePlugin ->
+ *             /**
+ *              * In addition to the parameters above the [IdeEnvironment] is in Scope, which bundles test operations in [IdeTestSyntax]
+ *              * over the [IdeSyntax]. [IdeTestSyntax] composes a symmetric API over [IdeSyntax] in respect to tests.
+ *              * That means an interface such as [LineMarkerSyntax] from the [IdeSyntax] is tested with [LineMarkerTestSyntax] from the [IdeTestSyntax].
+ *              * Furthermore, one can use the scope of [ctx] to use declared dependencies and features in the test.
+ *              **/
+ *           },
+ *           result = resolves("Any result is accepted") // here we define what behavior is expected
+ *         )... // you may add more test suit's for the same or related ide feature with different code examples and test's
+ *       )
+ *     }
+ * }
+ * //sampleEnd
+ * class MyIdePlugin : IdeSyntax, IdeInternalRegistry
+ * ```
  * Given the [helloWorld] ide plugin, one concrete example may look like this:
  * ```kotlin
  * @Test
- * fun `test if lineMarker is displayed`(): Unit =
+ * fun `hello World LineMarker is displayed`(): Unit =
  *   ideTest(
- *     IdeTest(
- *       myFixture = myFixture,
- *       code = """
- *       | fun helloWorld(): String =
- *       |   "Hello world!"
- *       """.trimIndent(),
- *       test = { code, myFixture ->
- *         collectLM(code, myFixture, ArrowIcons.ICON1) // this collect's all visible LineMarkers in the editor for a given Icon
- *       },
- *       result = resolves("LineMarker Test for helloWorld") {
- *         it.takeIf { collected ->
- *           collected.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
+ *     myFixture = myFixture,
+ *     ctx = IdeMetaPlugin()
+ *   ) {
+ *     listOf(
+ *       IdeTest(
+ *         code = """
+ *         | fun helloWorld(): String =
+ *         |   "Hello world!"
+ *         """.trimIndent(),
+ *         test = { code: Source, myFixture: CodeInsightTestFixture, ctx ->
+ *           collectLM(code, myFixture, ArrowIcons.ICON1) // this collect's all visible LineMarkers in the editor for the given Icon
+ *         },
+ *         result = resolvesWith("LineMarker Test for helloWorld") {
+ *           it.takeIf { collected ->
+ *             collected.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
+ *           }
  *         }
- *       }
+ *       )
  *     )
- *   )
+ *   }
  * ```
+ * The key in `result` is to define the shape of the expected outcome, whether the test represents a valid or invalid representation of [A].
  * @see [runTest], [IdeTest], [LineMarkerTestSyntax]
+ * @param myFixture is a key component of the underlying Intellij Testing API.
+ * @param ctx is the plugin context if unspecified it will use the [IdeEnvironment]
  */
-fun <A> ideTest(vararg tests: IdeTest<A>): Unit =
-  tests.toList().forEach { it.runTest() }
+fun <A, F : IdeSyntax> ideTest(
+  myFixture: CodeInsightTestFixture,
+  ctx: F = IdeEnvironment as F,
+  tests: IdeEnvironment.() -> List<IdeTest<A, F>>
+): Unit =
+  tests(IdeEnvironment).forEach { it.runTest(myFixture, ctx) }
