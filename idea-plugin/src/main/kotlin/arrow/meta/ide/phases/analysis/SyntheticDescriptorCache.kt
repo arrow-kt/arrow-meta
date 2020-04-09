@@ -1,6 +1,5 @@
 package arrow.meta.ide.phases.analysis
 
-import arrow.meta.ide.phases.resolve.MetaRecursiveVisitor
 import arrow.meta.quotes.isMetaFile
 import arrow.meta.quotes.ktFile
 import com.intellij.openapi.vfs.VirtualFile

@@ -1,15 +1,15 @@
 package arrow.meta.ide.testing.dsl.lineMarker
 
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
-import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
+import arrow.meta.ide.testing.env.ideTest
 import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.LineMarkerProvider
+import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import arrow.meta.ide.testing.env.ideTest
 import javax.swing.Icon
 
 /**

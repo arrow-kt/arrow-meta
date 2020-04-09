@@ -19,9 +19,9 @@ interface DocumentationSyntax {
    * registers a [DocumentationProvider].
    * Users are now able to hover over descriptors and see the provided documentation.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
    * import org.jetbrains.kotlin.idea.HtmlClassifierNamePolicy
    * import org.jetbrains.kotlin.idea.WrapValueParameterHandler
@@ -45,7 +45,7 @@ interface DocumentationSyntax {
    * }
    *
    * //sampleStart
-   * val IdeMetaPlugin.sampleQuickDocs: Plugin
+   * val IdeMetaPlugin.sampleQuickDocs: IdePlugin
    *  get() = "QuickDocsDeclarations" {
    *   meta(
    *    addDocumentationProvider(

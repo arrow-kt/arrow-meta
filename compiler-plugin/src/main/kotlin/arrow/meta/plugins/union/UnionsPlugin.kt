@@ -1,7 +1,7 @@
 package arrow.meta.plugins.union
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.codegen.ir.IrUtils
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -47,7 +47,7 @@ import org.jetbrains.kotlin.types.KotlinType
  * +  else NotANumber
  * ```
  */
-val Meta.unionTypes: Plugin
+val Meta.unionTypes: CliPlugin
   get() =
     "Union Types" {
       meta(

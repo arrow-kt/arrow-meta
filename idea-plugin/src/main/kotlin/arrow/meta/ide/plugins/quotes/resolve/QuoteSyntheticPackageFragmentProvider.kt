@@ -1,6 +1,7 @@
-package arrow.meta.ide.phases.resolve
+package arrow.meta.ide.plugins.quotes.resolve
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -19,53 +20,51 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.Printer
 
-val IdeMetaPlugin.metaSyntheticPackageFragmentProvider: ExtensionPhase
+val IdeMetaPlugin.quoteSyntheticPackageFragmentProvider: ExtensionPhase
   get() = packageFragmentProvider { project, module, _, _, _, _ ->
     descriptorCachePackageFragmentProvider(module, project)
   }
 
 private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
   get() = { module, project ->
-    val cache = QuoteSystemCache.getInstance(project)
+    val quoteCache: QuoteCache? = project.getService(QuoteCache::class.java)
     object : PackageFragmentProvider {
-      override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
-        // fixme always provide a value or only when a cached value exists?
-        return listOf(buildCachePackageFragmentDescriptor(module, fqName, cache))
-      }
+      // fixme always provide a value or only when a cached value exists?
+      override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
+        quoteCache?.run { listOf(buildCachePackageFragmentDescriptor(module, fqName, this)) }.orEmpty()
 
-      override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
-        //fixme optimize this
-        return cache.packageList().filter { it.parent() == fqName }
-      }
+      //fixme optimize this
+      override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
+        quoteCache?.packages()?.filter { it.parent() == fqName }.orEmpty()
     }
   }
 
 
-private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteSystemCache) -> PackageFragmentDescriptorImpl
-  get() = { module, fqName, cache ->
+private val buildCachePackageFragmentDescriptor: (ModuleDescriptor, FqName, QuoteCache) -> PackageFragmentDescriptorImpl
+  get() = { module, fqName, quoteCache ->
     object : PackageFragmentDescriptorImpl(module, fqName) {
       override fun getMemberScope(): MemberScope =
         object : MemberScope {
-          override fun getClassifierNames(): Set<Name>? =
-            cache.resolved(fqName)?.filterIsInstance<ClassifierDescriptor>()?.map { it.name }?.toSet()
+          override fun getClassifierNames(): Set<Name> =
+            quoteCache.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().map { it.name }.toSet()
 
           override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-            cache.resolved(fqName)?.filterIsInstance<ClassifierDescriptor>()?.firstOrNull { it.name == name }
+            quoteCache.descriptors(fqName).filterIsInstance<ClassifierDescriptor>().firstOrNull { it.name == name }
 
           override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
-            cache.resolved(fqName)?.filter { it.name == name } ?: emptyList()
+            quoteCache.descriptors(fqName).filter { it.name == name }
 
           override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
-            cache.resolved(fqName)?.filterIsInstance<SimpleFunctionDescriptor>() ?: emptyList()
+            quoteCache.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>()
 
           override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-            cache.resolved(fqName)?.filterIsInstance<PropertyDescriptor>() ?: emptyList()
+            quoteCache.descriptors(fqName).filterIsInstance<PropertyDescriptor>()
 
           override fun getFunctionNames(): Set<Name> =
-            cache.resolved(fqName)?.filterIsInstance<SimpleFunctionDescriptor>()?.map { it.name }?.toSet() ?: emptySet()
+            quoteCache.descriptors(fqName).filterIsInstance<SimpleFunctionDescriptor>().map { it.name }.toSet()
 
           override fun getVariableNames(): Set<Name> =
-            cache.resolved(fqName)?.filterIsInstance<PropertyDescriptor>()?.map { it.name }?.toSet() ?: emptySet()
+            quoteCache.descriptors(fqName).filterIsInstance<PropertyDescriptor>().map { it.name }.toSet()
 
           override fun printScopeStructure(p: Printer) {
           }
@@ -82,4 +81,3 @@ internal fun DeclarationDescriptor.isMetaSynthetic(): Boolean {
     }
   }
 }
-

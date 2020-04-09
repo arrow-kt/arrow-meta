@@ -47,7 +47,7 @@ const val DEFAULT_META_FILE_NAME = "Source.kt"
  * The Quote DSL accepts a filter function that will intercept any node during tree traversal based on a Boolean predicate.
  * In the following example the Quote system matches all user declared `fun` named `"helloWorld"`.
  * ```kotlin
- * val Meta.helloWorld: Plugin get() =
+ * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
  *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
@@ -62,7 +62,7 @@ const val DEFAULT_META_FILE_NAME = "Source.kt"
  * In the example below we are using [replace] to change the intercepted function for a new declaration that when invoked prints `"Hello ΛRROW Meta!"`
  *
  * ```kotlin
- * val Meta.helloWorld: Plugin get() =
+ * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
  *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
@@ -160,7 +160,7 @@ data class AnalysisDefinition(val type: KClass<KtElement>,
                               val match: KtElement.() -> Boolean,
                               val map: Scope<KtElement>.(KtElement) -> Transform<KtElement>)
 
-// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemCache)
+// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemComponent)
 val analysisIdeExtensions: MutableList<AnalysisDefinition> = ArrayList()
 
 @Suppress("UNCHECKED_CAST")

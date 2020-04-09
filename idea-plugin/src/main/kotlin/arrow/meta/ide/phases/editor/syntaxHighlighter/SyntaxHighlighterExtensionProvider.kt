@@ -1,9 +1,9 @@
 package arrow.meta.ide.phases.editor.syntaxHighlighter
 
-import arrow.meta.phases.ExtensionPhase
-import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
+import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.Language
+import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 
 /**
  * @see [SyntaxHighlighterSyntax]
