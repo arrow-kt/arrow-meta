@@ -73,7 +73,7 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *       myFixture = myFixture, // the IntelliJ test environment spins up [myFixture] automatically at runtime.
  *       ctx = MyIdePlugin() // add here your ide plugin, to get dependencies and created features in the scope of [test] and [result].
  *     ) {
- *       listOf(
+ *       listOf<IdeTest<Unit, MyIdePlugin>>( // type inference is not able to resolve the types here
  *         IdeTest(
  *           "val exampleCode = 2",
  *           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: MyIdePlugin ->
@@ -100,7 +100,7 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *     myFixture = myFixture,
  *     ctx = IdeMetaPlugin()
  *   ) {
- *     listOf(
+ *     listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
  *       IdeTest(
  *         code = """
  *         | fun helloWorld(): String =
