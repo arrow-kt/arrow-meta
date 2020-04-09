@@ -14,17 +14,15 @@ class PurityTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<List<HighlightInfo>, IdeMetaPlugin>>(
+      listOf<IdeTest<IdeMetaPlugin, List<HighlightInfo>>>(
         IdeTest(
           PurityTestCode.code1,
           test = { code, myFixture, _ ->
             collectInspections(code, myFixture, listOf(purityInspection))
           },
-          result = resolvesWith("At least one impure Function that needs to be suspended") {
-            it.takeIf {
-              it.any { info ->
-                info.inspectionToolId == purityInspection.defaultFixText
-              }
+          result = resolvesWhen("At least one impure Function that needs to be suspended") {
+            it.any { info ->
+              info.inspectionToolId == purityInspection.defaultFixText
             }
           }
         )
