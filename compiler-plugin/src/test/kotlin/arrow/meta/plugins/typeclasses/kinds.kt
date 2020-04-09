@@ -42,12 +42,12 @@ class KindsTest {
         
         class ListFunctor<A>(override val value: ListOf<A>) : Functor.Ops<`List(_)`, A> {
             override fun <B> fmap(f: (A) -> B): ListOf<B> =
-                value.fix().map(f).unfix()
+                value.fix().map(f)
         }
         
         @Proof(TypeProof.Extension)
         fun <A> List<A>.functor(): Functor.Ops<`List(_)`, A> =
-            ListFunctor<A>(unfix())
+            ListFunctor(unfix())
 
         val result: List<Int> = listOf(1, 2, 3).fmap { it }
         //val result2: List<Int> = listOf(1, 2, 3).functor().fmap { it }
