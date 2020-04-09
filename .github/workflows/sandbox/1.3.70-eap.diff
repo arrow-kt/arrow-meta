@@ -1141,6 +1141,43 @@ index c96a5fc..d3f2128 100644
  JVM_TARGET_VERSION=1.8
  KOTLIN_TEST_VERSION=3.4.2
  ASSERTJ_VERSION=3.13.2
+diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
+index 541cdd1..2187a75 100644
+--- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
++++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
+@@ -258,10 +258,9 @@ interface ApplicationSyntax {
+     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
+-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
++    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+   ): ExtensionPhase =
+-    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded, postStartupActivitiesPassed))
++    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded))
+ 
+   /**
+    * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
+@@ -270,8 +269,7 @@ interface ApplicationSyntax {
+     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
+-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
++    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+   ): ProjectLifecycle =
+     object : ProjectLifecycle {
+       override fun projectComponentsInitialized(project: Project): Unit =
+@@ -283,9 +281,6 @@ interface ApplicationSyntax {
+       override fun afterProjectClosed(project: Project): Unit =
+         afterProjectClosed(this, project)
+ 
+-      override fun postStartupActivitiesPassed(project: Project): Unit =
+-        postStartupActivitiesPassed(this, project)
+-
+       override fun dispose(): Unit = dispose(this)
+     }
+ 
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
 index d88523d..42b0f60 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
