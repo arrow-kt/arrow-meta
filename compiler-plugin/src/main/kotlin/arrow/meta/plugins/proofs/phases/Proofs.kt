@@ -40,7 +40,7 @@ data class ExtensionProof(
   val from: KotlinType,
   override val to: KotlinType,
   override val through: FunctionDescriptor,
-  val coerce: Boolean
+  val coerce: Boolean = false
 ) : Proof(to, through, ProofStrategy.Extension)
 
 data class RefinementProof(

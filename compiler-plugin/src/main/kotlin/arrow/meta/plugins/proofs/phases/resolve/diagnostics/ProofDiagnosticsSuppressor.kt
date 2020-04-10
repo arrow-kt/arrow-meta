@@ -4,7 +4,6 @@ import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.coerceProof
-import arrow.meta.plugins.proofs.phases.extensionProof
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters2
 import org.jetbrains.kotlin.diagnostics.Errors
