@@ -21,21 +21,39 @@ val ArrowProof: FqName =
 enum class ProofStrategy {
   Extension,
   Refinement,
-  Negation
+  Negation,
+  Given
 }
 
-data class Proof(
-  val from: KotlinType,
-  val to: KotlinType,
-  val through: FunctionDescriptor,
-  val proofType: ProofStrategy,
-  val coerce: Boolean
+sealed class Proof(
+  open val to: KotlinType,
+  open val through: CallableMemberDescriptor,
+  val proofType: ProofStrategy
 )
+
+data class GivenProof(
+  override val to: KotlinType,
+  override val through: CallableMemberDescriptor
+) : Proof(to, through, ProofStrategy.Given)
+
+data class ExtensionProof(
+  val from: KotlinType,
+  override val to: KotlinType,
+  override val through: FunctionDescriptor,
+  val coerce: Boolean
+) : Proof(to, through, ProofStrategy.Extension)
+
+data class RefinementProof(
+  val from: KotlinType,
+  override val to: KotlinType,
+  override val through: CallableMemberDescriptor,
+  val coerce: Boolean = true
+) : Proof(to, through, ProofStrategy.Extension)
 
 fun FunctionDescriptor.isProof(): Boolean =
   annotations.hasAnnotation(ArrowProof)
 
-fun CompilerContext.extending(types: Collection<KotlinType>): List<Proof> =
+fun CompilerContext.extending(types: Collection<KotlinType>): List<ExtensionProof> =
   types.flatMap { extensionProofs(it, it.constructor.builtIns.nullableAnyType) }
 
 fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<CallableMemberDescriptor> =
@@ -48,15 +66,17 @@ fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<Ca
 fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): Proof? =
   extensionProofs(subType, superType).firstOrNull()
 
-fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
-  module.proofs.filter { it.proofType == ProofStrategy.Extension }
+fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
+  module.proofs.filterIsInstance<ExtensionProof>()
     .matchingCandidates(this, subType, superType)
 
-fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): Proof? =
+fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): ExtensionProof? =
   coerceProofs(subType, superType).firstOrNull()
 
-fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
-  module.proofs.filter { it.coerce }
+fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
+  module.proofs
+    .filterIsInstance<ExtensionProof>()
+    .filter { it.coerce }
     .matchingCandidates(this, subType, superType)
 
 fun CompilerContext.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean {
@@ -72,17 +92,17 @@ fun CompilerContext.areTypesCoerced(subType: KotlinType, supertype: KotlinType):
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =
-      if (this is ModuleDescriptorImpl) {
-        try {
-          val cacheValue = proofCache[this]
-          when {
-            cacheValue != null -> {
-              cacheValue.proofs
-            }
-            else -> cli { initializeProofCache() } ?: emptyList()
+    if (this is ModuleDescriptorImpl) {
+      try {
+        val cacheValue = proofCache[this]
+        when {
+          cacheValue != null -> {
+            cacheValue.proofs
           }
-        } catch (e: RuntimeException) {
-          println("TODO() Detected exception: ${e.printStackTrace()}")
-          emptyList<Proof>()
+          else -> cli { initializeProofCache() } ?: emptyList()
         }
-      } else emptyList()
+      } catch (e: RuntimeException) {
+        println("TODO() Detected exception: ${e.printStackTrace()}")
+        emptyList<Proof>()
+      }
+    } else emptyList()

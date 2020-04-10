@@ -2,7 +2,10 @@ package arrow.meta.plugins.proofs.phases.resolve.cache
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.callables
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.asProof
@@ -59,5 +62,9 @@ private fun KotlinType.show(length: Int): String {
 
 private fun List<Proof>.show(): String =
   joinToString("\n") {
-    "${it.from.show(20)} -> ${it.proofType.name} -> ${it.to.show(20)}"
+    when (it) {
+      is GivenProof -> "Given: ${it.proofType.name} -> ${it.to.show(20)}"
+      is ExtensionProof -> "Extension: ${it.from.show(20)} -> ${it.proofType.name} -> ${it.to.show(20)}"
+      is RefinementProof -> "Refinement: ${it.from.show(20)} -> ${it.proofType.name} -> ${it.to.show(20)}"
+    }
   }

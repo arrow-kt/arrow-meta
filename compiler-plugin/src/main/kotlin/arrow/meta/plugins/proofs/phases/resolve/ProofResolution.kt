@@ -2,6 +2,7 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
+import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
@@ -39,11 +40,11 @@ import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-fun List<Proof>.matchingCandidates(
+fun List<ExtensionProof>.matchingCandidates(
   compilerContext: CompilerContext,
   subType: KotlinType,
   superType: KotlinType
-): List<Proof> {
+): List<ExtensionProof> {
   val proofs = if (containsErrorsOrNothing(subType, superType)) emptyList()
   else {
     compilerContext.run {
@@ -51,37 +52,24 @@ fun List<Proof>.matchingCandidates(
         module?.run {
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
             val proofs = this@matchingCandidates.resolveProofs(subType, superType, compilerContext, proofsCallResolver, this)
-//            if (proofs.isEmpty()) {
-//
-//              val parts = subType.productTypes()
-//              if (parts.isEmpty()) proofs
-//              else { //inductive derivation of the whole from the parts
-//                val proofedParts = parts.map {
-//                  it to resolveProofs(it, superType, compilerContext, proofsCallResolver, this)
-//                }.toMap()
-//                proofs //TODO add inductive parts to a greater proof
-//              }
-//            } else {
-//              proofs
-//            }
             proofs
           }
         } ?: emptyList()
       } catch (e: ContainerConsistencyException) {
-        emptyList<Proof>()
+        emptyList<ExtensionProof>()
       }
     }
   }
   return proofs
 }
 
-private fun List<Proof>.resolveProofs(
+private fun List<ExtensionProof>.resolveProofs(
   subType: KotlinType,
   superType: KotlinType,
   compilerContext: CompilerContext,
   proofsCallResolver: ProofsCallResolver,
   moduleDescriptor: ModuleDescriptor
-): List<Proof> {
+): List<ExtensionProof> {
   val extensionReceiver = ProofReceiverValue(subType)
   val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
   val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
@@ -100,22 +88,23 @@ private fun List<Proof>.resolveProofs(
 private fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
-private fun CallResolutionResult.matchingProofs(subType: KotlinType, superType: KotlinType): List<Proof> =
+private fun CallResolutionResult.matchingProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
   if (this is AllCandidatesResolutionResult) {
     val selectedCandidates = allCandidates.filter {
       it.diagnostics.isEmpty()
     }
     val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
-      .filter {
-        (it.from.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.from.replaceArgumentsWithStarProjections(), subType.replaceArgumentsWithStarProjections()))
-          &&
-          (it.to.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(it.to.replaceArgumentsWithStarProjections(), superType.replaceArgumentsWithStarProjections()))
-      }
+      .filter { includeInCandidates(it.from, it.to, subType, superType) }
     proofs
   } else emptyList()
 
-private fun List<Proof>.givenCandidates(): List<GivenCandidate> =
-  this.map {
+private fun includeInCandidates(from: KotlinType, to: KotlinType, subType: KotlinType, superType: KotlinType): Boolean =
+  ((from.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(from.replaceArgumentsWithStarProjections(), subType.replaceArgumentsWithStarProjections()))
+    &&
+    (to.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(to.replaceArgumentsWithStarProjections(), superType.replaceArgumentsWithStarProjections())))
+
+private fun List<ExtensionProof>.givenCandidates(): List<GivenCandidate> =
+  map {
     GivenCandidate(
       descriptor = it.through,
       dispatchReceiver = null,
@@ -144,7 +133,7 @@ class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun getType(): KotlinType = kotlinType
 }
 
-fun FunctionDescriptor.asProof(): Proof? =
+fun FunctionDescriptor.asProof(): ExtensionProof? =
   extensionReceiverParameter?.type?.let { from ->
     returnType?.let { to ->
       val annotationArgs = annotations.first().allValueArguments
@@ -163,11 +152,10 @@ fun FunctionDescriptor.asProof(): Proof? =
         else -> null
       }
       proofStrategy?.let {
-        Proof(
+        ExtensionProof(
           from = from,
           to = to,
           through = this,
-          proofType = it,
           coerce = coerce?.value.safeAs() ?: false
         )
       }

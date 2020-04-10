@@ -79,6 +79,7 @@ enum class TypeProof {
    * ```
    */
   Extension,
+  Given,
   Refinement,
   Negation
 }

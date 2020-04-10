@@ -2,11 +2,13 @@ package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
-import arrow.meta.ide.plugins.proofs.psi.proofTypes
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.ProofStrategy
+import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
@@ -16,15 +18,8 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
-fun NamedFunction.withStrategy(strategy: ProofStrategy, f: NamedFunction.() -> String): String =
-  when {
-    value.proofTypes().value.any {
-      it.text.endsWith(strategy.name)
-    } -> f(this)
-    else -> ""
-  }
 
-fun Proof.extensionMarkerMessage(name: Name?): String {
+fun ExtensionProof.extensionMarkerMessage(name: Name?): String {
   return """
   All members of <code lang="kotlin">$to</code> become available in <code lang="kotlin">$from</code> :
   <ul>
@@ -39,11 +34,17 @@ fun Proof.extensionMarkerMessage(name: Name?): String {
   """.trimIndent()
 }
 
+fun GivenProof.extensionMarkerMessage(name: Name?): String {
+  return """
+  TODO() Given proof
+  """.trimIndent()
+}
+
 fun Proof.negationMarkerMessage(name: Name?): String {
   return "TODO"
 }
 
-fun Proof.refinementMarkerMessage(name: Name?): String {
+fun RefinementProof.refinementMarkerMessage(name: Name?): String {
   return """
         <code lang="kotlin">$from</code> is a refined type that represents a set of values of the type <code lang="kotlin">$to</code>
         that meet a certain type-level predicate.
@@ -51,7 +52,7 @@ fun Proof.refinementMarkerMessage(name: Name?): String {
   """.trimIndent()
 }
 
-fun Proof.subtypingMarkerMessage(name: Name?): String {
+fun ExtensionProof.subtypingMarkerMessage(name: Name?): String {
   return """
         <code lang="kotlin">$from</code> is seen as subtype of <code lang="kotlin">$to</code> :
         
@@ -76,18 +77,14 @@ fun Proof.subtypingMarkerMessage(name: Name?): String {
 fun KtNamedFunction.markerMessage(): String =
   NamedFunction(this).run {
     value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
+      val message = when (proof) {
+        is GivenProof -> GivenProof::extensionMarkerMessage.invoke(proof, this.name)
+        is ExtensionProof -> ExtensionProof::extensionMarkerMessage.invoke(proof, this.name)
+        is RefinementProof -> RefinementProof::refinementMarkerMessage.invoke(proof, this.name)
+      }
       """
       <code lang="kotlin">${text}</code> 
-
-      ${withStrategy(ProofStrategy.Extension) {
-        Proof::extensionMarkerMessage.invoke(proof, this.name)
-      }}
-      ${withStrategy(ProofStrategy.Negation) {
-        Proof::negationMarkerMessage.invoke(proof, this.name)
-      }}
-      ${withStrategy(ProofStrategy.Refinement) {
-        Proof::refinementMarkerMessage.invoke(proof, this.name)
-      }}
+      $message
       
     <a href="">More info on Type Proofs</a>: ${ProofStrategy.values().joinToString { """<code lang="kotlin">${it.name}</code>""" }}
     """.trimIndent()
@@ -106,7 +103,7 @@ fun IdeMetaPlugin.proofLineMarkers(icon: Icon, filter: KtNamedFunction.() -> Boo
     }
   )
 
-fun Proof.coercionMessage(): String {
+fun ExtensionProof.coercionMessage(): String {
   return """
         Coercion happening by proof:
         <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
