@@ -103,22 +103,24 @@ internal interface IdeInternalRegistry : InternalRegistry {
   fun registerApplicationProvider(phase: ApplicationProvider): Unit =
     ApplicationManager.getApplication()?.let { app ->
       when (phase) {
-        is ApplicationProvider.AppService<*> -> phase.run { app.registerService(service as Class<Any>, instance) }
+        is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
+        is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
         is ApplicationProvider.ProjectService<*> -> phase.run {
-          app.messageBus.connect(app).subscribe(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
             override fun projectComponentsInitialized(project: Project): Unit =
-              project.registerService(service as Class<Any>, instance(project, project.getService(service) as Nothing?))
+              instance(project, project.getService(service))?.let {
+                project.registerService(service as Class<Any>, it)
+              } ?: Unit
           })
         }
         is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
-          app.messageBus.connect(app).subscribe(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
             override fun projectComponentsInitialized(project: Project): Unit =
-              project.replaceService(service as Class<Any>, instance(project, project.getService(service) as Nothing?))
+              project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
           })
         }
         is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
-        is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance) }
         is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
         is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
         is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }

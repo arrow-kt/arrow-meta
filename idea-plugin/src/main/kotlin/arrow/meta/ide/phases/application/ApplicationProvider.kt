@@ -8,6 +8,7 @@ import com.intellij.ide.plugins.ContainerDescriptor
 import com.intellij.openapi.application.ApplicationListener
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.impl.ProjectLifecycleListener
 
 /**
  * @see ApplicationSyntax
@@ -16,12 +17,12 @@ sealed class ApplicationProvider : ExtensionPhase {
   /**
    * @see ApplicationSyntax
    */
-  data class AppService<A : Any>(val service: Class<A>, val instance: A) : ApplicationProvider()
+  data class AppService<A : Any>(val service: Class<A>, val instance: (Any?) -> A?) : ApplicationProvider()
 
   /**
    * @see ApplicationSyntax
    */
-  data class ProjectService<A : Any>(val service: Class<A>, val instance: (Project, A?) -> A) : ApplicationProvider()
+  data class ProjectService<A : Any>(val service: Class<A>, val instance: (Project, Any?) -> A?) : ApplicationProvider()
 
   /**
    * @see ApplicationSyntax
@@ -31,12 +32,12 @@ sealed class ApplicationProvider : ExtensionPhase {
   /**
    * @see ApplicationSyntax
    */
-  data class ReplaceAppService<A : Any>(val service: Class<A>, val instance: A) : ApplicationProvider()
+  data class ReplaceAppService<A : Any>(val service: Class<A>, val instance: (Any?) -> A) : ApplicationProvider()
 
   /**
    * @see ApplicationSyntax
    */
-  data class ReplaceProjectService<A : Any>(val service: Class<A>, val instance: (Project, A?) -> A) : ApplicationProvider()
+  data class ReplaceProjectService<A : Any>(val service: Class<A>, val instance: (Project, Any?) -> A) : ApplicationProvider()
 
   /**
    * @see ApplicationSyntax
@@ -51,7 +52,7 @@ sealed class ApplicationProvider : ExtensionPhase {
   /**
    * @see ApplicationSyntax
    */
-  data class ProjectListener(val listener: ProjectLifecycle) : ApplicationProvider()
+  data class ProjectListener(val listener: ProjectLifecycleListener) : ApplicationProvider()
 
   /**
    * @see ApplicationSyntax

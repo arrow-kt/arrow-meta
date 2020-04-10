@@ -7,7 +7,6 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
 import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
 import com.intellij.openapi.components.ServiceManager
@@ -23,7 +22,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
- * Multi-purpose algebra to interact with the Ide lifecycle through manipulating, registering or replacing services and extensions that run at their respective phase.
+ * multi-purpose algebra to interact with the Ide lifecycle through registering or replacing services or adding lifecycle related extensions that run at their respective phase.
  * Services can be distributed across the ide in three different kinds at application-level, project-level or module-level.
  * The intellij platform distributes an isolated instance depending on the level - isolated in terms of other instances -,
  * that means an application-level service has solely one instance, whereas module-level services have an instance for each module.
@@ -31,7 +30,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
  */
 interface ApplicationSyntax {
   /**
-   * registers an service and the instance based on its [kind].
+   * registers an application-level service and the instance.
    * The IntelliJ Platform ensures that only one instance of [instance] is loaded, when [kind] is [ServiceKind.Application],
    * even though the service can be retrieved multiple times with [ServiceManager.getService] or [com.intellij.openapi.project.Project.getService].
    * It is impeccable that there is only one [instance] implementation for a given [service] to fulfill coherence in the ide.
@@ -117,8 +116,9 @@ interface ApplicationSyntax {
    * ```
    * @see arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
    */
-  fun <A : Any> IdeMetaPlugin.addService(service: Class<A>, kind: ServiceKind, instance: A): ExtensionPhase =
-    ApplicationProvider.AppService(service, instance)
+  @Suppress("UNCHECKED_CAST")
+  fun <A : Any> IdeMetaPlugin.addAppService(service: Class<A>, instance: (A?) -> A?): ExtensionPhase =
+    ApplicationProvider.AppService(service) { service -> instance(service as A?) }
 
   /**
    * replaces a [service] with [instance].
@@ -159,17 +159,26 @@ interface ApplicationSyntax {
    * }
    * ```
    */
-  fun <A : Any> IdeMetaPlugin.replaceService(service: Class<A>, instance: A): ExtensionPhase =
-    ApplicationProvider.ReplaceAppService(service, instance)
+  @Suppress("UNCHECKED_CAST")
+  fun <A : Any> IdeMetaPlugin.replaceAppService(service: Class<A>, instance: (A?) -> A): ExtensionPhase =
+    ApplicationProvider.ReplaceAppService(service) { service -> instance(service as A?) }
 
   /**
-   * overrides a AppService interface [from] with [to], when [override] == true.
+   * overrides a Service interface [from] with [to], when [override] == true.
    * [from] and [to] need to have a type relationship, either through subtyping or other means like `type-proofs`.
    * The application will raise an error at runtime if the latter is not valid or
    * when [override] == false and there is already a service instance associated with [from].
    */
   fun IdeMetaPlugin.overrideService(from: Class<*>, to: Class<*>, override: Boolean = true): ExtensionPhase =
     ApplicationProvider.OverrideService(from, to, override)
+
+  @Suppress("UNCHECKED_CAST")
+  fun <A : Any> IdeMetaPlugin.replaceProjectService(service: Class<A>, instance: (Project, A?) -> A): ExtensionPhase =
+    ApplicationProvider.ReplaceProjectService(service) { project, service -> instance(project, service as A?) }
+
+  @Suppress("UNCHECKED_CAST")
+  fun <A : Any> IdeMetaPlugin.addProjectService(service: Class<A>, instance: (Project, A?) -> A?): ExtensionPhase =
+    ApplicationProvider.ProjectService(service) { project, service -> instance(project, service as A?) }
 
   /**
    * accumulates all available services for loaded Plugins
@@ -262,7 +271,9 @@ interface ApplicationSyntax {
       override fun appWillBeClosed(restarted: Boolean): Unit = appWillBeClosed(restarted)
     }
 
-
+  /**
+   * registers a [ProjectLifecycle]
+   */
   fun IdeMetaPlugin.addProjectLifecycle(
     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
@@ -270,17 +281,17 @@ interface ApplicationSyntax {
     beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
   ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded, postStartupActivitiesPassed))
+    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed, dispose))
 
   /**
    * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
    */
   fun ApplicationSyntax.projectLifecycleListener(
-    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
     beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
   ): ProjectLifecycle =
     object : ProjectLifecycle {
       override fun projectComponentsInitialized(project: Project): Unit =
@@ -296,6 +307,37 @@ interface ApplicationSyntax {
         postStartupActivitiesPassed(this, project)
 
       override fun dispose(): Unit = dispose(this)
+    }
+
+  /**
+   * registers a [ProjectLifecycleListener]
+   */
+  fun ApplicationSyntax.addProjectLifecycleListener(
+    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
+    initialize: (Project) -> Unit = Noop.effect1,
+    postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
+    afterProjectClosed: (Project) -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed))
+
+  fun ApplicationSyntax.projectLifecycleListener(
+    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
+    initialize: (Project) -> Unit = Noop.effect1,
+    postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
+    afterProjectClosed: (Project) -> Unit = Noop.effect1
+  ): ProjectLifecycleListener =
+    object : ProjectLifecycleListener {
+      override fun projectComponentsInitialized(project: Project): Unit =
+        initialize(project)
+
+      override fun beforeProjectLoaded(project: Project): Unit =
+        beforeProjectLoaded(project)
+
+      override fun afterProjectClosed(project: Project): Unit =
+        afterProjectClosed(project)
+
+      override fun postStartupActivitiesPassed(project: Project): Unit =
+        postStartupActivitiesPassed(project)
     }
 
   /**
@@ -343,6 +385,3 @@ interface ApplicationSyntax {
         moduleAdded(project, module)
     }
 }
-
-
-interface ProjectLifecycle : ProjectLifecycleListener, Disposable
