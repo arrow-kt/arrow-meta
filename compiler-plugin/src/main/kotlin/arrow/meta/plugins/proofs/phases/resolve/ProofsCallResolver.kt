@@ -1,5 +1,10 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
+import arrow.meta.plugins.proofs.phases.CoercionProof
+import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.RefinementProof
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.calls.components.CallableReferenceResolver
@@ -35,24 +40,24 @@ class ProofsCallResolver(
   private val psiCallResolver: PSICallResolver
 ) {
 
-  fun resolveGivenCandidates(
+  fun List<Proof>.resolveCandidates(
     scopeTower: ImplicitScopeTower,
     kotlinCall: KotlinCall,
     expectedType: UnwrappedType?,
-    givenCandidates: Collection<GivenCandidate>,
     collectAllCandidates: Boolean,
-    extensionReceiver: ReceiverValueWithSmartCastInfo
+    extensionReceiver: ReceiverValueWithSmartCastInfo?
   ): CallResolutionResult {
     kotlinCall.checkCallInvariants()
     val trace = BindingTraceContext.createTraceableBindingTrace()
     val resolutionCallbacks = psiCallResolver.createResolutionCallbacks(trace, InferenceSession.default, null)
     val candidateFactory = SimpleCandidateFactory(callComponents, scopeTower, kotlinCall, resolutionCallbacks, callableReferenceResolver)
 
-    val resolutionCandidates = givenCandidates.map {
-      candidateFactory.createCandidate(
-        towerCandidate = CandidateWithBoundDispatchReceiver(null, it.descriptor, emptyList()),
-        explicitReceiverKind = ExplicitReceiverKind.EXTENSION_RECEIVER,
-        extensionReceiver = extensionReceiver
+    val resolutionCandidates = map {
+      it.fold(
+        given = { givenCandidate(candidateFactory) },
+        coercion = { extensionCandidate(candidateFactory, extensionReceiver) },
+        projection = { extensionCandidate(candidateFactory, extensionReceiver) },
+        refinement = { refinementCandidate(candidateFactory) }
       ).forceResolution()
     }
 
@@ -72,6 +77,27 @@ class ProofsCallResolver(
     )
     return choseMostSpecific(candidateFactory, resolutionCallbacks, expectedType, candidates)
   }
+
+  private fun RefinementProof.refinementCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
+    candidateFactory.createCandidate(
+      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
+      explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+      extensionReceiver = null
+    )
+
+  private fun GivenProof.givenCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
+    candidateFactory.createCandidate(
+      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
+      explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+      extensionReceiver = null
+    )
+
+  private fun ExtensionProof.extensionCandidate(candidateFactory: SimpleCandidateFactory, extensionReceiver: ReceiverValueWithSmartCastInfo?): KotlinResolutionCandidate =
+    candidateFactory.createCandidate(
+      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
+      explicitReceiverKind = if (extensionReceiver != null) ExplicitReceiverKind.EXTENSION_RECEIVER else ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+      extensionReceiver = extensionReceiver
+    )
 
   private fun choseMostSpecific(
     candidateFactory: SimpleCandidateFactory,

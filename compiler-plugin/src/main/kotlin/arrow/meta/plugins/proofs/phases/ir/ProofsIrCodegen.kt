@@ -8,7 +8,11 @@ import arrow.meta.phases.codegen.ir.dfsCalls
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProofs
+import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -52,6 +56,26 @@ class ProofsIrCodegen(
     }
   }
 
+  fun CompilerContext.givenProofCall(
+    superType: KotlinType
+  ): IrCall? =
+    irUtils.run {
+      val matchingCandidates = givenProofs(superType)
+      val proofs = matchingCandidates.map { proof ->
+        substitutedProofCall(proof, superType)
+      }
+      proofs.firstOrNull() //TODO handle ambiguity and orphan selection
+    }
+
+  private fun IrUtils.substitutedProofCall(proof: Proof, superType: KotlinType): IrCall? =
+    proof.underliyingFunctionDescriptor?.let { fn ->
+      matchedCandidateProofCall(
+        fn = fn,
+        typeSubstitutor = proof.substitutor(superType)
+      )
+    }
+
+
   fun CompilerContext.extensionProofCall(
     subType: KotlinType,
     superType: KotlinType
@@ -61,21 +85,46 @@ class ProofsIrCodegen(
       val proofs = matchingCandidates.map {
         matchedCandidateProofCall(
           fn = it.through,
-          typeSubstitutor = it.substitutor(subType, superType)
+          typeSubstitutor = it.substitutor(subType)
         )
       }
       proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
 
-  fun ExtensionProof.substitutor(
-    subType: KotlinType,
+  fun Proof.substitutor(
+    superType: KotlinType
+  ): NewTypeSubstitutorByConstructorMap =
+    fold(
+      given = { substitutor(superType) },
+      coercion = { substitutor(superType) },
+      projection = { substitutor(superType) },
+      refinement = { substitutor(superType) }
+    )
+
+  fun RefinementProof.substitutor(
     superType: KotlinType
   ): NewTypeSubstitutorByConstructorMap =
     ProofCandidate(
-      from = from,
-      to = to,
-      subType = subType.unwrappedNotNullableType,
-      superType = superType.unwrappedNotNullableType,
+      proofType = to,
+      otherType = superType.unwrappedNotNullableType,
+      through = through
+    ).typeSubstitutor
+
+  fun ExtensionProof.substitutor(
+    superType: KotlinType
+  ): NewTypeSubstitutorByConstructorMap =
+    ProofCandidate(
+      proofType = from,
+      otherType = superType.unwrappedNotNullableType,
+      through = through
+    ).typeSubstitutor
+
+  fun GivenProof.substitutor(
+    superType: KotlinType
+  ): NewTypeSubstitutorByConstructorMap =
+    ProofCandidate(
+      proofType = to,
+      otherType = superType.unwrappedNotNullableType,
       through = through
     ).typeSubstitutor
 
@@ -228,7 +277,7 @@ class ProofsIrCodegen(
 val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
   get() {
     val allArgsMap =
-      from.typeArgumentsMap(subType)
+      proofType.typeArgumentsMap(otherType)
         .filter { it.key.type.isTypeParameter() } +
         mapOf(
           through.module.builtIns.nothingType.asTypeProjection() to TypeUtils.DONT_CARE.asTypeProjection()

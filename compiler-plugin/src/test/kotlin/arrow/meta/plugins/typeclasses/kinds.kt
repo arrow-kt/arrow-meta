@@ -7,8 +7,7 @@ import org.junit.Test
 
 const val prelude = """
 package test
-import arrow.Proof
-import arrow.TypeProof
+import arrow.*
 import arrowx.Kind
 import arrowx.Kinded
 
@@ -32,11 +31,11 @@ class KindsTest {
         object `List(_)`
         typealias ListOf<A> = Kind<`List(_)`, A>
 
-        @Proof(TypeProof.Extension, coerce = true)
+        @Coercion
         fun <A> List<A>.unfix(): ListOf<A> =
             Kinded(this)
         
-        @Proof(TypeProof.Extension, coerce = true)
+        @Coercion
         fun <A> ListOf<A>.fix(): List<A> =
             (this as Kinded).value as List<A>
         
@@ -45,7 +44,7 @@ class KindsTest {
                 value.fix().map(f)
         }
         
-        @Proof(TypeProof.Extension)
+        @Extension
         fun <A> List<A>.functor(): Functor.Ops<`List(_)`, A> =
             ListFunctor(unfix())
 

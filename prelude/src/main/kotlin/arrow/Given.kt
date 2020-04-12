@@ -55,41 +55,15 @@ package arrow
  *   - Generic Derivation
  *  - Language Compatibility
  *
- *
- *
- *
- * A [Proof] establishes a relationship of trust between an extension function and the Kotlin compiler.
- *
- * [TypeProof]'s can establish [Extension] relationship between types, enhance the member scope of a type with [Extension]'s or
- * perform type [Refinement] among other constrains.
  */
-enum class TypeProof {
-  /**
-   * ```kotlin:ank:silent
-   * import arrow.Proof
-   * import arrow.TypeProof
-   *
-   * inline class PositiveInt(val value: Int)
-   *
-   * @Proof(of = [Subtyping])
-   * fun PositiveInt.toInt(): Int = value
-   *
-   * @Proof(of = [Subtyping])
-   * fun Int.toPositiveInt(): PositiveInt? =
-   * ```
-   */
-  Extension,
-  Given,
-  Refinement,
-  Negation
-}
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-@MustBeDocumented
-annotation class Proof(
-  val of: TypeProof,
-  val refined: Array<String> = [],
-  val coerce: Boolean = true,
-  val inductive: Boolean = false
+@Target(
+  AnnotationTarget.CLASS,
+  AnnotationTarget.FUNCTION,
+  AnnotationTarget.PROPERTY,
+  AnnotationTarget.TYPE_PARAMETER,
+  AnnotationTarget.TYPE
 )
+@MustBeDocumented
+annotation class Given

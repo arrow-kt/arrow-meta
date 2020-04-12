@@ -2,17 +2,24 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
+import arrow.meta.plugins.proofs.phases.ArrowCoercionProof
+import arrow.meta.plugins.proofs.phases.ArrowExtensionProof
+import arrow.meta.plugins.proofs.phases.ArrowGivenProof
+import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
@@ -21,15 +28,13 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
-import org.jetbrains.kotlin.resolve.calls.model.GivenCandidate
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.constants.ConstantValue
-import org.jetbrains.kotlin.resolve.constants.EnumValue
+import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
@@ -40,79 +45,136 @@ import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-fun List<ExtensionProof>.matchingCandidates(
+inline fun <reified A : ExtensionProof> List<A>.matchingCandidates(
   compilerContext: CompilerContext,
   subType: KotlinType,
   superType: KotlinType
-): List<ExtensionProof> {
-  val proofs = if (containsErrorsOrNothing(subType, superType)) emptyList()
+): List<A> {
+  val proofs = if (containsErrorsOrNothing(subType, superType)) emptyList<A>()
   else {
     compilerContext.run {
       try {
         module?.run {
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-            val proofs = this@matchingCandidates.resolveProofs(subType, superType, compilerContext, proofsCallResolver, this)
+            val proofs = this@matchingCandidates.resolveExtensionProofs(subType, superType, compilerContext, proofsCallResolver, this)
             proofs
           }
         } ?: emptyList()
       } catch (e: ContainerConsistencyException) {
-        emptyList<ExtensionProof>()
+        emptyList<A>()
       }
     }
   }
   return proofs
 }
 
-private fun List<ExtensionProof>.resolveProofs(
+fun List<GivenProof>.matchingCandidates(
+  compilerContext: CompilerContext,
+  superType: KotlinType
+): List<GivenProof> {
+  val proofs = if (containsErrorsOrNothing(superType)) emptyList<GivenProof>()
+  else {
+    compilerContext.run {
+      try {
+        module?.run {
+          componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
+            val proofs = this@matchingCandidates.resolveGivenProofs(superType, compilerContext, proofsCallResolver, this)
+            proofs
+          }
+        } ?: emptyList()
+      } catch (e: ContainerConsistencyException) {
+        emptyList<GivenProof>()
+      }
+    }
+  }
+  return proofs
+}
+
+fun List<GivenProof>.resolveGivenProofs(
+  superType: KotlinType,
+  compilerContext: CompilerContext,
+  proofsCallResolver: ProofsCallResolver,
+  moduleDescriptor: ModuleDescriptor
+): List<GivenProof> {
+  val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
+  val kotlinCall: KotlinCall = kotlinCall()
+  val callResolutionResult =
+    proofsCallResolver.run {
+      resolveCandidates(
+        scopeTower = scopeTower,
+        kotlinCall = kotlinCall,
+        expectedType = superType.unwrap(),
+        collectAllCandidates = true,
+        extensionReceiver = null
+      )
+    }
+  return callResolutionResult.matchingGivenProofs(superType)
+}
+
+
+inline fun <reified A : ExtensionProof> List<A>.resolveExtensionProofs(
   subType: KotlinType,
   superType: KotlinType,
   compilerContext: CompilerContext,
   proofsCallResolver: ProofsCallResolver,
   moduleDescriptor: ModuleDescriptor
-): List<ExtensionProof> {
+): List<A> {
   val extensionReceiver = ProofReceiverValue(subType)
   val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
   val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
   val kotlinCall: KotlinCall = receiverValue.kotlinCall()
-  val callResolutionResult = proofsCallResolver.resolveGivenCandidates(
-    scopeTower = scopeTower,
-    kotlinCall = kotlinCall,
-    expectedType = superType.unwrap(),
-    collectAllCandidates = true,
-    givenCandidates = givenCandidates(),
-    extensionReceiver = receiverValue
-  )
-  return callResolutionResult.matchingProofs(subType, superType)
+  val callResolutionResult = proofsCallResolver.run {
+    resolveCandidates(
+      scopeTower = scopeTower,
+      kotlinCall = kotlinCall,
+      expectedType = superType.unwrap(),
+      collectAllCandidates = true,
+      extensionReceiver = receiverValue
+    )
+  }
+  return callResolutionResult.matchingExtensionProofs(subType, superType)
 }
 
-private fun containsErrorsOrNothing(vararg types: KotlinType) =
+fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
-private fun CallResolutionResult.matchingProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
+fun CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<GivenProof> =
   if (this is AllCandidatesResolutionResult) {
-    val selectedCandidates = allCandidates.filter {
-      it.diagnostics.isEmpty()
-    }
-    val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
-      .filter { includeInCandidates(it.from, it.to, subType, superType) }
+    val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
+    val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<CallableMemberDescriptor>()?.asProof() }
+      .filterIsInstance<GivenProof>()
+      .filter { includeInCandidates(it.to, superType) }
     proofs
   } else emptyList()
 
-private fun includeInCandidates(from: KotlinType, to: KotlinType, subType: KotlinType, superType: KotlinType): Boolean =
-  ((from.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(from.replaceArgumentsWithStarProjections(), subType.replaceArgumentsWithStarProjections()))
-    &&
-    (to.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(to.replaceArgumentsWithStarProjections(), superType.replaceArgumentsWithStarProjections())))
+inline fun <reified A : ExtensionProof> CallResolutionResult.matchingExtensionProofs(subType: KotlinType, superType: KotlinType): List<A> =
+  if (this is AllCandidatesResolutionResult) {
+    val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
+    selectedCandidates
+      .mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
+      .filterIsInstance<A>()
+      .filter { includeInCandidates(it.from, it.to, subType, superType) }
+  } else emptyList()
 
-private fun List<ExtensionProof>.givenCandidates(): List<GivenCandidate> =
-  map {
-    GivenCandidate(
-      descriptor = it.through,
-      dispatchReceiver = null,
-      knownTypeParametersResultingSubstitutor = null
-    )
+fun includeInCandidates(from: KotlinType, to: KotlinType, subType: KotlinType, superType: KotlinType): Boolean =
+  includeInCandidates(from, subType) && includeInCandidates(to, superType)
+
+fun includeInCandidates(a: KotlinType, b: KotlinType): Boolean =
+  (a.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(a.replaceArgumentsWithStarProjections(), b.replaceArgumentsWithStarProjections()))
+
+fun kotlinCall(): KotlinCall =
+  object : KotlinCall {
+    override val argumentsInParenthesis: List<KotlinCallArgument> = emptyList()
+    override val callKind: KotlinCallKind = KotlinCallKind.FUNCTION
+    override val explicitReceiver: ReceiverKotlinCallArgument? = null
+    override val externalArgument: KotlinCallArgument? = null
+    override val isForImplicitInvoke: Boolean = false
+    override val name: Name = Name.identifier("Proof type-checking and resolution")
+    override val typeArguments: List<TypeArgument> = emptyList()
+    override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
 
-private fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
+fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
   object : KotlinCall {
     override val argumentsInParenthesis: List<KotlinCallArgument> = emptyList()
     override val callKind: KotlinCallKind = KotlinCallKind.FUNCTION
@@ -133,34 +195,63 @@ class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun getType(): KotlinType = kotlinType
 }
 
-fun FunctionDescriptor.asProof(): ExtensionProof? =
+fun <A : CallableMemberDescriptor> A.asProof(): Proof? =
+  when (this) {
+    is PropertyDescriptor -> asProof()
+    is FunctionDescriptor -> asProof()
+    is ClassDescriptor -> asProof()
+    else -> TODO("Unsupported proof declaration type: $this")
+  }
+
+fun ClassDescriptor.asProof(): Proof? =
+  when {
+    annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
+    else -> TODO()
+  }
+
+fun PropertyDescriptor.asProof(): Proof? =
+  when {
+    !isExtension && annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
+    else -> TODO()
+  }
+
+fun FunctionDescriptor.asProof(): Proof? =
+  when {
+    isExtension && annotations.hasAnnotation(ArrowExtensionProof) -> asProjectionProof()
+    isExtension && annotations.hasAnnotation(ArrowCoercionProof) -> asCoercionProof()
+    !isExtension && annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
+    else -> TODO()
+  }
+
+private fun ClassDescriptor.asGivenProof(): GivenProof? =
+  unsubstitutedPrimaryConstructor?.asGivenProof()
+
+private fun CallableMemberDescriptor.asGivenProof(): GivenProof? =
+  returnType?.let { GivenProof(it, this) }
+
+private fun FunctionDescriptor.asCoercionProof(): CoercionProof? =
   extensionReceiverParameter?.type?.let { from ->
     returnType?.let { to ->
-      val annotationArgs = annotations.first().allValueArguments
-      val value: ConstantValue<*>? = annotationArgs[Name.identifier("of")]
-      val coerce: ConstantValue<*>? = annotationArgs[Name.identifier("coerce")]
-      val proofStrategy = when (value) {
-        is EnumValue -> {
-          val name = value.enumEntryName.asString()
-          when {
-            ProofStrategy.Extension.name == name -> ProofStrategy.Extension
-            ProofStrategy.Refinement.name == name -> ProofStrategy.Refinement
-            ProofStrategy.Negation.name == name -> ProofStrategy.Negation
-            else -> null
-          }
-        }
-        else -> null
-      }
-      proofStrategy?.let {
-        ExtensionProof(
-          from = from,
-          to = to,
-          through = this,
-          coerce = coerce?.value.safeAs() ?: false
-        )
-      }
+      CoercionProof(
+        from = from,
+        to = to,
+        through = this
+      )
     }
   }
+
+
+private fun FunctionDescriptor.asProjectionProof(): ProjectionProof? =
+  extensionReceiverParameter?.type?.let { from ->
+    returnType?.let { to ->
+      ProjectionProof(
+        from = from,
+        to = to,
+        through = this
+      )
+    }
+  }
+
 
 fun List<Proof>.refinementsFor(superType: KotlinType): List<Proof> =
   filter { proof ->
@@ -170,7 +261,7 @@ fun List<Proof>.refinementsFor(superType: KotlinType): List<Proof> =
 fun List<Proof>.refinementExpressionFromAnnotation(superType: KotlinType): String? =
   refinementsFor(superType)
     .mapNotNull {
-      val refinedAnnotation = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.annotations?.findAnnotation(FqName("arrow.Refinement"))
+      val refinedAnnotation = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.annotations?.findAnnotation(FqName("arrow.RefinedBy"))
       if (refinedAnnotation != null) {
         refinedAnnotation.argumentValue("predicate")?.value as? String
       } else null
@@ -184,5 +275,3 @@ fun List<Proof>.refinementExpressionFromPsi(superType: KotlinType): String? =
       val objectDeclaration = ktObject?.let(::ObjectDeclaration)
       objectDeclaration?.refinementExpression()
     }.firstOrNull()
-
-

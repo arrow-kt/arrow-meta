@@ -14,7 +14,7 @@ data class GivenUpperBound(
 ) {
   companion object {
 
-    val givenAnnotationName: FqName = FqName("arrowx.given")
+    val givenAnnotationName: FqName = FqName("arrow.Given")
 
     val Empty: GivenUpperBound =
       GivenUpperBound(

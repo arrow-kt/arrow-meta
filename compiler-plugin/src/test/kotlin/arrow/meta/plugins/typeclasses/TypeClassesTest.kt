@@ -14,6 +14,7 @@ class TypeClassesTest {
         val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
         val codeSnippet = """
        import arrowx.*
+       import arrow.*
       
        //metadebug
         val aaaa = "1".monoidExt().mcombine("2").monoidExt().mcombine("3").monoidExt().mcombine("4")
@@ -40,10 +41,10 @@ class TypeClassesTest {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
+       import arrow.*
        import arrowx.*
-       import arrowx.given
        
-       fun <A: @given Semigroup<A>> A.mappend(b: A): A =
+       fun <A: @Given Semigroup<A>> A.mappend(b: A): A =
           this@mappend.combine(b)
 
        //metadebug
@@ -70,11 +71,10 @@ class TypeClassesTest {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
+       import arrow.*
        import arrowx.*
-       import arrowx.given
-       import arrow.tuples.*
        
-       fun <A> given(evidence: @given A = arrow.given): A =
+       fun <A> given(evidence: @Given A = arrow.given): A =
           evidence
 
        //metadebug

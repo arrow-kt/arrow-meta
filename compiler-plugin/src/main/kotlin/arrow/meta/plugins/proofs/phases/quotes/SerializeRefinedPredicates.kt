@@ -11,7 +11,7 @@ internal fun ObjectDeclaration.objectWithSerializedRefinement(elementScope: Elem
     return if (predicateAsExpression == null) Transform.empty
     else Transform.replace(
       value,
-      "@arrow.Refinement(\"\"\"\n$predicateAsExpression\n\"\"\") ${this@objectWithSerializedRefinement}".`object`
+      "@arrow.RefinedBy(\"\"\"\n$predicateAsExpression\n\"\"\") ${this@objectWithSerializedRefinement}".`object`
     )
   }
 

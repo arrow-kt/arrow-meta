@@ -7,7 +7,6 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.ProofStrategy
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
@@ -85,8 +84,6 @@ fun KtNamedFunction.markerMessage(): String =
       """
       <code lang="kotlin">${text}</code> 
       $message
-      
-    <a href="">More info on Type Proofs</a>: ${ProofStrategy.values().joinToString { """<code lang="kotlin">${it.name}</code>""" }}
     """.trimIndent()
     }.orEmpty()
   }
