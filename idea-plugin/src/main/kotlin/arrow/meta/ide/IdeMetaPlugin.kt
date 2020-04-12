@@ -8,6 +8,7 @@ import arrow.meta.ide.phases.IdeContext
 import arrow.meta.ide.plugins.initial.initialIdeSetUp
 import arrow.meta.ide.plugins.proofs.typeProofsCli
 import arrow.meta.ide.plugins.proofs.typeProofsIde
+import arrow.meta.ide.plugins.purity.kotlinCacheLogger
 import arrow.meta.ide.plugins.quotes.quotes
 import arrow.meta.ide.plugins.quotes.quotesCli
 import arrow.meta.phases.CompilerContext
@@ -23,6 +24,8 @@ open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
   //purity +
   //comprehensionsIdePlugin +
     //opticsIdePlugin +
-    listOf(initialIdeSetUp, quotes,
+    listOf(initialIdeSetUp,
+      kotlinCacheLogger,
+      quotes,
       typeProofsIde)
 }
