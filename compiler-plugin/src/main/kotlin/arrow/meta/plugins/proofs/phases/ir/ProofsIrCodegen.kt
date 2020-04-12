@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
+import org.jetbrains.kotlin.ir.expressions.getValueArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.putValueArgument
@@ -200,17 +201,9 @@ class ProofsIrCodegen(
     if (upperBound != null) {
       givenUpperBound.givenValueParameters.forEach { valueParameterDescriptor ->
         val superType = valueParameterDescriptor.type
-        val candidateSubtype = superType.arguments.firstOrNull()?.type
-        val maybeCompanion = (candidateSubtype?.constructor?.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
-        if (maybeCompanion != null) {
-          val extensionCall = extensionProofCall(maybeCompanion.defaultType, superType)?.also {
-            val companionType = irUtils.typeTranslator.translateType(maybeCompanion.defaultType)
-            val companionClass = irUtils.backendContext.ir.symbols.externalSymbolTable.referenceClass(maybeCompanion)
-            it.extensionReceiver = companionCall(companionType, companionClass)
-          }
-          extensionCall?.apply {
+        givenProofCall(superType)?.apply {
+          if (expression.getValueArgument(valueParameterDescriptor) == null)
             expression.putValueArgument(valueParameterDescriptor, this)
-          }
         }
       }
     }
