@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.application
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -22,7 +23,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
- * multi-purpose algebra to interact with the Ide lifecycle through registering or replacing services or adding lifecycle related extensions that run at their respective phase.
+ * multi-purpose algebra to interact with the Ide lifecycle through hijacking and replacing existing services or adding lifecycle related extensions that run at their respective phase.
  * Services can be distributed across the ide in three different kinds at application-level, project-level or module-level.
  * The intellij platform distributes an isolated instance depending on the level - isolated in terms of other instances -,
  * that means an application-level service has solely one instance, whereas module-level services have an instance for each module.
@@ -31,63 +32,43 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 interface ApplicationSyntax {
   /**
    * registers an application-level service and the instance.
-   * The IntelliJ Platform ensures that only one instance of [instance] is loaded, when [kind] is [ServiceKind.Application],
-   * even though the service can be retrieved multiple times with [ServiceManager.getService] or [com.intellij.openapi.project.Project.getService].
+   * The IntelliJ Platform ensures that only one instance of [instance] per application is instantiated.
+   * even though the service can be retrieved multiple times with [ServiceManager.getService] or [com.intellij.openapi.project.Project.getService] for project-level services.
    * It is impeccable that there is only one [instance] implementation for a given [service] to fulfill coherence in the ide.
-   * Services have several use-cases like [org.jetbrains.kotlin.caches.resolve.KotlinCacheService] being a project-level service - here [kind] = [ServiceKind.Project], TODO or TODO.
-   * Services can be utilised from every in the ide.
+   * The ide will throw an exception, if that premise is not met.
    * ```kotlin:ank:playground
    * import org.jetbrains.kotlin.psi.KtNamedFunction
-   * import com.intellij.openapi.project.Project
    *
-   * interface MyService { // one application-level service is sufficient
+   * interface MyService {
    *   fun printLn(f: KtNamedFunction): Unit
-   * }
-   *
-   * interface MyProjectService { // intended to be used for each Project separately
-   *   fun hello(project: Project): Unit
    * }
    * ```
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.ide.dsl.application.ServiceKind
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
-   * import com.intellij.openapi.project.Project
    * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
    * val IdeMetaPlugin.services: IdePlugin
-   *   get() = "Register project- and application-level services" {
+   *   get() = "Register application-level services" {
    *     meta(
-   *       addService(
-   *         service = MyService::class.java,
-   *         kind = ServiceKind.Application,
-   *         instance = object : MyService {
+   *       addAppService(MyService::class.java) {
+   *         object : MyService {
    *           override fun printLn(f: KtNamedFunction): Unit =
    *             println("Function: ${f.name} returns ${f.resolveToDescriptorIfAny()?.returnType ?: "ERROR"}")
    *         }
-   *       ),
-   *       addService(
-   *         service = MyProjectService::class.java,
-   *         kind = ServiceKind.Project,
-   *         instance = object : MyProjectService {
-   *           override fun hello(project: Project): Unit =
-   *             println("Hello ${project.name}!")
-   *         }
-   *       )
+   *       }
    *     )
    *   }
+   *
    * //sampleEnd
    * interface MyService {
    *   fun printLn(f: KtNamedFunction): Unit
    * }
-   * interface MyProjectService {
-   *   fun hello(project: Project): Unit
-   * }
    * ```
-   * Now the instances are available at runtime.
+   * The service is now available at runtime.
    * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
@@ -114,20 +95,20 @@ interface ApplicationSyntax {
    *     )
    *   }
    * ```
-   * @see arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
+   * @see AnnotatorSyntax
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : Any> IdeMetaPlugin.addAppService(service: Class<A>, instance: (A?) -> A?): ExtensionPhase =
     ApplicationProvider.AppService(service) { service -> instance(service as A?) }
 
   /**
-   * replaces a [service] with [instance].
-   * The following plugin needs a different [instance] than what 3rd party plugins provide - from our example in [addService].
+   * replaces an application [service] with [instance].
+   * In this example this [Annotator] needs a different [instance] for `MyService` than what is currently provided - see our example in [addAppService].
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.ide.plugins.purity.isImpure
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
+   * import arrow.meta.ide.plugins.higherkinds.isKindPolymorphic
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
    * import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -137,13 +118,12 @@ interface ApplicationSyntax {
    * val IdeMetaPlugin.logAnnotator: IdePlugin
    *   get() = "Log Function Annotator" {
    *     meta(
-   *       replaceService(
-   *         MyService::class.java,
+   *       replaceAppService(MyService::class.java) { myOldService ->
    *         object : MyService {
    *           override fun printLn(f: KtNamedFunction): Unit =
-   *             println("Log ${f.name}, which is Impure ${f.isImpure}")
+   *             println("Log ${f.name}, which ${if (f.isKindPolymorphic()) "is" else "is not"} polymorphic.")
    *         }
-   *       ),
+   *       },
    *       addAnnotator(
    *         annotator = Annotator { element, holder ->
    *           element.safeAs<KtNamedFunction>()?.let { f ->
@@ -153,11 +133,14 @@ interface ApplicationSyntax {
    *       )
    *     )
    *   }
+   *
    * //sampleEnd
    * interface MyService {
    *   fun printLn(f: KtNamedFunction): Unit
    * }
    * ```
+   * The same technique applies for every service in the plugin dependencies.
+   * @see AnnotatorSyntax
    */
   @Suppress("UNCHECKED_CAST")
   fun <A : Any> IdeMetaPlugin.replaceAppService(service: Class<A>, instance: (A?) -> A): ExtensionPhase =
@@ -172,10 +155,72 @@ interface ApplicationSyntax {
   fun IdeMetaPlugin.overrideService(from: Class<*>, to: Class<*>, override: Boolean = true): ExtensionPhase =
     ApplicationProvider.OverrideService(from, to, override)
 
-  @Suppress("UNCHECKED_CAST")
+  /**
+   * TODO: find a better phase to register this
+   * Meanwhile this is deprecated.
+   */
+  /*@Suppress("UNCHECKED_CAST")
   fun <A : Any> IdeMetaPlugin.replaceProjectService(service: Class<A>, instance: (Project, A?) -> A): ExtensionPhase =
     ApplicationProvider.ReplaceProjectService(service) { project, service -> instance(project, service as A?) }
+  */
 
+  /**
+   * registers a project service instance once all project components are initialized.
+   * Contrary to [addAppService] this extension only works for existing services that have been declared in the `plugin.xml`, due to it's current implementation in the Meta internals.
+   * @param instance hijacks the existing instance [A] from the IDE and registers the new instance [A]. The hijacked instance is preserved, when [instance] returns null.
+   * There are several use-cases like [org.jetbrains.kotlin.caches.resolve.KotlinCacheService] for project-level services.
+   * The following example registers a logger for the KotlinCacheService by hijacking it's standard implementation from the kotlin plugin.
+   * ```kotlin:ank:playground
+   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.invoke
+   * import com.intellij.psi.PsiFile
+   * import org.jetbrains.kotlin.analyzer.ModuleInfo
+   * import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+   * import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+   * import org.jetbrains.kotlin.platform.TargetPlatform
+   * import org.jetbrains.kotlin.psi.KtElement
+   * import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
+   * //sampleStart
+   * val IdeMetaPlugin.logKotlinCache: IdePlugin
+   *   get() = "Log Kotlin Cache Plugin" {
+   *     meta(
+   *       addProjectService(KotlinCacheService::class.java) { project, kotlinCache ->
+   *         kotlinCache?.let(::logKotlinCache)
+   *       }
+   *     )
+   *   }
+   * //sampleEnd
+   * fun logKotlinCache(delegate: KotlinCacheService): KotlinCacheService =
+   *   object : KotlinCacheService by delegate {
+   *     override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade {
+   *       println("Meaningful Log message for $elements")
+   *       return delegate.getResolutionFacade(elements)
+   *     }
+   *
+   *     override fun getResolutionFacade(elements: List<KtElement>, platform: TargetPlatform): ResolutionFacade {
+   *       println("Meaningful Log message for $elements based on target:$platform")
+   *       return delegate.getResolutionFacade(elements, platform)
+   *     }
+   *
+   *     override fun getResolutionFacadeByFile(file: PsiFile, platform: TargetPlatform): ResolutionFacade? {
+   *       println("Meaningful Log message for $file based on target:$platform")
+   *       return delegate.getResolutionFacadeByFile(file, platform)
+   *     }
+   *
+   *     override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo, platform: TargetPlatform): ResolutionFacade? {
+   *       println("Meaningful Log message for module ${moduleInfo.name} based on target:$platform")
+   *       return delegate.getResolutionFacadeByModuleInfo(moduleInfo, platform)
+   *     }
+   *
+   *     override fun getSuppressionCache(): KotlinSuppressCache {
+   *       println("Meaningful Log message for KotlinSuppressCache")
+   *       return delegate.getSuppressionCache()
+   *     }
+   *   }
+   * ```
+   * With this example in mind, the usage of KotlinCacheService implies logging the example output on console.
+   */
   @Suppress("UNCHECKED_CAST")
   fun <A : Any> IdeMetaPlugin.addProjectService(service: Class<A>, instance: (Project, A?) -> A?): ExtensionPhase =
     ApplicationProvider.ProjectService(service) { project, service -> instance(project, service as A?) }

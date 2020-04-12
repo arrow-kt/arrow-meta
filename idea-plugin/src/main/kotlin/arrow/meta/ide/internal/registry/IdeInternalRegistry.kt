@@ -106,6 +106,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
         is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
         is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
         is ApplicationProvider.ProjectService<*> -> phase.run {
+          /**
+           * Investigate other registry options in:
+           * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
+           * com.intellij.openapi.project.impl.ProjectImpl.init
+           * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
+           */
           app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
             override fun projectComponentsInitialized(project: Project): Unit =
               instance(project, project.getService(service))?.let {
