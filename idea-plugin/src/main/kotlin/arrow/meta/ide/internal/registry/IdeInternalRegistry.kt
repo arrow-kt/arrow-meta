@@ -42,13 +42,16 @@ import com.intellij.openapi.extensions.DefaultPluginDescriptor
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.serviceContainer.PlatformComponentManagerImpl
+import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import javax.swing.event.HyperlinkListener
 
 internal interface IdeInternalRegistry : InternalRegistry {
 
@@ -112,16 +115,16 @@ internal interface IdeInternalRegistry : InternalRegistry {
            * com.intellij.openapi.project.impl.ProjectImpl.init
            * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
            */
-          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-            override fun projectComponentsInitialized(project: Project): Unit =
+          app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+            override fun projectOpened(project: Project): Unit =
               instance(project, project.getService(service))?.let {
                 project.registerService(service as Class<Any>, it)
               } ?: Unit
           })
         }
         is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
-          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-            override fun projectComponentsInitialized(project: Project): Unit =
+          app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+            override fun projectOpened(project: Project): Unit =
               project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
           })
         }
@@ -129,8 +132,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
         is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
         is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
-        is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
-        ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
+        is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
+        ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
         is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
       }
     }
@@ -142,12 +145,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
       ?: LOG.error("Service:${fromService.simpleName} could not be OVERRIDDEN properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
   fun <T : Any> ComponentManager.registerService(service: Class<T>, instance: T): Unit =
-    (this as? PlatformComponentManagerImpl)
+    (this as? ComponentManagerImpl)
       ?.registerServiceInstance(service, instance, DefaultPluginDescriptor("registers service:${service.simpleName}"))
       ?: LOG.error("Service:${service.simpleName} could not be REGISTERED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
   fun <T : Any> ComponentManager.replaceService(service: Class<T>, instance: T): Unit =
-    (this as? PlatformComponentManagerImpl)
+    (this as? ComponentManagerImpl)
       ?.replaceServiceInstance(service, instance, this)
       ?: LOG.error("Service:${service.simpleName} could not be REPLACED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
@@ -162,7 +165,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     ToolWindowManager.getInstance(project).let { manager ->
       manager.getToolWindow(id)?.activate(null)
         ?: manager.registerToolWindow(id, canCloseContent, anchor).let { window ->
-          window.icon = icon
+          window.setIcon(icon)
           window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
         }
     }
@@ -171,7 +174,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
     ToolWindowManager.getInstance(project).unregisterToolWindow(id)
 
   fun ToolwindowProvider.Notification.register(): Unit =
-    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, listener)
+    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, HyperlinkListener(listener))
 
   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {

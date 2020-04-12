@@ -326,15 +326,14 @@ interface ApplicationSyntax {
     beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
   ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed, dispose))
+    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed, dispose))
 
   /**
-   * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
+   * Order: [beforeProjectLoaded] then [initialize] then [afterProjectClosed]
    */
   fun ApplicationSyntax.projectLifecycleListener(
     beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     dispose: ProjectLifecycle.() -> Unit = Noop.effect1
   ): ProjectLifecycle =
@@ -348,9 +347,6 @@ interface ApplicationSyntax {
       override fun afterProjectClosed(project: Project): Unit =
         afterProjectClosed(this, project)
 
-      override fun postStartupActivitiesPassed(project: Project): Unit =
-        postStartupActivitiesPassed(this, project)
-
       override fun dispose(): Unit = dispose(this)
     }
 
@@ -363,12 +359,11 @@ interface ApplicationSyntax {
     postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
     afterProjectClosed: (Project) -> Unit = Noop.effect1
   ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed))
+    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed))
 
   fun ApplicationSyntax.projectLifecycleListener(
     beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
     initialize: (Project) -> Unit = Noop.effect1,
-    postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
     afterProjectClosed: (Project) -> Unit = Noop.effect1
   ): ProjectLifecycleListener =
     object : ProjectLifecycleListener {
@@ -380,9 +375,6 @@ interface ApplicationSyntax {
 
       override fun afterProjectClosed(project: Project): Unit =
         afterProjectClosed(project)
-
-      override fun postStartupActivitiesPassed(project: Project): Unit =
-        postStartupActivitiesPassed(project)
     }
 
   /**
