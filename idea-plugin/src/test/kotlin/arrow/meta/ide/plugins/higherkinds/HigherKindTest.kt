@@ -15,14 +15,14 @@ class HigherKindTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+      listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
         IdeTest(
           code = HigherKindsTestCode.code1,
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.HKT)
           },
-          result = resolvesWith("LineMarkerTest for one valid HKT") {
-            it.takeIf { description -> description.lineMarker.size == 1 && description.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for one valid HKT") {
+            it.lineMarker.size == 1 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -30,8 +30,8 @@ class HigherKindTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.HKT)
           },
-          result = resolvesWith("LineMarkerTest for multiple valid HKT") {
-            it.takeIf { description -> description.lineMarker.size == 2 && description.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for multiple valid HKT") {
+            it.lineMarker.size == 2 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -39,8 +39,8 @@ class HigherKindTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.HKT)
           },
-          result = resolvesWith("LineMarkerTest for no valid HKT") {
-            it.takeIf { description -> description.lineMarker.isEmpty() && description.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for no valid HKT") {
+            it.lineMarker.isEmpty() && it.slowLM.isEmpty()
           }
         )
       )
@@ -53,14 +53,14 @@ class HigherKindTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+      listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
         IdeTest(
           code = HigherKindsTestCode.code4,
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.POLY)
           },
-          result = resolvesWith("LineMarkerTest for Poly Icon") {
-            it.takeIf { description -> description.lineMarker.size == 2 && description.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for Poly Icon") {
+            it.lineMarker.size == 2 && it.slowLM.isEmpty()
           }
         )
       )
