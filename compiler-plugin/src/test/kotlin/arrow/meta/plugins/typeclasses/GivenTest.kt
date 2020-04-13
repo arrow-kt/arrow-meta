@@ -3,7 +3,6 @@ package arrow.meta.plugins.typeclasses
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
 import org.junit.Test
 
 class GivenTest {
@@ -35,7 +34,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given val x = "yes!"
-        fun id(evidence: @Given String = arrow.given): String =
+        fun id(evidence: String = given()): String =
           evidence
         val result = id()
       """,
@@ -48,7 +47,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given val x = "yes!"
-        fun id(evidence: @Given String = arrow.given): String =
+        fun id(evidence: String = given()): String =
           evidence
         val result = id("nope!")
       """,
