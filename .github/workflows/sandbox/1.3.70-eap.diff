@@ -1142,10 +1142,10 @@ index c96a5fc..d3f2128 100644
  KOTLIN_TEST_VERSION=3.4.2
  ASSERTJ_VERSION=3.13.2
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-index 541cdd1..2187a75 100644
+index d767ad2..b56bee1 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-@@ -258,10 +258,9 @@ interface ApplicationSyntax {
+@@ -323,10 +323,9 @@ interface ApplicationSyntax {
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
@@ -1153,22 +1153,20 @@ index 541cdd1..2187a75 100644
 -    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
 +    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
    ): ExtensionPhase =
--    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded, postStartupActivitiesPassed))
-+    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded))
+-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed, dispose))
++    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed, dispose))
  
    /**
     * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
-@@ -270,8 +269,7 @@ interface ApplicationSyntax {
+@@ -334,7 +333,6 @@ interface ApplicationSyntax {
+   fun ApplicationSyntax.projectLifecycleListener(
+     beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
+-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
--    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
--    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
-+    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+     dispose: ProjectLifecycle.() -> Unit = Noop.effect1
    ): ProjectLifecycle =
-     object : ProjectLifecycle {
-       override fun projectComponentsInitialized(project: Project): Unit =
-@@ -283,9 +281,6 @@ interface ApplicationSyntax {
+@@ -348,9 +346,6 @@ interface ApplicationSyntax {
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(this, project)
  
@@ -1178,6 +1176,28 @@ index 541cdd1..2187a75 100644
        override fun dispose(): Unit = dispose(this)
      }
  
+@@ -360,10 +355,9 @@ interface ApplicationSyntax {
+   fun ApplicationSyntax.addProjectLifecycleListener(
+     beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
+     initialize: (Project) -> Unit = Noop.effect1,
+-    postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
+     afterProjectClosed: (Project) -> Unit = Noop.effect1
+   ): ExtensionPhase =
+-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, postStartupActivitiesPassed, afterProjectClosed))
++    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed))
+ 
+   fun ApplicationSyntax.projectLifecycleListener(
+     beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
+@@ -380,9 +374,6 @@ interface ApplicationSyntax {
+ 
+       override fun afterProjectClosed(project: Project): Unit =
+         afterProjectClosed(project)
+-
+-      override fun postStartupActivitiesPassed(project: Project): Unit =
+-        postStartupActivitiesPassed(project)
+     }
+ 
+   /**
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
 index d88523d..42b0f60 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
@@ -1296,30 +1316,30 @@ index 1c00571..022116c 100644
      ToolwindowProvider.Notification(toolId, type, html, icon, listener, project)
  
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-index 1a9e65f..fa7b41e 100644
+index dfb1e33..f31b045 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-@@ -45,7 +45,7 @@ import com.intellij.openapi.project.Project
+@@ -44,7 +44,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+ import com.intellij.openapi.project.Project
  import com.intellij.openapi.project.impl.ProjectLifecycleListener
- import com.intellij.openapi.util.Disposer
  import com.intellij.openapi.wm.ToolWindowManager
 -import com.intellij.serviceContainer.PlatformComponentManagerImpl
 +import com.intellij.serviceContainer.ComponentManagerImpl
  import com.intellij.ui.content.ContentFactory
  import com.intellij.util.messages.Topic
  import org.jetbrains.kotlin.container.useImpl
-@@ -115,8 +115,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
-         is ApplicationProvider.ReplaceService<*> -> phase.run { app.replaceService(service as Class<Any>, instance) }
+@@ -129,8 +129,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
+         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
          is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
          is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
 -        is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
 -        ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
 +        is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
 +        ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
+         is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
        }
      }
-       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
-@@ -127,12 +127,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
+@@ -142,12 +142,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
        ?: LOG.error("Service:${fromService.simpleName} could not be OVERRIDDEN properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
  
    fun <T : Any> ComponentManager.registerService(service: Class<T>, instance: T): Unit =
@@ -1334,7 +1354,7 @@ index 1a9e65f..fa7b41e 100644
        ?.replaceServiceInstance(service, instance, this)
        ?: LOG.error("Service:${service.simpleName} could not be REPLACED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
  
-@@ -147,7 +147,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
+@@ -162,7 +162,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
      ToolWindowManager.getInstance(project).let { manager ->
        manager.getToolWindow(id)?.activate(null)
          ?: manager.registerToolWindow(id, canCloseContent, anchor).let { window ->
@@ -1343,10 +1363,10 @@ index 1a9e65f..fa7b41e 100644
            window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
          }
      }
-@@ -229,4 +229,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
-   private object IdeRegistryContext {
-     val dispose: Disposable = Disposer.newDisposable()
-   }
+@@ -240,4 +240,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
+       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
+       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+     }
 -}
 \ No newline at end of file
 +}
