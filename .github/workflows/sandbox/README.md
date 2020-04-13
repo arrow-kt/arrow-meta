@@ -29,7 +29,7 @@ For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev-18
 
 Update `.github/workflows/sandbox/1.4.0-dev.diff` with the new required changes.
 
-### What if there are failures when applying a patch for a development branch?
+### What if there are failures when applying a patch on a development branch?
 
 Follow these steps:
 
