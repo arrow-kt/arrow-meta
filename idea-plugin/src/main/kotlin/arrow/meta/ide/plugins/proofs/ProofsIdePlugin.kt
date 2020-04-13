@@ -5,13 +5,13 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.lifecycle.proofsLifecycle
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isNegationProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
+import arrow.meta.ide.plugins.proofs.resolve.proofsKotlinCache
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -25,7 +25,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
       refinementLineMarkers(),
       refinementAnnotator(),
-      proofsLifecycle
+      proofsKotlinCache
       //makeExplicitCoercionIntention(ctx),
       //makeImplicitCoercionIntention(ctx)
     )
