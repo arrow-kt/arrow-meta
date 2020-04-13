@@ -8,7 +8,7 @@ import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.asProof
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -43,7 +43,10 @@ fun ModuleDescriptor.initializeProofCache(): List<Proof> =
 
 
 
-private tailrec fun ModuleDescriptor.computeModuleProofs(acc: Sequence<Proof>, packages: List<FqName>): Sequence<Proof> =
+private tailrec fun ModuleDescriptor.computeModuleProofs(
+  acc: Sequence<Proof>,
+  packages: List<FqName>
+): Sequence<Proof> =
   when {
     packages.isEmpty() -> acc
     else -> {
@@ -53,12 +56,11 @@ private tailrec fun ModuleDescriptor.computeModuleProofs(acc: Sequence<Proof>, p
         .filter { !it.isRoot }
         .flatMap { packageName ->
           getPackage(packageName).memberScope.getContributedDescriptors { true }
-            .filterIsInstance<CallableMemberDescriptor>()
-            .filter(CallableMemberDescriptor::isProof)
-            .mapNotNull(CallableMemberDescriptor::asProof)
+            .filter { it.isProof() }
+            .flatMap { it.asProof().asIterable() }
             .map { it to packageName }
         }.toMap()
-      computeModuleProofs(acc + packagedProofs.keys.toList(), remaining)
+      computeModuleProofs(acc + packagedProofs.keys.asSequence(), remaining)
     }
   }
 

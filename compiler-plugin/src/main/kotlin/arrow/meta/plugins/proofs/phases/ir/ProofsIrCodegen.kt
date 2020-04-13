@@ -14,13 +14,15 @@ import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.getValueArgument
@@ -45,21 +47,23 @@ class ProofsIrCodegen(
 ) {
 
   fun IrUtils.matchedCandidateProofCall(
-    fn: FunctionDescriptor,
+    fn: CallableDescriptor,
     typeSubstitutor: NewTypeSubstitutorByConstructorMap
-  ): IrCall {
+  ): IrExpression {
     val irTypes = fn.substitutedIrTypes(typeSubstitutor).filterNotNull()
     return fn.irCall().apply {
-      fn.typeParameters.forEachIndexed { n, descriptor ->
-        //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
-        putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
+      if (this is IrMemberAccessExpression) {
+        fn.typeParameters.forEachIndexed { n, descriptor ->
+          //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+          putTypeArgument(n, irTypes.getOrElse(n) { backendContext.irBuiltIns.nothingType })
+        }
       }
     }
   }
 
   fun CompilerContext.givenProofCall(
     superType: KotlinType
-  ): IrCall? =
+  ): IrExpression? =
     irUtils.run {
       val matchingCandidates = givenProofs(superType)
       val proofs = matchingCandidates.map { proof ->
@@ -68,19 +72,17 @@ class ProofsIrCodegen(
       proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
 
-  private fun IrUtils.substitutedProofCall(proof: Proof, superType: KotlinType): IrCall? =
-    proof.underliyingFunctionDescriptor?.let { fn ->
-      matchedCandidateProofCall(
-        fn = fn,
-        typeSubstitutor = proof.substitutor(superType)
-      )
-    }
+  private fun IrUtils.substitutedProofCall(proof: GivenProof, superType: KotlinType): IrExpression? =
+    matchedCandidateProofCall(
+      fn = proof.callableDescriptor,
+      typeSubstitutor = proof.substitutor(superType)
+    )
 
 
   fun CompilerContext.extensionProofCall(
     subType: KotlinType,
     superType: KotlinType
-  ): IrCall? =
+  ): IrExpression? =
     irUtils.run {
       val matchingCandidates = extensionProofs(subType, superType)
       val proofs = matchingCandidates.map {
@@ -136,7 +138,9 @@ class ProofsIrCodegen(
     return if (targetType != null && valueType != null) {
       it.apply {
         val proofCall = extensionProofCall(valueType, targetType)
-        proofCall?.extensionReceiver = initializer
+        if (proofCall is IrMemberAccessExpression) {
+          proofCall.extensionReceiver = initializer
+        }
         proofCall?.also {
           initializer = it
         }
@@ -155,7 +159,7 @@ class ProofsIrCodegen(
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
-      if (upperBound != null) insertExtensionGivenCall(givenTypeParamUpperBound, expression)
+      if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
       expression
     }
@@ -169,21 +173,23 @@ class ProofsIrCodegen(
     if (targetType != null && valueType != null && targetType != valueType) {
       expression.apply {
         val proofCall = extensionProofCall(valueType, targetType)
-        when {
-          proofCall != null -> {
-            when {
-              this.dispatchReceiver != null -> {
-                proofCall.extensionReceiver = this.dispatchReceiver
-                proofCall.also {
-                  dispatchReceiver = it
-                  extensionReceiver = null
+        if (proofCall is IrMemberAccessExpression) {
+          when {
+            proofCall != null -> {
+              when {
+                this.dispatchReceiver != null -> {
+                  proofCall.extensionReceiver = this.dispatchReceiver
+                  proofCall.also {
+                    dispatchReceiver = it
+                    extensionReceiver = null
+                  }
                 }
-              }
-              this.extensionReceiver != null -> {
-                proofCall.extensionReceiver = this.extensionReceiver
-                proofCall.also {
-                  dispatchReceiver = null
-                  extensionReceiver = it
+                this.extensionReceiver != null -> {
+                  proofCall.extensionReceiver = this.extensionReceiver
+                  proofCall.also {
+                    dispatchReceiver = null
+                    extensionReceiver = it
+                  }
                 }
               }
             }
@@ -193,7 +199,7 @@ class ProofsIrCodegen(
     }
   }
 
-  private fun CompilerContext.insertExtensionGivenCall(
+  private fun CompilerContext.insertGivenCall(
     givenUpperBound: GivenUpperBound,
     expression: IrCall
   ): Unit {
@@ -209,14 +215,6 @@ class ProofsIrCodegen(
     }
   }
 
-  fun companionCall(companionType: IrType, companionClass: IrClassSymbol): IrGetObjectValueImpl =
-    IrGetObjectValueImpl(
-      UNDEFINED_OFFSET,
-      UNDEFINED_OFFSET,
-      companionType,
-      companionClass
-    )
-
   fun CompilerContext.proveProperty(it: IrProperty): IrProperty? {
     val targetType = it.descriptor.returnType
     val valueType = it.backingField?.initializer?.expression?.type?.originalKotlinType
@@ -224,7 +222,8 @@ class ProofsIrCodegen(
       it.backingField?.let { field ->
         val replacement = field.initializer?.expression?.let {
           extensionProofCall(valueType, targetType)?.apply {
-            extensionReceiver = it
+            if (this is IrMemberAccessExpression)
+              extensionReceiver = it
           }
         }
         replacement?.let { field.initializer?.expression = it }
@@ -238,7 +237,9 @@ class ProofsIrCodegen(
     val valueType = it.value.type.originalKotlinType
     return if (targetType != null && valueType != null && targetType != valueType) {
       extensionProofCall(valueType, targetType)?.let { call ->
-        call.extensionReceiver = it.value
+        if (call is IrMemberAccessExpression)
+          call.extensionReceiver = it.value
+
         IrReturnImpl(
           UNDEFINED_OFFSET,
           UNDEFINED_OFFSET,
@@ -255,9 +256,10 @@ class ProofsIrCodegen(
     val valueType = it.argument.type.toKotlinType()
     return if (targetType != valueType) {
       extensionProofCall(valueType, targetType)?.let { call ->
-        call.extensionReceiver = it.argument
+        if (call is IrMemberAccessExpression)
+          call.extensionReceiver = it.argument
         call
-      } ?: it
+      }
     } else it
   }
 

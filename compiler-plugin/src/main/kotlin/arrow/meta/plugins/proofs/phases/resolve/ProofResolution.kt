@@ -5,18 +5,26 @@ import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.ArrowCoercionProof
 import arrow.meta.plugins.proofs.phases.ArrowExtensionProof
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
+import arrow.meta.plugins.proofs.phases.ArrowRefinementProof
+import arrow.meta.plugins.proofs.phases.CallableMemberProof
+import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -34,6 +42,7 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
+import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -138,22 +147,26 @@ inline fun <reified A : ExtensionProof> List<A>.resolveExtensionProofs(
 fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
-fun CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<GivenProof> =
+inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<A> =
   if (this is AllCandidatesResolutionResult) {
     val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
-    val proofs = selectedCandidates.mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<CallableMemberDescriptor>()?.asProof() }
-      .filterIsInstance<GivenProof>()
-      .filter { includeInCandidates(it.to, superType) }
-    proofs
+    val proofs = selectedCandidates.flatMap {
+      it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable()
+    }.filter {
+      it is A && includeInCandidates(it.to, superType)
+    }.filterIsInstance<A>()
+    proofs.toList()
   } else emptyList()
 
 inline fun <reified A : ExtensionProof> CallResolutionResult.matchingExtensionProofs(subType: KotlinType, superType: KotlinType): List<A> =
   if (this is AllCandidatesResolutionResult) {
     val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
-    selectedCandidates
-      .mapNotNull { it.candidate.resolvedCall.candidateDescriptor.safeAs<SimpleFunctionDescriptor>()?.asProof() }
-      .filterIsInstance<A>()
-      .filter { includeInCandidates(it.from, it.to, subType, superType) }
+    val proofs = selectedCandidates
+      .flatMap { it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable() }
+      .filter {
+        it is A && includeInCandidates(it.from, it.to, subType, superType)
+      }.filterIsInstance<A>()
+    proofs.toList()
   } else emptyList()
 
 fun includeInCandidates(from: KotlinType, to: KotlinType, subType: KotlinType, superType: KotlinType): Boolean =
@@ -195,39 +208,50 @@ class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
   override fun getType(): KotlinType = kotlinType
 }
 
-fun <A : CallableMemberDescriptor> A.asProof(): Proof? =
+fun DeclarationDescriptor.asProof(): Sequence<Proof> =
   when (this) {
     is PropertyDescriptor -> asProof()
+    is ClassConstructorDescriptor -> containingDeclaration.asProof()
     is FunctionDescriptor -> asProof()
     is ClassDescriptor -> asProof()
-    else -> TODO("Unsupported proof declaration type: $this")
+    is FakeCallableDescriptorForObject -> classDescriptor.asProof()
+    else -> TODO("asProof: Unsupported proof declaration type: $this")
   }
 
-fun ClassDescriptor.asProof(): Proof? =
-  when {
-    annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
-    else -> TODO()
+fun ClassDescriptor.asProof(): Sequence<Proof> =
+  annotations.asSequence().mapNotNull {
+    when (it.fqName) {
+      ArrowGivenProof -> asGivenProof()
+      ArrowRefinementProof -> asGivenProof()
+      else -> TODO("asProof: Unsupported proof declaration type: $this")
+    }
   }
 
-fun PropertyDescriptor.asProof(): Proof? =
-  when {
-    !isExtension && annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
-    else -> TODO()
+fun PropertyDescriptor.asProof(): Sequence<Proof> =
+  annotations.asSequence().mapNotNull {
+    when (it.fqName) {
+      ArrowGivenProof -> if (!isExtension) asGivenProof() else null
+      else -> TODO("asProof: Unsupported proof declaration type: $this")
+    }
   }
 
-fun FunctionDescriptor.asProof(): Proof? =
-  when {
-    isExtension && annotations.hasAnnotation(ArrowExtensionProof) -> asProjectionProof()
-    isExtension && annotations.hasAnnotation(ArrowCoercionProof) -> asCoercionProof()
-    !isExtension && annotations.hasAnnotation(ArrowGivenProof) -> asGivenProof()
-    else -> TODO()
+fun FunctionDescriptor.asProof(): Sequence<Proof> =
+  annotations.asSequence().mapNotNull {
+    when (it.fqName) {
+      ArrowExtensionProof -> if (isExtension) asProjectionProof() else null
+      ArrowCoercionProof -> if (isExtension) asCoercionProof() else null
+      ArrowGivenProof -> if (!isExtension) asGivenProof() else null
+      else -> TODO("asProof: Unsupported proof declaration type: $this")
+    }
   }
+
 
 private fun ClassDescriptor.asGivenProof(): GivenProof? =
-  unsubstitutedPrimaryConstructor?.asGivenProof()
+  if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this)
+  else ClassProof(defaultType, this)
 
 private fun CallableMemberDescriptor.asGivenProof(): GivenProof? =
-  returnType?.let { GivenProof(it, this) }
+  returnType?.let { CallableMemberProof(it, this) }
 
 private fun FunctionDescriptor.asCoercionProof(): CoercionProof? =
   extensionReceiverParameter?.type?.let { from ->

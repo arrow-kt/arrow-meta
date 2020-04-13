@@ -3,6 +3,7 @@ package arrow.meta.plugins.typeclasses
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
+import org.junit.Ignore
 import org.junit.Test
 
 class GivenTest {
@@ -52,6 +53,56 @@ class GivenTest {
         val result = id("nope!")
       """,
       expected = "result" to "nope!"
+    )
+  }
+
+  @Test
+  fun `value provider`() {
+    givenTest(
+      source = """
+        class X(val value: String)
+        @Given val x: X = X("yes!")
+        val result = given<X>().value
+      """,
+      expected = "result" to "yes!"
+    )
+  }
+
+  @Test
+  fun `fun provider`() {
+    givenTest(
+      source = """
+        class X(val value: String)
+        @Given fun x(): X = X("yes!")
+        val result = given<X>().value
+      """,
+      expected = "result" to "yes!"
+    )
+  }
+
+  @Test
+  fun `class provider`() {
+    givenTest(
+      source = """
+        @Given class X {
+          val value = "yes!"
+        }
+        val result = given<X>().value
+      """,
+      expected = "result" to "yes!"
+    )
+  }
+
+  @Test
+  fun `object provider`() {
+    givenTest(
+      source = """
+        @Given object X {
+          val value = "yes!"
+        }
+        val result = given<X>().value
+      """,
+      expected = "result" to "yes!"
     )
   }
 

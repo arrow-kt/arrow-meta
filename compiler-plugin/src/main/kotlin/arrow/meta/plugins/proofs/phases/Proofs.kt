@@ -7,8 +7,10 @@ import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -16,8 +18,10 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.unwrappedGetMethod
+import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.descriptorUtil.isPrimaryConstructorOfInlineClass
+import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeProjection
 
 val ArrowExtensionProof: FqName = FqName("arrow.Extension")
 val ArrowGivenProof: FqName = FqName("arrow.Given")
@@ -33,16 +37,16 @@ val ArrowProofSet: Set<FqName> = setOf(
 
 sealed class Proof(
   open val to: KotlinType,
-  open val through: CallableMemberDescriptor
+  open val through: DeclarationDescriptor
 ) {
 
-  val underliyingFunctionDescriptor: FunctionDescriptor?
-    get() = when (val f = through) {
-      is FunctionDescriptor -> f
-      is PropertyDescriptor -> f.unwrappedGetMethod ?: TODO("Unsupported $f as @given")
-      is ClassDescriptor -> f.unsubstitutedPrimaryConstructor
-      else -> TODO("Unsupported $f as @given")
-    }
+//  val underliyingFunctionDescriptor: FunctionDescriptor?
+//    get() = when (val f = through) {
+//      is FunctionDescriptor -> f
+//      is PropertyDescriptor -> f.unwrappedGetMethod ?: TODO("Unsupported $f as @given")
+//      is ClassDescriptor -> f.constructors.firstOrNull { it.visibility.isVisibleOutside() }
+//      else -> TODO("Unsupported $f as @given")
+//    }
 
   inline fun <A> fold(
     given: GivenProof.() -> A,
@@ -58,10 +62,36 @@ sealed class Proof(
     }
 }
 
-data class GivenProof(
+sealed class GivenProof(
+  override val to: KotlinType,
+  override val through: DeclarationDescriptor
+) : Proof(to, through) {
+  abstract val callableDescriptor: CallableDescriptor
+}
+
+data class ClassProof(
+  override val to: KotlinType,
+  override val through: ClassDescriptor
+) : GivenProof(to, through) {
+  override val callableDescriptor: CallableDescriptor
+    get() = through.unsubstitutedPrimaryConstructor ?: TODO("no primary constructor for ${through.name}")
+}
+
+data class ObjectProof(
+  override val to: KotlinType,
+  override val through: ClassDescriptor
+) : GivenProof(to, through) {
+  override val callableDescriptor: CallableDescriptor
+    get() = FakeCallableDescriptorForObject(through)
+}
+
+data class CallableMemberProof(
   override val to: KotlinType,
   override val through: CallableMemberDescriptor
-) : Proof(to, through)
+) : GivenProof(to, through) {
+  override val callableDescriptor: CallableDescriptor
+    get() = through
+}
 
 sealed class ExtensionProof(
   open val from: KotlinType,
@@ -89,7 +119,7 @@ data class RefinementProof(
   val coerce: Boolean = true
 ) : Proof(to, through)
 
-fun CallableMemberDescriptor.isProof(): Boolean =
+fun DeclarationDescriptor.isProof(): Boolean =
   ArrowProofSet.any(annotations::hasAnnotation)
 
 fun CompilerContext.extending(types: Collection<KotlinType>): List<ExtensionProof> =

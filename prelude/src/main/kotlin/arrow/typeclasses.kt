@@ -1,6 +1,7 @@
 package arrowx
 
 import arrow.Extension
+import arrow.Given
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -23,6 +24,7 @@ interface Monoid<A> : Semigroup<A> {
   fun empty(): A
 }
 
+@Given
 object StringMonoid : Monoid<String>, ReadOnlyProperty<String, Monoid<String>> {
   override fun String.combine(other: String): String = this + other
   override fun empty(): String = ""

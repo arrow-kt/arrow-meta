@@ -1,5 +1,6 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
+import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
@@ -87,7 +88,7 @@ class ProofsCallResolver(
 
   private fun GivenProof.givenCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
     candidateFactory.createCandidate(
-      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
+      towerCandidate = CandidateWithBoundDispatchReceiver(null, callableDescriptor, emptyList()),
       explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
       extensionReceiver = null
     )
