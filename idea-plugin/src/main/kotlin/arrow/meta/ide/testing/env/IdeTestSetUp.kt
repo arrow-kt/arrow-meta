@@ -1,5 +1,7 @@
 package arrow.meta.ide.testing.env
 
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 
 /**
@@ -7,3 +9,7 @@ import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestC
  * This empty abstract class is needed, as the underlying TestFramework may change for future versions.
  */
 abstract class IdeTestSetUp : LightPlatformCodeInsightFixture4TestCase()
+
+abstract class IdeHeavyTestSetUp : HeavyPlatformTestCase() {
+  val projectDir: VirtualFile? = project.baseDir
+}

@@ -17,6 +17,8 @@
     <depends>com.intellij.gradle</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
+    <depends>org.jetbrains.plugins.github</depends>
+    <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
