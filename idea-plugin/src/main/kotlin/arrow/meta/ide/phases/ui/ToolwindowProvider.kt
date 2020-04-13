@@ -7,7 +7,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
 sealed class ToolwindowProvider : ExtensionPhase {
   data class RegisterToolWindow(
@@ -27,7 +27,7 @@ sealed class ToolwindowProvider : ExtensionPhase {
     val type: MessageType,
     val html: String,
     val icon: Icon?,
-    val listener: (HyperlinkEvent) -> Unit,
+    val listener: HyperlinkListener?,
     val project: Project
   ) : ToolwindowProvider()
 }

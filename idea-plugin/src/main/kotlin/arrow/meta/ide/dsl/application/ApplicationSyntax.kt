@@ -258,10 +258,9 @@ interface ApplicationSyntax {
     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
   ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded, postStartupActivitiesPassed))
+    ApplicationProvider.ProjectListener(projectLifecycleListener(initialize, afterProjectClosed, dispose, beforeProjectLoaded))
 
   /**
    * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
@@ -270,8 +269,7 @@ interface ApplicationSyntax {
     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    postStartupActivitiesPassed: ProjectLifecycle.(Project) -> Unit = Noop.effect2
+    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
   ): ProjectLifecycle =
     object : ProjectLifecycle {
       override fun projectComponentsInitialized(project: Project): Unit =
@@ -282,9 +280,6 @@ interface ApplicationSyntax {
 
       override fun afterProjectClosed(project: Project): Unit =
         afterProjectClosed(this, project)
-
-      override fun postStartupActivitiesPassed(project: Project): Unit =
-        postStartupActivitiesPassed(this, project)
 
       override fun dispose(): Unit = dispose(this)
     }
