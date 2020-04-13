@@ -35,15 +35,15 @@ interface ToolWindowSyntax {
    * When the user executes the latter a tool window with displayName [toolId] is activated or registered by absence.
    * The following example enables the internal `Fir Explorer`, whenever the current document is a kotlin file.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.CommonDataKeys
    * import org.jetbrains.kotlin.idea.KotlinFileType
    * import org.jetbrains.kotlin.idea.actions.internal.FirExplorerToolWindow
    *
-   * val IdeMetaPlugin.exampleToolWindow: Plugin
+   * val IdeMetaPlugin.exampleToolWindow: IdePlugin
    *   get() = "ShowFirInTheIde" {
    *     meta(
    *       addToolWindowFromAction(
@@ -123,14 +123,14 @@ interface ToolWindowSyntax {
   /**
    * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.ui.MessageType
    * import com.intellij.openapi.wm.ToolWindowId
    *
-   * val IdeMetaPlugin.toolWindowBalloons: Plugin
+   * val IdeMetaPlugin.toolWindowBalloons: IdePlugin
    *   get() = "ToolWindowBalloon" {
    *     meta(
    *       addToolWindowNotification(
@@ -231,16 +231,16 @@ interface ToolWindowSyntax {
    * constructs a [JPanel] with an [Editor] inside.
    *
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.application.ApplicationManager
    * import com.intellij.openapi.editor.Editor
    * import com.intellij.openapi.wm.ToolWindowAnchor
    * import org.jetbrains.kotlin.idea.KotlinFileType
 
-   * val IdeMetaPlugin.editorToolwindow: Plugin
+   * val IdeMetaPlugin.editorToolwindow: IdePlugin
    *   get() = "TestEditor in Toolwindow" {
    *     meta(
    *       addToolWindowWithAction(

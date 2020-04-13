@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.psi.KtExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.catchClause
  *
- * val Meta.reformatCatchClause: Plugin
+ * val Meta.reformatCatchClause: CliPlugin
  *  get() =
  *   "ReformatCatchClause" {
  *    meta(

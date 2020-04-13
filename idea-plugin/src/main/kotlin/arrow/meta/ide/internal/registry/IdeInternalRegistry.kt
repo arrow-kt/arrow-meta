@@ -1,10 +1,10 @@
 package arrow.meta.ide.internal.registry
 
 import arrow.meta.dsl.platform.ide
-import arrow.meta.ide.dsl.application.ServiceKind
+import arrow.meta.ide.IdePlugin
+import arrow.meta.ide.phases.IdeContext
 import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
-import arrow.meta.ide.phases.editor.IdeContext
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
@@ -12,7 +12,6 @@ import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtension
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.registry.InternalRegistry
-import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
@@ -28,10 +27,12 @@ import arrow.meta.phases.resolve.DeclarationAttributeAlterer
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
+import com.intellij.ProjectTopics
 import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.lang.LanguageAnnotators
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
@@ -45,10 +46,13 @@ import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
+import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal interface IdeInternalRegistry : InternalRegistry {
+
+  fun intercept(ctx: IdeContext): List<IdePlugin>
 
   override fun registerMetaAnalyzer(): ExtensionPhase =
     ide {
@@ -63,40 +67,71 @@ internal interface IdeInternalRegistry : InternalRegistry {
       )
     } ?: ExtensionPhase.Empty
 
-  override fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase): Unit =
-    when (currentPhase) {
-      is ExtensionPhase.Empty, is CollectAdditionalSources, is Composite, is Config, is ExtraImports,
-      is PreprocessedVirtualFileFactory, is StorageComponentContainer, is AnalysisHandler, is ClassBuilder,
-      is Codegen, is DeclarationAttributeAlterer, is PackageProvider, is SyntheticResolver,
-      is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
-      is ExtensionProvider<*> -> registerExtensionProvider(currentPhase)
-      is AnActionExtensionProvider -> registerAnActionExtensionProvider(currentPhase)
-      is IntentionExtensionProvider -> registerIntentionExtensionProvider(currentPhase)
-      is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(currentPhase)
-      is ToolwindowProvider -> registerToolwindowProvider(currentPhase)
-      is ApplicationProvider -> registerApplicationProvider(currentPhase)
-      else -> LOG.error("Unsupported ide extension phase: $currentPhase")
+  fun registerMetaIdeComponents(app: Application) {
+    LOG.info("subscribing meta registrars")
+    val start = System.currentTimeMillis()
+    val ctx = IdeContext(app)
+    intercept(ctx).forEach {
+      println("Registering ide plugin: $it extensions: ${it.meta}")
+      it.meta(ctx).forEach { phase ->
+        fun rec(phase: ExtensionPhase): Unit =
+          when (phase) {
+            is ExtensionPhase.Empty, is CollectAdditionalSources, is Config, is ExtraImports,
+            is PreprocessedVirtualFileFactory, is StorageComponentContainer, is PackageProvider, is AnalysisHandler, is ClassBuilder,
+            is Codegen, is DeclarationAttributeAlterer, is SyntheticResolver,
+            is IRGeneration, is SyntheticScopeProvider -> Unit // filter out ExtensionPhases which happen in the compiler
+            is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
+            is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)
+            is IntentionExtensionProvider -> registerIntentionExtensionProvider(phase)
+            is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(phase)
+            is ToolwindowProvider -> registerToolwindowProvider(phase)
+            is ApplicationProvider -> registerApplicationProvider(phase)
+            is Composite -> phase.phases.forEach { composite -> rec(composite) }
+            else -> LOG.error("Unsupported ide extension phase: $phase")
+          }
+        rec(phase)
+      }
     }
+    LOG.info("subscribing meta registrars took ${System.currentTimeMillis() - start}ms")
+    println("componentsInitialized")
+  }
+
+  fun <A> Application.registerTopic(topic: Topic<A>, listeners: A): Unit =
+    messageBus.connect(this).subscribe(topic, listeners)
 
   @Suppress("UNCHECKED_CAST")
   fun registerApplicationProvider(phase: ApplicationProvider): Unit =
     ApplicationManager.getApplication()?.let { app ->
       when (phase) {
-        is ApplicationProvider.Service<*> -> phase.run {
-          when (kind) {
-            ServiceKind.Application -> app.registerService(service as Class<Any>, instance)
-            ServiceKind.Project -> app.messageBus.connect(app).subscribe(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-              override fun projectComponentsInitialized(project: Project): Unit = // true, because Meta Ide is still component based, not service based.
-                project.registerService(service as Class<Any>, instance)
-            })
-          }
+        is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
+        is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
+        is ApplicationProvider.ProjectService<*> -> phase.run {
+          /**
+           * Investigate other registry options in:
+           * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
+           * com.intellij.openapi.project.impl.ProjectImpl.init
+           * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
+           */
+          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+            override fun projectComponentsInitialized(project: Project): Unit =
+              instance(project, project.getService(service))?.let {
+                project.registerService(service as Class<Any>, it)
+              } ?: Unit
+          })
+        }
+        is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
+          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+            override fun projectComponentsInitialized(project: Project): Unit =
+              project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
+          })
         }
         is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
-        is ApplicationProvider.ReplaceService<*> -> phase.run { app.replaceService(service as Class<Any>, instance) }
         is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
+        is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
         is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
         ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
+        is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
       }
     }
       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
@@ -195,9 +230,9 @@ internal interface IdeInternalRegistry : InternalRegistry {
       }
     }
 
-  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>): Unit =
+  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, disposable: Disposable): Unit =
     when (phase) {
-      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, IdeContext.dispose) } // fixme: IdeContext needs to be removed
+      is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, disposable) }
       is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
       is ExtensionProvider.AddFileTypeExtension -> phase.run { FE.addExplicitExtension(fileType, impl) }
       is ExtensionProvider.AddClassExtension -> phase.run { CE.addExplicitExtension(forClass, impl) }

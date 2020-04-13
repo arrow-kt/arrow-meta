@@ -42,11 +42,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.phases.analysis.resolveFunctionType
    * import arrow.meta.phases.analysis.returns
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.codeHighlighting.HighlightDisplayLevel
    * import com.intellij.codeInspection.ProblemHighlightType
    * import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
@@ -55,7 +55,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
-   * val IdeMetaPlugin.simplyPure: Plugin
+   * val IdeMetaPlugin.simplyPure: IdePlugin
    *  get() = "Draft PurityPlugin" {
    *   meta(
    *    addApplicableInspection(
@@ -105,12 +105,16 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   ): ExtensionPhase =
     addLocalInspection(
       applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
-      level,
-      defaultFixText,
-      defaultFixText,
       groupPath,
-      defaultFixText
+      level
     )
+
+  fun <K : KtElement> IdeMetaPlugin.addLocalInspection(
+    inspection: AbstractApplicabilityBasedInspection<K>,
+    groupPath: Array<String>,
+    level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
+  ): ExtensionPhase =
+    addLocalInspection(inspection, level, inspection.defaultFixText, inspection.defaultFixText, groupPath, inspection.defaultFixText)
 
   /**
    * registers a GlobalInspection.

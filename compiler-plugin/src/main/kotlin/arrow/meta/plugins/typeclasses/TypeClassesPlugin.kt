@@ -1,7 +1,7 @@
 package arrow.meta.plugins.typeclasses
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
@@ -41,7 +41,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 const val WithMarker = "given"
 val ExtensionAnnotation = FqName("arrow.extension")
 
-val Meta.typeClasses: Plugin
+val Meta.typeClasses: CliPlugin
   get() =
     "typeClasses" {
       meta(

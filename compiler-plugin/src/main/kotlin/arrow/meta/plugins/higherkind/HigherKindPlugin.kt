@@ -1,7 +1,7 @@
 package arrow.meta.plugins.higherkind
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val Meta.higherKindedTypes: Plugin
+val Meta.higherKindedTypes: CliPlugin
   get() =
     "higherKindedTypes" {
       meta(
