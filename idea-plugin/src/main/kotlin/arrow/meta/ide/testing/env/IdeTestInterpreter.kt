@@ -109,10 +109,8 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *         test = { code: Source, myFixture: CodeInsightTestFixture, ctx ->
  *           collectLM(code, myFixture, ArrowIcons.ICON1) // this collect's all visible LineMarkers in the editor for the given Icon
  *         },
- *         result = resolvesWith("LineMarker Test for helloWorld") {
- *           it.takeIf { collected ->
- *             collected.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
- *           }
+ *         result = resolvesWhen("LineMarker Test for helloWorld") {
+ *           it.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
  *         }
  *       )
  *     )
