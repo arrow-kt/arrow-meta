@@ -15,10 +15,10 @@ typealias Source = String
  * @see IdeResolution, [ideTest]
  * There is an example in [ideTest] KDoc's.
  */
-data class IdeTest<A, F : IdeSyntax>(
+data class IdeTest<F : IdeSyntax, A>(
   val code: Source,
   val test: IdeEnvironment.(code: Source, myFixture: CodeInsightTestFixture, ctx: F) -> A,
-  val result: IdeResolution<A, F>
+  val result: IdeResolution<F, A>
 )
 
 /**
@@ -26,4 +26,4 @@ data class IdeTest<A, F : IdeSyntax>(
  * [ResolutionSyntax] facilitates extensions for [IdeResolution].
  * @see ideTest
  */
-data class IdeResolution<A, F : IdeSyntax>(val message: String, val transform: F.(result: A) -> A?)
+data class IdeResolution<F : IdeSyntax, A>(val message: String, val transform: F.(result: A) -> A?)

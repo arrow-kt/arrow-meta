@@ -15,10 +15,10 @@ import org.junit.Assert
  * testing methods such as property-based testing, unit tests and many more.
  * @see [arrow.meta.ide.testing.env.interpreter]
  */
-fun <A, F : IdeSyntax> IdeTest<A, F>.runTest(
+fun <F : IdeSyntax, A> IdeTest<F, A>.runTest(
   fixture: CodeInsightTestFixture,
   ctx: F,
-  interpreter: (test: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture) -> Unit = ::interpreter
+  interpreter: (test: IdeTest<F, A>, ctx: F, fixture: CodeInsightTestFixture) -> Unit = ::interpreter
 ): Unit =
   interpreter(this, ctx, fixture)
 
@@ -26,7 +26,7 @@ fun <A, F : IdeSyntax> IdeTest<A, F>.runTest(
  * [testResult] evaluates the actual result within the [IdeEnvironment]
  * @param ctx plugin context
  */
-fun <A, F : IdeSyntax> IdeTest<A, F>.testResult(ctx: F, fixture: CodeInsightTestFixture): A =
+fun <F : IdeSyntax, A> IdeTest<F, A>.testResult(ctx: F, fixture: CodeInsightTestFixture): A =
   test(IdeEnvironment, code, fixture, ctx)
 
 /**
@@ -34,7 +34,7 @@ fun <A, F : IdeSyntax> IdeTest<A, F>.testResult(ctx: F, fixture: CodeInsightTest
  * In addition, it throws an [AssertionError] with the [ideTest.result.message],
  * whenever the expected [ideTest.result] doesn't match the actual result from [testResult].
  */
-fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: CodeInsightTestFixture): Unit =
+fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: CodeInsightTestFixture): Unit =
   ideTest.run {
     val a = testResult(ctx, fixture)
     println("IdeTest results in $a")
@@ -73,7 +73,7 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *       myFixture = myFixture, // the IntelliJ test environment spins up [myFixture] automatically at runtime.
  *       ctx = MyIdePlugin() // add here your ide plugin, to get dependencies and created features in the scope of [test] and [result].
  *     ) {
- *       listOf(
+ *       listOf<IdeTest<Unit, MyIdePlugin>>( // type inference is not able to resolve the types here
  *         IdeTest(
  *           "val exampleCode = 2",
  *           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: MyIdePlugin ->
@@ -100,7 +100,7 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *     myFixture = myFixture,
  *     ctx = IdeMetaPlugin()
  *   ) {
- *     listOf(
+ *     listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
  *       IdeTest(
  *         code = """
  *         | fun helloWorld(): String =
@@ -109,10 +109,8 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  *         test = { code: Source, myFixture: CodeInsightTestFixture, ctx ->
  *           collectLM(code, myFixture, ArrowIcons.ICON1) // this collect's all visible LineMarkers in the editor for the given Icon
  *         },
- *         result = resolvesWith("LineMarker Test for helloWorld") {
- *           it.takeIf { collected ->
- *             collected.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
- *           }
+ *         result = resolvesWhen("LineMarker Test for helloWorld") {
+ *           it.lineMarker.size == 1 // we expect that there is only one lineMarker in our example code
  *         }
  *       )
  *     )
@@ -123,9 +121,9 @@ fun <A, F : IdeSyntax> interpreter(ideTest: IdeTest<A, F>, ctx: F, fixture: Code
  * @param myFixture is a key component of the underlying Intellij Testing API.
  * @param ctx is the plugin context if unspecified it will use the [IdeEnvironment]
  */
-fun <A, F : IdeSyntax> ideTest(
+fun <F : IdeSyntax, A> ideTest(
   myFixture: CodeInsightTestFixture,
   ctx: F = IdeEnvironment as F,
-  tests: IdeEnvironment.() -> List<IdeTest<A, F>>
+  tests: IdeEnvironment.() -> List<IdeTest<F, A>>
 ): Unit =
   tests(IdeEnvironment).forEach { it.runTest(myFixture, ctx) }
