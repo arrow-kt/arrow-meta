@@ -15,14 +15,14 @@ class LensTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+      listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
         IdeTest(
           code = LensTestCode.code1,
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.OPTICS)
           },
-          result = resolvesWith("LineMarkerTest for 3 LM ") {
-            it.takeIf { descriptor -> descriptor.lineMarker.size == 3 && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for 3 LM ") {
+            it.lineMarker.size == 3 && it.slowLM.isEmpty()
           }
         )
       )
