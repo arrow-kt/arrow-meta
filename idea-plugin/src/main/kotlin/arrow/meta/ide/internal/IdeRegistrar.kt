@@ -6,6 +6,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.contracts.ExperimentalContracts
 
+/**
+ * entry point of Meta in the Ide
+ */
 class IdeRegistrar : ApplicationInitializedListener {
   val LOG = Logger.getInstance("#arrow.AppRegistrar")
 
