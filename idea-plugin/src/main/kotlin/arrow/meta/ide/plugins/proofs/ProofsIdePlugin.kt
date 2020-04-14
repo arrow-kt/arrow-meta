@@ -16,6 +16,7 @@ import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isNegationProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
+import arrow.meta.ide.plugins.proofs.resolve.proofsKotlinCache
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
@@ -24,21 +25,19 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
-  get() {
-    return "Type Proofs IDE" {
-      meta(
-        proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-        proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
-        proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
-        refinementLineMarkers(),
-        refinementAnnotator(),
-        proofsLifecycle,
-        //makeExplicitCoercionIntention(ctx),
-        //makeImplicitCoercionIntention(ctx),
-        codeFolding,
-        typeFoldingHandler
-      )
-    }
+  get() = "Type Proofs IDE" {
+    meta(
+      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
+      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
+      refinementLineMarkers(),
+      refinementAnnotator(),
+      proofsKotlinCache,
+      //makeExplicitCoercionIntention(ctx),
+      //makeImplicitCoercionIntention(ctx),
+      codeFolding,
+      typeFoldingHandler
+    )
   }
 
 val IdeMetaPlugin.typeProofsCli: CliPlugin

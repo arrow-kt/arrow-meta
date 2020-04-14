@@ -43,10 +43,8 @@ fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinTyp
       .flatMap {
         receiverTypes.map { receiverType ->
           val substitutor = ProofCandidate(
-            from = proof.from,
-            to = proof.to,
-            subType = receiverType.unwrappedNotNullableType,
-            superType = proof.to.unwrappedNotNullableType,
+            proofType = proof.from,
+            otherType = receiverType.unwrappedNotNullableType,
             through = it
           ).typeSubstitutor
           val targetType = substitutor.safeSubstitute(proof.to.unwrap())
