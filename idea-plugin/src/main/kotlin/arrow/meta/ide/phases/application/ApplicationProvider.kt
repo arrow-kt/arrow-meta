@@ -6,6 +6,7 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.ContainerDescriptor
 import com.intellij.openapi.application.ApplicationListener
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
@@ -68,4 +69,9 @@ sealed class ApplicationProvider : ExtensionPhase {
    * TODO: create an extension for Meta API
    */
   data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()
+
+  /**
+   * ApplicationSyntax
+   */
+  data class FileEditorListener(val listener: FileEditorManagerListener) : ApplicationProvider()
 }

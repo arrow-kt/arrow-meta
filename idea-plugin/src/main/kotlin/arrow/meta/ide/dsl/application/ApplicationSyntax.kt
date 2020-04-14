@@ -12,12 +12,19 @@ import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.extensions.LoadingOrder
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.Pair
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -428,5 +435,36 @@ interface ApplicationSyntax {
 
       override fun moduleAdded(project: Project, module: Module): Unit =
         moduleAdded(project, module)
+    }
+
+  /**
+   * registers an [FileEditorManagerListener]
+   */
+  fun IdeMetaPlugin.addFileEditorListener(
+    selectionChanged: (event: FileEditorManagerEvent) -> Unit,
+    fileOpened: (source: FileEditorManager, file: VirtualFile) -> Unit,
+    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit,
+    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit
+  ): ExtensionPhase =
+    ApplicationProvider.FileEditorListener(fileEditorListener(selectionChanged, fileOpened, fileOpenedSync, fileClosed))
+
+  fun ApplicationSyntax.fileEditorListener(
+    selectionChanged: (event: FileEditorManagerEvent) -> Unit,
+    fileOpened: (source: FileEditorManager, file: VirtualFile) -> Unit,
+    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit,
+    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit
+  ): FileEditorManagerListener =
+    object : FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) =
+        selectionChanged(event)
+
+      override fun fileOpened(source: FileEditorManager, file: VirtualFile) =
+        fileOpened(source, file)
+
+      override fun fileOpenedSync(source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) =
+        fileOpenedSync(source, file, editors)
+
+      override fun fileClosed(source: FileEditorManager, file: VirtualFile) =
+        fileClosed(source, file)
     }
 }
