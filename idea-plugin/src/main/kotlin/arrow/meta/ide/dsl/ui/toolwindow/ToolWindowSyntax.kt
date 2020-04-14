@@ -22,6 +22,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
 /**
  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
@@ -151,7 +152,7 @@ interface ToolWindowSyntax {
     type: MessageType,
     html: String,
     icon: Icon? = null,
-    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    listener: HyperlinkListener? = null,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
     addAnAction(actionId, toolWindowNotification(toolId, type, html, icon, listener, update))
@@ -161,7 +162,7 @@ interface ToolWindowSyntax {
     type: MessageType,
     html: String,
     icon: Icon? = null,
-    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    listener: HyperlinkListener? = null,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): AnAction =
     anAction(
@@ -188,7 +189,7 @@ interface ToolWindowSyntax {
     canCloseContent: Boolean = false,
     anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
     isLockable: Boolean = false,
-    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    listener: HyperlinkListener? = null,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): ExtensionPhase =
     addAnAction(actionId, toolWindowWithNotification(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
@@ -202,7 +203,7 @@ interface ToolWindowSyntax {
     canCloseContent: Boolean = false,
     anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
     isLockable: Boolean = false,
-    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
+    listener: HyperlinkListener? = null,
     update: (AnActionEvent) -> Unit = Noop.effect1
   ): AnAction =
     anAction(
@@ -223,7 +224,7 @@ interface ToolWindowSyntax {
     html: String,
     project: Project,
     icon: Icon? = null,
-    listener: (HyperlinkEvent) -> Unit = Noop.effect1
+    listener: HyperlinkListener? = null
   ): ExtensionPhase =
     ToolwindowProvider.Notification(toolId, type, html, icon, listener, project)
 

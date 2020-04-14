@@ -83,8 +83,6 @@ interface UsageSyntax {
     processUsagesInText: (element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
   ): FindUsagesHandler =
     object : FindUsagesHandler(element) {
-      override fun processElementUsages(element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions): Boolean =
-        processElementUsages(element, processor, options)
 
       override fun findReferencesToHighlight(target: PsiElement, searchScope: SearchScope): MutableCollection<PsiReference> =
         findReferencesToHighlight(target, searchScope).let { if (it.isEmpty()) super.findReferencesToHighlight(target, searchScope) else it }
@@ -98,11 +96,6 @@ interface UsageSyntax {
       override fun getFindUsagesDialog(isSingleFile: Boolean, toShowInNewTab: Boolean, mustOpenInNewTab: Boolean): AbstractFindUsagesDialog =
         findUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab).run {
           this ?: super.getFindUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab)
-        }
-
-      override fun processUsagesInText(element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope): Boolean =
-        processUsagesInText(element, processor, searchScope).run {
-          this ?: super.processUsagesInText(element, processor, searchScope)
         }
     }
 }
