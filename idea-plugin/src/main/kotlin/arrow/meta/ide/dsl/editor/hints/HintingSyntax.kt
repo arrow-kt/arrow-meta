@@ -120,7 +120,7 @@ interface HintingSyntax {
    * * evaluates the SelectionTextRange of [PsiElement]'s `containedFile`,
    * * when the current Editor is a [TextEditor].
    * */
-   * private fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
+   * fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
    *  containingFile?.virtualFile?.let { file: VirtualFile ->
    *   FileEditorManager.getInstance(project)
    *     .getSelectedEditor(file)?.safeAs<TextEditor>()?.run { EditorUtil.getSelectionInAnyMode(editor) }
