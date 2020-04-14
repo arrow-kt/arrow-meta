@@ -43,6 +43,6 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
       coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) }
+      suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
