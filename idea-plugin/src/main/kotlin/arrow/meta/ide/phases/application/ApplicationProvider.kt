@@ -1,7 +1,6 @@
 package arrow.meta.ide.phases.application
 
 import arrow.meta.ide.dsl.application.ApplicationSyntax
-import arrow.meta.ide.dsl.application.ProjectLifecycle
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.ContainerDescriptor
@@ -71,7 +70,7 @@ sealed class ApplicationProvider : ExtensionPhase {
   data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()
 
   /**
-   * ApplicationSyntax
+   * @see EditorSyntax
    */
   data class FileEditorListener(val listener: FileEditorManagerListener) : ApplicationProvider()
 }

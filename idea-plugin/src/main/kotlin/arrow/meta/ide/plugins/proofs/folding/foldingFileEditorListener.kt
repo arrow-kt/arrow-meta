@@ -3,28 +3,18 @@ package arrow.meta.ide.plugins.proofs.folding
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.folding.CodeFoldingManager
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.CaretEvent
-import com.intellij.openapi.editor.event.CaretListener
-import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 
 val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
   get() = addFileEditorListener(
-    fileOpened = { manager: FileEditorManager, file: VirtualFile ->
-      val fileEditor = manager.getSelectedEditor(file)
-      val document = FileDocumentManager.getInstance().getDocument(file)
-
-      if (fileEditor == null || document == null) return@addFileEditorListener
-
-      val editors: Array<Editor> = EditorFactory.getInstance().getEditors(document)
-      if (editors.isNotEmpty()) {
-        val editor = editors[0]
-        editor.caretModel.addCaretListener(object : CaretListener {
-          override fun caretPositionChanged(event: CaretEvent) {
-            super.caretPositionChanged(event)
+    fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
+      EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
+        editor.caretModel.addCaretListener(addEditorCaretListener(
+          caretPositionChanged = {
             val codeFoldingManager = CodeFoldingManager.getInstance(editor.project).apply {
               updateFoldRegions(editor)
             }
@@ -39,8 +29,8 @@ val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
                 }
                 .map { it.isExpanded = false }
             }
-          }
-        })
+          })
+        )
       }
     }
   )
