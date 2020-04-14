@@ -12,23 +12,31 @@ import arrow.meta.ide.plugins.proofs.folding.foldingFileEditor
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
+import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
-import arrow.meta.ide.plugins.proofs.psi.isNegationProof
+import arrow.meta.ide.plugins.proofs.psi.isGivenProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
 import arrow.meta.ide.plugins.proofs.resolve.proofsKotlinCache
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
 import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
+      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
-      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
+      proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
@@ -42,7 +50,7 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
       coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) }
+      suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
 
