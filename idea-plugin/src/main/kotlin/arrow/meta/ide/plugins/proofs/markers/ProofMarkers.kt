@@ -4,21 +4,36 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.proofs.phases.CallableMemberProof
+import arrow.meta.plugins.proofs.phases.ClassProof
+import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.ObjectProof
+import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
-import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
+import arrow.meta.quotes.scope
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
-import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
+fun Proof.markerMessage(): String =
+  when (this) {
+    is ClassProof -> markerMessage()
+    is ObjectProof -> markerMessage()
+    is CallableMemberProof -> markerMessage()
+    is CoercionProof -> markerMessage()
+    is ProjectionProof -> markerMessage()
+    is RefinementProof -> markerMessage()
+  }
 
-fun ExtensionProof.extensionMarkerMessage(name: Name?): String {
+fun ExtensionProof.markerMessage(): String {
   return """
   All members of <code lang="kotlin">$to</code> become available in <code lang="kotlin">$from</code> :
   <ul>
@@ -28,22 +43,18 @@ fun ExtensionProof.extensionMarkerMessage(name: Name?): String {
             """.trimIndent()
   }}
   </ul>
-  <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code>
+  <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">${through.name}</code>
   is used as proof to support the intersection of <code lang="kotlin">$from & $to</code>.
   """.trimIndent()
 }
 
-fun GivenProof.extensionMarkerMessage(name: Name?): String {
+fun GivenProof.markerMessage(): String {
   return """
   TODO() Given proof
   """.trimIndent()
 }
 
-fun Proof.negationMarkerMessage(name: Name?): String {
-  return "TODO"
-}
-
-fun RefinementProof.refinementMarkerMessage(name: Name?): String {
+fun RefinementProof.markerMessage(): String {
   return """
         <code lang="kotlin">$from</code> is a refined type that represents a set of values of the type <code lang="kotlin">$to</code>
         that meet a certain type-level predicate.
@@ -51,7 +62,7 @@ fun RefinementProof.refinementMarkerMessage(name: Name?): String {
   """.trimIndent()
 }
 
-fun ExtensionProof.subtypingMarkerMessage(name: Name?): String {
+fun ExtensionProof.subtypingMarkerMessage(): String {
   return """
         <code lang="kotlin">$from</code> is seen as subtype of <code lang="kotlin">$to</code> :
         
@@ -60,7 +71,7 @@ fun ExtensionProof.subtypingMarkerMessage(name: Name?): String {
         </code>
         ```
         
-        <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">$name</code> 
+        <code lang="kotlin">$from</code> does not need to explicitly extend <code lang="kotlin">$to</code>, instead <code lang="kotlin">${through.name}</code> 
         is used as injective function proof to support all subtype associations of <code lang="kotlin">$from : $to</code>.
         
         <code lang="kotlin">
@@ -73,14 +84,10 @@ fun ExtensionProof.subtypingMarkerMessage(name: Name?): String {
         """.trimIndent()
 }
 
-fun KtNamedFunction.markerMessage(): String =
-  NamedFunction(this).run {
-    value.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
-      val message = when (proof) {
-        is GivenProof -> GivenProof::extensionMarkerMessage.invoke(proof, this.name)
-        is ExtensionProof -> ExtensionProof::extensionMarkerMessage.invoke(proof, this.name)
-        is RefinementProof -> RefinementProof::refinementMarkerMessage.invoke(proof, this.name)
-      }
+fun KtDeclaration.markerMessage(): String =
+  scope().run {
+    value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
+      val message = proof.markerMessage()
       """
       <code lang="kotlin">${text}</code> 
       $message
@@ -88,12 +95,11 @@ fun KtNamedFunction.markerMessage(): String =
     }.orEmpty()
   }
 
-fun IdeMetaPlugin.proofLineMarkers(icon: Icon, filter: KtNamedFunction.() -> Boolean): ExtensionPhase =
+inline fun <reified A: KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
-    composite = KtNamedFunction::class.java,
     transform = {
-      it.safeAs<KtNamedFunction>()?.takeIf(filter)
+      it.safeAs<A>()?.takeIf(filter)
     },
     message = {
       it.markerMessage()

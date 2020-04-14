@@ -18,6 +18,5 @@ internal fun ObjectDeclaration.objectWithSerializedRefinement(elementScope: Elem
 fun ObjectDeclaration.refinementExpression(): String? =
   body.properties.value.find { it.name == "validate" }?.delegateExpressionOrInitializer?.text
 
-
 fun KtObjectDeclaration.isRefined(): Boolean =
   isCompanion() && superTypeListEntries.any { it.text.matches("Refined<(.*?)>".toRegex()) }
