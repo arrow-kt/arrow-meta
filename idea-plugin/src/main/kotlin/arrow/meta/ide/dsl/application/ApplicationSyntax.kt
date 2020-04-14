@@ -441,10 +441,10 @@ interface ApplicationSyntax {
    * registers an [FileEditorManagerListener]
    */
   fun IdeMetaPlugin.addFileEditorListener(
-    selectionChanged: (event: FileEditorManagerEvent) -> Unit,
+    selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
     fileOpened: (source: FileEditorManager, file: VirtualFile) -> Unit,
-    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit,
-    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit
+    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit = Noop.effect3,
+    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit = Noop.effect2
   ): ExtensionPhase =
     ApplicationProvider.FileEditorListener(fileEditorListener(selectionChanged, fileOpened, fileOpenedSync, fileClosed))
 

@@ -8,15 +8,11 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorProvider
-import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vfs.VirtualFile
 
 val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
   get() = addFileEditorListener(
-    selectionChanged = {},
     fileOpened = { manager: FileEditorManager, file: VirtualFile ->
       val fileEditor = manager.getSelectedEditor(file)
       val document = FileDocumentManager.getInstance().getDocument(file)
@@ -46,7 +42,5 @@ val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
           }
         })
       }
-    },
-    fileOpenedSync = { _: FileEditorManager, _: VirtualFile, _: Pair<Array<FileEditor>, Array<FileEditorProvider>> -> },
-    fileClosed = { _: FileEditorManager, _: VirtualFile -> }
+    }
   )
