@@ -26,6 +26,8 @@ fun IdeMetaPlugin.addFoldingBuilder(
         .filter { isTypeMatching(it) }
         .map { FoldingDescriptor(it, it.textRange) }
     },
-    isCollapsedByDefault = {
-      true
+    isCollapsedByDefault = { node: ASTNode ->
+      (node.psi as? KtTypeReference)?.let {
+        isTypeMatching(it)
+      } ?: false
     })

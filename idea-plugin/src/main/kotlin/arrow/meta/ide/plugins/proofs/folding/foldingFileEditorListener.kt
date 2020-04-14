@@ -29,7 +29,6 @@ val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
         editor.caretModel.addCaretListener(object : CaretListener {
           override fun caretPositionChanged(event: CaretEvent) {
             super.caretPositionChanged(event)
-            println("CollapseTypeRegion caretPositionChanged: $event")
             val codeFoldingManager = CodeFoldingManager.getInstance(editor.project).apply {
               updateFoldRegions(editor)
             }

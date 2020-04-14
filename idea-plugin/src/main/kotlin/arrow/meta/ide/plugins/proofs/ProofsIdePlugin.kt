@@ -34,8 +34,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofsKotlinCache,
       //makeExplicitCoercionIntention(ctx),
       //makeImplicitCoercionIntention(ctx),
-      codeFolding,
-      foldingFileEditor
+      codeFolding
     )
   }
 
@@ -51,5 +50,6 @@ private val IdeMetaPlugin.codeFolding: ExtensionPhase
   get() = Composite(
     codeFoldingOnUnions,
     codeFoldingOnTuples,
-    codeFoldingOnKinds
+    codeFoldingOnKinds,
+    foldingFileEditor
   )
