@@ -18,11 +18,24 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.Callable
 import javax.script.ScriptEngine
 
-var scriptEngine: ScriptEngine? = ApplicationManager.getApplication().executeOnPooledThread(Callable {
-  val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-  engine.eval("0") //trigger initialization
-  engine
-}).get()
+var scriptEngine: ScriptEngine? =
+  ApplicationManager.getApplication().executeOnPooledThread(Callable {
+    // suppress an unhandled ThreadDeath exception by defining a system property, which is used by the Kotlin plugin's ErrorReporter extension (KotlinErrorReporter).
+    val prevValue = System.getProperty("kotlin.fatal.error.notification")
+    try {
+      System.setProperty("kotlin.fatal.error.notification", "disabled")
+
+      val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
+      engine.eval("0") //trigger initialization
+      engine
+    } finally {
+      if (prevValue != null) {
+        System.setProperty("kotlin.fatal.error.notification", prevValue)
+      } else {
+        System.clearProperty("kotlin.fatal.error.notification")
+      }
+    }
+  }).get()
 
 fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
   addAnnotator(
