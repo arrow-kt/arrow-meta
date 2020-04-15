@@ -3,7 +3,6 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
-import arrow.meta.phases.analysis.resolveFunctionType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -52,7 +51,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
 
-
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
  */
@@ -73,6 +71,9 @@ val KtElement.callElements: List<KtCallElement>
   get() = sequence(KtCallElement::class.java)
 
 val KtElement.typeReferences: List<KtTypeReference>
+  get() = sequence(KtTypeReference::class.java)
+
+val KtTypeReference.argumentList: List<KtTypeReference>
   get() = sequence(KtTypeReference::class.java)
 
 val KtElement.typeProjections: List<KtTypeProjection>
