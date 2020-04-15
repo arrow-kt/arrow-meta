@@ -44,8 +44,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.phases.analysis.resolveFunctionType
-   * import arrow.meta.phases.analysis.returns
    * import arrow.meta.ide.invoke
    * import com.intellij.codeHighlighting.HighlightDisplayLevel
    * import com.intellij.codeInspection.ProblemHighlightType
@@ -69,10 +67,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *     isApplicable = { f: KtNamedFunction ->
    *      !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
    *      f.resolveToDescriptorIfAny()?.run {
-   *       !isSuspend && !isSuspendLambdaOrLocalFunction() &&
-   *        returns(resolveFunctionType, { listOf(unitType) })
-   *       // `returns` evaluates the returnType of the functionDescriptor of [f] and returns true if the list with `KotlinTypes` contains any collected returnType from the former computation.
-   *       // `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
+   *       !isSuspend && !isSuspendLambdaOrLocalFunction()
    *      } == true
    *     },
    *     level = HighlightDisplayLevel.ERROR,
