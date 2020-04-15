@@ -5,10 +5,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnKinds
-import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnTuples
-import arrow.meta.ide.plugins.proofs.folding.codeFoldingOnUnions
-import arrow.meta.ide.plugins.proofs.folding.foldingFileEditor
+import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -18,8 +15,6 @@ import arrow.meta.ide.plugins.proofs.psi.isGivenProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
 import arrow.meta.ide.plugins.proofs.resolve.proofsKotlinCache
 import arrow.meta.ide.resources.ArrowIcons
-import arrow.meta.phases.Composite
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -53,11 +48,3 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
       suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
-
-private val IdeMetaPlugin.codeFolding: ExtensionPhase
-  get() = Composite(
-    codeFoldingOnUnions,
-    codeFoldingOnTuples,
-    codeFoldingOnKinds,
-    foldingFileEditor
-  )

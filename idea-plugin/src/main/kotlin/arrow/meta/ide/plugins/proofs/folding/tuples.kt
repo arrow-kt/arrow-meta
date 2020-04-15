@@ -8,38 +8,33 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnTuples: ExtensionPhase
   get() = addFoldingBuilder(
     isTypeMatching = ::parentTypeMatches,
-    toFoldString = ::foldString
+    toFoldString = KtTypeReference::foldString
   )
 
 private fun parentTypeMatches(typeReference: KtTypeReference): Boolean =
-  typeReference.getType()?.isTypeMatching() == true &&
+  typeReference.getType().isTypeMatching() &&
     typeReference.strictParents().all { psiElement ->
-      (psiElement as? KtTypeReference)?.getType()?.isTypeMatching() != true
+      !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
-private fun KotlinType.isTypeMatching() =
-  constructor.declarationDescriptor?.fqNameSafe?.asString()?.startsWith("arrow.tuples.Tuple") == true
+private fun KotlinType?.isTypeMatching() =
+  this?.constructor?.declarationDescriptor?.fqNameSafe?.asString()?.startsWith("arrow.tuples.Tuple") ?: false
 
-private fun foldString(typeReferenceParent: KtTypeReference): String =
-  (typeReferenceParent.firstChild as? KtUserType)?.typeArgumentList?.children?.toList()?.let { typeProjections ->
-    if (typeProjections.isEmpty()) ""
-    else {
-      val list = typeProjections.subList(1, typeProjections.size)
-        .map {
-          val typeReference = (it as? KtTypeProjection)?.typeReference
-          if (typeReference?.getType()?.isTypeMatching() == true) {
-            foldString(typeReference)
-          } else {
-            it.text
-          }
+private fun KtTypeReference.foldString(): String =
+  firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().joinToString(
+    prefix = "(",
+    postfix = ")",
+    transform = {
+      it.safeAs<KtTypeProjection>()?.typeReference?.let { ktTypeReference ->
+        if (ktTypeReference.getType().isTypeMatching()) {
+          ktTypeReference.foldString()
+        } else {
+          ktTypeReference.text
         }
-      "(" + typeProjections[0].text + list
-        .toString()
-        .replace("[", ", ")
-        .replace("]", "") + ")"
-    }
-  } ?: ""
+      } ?: it.text
+    })

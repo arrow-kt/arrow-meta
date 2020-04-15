@@ -14,6 +14,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface FoldingSyntax {
 
@@ -39,7 +40,7 @@ interface FoldingSyntax {
           .map { FoldingDescriptor(it, it.textRange) }
       },
       isCollapsedByDefault = { node: ASTNode ->
-        (node.psi as? KtTypeReference)?.let {
+        node.psi.safeAs<KtTypeReference>()?.let {
           isTypeMatching(it)
         } ?: false
       })

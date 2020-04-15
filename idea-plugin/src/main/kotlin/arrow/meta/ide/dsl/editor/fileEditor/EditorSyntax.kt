@@ -5,6 +5,8 @@ import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -19,7 +21,23 @@ import com.intellij.openapi.vfs.VirtualFile
 interface EditorSyntax {
 
   /**
-   * registers a [FileEditorManagerListener]
+   * Registers a [FileEditorManagerListener] in order to add a [CaretListener] for each editor
+   * so foldingRegions can be collapsed once the caret has change its position
+   */
+  fun IdeMetaPlugin.addCaretListener(
+    caretAdded: Editor.(event: CaretEvent) -> Unit = {},
+    caretPositionChanged: Editor.(event: CaretEvent) -> Unit = {},
+    caretRemoved: Editor.(event: CaretEvent) -> Unit = {}
+  ): ExtensionPhase = addFileEditorListener(
+    fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
+      EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
+        editor.caretModel.addCaretListener(caretListener({ caretAdded(editor, it) }, { caretPositionChanged(editor, it) }, { caretRemoved(editor, it) }))
+      }
+    }
+  )
+
+  /**
+   * Registers a [FileEditorManagerListener]
    */
   fun IdeMetaPlugin.addFileEditorListener(
     selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
