@@ -10,6 +10,7 @@ import com.intellij.lang.folding.FoldingBuilder
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtElement
@@ -36,9 +37,11 @@ interface FoldingSyntax {
         }
       },
       foldRegions = { element: PsiElement, _: Document, _: Boolean ->
-        (element as KtElement).typeReferences
-          .filter { match(it) }
-          .map { FoldingDescriptor(it, it.textRange) }
+        element.safeAs<KtElement>()?.typeReferences?.let { typeReferences ->
+          typeReferences
+            .filter { match(it) }
+            .map { FoldingDescriptor(it, it.textRange) }
+        } ?: emptyList()
       },
       isCollapsedByDefault = { node: ASTNode ->
         node.psi.safeAs<KtTypeReference>()?.let(match) ?: false
@@ -84,6 +87,9 @@ interface FoldingSyntax {
   ): FoldingBuilderEx =
     object : FoldingBuilderEx() {
       override fun getPlaceholderText(node: ASTNode): String? =
+        placeHolderText(node)
+
+      override fun getPlaceholderText(node: ASTNode, range: TextRange): String? =
         placeHolderText(node)
 
       override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> =
