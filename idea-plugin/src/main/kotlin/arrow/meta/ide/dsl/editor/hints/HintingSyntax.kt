@@ -225,7 +225,6 @@ interface HintingSyntax {
    * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.ClassDescriptor
