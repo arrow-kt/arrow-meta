@@ -273,7 +273,7 @@ interface ApplicationSyntax {
    *     meta(
    *       addAppLifecycleListener(
    *         appClosing = {
-   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!", "再见")
+   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!, 再见")
    *         }
    *       )
    *     )
