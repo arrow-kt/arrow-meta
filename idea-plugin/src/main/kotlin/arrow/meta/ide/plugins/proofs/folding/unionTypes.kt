@@ -12,8 +12,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnUnions: ExtensionPhase
   get() = addFoldingBuilder(
-    isTypeMatching = ::parentTypeMatches,
-    toFoldString = KtTypeReference::foldString
+    match = ::parentTypeMatches,
+    hint = KtTypeReference::foldString
   )
 
 private fun parentTypeMatches(typeReference: KtTypeReference): Boolean =

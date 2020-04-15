@@ -21,17 +21,21 @@ import com.intellij.openapi.vfs.VirtualFile
 interface EditorSyntax {
 
   /**
-   * Registers a [FileEditorManagerListener] in order to add a [CaretListener] for each editor
-   * so foldingRegions can be collapsed once the caret has change its position
+   * Registers a [CaretListener] for each editor
    */
   fun IdeMetaPlugin.addCaretListener(
-    caretAdded: Editor.(event: CaretEvent) -> Unit = {},
-    caretPositionChanged: Editor.(event: CaretEvent) -> Unit = {},
-    caretRemoved: Editor.(event: CaretEvent) -> Unit = {}
+    caretAdded: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3,
+    caretPositionChanged: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3,
+    caretRemoved: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3
   ): ExtensionPhase = addFileEditorListener(
     fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
       EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
-        editor.caretModel.addCaretListener(caretListener({ caretAdded(editor, it) }, { caretPositionChanged(editor, it) }, { caretRemoved(editor, it) }))
+        editor.caretModel.addCaretListener(
+          caretListener(
+            { caretAdded(editor, document, it) },
+            { caretPositionChanged(editor, document, it) },
+            { caretRemoved(editor, document, it) })
+        )
       }
     }
   )

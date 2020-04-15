@@ -13,8 +13,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
   get() = addFoldingBuilder(
-    isTypeMatching = ::parentTypeMatches,
-    toFoldString = KtTypeReference::foldString
+    match = ::parentTypeMatches,
+    hint = KtTypeReference::foldString
   )
 
 private fun parentTypeMatches(typeReference: KtTypeReference): Boolean =
@@ -27,8 +27,9 @@ private fun KotlinType?.isTypeMatching() =
   this?.constructor?.declarationDescriptor?.fqNameSafe?.asString() == "arrowx.Kind22"
 
 private fun KtTypeReference.foldString(): String {
-  val children: Array<out PsiElement> = firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty()
-  return children[0].text + children.toList().subList(1, children.size).joinToString(
+  val children = firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().toList()
+  return if (children.isEmpty()) ""
+  else children[0].text + children.subList(1, children.size).joinToString(
     prefix = "<",
     postfix = ">",
     transform = {

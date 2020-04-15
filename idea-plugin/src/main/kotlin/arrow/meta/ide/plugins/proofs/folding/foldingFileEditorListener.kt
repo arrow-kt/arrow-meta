@@ -3,11 +3,12 @@ package arrow.meta.ide.plugins.proofs.folding
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.folding.CodeFoldingManager
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.CaretEvent
 
 val IdeMetaPlugin.foldingCaretListener: ExtensionPhase
   get() = addCaretListener(
-    caretPositionChanged = { _: CaretEvent ->
+    caretPositionChanged = { _: Document, _: CaretEvent ->
       val codeFoldingManager = CodeFoldingManager.getInstance(project).apply {
         updateFoldRegions(this@addCaretListener)
       }
@@ -16,9 +17,11 @@ val IdeMetaPlugin.foldingCaretListener: ExtensionPhase
         val line = caretModel.logicalPosition.line
         foldingModel.allFoldRegions
           .filter {
-            it.isExpanded &&
-              codeFoldingManager.isCollapsedByDefault(it) == true &&
-              it.document.getLineNumber(it.startOffset) != line
+            codeFoldingManager.isCollapsedByDefault(it)?.let { collapsedByDefault ->
+              it.isExpanded &&
+                collapsedByDefault &&
+                it.document.getLineNumber(it.startOffset) != line
+            } ?: false
           }
           .map { it.isExpanded = false }
       }

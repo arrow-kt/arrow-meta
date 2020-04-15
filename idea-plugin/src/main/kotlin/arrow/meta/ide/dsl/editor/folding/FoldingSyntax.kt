@@ -20,29 +20,28 @@ interface FoldingSyntax {
 
   /**
    * Utility to add a [FoldingBuilder]
-   * @param isTypeMatching: fun to match on the parent type only so folding regions are identified
-   * @param toFoldString: used to create the hint for the matching folding region
+   * @param match: fun to match on the folding regions
+   * @param hint: the resulting hint for the matched folding region
    */
   fun IdeMetaPlugin.addFoldingBuilder(
-    isTypeMatching: (KtTypeReference) -> Boolean,
-    toFoldString: (KtTypeReference) -> String): ExtensionPhase =
+    match: (KtTypeReference) -> Boolean,
+    hint: (KtTypeReference) -> String
+  ): ExtensionPhase =
     addFoldingBuilder(
       placeHolderText = { node: ASTNode ->
-        (node.psi as? KtTypeReference)?.let {
-          if (isTypeMatching(it)) {
-            toFoldString(it)
+        node.psi.safeAs<KtTypeReference>()?.let {
+          if (match(it)) {
+            hint(it)
           } else ""
         }
       },
       foldRegions = { element: PsiElement, _: Document, _: Boolean ->
         (element as KtElement).typeReferences
-          .filter { isTypeMatching(it) }
+          .filter { match(it) }
           .map { FoldingDescriptor(it, it.textRange) }
       },
       isCollapsedByDefault = { node: ASTNode ->
-        node.psi.safeAs<KtTypeReference>()?.let {
-          isTypeMatching(it)
-        } ?: false
+        node.psi.safeAs<KtTypeReference>()?.let(match) ?: false
       })
 
   fun IdeMetaPlugin.addFoldingBuilder(
