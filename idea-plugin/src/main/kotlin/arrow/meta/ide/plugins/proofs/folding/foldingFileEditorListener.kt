@@ -13,7 +13,7 @@ val IdeMetaPlugin.foldingFileEditor: ExtensionPhase
   get() = addFileEditorListener(
     fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
       EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
-        editor.caretModel.addCaretListener(addEditorCaretListener(
+        editor.caretModel.addCaretListener(caretListener(
           caretPositionChanged = {
             val codeFoldingManager = CodeFoldingManager.getInstance(editor.project).apply {
               updateFoldRegions(editor)

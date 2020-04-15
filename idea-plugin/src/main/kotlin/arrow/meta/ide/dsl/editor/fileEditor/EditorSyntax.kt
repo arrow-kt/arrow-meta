@@ -23,17 +23,17 @@ interface EditorSyntax {
    */
   fun IdeMetaPlugin.addFileEditorListener(
     selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
-    fileOpened: (manager: FileEditorManager, file: VirtualFile, fileEditor: FileEditor, document: Document) -> Unit,
-    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit = Noop.effect3,
+    fileOpened: (manager: FileEditorManager, file: VirtualFile, fileEditor: FileEditor, document: Document) -> Unit = Noop.effect4,
+    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<List<FileEditor>, List<FileEditorProvider>>) -> Unit = Noop.effect3,
     fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit = Noop.effect2
   ): ExtensionPhase =
     ApplicationProvider.FileEditorListener(fileEditorListener(selectionChanged, fileOpened, fileOpenedSync, fileClosed))
 
   fun EditorSyntax.fileEditorListener(
-    selectionChanged: (event: FileEditorManagerEvent) -> Unit,
-    fileOpened: (source: FileEditorManager, file: VirtualFile, fileEditor: FileEditor, document: Document) -> Unit,
-    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) -> Unit,
-    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit
+    selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
+    fileOpened: (manager: FileEditorManager, file: VirtualFile, fileEditor: FileEditor, document: Document) -> Unit = Noop.effect4,
+    fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<List<FileEditor>, List<FileEditorProvider>>) -> Unit = Noop.effect3,
+    fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit = Noop.effect2
   ): FileEditorManagerListener =
     object : FileEditorManagerListener {
       override fun selectionChanged(event: FileEditorManagerEvent) =
@@ -47,15 +47,15 @@ interface EditorSyntax {
         } ?: Unit
 
       override fun fileOpenedSync(source: FileEditorManager, file: VirtualFile, editors: Pair<Array<FileEditor>, Array<FileEditorProvider>>) =
-        fileOpenedSync(source, file, editors)
+        fileOpenedSync(source, file, Pair(editors.first.toList(), editors.second.toList()))
 
       override fun fileClosed(source: FileEditorManager, file: VirtualFile) =
         fileClosed(source, file)
     }
 
-  fun EditorSyntax.addEditorCaretListener(
+  fun EditorSyntax.caretListener(
     caretAdded: (event: CaretEvent) -> Unit = Noop.effect1,
-    caretPositionChanged: (event: CaretEvent) -> Unit,
+    caretPositionChanged: (event: CaretEvent) -> Unit = Noop.effect1,
     caretRemoved: (event: CaretEvent) -> Unit = Noop.effect1
   ): CaretListener =
     object : CaretListener {

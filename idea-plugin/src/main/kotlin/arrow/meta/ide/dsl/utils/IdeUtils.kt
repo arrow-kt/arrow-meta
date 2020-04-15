@@ -3,7 +3,6 @@ package arrow.meta.ide.dsl.utils
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
-import arrow.meta.phases.analysis.resolveFunctionType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -28,7 +27,6 @@ import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
@@ -52,8 +50,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal fun <A> isNotNull(a: A?): Boolean = a?.let { true } ?: false
-
-internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]
 
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]

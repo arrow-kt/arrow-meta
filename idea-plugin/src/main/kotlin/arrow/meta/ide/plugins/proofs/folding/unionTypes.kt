@@ -1,15 +1,8 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.getType
-import arrow.meta.ide.dsl.utils.typeReferences
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.lang.ASTNode
-import com.intellij.lang.folding.FoldingDescriptor
-import com.intellij.openapi.editor.Document
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.strictParents
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
