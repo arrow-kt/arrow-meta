@@ -5,7 +5,7 @@ buildscript {
   }
   dependencies {
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
-    classpath "io.arrow-kt:ank-gradle-plugin:$ANK_GRADLE_PLUGIN_VERSION"
+    classpath "io.arrow-kt:arrow-ank-gradle:$ANK_GRADLE_PLUGIN_VERSION"
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
     classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$KOTLIN_VERSION"
   }

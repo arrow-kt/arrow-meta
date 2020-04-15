@@ -62,9 +62,9 @@ interface HintingSyntax {
    * [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider] and targets [KtFunction]s, who are expressed as expressions.
    *
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.editor.ex.util.EditorUtil
    * import com.intellij.openapi.fileEditor.FileEditorManager
    * import com.intellij.openapi.fileEditor.TextEditor
@@ -81,7 +81,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.expressionHints: Plugin
+   * val IdeMetaPlugin.expressionHints: IdePlugin
    *  get() = "Hints for KtExpressions" {
    *   meta(
    *    addExpressionTypeProviderForKotlin(
@@ -120,7 +120,7 @@ interface HintingSyntax {
    * * evaluates the SelectionTextRange of [PsiElement]'s `containedFile`,
    * * when the current Editor is a [TextEditor].
    * */
-   * private fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
+   * fun PsiElement.selectionTextRangeOnTextEditor(): TextRange =
    *  containingFile?.virtualFile?.let { file: VirtualFile ->
    *   FileEditorManager.getInstance(project)
    *     .getSelectedEditor(file)?.safeAs<TextEditor>()?.run { EditorUtil.getSelectionInAnyMode(editor) }
@@ -224,10 +224,9 @@ interface HintingSyntax {
    * This extension is used for [DeclarationDescriptor]'s, the `Owner` is [KtTypeArgumentList] and the `ActualType` is [KtTypeProjection].
    * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.ClassDescriptor
    * import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
    * import org.jetbrains.kotlin.psi.KtTypeArgumentList
@@ -235,7 +234,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: Plugin
+   * val IdeMetaPlugin.parameterHints: IdePlugin
    *  get() =  "Hints for ClassDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(
@@ -275,16 +274,16 @@ interface HintingSyntax {
    * This is used for [FunctionDescriptor]'s, the `Owner` is [ArgumentList] and the `ActualType` is [Argument]. Naturally, `Type` is a [FunctionDescriptor].
    * The following example is for [KtLambdaArgument]s from [org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler]:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.lexer.KtTokens
    * import org.jetbrains.kotlin.psi.KtCallElement
    * import org.jetbrains.kotlin.psi.KtLambdaArgument
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: Plugin
+   * val IdeMetaPlugin.parameterHints: IdePlugin
    *  get() =  "Hints for FunctionDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(

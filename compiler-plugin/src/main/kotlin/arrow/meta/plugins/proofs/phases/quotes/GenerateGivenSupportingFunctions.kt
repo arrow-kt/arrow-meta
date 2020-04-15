@@ -31,7 +31,7 @@ fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
     )
   }
 
-private val givenAnnotation: Regex = Regex("@(arrow\\.)?given")
+private val givenAnnotation: Regex = Regex("@(arrow\\.)?Given")
 
 private fun KtFile.containsGivenConstrains(): Boolean =
   givenConstrainedDeclarations().isNotEmpty()
@@ -50,7 +50,7 @@ private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedF
       val `(unconstrainedTypeParams)` = `(typeParameters)`.map { "${it.name}".typeParameter.value }
       val `(givenParams)` = `(typeParameters)`.foldIndexed(ScopedList.empty<KtParameter>()) { n, params, typeParam ->
         val givenConstrain = typeParam.givenConstrain()?.toString()?.replace(givenAnnotation, "")
-        if (givenConstrain != null) params + "given$n: @arrowx.given $givenConstrain = arrow.given".parameter
+        if (givenConstrain != null) params + "given$n: @arrow.Given $givenConstrain = arrow.given".parameter
         else params
       }
 

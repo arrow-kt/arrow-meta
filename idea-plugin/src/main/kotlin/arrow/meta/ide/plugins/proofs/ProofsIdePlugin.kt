@@ -1,32 +1,52 @@
 package arrow.meta.ide.plugins.proofs
 
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.IdePlugin
+import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
+import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
-import arrow.meta.ide.plugins.proofs.psi.isNegationProof
+import arrow.meta.ide.plugins.proofs.psi.isGivenProof
 import arrow.meta.ide.plugins.proofs.psi.isRefinementProof
+import arrow.meta.ide.plugins.proofs.resolve.proofsKotlinCache
 import arrow.meta.ide.resources.ArrowIcons
-import arrow.meta.invoke
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
+import arrow.meta.invoke as cli
 
-val IdeMetaPlugin.typeProofsIde: Plugin
+val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-//      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-//      proofLineMarkers(ArrowIcons.NEGATION, KtNamedFunction::isNegationProof),
-//      proofLineMarkers(ArrowIcons.REFINEMENT, KtNamedFunction::isRefinementProof),
-//      refinementLineMarkers(),
-//      addDiagnosticSuppressor { suppressProvenTypeMismatch(it) },
-//      refinementAnnotator(),
-//      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      explicitCoercionIntention(ctx),
-      implicitCoercionIntention(ctx)
+      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
+      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      refinementLineMarkers(),
+      refinementAnnotator(),
+      proofsKotlinCache,
+      //makeExplicitCoercionIntention(ctx),
+      //makeImplicitCoercionIntention(ctx),
+      codeFolding
+    )
+  }
+
+val IdeMetaPlugin.typeProofsCli: CliPlugin
+  get() = "Type Proofs Cli Integration".cli {
+    meta(
+      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
+      suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }

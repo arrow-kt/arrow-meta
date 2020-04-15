@@ -11,13 +11,12 @@ internal fun ObjectDeclaration.objectWithSerializedRefinement(elementScope: Elem
     return if (predicateAsExpression == null) Transform.empty
     else Transform.replace(
       value,
-      "@arrow.Refinement(\"\"\"\n$predicateAsExpression\n\"\"\") ${this@objectWithSerializedRefinement}".`object`
+      "@arrow.RefinedBy(\"\"\"\n$predicateAsExpression\n\"\"\") ${this@objectWithSerializedRefinement}".`object`
     )
   }
 
 fun ObjectDeclaration.refinementExpression(): String? =
   body.properties.value.find { it.name == "validate" }?.delegateExpressionOrInitializer?.text
-
 
 fun KtObjectDeclaration.isRefined(): Boolean =
   isCompanion() && superTypeListEntries.any { it.text.matches("Refined<(.*?)>".toRegex()) }

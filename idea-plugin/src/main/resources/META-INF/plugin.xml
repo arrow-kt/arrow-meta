@@ -19,23 +19,13 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationInitializedListener implementation="arrow.meta.ide.MetaRegistrar"/>
-        <!--
-        QuotePlugin has not being integrated, yet. Into type-proofs.
+        <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
                         serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"
                         serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>
         <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingPassFactory"/>
-
-        -->
-        <lang.foldingBuilder language="kotlin"
-                             implementationClass="arrow.meta.ide.plugins.proofs.folding.UnionFoldingBuilder"/>
-        <lang.foldingBuilder language="kotlin"
-                             implementationClass="arrow.meta.ide.plugins.proofs.folding.TupleFoldingBuilder"/>
-        <lang.foldingBuilder language="kotlin"
-                             implementationClass="arrow.meta.ide.plugins.proofs.folding.KindFoldingBuilder"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

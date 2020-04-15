@@ -25,17 +25,17 @@ interface IconProviderSyntax {
   /**
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * ```kotlin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
    * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
+   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
    *  get() = "File- and StructureViewIcons" {
    *   meta(
    *    // addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
@@ -67,15 +67,15 @@ interface IconProviderSyntax {
    * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
    * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
+   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
    *  get() = "File- and StructureViewIcons" {
    *   meta(
    *    addIcons(

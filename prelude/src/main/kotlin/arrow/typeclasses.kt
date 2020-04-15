@@ -1,9 +1,7 @@
 package arrowx
 
-import arrow.Proof
-import arrow.TypeProof
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
+import arrow.Extension
+import arrow.Given
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -22,17 +20,11 @@ operator fun String.Companion.getValue(nothing: Nothing?, property: KProperty<*>
 operator fun String.getValue(nothing: Nothing?, property: KProperty<*>): Semigroup.Syntax<String> =
   StringSyntax(this)
 
-fun main() {
-
-}
-
-
-
-
 interface Monoid<A> : Semigroup<A> {
   fun empty(): A
 }
 
+@Given
 object StringMonoid : Monoid<String>, ReadOnlyProperty<String, Monoid<String>> {
   override fun String.combine(other: String): String = this + other
   override fun empty(): String = ""
@@ -46,11 +38,11 @@ inline class StringSyntax(override val value: String) : Semigroup.Syntax<String>
   override fun getValue(thisRef: String, property: KProperty<*>): Semigroup.Syntax<String> = this
 }
 
-@Proof(TypeProof.Extension)
+@Extension
 fun String.Companion.monoid(): Monoid<String> =
   StringMonoid
 
-@Proof(TypeProof.Extension)
+@Extension
 fun String.semigroupSyntax(): Semigroup.Syntax<String> =
   StringSyntax(this)
 
@@ -66,11 +58,11 @@ interface Applicative<F, A> : Kind<F, A> {
   }
 }
 
-@Proof(TypeProof.Extension)
+@Extension
 fun Id.Companion.applicative(): Applicative.Companion<Id.Companion> =
   IdApplicative.Companion
 
-@Proof(TypeProof.Extension)
+@Extension
 fun <A> Id<A>.applicative(): Applicative<Id.Companion, A> =
   IdApplicative(kind())
 

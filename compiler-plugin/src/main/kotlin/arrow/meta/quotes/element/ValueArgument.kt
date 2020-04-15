@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.psi.KtValueArgumentName
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.valueArgument
  *
- * val Meta.reformatValueArg: Plugin
+ * val Meta.reformatValueArg: CliPlugin
  *  get() =
  *   "ReformatValueArg" {
  *    meta(
