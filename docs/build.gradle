@@ -7,12 +7,22 @@ apply plugin: 'kotlin-kapt'
 
 dependencies {
     compile project(':idea-plugin')
+    compile "junit:junit:4.13"
 }
 
-task printcp {
+ext {
+    ext.set("LOCAL_PATHS_FILE", "docs/localPaths.log")
+    if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
+}
+
+task getLocalPaths {
     doLast {
-        println sourceSets.main.compileClasspath.each { println it }
-        println sourceSets.main.runtimeClasspath.each { println it }
+        def localPaths = new File("$LOCAL_PATHS_FILE")
+        localPaths.write "${sourceSets.main.compileClasspath.find{ it.name == 'kotlin-plugin.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-api.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-impl.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'idea.jar' }}"
+        println new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" }
     }
 }
 
@@ -24,7 +34,7 @@ intellij {
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath + sourceSets.main.compileClasspath
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]

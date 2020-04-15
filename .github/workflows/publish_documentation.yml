@@ -8,6 +8,9 @@ on:
 jobs:
   publish_documentation:
 
+    env:
+      JAVA_OPTS: -Xms512m -Xmx1024m
+
     runs-on: ubuntu-latest
 
     steps:
@@ -17,12 +20,11 @@ jobs:
       with:
         java-version: 1.8
         architecture: x64
-    - name: Dokka and Ank
-      env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
+    - name: "Create API Doc (Dokka)"
+      run: ./gradlew dokka
+    - name: "Validate API Doc (Ank)"
       run: |
-        set -ex
-        ./gradlew dokka
+        ./gradlew :docs:getLocalPaths
         ./gradlew :docs:runAnk
     - name: Deploy
       env:
