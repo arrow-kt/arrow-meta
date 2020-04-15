@@ -25,7 +25,7 @@ interface IconProviderSyntax {
   /**
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
-   * ```kotlin:ank:playground
+   * ```kotlin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.invoke
