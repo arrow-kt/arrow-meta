@@ -69,13 +69,12 @@ interface ApplicationSyntax {
    * }
    * ```
    * The service is now available at runtime.
-   * ```kotlin:ank
+   * ```kotlin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
-   * import com.intellij.openapi.project.Project
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
@@ -108,7 +107,6 @@ interface ApplicationSyntax {
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
-   * import arrow.meta.ide.plugins.higherkinds.isKindPolymorphic
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
    * import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -121,7 +119,7 @@ interface ApplicationSyntax {
    *       replaceAppService(MyService::class.java) { myOldService ->
    *         object : MyService {
    *           override fun printLn(f: KtNamedFunction): Unit =
-   *             println("Log ${f.name}, which ${if (f.isKindPolymorphic()) "is" else "is not"} polymorphic.")
+   *             println("Log ${f.name}.")
    *         }
    *       },
    *       addAnnotator(
@@ -174,6 +172,7 @@ interface ApplicationSyntax {
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
+   * import com.intellij.openapi.project.Project
    * import com.intellij.psi.PsiFile
    * import org.jetbrains.kotlin.analyzer.ModuleInfo
    * import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
@@ -182,10 +181,10 @@ interface ApplicationSyntax {
    * import org.jetbrains.kotlin.psi.KtElement
    * import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
    * //sampleStart
-   * val IdeMetaPlugin.logKotlinCache: IdePlugin
+   * val IdeMetaPlugin.logKotlinCachePlugin: IdePlugin
    *   get() = "Log Kotlin Cache Plugin" {
    *     meta(
-   *       addProjectService(KotlinCacheService::class.java) { project, kotlinCache ->
+   *       addProjectService(KotlinCacheService::class.java) { project: Project, kotlinCache: KotlinCacheService? ->
    *         kotlinCache?.let(::logKotlinCache)
    *       }
    *     )
