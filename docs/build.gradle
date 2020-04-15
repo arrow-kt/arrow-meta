@@ -1,26 +1,30 @@
+plugins {
+    id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
+}
+
 apply plugin: 'ank-gradle-plugin'
 apply plugin: 'kotlin-kapt'
 
 dependencies {
     compile project(':idea-plugin')
-    compile("io.arrow-kt:arrow-ank:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-
 }
 
 task printcp {
     doLast {
+        println sourceSets.main.compileClasspath.each { println it }
         println sourceSets.main.runtimeClasspath.each { println it }
     }
+}
+
+intellij {
+    version = "$INTELLIJ_IDEA_VERSION"
+    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.main.runtimeClasspath + sourceSets.main.compileClasspath
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
