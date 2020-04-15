@@ -5,8 +5,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
-import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
@@ -37,8 +35,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
-      //makeExplicitCoercionIntention(ctx),
-      //makeImplicitCoercionIntention(ctx),
       codeFolding
     )
   }
@@ -47,6 +43,8 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
       coerceProofLineMarker(ArrowIcons.ICON4, ctx),
+//      explicitCoercionIntention(ctx),
+//      implicitCoercionIntention(ctx),
       suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
