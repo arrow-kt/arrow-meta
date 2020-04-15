@@ -28,7 +28,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * registers [intention]
    */
-  fun IdeMetaPlugin.addIntention(
+  fun IdeMetaPlugin.registerIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.RegisterIntention(intention)
@@ -50,6 +50,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * import arrow.meta.ide.invoke
    * // import com.intellij.codeInsight.intention.PriorityAction
    * import org.jetbrains.kotlin.psi.KtNamedFunction
+   * import com.intellij.openapi.editor.Editor
    *
    * //sampleStart
    * val IdeMetaPlugin.example: IdePlugin
@@ -61,7 +62,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    *       f.name == "helloWorld"
    *     },
    *     kClass = KtNamedFunction::class.java,
-   *     applyTo = { f, editor ->
+   *     applyTo = { f: KtNamedFunction, editor: Editor ->
    *       f.setName("renamed")
    *     }
    *    )
@@ -80,7 +81,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     applyTo: KtPsiFactory.(element: K, editor: Editor) -> Unit = Noop.effect3,
     priority: PriorityAction.Priority = PriorityAction.Priority.LOW
   ): ExtensionPhase =
-    addIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
+    registerIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
 
   /**
    * Intentions can be enabled and disabled before at application start.
