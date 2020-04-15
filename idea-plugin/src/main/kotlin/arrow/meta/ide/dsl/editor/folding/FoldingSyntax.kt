@@ -20,7 +20,7 @@ interface FoldingSyntax {
 
   /**
    * Utility to add a [FoldingBuilder]
-   * @param match: fun to match on the folding regions
+   * @param match: matches on the specified KtTypeReference and adds the element to the folding region
    * @param hint: the resulting hint for the matched folding region
    */
   fun IdeMetaPlugin.addFoldingBuilder(
@@ -81,7 +81,7 @@ interface FoldingSyntax {
     placeHolderText: (node: ASTNode) -> String?,
     foldRegions: (element: PsiElement, document: Document, quick: Boolean) -> List<FoldingDescriptor>,
     isCollapsedByDefault: (node: ASTNode) -> Boolean
-  ): FoldingBuilder =
+  ): FoldingBuilderEx =
     object : FoldingBuilderEx() {
       override fun getPlaceholderText(node: ASTNode): String? =
         placeHolderText(node)
