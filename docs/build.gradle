@@ -1,26 +1,40 @@
+plugins {
+    id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
+}
+
 apply plugin: 'ank-gradle-plugin'
 apply plugin: 'kotlin-kapt'
 
 dependencies {
     compile project(':idea-plugin')
-    compile("io.arrow-kt:arrow-ank:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-
+    compile "junit:junit:4.13"
 }
 
-task printcp {
+ext {
+    ext.set("LOCAL_PATHS_FILE", "docs/localPaths.log")
+    if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
+}
+
+task getLocalPaths {
     doLast {
-        println sourceSets.main.runtimeClasspath.each { println it }
+        def localPaths = new File("$LOCAL_PATHS_FILE")
+        localPaths.write "${sourceSets.main.compileClasspath.find{ it.name == 'kotlin-plugin.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-api.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-impl.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'idea.jar' }}"
+        println new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" }
     }
+}
+
+intellij {
+    version = "$INTELLIJ_IDEA_VERSION"
+    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]

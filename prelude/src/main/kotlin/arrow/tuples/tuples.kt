@@ -1,14 +1,6 @@
 @file:Suppress("NON_PUBLIC_PRIMARY_CONSTRUCTOR_OF_INLINE_CLASS", "UNCHECKED_CAST")
 
 package arrow.tuples
-
-import arrow.Proof
-import arrow.TypeProof
-import arrow.`🔥`
-import arrow.`🚫`
-import arrowx.Monoid
-import arrowx.given
-
 /**
  * Products                                   _              _
  *                                      _.(_)..__________(_)

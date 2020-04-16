@@ -36,14 +36,14 @@ data class User(val id: Id, val name: String) { //User does not need to directly
 }
 ```
 
-The `@Proof(Extension)` below activates all members of `Repository<User>` over the `User` companion
+The `@Extension` below activates all members of `Repository<User>` over the `User` companion
 
 ```kotlin
 object UserRepository : Repository<User> {
   override fun load(id: Id): User = User(id, "Curry")
 }
 
-@Proof(Extension)
+@Extension
 fun User.Companion.repository(): Repository<User> =
   UserRepository
 
@@ -58,7 +58,7 @@ inline class UserRepositorySyntax(override val value: User): Repository.Syntax<U
   override suspend fun save(): Unit = println("$value stored!")
 }
 
-@Proof(Extension)
+@Extension
 fun User.syntax(): Repository.Syntax<User> =
   UserRepositorySyntax(this)
 
@@ -73,7 +73,7 @@ syntax functions that operate over existing values of the type, in this case `sa
 
 Type Class proofs injection can be used at compile time as a Dependency Injection mechanism to verify a program graph
 of typed dependencies are correct. In the program above the compiler can proof a `Repository.Syntax<User>` exists.
-If we had not provided the `@Proof(Extension)` for `syntax` `curry.save()` would have not compiled.
+If we had not provided the `@Extension` for `syntax` `curry.save()` would have not compiled.
 
 No inheritance needed when you have a `@Proof` between two types to inherit their members.
 

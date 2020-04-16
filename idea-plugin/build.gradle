@@ -59,6 +59,7 @@ patchPluginXml {
 
 runIde {
   jvmArgs '-Xmx8G'
+  systemProperties['idea.is.internal'] = "false"
 }
 
 test {

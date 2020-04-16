@@ -104,15 +104,6 @@ fun KtValueArgument.isRefinedPredicate(): Boolean =
     parent.parent is KtCallExpression &&
     parent.parent.text.startsWith("mapOf")
 
-val validate: String.() -> Map<String, Boolean> = {
-  mapOf(
-    "Should start with '@'" to startsWith("@"),
-    "Should have length <= 16" to (length <= 16),
-    "Should have length > 2" to (length > 2),
-    "Should not contain the word 'twitter'" to !contains("twitter"),
-    "Should not contain the word 'admin'" to !contains("admin")
-  )
-}
 
 private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
   addRelatedLineMarkerProvider(

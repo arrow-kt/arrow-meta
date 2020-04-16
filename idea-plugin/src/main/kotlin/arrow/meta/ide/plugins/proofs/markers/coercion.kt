@@ -13,17 +13,19 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
-fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon, compilerContext: CompilerContext): ExtensionPhase =
+fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
     composite = KtProperty::class.java,
     transform = { psiElement ->
-      psiElement.safeAs<KtProperty>()?.takeIf { it.isCoerced(compilerContext) }
+      psiElement.ctx()?.let { ctx ->
+        psiElement.safeAs<KtProperty>()?.takeIf { it.isCoerced(ctx) }
+      }
     },
     message = { ktProperty: KtElement ->
-      ktProperty.anyParticipatingTypes().mapNotNull { (subtype, supertype) ->
-        compilerContext.coerceProof(subtype, supertype)?.coercionMessage()
-      }.firstOrNull() ?: "Proof not found"
+      ktProperty.anyParticipatingTypes()?.let { (subtype, supertype) ->
+        ktProperty.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+      } ?: "Proof not found"
     }
   )
 

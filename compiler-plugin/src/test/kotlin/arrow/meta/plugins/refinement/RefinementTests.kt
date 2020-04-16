@@ -8,14 +8,16 @@ class RefinementTests {
 
   val prelude = """
     package test
-    import arrow.*
+    import arrow.Refined
+    import arrow.Refinement
+    import arrow.Coercion
   """.trimIndent()
 
   private fun twitterHandle(): String =
     """
-    class TwitterHandle(val handle: String)  {
+    @Refinement class TwitterHandle(val handle: String)  {
       companion object : Refined<String, TwitterHandle> {
-        override val constructor = ::TwitterHandle
+        override val target: (String) -> TwitterHandle = ::TwitterHandle
         override val validate: String.() -> Map<String, Boolean> = {
           mapOf(
             "Should start with '@'" to startsWith("@"),
@@ -27,8 +29,7 @@ class RefinementTests {
       }
     }
     
-    //Similar extensions can target Validation and Either not just nullable types
-    @Proof(TypeProof.Extension, coerce = true)
+    @Coercion
     fun String.twitterHandle(): TwitterHandle? =
       TwitterHandle.from(this)
       
@@ -38,7 +39,7 @@ class RefinementTests {
     """
       inline class PositiveInt(val value: Int)  {
         companion object : Refined<Int, PositiveInt> {
-          override val constructor = ::PositiveInt
+          override val target : (Int) -> PositiveInt = ::PositiveInt
           override val validate: Int.() -> Map<String, Boolean> = {
             mapOf(
               "Should be >= 0" to (this >= 0)
@@ -47,7 +48,7 @@ class RefinementTests {
         }
       }
       
-      @Proof(TypeProof.Extension, coerce = true)
+      @Coercion
       fun Int.positive(): PositiveInt? =
         PositiveInt.from(this)
     """
@@ -57,7 +58,7 @@ class RefinementTests {
     """
     inline class NonEmptyArray(val value: Array<Int>) {
       companion object : Refined<Array<Int>, NonEmptyArray> {
-        override val constructor = ::NonEmptyArray
+        override val target: (Array<Int>) -> NonEmptyArray = ::NonEmptyArray
         override val validate: Array<Int>.() -> Map<String, Boolean> = {
           mapOf(
             "Should not be empty" to isNotEmpty()
@@ -66,7 +67,7 @@ class RefinementTests {
       }
     }
     
-    @Proof(TypeProof.Extension, coerce = true)
+    @Coercion
     fun Array<Int>.nonEmpty(): NonEmptyArray? =
       NonEmptyArray.from(this)
     """

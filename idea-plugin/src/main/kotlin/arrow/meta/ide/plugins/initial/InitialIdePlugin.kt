@@ -4,9 +4,9 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
-import com.intellij.openapi.diagnostic.Logger
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
@@ -43,7 +43,7 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
       LOG.info("beforeProjectLoaded:${project.name}")
       val start = System.currentTimeMillis()
       val configuration = CompilerConfiguration()
-      registerMetaComponents(project, configuration)
+      registerMetaComponents(project, configuration, project.ctx())
       LOG.info("beforeProjectLoaded:${project.name} took ${System.currentTimeMillis() - start}ms")
     },
     dispose = {
