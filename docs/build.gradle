@@ -10,31 +10,39 @@ dependencies {
     compile "junit:junit:4.13"
 }
 
-ext {
-    ext.set("LOCAL_PATHS_FILE", "docs/localPaths.log")
-    if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
-}
-
-task getLocalPaths {
-    doLast {
-        def localPaths = new File("$LOCAL_PATHS_FILE")
-        localPaths.write "${sourceSets.main.compileClasspath.find{ it.name == 'kotlin-plugin.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-api.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-impl.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'idea.jar' }}"
-        println new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" }
-    }
-}
-
 intellij {
     version = "$INTELLIJ_IDEA_VERSION"
     plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
+task printcp {
+    doLast {
+        println sourceSets.main.compileClasspath.each { println it }
+        println sourceSets.main.runtimeClasspath.each { println it }
+    }
+}
+
+ext {
+    set("LOCAL_PATHS_FILE", "docs/localPaths.log")
+    // Reason: required by ank; file must exist during Gradle configuration check
+    if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
+}
+
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines())
+}
+
+task getLocalPaths {
+    // Reason: local paths cannot be generated in Ank extension neither ext section
+    doLast {
+        def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar']
+        def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
+        def localPathsFile = new File("$LOCAL_PATHS_FILE")
+        localPathsFile.write localPaths.join("\n")
+        layout.files(new File("$LOCAL_PATHS_FILE").readLines()).each { println it.path }
+    }
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
