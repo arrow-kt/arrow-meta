@@ -100,6 +100,34 @@ task publishAndRunIde {
   tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':publishMeta'
 }
 
+task generateDoc(type:Exec) {
+    // Reason of commandLine: dokka is not available in root project
+    // and to avoid specifying the list of modules
+    commandLine "sh", "gradlew", "dokka"
+}
+
+task configureValidation(type:Exec) {
+    // Reason of commandLine: getLocalPaths and runAnk come from
+    // the same Gradle configuration and they must not be run
+    // in the same process
+    commandLine "sh", "gradlew", ":docs:getLocalPaths"
+}
+
+task runValidation(type:Exec) {
+    commandLine "sh", "gradlew", ":docs:runAnk"
+}
+
+task buildMetaDoc {
+    group = "Arrow Meta"
+    description = "Generate API Doc and validate"
+    dependsOn 'generateDoc'
+    dependsOn 'configureValidation'
+    dependsOn 'runValidation'
+}
+
+configureValidation.mustRunAfter generateDoc
+runValidation.mustRunAfter configureValidation
+
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
   gradleVersion = "$GRADLE_VERSION"

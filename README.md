@@ -38,6 +38,12 @@ Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-ex
 ./gradlew publishAndRunIde -Dorg.gradle.debug=true
 ```
 
+**Generate API Doc and validate it**
+
+```
+./gradlew buildMetaDoc
+```
+
 ## Testing
 
 Λrrow Meta provides an easy way to write tests about plugins, quotes, etc. thanks to [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing), a library developed by [Thilo Schuchort](https://github.com/tschuchortdev).
