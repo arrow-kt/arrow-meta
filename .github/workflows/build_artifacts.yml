@@ -35,15 +35,19 @@ jobs:
         # and it could fail when changing version
         ./gradlew :gradle-plugin:jar
         # :docs is considered in another workflow
-        echo "Is there an upcoming version to check?"
-        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
-          echo "Checking $patch ..."
-          PATCH_VERSION=$(basename -s .diff $patch)
-          NEXT_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep $PATCH_VERSION | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
-          echo "For version $NEXT_VERSION ..."
-          git apply $patch
-          git status
-          sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$NEXT_VERSION/g" gradle.properties
-          ./gradlew clean :compiler-plugin:build
-        done
+    #- name: Check next version
+    #  env:
+    #    JAVA_OPTS: -Xms512m -Xmx1024m
+    #  run: |
+    #    echo "Is there an upcoming version to check?"
+    #    sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+    #    for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+    #      echo "Checking $patch ..."
+    #      PATCH_VERSION=$(basename -s .diff $patch)
+    #      NEXT_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep $PATCH_VERSION | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
+    #      echo "For version $NEXT_VERSION ..."
+    #      git apply $patch
+    #      git status
+    #      sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$NEXT_VERSION/g" gradle.properties
+    #      ./gradlew clean :compiler-plugin:build
+    #    done
