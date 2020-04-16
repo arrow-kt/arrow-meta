@@ -44,8 +44,8 @@ task generateAPIDoc {
 task getLocalPaths {
     doLast {
         def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar']
-        def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
         def localPathsFile = new File("$LOCAL_PATHS_FILE")
+        def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
         localPathsFile.write localPaths.join("\n")
         println new File("$LOCAL_PATHS_FILE").text
     }
