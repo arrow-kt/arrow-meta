@@ -10,21 +10,25 @@ dependencies {
     compile "junit:junit:4.13"
 }
 
-intellij {
-    version = "$INTELLIJ_IDEA_VERSION"
-    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
-}
-
-task printcp {
-    doLast {
-        println sourceSets.main.compileClasspath.each { println it }
-        println sourceSets.main.runtimeClasspath.each { println it }
-    }
-}
-
 ext {
     ext.set("LOCAL_PATHS_FILE", "docs/localPaths.log")
     if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
+}
+
+task getLocalPaths {
+    doLast {
+        def localPaths = new File("$LOCAL_PATHS_FILE")
+        localPaths.write "${sourceSets.main.compileClasspath.find{ it.name == 'kotlin-plugin.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-api.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-impl.jar' }}\n"
+        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'idea.jar' }}"
+        println new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" }
+    }
+}
+
+intellij {
+    version = "$INTELLIJ_IDEA_VERSION"
+    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
 }
 
 ank {
@@ -32,38 +36,5 @@ ank {
     target = file("${projectDir}/build/site")
     classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
 }
-
-task generateAPIDoc {
-    dependsOn ':compiler-plugin:dokka'
-    dependsOn ':gradle-plugin:dokka'
-    dependsOn ':idea-plugin:dokka'
-    dependsOn ':testing-plugin:dokka'
-    dependsOn ':prelude:dokka'
-}
-
-task getLocalPaths {
-    doLast {
-        def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar']
-        def localPathsFile = new File("$LOCAL_PATHS_FILE")
-        def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
-        localPathsFile.write localPaths.join("\n")
-        println new File("$LOCAL_PATHS_FILE").text
-    }
-}
-
-task validateDoc {
-    dependsOn 'runAnk'
-}
-
-task buildMetaDoc {
-    group = "Arrow Meta"
-    description = "Generate API doc and run validation"
-    dependsOn 'generateAPIDoc'
-    dependsOn 'getLocalPaths'
-    dependsOn 'validateDoc'
-}
-
-getLocalPaths.mustRunAfter generateAPIDoc
-validateDoc.mustRunAfter getLocalPaths
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
