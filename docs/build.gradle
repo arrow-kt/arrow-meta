@@ -47,7 +47,7 @@ task getLocalPaths {
         def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
         def localPathsFile = new File("$LOCAL_PATHS_FILE")
         localPathsFile.write localPaths.join("\n")
-        layout.files(new File("$LOCAL_PATHS_FILE").readLines()).each { println it.path }
+        println new File("$LOCAL_PATHS_FILE").text
     }
 }
 
