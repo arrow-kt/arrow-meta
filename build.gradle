@@ -72,7 +72,7 @@ task cleanMeta {
   dependsOn ':compiler-plugin:clean'
   dependsOn ':gradle-plugin:clean'
   dependsOn ':idea-plugin:clean'
-  dependsOn ':testing-plugin:clean'
+  dependsOn ':meta-test:clean'
   dependsOn ':prelude:clean'
 }
 
@@ -80,7 +80,7 @@ task buildMeta {
   dependsOn ':compiler-plugin:build'
   dependsOn ':gradle-plugin:jar'
   dependsOn ':idea-plugin:build'
-  dependsOn ':testing-plugin:build'
+  dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
 }
 
@@ -88,7 +88,7 @@ task publishMeta {
   dependsOn ':compiler-plugin:publishToMavenLocal'
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':idea-plugin:publishToMavenLocal'
-  dependsOn ':testing-plugin:publishToMavenLocal'
+  dependsOn ':meta-test:publishToMavenLocal'
   dependsOn ':prelude:publishToMavenLocal'
 }
 
