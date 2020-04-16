@@ -30,7 +30,7 @@ ext {
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines())
 }
 
 task generateAPIDoc {
