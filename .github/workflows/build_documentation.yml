@@ -20,6 +20,4 @@ jobs:
     - name: "Create API Doc (Dokka)"
       run: ./gradlew dokka
     - name: "Validate API Doc (Ank)"
-      run: |
-        ./gradlew :docs:getLocalPaths
-        ./gradlew :docs:runAnk
+      run: ./gradlew :docs:buildMetaDoc

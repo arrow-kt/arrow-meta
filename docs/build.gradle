@@ -10,9 +10,27 @@ dependencies {
     compile "junit:junit:4.13"
 }
 
+intellij {
+    version = "$INTELLIJ_IDEA_VERSION"
+    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
+}
+
+task printcp {
+    doLast {
+        println sourceSets.main.compileClasspath.each { println it }
+        println sourceSets.main.runtimeClasspath.each { println it }
+    }
+}
+
 ext {
     ext.set("LOCAL_PATHS_FILE", "docs/localPaths.log")
     if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
+}
+
+ank {
+    source = file("${projectDir}/docs")
+    target = file("${projectDir}/build/site")
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines())
 }
 
 task getLocalPaths {
@@ -25,15 +43,17 @@ task getLocalPaths {
     }
 }
 
-intellij {
-    version = "$INTELLIJ_IDEA_VERSION"
-    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
+task validateDoc {
+    dependsOn 'runAnk'
 }
 
-ank {
-    source = file("${projectDir}/docs")
-    target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines())
+task buildMetaDoc {
+    group = "Arrow Meta"
+    description = "Run validation"
+    dependsOn 'getLocalPaths'
+    dependsOn 'validateDoc'
 }
+
+validateDoc.mustRunAfter getLocalPaths
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
