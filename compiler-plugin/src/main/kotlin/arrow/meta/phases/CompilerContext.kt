@@ -17,10 +17,9 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 open class CompilerContext(
   open val project: Project,
   val messageCollector: MessageCollector? = null,
-  val scope: ElementScope = ElementScope.default(project)
-) : ElementScope by scope {
-
+  val scope: ElementScope = ElementScope.default(project),
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false)
+) : ElementScope by scope {
   val ctx: CompilerContext = this
   lateinit var module: ModuleDescriptor
   lateinit var files: Collection<KtFile>
