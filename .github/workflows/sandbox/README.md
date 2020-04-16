@@ -25,7 +25,7 @@ $> git diff > <latest-version>.diff
 
 ### What if a patch file for a related version already exists?
 
-For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev-180.diff` already exists (both of them are related to `1.4.0` version).
+For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev.diff` already exists (both of them are related to `1.4.0` version).
 
 Update `.github/workflows/sandbox/1.4.0-dev.diff` with the new required changes.
 
