@@ -14,8 +14,8 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  * The Compiler Context represents the environment received by all plugins.
  * The Compiler Context will get more services as they become relevant overtime to the development of compiler plugins.
  */
-class CompilerContext(
-  val project: Project,
+open class CompilerContext(
+  open val project: Project,
   val messageCollector: MessageCollector? = null,
   val scope: ElementScope = ElementScope.default(project)
 ) : ElementScope by scope {
