@@ -34,7 +34,6 @@ import com.intellij.lang.folding.LanguageFolding
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.Application
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.extensions.DefaultPluginDescriptor
@@ -71,7 +70,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
             is IntentionExtensionProvider -> registerIntentionExtensionProvider(phase)
             is SyntaxHighlighterExtensionProvider -> registerSyntaxHighlighterExtensionProvider(phase)
             is ToolwindowProvider -> registerToolwindowProvider(phase)
-            is ApplicationProvider -> registerApplicationProvider(phase)
+            is ApplicationProvider -> registerApplicationProvider(phase, ctx.app)
             is Composite -> phase.phases.forEach { composite -> rec(composite) }
             else -> LOG.error("Unsupported ide extension phase: $phase")
           }
@@ -86,40 +85,38 @@ internal interface IdeInternalRegistry : InternalRegistry {
     messageBus.connect(this).subscribe(topic, listeners)
 
   @Suppress("UNCHECKED_CAST")
-  fun registerApplicationProvider(phase: ApplicationProvider): Unit =
-    ApplicationManager.getApplication()?.let { app ->
-      when (phase) {
-        is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
-        is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
-        is ApplicationProvider.ProjectService<*> -> phase.run {
-          /**
-           * Investigate other registry options in:
-           * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
-           * com.intellij.openapi.project.impl.ProjectImpl.init
-           * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
-           */
-          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-            override fun projectComponentsInitialized(project: Project): Unit =
-              instance(project, project.getService(service))?.let {
-                project.registerService(service as Class<Any>, it)
-              } ?: Unit
-          })
-        }
-        is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
-          app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
-            override fun projectComponentsInitialized(project: Project): Unit =
-              project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
-          })
-        }
-        is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
-        is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
-        is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
-        is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
-        is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
-        ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
-        is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
-        is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
+  fun registerApplicationProvider(phase: ApplicationProvider, app: Application): Unit =
+    when (phase) {
+      is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
+      is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
+      is ApplicationProvider.ProjectService<*> -> phase.run {
+        /**
+         * Investigate other registry options in:
+         * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
+         * com.intellij.openapi.project.impl.ProjectImpl.init
+         * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
+         */
+        app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+          override fun projectComponentsInitialized(project: Project): Unit =
+            instance(project, project.getService(service))?.let {
+              project.registerService(service as Class<Any>, it)
+            } ?: Unit
+        })
       }
+      is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
+        app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+          override fun projectComponentsInitialized(project: Project): Unit =
+            project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
+        })
+      }
+      is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
+      is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
+      is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
+      is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
+      is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
+      ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
+      is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
+      is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
     }
       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 

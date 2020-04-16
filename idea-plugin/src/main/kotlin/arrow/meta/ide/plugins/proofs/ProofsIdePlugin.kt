@@ -1,6 +1,5 @@
 package arrow.meta.ide.plugins.proofs
 
-import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
@@ -21,7 +20,6 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
-import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
@@ -35,16 +33,11 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
+      coerceProofLineMarker(ArrowIcons.ICON4),
+      addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       //makeExplicitCoercionIntention(ctx),
       //makeImplicitCoercionIntention(ctx),
       codeFolding
     )
   }
 
-val IdeMetaPlugin.typeProofsCli: CliPlugin
-  get() = "Type Proofs Cli Integration".cli {
-    meta(
-      coerceProofLineMarker(ArrowIcons.ICON4, ctx),
-      suppressDiagnostic { suppressProvenTypeMismatch(it) }
-    )
-  }

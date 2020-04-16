@@ -10,7 +10,6 @@ import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.phases.codegen.asm.ClassBuilder
@@ -35,8 +34,8 @@ import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -127,7 +126,8 @@ interface InternalRegistry : ConfigSyntax {
 
   fun registerMetaComponents(
     project: Project,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
+    context: CompilerContext? = null
   ) {
     val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
     //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
@@ -138,11 +138,14 @@ interface InternalRegistry : ConfigSyntax {
     ide {
       println("it's the IDEA plugin")
     }
-    val scope = ElementScope.default(project)
-    val messageCollector: MessageCollector? =
-      cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
-
-    val ctx = CompilerContext(project, messageCollector, scope)
+    val ctx: CompilerContext =
+      if (context != null) {
+        context
+      } else {
+        val messageCollector: MessageCollector? =
+          cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
+        CompilerContext(project, messageCollector)
+      }
     ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
