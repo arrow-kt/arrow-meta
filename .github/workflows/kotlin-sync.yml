@@ -77,7 +77,7 @@ jobs:
         echo "Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}" > versions
         ./gradlew clean :compiler-plugin:build 2> stderr
         ./gradlew :idea-plugin:build 2> stderr
-        ./gradlew :testing-plugin:build 2> stderr
+        ./gradlew :meta-test:build 2> stderr
         ./gradlew :gradle-plugin:jar 2> stderr
     - name: Prepare the environment to create the pull request
       id: prepare-pr
