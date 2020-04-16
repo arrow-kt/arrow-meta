@@ -17,12 +17,11 @@ ext {
 
 task getLocalPaths {
     doLast {
-        def localPaths = new File("$LOCAL_PATHS_FILE")
-        localPaths.write "${sourceSets.main.compileClasspath.find{ it.name == 'kotlin-plugin.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-api.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'platform-impl.jar' }}\n"
-        localPaths << "${sourceSets.main.compileClasspath.find{ it.name == 'idea.jar' }}"
-        println new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" }
+        def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar']
+        def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
+        def localPathsFile = new File("$LOCAL_PATHS_FILE")
+        localPathsFile.write localPaths.join("\n")
+        layout.files(new File("$LOCAL_PATHS_FILE").readLines()).each { println it.path }
     }
 }
 
@@ -34,7 +33,7 @@ intellij {
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines().each{ line -> "$line" })
+    classpath = sourceSets.main.runtimeClasspath + layout.files(new File("$LOCAL_PATHS_FILE").readLines())
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
