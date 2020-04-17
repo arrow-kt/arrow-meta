@@ -33,7 +33,7 @@ task printcp {
 }
 
 ext {
-    set("LOCAL_PATHS_FILE", "${projectDir}/docs/localPaths.log")
+    set("LOCAL_PATHS_FILE", "${projectDir}/localPaths.log")
     // Reason: required by ank; file must exist during Gradle configuration check
     if ( !new File("$LOCAL_PATHS_FILE").exists() )  new File("$LOCAL_PATHS_FILE").createNewFile()
 }
