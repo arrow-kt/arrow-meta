@@ -4,7 +4,7 @@ buildscript {
     maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
   }
   dependencies {
-    classpath "io.arrow-kt:arrow-ank-gradle:$ANK_GRADLE_PLUGIN_VERSION"
+    classpath "io.arrow-kt:arrow-ank-gradle:$ARROW_VERSION"
   }
 }
 
