@@ -20,21 +20,21 @@ class FoldingBuilderTest : IdeTestSetUp() {
         IdeTest(
           code = FoldingBuilderTestCode.unionCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
+            myFixture.addFileToProject("arrow/union/unions.kt", FoldingBuilderTestCode.unionPrelude)
             collectFR(code, myFixture) { unionTypeMatches(it) }
           },
-          result = resolvesWhen("Union foldingBuilder should return 4 folding regions") {
-            println("foldingRegions[${it.size}] = $it")
-            it.size == 4
+          result = resolvesWhen("Unions foldingBuilder should return 3 folding regions") {
+            it.size == 3
           }
         ),
         IdeTest(
           code = FoldingBuilderTestCode.tupleCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
+            myFixture.addFileToProject("arrow/tuples/tuples.kt", FoldingBuilderTestCode.tuplePrelude)
             collectFR(code, myFixture) { tupleTypeMatches(it) }
           },
-          result = resolvesWhen("Tuple foldingBuilder should return 19 folding regions") {
-            println("foldingRegions[${it.size}] = $it")
-            it.size == 19
+          result = resolvesWhen("Tuples foldingBuilder should return 3 folding regions") {
+            it.size == 3
           }
         )
       )

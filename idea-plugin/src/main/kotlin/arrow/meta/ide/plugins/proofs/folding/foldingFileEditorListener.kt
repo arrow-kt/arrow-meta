@@ -22,10 +22,7 @@ val IdeMetaPlugin.foldingCaretListener: ExtensionPhase
         val editorFoldingInfo = EditorFoldingInfo.get(this)
         foldingModel.allFoldRegions
           .filter { foldRegion: FoldRegion ->
-            val psiElement = editorFoldingInfo.getPsiElement(foldRegion)
-            psiElement.safeAs<KtTypeReference>()?.let {
-              unionTypeMatches(it) || tupleTypeMatches(it) || kindTypeMatches(it)
-            } ?: false
+            foldingRegionMatchingTypes(editorFoldingInfo, foldRegion)
           }
           .filter {
             codeFoldingManager.isCollapsedByDefault(it)?.let { collapsedByDefault ->
@@ -38,3 +35,10 @@ val IdeMetaPlugin.foldingCaretListener: ExtensionPhase
       }
     }
   )
+
+private fun foldingRegionMatchingTypes(editorFoldingInfo: EditorFoldingInfo, foldRegion: FoldRegion): Boolean {
+  val psiElement = editorFoldingInfo.getPsiElement(foldRegion)
+  return psiElement.safeAs<KtTypeReference>()?.let {
+    unionTypeMatches(it) || tupleTypeMatches(it) || kindTypeMatches(it)
+  } ?: false
+}

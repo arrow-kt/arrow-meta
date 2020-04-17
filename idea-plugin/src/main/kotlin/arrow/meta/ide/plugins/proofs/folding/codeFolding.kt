@@ -12,7 +12,7 @@ val IdeMetaPlugin.codeFolding: ExtensionPhase
   get() = Composite(
     codeFoldingOnUnions,
     codeFoldingOnTuples,
-    // codeFoldingOnKinds,
+    // codeFoldingOnKinds, // temporary disabled to avoid confusion due to issues
     foldingCaretListener
   )
 
