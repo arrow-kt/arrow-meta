@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 object FoldingBuilderTestCode {
-  val unionCode =
+  private val unionPrelude =
     """
     package arrow
     
@@ -27,13 +27,9 @@ object FoldingBuilderTestCode {
     typealias Union21<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U> = Union22<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, `🚫`>
     interface Union22<out A, out B, out C, out D, out E, out F, out G, out H, out I, out J, out K, out L, out M, out N, out O, out P, out Q, out R, out S, out T, out U, out V> { val value: Any? }
     inline class Union(override val value: Any?) : Union22<`🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`, `🔥`>
-    
-    fun f(): Union2<String, Union2<Int, Double>> = 2
-    fun g(): Union3<String, Int, Double> = 2.0
-    fun h(): Union4<String, Int, Double, Long> = 2L
     """.trimIndent()
 
-  val tupleCode =
+  private val tuplePrelude =
     """
     package arrow.tuples
 
@@ -69,34 +65,19 @@ object FoldingBuilderTestCode {
           tupleOf(arrayOf(a, b, c, d))
       }
     }
-
-    val tuple2: Tuple2<Int, Int> = tupleOf(2, 2)
-    val tuple3: Tuple3<Int, Int, String> = tupleOf(2, 2, "47Degrees")
-    val tuple4: Tuple4<Int, Int, String, Double> = tupleOf(2, 2, "47Degrees", 5.0)
     """.trimIndent()
 
-  val unionCode2 =
+  val unionCode =
     """
-    package prelude
-    
-    import arrow.Union2
-    import arrow.Union3
-    import arrow.Union4
-    
+    $unionPrelude
     fun f(): Union2<String, Union2<Int, Double>> = 2
     fun g(): Union3<String, Int, Double> = 2.0
     fun h(): Union4<String, Int, Double, Long> = 2L
     """.trimIndent()
 
-  val tupleCode2 =
+  val tupleCode =
     """
-    package prelude
-    
-    import arrow.tuples.Tuple2
-    import arrow.tuples.Tuple3
-    import arrow.tuples.Tuple4
-    import arrow.tuples.tupleOf
-    
+    $tuplePrelude
     val tuple2: Tuple2<Int, Int> = tupleOf(2, 2)
     val tuple3: Tuple3<Int, Int, String> = tupleOf(2, 2, "47Degrees")
     val tuple4: Tuple4<Int, Int, String, Double> = tupleOf(2, 2, "47Degrees", 5.0)

@@ -28,9 +28,14 @@ private fun KotlinType?.isTypeMatching() =
   this?.constructor?.declarationDescriptor?.fqNameSafe?.asString() == "arrow.Union22"
 
 private fun KtTypeReference.foldString(): String =
-  firstChild.safeAs<KtNullableType>()?.let {
-    it.foldTypeString() + " ?"
-  } ?: foldTypeString()
+  (firstChild.safeAs<KtNullableType>()?.let {
+    it.foldTypeString() + "|null"
+  } ?: foldTypeString())
+    .replace(" ", "") // trim not working?
+    .split("|")
+    .distinct()
+    .joinToString(separator = " | ")
+
 
 private fun KtElement.foldTypeString(): String =
   this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().joinToString(
