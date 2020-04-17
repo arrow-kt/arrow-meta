@@ -15,14 +15,14 @@ class ComprehensionsTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+      listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
         IdeTest(
           code = ComprehensionsTestCode.code1,
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for two LM on typed variables") {
-            it.takeIf { descriptor -> descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for two LM on typed variables") {
+            it.lineMarker.size == 2 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -30,8 +30,8 @@ class ComprehensionsTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for two LM on untyped variables") {
-            it.takeIf { descriptor -> descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for two LM on untyped variables") {
+            it.lineMarker.size == 2 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -39,8 +39,8 @@ class ComprehensionsTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for six LM on untyped variables") {
-            it.takeIf { descriptor -> descriptor.lineMarker.size == 6 && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for six LM on untyped variables") {
+            it.lineMarker.size == 6 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -48,8 +48,8 @@ class ComprehensionsTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for four LM on untyped variables") {
-            it.takeIf { descriptor -> descriptor.lineMarker.size == 4 && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for four LM on untyped variables") {
+            it.lineMarker.size == 4 && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -57,8 +57,8 @@ class ComprehensionsTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for zero LM ") {
-            it.takeIf { descriptor -> descriptor.lineMarker.isEmpty() && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for zero LM ") {
+            it.lineMarker.isEmpty() && it.slowLM.isEmpty()
           }
         ),
         IdeTest(
@@ -66,8 +66,8 @@ class ComprehensionsTest : IdeTestSetUp() {
           test = { code, myFixture, _ ->
             collectLM(code, myFixture, ArrowIcons.BIND)
           },
-          result = resolvesWith("LineMarkerTest for no LM ") {
-            it.takeIf { descriptor -> descriptor.lineMarker.isEmpty() && descriptor.slowLM.isEmpty() }
+          result = resolvesWhen("LineMarkerTest for no LM ") {
+            it.lineMarker.isEmpty() && it.slowLM.isEmpty()
           }
         )
       )
