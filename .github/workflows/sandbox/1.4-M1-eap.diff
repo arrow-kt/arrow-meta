@@ -18,10 +18,10 @@ index f524d67..7fced89 100644
      jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
  }
  
-diff --git a/testing-plugin/build.gradle b/testing-plugin/build.gradle
+diff --git a/meta-test/build.gradle b/meta-test/build.gradle
 index 58c53fb..2b8c008 100755
---- a/testing-plugin/build.gradle
-+++ b/testing-plugin/build.gradle
+--- a/meta-test/build.gradle
++++ b/meta-test/build.gradle
 @@ -25,6 +25,7 @@ dependencies {
      testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
          exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
@@ -38,10 +38,10 @@ index 58c53fb..2b8c008 100755
  }
  
  jar {
-diff --git a/testing-plugin/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt b/testing-plugin/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+diff --git a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
 index 033600b..51b7f05 100644
---- a/testing-plugin/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
-+++ b/testing-plugin/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+--- a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
++++ b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
 @@ -9,13 +9,16 @@ import java.io.File
  
  internal const val DEFAULT_FILENAME = "Source.kt"

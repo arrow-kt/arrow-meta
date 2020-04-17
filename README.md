@@ -29,13 +29,19 @@ Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-ex
 **Build and run tests**
 
 ```
-./gradlew buildMeta -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
+./gradlew buildMeta -Dorg.gradle.debug=true
 ```
 
 **Build and run test + IDE plugin**
 
 ```
-./gradlew publishAndRunIde -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
+./gradlew publishAndRunIde -Dorg.gradle.debug=true
+```
+
+**Generate API Doc and validate it**
+
+```
+./gradlew buildMetaDoc
 ```
 
 ## Testing

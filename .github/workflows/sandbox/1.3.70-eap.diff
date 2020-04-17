@@ -1,15 +1,3 @@
-diff --git a/build.gradle b/build.gradle
-index f08c4db..61ae352 100644
---- a/build.gradle
-+++ b/build.gradle
-@@ -41,6 +41,7 @@ allprojects {
-     mavenCentral()
-     jcenter()
-     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-+    maven { url 'https://jitpack.io' }
-   }
- }
- 
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
 index 83b8358..7ea6ded 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
@@ -1311,10 +1299,10 @@ index cc6655f..5d10395 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 4b69200..845f2b7 100644
+index 202dc27..edeeea4 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-@@ -24,8 +24,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
+@@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
  import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
  import org.jetbrains.kotlin.analyzer.AnalysisResult
  import org.jetbrains.kotlin.analyzer.ModuleInfo
@@ -1324,7 +1312,7 @@ index 4b69200..845f2b7 100644
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
  import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-@@ -63,7 +63,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
+@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.LookupTracker
@@ -1334,8 +1322,8 @@ index 4b69200..845f2b7 100644
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
 @@ -129,11 +129,9 @@ interface InternalRegistry : ConfigSyntax {
-     project: Project,
-     configuration: CompilerConfiguration
+     configuration: CompilerConfiguration,
+     context: CompilerContext? = null
    ) {
 -    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
      //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
@@ -1345,7 +1333,7 @@ index 4b69200..845f2b7 100644
      }
      ide {
        println("it's the IDEA plugin")
-@@ -188,12 +186,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -191,12 +189,6 @@ interface InternalRegistry : ConfigSyntax {
      }
    }
  
@@ -1358,7 +1346,7 @@ index 4b69200..845f2b7 100644
    fun installArrowPlugin() {
      val ideaPath = System.getProperty("idea.plugins.path")
      val userDir = System.getProperty("user.dir")
-@@ -226,6 +218,7 @@ interface InternalRegistry : ConfigSyntax {
+@@ -229,6 +221,7 @@ interface InternalRegistry : ConfigSyntax {
    }
  
    fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
@@ -1366,7 +1354,7 @@ index 4b69200..845f2b7 100644
      SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
        override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
          phase.run {
-@@ -270,11 +263,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -273,11 +266,11 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -1382,7 +1370,7 @@ index 4b69200..845f2b7 100644
        }
      })
    }
-@@ -418,7 +411,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -421,7 +414,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -1390,7 +1378,7 @@ index 4b69200..845f2b7 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -427,7 +419,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -430,7 +422,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -1398,7 +1386,7 @@ index 4b69200..845f2b7 100644
                isImplicitModality
              )
            }
-@@ -596,4 +587,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -599,4 +590,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)
@@ -1432,29 +1420,18 @@ index 2867bd7..0b19295 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-index d8c5529..574b714 100644
+index d8c5529..ff51718 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-@@ -1,9 +1,9 @@
- package arrow.meta.phases.codegen.ir
- 
- import arrow.meta.phases.CompilerContext
--import org.jetbrains.kotlin.backend.common.BackendContext
+@@ -4,6 +4,7 @@ import arrow.meta.phases.CompilerContext
+ import org.jetbrains.kotlin.backend.common.BackendContext
  import org.jetbrains.kotlin.descriptors.CallableDescriptor
  import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 +import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
  import org.jetbrains.kotlin.descriptors.ClassDescriptor
  import org.jetbrains.kotlin.descriptors.FunctionDescriptor
  import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
- import org.jetbrains.kotlin.ir.expressions.IrCall
- import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
- import org.jetbrains.kotlin.ir.expressions.IrExpression
--import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
- import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
-@@ -28,20 +27,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
+@@ -28,20 +29,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
  import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
  
  class IrUtils(
@@ -1482,7 +1459,7 @@ index d8c5529..574b714 100644
          ).apply {
            this.typeTranslator = this@translator
          }
-@@ -50,46 +49,43 @@ class IrUtils(
+@@ -50,46 +51,43 @@ class IrUtils(
    fun CallableDescriptor.irCall(): IrExpression =
      when (this) {
        is PropertyDescriptor -> {
@@ -1533,7 +1510,7 @@ index d8c5529..574b714 100644
          IrGetObjectValueImpl(
            startOffset = UNDEFINED_OFFSET,
            endOffset = UNDEFINED_OFFSET,
-@@ -103,14 +99,13 @@ class IrUtils(
+@@ -103,14 +101,13 @@ class IrUtils(
      }
  
    fun PropertyDescriptor.irGetterCall(): IrCall? {
@@ -1549,7 +1526,7 @@ index d8c5529..574b714 100644
          typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
          valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
        )
-@@ -118,14 +113,13 @@ class IrUtils(
+@@ -118,14 +115,13 @@ class IrUtils(
    }
  
    fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
@@ -1586,27 +1563,10 @@ index fcbbb97..7b2596e 100644
    ): Modality?
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-index 7bfc9c4..2a25b9f 100644
+index 7bfc9c4..4033937 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-@@ -21,16 +21,12 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
- import org.jetbrains.kotlin.ir.declarations.IrVariable
- import org.jetbrains.kotlin.ir.expressions.IrCall
- import org.jetbrains.kotlin.ir.expressions.IrExpression
--import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
- import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
- import org.jetbrains.kotlin.ir.expressions.IrReturn
- import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
- import org.jetbrains.kotlin.ir.expressions.getValueArgument
--import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
- import org.jetbrains.kotlin.ir.expressions.putValueArgument
--import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
--import org.jetbrains.kotlin.ir.types.IrType
- import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
- import org.jetbrains.kotlin.ir.types.toKotlinType
- import org.jetbrains.kotlin.ir.util.dump
-@@ -55,7 +51,7 @@ class ProofsIrCodegen(
+@@ -55,7 +55,7 @@ class ProofsIrCodegen(
        if (this is IrMemberAccessExpression) {
          fn.typeParameters.forEachIndexed { n, descriptor ->
            //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
@@ -1615,7 +1575,7 @@ index 7bfc9c4..2a25b9f 100644
          }
        }
      }
-@@ -157,7 +153,7 @@ class ProofsIrCodegen(
+@@ -157,7 +157,7 @@ class ProofsIrCodegen(
  
    private fun CompilerContext.proveCall(expression: IrCall): IrCall =
      Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
@@ -1624,7 +1584,7 @@ index 7bfc9c4..2a25b9f 100644
        val upperBound = givenTypeParamUpperBound.givenUpperBound
        if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
        else insertExtensionSyntaxCall(expression)
-@@ -168,8 +164,8 @@ class ProofsIrCodegen(
+@@ -168,8 +168,8 @@ class ProofsIrCodegen(
      val valueType = expression.dispatchReceiver?.type?.toKotlinType()
        ?: expression.extensionReceiver?.type?.toKotlinType()
      val targetType =
@@ -1636,35 +1596,27 @@ index 7bfc9c4..2a25b9f 100644
        expression.apply {
          val proofCall = extensionProofCall(valueType, targetType)
 diff --git a/gradle.properties b/gradle.properties
-index c96a5fc..a274322 100644
+index ca7c9de..aee1bf3 100644
 --- a/gradle.properties
 +++ b/gradle.properties
-@@ -4,16 +4,16 @@ VERSION_NAME=1.3.61-SNAPSHOT
+@@ -3,9 +3,9 @@ GROUP=io.arrow-kt
+ VERSION_NAME=1.3.61-SNAPSHOT
  # Dependencies versions
- ARROW_VERSION=0.10.4-SNAPSHOT
- ANK_GRADLE_PLUGIN_VERSION=0.7.1
+ ARROW_VERSION=0.10.5
 -KOTLIN_VERSION=1.3.61
 -KOTLIN_IDEA_VERSION=1.3.61-release-IJ2019.3-1
 -INTELLIJ_IDEA_VERSION=2019.3.4
-+KOTLIN_VERSION=1.3.71
-+KOTLIN_IDEA_VERSION=1.3.71-release-IJ2020.1-1
++KOTLIN_VERSION=1.3.72
++KOTLIN_IDEA_VERSION=1.3.72-release-IJ2020.1-1
 +INTELLIJ_IDEA_VERSION=2020.1
  JVM_TARGET_VERSION=1.8
  KOTLIN_TEST_VERSION=3.4.2
  ASSERTJ_VERSION=3.13.2
- DOKKA_VERSION=0.10.0
- CLASS_GRAPH_VERSION=4.8.47
- JUNIT_VINTAGE_VERSION=5.4.0
--KOTLIN_COMPILE_TESTING=1.2.7
-+KOTLIN_COMPILE_TESTING=1.2.71
- SHADOW_JAR_VERSION=5.0.0
- BINTRAY_VERSION=1.8.4
- GRADLE_VERSION=5.6.4
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-index d767ad2..b56bee1 100644
+index 915cbe2..dd2f5e4 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-@@ -323,10 +323,9 @@ interface ApplicationSyntax {
+@@ -324,10 +324,9 @@ interface ApplicationSyntax {
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
@@ -1677,7 +1629,7 @@ index d767ad2..b56bee1 100644
  
    /**
     * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
-@@ -334,7 +333,6 @@ interface ApplicationSyntax {
+@@ -335,7 +334,6 @@ interface ApplicationSyntax {
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
@@ -1685,7 +1637,7 @@ index d767ad2..b56bee1 100644
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1
    ): ProjectLifecycle =
-@@ -348,9 +346,6 @@ interface ApplicationSyntax {
+@@ -349,9 +347,6 @@ interface ApplicationSyntax {
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(this, project)
  
@@ -1695,7 +1647,7 @@ index d767ad2..b56bee1 100644
        override fun dispose(): Unit = dispose(this)
      }
  
-@@ -360,10 +355,9 @@ interface ApplicationSyntax {
+@@ -361,10 +356,9 @@ interface ApplicationSyntax {
    fun ApplicationSyntax.addProjectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
      initialize: (Project) -> Unit = Noop.effect1,
@@ -1707,7 +1659,7 @@ index d767ad2..b56bee1 100644
  
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-@@ -380,9 +374,6 @@ interface ApplicationSyntax {
+@@ -381,9 +375,6 @@ interface ApplicationSyntax {
  
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(project)
@@ -1778,7 +1730,7 @@ index 54f6273..aa5b879 100644
      }
  }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
-index 1c00571..022116c 100644
+index aaa4f5a..54182f0 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
 @@ -22,6 +22,7 @@ import javax.swing.Icon
@@ -1835,10 +1787,10 @@ index 1c00571..022116c 100644
      ToolwindowProvider.Notification(toolId, type, html, icon, listener, project)
  
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-index 5db353a..3bc3697 100644
+index 2ea1b7f..6d37a97 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-@@ -42,7 +42,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+@@ -43,7 +43,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
  import com.intellij.openapi.project.Project
  import com.intellij.openapi.project.impl.ProjectLifecycleListener
  import com.intellij.openapi.wm.ToolWindowManager
@@ -1847,16 +1799,25 @@ index 5db353a..3bc3697 100644
  import com.intellij.ui.content.ContentFactory
  import com.intellij.util.messages.Topic
  import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+@@ -92,7 +92,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
+       is ApplicationProvider.ProjectService<*> -> phase.run {
+         /**
+          * Investigate other registry options in:
+-         * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
++         * com/intellij/serviceContainer/ComponentManagerImpl.kt:163: createComponent
+          * com.intellij.openapi.project.impl.ProjectImpl.init
+          * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
+          */
 @@ -113,8 +113,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
-         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
-         is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
-         is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
--        is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
--        ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
-+        is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
-+        ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
-         is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
-       }
+       is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
+       is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
+       is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
+-      is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
+-      ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
++      is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
++      ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
+       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
+       is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
      }
 @@ -126,12 +126,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
        ?: LOG.error("Service:${fromService.simpleName} could not be OVERRIDDEN properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
@@ -1882,9 +1843,9 @@ index 5db353a..3bc3697 100644
            window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
          }
      }
-@@ -224,4 +224,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
-       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
+@@ -225,4 +225,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
        is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+       is ExtensionProvider.AddFoldingBuilder -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
      }
 -}
 \ No newline at end of file
@@ -1913,18 +1874,3 @@ index 9eeea6a..7063524 100644
 -}
 \ No newline at end of file
 +}
-diff --git a/testing-plugin/build.gradle b/testing-plugin/build.gradle
-index 1cbcaac..58c53fb 100755
---- a/testing-plugin/build.gradle
-+++ b/testing-plugin/build.gradle
-@@ -8,7 +8,9 @@ dependencies {
- 
-     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-     implementation "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:$KOTLIN_VERSION"
--    implementation("com.github.tschuchortdev:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-+    // TODO: remove jitpack.io from build.gradle when using this dependency
-+    //implementation("com.github.tschuchortdev:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-+    implementation("com.github.arrow-kt:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-         exclude group: "io.github.classgraph", module: "classgraph"
-         exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-         exclude group: "org.jetbrains.kotlin", module: "kotlin-annotation-processing-embeddable"

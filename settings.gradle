@@ -1,6 +1,6 @@
 include ':compiler-plugin'
 include ':gradle-plugin'
 include ':idea-plugin'
-include ':testing-plugin'
+include ':meta-test'
 include ':docs'
 include ':prelude'

@@ -28,7 +28,7 @@ jobs:
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_EAP_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_EAP_VERSION"
-        ./gradlew clean :compiler-plugin:build 2> stderr
+        ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
     - name: Test latest Kotlin DEV version
       run: |
         git checkout .
@@ -43,7 +43,7 @@ jobs:
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
-        ./gradlew clean :compiler-plugin:build 2> stderr
+        ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
     - name: Update versions
       id: update
       run: |
@@ -75,29 +75,29 @@ jobs:
       if: steps.update.outputs.differences != ''
       run: |
         echo "Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}" > versions
-        ./gradlew clean :compiler-plugin:build 2> stderr
-        ./gradlew :idea-plugin:build 2> stderr
-        ./gradlew :testing-plugin:build 2> stderr
+        ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
+        ./gradlew :idea-plugin:jar 2> stderr #TODO: build
+        ./gradlew :meta-test:jar 2> stderr #TODO: build
         ./gradlew :gradle-plugin:jar 2> stderr
-    - name: Prepare the environment to create the pull request
-      id: prepare-pr
-      if: steps.update.outputs.differences != ''
-      run: |
-        rm -f versions
-        rm -f stderr
-        LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
-        echo "::set-output name=last-commit-hash::$LAST_COMMIT_HASH"
-    - name: Create pull request
-      if: steps.update.outputs.differences != ''
-      uses: gr2m/create-or-update-pull-request-action@v1.2.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        title: "Sync: Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}"
-        body: "I've looked at [Maven Central](https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml) to get the latest Kotlin version. \n\nAnd I've looked at [Intellij IDEA releases](https://www.jetbrains.com/intellij-repository/releases/) to get the latest Intellij IDEA version (section `com.jetbrains.intellij.idea`).\n\nFrom both versions, I've built Kotlin IDEA version.\n\n :warning: **Don't wait for automatic checks** because they cannot be executed to prevent an infinite loop of GitHub Actions. If I created this pull request, everything is working as expected so you can merge it. Otherwise, I would have created an issue.\n\nIf you'd like to skip these versions, you can just close this PR.\n\nHave a fantastic day using Arrow Meta! :sparkles:"
-        branch: "sync/kotlin-${{ steps.prepare-pr.outputs.last-commit-hash }}"
-        commit-message: "Sync versions for Kotlin, Kotlin IDEA plugin and Intellij IDEA"
-        author: "raulraja <raulraja@users.noreply.github.com>"
+    #- name: Prepare the environment to create the pull request
+    #  id: prepare-pr
+    #  if: steps.update.outputs.differences != ''
+    #  run: |
+    #    rm -f versions
+    #    rm -f stderr
+    #    LAST_COMMIT_HASH=$(git log -1 --pretty=%h)
+    #    echo "::set-output name=last-commit-hash::$LAST_COMMIT_HASH"
+    #- name: Create pull request
+    #  if: steps.update.outputs.differences != ''
+    #  uses: gr2m/create-or-update-pull-request-action@v1.2.2
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #  with:
+    #    title: "Sync: Kotlin=${{ steps.update.outputs.kotlin-version }}, Kotlin IDEA=${{ steps.update.outputs.kotlin-idea-version }}, Intellij IDEA=${{ steps.update.outputs.intellij-idea-version }}"
+    #    body: "I've looked at [Maven Central](https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml) to get the latest Kotlin version. \n\nAnd I've looked at [Intellij IDEA releases](https://www.jetbrains.com/intellij-repository/releases/) to get the latest Intellij IDEA version (section `com.jetbrains.intellij.idea`).\n\nFrom both versions, I've built Kotlin IDEA version.\n\n :warning: **Don't wait for automatic checks** because they cannot be executed to prevent an infinite loop of GitHub Actions. If I created this pull request, everything is working as expected so you can merge it. Otherwise, I would have created an issue.\n\nIf you'd like to skip these versions, you can just close this PR.\n\nHave a fantastic day using Arrow Meta! :sparkles:"
+    #    branch: "sync/kotlin-${{ steps.prepare-pr.outputs.last-commit-hash }}"
+    #    commit-message: "Sync versions for Kotlin, Kotlin IDEA plugin and Intellij IDEA"
+    #    author: "raulraja <raulraja@users.noreply.github.com>"
     - name: Prepare environment to create the issue (Node)
       if: failure()
       uses: actions/setup-node@v1
