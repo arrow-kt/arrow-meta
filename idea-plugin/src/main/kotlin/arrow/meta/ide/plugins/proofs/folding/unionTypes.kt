@@ -3,6 +3,8 @@ package arrow.meta.ide.plugins.proofs.folding
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.util.strictParents
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
@@ -26,7 +28,12 @@ private fun KotlinType?.isTypeMatching() =
   this?.constructor?.declarationDescriptor?.fqNameSafe?.asString() == "arrow.Union22"
 
 private fun KtTypeReference.foldString(): String =
-  firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().joinToString(
+  firstChild.safeAs<KtNullableType>()?.let {
+    it.foldTypeString() + " ?"
+  } ?: foldTypeString()
+
+private fun KtElement.foldTypeString(): String =
+  this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().joinToString(
     separator = " | ",
     transform = {
       it.safeAs<KtTypeProjection>()?.typeReference?.let { ktTypeReference ->
