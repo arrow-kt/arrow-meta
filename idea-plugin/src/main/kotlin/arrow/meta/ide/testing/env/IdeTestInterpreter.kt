@@ -99,7 +99,7 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  *     myFixture = myFixture,
  *     ctx = IdeMetaPlugin()
  *   ) {
- *     listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+ *     listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
  *       IdeTest(
  *         code = """
  *         | fun helloWorld(): String =

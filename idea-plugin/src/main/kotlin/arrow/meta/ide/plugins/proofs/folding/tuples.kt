@@ -12,11 +12,11 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnTuples: ExtensionPhase
   get() = addFoldingBuilder(
-    match = ::parentTypeMatches,
+    match = ::tupleTypeMatches,
     hint = KtTypeReference::foldString
   )
 
-private fun parentTypeMatches(typeReference: KtTypeReference): Boolean =
+fun tupleTypeMatches(typeReference: KtTypeReference): Boolean =
   typeReference.getType().isTypeMatching() &&
     typeReference.strictParents().all { psiElement ->
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()

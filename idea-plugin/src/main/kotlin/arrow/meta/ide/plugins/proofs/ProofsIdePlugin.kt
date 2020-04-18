@@ -31,7 +31,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
-      refinementAnnotator(),
+//      refinementAnnotator(),
       proofsKotlinCache,
       coerceProofLineMarker(ArrowIcons.ICON4),
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
