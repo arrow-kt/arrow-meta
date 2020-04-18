@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  */
 class CompilerContext(
   val project: Project,
-  val messageCollector: MessageCollector?,
-  val scope: ElementScope
+  val messageCollector: MessageCollector? = null,
+  val scope: ElementScope = ElementScope.default(project)
 ) : ElementScope by scope {
 
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false)

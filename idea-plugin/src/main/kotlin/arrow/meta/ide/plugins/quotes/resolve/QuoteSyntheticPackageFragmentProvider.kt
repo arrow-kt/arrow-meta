@@ -81,4 +81,3 @@ internal fun DeclarationDescriptor.isMetaSynthetic(): Boolean {
     }
   }
 }
-
