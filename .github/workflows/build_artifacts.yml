@@ -29,7 +29,7 @@ jobs:
         ./gradlew clean
         ./gradlew :compiler-plugin:build
         ./gradlew :idea-plugin:build
-        ./gradlew :testing-plugin:build
+        ./gradlew :meta-test:build
         # 'build' task is not executed for :gradle-plugin because
         # it depends on the publication of compiler-plugin 
         # and it could fail when changing version
