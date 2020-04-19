@@ -39,7 +39,7 @@ buildSearchableOptions.enabled = false
 intellij {
   version = "$INTELLIJ_IDEA_VERSION"
   pluginName = "Arrow Meta Intellij IDEA Plugin"
-  plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}", "github", "git4idea"]
+  plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}", "git4idea"]
 }
 
 patchPluginXml {
