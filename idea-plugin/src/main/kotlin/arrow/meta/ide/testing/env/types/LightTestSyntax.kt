@@ -29,7 +29,6 @@ object LightTestSyntax {
   /**
    * transforms [Source] string to a [KtFile].
    */
-
   fun Source.toKtFile(myFixture: CodeInsightTestFixture): KtFile? =
     myFixture.configureByText(KotlinFileType.INSTANCE, this).safeAs()
 
