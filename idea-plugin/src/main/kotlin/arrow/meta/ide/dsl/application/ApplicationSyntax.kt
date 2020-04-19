@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.internal.Noop
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
@@ -18,6 +19,7 @@ import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.psi.PsiElement
 import com.intellij.util.Function
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -394,7 +396,7 @@ interface ApplicationSyntax {
   ): ExtensionPhase =
     addProjectLifecycle(
       initialize = { project: Project ->
-        registerMetaComponents(project, conf)
+        registerMetaComponents(project, conf, project.ctx())
       },
       dispose = dispose
     )
@@ -429,4 +431,10 @@ interface ApplicationSyntax {
       override fun moduleAdded(project: Project, module: Module): Unit =
         moduleAdded(project, module)
     }
+
+  fun PsiElement.ctx(): CompilerContext? =
+    project.ctx()
+
+  fun Project.ctx(): CompilerContext? =
+    getService(CompilerContext::class.java)
 }

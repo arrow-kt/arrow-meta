@@ -7,11 +7,13 @@ import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.ide.IconProvider
 import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -199,6 +201,17 @@ interface ExtensionProviderSyntax {
       DiagnosticSuppressor.EP_NAME,
       object : DiagnosticSuppressor {
         override fun isSuppressed(diagnostic: Diagnostic): Boolean = f(diagnostic)
+      }
+    )
+
+  fun IdeMetaPlugin.addDiagnosticSuppressorWithCtx(
+    f: CompilerContext.(diagnostic: Diagnostic) -> Boolean
+  ): ExtensionPhase =
+    extensionProvider(
+      DiagnosticSuppressor.EP_NAME,
+      object : DiagnosticSuppressor {
+        override fun isSuppressed(diagnostic: Diagnostic): Boolean =
+          f(diagnostic.psiElement.project.service(), diagnostic)
       }
     )
 }
