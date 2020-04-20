@@ -65,7 +65,7 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   }
 }
 
-internal fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
+private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
   val through = coerceProof(pairType.subType, pairType.superType)!!.through
   val importList = containingKtFile.importList!!
   val importableFqName = through.importableFqName
