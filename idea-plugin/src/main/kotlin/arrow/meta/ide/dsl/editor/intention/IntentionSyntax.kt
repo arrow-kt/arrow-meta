@@ -81,7 +81,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     applyTo: KtPsiFactory.(element: K, editor: Editor) -> Unit = Noop.effect3,
     priority: PriorityAction.Priority = PriorityAction.Priority.LOW
   ): ExtensionPhase =
-    registerIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
+    addIntention(ktIntention(text, kClass, isApplicableTo, applyTo, priority))
 
   /**
    * Intentions can be enabled and disabled before at application start.
@@ -144,4 +144,3 @@ interface IntentionSyntax : IntentionUtilitySyntax {
         isApplicableForCodeFragment
     }
 }
-
