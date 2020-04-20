@@ -150,7 +150,8 @@ interface InternalRegistry : ConfigSyntax {
 
   fun registerMetaComponents(
     project: Project,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
+    context: CompilerContext? = null
   ) {
     println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
@@ -159,11 +160,14 @@ interface InternalRegistry : ConfigSyntax {
     ide {
       println("it's the IDEA plugin")
     }
-    val scope = ElementScope.default(project)
-    val messageCollector: MessageCollector? =
-      cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
-
-    val ctx = CompilerContext(project, messageCollector, scope)
+    val ctx: CompilerContext =
+      if (context != null) {
+        context
+      } else {
+        val messageCollector: MessageCollector? =
+          cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
+        CompilerContext(project, messageCollector)
+      }
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {

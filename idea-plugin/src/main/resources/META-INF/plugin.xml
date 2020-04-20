@@ -17,6 +17,7 @@
     <depends>com.intellij.gradle</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
+    <depends>Git4Idea</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
@@ -25,6 +26,8 @@
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"
                         serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.initial.CompilerContextService"
+                        serviceInterface="arrow.meta.phases.CompilerContext"/>
         <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingPassFactory"/>
     </extensions>
 
