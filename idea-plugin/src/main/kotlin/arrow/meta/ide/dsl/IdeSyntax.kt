@@ -7,7 +7,6 @@ import arrow.meta.ide.dsl.editor.color.ColorSettingsSyntax
 import arrow.meta.ide.dsl.editor.documentation.DocumentationSyntax
 import arrow.meta.ide.dsl.editor.folding.FoldingSyntax
 import arrow.meta.ide.dsl.editor.fileEditor.EditorSyntax
-import arrow.meta.ide.dsl.editor.folding.FoldingSyntax
 import arrow.meta.ide.dsl.editor.goto.GotoRelatedSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
