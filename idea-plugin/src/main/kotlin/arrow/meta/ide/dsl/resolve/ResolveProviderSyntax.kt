@@ -9,8 +9,6 @@ import com.intellij.psi.ResolveScopeProvider
 import com.intellij.psi.search.GlobalSearchScope
 
 /**
- * [GlobalSearchScope] search for {@code VirtualFile}s in global scope.
- * [ResolveProviderSyntax] provides APIs to create GlobalSearchScope.
  */
 interface ResolveProviderSyntax {
 
