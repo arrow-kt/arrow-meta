@@ -1,17 +1,5 @@
-diff --git a/build.gradle b/build.gradle
-index f08c4db..61ae352 100644
---- a/build.gradle
-+++ b/build.gradle
-@@ -41,6 +41,7 @@ allprojects {
-     mavenCentral()
-     jcenter()
-     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-+    maven { url 'https://jitpack.io' }
-   }
- }
- 
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
-index 83b8358..7ea6ded 100644
+index 83b83589..7ea6dedd 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
 @@ -1,7 +1,9 @@
@@ -31,7 +19,7 @@ index 83b8358..7ea6ded 100644
 +  override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {}
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
-index 908ac85..3ed2efb 100644
+index 908ac851..3ed2efb4 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
 @@ -1,7 +1,9 @@
@@ -51,7 +39,7 @@ index 908ac85..3ed2efb 100644
 +  override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {}
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
-index 8c4fde2..f52d034 100644
+index 8c4fde2a..f52d0342 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
 @@ -4,7 +4,7 @@ import arrow.meta.Meta
@@ -1291,7 +1279,7 @@ index 8c4fde2..f52d034 100644
 +  }
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
-index cc6655f..5d10395 100644
+index cc6655f3..5d103954 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 @@ -54,7 +54,6 @@ interface ResolveSyntax {
@@ -1311,10 +1299,10 @@ index cc6655f..5d10395 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 4b69200..845f2b7 100644
+index 202dc277..36f40e3f 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-@@ -24,8 +24,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
+@@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
  import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
  import org.jetbrains.kotlin.analyzer.AnalysisResult
  import org.jetbrains.kotlin.analyzer.ModuleInfo
@@ -1324,7 +1312,7 @@ index 4b69200..845f2b7 100644
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
  import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-@@ -63,7 +63,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
+@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.LookupTracker
@@ -1334,8 +1322,8 @@ index 4b69200..845f2b7 100644
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
 @@ -129,11 +129,9 @@ interface InternalRegistry : ConfigSyntax {
-     project: Project,
-     configuration: CompilerConfiguration
+     configuration: CompilerConfiguration,
+     context: CompilerContext? = null
    ) {
 -    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
      //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
@@ -1345,7 +1333,7 @@ index 4b69200..845f2b7 100644
      }
      ide {
        println("it's the IDEA plugin")
-@@ -188,12 +186,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -191,12 +189,6 @@ interface InternalRegistry : ConfigSyntax {
      }
    }
  
@@ -1358,15 +1346,7 @@ index 4b69200..845f2b7 100644
    fun installArrowPlugin() {
      val ideaPath = System.getProperty("idea.plugins.path")
      val userDir = System.getProperty("user.dir")
-@@ -226,6 +218,7 @@ interface InternalRegistry : ConfigSyntax {
-   }
- 
-   fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
-+    SyntheticScopeProviderExtension.registerExtensionPoint(project)
-     SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
-       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
-         phase.run {
-@@ -270,11 +263,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -273,11 +265,11 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -1382,7 +1362,7 @@ index 4b69200..845f2b7 100644
        }
      })
    }
-@@ -418,7 +411,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -421,7 +413,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -1390,7 +1370,7 @@ index 4b69200..845f2b7 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -427,7 +419,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -430,7 +421,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -1398,7 +1378,7 @@ index 4b69200..845f2b7 100644
                isImplicitModality
              )
            }
-@@ -596,4 +587,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -599,4 +589,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)
@@ -1406,7 +1386,7 @@ index 4b69200..845f2b7 100644
 \ No newline at end of file
 +}
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
-index 2867bd7..0b19295 100644
+index 2867bd7c..0b19295b 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
 @@ -2,9 +2,8 @@ package arrow.meta.phases.codegen.ir
@@ -1432,29 +1412,18 @@ index 2867bd7..0b19295 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-index d8c5529..574b714 100644
+index d8c5529d..ff51718f 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-@@ -1,9 +1,9 @@
- package arrow.meta.phases.codegen.ir
- 
- import arrow.meta.phases.CompilerContext
--import org.jetbrains.kotlin.backend.common.BackendContext
+@@ -4,6 +4,7 @@ import arrow.meta.phases.CompilerContext
+ import org.jetbrains.kotlin.backend.common.BackendContext
  import org.jetbrains.kotlin.descriptors.CallableDescriptor
  import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 +import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
  import org.jetbrains.kotlin.descriptors.ClassDescriptor
  import org.jetbrains.kotlin.descriptors.FunctionDescriptor
  import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
- import org.jetbrains.kotlin.ir.expressions.IrCall
- import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
- import org.jetbrains.kotlin.ir.expressions.IrExpression
--import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
- import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
-@@ -28,20 +27,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
+@@ -28,20 +29,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
  import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
  
  class IrUtils(
@@ -1482,7 +1451,7 @@ index d8c5529..574b714 100644
          ).apply {
            this.typeTranslator = this@translator
          }
-@@ -50,46 +49,43 @@ class IrUtils(
+@@ -50,46 +51,43 @@ class IrUtils(
    fun CallableDescriptor.irCall(): IrExpression =
      when (this) {
        is PropertyDescriptor -> {
@@ -1533,7 +1502,7 @@ index d8c5529..574b714 100644
          IrGetObjectValueImpl(
            startOffset = UNDEFINED_OFFSET,
            endOffset = UNDEFINED_OFFSET,
-@@ -103,14 +99,13 @@ class IrUtils(
+@@ -103,14 +101,13 @@ class IrUtils(
      }
  
    fun PropertyDescriptor.irGetterCall(): IrCall? {
@@ -1549,7 +1518,7 @@ index d8c5529..574b714 100644
          typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
          valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
        )
-@@ -118,14 +113,13 @@ class IrUtils(
+@@ -118,14 +115,13 @@ class IrUtils(
    }
  
    fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
@@ -1566,7 +1535,7 @@ index d8c5529..574b714 100644
          valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
          constructorTypeArgumentsCount = declaredTypeParameters.size
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
-index fcbbb97..7b2596e 100644
+index fcbbb97c..7b2596e4 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
 @@ -5,7 +5,6 @@ import arrow.meta.phases.ExtensionPhase
@@ -1586,27 +1555,10 @@ index fcbbb97..7b2596e 100644
    ): Modality?
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-index 7bfc9c4..2a25b9f 100644
+index 7bfc9c4c..40339370 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-@@ -21,16 +21,12 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
- import org.jetbrains.kotlin.ir.declarations.IrVariable
- import org.jetbrains.kotlin.ir.expressions.IrCall
- import org.jetbrains.kotlin.ir.expressions.IrExpression
--import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
- import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
- import org.jetbrains.kotlin.ir.expressions.IrReturn
- import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
- import org.jetbrains.kotlin.ir.expressions.getValueArgument
--import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
- import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
- import org.jetbrains.kotlin.ir.expressions.putValueArgument
--import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
--import org.jetbrains.kotlin.ir.types.IrType
- import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
- import org.jetbrains.kotlin.ir.types.toKotlinType
- import org.jetbrains.kotlin.ir.util.dump
-@@ -55,7 +51,7 @@ class ProofsIrCodegen(
+@@ -55,7 +55,7 @@ class ProofsIrCodegen(
        if (this is IrMemberAccessExpression) {
          fn.typeParameters.forEachIndexed { n, descriptor ->
            //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
@@ -1615,7 +1567,7 @@ index 7bfc9c4..2a25b9f 100644
          }
        }
      }
-@@ -157,7 +153,7 @@ class ProofsIrCodegen(
+@@ -157,7 +157,7 @@ class ProofsIrCodegen(
  
    private fun CompilerContext.proveCall(expression: IrCall): IrCall =
      Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
@@ -1624,7 +1576,7 @@ index 7bfc9c4..2a25b9f 100644
        val upperBound = givenTypeParamUpperBound.givenUpperBound
        if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
        else insertExtensionSyntaxCall(expression)
-@@ -168,8 +164,8 @@ class ProofsIrCodegen(
+@@ -168,8 +168,8 @@ class ProofsIrCodegen(
      val valueType = expression.dispatchReceiver?.type?.toKotlinType()
        ?: expression.extensionReceiver?.type?.toKotlinType()
      val targetType =
@@ -1636,35 +1588,27 @@ index 7bfc9c4..2a25b9f 100644
        expression.apply {
          val proofCall = extensionProofCall(valueType, targetType)
 diff --git a/gradle.properties b/gradle.properties
-index c96a5fc..a274322 100644
+index ca7c9de4..aee1bf32 100644
 --- a/gradle.properties
 +++ b/gradle.properties
-@@ -4,16 +4,16 @@ VERSION_NAME=1.3.61-SNAPSHOT
+@@ -3,9 +3,9 @@ GROUP=io.arrow-kt
+ VERSION_NAME=1.3.61-SNAPSHOT
  # Dependencies versions
- ARROW_VERSION=0.10.4-SNAPSHOT
- ANK_GRADLE_PLUGIN_VERSION=0.7.1
+ ARROW_VERSION=0.10.5
 -KOTLIN_VERSION=1.3.61
 -KOTLIN_IDEA_VERSION=1.3.61-release-IJ2019.3-1
 -INTELLIJ_IDEA_VERSION=2019.3.4
-+KOTLIN_VERSION=1.3.71
-+KOTLIN_IDEA_VERSION=1.3.71-release-IJ2020.1-1
++KOTLIN_VERSION=1.3.72
++KOTLIN_IDEA_VERSION=1.3.72-release-IJ2020.1-1
 +INTELLIJ_IDEA_VERSION=2020.1
  JVM_TARGET_VERSION=1.8
  KOTLIN_TEST_VERSION=3.4.2
  ASSERTJ_VERSION=3.13.2
- DOKKA_VERSION=0.10.0
- CLASS_GRAPH_VERSION=4.8.47
- JUNIT_VINTAGE_VERSION=5.4.0
--KOTLIN_COMPILE_TESTING=1.2.7
-+KOTLIN_COMPILE_TESTING=1.2.71
- SHADOW_JAR_VERSION=5.0.0
- BINTRAY_VERSION=1.8.4
- GRADLE_VERSION=5.6.4
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-index d767ad2..b56bee1 100644
+index 915cbe29..dd2f5e4f 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-@@ -323,10 +323,9 @@ interface ApplicationSyntax {
+@@ -324,10 +324,9 @@ interface ApplicationSyntax {
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
@@ -1677,7 +1621,7 @@ index d767ad2..b56bee1 100644
  
    /**
     * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
-@@ -334,7 +333,6 @@ interface ApplicationSyntax {
+@@ -335,7 +334,6 @@ interface ApplicationSyntax {
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
@@ -1685,7 +1629,7 @@ index d767ad2..b56bee1 100644
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1
    ): ProjectLifecycle =
-@@ -348,9 +346,6 @@ interface ApplicationSyntax {
+@@ -349,9 +347,6 @@ interface ApplicationSyntax {
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(this, project)
  
@@ -1695,7 +1639,7 @@ index d767ad2..b56bee1 100644
        override fun dispose(): Unit = dispose(this)
      }
  
-@@ -360,10 +355,9 @@ interface ApplicationSyntax {
+@@ -361,10 +356,9 @@ interface ApplicationSyntax {
    fun ApplicationSyntax.addProjectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
      initialize: (Project) -> Unit = Noop.effect1,
@@ -1707,7 +1651,7 @@ index d767ad2..b56bee1 100644
  
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-@@ -380,9 +374,6 @@ interface ApplicationSyntax {
+@@ -381,9 +375,6 @@ interface ApplicationSyntax {
  
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(project)
@@ -1718,10 +1662,14 @@ index d767ad2..b56bee1 100644
  
    /**
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
-index d88523d..42b0f60 100644
+index d88523d4..87af3f60 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
-@@ -8,6 +8,7 @@ import com.intellij.application.options.colors.FontEditorPreview
+@@ -4,10 +4,10 @@ import arrow.meta.ide.IdeMetaPlugin
+ import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
+ import arrow.meta.internal.Noop
+ import arrow.meta.phases.ExtensionPhase
+-import com.intellij.application.options.colors.FontEditorPreview
  import com.intellij.application.options.colors.InspectionColorSettingsPage
  import com.intellij.lang.Language
  import com.intellij.lang.annotation.Annotator
@@ -1729,117 +1677,84 @@ index d88523d..42b0f60 100644
  import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
  import com.intellij.openapi.editor.colors.TextAttributesKey
  import com.intellij.openapi.editor.ex.EditorEx
-@@ -218,7 +219,10 @@ interface ColorSettingsSyntax {
+@@ -218,7 +218,7 @@ interface ColorSettingsSyntax {
      additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
      attributesDescriptor: Array<AttributesDescriptor> =
        additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
 -    demoText: String = FontEditorPreview.getIDEDemoText(),
-+    demoText: String = ApplicationNamesInfo.getInstance().fullProductName +
-+      " is a full-featured IDE\nwith a high level of usability and outstanding\n" +
-+      "advanced code editing and refactoring support.\n\nabcdefghijklmnopqrstuvwxyz 0123456789 (){}[]\n" +
-+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^\n\n<!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@\n\n",
++    demoText: String = this.demoText,
      highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
      icon: Icon? = null,
      colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
-@@ -247,7 +251,10 @@ interface ColorSettingsSyntax {
+@@ -247,7 +247,7 @@ interface ColorSettingsSyntax {
      additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
      attributesDescriptor: Array<AttributesDescriptor> =
        additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
 -    demoText: String = FontEditorPreview.getIDEDemoText(),
-+    demoText: String = ApplicationNamesInfo.getInstance().fullProductName +
-+      " is a full-featured IDE\nwith a high level of usability and outstanding\n" +
-+      "advanced code editing and refactoring support.\n\nabcdefghijklmnopqrstuvwxyz 0123456789 (){}[]\n" +
-+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^\n\n<!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@\n\n",
++    demoText: String = this.demoText,
      highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
      icon: Icon? = null,
      colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
+@@ -284,4 +284,16 @@ interface ColorSettingsSyntax {
+    */
+   val TextAttributesKey.descriptor: AttributesDescriptor
+     get() = externalName toA this
++
++  val ColorSettingsSyntax.demoText: String
++    get() = """${ApplicationNamesInfo.getInstance().fullProductName} is a full-featured IDE
++            with a high level of usability and outstanding
++            advanced code editing and refactoring support.
++            
++            abcdefghijklmnopqrstuvwxyz 0123456789 (){}[]
++            ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^
++            
++            <!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@
++            
++            """
+ }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
-index 54f6273..aa5b879 100644
+index 54f62734..82a01887 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
-@@ -83,8 +83,6 @@ interface UsageSyntax {
-     processUsagesInText: (element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
+@@ -74,16 +74,16 @@ interface UsageSyntax {
+    */
+   fun UsageSyntax.findUsagesHandler(
+     element: PsiElement,
+-    processElementUsages: (element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions) -> Boolean = Noop.boolean3True,
++    processElementUsages: (element: PsiElement, processor: Processor<in UsageInfo>, options: FindUsagesOptions) -> Boolean = Noop.boolean3True,
+     findReferencesToHighlight: (target: PsiElement, searchScope: SearchScope) -> MutableCollection<PsiReference> =
+       { _, _ -> emptyList<PsiReference>().toMutableList() },
+     primaryElements: Array<PsiElement> = PsiElement.EMPTY_ARRAY,
+     secondaryElements: Array<PsiElement> = PsiElement.EMPTY_ARRAY,
+     findUsagesDialog: (isSingleFile: Boolean, toShowInNewTab: Boolean, mustOpenInNewTab: Boolean) -> AbstractFindUsagesDialog? = Noop.nullable3(),
+-    processUsagesInText: (element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
++    processUsagesInText: (element: PsiElement, processor: Processor<in UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
    ): FindUsagesHandler =
      object : FindUsagesHandler(element) {
 -      override fun processElementUsages(element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions): Boolean =
--        processElementUsages(element, processor, options)
++      override fun processElementUsages(element: PsiElement, processor: Processor<in UsageInfo>, options: FindUsagesOptions): Boolean =
+         processElementUsages(element, processor, options)
  
        override fun findReferencesToHighlight(target: PsiElement, searchScope: SearchScope): MutableCollection<PsiReference> =
-         findReferencesToHighlight(target, searchScope).let { if (it.isEmpty()) super.findReferencesToHighlight(target, searchScope) else it }
-@@ -99,10 +97,5 @@ interface UsageSyntax {
-         findUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab).run {
+@@ -100,7 +100,7 @@ interface UsageSyntax {
            this ?: super.getFindUsagesDialog(isSingleFile, toShowInNewTab, mustOpenInNewTab)
          }
--
+ 
 -      override fun processUsagesInText(element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope): Boolean =
--        processUsagesInText(element, processor, searchScope).run {
--          this ?: super.processUsagesInText(element, processor, searchScope)
--        }
-     }
- }
-diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
-index 1c00571..022116c 100644
---- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
-+++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/ui/toolwindow/ToolWindowSyntax.kt
-@@ -22,6 +22,7 @@ import javax.swing.Icon
- import javax.swing.JComponent
- import javax.swing.JPanel
- import javax.swing.event.HyperlinkEvent
-+import javax.swing.event.HyperlinkListener
- 
- /**
-  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
-@@ -151,7 +152,7 @@ interface ToolWindowSyntax {
-     type: MessageType,
-     html: String,
-     icon: Icon? = null,
--    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
-+    listener: HyperlinkListener? = null,
-     update: (AnActionEvent) -> Unit = Noop.effect1
-   ): ExtensionPhase =
-     addAnAction(actionId, toolWindowNotification(toolId, type, html, icon, listener, update))
-@@ -161,7 +162,7 @@ interface ToolWindowSyntax {
-     type: MessageType,
-     html: String,
-     icon: Icon? = null,
--    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
-+    listener: HyperlinkListener? = null,
-     update: (AnActionEvent) -> Unit = Noop.effect1
-   ): AnAction =
-     anAction(
-@@ -188,7 +189,7 @@ interface ToolWindowSyntax {
-     canCloseContent: Boolean = false,
-     anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
-     isLockable: Boolean = false,
--    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
-+    listener: HyperlinkListener? = null,
-     update: (AnActionEvent) -> Unit = Noop.effect1
-   ): ExtensionPhase =
-     addAnAction(actionId, toolWindowWithNotification(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
-@@ -202,7 +203,7 @@ interface ToolWindowSyntax {
-     canCloseContent: Boolean = false,
-     anchor: ToolWindowAnchor = ToolWindowAnchor.RIGHT,
-     isLockable: Boolean = false,
--    listener: (HyperlinkEvent) -> Unit = Noop.effect1,
-+    listener: HyperlinkListener? = null,
-     update: (AnActionEvent) -> Unit = Noop.effect1
-   ): AnAction =
-     anAction(
-@@ -223,7 +224,7 @@ interface ToolWindowSyntax {
-     html: String,
-     project: Project,
-     icon: Icon? = null,
--    listener: (HyperlinkEvent) -> Unit = Noop.effect1
-+    listener: HyperlinkListener? = null
-   ): ExtensionPhase =
-     ToolwindowProvider.Notification(toolId, type, html, icon, listener, project)
- 
++      override fun processUsagesInText(element: PsiElement, processor: Processor<in UsageInfo>, searchScope: GlobalSearchScope): Boolean =
+         processUsagesInText(element, processor, searchScope).run {
+           this ?: super.processUsagesInText(element, processor, searchScope)
+         }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-index 5db353a..3bc3697 100644
+index 2ea1b7f7..54ec92ef 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-@@ -42,7 +42,7 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+@@ -41,12 +41,15 @@ import com.intellij.openapi.extensions.Extensions
+ import com.intellij.openapi.fileEditor.FileEditorManagerListener
+ import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
  import com.intellij.openapi.project.Project
++import com.intellij.openapi.project.ProjectManager
++import com.intellij.openapi.project.ProjectManagerListener
  import com.intellij.openapi.project.impl.ProjectLifecycleListener
  import com.intellij.openapi.wm.ToolWindowManager
 -import com.intellij.serviceContainer.PlatformComponentManagerImpl
@@ -1847,18 +1762,48 @@ index 5db353a..3bc3697 100644
  import com.intellij.ui.content.ContentFactory
  import com.intellij.util.messages.Topic
  import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-@@ -113,8 +113,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
-         is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
-         is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
-         is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
--        is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
--        ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
-+        is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
-+        ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
-         is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
++import javax.swing.event.HyperlinkListener
+ 
+ internal interface IdeInternalRegistry : InternalRegistry {
+ 
+@@ -92,20 +95,20 @@ internal interface IdeInternalRegistry : InternalRegistry {
+       is ApplicationProvider.ProjectService<*> -> phase.run {
+         /**
+          * Investigate other registry options in:
+-         * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
++         * com/intellij/serviceContainer/ComponentManagerImpl.kt:163: createComponent
+          * com.intellij.openapi.project.impl.ProjectImpl.init
+          * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
+          */
+-        app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+-          override fun projectComponentsInitialized(project: Project): Unit =
++        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
++          override fun projectOpened(project: Project): Unit =
+             instance(project, project.getService(service))?.let {
+               project.registerService(service as Class<Any>, it)
+             } ?: Unit
+         })
        }
+       is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
+-        app.registerTopic(ProjectLifecycleListener.TOPIC, object : ProjectLifecycleListener {
+-          override fun projectComponentsInitialized(project: Project): Unit =
++        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
++          override fun projectOpened(project: Project): Unit =
+             project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
+         })
+       }
+@@ -113,8 +116,8 @@ internal interface IdeInternalRegistry : InternalRegistry {
+       is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
+       is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
+       is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
+-      is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
+-      ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
++      is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
++      ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
+       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
+       is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
      }
-@@ -126,12 +126,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
+@@ -126,12 +129,12 @@ internal interface IdeInternalRegistry : InternalRegistry {
        ?: LOG.error("Service:${fromService.simpleName} could not be OVERRIDDEN properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
  
    fun <T : Any> ComponentManager.registerService(service: Class<T>, instance: T): Unit =
@@ -1873,7 +1818,7 @@ index 5db353a..3bc3697 100644
        ?.replaceServiceInstance(service, instance, this)
        ?: LOG.error("Service:${service.simpleName} could not be REPLACED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
  
-@@ -146,7 +146,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
+@@ -146,7 +149,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
      ToolWindowManager.getInstance(project).let { manager ->
        manager.getToolWindow(id)?.activate(null)
          ?: manager.registerToolWindow(id, canCloseContent, anchor).let { window ->
@@ -1882,49 +1827,12 @@ index 5db353a..3bc3697 100644
            window.contentManager.addContent(ContentFactory.SERVICE.getInstance().createContent(content(project, window), "", isLockable))
          }
      }
-@@ -224,4 +224,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
-       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
-       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
-     }
--}
-\ No newline at end of file
-+}
-diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/phases/ui/ToolwindowProvider.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/phases/ui/ToolwindowProvider.kt
-index 9eeea6a..7063524 100644
---- a/idea-plugin/src/main/kotlin/arrow/meta/ide/phases/ui/ToolwindowProvider.kt
-+++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/phases/ui/ToolwindowProvider.kt
-@@ -7,7 +7,7 @@ import com.intellij.openapi.wm.ToolWindow
- import com.intellij.openapi.wm.ToolWindowAnchor
- import javax.swing.Icon
- import javax.swing.JComponent
--import javax.swing.event.HyperlinkEvent
-+import javax.swing.event.HyperlinkListener
+@@ -155,7 +158,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
+     ToolWindowManager.getInstance(project).unregisterToolWindow(id)
  
- sealed class ToolwindowProvider : ExtensionPhase {
-   data class RegisterToolWindow(
-@@ -27,7 +27,7 @@ sealed class ToolwindowProvider : ExtensionPhase {
-     val type: MessageType,
-     val html: String,
-     val icon: Icon?,
--    val listener: (HyperlinkEvent) -> Unit,
-+    val listener: HyperlinkListener?,
-     val project: Project
-   ) : ToolwindowProvider()
--}
-\ No newline at end of file
-+}
-diff --git a/testing-plugin/build.gradle b/testing-plugin/build.gradle
-index 1cbcaac..58c53fb 100755
---- a/testing-plugin/build.gradle
-+++ b/testing-plugin/build.gradle
-@@ -8,7 +8,9 @@ dependencies {
+   fun ToolwindowProvider.Notification.register(): Unit =
+-    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, listener)
++    ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, HyperlinkListener(listener))
  
-     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-     implementation "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:$KOTLIN_VERSION"
--    implementation("com.github.tschuchortdev:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-+    // TODO: remove jitpack.io from build.gradle when using this dependency
-+    //implementation("com.github.tschuchortdev:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-+    implementation("com.github.arrow-kt:kotlin-compile-testing:$KOTLIN_COMPILE_TESTING") {
-         exclude group: "io.github.classgraph", module: "classgraph"
-         exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-         exclude group: "org.jetbrains.kotlin", module: "kotlin-annotation-processing-embeddable"
+   fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
+     when (phase) {

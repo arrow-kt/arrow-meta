@@ -19,7 +19,7 @@ dependencies {
         exclude group: "io.arrow-kt", module: "arrow-core-data"
         exclude group: "io.arrow-kt", module: "arrow-core-extensions"
     }
-    testImplementation project(":testing-plugin")
+    testImplementation project(":meta-test")
     testRuntimeOnly project(':compiler-plugin')
 
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")

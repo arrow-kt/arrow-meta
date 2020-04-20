@@ -30,14 +30,14 @@ interface FoldingSyntax {
   ): ExtensionPhase =
     addFoldingBuilder(
       placeHolderText = { node: ASTNode ->
-        node.psi.safeAs<KtTypeReference>()?.let {
-          if (match(it)) {
-            hint(it)
+        node.psi.safeAs<KtTypeReference>()?.let { typeReference: KtTypeReference ->
+          if (match(typeReference)) {
+            hint(typeReference)
           } else ""
         }
       },
       foldRegions = { element: PsiElement, _: Document, _: Boolean ->
-        element.safeAs<KtElement>()?.typeReferences?.let { typeReferences ->
+        element.safeAs<KtElement>()?.typeReferences?.let { typeReferences: List<KtTypeReference> ->
           typeReferences
             .filter { match(it) }
             .map { FoldingDescriptor(it, it.textRange) }

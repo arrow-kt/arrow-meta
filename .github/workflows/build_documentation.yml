@@ -5,6 +5,9 @@ on: pull_request
 jobs:
   build_documentation:
 
+    env:
+      JAVA_OPTS: -Xms512m -Xmx1024m
+
     runs-on: ubuntu-latest
 
     steps:
@@ -14,10 +17,5 @@ jobs:
       with:
         java-version: 1.8
         architecture: x64
-    - name: Dokka and Ank
-      env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
-      run: |
-        set -ex
-        ./gradlew dokka
-        ./gradlew :docs:runAnk
+    - name: "Create API Doc and validate"
+      run: ./gradlew buildMetaDoc
