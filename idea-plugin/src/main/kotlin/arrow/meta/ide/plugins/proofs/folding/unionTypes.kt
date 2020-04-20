@@ -34,7 +34,11 @@ private fun KtTypeReference.foldString(): String =
     .replace(" ", "") // trim not working?
     .split("|")
     .distinct()
-    .joinToString(separator = " | ")
+    .joinToString(
+      separator = " | ",
+      limit = 5,
+      truncated = "..."
+    )
 
 
 private fun KtElement.foldTypeString(): String =
