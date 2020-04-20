@@ -20,34 +20,35 @@ interface ResolveProviderSyntax {
      * One minimal example from [KotlinScriptResolveScopeProvider], may look like this:
      * ```kotlin
      * import arrow.meta.ide.IdeMetaPlugin
-     * import arrow.meta.Plugin
+     * import arrow.meta.phases.ExtensionPhase
      * import com.intellij.openapi.project.Project
      * import com.intellij.openapi.vfs.VirtualFile
      * import com.intellij.psi.PsiManager
      * import com.intellij.psi.search.GlobalSearchScope
      * import org.jetbrains.kotlin.idea.KotlinFileType
      * import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
-     * import org.jetbrains.kotlin.idea.core.script.StandardIdeScriptDefinition
-     * import org.jetbrains.kotlin.psi.KtFile
      * import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
      * import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
      * import org.jetbrains.kotlin.scripting.resolve.KotlinScriptDefinitionFromAnnotatedTemplate
+     * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
      *
-     * IdeMetaPlugin().addResolveScopeProvider { file: VirtualFile, project: Project ->
-     *  if (file.fileType != KotlinFileType.INSTANCE) return@addResolveScopeProvider null
-     *
-     *  val ktFile = PsiManager.getInstance(project).findFile(file) as? KtFile ?: return@addResolveScopeProvider null
-     *  val scriptDefinition = ktFile.findScriptDefinition()
-     *  when {
-     *      scriptDefinition == null -> null
-     *      scriptDefinition.baseClassType.fromClass == Any::class -> null
-     *      scriptDefinition.asLegacyOrNull<StandardIdeScriptDefinition>() != null -> null
-     *      scriptDefinition is ScriptDefinition.FromConfigurations ||
-     *              scriptDefinition.asLegacyOrNull<KotlinScriptDefinitionFromAnnotatedTemplate>() != null -> {
-     *           GlobalSearchScope.fileScope(project, file)
-     *          .union(ScriptConfigurationManager.getInstance(project).getScriptDependenciesClassFilesScope(file))
-     *     }
-     *     else -> null
+     * val IdeMetaPlugin.scopeProvider: ExtensionPhase
+     *    get() = addResolveScopeProvider { file: VirtualFile, project: Project ->
+     *      file.takeIf {
+     *          it.fileType == KotlinFileType.INSTANCE &&
+     *                  PsiManager.getInstance(project)
+     *                          .findFile(it)
+     *                          ?.findScriptDefinition()
+     *                          ?.safeAs<ScriptDefinition.FromConfigurations>()
+     *                          ?.asLegacyOrNull<KotlinScriptDefinitionFromAnnotatedTemplate>() != null
+     *      }.let { file ->
+     *          GlobalSearchScope
+     *                  .fileScope(project, file)
+     *                  .union(
+     *                          ScriptConfigurationManager
+     *                                 .getInstance(project)
+     *                                 .getScriptDependenciesClassFilesScope(file)
+     *                  )
      *  }
      * }
      *
