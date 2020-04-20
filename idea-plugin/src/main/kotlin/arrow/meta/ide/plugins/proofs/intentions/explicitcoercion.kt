@@ -16,25 +16,27 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.ImportPath
 
-fun IdeMetaPlugin.explicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
-  compilerContext.run {
-    addApplicableInspection(
-      defaultFixText = "Make_coercion_explicit",
-      enabledByDefault = false,
-      kClass = KtElement::class.java,
-      isApplicable = { ktCall: KtElement ->
+fun IdeMetaPlugin.explicitCoercionIntention(): ExtensionPhase =
+  addApplicableInspection(
+    defaultFixText = "Make_coercion_explicit",
+    enabledByDefault = false,
+    kClass = KtElement::class.java,
+    isApplicable = { ktCall: KtElement ->
+      ktCall.ctx()?.let { compilerContext ->
         ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
-      },
-      applyTo = { ktCall: KtElement, _, _ ->
+      } ?: false
+    },
+    applyTo = { ktCall: KtElement, _, _ ->
+      ktCall.ctx()?.let { compilerContext ->
         ktCall.makeExplicit(compilerContext)
-      },
-      inspectionText = { "TODO explicit " },
-      inspectionHighlightType = { ProblemHighlightType.INFORMATION },
-      groupPath = ProofPath + arrayOf("Coercion")
-    )
-  }
+      }
+    },
+    inspectionText = { "TODO explicit " },
+    inspectionHighlightType = { ProblemHighlightType.INFORMATION },
+    groupPath = ProofPath + arrayOf("Coercion")
+  )
 
 private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   when (this) {

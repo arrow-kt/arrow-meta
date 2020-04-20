@@ -19,7 +19,9 @@ fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
     composite = KtProperty::class.java,
     transform = { psiElement ->
       psiElement.ctx()?.let { ctx ->
-        psiElement.safeAs<KtProperty>()?.takeIf { it.isCoerced(ctx) }
+        psiElement.safeAs<KtProperty>()?.takeIf {
+          it.isCoerced(ctx)
+        }
       }
     },
     message = { ktProperty: KtElement ->
@@ -32,8 +34,7 @@ fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
 private fun KtElement.anyParticipatingTypes(): List<PairTypes> =
   explicitParticipatingTypes() + implicitParticipatingTypes()
 
-private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean {
-  return anyParticipatingTypes().any { (subtype, supertype) ->
+private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean =
+  anyParticipatingTypes().any { (subtype, supertype) ->
     compilerContext.areTypesCoerced(subtype, supertype)
   }
-}

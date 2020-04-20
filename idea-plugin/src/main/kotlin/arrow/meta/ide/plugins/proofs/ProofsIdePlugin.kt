@@ -1,10 +1,12 @@
 package arrow.meta.ide.plugins.proofs
 
+import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
-import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
+import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -20,6 +22,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
@@ -41,8 +44,8 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
       coerceProofLineMarker(ArrowIcons.ICON4),
-//      explicitCoercionIntention(ctx),
-//      implicitCoercionIntention(ctx),
-      addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) }
+      explicitCoercionIntention(),
+      implicitCoercionIntention(),
+      suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
