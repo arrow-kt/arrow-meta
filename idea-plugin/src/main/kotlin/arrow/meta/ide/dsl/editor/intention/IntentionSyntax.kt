@@ -50,6 +50,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * import arrow.meta.ide.invoke
    * // import com.intellij.codeInsight.intention.PriorityAction
    * import org.jetbrains.kotlin.psi.KtNamedFunction
+   * import com.intellij.openapi.editor.Editor
    *
    * //sampleStart
    * val IdeMetaPlugin.example: IdePlugin
@@ -61,7 +62,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    *       f.name == "helloWorld"
    *     },
    *     kClass = KtNamedFunction::class.java,
-   *     applyTo = { f, editor ->
+   *     applyTo = { f: KtNamedFunction, editor: Editor ->
    *       f.setName("renamed")
    *     }
    *    )
@@ -143,5 +144,3 @@ interface IntentionSyntax : IntentionUtilitySyntax {
         isApplicableForCodeFragment
     }
 }
-
-
