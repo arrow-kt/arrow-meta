@@ -12,8 +12,8 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compile("org.sosy-lab:java-smt:3.3.0")
+    compile("org.sosy-lab:javasmt-solver-z3:.")
 }
-//compile("org.sosy-lab:javasmt-solver-z3:z3-4.4.1-1558-gf96cfea")
 
 
 compileKotlin {

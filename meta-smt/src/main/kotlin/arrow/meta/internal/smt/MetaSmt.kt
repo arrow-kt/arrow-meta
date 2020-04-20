@@ -69,6 +69,6 @@ fun <R> register(smt: MetaSmt<R>) {
 }
 
 fun main() {
-  println(ctx(SolverContextFactory.Solvers.PRINCESS).version)
-  //register(test)
+  //println(ctx(SolverContextFactory.Solvers.Z3).version)
+  register(test)
 }

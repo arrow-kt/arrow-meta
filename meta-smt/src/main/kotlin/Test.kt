@@ -4,6 +4,6 @@ import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.SolverContext
 
 val test =
-  MetaSmt("HelloWorld", SolverContextFactory.Solvers.PRINCESS) { ctx: SolverContext, manager: Managers ->
+  MetaSmt("HelloWorld", SolverContextFactory.Solvers.Z3) { ctx: SolverContext, manager: Managers ->
     println("Heello WOrld")
   }
