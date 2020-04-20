@@ -1,5 +1,6 @@
-package arrow.meta.internal.smt
+package arrow.meta.smt.internal
 
+import arrow.meta.smt.internal.dsl.SmtSyntax
 import org.sosy_lab.common.ShutdownManager
 import org.sosy_lab.common.configuration.Configuration
 import org.sosy_lab.common.log.BasicLogManager
@@ -20,7 +21,7 @@ import test
 data class MetaSmt<R>(
   val name: String,
   val solver: SolverContextFactory.Solvers,
-  val smt: (SolverContext, Managers) -> R
+  val smt: SmtSyntax.(SolverContext, Managers) -> R
 )
 
 fun FormulaManager.managers(): Managers =
@@ -62,10 +63,12 @@ fun <A> orNull(a: () -> A): A? =
     null
   }
 
+object Smt : SmtSyntax
+
 fun <R> register(smt: MetaSmt<R>) {
   println("Initialize SMT: ${smt.name}")
   val ctx: SolverContext = ctx(smt.solver)
-  smt.smt(ctx, ctx.formulaManager.managers())
+  smt.smt(Smt, ctx, ctx.formulaManager.managers())
 }
 
 fun main() {
