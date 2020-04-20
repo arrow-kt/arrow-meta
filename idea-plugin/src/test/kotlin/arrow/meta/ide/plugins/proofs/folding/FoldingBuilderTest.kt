@@ -21,7 +21,7 @@ class FoldingBuilderTest : IdeTestSetUp() {
           code = FoldingBuilderTestCode.unionCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             myFixture.addFileToProject("arrow/union/unions.kt", FoldingBuilderTestCode.unionPrelude)
-            collectFR(code, myFixture) { unionTypeMatches(it) }
+            collectFolding(code, myFixture) { unionTypeMatches(it) }
           },
           result = resolvesWhen("Unions foldingBuilder should return 3 folding regions") {
             it.size == 3
@@ -31,7 +31,7 @@ class FoldingBuilderTest : IdeTestSetUp() {
           code = FoldingBuilderTestCode.tupleCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             myFixture.addFileToProject("arrow/tuples/tuples.kt", FoldingBuilderTestCode.tuplePrelude)
-            collectFR(code, myFixture) { tupleTypeMatches(it) }
+            collectFolding(code, myFixture) { tupleTypeMatches(it) }
           },
           result = resolvesWhen("Tuples foldingBuilder should return 3 folding regions") {
             it.size == 3
