@@ -1,7 +1,7 @@
 package arrow.meta.plugins.helloWorld
 
+import arrow.meta.CliPlugin
 import arrow.meta.Meta
-import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.namedFunction
@@ -12,7 +12,7 @@ import arrow.meta.quotes.namedFunction
  * The Hello World plugin auto implements the `helloWorld` function by rewriting the Kotlin AST before the compiler proceeds.
  *
  * ```kotlin
- * val Meta.helloWorld: Plugin get() =
+ * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
  *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
@@ -56,8 +56,30 @@ import arrow.meta.quotes.namedFunction
  *     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
  *   }
  *   dependencies {
- *     classpath "io.arrow-kt:arrow-meta-gradle-plugin:<snapshot-version>"
- *     classpath "io.arrow-kt:arrow-meta-compiler-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
+ *   }
+ * }
+ *
+ * apply plugin: "io.arrow-kt.arrow"
+ * ```
+ *
+ * In case of debugging Arrow Meta Gradle Plugin, install local dependencies:
+ *
+ * ```
+ * $> ./gradlew publishMeta 
+ * ```
+ *
+ * and then:
+ *
+ * ```
+ * buildscript {
+ *   repositories {
+ *     mavenLocal()
+ *   }
+ *   dependencies {
+ *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+ *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
  *   }
  * }
  *
@@ -66,7 +88,7 @@ import arrow.meta.quotes.namedFunction
  *
  * Take a look at the [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
  */
-val Meta.helloWorld: Plugin
+val Meta.helloWorld: CliPlugin
   get() =
     "Hello World" {
       meta(

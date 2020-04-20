@@ -4,10 +4,16 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import com.intellij.codeInsight.folding.impl.actions.BaseFoldingHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.TimerListener
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.editor.Caret
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.actionSystem.EditorAction
+import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import javax.swing.Icon
 
 /**
@@ -30,13 +36,13 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * ```kotlin:ank:playground
    * // import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.invoke
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import com.intellij.openapi.project.Project
    * import com.intellij.openapi.actionSystem.AnActionEvent
    *
-   * val IdeMetaPlugin.exampleAction: Plugin
+   * val IdeMetaPlugin.exampleAction: IdePlugin
    * get() = "Example Action" {
    *   meta(
    *   //sampleStart
@@ -54,7 +60,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    *  }
    * ```
    *
-   * `MetaAction` is registered with the id `Unique` and opens a ToolWindow with a registered Id `MetaToolWindow`, assuming this ToolWindowId is registered.
+   * `MetaAction` is registered with the id `Unique` and opens a tool window with a registered Id `MetaToolWindow`, assuming this ToolWindowId is registered.
    * User's are able to search this Action with its title: `MetaAction`.
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations
@@ -266,4 +272,26 @@ interface AnActionSyntax : AnActionUtilitySyntax {
       override fun run(): Unit = run()
       override fun getModalityState(): ModalityState = modalityState
     }
+
+  fun AnActionSyntax.editorAction(
+    handler: EditorActionHandler
+  ): EditorAction =
+    object : EditorAction(handler) {}
+
+  fun AnActionSyntax.baseFoldingHandler(
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): BaseFoldingHandler =
+    object : BaseFoldingHandler() {
+      override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?): Unit =
+        execute(editor, caret, dataContext)
+    }
+
+  /**
+   * registers a [BaseFoldingHandler]
+   */
+  fun IdeMetaPlugin.addBaseFoldingHandler(
+    actionId: String,
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): ExtensionPhase =
+    addAnAction(actionId, editorAction(baseFoldingHandler(execute)))
 }

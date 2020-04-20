@@ -16,6 +16,9 @@ import com.intellij.lang.parameterInfo.UpdateParameterInfoContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
@@ -25,27 +28,24 @@ import org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler
 import org.jetbrains.kotlin.idea.parameterInfo.KotlinParameterInfoWithCallHandlerBase
 import org.jetbrains.kotlin.idea.parameterInfo.KotlinTypeArgumentInfoHandlerBase
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtTypeArgumentList
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.psi.KtTypeProjection
-import org.jetbrains.kotlin.psi.psiUtil.allChildren
-import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import kotlin.reflect.KClass
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.psi.KtDestructuringDeclarationEntry
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeArgumentList
+import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.psiUtil.allChildren
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import kotlin.reflect.KClass
 
 /**
  * Hint's are generally used with TypeInferenceAlgorithms.
@@ -62,9 +62,9 @@ interface HintingSyntax {
    * [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider] and targets [KtFunction]s, who are expressed as expressions.
    *
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.editor.ex.util.EditorUtil
    * import com.intellij.openapi.fileEditor.FileEditorManager
    * import com.intellij.openapi.fileEditor.TextEditor
@@ -81,7 +81,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.expressionHints: Plugin
+   * val IdeMetaPlugin.expressionHints: IdePlugin
    *  get() = "Hints for KtExpressions" {
    *   meta(
    *    addExpressionTypeProviderForKotlin(
@@ -224,10 +224,10 @@ interface HintingSyntax {
    * This extension is used for [DeclarationDescriptor]'s, the `Owner` is [KtTypeArgumentList] and the `ActualType` is [KtTypeProjection].
    * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.ClassDescriptor
    * import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
    * import org.jetbrains.kotlin.psi.KtTypeArgumentList
@@ -235,7 +235,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: Plugin
+   * val IdeMetaPlugin.parameterHints: IdePlugin
    *  get() =  "Hints for ClassDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(
@@ -275,16 +275,16 @@ interface HintingSyntax {
    * This is used for [FunctionDescriptor]'s, the `Owner` is [ArgumentList] and the `ActualType` is [Argument]. Naturally, `Type` is a [FunctionDescriptor].
    * The following example is for [KtLambdaArgument]s from [org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler]:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.lexer.KtTokens
    * import org.jetbrains.kotlin.psi.KtCallElement
    * import org.jetbrains.kotlin.psi.KtLambdaArgument
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: Plugin
+   * val IdeMetaPlugin.parameterHints: IdePlugin
    *  get() =  "Hints for FunctionDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(
@@ -405,7 +405,7 @@ interface HintingSyntax {
     )
 
   /**
-   * Used to modify a [DescriptorRenderer] for `TypeHinting`
+   * Used to modify a [DescriptorRenderer] for type Hinting
    */
   fun HintingSyntax.classifierNamePolicy(
     render: (classifier: ClassifierDescriptor, renderer: DescriptorRenderer) -> String =

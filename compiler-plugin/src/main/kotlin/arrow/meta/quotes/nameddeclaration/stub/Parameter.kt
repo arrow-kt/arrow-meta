@@ -20,12 +20,12 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * ### Parameter Formatting:
  *  ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.parameter
  *
- * val Meta.reformatParameter: Plugin
+ * val Meta.reformatParameter: CliPlugin
  *  get() =
  *   "ReformatParameter" {
  *    meta(
@@ -52,12 +52,12 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * By working with loop parameters:
  *  ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.parameter
  *
- * val Meta.assignEnvironmentRepositoryConstructorParameterADefaultValue: Plugin
+ * val Meta.assignEnvironmentRepositoryConstructorParameterADefaultValue: CliPlugin
  *  get() =
  *   "Make all environment constructor parameters open" {
  *    meta(
@@ -83,12 +83,12 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * By working with loop parameters:
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.parameter
  *
- * val Meta.renameLoopParameter: Plugin
+ * val Meta.renameLoopParameter: CliPlugin
  *  get() =
  *   "RenameLoopParameter" {
  *    meta(
@@ -114,12 +114,12 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * By working with destructuring parameters:
  *```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.parameter
  *
- * val Meta.renameDestructuringParameter: Plugin
+ * val Meta.renameDestructuringParameter: CliPlugin
  *  get() =
  *   "RenameDestructuringParameter" {
  *    meta(

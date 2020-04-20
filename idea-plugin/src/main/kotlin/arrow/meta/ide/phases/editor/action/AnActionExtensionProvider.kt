@@ -1,9 +1,9 @@
 package arrow.meta.ide.phases.editor.action
 
+import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.TimerListener
-import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 
 /**
  * @see [AnActionSyntax]

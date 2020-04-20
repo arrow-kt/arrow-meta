@@ -1,6 +1,6 @@
 package arrow.meta.internal.registry
 
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.dsl.config.ConfigSyntax
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
@@ -94,9 +94,7 @@ import java.util.*
 
 interface InternalRegistry : ConfigSyntax {
 
-  fun intercept(ctx: CompilerContext): List<Plugin>
-
-  fun CompilerContext.registerIdeExclusivePhase(currentPhase: ExtensionPhase) {}
+  fun intercept(ctx: CompilerContext): List<CliPlugin>
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
@@ -152,7 +150,8 @@ interface InternalRegistry : ConfigSyntax {
 
   fun registerMetaComponents(
     project: Project,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
+    context: CompilerContext? = null
   ) {
     println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
@@ -161,11 +160,14 @@ interface InternalRegistry : ConfigSyntax {
     ide {
       println("it's the IDEA plugin")
     }
-    val scope = ElementScope.default(project)
-    val messageCollector: MessageCollector? =
-      cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
-
-    val ctx = CompilerContext(project, messageCollector, scope)
+    val ctx: CompilerContext =
+      if (context != null) {
+        context
+      } else {
+        val messageCollector: MessageCollector? =
+          cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
+        CompilerContext(project, messageCollector)
+      }
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {
@@ -205,11 +207,10 @@ interface InternalRegistry : ConfigSyntax {
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
             //is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
-            else -> messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
+            else -> ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
           }
         }
         currentPhase.registerPhase()
-        ctx.registerIdeExclusivePhase(currentPhase)
       }
     }
   }

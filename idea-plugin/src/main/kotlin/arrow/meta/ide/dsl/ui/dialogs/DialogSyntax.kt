@@ -27,17 +27,17 @@ import javax.swing.Icon
 interface DialogSyntax {
   /**
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.idea.KotlinFileType
    *
-   * val IdeMetaPlugin.createf=FilePlugin: Plugin
+   * val IdeMetaPlugin.createFilePlugin: IdePlugin
    *  get() = "Create File Dialog" {
    *   meta(
    *     addFileAction("ExampleAction", "New File", "Creates a new File",
    *       buildDialog = { project, directory ->
-   *         setTitle("CostumeTitle")
+   *         setTitle("MyTitle")
    *         addKind("File", KotlinFileType.INSTANCE.icon, "Kotlin File")
    *       }
    *      )

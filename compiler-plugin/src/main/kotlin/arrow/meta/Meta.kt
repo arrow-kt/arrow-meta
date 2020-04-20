@@ -8,8 +8,13 @@ import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
+data class Plugin<A>(
+  val name: String,
+  val meta: A.() -> List<ExtensionPhase>
+)
+
 /**
- * An Arrow Meta [Plugin] is a named function that given a [CompilerContext] produces a [List] of [ExtensionPhase].
+ * An Arrow Meta [CliPlugin] is a named function that given a [CompilerContext] produces a [List] of [ExtensionPhase].
  *
  * The following plugin named `"Hello World"` returns a single `func` extension phase that produces a transformation
  * on the user tree.
@@ -18,7 +23,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  * "Hello ΛRROW Meta!" when invoked.
  *
  * ```kotlin
- * val Meta.helloWorld: Plugin get() =
+ * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
  *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
@@ -37,10 +42,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
  * While most use cases can be covered by the Quote DSL you can also subscribe to the low level compiler phases
  * such as Configuration, Analysis, Resolution and Code generation with the Arrow Meta Compiler DSL [arrow.meta.dsl].
  */
-data class Plugin(
-  val name: String,
-  val meta: CompilerContext.() -> List<ExtensionPhase>
-)
+typealias CliPlugin = Plugin<CompilerContext>
 
 /**
  * Enables syntactic sugar for plugin creation via:
@@ -50,17 +52,17 @@ data class Plugin(
  *   )
  * }
  */
-operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): Plugin =
+operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): CliPlugin =
   Plugin(this, phases)
 
 /**
  * [Meta] is the core entry point and impl of Arrow Meta in terms of its registration system and interface with the
  * Kotlin Compiler
  *
- * Plugin authors are encouraged to define [Plugin] extensions by making them part of the [Meta] receiver:
+ * Plugin authors are encouraged to define [CliPlugin] extensions by making them part of the [Meta] receiver:
  *
  * ```kotlin
- * val Meta.helloWorld: Plugin get() =
+ * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
  *       ...
@@ -74,18 +76,18 @@ operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): 
 interface Meta : ComponentRegistrar, MetaPluginSyntax, InternalRegistry {
 
   /**
-   * The [Meta] plugin supports N numbers of local and remote sub [Plugin]  that provide a [List] of [ExtensionPhase]
+   * The [Meta] plugin supports N numbers of local and remote sub [CliPlugin]  that provide a [List] of [ExtensionPhase]
    * subscriptions. [registerProjectComponents] [Meta] implementation calls [intercept] to deliver subscriptions to
    * the Kotlin Compiler in the right order.
    *
    * As the Kotlin Compiler progresses through its phases it will call the plugin [ExtensionPhase].
-   * Depending on the Compiler phase each of the phases of a plugin are called. The compiler invokes the [Plugin] in the
+   * Depending on the Compiler phase each of the phases of a plugin are called. The compiler invokes the [CliPlugin] in the
    * same ordered as they are returned in [intercept].
    *
    * Users may override [intercept] to add further plugins or programmatically remove some of the predefined ones in their
-   * custom [Plugin]
+   * custom [CliPlugin]
    */
-  override fun intercept(ctx: CompilerContext): List<Plugin>
+  override fun intercept(ctx: CompilerContext): List<CliPlugin>
 
   /**
    * CLI Compiler [ComponentRegistrar] entry point.

@@ -7,11 +7,13 @@ import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.ide.IconProvider
 import com.intellij.lang.Language
 import com.intellij.lang.LanguageExtension
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.BaseExtensionPointName
 import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -70,7 +72,7 @@ interface ExtensionProviderSyntax {
    * ```
    * More importantly, using [extensionProvider] and all its variations lifts any ide workflow for `Extension's` to `Meta` and is evident
    * to all derived instances like [LineMarkerSyntax], [InspectionSyntax], [SearchSyntax] and many more.
-   * Hence, if a costume workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
+   * Hence, if a costum workflow, doesn't exist in `Meta`, using the aforementioned technique does so. We're always open for PR's to extend `Meta`.
    * @param impl is the concrete implementation
    * @param loadingOrder has to be set as [LoadingOrder.FIRST], whenever we introduce visual changes
    * @see ExtensionProviderSyntax
@@ -145,10 +147,10 @@ interface ExtensionProviderSyntax {
    * ```
    * Registering [MetaProvider] in `Meta` may look like this:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.extensions.ExtensionPointName
    * import com.intellij.openapi.extensions.ExtensionPoint
    * import javax.swing.Icon
@@ -161,7 +163,7 @@ interface ExtensionProviderSyntax {
    *   }
    * }
    * //sampleStart
-   * val IdeMetaPlugin.registeringIdeExtensions: Plugin
+   * val IdeMetaPlugin.registeringIdeExtensions: IdePlugin
    *   get() = "Register ExtensionPoints" {
    *     meta(
    *        registerExtensionPoint(MetaProvider.EP_NAME, MetaProvider::class.java, ExtensionPoint.Kind.INTERFACE)
@@ -199,6 +201,17 @@ interface ExtensionProviderSyntax {
       DiagnosticSuppressor.EP_NAME,
       object : DiagnosticSuppressor {
         override fun isSuppressed(diagnostic: Diagnostic): Boolean = f(diagnostic)
+      }
+    )
+
+  fun IdeMetaPlugin.addDiagnosticSuppressorWithCtx(
+    f: CompilerContext.(diagnostic: Diagnostic) -> Boolean
+  ): ExtensionPhase =
+    extensionProvider(
+      DiagnosticSuppressor.EP_NAME,
+      object : DiagnosticSuppressor {
+        override fun isSuppressed(diagnostic: Diagnostic): Boolean =
+          f(diagnostic.psiElement.project.service(), diagnostic)
       }
     )
 }

@@ -1,7 +1,7 @@
 package arrow.meta.quotes.transform.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -10,10 +10,10 @@ import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
-val Meta.transformMany: List<Plugin>
+val Meta.transformMany: List<CliPlugin>
   get() = listOf(transformManySimpleCase, transformManyCustomCase, transformManyReplace, transformManyRemove)
 
-private val Meta.transformManyRemove: Plugin
+private val Meta.transformManyRemove: CliPlugin
   get() = "Transform Many" {
     meta(
       classDeclaration({ name == "ManyRemove" }) { c ->
@@ -22,7 +22,7 @@ private val Meta.transformManyRemove: Plugin
     )
   }
 
-private val Meta.transformManyReplace: Plugin
+private val Meta.transformManyReplace: CliPlugin
   get() = "Transform Many" {
     meta(
       classDeclaration({ name == "ManyReplace" }) { c ->
@@ -31,7 +31,7 @@ private val Meta.transformManyReplace: Plugin
     )
   }
 
-private val Meta.transformManyCustomCase: Plugin
+private val Meta.transformManyCustomCase: CliPlugin
   get() = "Transform Many" {
     meta(
       classDeclaration({ name == "ManyCustomCase" }) { c ->
@@ -40,7 +40,7 @@ private val Meta.transformManyCustomCase: Plugin
     )
   }
 
-private val Meta.transformManySimpleCase: Plugin
+private val Meta.transformManySimpleCase: CliPlugin
   get() = "Transform Many" {
     meta(
       classDeclaration({ name == "ManySimpleCase" }) { c ->

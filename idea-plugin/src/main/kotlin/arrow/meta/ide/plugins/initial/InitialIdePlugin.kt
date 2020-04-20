@@ -1,15 +1,18 @@
 package arrow.meta.ide.plugins.initial
 
-import arrow.meta.Plugin
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.IdePlugin
+import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
-import arrow.meta.invoke
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import arrow.meta.plugins.typeclasses.suppressUnusedParameter
 import arrow.meta.plugins.union.suppressTypeMismatchOnNullableReceivers
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -17,9 +20,10 @@ import org.jetbrains.kotlin.idea.core.extension.KotlinIndicesHelperExtension
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.initialIdeSetUp: Plugin
+val IdeMetaPlugin.initialIdeSetUp: IdePlugin
   get() = "Initial Ide Setup" {
     meta(
+      metaPluginRegistrar,
       addDiagnosticSuppressor { diagnostic ->
         LOG.debug("isSupressed: ${diagnostic.factory.name}: \n ${diagnostic.psiElement.text}")
         val result = diagnostic.suppressMetaDiagnostics()
@@ -30,6 +34,24 @@ val IdeMetaPlugin.initialIdeSetUp: Plugin
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
     )
   }
+
+/**
+ * This extension registers a MetaPlugin for a given project.
+ */
+private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
+  get() = addProjectLifecycle(
+    initialize = { project ->
+      val LOG = Logger.getInstance("#arrow.metaProjectRegistrarForProject:${project.name}")
+      LOG.info("beforeProjectLoaded:${project.name}")
+      val start = System.currentTimeMillis()
+      val configuration = CompilerConfiguration()
+      registerMetaComponents(project, configuration, project.ctx())
+      LOG.info("beforeProjectLoaded:${project.name} took ${System.currentTimeMillis() - start}ms")
+    },
+    dispose = {
+      // TODO: make sure that all registered extensions are disposed
+    }
+  )
 
 private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||

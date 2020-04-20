@@ -34,7 +34,7 @@ jobs:
         ./gradlew clean
         ./gradlew :compiler-plugin:build
         ./gradlew :idea-plugin:build
-        ./gradlew :testing-plugin:build
+        ./gradlew :meta-test:build
         # 'build' task is not executed for :gradle-plugin because
         # it depends on the publication of compiler-plugin 
         # and it could fail when changing version
@@ -76,7 +76,7 @@ jobs:
       run: |
         VERSION_NAME=$(grep VERSION_NAME gradle.properties | cut -d= -f2)
         VERSION_NUMBER=$(echo $VERSION_NAME | cut -d- -f1)
-        curl -o maven-metadata.xml https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/arrow-meta-idea-plugin/$VERSION_NAME/maven-metadata.xml
+        curl -o maven-metadata.xml https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/idea-plugin/$VERSION_NAME/maven-metadata.xml
         TIMESTAMP=$(grep timestamp maven-metadata.xml | cut -d'>' -f2 | cut -d'<' -f1)
         BUILD_NUMBER=$(grep buildNumber maven-metadata.xml | cut -d'>' -f2 | cut -d'<' -f1)
         sed -i "s/%MAIN_VERSION%/$VERSION_NAME/g" .github/workflows/templates/updatePlugins.xml

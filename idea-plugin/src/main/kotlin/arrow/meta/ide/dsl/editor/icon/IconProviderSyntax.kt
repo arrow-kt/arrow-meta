@@ -2,7 +2,7 @@ package arrow.meta.ide.dsl.editor.icon
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
-import arrow.meta.ide.dsl.utils.IdeUtils
+import arrow.meta.ide.dsl.utils.isNotNull
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.IconProvider
@@ -26,16 +26,16 @@ interface IconProviderSyntax {
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
    * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
+   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
    *  get() = "File- and StructureViewIcons" {
    *   meta(
    *    // addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
@@ -67,15 +67,15 @@ interface IconProviderSyntax {
    * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
    * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * // import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: Plugin
+   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
    *  get() = "File- and StructureViewIcons" {
    *   meta(
    *    addIcons(
@@ -95,7 +95,7 @@ interface IconProviderSyntax {
   fun <A : PsiElement> IdeMetaPlugin.addIcons(vararg values: TransformIcon<A>): ExtensionPhase =
     extensionProvider(
       IconProvider.EXTENSION_POINT_NAME,
-      iconProvider { p0, p1 -> values.toList().firstOrNull { IdeUtils.isNotNull(it.second(p0, p1)) }?.run { first } },
+      iconProvider { p0, p1 -> values.toList().firstOrNull { isNotNull(it.second(p0, p1)) }?.run { first } },
       LoadingOrder.FIRST
     )
 

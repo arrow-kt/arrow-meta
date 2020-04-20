@@ -29,14 +29,14 @@ import javax.swing.event.HyperlinkEvent
 interface PopupSyntax {
   /**
    * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.dsl.ui.popups.IdeListPopupItem
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.PlatformDataKeys
    *
-   * val IdeMetaPlugin.showListPlugin: Plugin
+   * val IdeMetaPlugin.showListPlugin: IdePlugin
    *  get() = "Action to create ListPopUp" {
    *    meta(
    *      addAnAction(
