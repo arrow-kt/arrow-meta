@@ -20,6 +20,7 @@ import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.ide.dsl.editor.usage.UsageSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
+import arrow.meta.ide.dsl.resolve.ResolveScopeSyntax
 import arrow.meta.ide.dsl.resolve.ResolveProviderSyntax
 import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
 import arrow.meta.ide.dsl.ui.notification.NotificationSyntax
@@ -31,4 +32,4 @@ interface IdeSyntax : IconProviderSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinExtensionSyntax, DialogSyntax, PopupSyntax,
   NotificationSyntax, ToolWindowSyntax, GotoRelatedSyntax, AnnotatorSyntax, ParserSyntax, ApplicationSyntax,
-  ResolveProviderSyntax
+  ResolveScopeSyntax, ResolveProviderSyntax
