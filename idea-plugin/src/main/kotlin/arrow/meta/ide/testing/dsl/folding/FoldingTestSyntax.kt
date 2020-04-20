@@ -32,7 +32,6 @@ interface FoldingTestSyntax {
 
   /**
    * collects all [FoldingDescriptor] from a List of PsiElements.
-   * @receiver is a KtFile, which is deconstructed into a List.
    */
   fun List<PsiElement>.collectFolding(
     document: Document,
