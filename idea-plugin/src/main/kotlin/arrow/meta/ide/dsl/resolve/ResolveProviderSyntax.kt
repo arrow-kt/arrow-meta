@@ -16,7 +16,8 @@ interface ResolveProviderSyntax {
 
 
     /**
-     * registers an [GlobalSearchScope].
+     * registers an ResolveScopeProvider.
+     * [GlobalSearchScope] defines a Scope based on [VirtualFile]s or Modules.
      * One minimal example from [KotlinScriptResolveScopeProvider], may look like this:
      * ```kotlin
      * import arrow.meta.ide.IdeMetaPlugin
