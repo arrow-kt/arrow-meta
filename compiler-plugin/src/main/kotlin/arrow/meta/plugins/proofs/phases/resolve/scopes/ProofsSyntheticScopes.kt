@@ -61,11 +61,6 @@ fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinTyp
           }
           result
         }.filterIsInstance<SimpleFunctionDescriptor>()
-//        it.newCopyBuilder()
-//          .setDropOriginalInContainingParts()
-//          .setOriginal(it)
-//          .setDispatchReceiverParameter(dispatchReceiver)
-//          .build()
       }
   }
 
