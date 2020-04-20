@@ -1,12 +1,9 @@
-import org.sosy_lab.common.ShutdownNotifier
-import org.sosy_lab.common.configuration.Configuration
-import org.sosy_lab.common.log.LogManager
+import arrow.meta.internal.smt.Managers
+import arrow.meta.internal.smt.MetaSmt
 import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.SolverContext
 
-fun Helloworld(): SolverContext =
-  SolverContextFactory.createSolverContext(Configuration.defaultConfiguration(), LogManager.createNullLogManager(), ShutdownNotifier.createDummy())
-
-fun main() {
-  println(Helloworld().solverName)
-}
+val test =
+  MetaSmt("HelloWorld", SolverContextFactory.Solvers.PRINCESS) { ctx: SolverContext, manager: Managers ->
+    println("Heello WOrld")
+  }
