@@ -1,6 +1,5 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
-import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
@@ -22,8 +21,10 @@ data class PairTypes(val subType: KotlinType, val superType: KotlinType) {
 }
 
 fun KtElement.implicitParticipatingTypes(): List<PairTypes> =
-  traverseFilter(KtDotQualifiedExpression::class.java) {
-    it.receiverExpression.resolveType() pairOrNull it.selectorExpression?.resolveType()
+  when (this) {
+    is KtDotQualifiedExpression ->
+      listOfNotNull(receiverExpression.resolveType() pairOrNull selectorExpression?.resolveType())
+    else -> emptyList()
   }
 
 fun KtElement.explicitParticipatingTypes(): List<PairTypes> =
