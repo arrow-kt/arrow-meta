@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -78,20 +79,6 @@ fun typeConstructorEq(): Eq<KotlinType> =
   }
 
 /**
- * resolves FunctionTypes to it's returnType
- */
-val resolveFunctionType: (KotlinType) -> KotlinType
-  get() = { if (it.isBuiltinFunctionalType) it.getReturnTypeFromFunctionType() else it }
-
-/**
- * defines Equality on types, where FunctionTypes are reduced to their return type
- */
-fun resolveFunctionTypeEq(): Eq<KotlinType> =
-  Eq { t1, t2 ->
-    resolveFunctionType(t1) == resolveFunctionType(t2)
-  }
-
-/**
  * Given [eq] this function returns [KotlinType]s that [intersect] with the returnType from the list in [types].
  * One concrete example for equality on [TypeConstructor] may look like this:
  * ```kotlin:ank
@@ -146,3 +133,20 @@ fun <D : DeclarationDescriptor> D.intersect(
     set.retainAll { t1 -> builtIns.other().any { t2 -> t1.eqv(t2) } }
     set.toList()
   }
+
+/**
+ * resolves FunctionType to it's returnType
+ */
+val resolveFunctionType: (KotlinType) -> KotlinType
+  get() = { if (it.isBuiltinFunctionalType) it.getReturnTypeFromFunctionType() else it }
+
+/**
+ * naive type equality where function types are reduced to their return type
+ */
+val returnTypeEq: Eq<KotlinType>
+get() = Eq { a, b ->
+  resolveFunctionType(a) == resolveFunctionType(b)
+}
+
+fun KtAnnotated.isAnnotatedWith(regex: Regex) =
+  annotationEntries.any { it.text.matches(regex) }
