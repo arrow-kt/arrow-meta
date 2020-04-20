@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.ImportPath
 
-fun IdeMetaPlugin.explicitCoercionIntention(): ExtensionPhase =
-  addApplicableInspection(
+val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
+  get() = addApplicableInspection(
     defaultFixText = "Make_coercion_explicit",
     enabledByDefault = false,
     kClass = KtElement::class.java,
@@ -65,7 +65,7 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   }
 }
 
-private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
+internal fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
   val through = coerceProof(pairType.subType, pairType.superType)!!.through
   val importList = containingKtFile.importList!!
   val importableFqName = through.importableFqName

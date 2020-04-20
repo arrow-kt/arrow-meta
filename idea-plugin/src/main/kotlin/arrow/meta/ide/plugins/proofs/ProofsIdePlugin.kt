@@ -36,6 +36,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementLineMarkers(),
 //      refinementAnnotator(),
       proofsKotlinCache,
+      explicitCoercionIntention,
+      implicitCoercionIntention,
       codeFolding
     )
   }
@@ -44,8 +46,6 @@ val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
       coerceProofLineMarker(ArrowIcons.ICON4),
-      explicitCoercionIntention(),
-      implicitCoercionIntention(),
       suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
