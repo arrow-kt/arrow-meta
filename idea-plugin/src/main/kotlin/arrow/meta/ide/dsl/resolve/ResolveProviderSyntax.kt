@@ -53,7 +53,6 @@ interface ResolveProviderSyntax {
      * }
      *
      *
-     * @param getResolveScope defines where the [VirtualFile] is in the [Project] return the [GlobalSearchScope] if there is one.
      */
     fun IdeMetaPlugin.addResolveScopeProvider(
         getResolveScope: (file: VirtualFile, project: Project) -> GlobalSearchScope?
