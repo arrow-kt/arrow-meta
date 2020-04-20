@@ -28,7 +28,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * registers [intention]
    */
-  fun IdeMetaPlugin.registerIntention(
+  fun IdeMetaPlugin.addIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.RegisterIntention(intention)
@@ -144,5 +144,4 @@ interface IntentionSyntax : IntentionUtilitySyntax {
         isApplicableForCodeFragment
     }
 }
-
 
