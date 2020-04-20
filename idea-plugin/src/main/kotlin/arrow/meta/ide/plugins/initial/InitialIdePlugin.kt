@@ -45,7 +45,7 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
       LOG.info("beforeProjectLoaded:${project.name}")
       val start = System.currentTimeMillis()
       val configuration = CompilerConfiguration()
-      registerMetaComponents(project, configuration)
+      registerMetaComponents(project, configuration, project.ctx())
       LOG.info("beforeProjectLoaded:${project.name} took ${System.currentTimeMillis() - start}ms")
     },
     dispose = {

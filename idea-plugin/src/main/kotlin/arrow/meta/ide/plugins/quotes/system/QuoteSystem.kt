@@ -65,7 +65,7 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
         // this replaces the entries of resultFiles with transformed files, if transformations apply.
         // a file may be transformed multiple times
         // fixme add checkCancelled to updateFiles? The API should be available
-        CompilerContext(project, messages).updateFiles(resultFiles, mutations, ext.match)
+        project.getService(CompilerContext::class.java)?.updateFiles(resultFiles, mutations, ext.match)
       } finally {
         val updateDuration = System.currentTimeMillis() - start
         LOG.warn("update of ${resultFiles.size} files with ${mutations.size} mutations: duration $updateDuration ms")
