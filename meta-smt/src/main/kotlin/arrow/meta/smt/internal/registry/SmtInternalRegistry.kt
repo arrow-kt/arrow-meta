@@ -38,11 +38,12 @@ inline fun <reified F : SmtContext, A> register(smt: MetaSmt<F, A>): A {
     SolverContextFactory.Solvers.CVC4 -> default(ctx)
   }
 
-  return smt.smt()
+  //return smt.smt()
+  TODO()
 }
 
 
 fun main() {
-  //println(ctx(SolverContextFactory.Solvers.Z3).version)
-  register(test)
+  println(ctx(SolverContextFactory.Solvers.Z3).version)
+  //register(test)
 }
