@@ -16,9 +16,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
@@ -53,19 +51,16 @@ fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinTyp
           val resultingFunction =
             it.substitute(substitutor).safeAs<SimpleFunctionDescriptor>()
               ?.createCustomCopy {
+                setPreserveSourceElement()
                 setDispatchReceiverParameter(dispatchReceiver).setDropOriginalInContainingParts()
                   .setOriginal(it)
               }
           val result = resultingFunction?.createCustomCopy {
+            setPreserveSourceElement()
             setDispatchReceiverParameter(ReceiverParameterDescriptorImpl(resultingFunction, ProofReceiverValue(receiverType), Annotations.EMPTY))
           }
           result
         }.filterIsInstance<SimpleFunctionDescriptor>()
-//        it.newCopyBuilder()
-//          .setDropOriginalInContainingParts()
-//          .setOriginal(it)
-//          .setDispatchReceiverParameter(dispatchReceiver)
-//          .build()
       }
   }
 
