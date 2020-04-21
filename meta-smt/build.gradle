@@ -1,7 +1,7 @@
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    compile("org.sosy-lab:java-smt:$JAVA_SMT")
-    compile("org.sosy-lab:javasmt-solver-z3:$JAVASMT_SOLVER_Z3")
+    compile "org.sosy-lab:java-smt:$JAVA_SMT"
+    compile "org.sosy-lab:javasmt-solver-z3:$JAVASMT_SOLVER_Z3"
 }
 
 
