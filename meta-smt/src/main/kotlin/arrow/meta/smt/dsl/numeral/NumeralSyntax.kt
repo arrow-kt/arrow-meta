@@ -12,5 +12,5 @@ interface NumeralSyntax<A : NumeralFormula, B : NumeralFormula> {
 
   infix fun A.eq(other: A): BooleanFormula = numeral.equal(this, other)
 
-  infix fun A.plus(other: A): B =  numeral.add(this, other)
+  infix fun A.plus(other: A): B = numeral.add(this, other)
 }

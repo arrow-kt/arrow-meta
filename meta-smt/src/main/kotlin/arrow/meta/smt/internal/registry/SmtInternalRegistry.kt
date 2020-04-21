@@ -1,9 +1,12 @@
 package arrow.meta.smt.internal.registry
 
-import arrow.meta.smt.MetaSmt
-import arrow.meta.smt.dsl.context.SmtContext
-import arrow.meta.smt.dsl.context.default
-import arrow.meta.smt.dsl.solverscope.princess.princess
+import arrow.meta.smt.dsl.solver.SolverAlgebra
+import arrow.meta.smt.dsl.solver.boolector.BoolectorScope
+import arrow.meta.smt.dsl.solver.cvc4.Cvc4Scope
+import arrow.meta.smt.dsl.solver.mathsat5.Mathsat5Scope
+import arrow.meta.smt.dsl.solver.princess.PrincessScope
+import arrow.meta.smt.dsl.solver.smtinterpol.SmtInterpolScope
+import arrow.meta.smt.dsl.solver.z3.Z3Scope
 import org.sosy_lab.common.ShutdownManager
 import org.sosy_lab.common.ShutdownNotifier
 import org.sosy_lab.common.configuration.Configuration
@@ -11,38 +14,58 @@ import org.sosy_lab.common.log.BasicLogManager
 import org.sosy_lab.common.log.LogManager
 import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.SolverContext
-import test
 
-fun ctx(
-  solver: SolverContextFactory.Solvers,
-  conf: Configuration = Configuration.defaultConfiguration(),
-  log: LogManager = BasicLogManager.create(conf),
-  notifier: ShutdownNotifier = ShutdownManager.create().notifier
-): SolverContext =
-  SolverContextFactory.createSolverContext(conf, log, notifier, solver)
+interface SmtInternalRegistry {
+  val conf: Configuration
+    get() = Configuration.defaultConfiguration()
 
-inline fun <reified F : SmtContext, A> register(smt: MetaSmt<F, A>): A {
-  println("Initialize SMT: ${smt.name}")
-  val conf = Configuration.defaultConfiguration()
-  val log = BasicLogManager.create(conf)
-  val notify = ShutdownManager.create().notifier
-  val ctx: SolverContext = ctx(smt.solver, conf, log, notify)
+  val log: LogManager
+    get() = BasicLogManager.create(conf)
 
-  val a = when (smt.solver) {
-    SolverContextFactory.Solvers.MATHSAT5 -> default(ctx)
-    SolverContextFactory.Solvers.SMTINTERPOL -> default(ctx)
-    SolverContextFactory.Solvers.Z3 -> default(ctx)
-    SolverContextFactory.Solvers.PRINCESS ->
-      princess(ctx.formulaManager, ctx)
-    SolverContextFactory.Solvers.BOOLECTOR -> default(ctx)
-    SolverContextFactory.Solvers.CVC4 -> default(ctx)
+  val notifier: ShutdownNotifier
+    get() = ShutdownManager.create().notifier
+
+  /**
+   * Entry point for Smt Solvers
+   */
+  fun resolve(conf: Configuration, log: LogManager, notifier: ShutdownNotifier): SolverAlgebra
+
+  fun registerSolver() {
+    fun SolverAlgebra.register(): Any? =
+      when (this) {
+        is SolverAlgebra.Princess<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(PrincessScope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+        is SolverAlgebra.Z3<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(Z3Scope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+        is SolverAlgebra.Cvc4<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(Cvc4Scope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+        is SolverAlgebra.Mathsat5<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(Mathsat5Scope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+        is SolverAlgebra.SmtInterpol<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(SmtInterpolScope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+        is SolverAlgebra.Boolector<*> -> {
+          println("Initialize SMT Solver: $name")
+          smt(BoolectorScope.scope(ctx(SolverContextFactory.Solvers.PRINCESS, conf, log, notifier)))
+        }
+      }
+    resolve(conf, log, notifier).register()
   }
 
-  return smt.smt()
-}
-
-
-fun main() {
-  //println(ctx(SolverContextFactory.Solvers.Z3).version)
-  register(test)
+  fun ctx(
+    solver: SolverContextFactory.Solvers,
+    conf: Configuration,
+    log: LogManager,
+    notifier: ShutdownNotifier
+  ): SolverContext =
+    SolverContextFactory.createSolverContext(conf, log, notifier, solver)
 }
