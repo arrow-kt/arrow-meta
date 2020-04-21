@@ -2,25 +2,6 @@ apply plugin: 'kotlin'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-buildscript {
-    def repo = "https://www.sosy-lab.org/ivy"
-
-    repositories {
-        mavenCentral()
-        maven {
-            url " http://logicrunch.it.uu.se:4096/~wv/maven/"
-        }
-        ivy {
-            url "http://www.sosy-lab.org/ivy/"
-            layout "ivy"
-            patternLayout{
-                ivy "${repo}/[organisation]/[module]/ivy-[revision].xml"
-                artifact "${repo}/[organisation]/[module]/[artifact]-[revision](-[classifier]).[ext]"
-            }
-        }
-    }
-}
-
 dependencies {
     // WARNING: don't change the configuration name because it's used by shadowJar
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
@@ -97,6 +78,18 @@ test {
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+}
+
+repositories {
+    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/java-smt" }
+    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/javasmt-solver-z3" }
+    maven {
+        url "http://logicrunch.research.it.uu.se/maven/"
+        credentials{
+            username "anonymous"
+            password "anonymous"
+        }
+    }
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
