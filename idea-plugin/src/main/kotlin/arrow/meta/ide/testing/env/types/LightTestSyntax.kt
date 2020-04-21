@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 /**
  * [LightTestSyntax] utilises common patterns in test environments for headless ide instances.
  */
+//TODO: add algebra for com.intellij.openapi.actionSystem.IdeActions
 object LightTestSyntax {
   /**
    * traverses the Source code and deconstructs the KtFile into a List, based on [traversal], which has several forms, such as
