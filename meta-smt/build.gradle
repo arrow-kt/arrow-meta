@@ -1,16 +1,3 @@
-repositories {
-    mavenCentral()
-    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/java-smt" }
-    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/javasmt-solver-z3" }
-    maven {
-        url "http://logicrunch.research.it.uu.se/maven/"
-        credentials{
-            username "anonymous"
-            password "anonymous"
-        }
-    }
-}
-
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compile("org.sosy-lab:java-smt:$JAVA_SMT")

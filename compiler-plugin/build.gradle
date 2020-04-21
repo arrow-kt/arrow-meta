@@ -80,17 +80,5 @@ test {
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
 
-repositories {
-    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/java-smt" }
-    maven { url "https://mvnrepository.com/artifact/org.sosy-lab/javasmt-solver-z3" }
-    maven {
-        url "http://logicrunch.research.it.uu.se/maven/"
-        credentials{
-            username "anonymous"
-            password "anonymous"
-        }
-    }
-}
-
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
 apply from: rootProject.file('gradle/upload-shadow.gradle')
