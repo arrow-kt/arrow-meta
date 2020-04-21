@@ -9,4 +9,10 @@ interface QuantifySyntax {
 
   fun forAll(vararg elements: Formula, term: () -> BooleanFormula): BooleanFormula =
     quantify.forall(elements.toMutableList(), term())
+
+  fun exists(vararg elements: Formula, term: () -> BooleanFormula): BooleanFormula =
+    quantify.exists(elements.toMutableList(), term())
+
+  fun elimQuantifiers(term: () -> BooleanFormula): BooleanFormula =
+    quantify.eliminateQuantifiers(term())
 }
