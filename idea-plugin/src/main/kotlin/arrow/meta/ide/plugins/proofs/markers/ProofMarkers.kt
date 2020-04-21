@@ -14,11 +14,9 @@ import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.scope
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
@@ -95,7 +93,7 @@ fun KtDeclaration.markerMessage(): String =
     }.orEmpty()
   }
 
-inline fun <reified A: KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
+inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
     transform = {
@@ -106,11 +104,10 @@ inline fun <reified A: KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon,
     }
   )
 
-fun ExtensionProof.coercionMessage(): String {
-  return """
-        Coercion happening by proof:
-        <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
-        Link to proof declaration:
-        <code lang="kotlin">$through</code>
-        """.trimIndent()
-}
+fun CoercionProof.coercionMessage(): String =
+  """
+    Coercion happening by proof:
+    <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
+    Link to proof declaration:
+    <code lang="kotlin">$through</code>
+  """.trimIndent()

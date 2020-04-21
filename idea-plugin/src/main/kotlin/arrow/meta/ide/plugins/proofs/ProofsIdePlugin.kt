@@ -27,6 +27,7 @@ import arrow.meta.invoke as cli
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
+//      refinementAnnotator(),
       proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
@@ -34,8 +35,9 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
-//      refinementAnnotator(),
       proofsKotlinCache,
+      coerceProofLineMarker(ArrowIcons.ICON4),
+      addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       explicitCoercionIntention,
       implicitCoercionIntention,
       codeFolding
@@ -45,7 +47,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
 val IdeMetaPlugin.typeProofsCli: CliPlugin
   get() = "Type Proofs Cli Integration".cli {
     meta(
-      coerceProofLineMarker(ArrowIcons.ICON4),
       suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }

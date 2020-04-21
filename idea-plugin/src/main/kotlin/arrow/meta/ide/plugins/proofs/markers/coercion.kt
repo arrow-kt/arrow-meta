@@ -8,6 +8,8 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
+import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -16,23 +18,24 @@ import javax.swing.Icon
 fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
-    composite = KtProperty::class.java,
     transform = { psiElement ->
       psiElement.ctx()?.let { ctx ->
-        psiElement.safeAs<KtProperty>()?.takeIf {
+        psiElement.safeAs<KtElement>()?.takeIf {
           it.isCoerced(ctx)
         }
       }
     },
-    message = { ktProperty: KtElement ->
-      ktProperty.anyParticipatingTypes().mapNotNull { (subtype, supertype) ->
-        ktProperty.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+    message = { ktElement: KtElement ->
+      ktElement.anyParticipatingTypes().mapNotNull { (subtype, supertype) ->
+        ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
       }.firstOrNull() ?: "Proof not found"
     }
   )
 
-private fun KtElement.anyParticipatingTypes(): List<PairTypes> =
-  explicitParticipatingTypes() + implicitParticipatingTypes()
+fun KtElement.anyParticipatingTypes(): List<PairTypes> =
+  (this.safeAs<KtCallElement>()?.explicitParticipatingTypes() ?: emptyList()) +
+    (this.safeAs<KtProperty>()?.explicitParticipatingTypes() ?: emptyList()) +
+    (this.safeAs<KtDotQualifiedExpression>()?.implicitParticipatingTypes() ?: emptyList())
 
 private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean =
   anyParticipatingTypes().any { (subtype, supertype) ->

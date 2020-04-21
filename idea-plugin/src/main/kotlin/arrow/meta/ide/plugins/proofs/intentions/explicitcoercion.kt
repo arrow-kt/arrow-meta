@@ -8,14 +8,17 @@ import arrow.meta.plugins.proofs.phases.coerceProof
 import arrow.meta.quotes.ktFile
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.ImportPath
 
+/**
+ * [explicitCoercionIntention]: for implicit coercion to make it explicit
+ */
 val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
   get() = addApplicableInspection(
     defaultFixText = "Make_coercion_explicit",
@@ -33,7 +36,7 @@ val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
         ktCall.makeExplicit(compilerContext)
       }
     },
-    inspectionText = { "TODO explicit " },
+    inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     groupPath = ProofPath + arrayOf("Coercion")
   )
@@ -46,17 +49,17 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
         .filter { (subtype, supertype) -> compilerContext.areTypesCoerced(subtype, supertype) }
 
       // get all coerced call element args
-      valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression() }
-        ?.mapNotNull { arg ->
-          val type = arg.resolveType()
-          targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
-            targetType to arg
+      valueArgumentList?.arguments?.let { arguments ->
+        arguments.mapNotNull { it.getArgumentExpression() }
+          .mapNotNull { arg ->
+            val type = arg.resolveKotlinType()
+            targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
+              targetType to arg
+            }
+          }.forEach { (targetType, arg) ->
+            arg.replaceWithProof(compilerContext, targetType)
           }
-        }
-        // replace them with the explicit version with the proof
-        ?.forEach { (targetType, arg) ->
-          arg.replaceWithProof(compilerContext, targetType)
-        }
+      }
     }
 
     is KtProperty -> explicitParticipatingTypes().first().let { pairType ->
@@ -77,11 +80,11 @@ private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pair
   if (notImported && differentPackage) {
     val proofImport = importableFqName?.let {
       importDirective(ImportPath(it, false)).value
-    }!!
-    //TODO deal with nullability
-    importList.add(proofImport as PsiElement)// TODO sort?
+    }
+    proofImport?.let { importDirective: KtImportDirective ->
+      importList.add(importDirective as PsiElement)// TODO sort?
+    }
   }
   val ktExpression: KtExpression? = "$text.${through.name}()".expression.value
   ktExpression?.let(::replace)
 }
-
