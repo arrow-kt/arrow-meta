@@ -3,8 +3,9 @@ package arrow.meta.ide.plugins.purity
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.dsl.IdeSyntax
-import arrow.meta.ide.dsl.utils.returns
+import arrow.meta.ide.dsl.utils.intersectFunction
 import arrow.meta.ide.invoke
+import arrow.meta.phases.analysis.returnTypeEq
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -42,7 +43,7 @@ val IdeSyntax.purityInspection: AbstractApplicabilityBasedInspection<KtNamedFunc
       f.nameIdentifier != null && !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
         f.resolveToDescriptorIfAny()?.run {
           !isSuspend && !isSynthesized && !isSuspendLambdaOrLocalFunction() &&
-            returns(f) { impureTypes }
+            intersectFunction(returnTypeEq, f) { impureTypes }.isNotEmpty()
         } == true
     }
   )
