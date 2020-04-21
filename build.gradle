@@ -1,23 +1,6 @@
 buildscript {
   repositories {
-    //def repo = "https://www.sosy-lab.org/ivy"
     mavenCentral()
-    /*maven {
-      url "http://logicrunch.research.it.uu.se/maven/"
-      credentials{
-        username "anonymous"
-        password "anonymous"
-      }
-    }*/
-    /*ivy {
-      url "http://www.sosy-lab.org/ivy/"
-      //layout "ivy"
-      patternLayout {
-        ivy "$repo/[organisation]/[module]/ivy-[revision].xml"
-        artifact "$repo/[organisation]/[module]/[artifact]-[revision](-[classifier]).[ext]"
-        m2compatible = true
-      }
-    }*/
   }
   dependencies {
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"

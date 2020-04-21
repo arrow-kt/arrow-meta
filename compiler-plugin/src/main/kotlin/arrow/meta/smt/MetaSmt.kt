@@ -14,7 +14,7 @@ class MetaSmt : SmtSyntax, SmtInternalRegistry {
     Princess("Hello World") {
       val (a: Int, b: Int, c: Int) = variables("a", "b", "c")
       val plusAssoc = forAll(a, b) {
-        a plus b eq (b plus a)
+        a + b eq b + a
       }
       val prover = ctx.newProverEnvironment(SolverContext.ProverOptions.GENERATE_MODELS)
       prover.addConstraint(plusAssoc)

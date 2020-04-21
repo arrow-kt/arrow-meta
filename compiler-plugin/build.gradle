@@ -13,8 +13,9 @@ dependencies {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler"
         exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
     }
-    //compile("org.sosy-lab:java-smt:3.3.0")
     compile("uuverifiers:princess_2.12:2019-11-20-assertionless")
+    compile "org.sosy-lab:java-smt:$JAVA_SMT"
+    compile "org.sosy-lab:javasmt-solver-z3:$JAVASMT_SOLVER_Z3"
     testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
     testImplementation("io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION") {
         exclude group: "io.arrow-kt", module: "arrow-core-data"
