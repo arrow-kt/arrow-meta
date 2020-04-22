@@ -1,6 +1,8 @@
 # CONTINOUS INTEGRATION CHECKS
 
-## 'Check next version' step
+## 'Build Artifacts' check
+
+### 'Check next version' step
 
 Arrow Meta is a functional companion to Kotlin's Compiler & IDE so it's necessary to keep it updated with the following versions:
 
