@@ -1,9 +1,7 @@
 package arrow.meta.ide.internal.registry
 
-import arrow.meta.dsl.platform.ide
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.phases.IdeContext
-import arrow.meta.ide.phases.analysis.MetaIdeAnalyzer
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
@@ -32,14 +30,15 @@ import com.intellij.codeInsight.intention.IntentionManager
 import com.intellij.codeInsight.intention.impl.config.IntentionManagerSettings
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.lang.LanguageAnnotators
+import com.intellij.lang.folding.LanguageFolding
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.Application
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.extensions.DefaultPluginDescriptor
 import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
@@ -47,25 +46,11 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.PlatformComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.messages.Topic
-import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal interface IdeInternalRegistry : InternalRegistry {
 
   fun intercept(ctx: IdeContext): List<IdePlugin>
-
-  override fun registerMetaAnalyzer(): ExtensionPhase =
-    ide {
-      storageComponent(
-        registerModuleComponents = { container, moduleDescriptor ->
-          //println("Registering meta analyzer")
-          container.useImpl<MetaIdeAnalyzer>()
-          //
-        },
-        check = { declaration, descriptor, context ->
-        }
-      )
-    } ?: ExtensionPhase.Empty
 
   fun registerMetaIdeComponents(app: Application) {
     LOG.info("subscribing meta registrars")
@@ -131,6 +116,7 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is ApplicationProvider.UnloadServices -> app.safeAs<PlatformComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
       ApplicationProvider.StopServicePreloading -> app.safeAs<PlatformComponentManagerImpl>()?.stopServicePreloading()
       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
+      is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
     }
       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
@@ -237,5 +223,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
       is ExtensionProvider.RegisterBaseExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.RegisterExtension -> phase.run { Extensions.getRootArea().registerExtensionPoint(EP_NAME.name, aClass.name, kind) }
       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+      is ExtensionProvider.AddFoldingBuilder -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
     }
 }

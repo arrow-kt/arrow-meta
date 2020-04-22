@@ -6,8 +6,6 @@ import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
-import arrow.meta.plugins.typeclasses.suppressUnusedParameter
-import arrow.meta.plugins.union.suppressTypeMismatchOnNullableReceivers
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.cfg.ClassMissingCase
@@ -56,9 +54,7 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
 private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||
     suppressNoElseInWhen() ||
-    kindsTypeMismatch() ||
-    suppressTypeMismatchOnNullableReceivers() ||
-    suppressUnusedParameter()
+    kindsTypeMismatch()
 
 private fun Diagnostic.suppressInvisibleMember(): Boolean =
   factory == Errors.INVISIBLE_MEMBER

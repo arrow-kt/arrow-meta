@@ -92,6 +92,9 @@ interface ConfigSyntax {
   operator fun Config.plus(other: Config): List<Config> =
     listOf(this, other)
 
+  private fun prelude(currentVersion: String?): Dependency =
+    Dependency("prelude:$currentVersion")
+
   /**
    * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Arrow Annotations as
    * a dependency.
@@ -100,9 +103,10 @@ interface ConfigSyntax {
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
       val arrowVersion = System.getProperty("ARROW_VERSION")
+      System.setProperty("arrow.meta.generated.source.output", "build/generated/source/kapt/test")
       val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion")))
       val arrowAnnotations = Dependency("arrow-annotations:$arrowVersion")
-      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations)
+      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(arrowAnnotations) + CompilerTest.addDependencies(prelude(currentVersion))
     }
 }
 

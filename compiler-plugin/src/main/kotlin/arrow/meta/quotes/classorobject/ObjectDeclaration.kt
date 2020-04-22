@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  *            Transform.replace(
  *              replacing = c,
  *              newDeclaration = """
- *                  | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+ *                  | $`@annotations` object $name $superTypes {
  *                  |   $body
  *                  | }
  *                  | """.`object`
@@ -40,7 +40,7 @@ class ObjectDeclaration(
 
   override fun ElementScope.identity(): ObjectDeclaration =
     """
-    | $`@annotations` object $name ${superTypeList?.let { ": ${it.text}" } ?: ""} {
+    | $`@annotations` object $name $superTypes {
     |   $body
     | }
     | """.`object`

@@ -1,16 +1,16 @@
 diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
-index 0bb1622..6e4da4b 100644
+index f524d67..7fced89 100644
 --- a/compiler-plugin/build.gradle
 +++ b/compiler-plugin/build.gradle
-@@ -26,6 +26,7 @@ dependencies {
+@@ -33,6 +33,7 @@ dependencies {
      testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
          exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
      }
 +    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(":prelude")
  }
  
- compileKotlin {
-@@ -64,6 +65,7 @@ test {
+@@ -76,6 +77,7 @@ test {
      testLogging.showStandardStreams = true
      systemProperty "CURRENT_VERSION", "$VERSION_NAME"
      systemProperty "ARROW_VERSION", "$ARROW_VERSION"
@@ -19,18 +19,18 @@ index 0bb1622..6e4da4b 100644
  }
  
 diff --git a/meta-test/build.gradle b/meta-test/build.gradle
-index b9ae03e..43debc3 100755
+index 58c53fb..2b8c008 100755
 --- a/meta-test/build.gradle
 +++ b/meta-test/build.gradle
-@@ -22,6 +22,7 @@ dependencies {
+@@ -25,6 +25,7 @@ dependencies {
      testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
          exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
      }
 +    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(':prelude')
  }
  
- compileKotlin {
-@@ -39,6 +40,7 @@ test {
+@@ -43,6 +44,7 @@ test {
      }
      systemProperty "CURRENT_VERSION", "$VERSION_NAME"
      systemProperty "ARROW_VERSION", "$ARROW_VERSION"

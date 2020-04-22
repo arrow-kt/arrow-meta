@@ -33,4 +33,23 @@ data class ScopedList<K : KtElement>(
   }
 
   fun isEmpty() = value.isEmpty()
+
+  companion object {
+    fun <K: KtElement> empty(): ScopedList<K> = ScopedList(emptyList())
+  }
 }
+
+fun <K : KtElement> ScopedList<K>.map(f: (K) -> K?): ScopedList<K> =
+  copy(value.mapNotNull(f))
+
+fun <A, K : KtElement> ScopedList<K>.fold(a: A, f: (A, K) -> A): A =
+  value.fold(a, f)
+
+fun <A, K : KtElement> ScopedList<K>.foldIndexed(a: A, f: (Int, A, K) -> A): A =
+  value.foldIndexed(a, f)
+
+operator fun <K : KtElement> ScopedList<K>.plus(k: ScopedList<K>): ScopedList<K> =
+  copy(value + k.value)
+
+operator fun <K : KtElement> ScopedList<K>.plus(k: Scope<K>): ScopedList<K> =
+  k.value?.let { copy((value + k.value).filterNotNull()) } ?: this

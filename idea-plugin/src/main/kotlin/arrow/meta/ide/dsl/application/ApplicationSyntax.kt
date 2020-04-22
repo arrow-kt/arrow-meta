@@ -70,32 +70,43 @@ interface ApplicationSyntax {
    *   fun printLn(f: KtNamedFunction): Unit
    * }
    * ```
-   * The service is now available at runtime.
-   * ```kotlin:ank
-   * import arrow.meta.ide.IdePlugin
+   * The service is now available at runtime and there is also the option to utilise project-level services with [addProjectService] - please check the Docs on how to register those.
+   * ```kotlin
    * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
    * import com.intellij.openapi.project.Project
+   * import com.intellij.psi.PsiElement
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-   *
+   * //sampleStart
    * val IdeMetaPlugin.logAnnotator: IdePlugin
    *   get() = "Log Annotator" {
    *     meta(
    *       addAnnotator( // Annotators traverse PsiElements and are means to write language Plugins
    *         annotator = Annotator { element, holder ->
    *           val project = element.project
-   *           project.getService(MyProjectService::class.java)?.hello(project)
+   *           project.getService(MyProjectService::class.java)?.hello(element)
    *
    *           element.safeAs<KtNamedFunction>()?.let { f ->
-   *             ServiceManager.getService(MyService::class.java)?.printLn(f)
+   *             ServiceManager.getService(MyAppService::class.java)?.printLn(f)
    *           }
    *         }
    *       )
    *     )
    *   }
+   *
+   * //sampleEnd
+   * interface MyAppService {
+   *   fun printLn(f: KtNamedFunction): Unit
+   * }
+   *
+   * interface MyProjectService {
+   *   val project: Project
+   *   fun hello(element: PsiElement): Unit
+   * }
    * ```
    * @see AnnotatorSyntax
    */
@@ -110,10 +121,10 @@ interface ApplicationSyntax {
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
-   * import arrow.meta.ide.plugins.higherkinds.isKindPolymorphic
+   * import arrow.meta.plugins.higherkind.isHigherKindedType
    * import com.intellij.lang.annotation.Annotator
    * import com.intellij.openapi.components.ServiceManager
-   * import org.jetbrains.kotlin.psi.KtNamedFunction
+   * import org.jetbrains.kotlin.psi.KtClass
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
@@ -122,13 +133,13 @@ interface ApplicationSyntax {
    *     meta(
    *       replaceAppService(MyService::class.java) { myOldService ->
    *         object : MyService {
-   *           override fun printLn(f: KtNamedFunction): Unit =
-   *             println("Log ${f.name}, which ${if (f.isKindPolymorphic()) "is" else "is not"} polymorphic.")
+   *           override fun printLn(ktclass: KtClass): Unit =
+   *             println("Log ${ktclass.name}, which ${if (isHigherKindedType(ktclass)) "is" else "is not"} a Higher Kinded Type.")
    *         }
    *       },
    *       addAnnotator(
    *         annotator = Annotator { element, holder ->
-   *           element.safeAs<KtNamedFunction>()?.let { f ->
+   *           element.safeAs<KtClass>()?.let { f ->
    *             ServiceManager.getService(MyService::class.java)?.printLn(f)
    *           }
    *         }
@@ -138,7 +149,7 @@ interface ApplicationSyntax {
    *
    * //sampleEnd
    * interface MyService {
-   *   fun printLn(f: KtNamedFunction): Unit
+   *   fun printLn(f: KtClass): Unit
    * }
    * ```
    * The same technique applies for every service in the plugin dependencies.
@@ -176,6 +187,7 @@ interface ApplicationSyntax {
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
+   * import com.intellij.openapi.project.Project
    * import com.intellij.psi.PsiFile
    * import org.jetbrains.kotlin.analyzer.ModuleInfo
    * import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
@@ -184,10 +196,10 @@ interface ApplicationSyntax {
    * import org.jetbrains.kotlin.psi.KtElement
    * import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
    * //sampleStart
-   * val IdeMetaPlugin.logKotlinCache: IdePlugin
+   * val IdeMetaPlugin.logKotlinCachePlugin: IdePlugin
    *   get() = "Log Kotlin Cache Plugin" {
    *     meta(
-   *       addProjectService(KotlinCacheService::class.java) { project, kotlinCache ->
+   *       addProjectService(KotlinCacheService::class.java) { project: Project, kotlinCache: KotlinCacheService? ->
    *         kotlinCache?.let(::logKotlinCache)
    *       }
    *     )
@@ -276,7 +288,7 @@ interface ApplicationSyntax {
    *     meta(
    *       addAppLifecycleListener(
    *         appClosing = {
-   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!", "再见")
+   *           println("Ciao!, Au revoir!, Adeus!, Tot ziens!, Пока!, ¡Adiós!, Tschüss!, 再见")
    *         }
    *       )
    *     )

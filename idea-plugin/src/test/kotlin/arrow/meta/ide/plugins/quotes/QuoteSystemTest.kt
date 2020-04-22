@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.quotes
 
+/*
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.resolve.isMetaSynthetic
 import arrow.meta.ide.testing.env.IdeTestSetUp
@@ -88,4 +89,4 @@ class QuoteSystemTest : IdeTestSetUp() {
       } ?: throw unavailable(QuoteCache::class.java)
     } ?: throw unavailable(TestQuoteSystemService::class.java)
   }
-}
+}*/

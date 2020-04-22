@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.quotes
 
+/*
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.unavailable
@@ -9,7 +10,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
 
 class QuoteCacheTest : IdeTestSetUp() {
-  /** This test updates a PsiFile in place and validated the cache afterwards. */
+  *//** This test updates a PsiFile in place and validated the cache afterwards. *//*
   @Test
   fun testIncrementalCacheUpdate() {
     myFixture.addFileToProject("testArrow/source.kt", "package testArrow")
@@ -33,7 +34,7 @@ class QuoteCacheTest : IdeTestSetUp() {
       }
   }
 
-  /** This test creates two PsiFiles, updates one after the other in place and validates the cache state. */
+  *//** This test creates two PsiFiles, updates one after the other in place and validates the cache state. *//*
   @Test
   fun testIncrementalCacheUpdateMultipleFiles() {
     val codeFirst = """
@@ -89,4 +90,4 @@ class QuoteCacheTest : IdeTestSetUp() {
       }
     }
   }
-}
+}*/
