@@ -9,10 +9,11 @@ import git4idea.commands.GitCommandResult
 import git4idea.commands.GitLineHandler
 
 interface GithubSyntax {
-  fun gitClone(project: Project, url: String): GitCommandResult =
+  fun gitClone(project: Project, url: String, vcsRoot: VirtualFile = project.baseDir): GitCommandResult =
     gitCmd(
       project,
       GitCommand.CLONE,
+      vcsRoot,
       f = {
         setUrl(url)
         addParameters(url)
@@ -22,9 +23,10 @@ interface GithubSyntax {
   fun gitCmd(
     project: Project,
     cmd: GitCommand,
+    vcsRoot: VirtualFile = project.baseDir,
     f: GitLineHandler.() -> Unit = Noop.effect1
   ): GitCommandResult =
-    gitCmd(gitHandler(project, project.baseDir, cmd, f))
+    gitCmd(gitHandler(project, vcsRoot, cmd, f))
 
   fun <A> git(f: Git.() -> A): A =
     Git.getInstance().f()
