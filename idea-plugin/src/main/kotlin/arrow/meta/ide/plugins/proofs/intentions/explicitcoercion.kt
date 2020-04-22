@@ -9,12 +9,13 @@ import arrow.meta.quotes.ktFile
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.imports.importableFqName
-import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * [explicitCoercionIntention]: for implicit coercion to make it explicit
@@ -43,22 +44,17 @@ val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
 
 private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   when (this) {
-    is KtCallElement -> {
-      // Get the coerced types from all arguments
-      val targetingTypes: List<PairTypes> = explicitParticipatingTypes()
-        .filter { (subtype, supertype) -> compilerContext.areTypesCoerced(subtype, supertype) }
-
-      // get all coerced call element args
-      valueArgumentList?.arguments?.let { arguments ->
-        arguments.mapNotNull { it.getArgumentExpression() }
-          .mapNotNull { arg ->
-            val type = arg.resolveKotlinType()
-            targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
-              targetType to arg
-            }
-          }.forEach { (targetType, arg) ->
-            arg.replaceWithProof(compilerContext, targetType)
+    is KtValueArgument -> {
+      // Get the coerced types (parameter type and actual definition type)
+      explicitParticipatingTypes().firstOrNull { (subtype: KotlinType, supertype: KotlinType) ->
+        compilerContext.areTypesCoerced(subtype, supertype)
+      }?.let { pairType: PairTypes ->
+        getArgumentExpression()?.let { ktExpression ->
+          val type = ktExpression.resolveKotlinType()
+          if (pairType.subType == type) {
+            ktExpression.replaceWithProof(compilerContext, pairType)
           }
+        }
       }
     }
 

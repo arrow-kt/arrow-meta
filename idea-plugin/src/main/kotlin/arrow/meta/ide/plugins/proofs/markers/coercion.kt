@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
@@ -33,7 +34,7 @@ fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
   )
 
 fun KtElement.anyParticipatingTypes(): List<PairTypes> =
-  (this.safeAs<KtCallElement>()?.explicitParticipatingTypes() ?: emptyList()) +
+  (this.safeAs<KtValueArgument>()?.explicitParticipatingTypes() ?: emptyList()) +
     (this.safeAs<KtProperty>()?.explicitParticipatingTypes() ?: emptyList()) +
     (this.safeAs<KtDotQualifiedExpression>()?.implicitParticipatingTypes() ?: emptyList())
 

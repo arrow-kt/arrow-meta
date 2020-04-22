@@ -4,6 +4,7 @@ import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
@@ -27,7 +28,7 @@ import arrow.meta.invoke as cli
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-//      refinementAnnotator(),
+      refinementAnnotator(),
       proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
