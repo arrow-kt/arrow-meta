@@ -42,11 +42,11 @@ allprojects {
     maven { url "https://mvnrepository.com/artifact/org.sosy-lab/java-smt" }
     maven { url "https://mvnrepository.com/artifact/org.sosy-lab/javasmt-solver-z3" }
     maven {
-        url "http://logicrunch.research.it.uu.se/maven/"
-        credentials{
-            username "anonymous"
-            password "anonymous"
-        }
+      url "http://logicrunch.research.it.uu.se/maven/"
+      credentials {
+        username "anonymous"
+        password "anonymous"
+      }
     }
   }
 }
