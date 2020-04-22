@@ -1,4 +1,4 @@
-# CONTINOUS INTEGRATION CHECKS
+# CONTINUOUS INTEGRATION CHECKS
 
 ## 'Build Artifacts' check
 
@@ -44,7 +44,7 @@ git diff --staged > .github/workflows/sandbox/<version>.diff
 git reset HEAD -- .
 git add .github/workflows/sandbox/<version>.diff
 git commit -m "Fix patch"
-``
+```
 7. Discard your local changes
 ```
 git checkout .
