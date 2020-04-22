@@ -1299,7 +1299,7 @@ index cc6655f3..5d103954 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 202dc277..36f40e3f 100644
+index 202dc277..1a082575 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 @@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
@@ -1312,7 +1312,17 @@ index 202dc277..36f40e3f 100644
  import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
  import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
  import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
+@@ -34,9 +34,6 @@ import org.jetbrains.kotlin.codegen.StackValue
+ import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
+ import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
+ import org.jetbrains.kotlin.com.intellij.mock.MockProject
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
+-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
+ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+ import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
+ import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
+@@ -62,7 +59,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
  import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.LookupTracker
@@ -1321,19 +1331,22 @@ index 202dc277..36f40e3f 100644
  import org.jetbrains.kotlin.name.Name
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
-@@ -129,11 +129,9 @@ interface InternalRegistry : ConfigSyntax {
+@@ -129,11 +126,11 @@ interface InternalRegistry : ConfigSyntax {
      configuration: CompilerConfiguration,
      context: CompilerContext? = null
    ) {
 -    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
-     //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+-    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
++    // val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
++    // println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
      cli {
        println("it's the CLI plugin")
 -      registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
++      // registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
      }
      ide {
        println("it's the IDEA plugin")
-@@ -191,12 +189,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -191,11 +188,11 @@ interface InternalRegistry : ConfigSyntax {
      }
    }
  
@@ -1342,11 +1355,23 @@ index 202dc277..36f40e3f 100644
 -      SyntheticScopeProviderExtension.registerExtensionPoint(project)
 -    }
 -  }
--
++//  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
++//    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
++//      SyntheticScopeProviderExtension.registerExtensionPoint(project)
++//    }
++//  }
+ 
    fun installArrowPlugin() {
      val ideaPath = System.getProperty("idea.plugins.path")
-     val userDir = System.getProperty("user.dir")
-@@ -273,11 +265,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -229,6 +226,7 @@ interface InternalRegistry : ConfigSyntax {
+   }
+ 
+   fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
++    SyntheticScopeProviderExtension.registerExtensionPoint(project)
+     SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
+       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
+         phase.run {
+@@ -273,11 +271,11 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -1362,7 +1387,7 @@ index 202dc277..36f40e3f 100644
        }
      })
    }
-@@ -421,7 +413,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -421,7 +419,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -1370,7 +1395,7 @@ index 202dc277..36f40e3f 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -430,7 +421,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -430,7 +427,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -1378,7 +1403,7 @@ index 202dc277..36f40e3f 100644
                isImplicitModality
              )
            }
-@@ -599,4 +589,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -599,4 +595,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)
@@ -1412,18 +1437,27 @@ index 2867bd7c..0b19295b 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-index d8c5529d..ff51718f 100644
+index d8c5529d..f10f2819 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-@@ -4,6 +4,7 @@ import arrow.meta.phases.CompilerContext
- import org.jetbrains.kotlin.backend.common.BackendContext
+@@ -1,7 +1,7 @@
+ package arrow.meta.phases.codegen.ir
+ 
+ import arrow.meta.phases.CompilerContext
+-import org.jetbrains.kotlin.backend.common.BackendContext
++import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
  import org.jetbrains.kotlin.descriptors.CallableDescriptor
  import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
-+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
  import org.jetbrains.kotlin.descriptors.ClassDescriptor
- import org.jetbrains.kotlin.descriptors.FunctionDescriptor
- import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-@@ -28,20 +29,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
+@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+ import org.jetbrains.kotlin.ir.expressions.IrCall
+ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+ import org.jetbrains.kotlin.ir.expressions.IrExpression
+-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+@@ -28,20 +27,20 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
  import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
  
  class IrUtils(
@@ -1451,7 +1485,7 @@ index d8c5529d..ff51718f 100644
          ).apply {
            this.typeTranslator = this@translator
          }
-@@ -50,46 +51,43 @@ class IrUtils(
+@@ -50,46 +49,43 @@ class IrUtils(
    fun CallableDescriptor.irCall(): IrExpression =
      when (this) {
        is PropertyDescriptor -> {
@@ -1502,7 +1536,7 @@ index d8c5529d..ff51718f 100644
          IrGetObjectValueImpl(
            startOffset = UNDEFINED_OFFSET,
            endOffset = UNDEFINED_OFFSET,
-@@ -103,14 +101,13 @@ class IrUtils(
+@@ -103,14 +99,13 @@ class IrUtils(
      }
  
    fun PropertyDescriptor.irGetterCall(): IrCall? {
@@ -1518,7 +1552,7 @@ index d8c5529d..ff51718f 100644
          typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
          valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
        )
-@@ -118,14 +115,13 @@ class IrUtils(
+@@ -118,14 +113,13 @@ class IrUtils(
    }
  
    fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
@@ -1605,10 +1639,10 @@ index ca7c9de4..aee1bf32 100644
  KOTLIN_TEST_VERSION=3.4.2
  ASSERTJ_VERSION=3.13.2
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-index 915cbe29..dd2f5e4f 100644
+index 1dd69b39..c90a405e 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/application/ApplicationSyntax.kt
-@@ -324,10 +324,9 @@ interface ApplicationSyntax {
+@@ -337,18 +337,16 @@ interface ApplicationSyntax {
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
@@ -1620,8 +1654,9 @@ index 915cbe29..dd2f5e4f 100644
 +    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed, dispose))
  
    /**
-    * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
-@@ -335,7 +334,6 @@ interface ApplicationSyntax {
+-   * Order: [beforeProjectLoaded] then [initialize] then [postStartupActivitiesPassed] then [afterProjectClosed]
++   * Order: [beforeProjectLoaded] then [initialize] then [afterProjectClosed]
+    */
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
@@ -1629,7 +1664,7 @@ index 915cbe29..dd2f5e4f 100644
      afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
      dispose: ProjectLifecycle.() -> Unit = Noop.effect1
    ): ProjectLifecycle =
-@@ -349,9 +347,6 @@ interface ApplicationSyntax {
+@@ -362,9 +360,6 @@ interface ApplicationSyntax {
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(this, project)
  
@@ -1639,7 +1674,7 @@ index 915cbe29..dd2f5e4f 100644
        override fun dispose(): Unit = dispose(this)
      }
  
-@@ -361,10 +356,9 @@ interface ApplicationSyntax {
+@@ -374,15 +369,13 @@ interface ApplicationSyntax {
    fun ApplicationSyntax.addProjectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
      initialize: (Project) -> Unit = Noop.effect1,
@@ -1651,7 +1686,12 @@ index 915cbe29..dd2f5e4f 100644
  
    fun ApplicationSyntax.projectLifecycleListener(
      beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-@@ -381,9 +375,6 @@ interface ApplicationSyntax {
+     initialize: (Project) -> Unit = Noop.effect1,
+-    postStartupActivitiesPassed: (Project) -> Unit = Noop.effect1,
+     afterProjectClosed: (Project) -> Unit = Noop.effect1
+   ): ProjectLifecycleListener =
+     object : ProjectLifecycleListener {
+@@ -394,9 +387,6 @@ interface ApplicationSyntax {
  
        override fun afterProjectClosed(project: Project): Unit =
          afterProjectClosed(project)
@@ -1662,7 +1702,7 @@ index 915cbe29..dd2f5e4f 100644
  
    /**
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
-index d88523d4..87af3f60 100644
+index d88523d4..cea984ac 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/color/ColorSettingsSyntax.kt
 @@ -4,10 +4,10 @@ import arrow.meta.ide.IdeMetaPlugin
@@ -1695,7 +1735,7 @@ index d88523d4..87af3f60 100644
      highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
      icon: Icon? = null,
      colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
-@@ -284,4 +284,16 @@ interface ColorSettingsSyntax {
+@@ -284,4 +284,13 @@ interface ColorSettingsSyntax {
     */
    val TextAttributesKey.descriptor: AttributesDescriptor
      get() = externalName toA this
@@ -1710,22 +1750,11 @@ index d88523d4..87af3f60 100644
 +            """
  }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
-index 54f62734..82a01887 100644
+index 54f62734..97433c66 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
-@@ -74,16 +74,16 @@ interface UsageSyntax {
-    */
-   fun UsageSyntax.findUsagesHandler(
-     element: PsiElement,
--    processElementUsages: (element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions) -> Boolean = Noop.boolean3True,
-+    processElementUsages: (element: PsiElement, processor: Processor<in UsageInfo>, options: FindUsagesOptions) -> Boolean = Noop.boolean3True,
-     findReferencesToHighlight: (target: PsiElement, searchScope: SearchScope) -> MutableCollection<PsiReference> =
-       { _, _ -> emptyList<PsiReference>().toMutableList() },
-     primaryElements: Array<PsiElement> = PsiElement.EMPTY_ARRAY,
-     secondaryElements: Array<PsiElement> = PsiElement.EMPTY_ARRAY,
-     findUsagesDialog: (isSingleFile: Boolean, toShowInNewTab: Boolean, mustOpenInNewTab: Boolean) -> AbstractFindUsagesDialog? = Noop.nullable3(),
--    processUsagesInText: (element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
-+    processUsagesInText: (element: PsiElement, processor: Processor<in UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
+@@ -83,7 +83,7 @@ interface UsageSyntax {
+     processUsagesInText: (element: PsiElement, processor: Processor<UsageInfo>, searchScope: GlobalSearchScope) -> Boolean? = Noop.nullable3()
    ): FindUsagesHandler =
      object : FindUsagesHandler(element) {
 -      override fun processElementUsages(element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions): Boolean =
@@ -1743,7 +1772,7 @@ index 54f62734..82a01887 100644
            this ?: super.processUsagesInText(element, processor, searchScope)
          }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
-index 2ea1b7f7..54ec92ef 100644
+index 2ea1b7f7..c2f7f96a 100644
 --- a/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
 +++ b/idea-plugin/src/main/kotlin/arrow/meta/ide/internal/registry/IdeInternalRegistry.kt
 @@ -41,12 +41,15 @@ import com.intellij.openapi.extensions.Extensions
@@ -1763,12 +1792,7 @@ index 2ea1b7f7..54ec92ef 100644
  
  internal interface IdeInternalRegistry : InternalRegistry {
  
-@@ -92,20 +95,20 @@ internal interface IdeInternalRegistry : InternalRegistry {
-       is ApplicationProvider.ProjectService<*> -> phase.run {
-         /**
-          * Investigate other registry options in:
--         * com/intellij/serviceContainer/PlatformComponentManagerImpl.kt:163: createComponent
-+         * com/intellij/serviceContainer/ComponentManagerImpl.kt:163: createComponent
+@@ -96,16 +99,16 @@ internal interface IdeInternalRegistry : InternalRegistry {
           * com.intellij.openapi.project.impl.ProjectImpl.init
           * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
           */
@@ -1833,3 +1857,10 @@ index 2ea1b7f7..54ec92ef 100644
  
    fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
      when (phase) {
+@@ -225,4 +228,4 @@ internal interface IdeInternalRegistry : InternalRegistry {
+       is ExtensionProvider.AddLanguageAnnotator -> LanguageAnnotators.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+       is ExtensionProvider.AddFoldingBuilder -> LanguageFolding.INSTANCE.addExplicitExtension(phase.lang, phase.impl)
+     }
+-}
+\ No newline at end of file
++}
