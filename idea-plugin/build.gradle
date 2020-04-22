@@ -16,6 +16,9 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   compile "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
   compile project(path: ':compiler-plugin', configuration: 'shadow')
+
+  // needed for the JetBrains Gradle test framework
+  testCompile 'org.apache.ant:ant:1.10.5'
 }
 
 compileKotlin {
@@ -39,7 +42,7 @@ buildSearchableOptions.enabled = false
 intellij {
   version = "$INTELLIJ_IDEA_VERSION"
   pluginName = "Arrow Meta Intellij IDEA Plugin"
-  plugins = ["gradle", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}", "git4idea"]
+  plugins = ["gradle", "gradle-java", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}", "git4idea"]
 }
 
 patchPluginXml {
