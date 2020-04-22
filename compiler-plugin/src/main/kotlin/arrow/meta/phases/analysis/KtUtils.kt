@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
@@ -152,9 +153,11 @@ val resolveFunctionType: (KotlinType) -> KotlinType
  * naive type equality where function types are reduced to their return type
  */
 val returnTypeEq: Eq<KotlinType>
-get() = Eq { a, b ->
-  resolveFunctionType(a) == resolveFunctionType(b)
-}
+  get() = Eq { a, b ->
+    resolveFunctionType(a) == resolveFunctionType(b)
+  }
 
 fun KtAnnotated.isAnnotatedWith(regex: Regex) =
   annotationEntries.any { it.text.matches(regex) }
+
+fun ExtensionPhase?.orEmpty(): ExtensionPhase = this ?: ExtensionPhase.Empty

@@ -3,70 +3,70 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
-    // WARNING: don't change the configuration name because it's used by shadowJar
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-    compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
-    compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
-    compile("org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-    }
-    compile("uuverifiers:princess_2.12:2019-11-20-assertionless")
-    compile "org.sosy-lab:java-smt:$JAVA_SMT"
-    compile "org.sosy-lab:javasmt-solver-z3:$JAVASMT_SOLVER_Z3"
-    testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-    testImplementation("io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION") {
-        exclude group: "io.arrow-kt", module: "arrow-core-data"
-        exclude group: "io.arrow-kt", module: "arrow-core-extensions"
-    }
-    testImplementation project(":meta-test")
-    testRuntimeOnly project(':compiler-plugin')
+  // WARNING: don't change the configuration name because it's used by shadowJar
+  compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+  compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+  compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
+  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+  compile("org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION") {
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+  }
+  compile("uuverifiers:princess_2.12:2019-11-20-assertionless")
+  compile "org.sosy-lab:java-smt:$JAVA_SMT"
+  compile "org.sosy-lab:javasmt-solver-z3:$JAVASMT_SOLVER_Z3"
+  testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+  testImplementation("io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION") {
+    exclude group: "io.arrow-kt", module: "arrow-core-data"
+    exclude group: "io.arrow-kt", module: "arrow-core-extensions"
+  }
+  testImplementation project(":meta-test")
+  testRuntimeOnly project(':compiler-plugin')
 
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")
-    testCompileOnly "io.arrow-kt:arrow-core-data:$ARROW_VERSION"
-    testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-    testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-    testRuntimeOnly project(":prelude")
+  testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")
+  testCompileOnly "io.arrow-kt:arrow-core-data:$ARROW_VERSION"
+  testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+  }
+  testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+  }
+  testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+  }
+  testRuntimeOnly project(":prelude")
 }
 
 compileKotlin {
-    kotlinOptions {
-        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
-        jvmTarget = "1.8"
-    }
+  kotlinOptions {
+    freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+    jvmTarget = "1.8"
+  }
 }
 compileTestKotlin {
-    kotlinOptions {
-        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
-        jvmTarget = "1.8"
-    }
+  kotlinOptions {
+    freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+    jvmTarget = "1.8"
+  }
 }
 jar {
-    manifest {
-        attributes["Specification-Title"] = project.name
-        attributes["Specification-Version"] = project.version
-        attributes["Implementation-Title"] = "arrow.meta.plugin.compiler"
-        attributes["Implementation-Version"] = project.version
-    }
+  manifest {
+    attributes["Specification-Title"] = project.name
+    attributes["Specification-Version"] = project.version
+    attributes["Implementation-Title"] = "arrow.meta.plugin.compiler"
+    attributes["Implementation-Version"] = project.version
+  }
 }
 
 tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
+  preserveFileTimestamps = false
+  reproducibleFileOrder = true
 }
 
 shadowJar {
-    configurations = [project.configurations.compile]
-    relocate 'org.jetbrains.kotlin.com.intellij', 'com.intellij'
+  configurations = [project.configurations.compile]
+  relocate 'org.jetbrains.kotlin.com.intellij', 'com.intellij'
 //    dependencies {
 //        exclude(dependency {
 //            it.moduleGroup == 'org.jetbrains.kotlin'
@@ -75,10 +75,10 @@ shadowJar {
 }
 
 test {
-    testLogging.showStandardStreams = true
-    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
-    jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+  testLogging.showStandardStreams = true
+  systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+  systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+  jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'

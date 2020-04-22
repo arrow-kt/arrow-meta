@@ -3,20 +3,24 @@ package arrow.meta.smt.dsl.scope
 import arrow.meta.smt.dsl.util.array
 import arrow.meta.smt.dsl.util.float
 import arrow.meta.smt.dsl.util.int
+import arrow.meta.smt.dsl.util.orNull
 import arrow.meta.smt.dsl.util.quantify
 import arrow.meta.smt.dsl.util.rational
 import arrow.meta.smt.dsl.util.sLogic
 import arrow.meta.smt.dsl.util.vector
 import org.sosy_lab.java_smt.api.ArrayFormulaManager
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager
+import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.BooleanFormulaManager
 import org.sosy_lab.java_smt.api.FloatingPointFormulaManager
+import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.IntegerFormulaManager
 import org.sosy_lab.java_smt.api.QuantifiedFormulaManager
 import org.sosy_lab.java_smt.api.RationalFormulaManager
 import org.sosy_lab.java_smt.api.SLFormulaManager
 import org.sosy_lab.java_smt.api.SolverContext
+import org.sosy_lab.java_smt.api.Tactic
 import org.sosy_lab.java_smt.api.UFManager
 
 interface SmtScope {
@@ -31,6 +35,15 @@ interface SmtScope {
   val vector: BitvectorFormulaManager?
   val quantify: QuantifiedFormulaManager?
   val sLogic: SLFormulaManager?
+
+  fun parse(input: String): BooleanFormula? =
+    orNull { formula.parse(input) }
+
+  fun BooleanFormula.apply(t: Tactic): BooleanFormula? =
+    orNull { formula.applyTactic(this, t) }
+
+  fun Formula.variables(): Map<String, Formula> =
+    formula.extractVariables(this).toMap().filter { (a, b) -> b != null }
 
   companion object {
     fun default(ctx: SolverContext): SmtScope =

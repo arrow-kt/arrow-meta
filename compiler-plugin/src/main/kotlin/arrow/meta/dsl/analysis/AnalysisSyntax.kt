@@ -8,6 +8,7 @@ import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
+import arrow.meta.phases.analysis.orEmpty
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -122,7 +123,7 @@ interface AnalysisSyntax {
           null
         }
       )
-    } ?: ExtensionPhase.Empty
+    }.orEmpty()
 
   /**
    * @see [suppressDiagnostic] including access to the [BindingTrace]
@@ -142,6 +143,25 @@ interface AnalysisSyntax {
           null
         }
       )
-    } ?: ExtensionPhase.Empty
+    }.orEmpty()
+
+  fun addDiagnostics(f: (BindingTrace) -> List<Diagnostic> = Noop.emptyList1()): ExtensionPhase =
+    cli {
+      analysis(
+        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          null
+        },
+        analysisCompleted = { project, module, bindingTrace, files ->
+          f(bindingTrace).forEach {
+            bindingTrace.report(it)
+          }
+          /*val diagnostics: MutableDiagnosticsWithSuppression =
+            BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
+          val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
+          mutableDiagnostics.addAll(f(bindingTrace))*/
+          null
+        }
+      )
+    }.orEmpty()
 
 }
