@@ -1704,12 +1704,9 @@ index d88523d4..87af3f60 100644
 +    get() = """${ApplicationNamesInfo.getInstance().fullProductName} is a full-featured IDE
 +            with a high level of usability and outstanding
 +            advanced code editing and refactoring support.
-+            
 +            abcdefghijklmnopqrstuvwxyz 0123456789 (){}[]
 +            ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^
-+            
 +            <!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@
-+            
 +            """
  }
 diff --git a/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt b/idea-plugin/src/main/kotlin/arrow/meta/ide/dsl/editor/usage/UsageSyntax.kt
