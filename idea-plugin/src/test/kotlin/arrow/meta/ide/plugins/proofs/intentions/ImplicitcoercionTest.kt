@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -47,6 +48,7 @@ class ImplicitcoercionTest : IdeTestSetUp() {
 
 
   @Test
+  @Ignore
   fun name() {
     val code = """
       package testArrow
