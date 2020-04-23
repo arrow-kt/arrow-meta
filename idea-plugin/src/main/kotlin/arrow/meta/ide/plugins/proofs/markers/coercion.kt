@@ -35,8 +35,7 @@ fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
 
 fun KtElement.anyParticipatingTypes(): List<PairTypes> =
   (this.safeAs<KtValueArgument>()?.explicitParticipatingTypes() ?: emptyList()) +
-    (this.safeAs<KtProperty>()?.explicitParticipatingTypes() ?: emptyList()) +
-    (this.safeAs<KtDotQualifiedExpression>()?.implicitParticipatingTypes() ?: emptyList())
+    (this.safeAs<KtProperty>()?.explicitParticipatingTypes() ?: emptyList())
 
 private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean =
   anyParticipatingTypes().any { (subtype, supertype) ->
