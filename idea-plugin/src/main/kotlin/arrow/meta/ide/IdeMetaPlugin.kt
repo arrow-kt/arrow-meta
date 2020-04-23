@@ -6,8 +6,8 @@ import arrow.meta.ide.dsl.IdeSyntax
 import arrow.meta.ide.internal.registry.IdeInternalRegistry
 import arrow.meta.ide.phases.IdeContext
 import arrow.meta.ide.plugins.initial.initialIdeSetUp
-import arrow.meta.ide.plugins.proofs.typeProofsCli
 import arrow.meta.ide.plugins.proofs.typeProofsIde
+import arrow.meta.ide.plugins.proofs.typeProofsCli
 import arrow.meta.ide.plugins.quotes.quotes
 import arrow.meta.ide.plugins.quotes.quotesCli
 import arrow.meta.phases.CompilerContext
