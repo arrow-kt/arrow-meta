@@ -8,8 +8,10 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
-import java.util.jar.JarFile
+import java.util.Properties
+import java.util.zip.ZipFile
+
+private const val IDEA_PLUGIN_NAME = "Arrow Meta Intellij IDEA Plugin"
 
 open class InstallIdeaPlugin: DefaultTask() {
 
@@ -35,17 +37,58 @@ open class InstallIdeaPlugin: DefaultTask() {
     println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
-    val parser = DOMParser()
-    parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
-    val artifactURL = parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
-    Files.copy(
-      URL(artifactURL).openStream(),
-      Paths.get(pluginsDir(), File(artifactURL).name)
-    )
+
+    val pluginFileURL = getPluginFileURL(properties)
+    val pluginFileName = File(pluginFileURL).name
+    downloadPluginFile(pluginFileURL, pluginFileName)
+    unzipPluginFile(pluginFileName)
+    removePluginFile(pluginFileName)
     // TODO: dynamic plugin to avoid restarting
     println("Restart Intellij IDEA to finish the installation!")
   }
+
+  private fun getPluginFileURL(properties: Properties): String? {
+    val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
+    val parser = DOMParser()
+    parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
+    return parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
+  }
+
+  private fun downloadPluginFile(pluginDistributionFileURL: String?, pluginDistributionFileName: String): Unit {
+    Files.copy(
+      URL(pluginDistributionFileURL).openStream(),
+      Paths.get(pluginsDir(), pluginDistributionFileName)
+    )
+  }
+
+  private fun unzipPluginFile(pluginFileName: String): Unit {
+    Files.createDirectory(Paths.get(pluginsDir(), IDEA_PLUGIN_NAME))
+    val zipFile = ZipFile(Paths.get(pluginsDir(), pluginFileName).toFile())
+    zipFile.entries().asSequence().forEach { zipEntry ->
+      when {
+        zipEntry.isDirectory -> Files.createDirectory(Paths.get(pluginsDir(), IDEA_PLUGIN_NAME, zipEntry.name))
+        else -> Files.copy(
+          zipFile.getInputStream(zipEntry),
+          Paths.get(pluginsDir(), IDEA_PLUGIN_NAME, zipEntry.name)
+        )
+      }
+    }
+  }
+
+  private fun removePluginFile(pluginFileName: String): Unit {
+    Files.delete(Paths.get(pluginsDir(), pluginFileName))
+  }
+}
+
+private fun pluginsDir(): String =
+  when {
+    System.getProperty("idea.plugins.path") != null -> System.getProperty("idea.plugins.path")
+    else -> pluginsDirFromVmOptionsFile()
+  }
+
+private fun pluginsDirFromVmOptionsFile(): String {
+  val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
+  return Paths.get(configDir, "plugins").toString()
 }
 
 internal fun inIdea(): Boolean =
@@ -58,32 +101,5 @@ internal fun pluginsDirExists(): Boolean =
     else -> false
   }
 
-private fun pluginsDir(): String =
-  when {
-    System.getProperty("idea.plugins.path") != null -> System.getProperty("idea.plugins.path")
-    else -> pluginsDirFromVmOptionsFile()
-  }
-
 internal fun ideaPluginExists(): Boolean =
-  File(pluginsDir()).listFiles().any {
-    it.name == "Arrow Meta Intellij IDEA Plugin" ||  isArrowMetaPlugin(it)
-  }
-
-private fun isArrowMetaPlugin(file: File): Boolean =
-  file.name.startsWith("idea-plugin")
-    && file.extension == "jar"
-    && hasArrowId(file.absolutePath)
-
-private fun hasArrowId(path: String): Boolean {
-  val artifact = JarFile(path)
-  val pluginFile = artifact.getEntry("META-INF/plugin.xml") ?: return false
-  val parser = DOMParser()
-  parser.parse(InputSource(artifact.getInputStream(pluginFile)))
-  val items = parser.document.getElementsByTagName("id")
-  return (items.length == 1) && (items.item(0).textContent == "io.arrow-kt.arrow")
-}
-
-private fun pluginsDirFromVmOptionsFile(): String {
-  val configDir = File(System.getProperty("jb.vmOptionsFile")).parent
-  return Paths.get(configDir, "plugins").toString()
-}
+  File(pluginsDir()).listFiles().any { it.name == IDEA_PLUGIN_NAME }
