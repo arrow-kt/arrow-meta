@@ -6,13 +6,14 @@ object CoercionTestCode {
     """
       package consumer
       
-      import arrow.Proof
+      import arrow.Coercion
       import arrow.Refined
-      import arrow.TypeProof
+      import arrow.Refinement
       
+      @Refinement
       inline class TwitterHandle(val handle: String) {
           companion object : Refined<String, TwitterHandle> {
-              override val constructor = ::TwitterHandle
+              override val target = ::TwitterHandle
               override val validate: String.() -> Map<String, Boolean> = {
                   mapOf(
                       "Should start with '@'" to startsWith("@"),
@@ -25,21 +26,22 @@ object CoercionTestCode {
           }
       }
       
-      @Proof(TypeProof.Extension, coerce = true)
+      @Coercion
       fun String.twitterHandle(): TwitterHandle? =
           TwitterHandle.from(this)
       
-      @Proof(TypeProof.Extension, coerce = true)
+      @Coercion
       fun TwitterHandle.handle(): String =
           handle
-          
-      val implicit: TwitterHandle? = "@eeeeeee"
     """.trimIndent()
 
   val code1 =
     """
-      package consumer
+      package prelude
+
+      import consumer.TwitterHandle
       
-      val implicit2: TwitterHandle? = "@eeeeeee"
+      val implicit: TwitterHandle? = "@danieeehh"
+      val implicit2: String = TwitterHandle("@aballano")
     """.trimIndent()
 }
