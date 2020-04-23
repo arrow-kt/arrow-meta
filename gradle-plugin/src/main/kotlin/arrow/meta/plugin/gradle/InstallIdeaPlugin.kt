@@ -54,10 +54,10 @@ open class InstallIdeaPlugin: DefaultTask() {
     return parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
   }
 
-  private fun downloadPluginFile(pluginDistributionFileURL: String?, pluginDistributionFileName: String): Unit {
+  private fun downloadPluginFile(pluginFileURL: String?, pluginFileName: String): Unit {
     Files.copy(
-      URL(pluginDistributionFileURL).openStream(),
-      Paths.get(pluginsDir(), pluginDistributionFileName)
+      URL(pluginFileURL).openStream(),
+      Paths.get(pluginsDir(), pluginFileName)
     )
   }
 
