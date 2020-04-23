@@ -1,21 +1,13 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
-import arrow.meta.ide.plugins.quotes.TestQuoteSystemService
-import arrow.meta.ide.plugins.quotes.testQuoteSystem
+/*
 import arrow.meta.ide.testing.env.IdeTestSetUp
-import arrow.meta.ide.testing.unavailable
-import com.google.common.collect.Lists
 import com.intellij.codeHighlighting.Pass
-import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Test
-import java.io.File
 
 const val proof = """
 import arrow.Proof
@@ -81,3 +73,4 @@ class ImplicitcoercionTest : IdeTestSetUp() {
     println(highlightInfos)
   }
 }
+*/
