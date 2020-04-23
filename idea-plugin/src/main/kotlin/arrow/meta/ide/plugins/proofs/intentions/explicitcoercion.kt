@@ -1,97 +1,86 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
-/*
-fun IdeMetaPlugin.makeExplicitCoercionIntention(compilerContext: CompilerContext): ExtensionPhase =
-    addIntention(
-      text = "Make coercion explicit",
-      kClass = KtElement::class.java,
-      isApplicableTo = { ktCall: KtElement, _ ->
-        //TODO we should handle the caret here to not show the intention for all KtCallElement args,
-        // but only the implicit ones
+import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.proofs.phases.areTypesCoerced
+import arrow.meta.plugins.proofs.phases.coerceProof
+import arrow.meta.quotes.ktFile
+import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.imports.importableFqName
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.types.KotlinType
+
+/**
+ * [explicitCoercionIntention]: for implicit coercion to make it explicit
+ */
+val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
+  get() = addApplicableInspection(
+    defaultFixText = "Make_coercion_explicit",
+    enabledByDefault = false,
+    kClass = KtElement::class.java,
+    isApplicable = { ktCall: KtElement ->
+      ktCall.ctx()?.let { compilerContext ->
         ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
-      },
-      applyTo = { ktCall: KtElement, _ ->
-        when (ktCall) {
-          //TODO this should only modify one element at a time
-          is KtCallElement -> {
-            // Get the coerced types from all arguments
-            val targetingTypes: List<PairTypes> = ktCall.explicitParticipatingTypes()
-              .filter { (subtype, supertype) -> compilerContext.areTypesCoerced(subtype, supertype) }
+      } ?: false
+    },
+    applyTo = { ktCall: KtElement, _, _ ->
+      ktCall.ctx()?.let { compilerContext ->
+        ktCall.makeExplicit(compilerContext)
+      }
+    },
+    inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
+    inspectionHighlightType = { ProblemHighlightType.INFORMATION },
+    groupPath = ProofPath + arrayOf("Coercion")
+  )
 
-            // get all coerced call element args
-            ktCall.valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression() }
-              ?.mapNotNull { arg ->
-                val type = arg.resolveType()
-                targetingTypes.firstOrNull { it.subType == type }?.let { targetType ->
-                  targetType to arg
-                }
-              }
-              // replace them with the explicit version with the proof
-              ?.forEach { (targetType, arg) ->
-                replaceWithProof(arg, compilerContext, targetType)
-              }
+private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
+  when (this) {
+    is KtValueArgument -> {
+      // Get the coerced types (parameter type and actual definition type)
+      explicitParticipatingTypes().firstOrNull { (subtype: KotlinType, supertype: KotlinType) ->
+        compilerContext.areTypesCoerced(subtype, supertype)
+      }?.let { pairType: PairTypes ->
+        getArgumentExpression()?.let { ktExpression ->
+          val type = ktExpression.resolveKotlinType()
+          if (pairType.subType == type) {
+            ktExpression.replaceWithProof(compilerContext, pairType)
           }
-
-          is KtProperty -> {
-            ktCall.explicitParticipatingTypes().first().let { pairType ->
-              ktCall.initializer?.let { initializer ->
-                replaceWithProof(initializer, compilerContext, pairType)
-              }
-            }
-          }
-
         }
       }
-    )
-  }
+    }
 
-private fun ElementScope.replaceWithProof(element: KtExpression, compilerContext: CompilerContext, pairType: PairTypes) {
-  // TODO: add imports
-//  val ktfile = element.containingKtFile
-//  importDirective()
-  val through = compilerContext.coerceProof(pairType.subType, pairType.superType)?.through?.name
-  val ktExpression: KtExpression? = "${element.text}.$through()".expression.value
-  ktExpression?.let {
-    element.replace(it)
+    is KtProperty -> explicitParticipatingTypes().first().let { pairType ->
+      initializer?.replaceWithProof(compilerContext, pairType)
+    }
   }
 }
 
-//TODO move elsewhere
-data class PairTypes(val subType: KotlinType, val superType: KotlinType) {
-  companion object {
-    infix fun KotlinType?.pairOrNull(b: KotlinType?): PairTypes? =
-      if (this != null && b != null) PairTypes(this, b)
-      else null
+private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
+  val through = coerceProof(pairType.subType, pairType.superType)!!.through
+  val importList = containingKtFile.importList!!
+  val importableFqName = through.importableFqName
+  val throughPackage = through.ktFile()?.packageFqName
+
+  val notImported = !importList.imports.any { it.importedFqName == importableFqName }
+  val differentPackage = containingKtFile.packageFqName != throughPackage
+
+  if (notImported && differentPackage) {
+    val proofImport = importableFqName?.let {
+      importDirective(ImportPath(it, false)).value
+    }
+    proofImport?.let { importDirective: KtImportDirective ->
+      importList.add(importDirective as PsiElement)// TODO sort?
+    }
   }
+  val ktExpression: KtExpression? = "$text.${through.name}()".expression.value
+  ktExpression?.let(::replace)
 }
-
-fun KtElement.explicitParticipatingTypes(): List<PairTypes> =
-  when (this) {
-    is KtCallElement -> {
-      // Obtain the argument types from the current call
-      val subTypes = valueArgumentList?.arguments?.mapNotNull { it.getArgumentExpression()?.resolveType() }
-        ?: emptyList()
-
-      val superTypes = analyze(bodyResolveMode = BodyResolveMode.FULL)
-        .getSliceContents(BindingContext.RESOLVED_CALL)
-        // get the calls for the current element
-        .filter { (call, _) -> call.callElement == this }
-        // then the argument types
-        .entries.first().value.valueArguments
-        .map { it.key.type }
-
-      //TODO check for named and switched arguments!
-
-      subTypes.zip(superTypes, ::PairTypes)
-    }
-
-    is KtProperty -> {
-      val superType = type()
-      val subType = initializer?.resolveType()
-      (subType pairOrNull superType)?.let(::listOf) ?: emptyList()
-    }
-    else -> emptyList()
-  }
-*/

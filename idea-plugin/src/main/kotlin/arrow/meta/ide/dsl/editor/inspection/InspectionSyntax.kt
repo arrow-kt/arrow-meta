@@ -42,9 +42,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.dsl.utils.intersectFunction
    * import arrow.meta.ide.invoke
+   * import arrow.meta.phases.analysis.returnTypeEq
    * import com.intellij.codeHighlighting.HighlightDisplayLevel
    * import com.intellij.codeInspection.ProblemHighlightType
    * import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
@@ -54,27 +56,33 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *
    * //sampleStart
    * val IdeMetaPlugin.simplyPure: IdePlugin
-   *  get() = "Draft PurityPlugin" {
-   *   meta(
-   *    addApplicableInspection(
-   *     defaultFixText = "Simplified PurityPlugin",
-   *     inspectionHighlightType = { ProblemHighlightType.ERROR },
-   *     kClass = KtNamedFunction::class.java,
-   *     inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
-   *     applyTo = { f, project, editor ->
-   *      f.addModifier(KtTokens.SUSPEND_KEYWORD)
-   *     },
-   *     isApplicable = { f: KtNamedFunction ->
-   *      !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
-   *      f.resolveToDescriptorIfAny()?.run {
-   *       !isSuspend && !isSuspendLambdaOrLocalFunction()
-   *      } == true
-   *     },
-   *     level = HighlightDisplayLevel.ERROR,
-   *     groupPath = arrayOf("Meta", "SimplePlugin")
-   *    )
-   *   )
-   *  }
+   *   get() = "Draft PurityPlugin" {
+   *     meta(
+   *       addApplicableInspection(
+   *         defaultFixText = "Simplified PurityPlugin",
+   *         inspectionHighlightType = { ProblemHighlightType.ERROR },
+   *         kClass = KtNamedFunction::class.java,
+   *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
+   *         applyTo = { f, project, editor ->
+   *           f.addModifier(KtTokens.SUSPEND_KEYWORD)
+   *         },
+   *         isApplicable = { f: KtNamedFunction ->
+   *           !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
+   *             f.resolveToDescriptorIfAny()?.run {
+   *               !isSuspend && !isSuspendLambdaOrLocalFunction() &&
+   *                 intersectFunction(returnTypeEq, f) {
+   *                   listOf(unitType)
+   *                 }.isNotEmpty()
+   *               // `intersectFunction` evaluates the return type of the FunctionDescriptor of [f] and all return types of call-sites in the function body,
+   *               // returning a list of `KotlinTypes` that intersect with the specified list here `listOf(unitType)`.
+   *               // `returnTypeEq` defines type equality where function types are reduced to their return type.
+   *             } == true
+   *         },
+   *         level = HighlightDisplayLevel.ERROR,
+   *         groupPath = arrayOf("Meta", "SimplePlugin")
+   *       )
+   *     )
+   *   }
    * //sampleEnd
    * ```
    * Needless to say, the latter implementation is not sufficient enough as a purityPlugin, as the function body of the underlying Call's may have impure Call's.

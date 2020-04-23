@@ -143,12 +143,12 @@ fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
   module.proofs.filterIsInstance<GivenProof>()
     .matchingCandidates(this, superType)
 
-fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): ExtensionProof? =
+fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): CoercionProof? =
   coerceProofs(subType, superType).firstOrNull()
 
-fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
+fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<CoercionProof> =
   module.proofs
-    .filterIsInstance<ExtensionProof>()
+    .filterIsInstance<CoercionProof>()
     .filter { it.coerce }
     .matchingCandidates(this, subType, superType)
 

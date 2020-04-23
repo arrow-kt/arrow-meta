@@ -8,32 +8,37 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
+import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
 fun IdeMetaPlugin.coerceProofLineMarker(icon: Icon): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
-    composite = KtProperty::class.java,
     transform = { psiElement ->
       psiElement.ctx()?.let { ctx ->
-        psiElement.safeAs<KtProperty>()?.takeIf { it.isCoerced(ctx) }
+        psiElement.safeAs<KtElement>()?.takeIf {
+          it.isCoerced(ctx)
+        }
       }
     },
-    message = { ktProperty: KtElement ->
-      ktProperty.anyParticipatingTypes()?.let { (subtype, supertype) ->
-        ktProperty.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
-      } ?: "Proof not found"
+    message = { ktElement: KtElement ->
+      ktElement.anyParticipatingTypes().mapNotNull { (subtype, supertype) ->
+        ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+      }.firstOrNull() ?: "Proof not found"
     }
   )
 
-private fun KtElement.anyParticipatingTypes(): List<PairTypes> =
-  explicitParticipatingTypes() + implicitParticipatingTypes()
+fun KtElement.anyParticipatingTypes(): List<PairTypes> =
+  (this.safeAs<KtValueArgument>()?.explicitParticipatingTypes() ?: emptyList()) +
+    (this.safeAs<KtProperty>()?.explicitParticipatingTypes() ?: emptyList()) +
+    (this.safeAs<KtDotQualifiedExpression>()?.implicitParticipatingTypes() ?: emptyList())
 
-private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean {
-  return anyParticipatingTypes().any { (subtype, supertype) ->
+private fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean =
+  anyParticipatingTypes().any { (subtype, supertype) ->
     compilerContext.areTypesCoerced(subtype, supertype)
   }
-}

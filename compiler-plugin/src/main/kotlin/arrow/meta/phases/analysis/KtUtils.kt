@@ -148,5 +148,13 @@ fun <D : DeclarationDescriptor> D.intersect(
 val resolveFunctionType: (KotlinType) -> KotlinType
   get() = { if (it.isBuiltinFunctionalType) it.getReturnTypeFromFunctionType() else it }
 
+/**
+ * naive type equality where function types are reduced to their return type
+ */
+val returnTypeEq: Eq<KotlinType>
+get() = Eq { a, b ->
+  resolveFunctionType(a) == resolveFunctionType(b)
+}
+
 fun KtAnnotated.isAnnotatedWith(regex: Regex) =
   annotationEntries.any { it.text.matches(regex) }

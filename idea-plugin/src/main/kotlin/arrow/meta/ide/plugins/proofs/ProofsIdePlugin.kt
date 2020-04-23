@@ -1,10 +1,13 @@
 package arrow.meta.ide.plugins.proofs
 
+import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
+import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -20,10 +23,12 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
+      refinementAnnotator(),
       proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
@@ -31,13 +36,18 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
-      refinementAnnotator(),
       proofsKotlinCache,
       coerceProofLineMarker(ArrowIcons.ICON4),
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      //makeExplicitCoercionIntention(ctx),
-      //makeImplicitCoercionIntention(ctx),
+      explicitCoercionIntention,
+      implicitCoercionIntention,
       codeFolding
     )
   }
 
+val IdeMetaPlugin.typeProofsCli: CliPlugin
+  get() = "Type Proofs Cli Integration".cli {
+    meta(
+      suppressDiagnostic { suppressProvenTypeMismatch(it) }
+    )
+  }
