@@ -2,6 +2,35 @@ package arrow.meta.ide.plugins.proofs.markers
 
 object CoercionTestCode {
 
+  val prelude =
+    """
+      package arrow
+
+      @Retention(AnnotationRetention.RUNTIME)
+      @Target(AnnotationTarget.FUNCTION)
+      @MustBeDocumented
+      annotation class Coercion
+
+      interface Refined<A, B> {
+        val target: (A) -> B
+        val validate: A.() -> Map<String, Boolean>
+        fun validate(a: A): Map<String, Boolean> = validate.invoke(a)
+        fun isValid(a: A): Boolean = validate(a).all { it.value }
+        fun from(a: A) : B? =
+          if (isValid(a)) target(a)
+          else null
+      }
+
+      @Retention(AnnotationRetention.RUNTIME)
+      @Target(AnnotationTarget.CLASS)
+      @MustBeDocumented
+      annotation class Refinement
+
+      @Retention(AnnotationRetention.RUNTIME)
+      @Target(AnnotationTarget.CLASS)
+      annotation class RefinedBy(val value: String)
+    """.trimIndent()
+
   val twitterHandleDeclaration =
     """
       package consumer
@@ -26,18 +55,18 @@ object CoercionTestCode {
           }
       }
       
-      @Coercion
+      @arrow.Coercion
       fun String.twitterHandle(): TwitterHandle? =
           TwitterHandle.from(this)
       
-      @Coercion
+      @arrow.Coercion
       fun TwitterHandle.handle(): String =
           handle
     """.trimIndent()
 
   val code1 =
     """
-      package prelude
+      package consumer
 
       import consumer.TwitterHandle
       

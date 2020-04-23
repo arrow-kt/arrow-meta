@@ -21,6 +21,7 @@ class CoercionTest : IdeTestSetUp() {
           code = CoercionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
+            myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
           result = resolvesWhen("LineMarkerTest for 1 LM ") { descriptor ->
