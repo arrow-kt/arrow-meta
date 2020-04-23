@@ -83,4 +83,5 @@ jobs:
         sed -i "s/%SPECIFIC_VERSION%/$VERSION_NUMBER-$TIMESTAMP-$BUILD_NUMBER/g" .github/workflows/templates/updatePlugins.xml
         mkdir -p artifacts/idea-plugin/snapshots/$VERSION_NAME
         cp .github/workflows/templates/updatePlugins.xml artifacts/idea-plugin/snapshots/$VERSION_NAME/
+        cp idea-plugin/build/distributions/*.zip artifacts/idea-plugin/snapshots/$VERSION_NAME/
         aws s3 cp artifacts s3://$S3_BUCKET --recursive > aws_sync_jekyll.log
