@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -37,6 +38,9 @@ val IdeMetaPlugin.implicitCoercionIntention: ExtensionPhase
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     groupPath = ProofPath + arrayOf("Coercion")
   )
+
+private fun KtDotQualifiedExpression.implicitParticipatingTypes(): List<PairTypes> =
+  listOfNotNull(receiverExpression.resolveKotlinType() pairOrNull selectorExpression?.resolveKotlinType())
 
 private fun KtDotQualifiedExpression.coercionProofMessage(ctx: CompilerContext): String =
   implicitParticipatingTypes().mapNotNull { (subtype, supertype) ->
