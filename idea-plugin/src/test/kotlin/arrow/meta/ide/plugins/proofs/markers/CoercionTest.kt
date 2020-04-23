@@ -24,8 +24,8 @@ class CoercionTest : IdeTestSetUp() {
             myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("LineMarkerTest for 1 LM ") { descriptor ->
-            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
+          result = resolvesWhen("LineMarkerTest for 2 LM ") { descriptor ->
+            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         )
       )
