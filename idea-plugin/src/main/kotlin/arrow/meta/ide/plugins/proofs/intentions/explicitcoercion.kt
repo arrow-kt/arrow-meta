@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.intentions
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.markers.participatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * [explicitCoercionIntention]: for implicit coercion to make it explicit
@@ -27,7 +29,7 @@ val IdeMetaPlugin.explicitCoercionIntention: ExtensionPhase
     kClass = KtElement::class.java,
     isApplicable = { ktCall: KtElement ->
       ktCall.ctx()?.let { compilerContext ->
-        ktCall.explicitParticipatingTypes().any { (subtype, supertype) ->
+        ktCall.getParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       } ?: false
@@ -46,7 +48,7 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   when (this) {
     is KtValueArgument -> {
       // Get the coerced types (parameter type and actual definition type)
-      explicitParticipatingTypes().firstOrNull { (subtype: KotlinType, supertype: KotlinType) ->
+      participatingTypes().firstOrNull { (subtype: KotlinType, supertype: KotlinType) ->
         compilerContext.areTypesCoerced(subtype, supertype)
       }?.let { pairType: PairTypes ->
         getArgumentExpression()?.let { ktExpression ->
@@ -58,7 +60,7 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
       }
     }
 
-    is KtProperty -> explicitParticipatingTypes().first().let { pairType ->
+    is KtProperty -> participatingTypes().first().let { pairType ->
       initializer?.replaceWithProof(compilerContext, pairType)
     }
   }
@@ -84,3 +86,7 @@ private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pair
   val ktExpression: KtExpression? = "$text.${through.name}()".expression.value
   ktExpression?.let(::replace)
 }
+
+private fun KtElement.getParticipatingTypes(): List<PairTypes> =
+  (this.safeAs<KtValueArgument>()?.participatingTypes() ?: emptyList()) +
+    (this.safeAs<KtProperty>()?.participatingTypes() ?: emptyList())

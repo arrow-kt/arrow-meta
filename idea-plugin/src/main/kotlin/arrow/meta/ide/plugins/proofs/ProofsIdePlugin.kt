@@ -8,7 +8,7 @@ import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
 import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
-import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
+import arrow.meta.ide.plugins.proofs.markers.coercionLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -37,8 +37,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
       proofsKotlinCache,
-      coerceProofLineMarker(ArrowIcons.ICON4),
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
+      coercionLineMarker,
       explicitCoercionIntention,
       implicitCoercionIntention,
       codeFolding
