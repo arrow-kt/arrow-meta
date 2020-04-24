@@ -15,8 +15,6 @@ private const val IDEA_PLUGIN_NAME = "Arrow Meta Intellij IDEA Plugin"
 
 open class InstallIdeaPlugin: DefaultTask() {
 
-  // TODO: Consider release version
-
   @TaskAction
   fun installPlugin() {
     if (!inIdea()) {
@@ -50,7 +48,7 @@ open class InstallIdeaPlugin: DefaultTask() {
   private fun getPluginFileURL(properties: Properties): String? {
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
     val parser = DOMParser()
-    parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/snapshots/$compilerPluginVersion/updatePlugins.xml").openStream()))
+    parser.parse(InputSource(URL("https://meta.arrow-kt.io/idea-plugin/$compilerPluginVersion/updatePlugins.xml").openStream()))
     return parser.document.getElementsByTagName("plugin").item(0).attributes.getNamedItem("url").nodeValue
   }
 
