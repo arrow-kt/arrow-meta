@@ -60,14 +60,13 @@ open class InstallIdeaPlugin: DefaultTask() {
   }
 
   private fun unzipPluginFile(pluginFileName: String): Unit {
-    Files.createDirectory(Paths.get(pluginsDir(), IDEA_PLUGIN_NAME))
     val zipFile = ZipFile(Paths.get(pluginsDir(), pluginFileName).toFile())
     zipFile.entries().asSequence().forEach { zipEntry ->
       when {
-        zipEntry.isDirectory -> Files.createDirectory(Paths.get(pluginsDir(), IDEA_PLUGIN_NAME, zipEntry.name))
+        zipEntry.isDirectory -> Files.createDirectory(Paths.get(pluginsDir(), zipEntry.name))
         else -> Files.copy(
           zipFile.getInputStream(zipEntry),
-          Paths.get(pluginsDir(), IDEA_PLUGIN_NAME, zipEntry.name)
+          Paths.get(pluginsDir(), zipEntry.name)
         )
       }
     }
