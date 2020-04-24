@@ -43,18 +43,17 @@ class CoercionTest : IdeTestSetUp() {
             println("CoercionTest2 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
             descriptor.lineMarker.isEmpty() && descriptor.slowLM.isEmpty()
           }
+        ),
+        IdeTest(
+          code = CoercionTestCode.code3,
+          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
+            collectLM(code, myFixture, ArrowIcons.ICON4)
+          },
+          result = resolvesWhen("CoercionTest for 1 LM ") { descriptor ->
+            println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
+          }
         )
-//        ,
-//        IdeTest(
-//          code = CoercionTestCode.code3,
-//          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-//            collectLM(code, myFixture, ArrowIcons.ICON4)
-//          },
-//          result = resolvesWhen("CoercionTest for 1 LM ") { descriptor ->
-//            println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-//            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
-//          }
-//        )
       )
     }
 }

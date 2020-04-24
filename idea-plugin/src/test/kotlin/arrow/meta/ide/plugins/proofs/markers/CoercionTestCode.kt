@@ -94,6 +94,6 @@ object CoercionTestCode {
       fun print(s: String, i: Int, s2: TwitterHandle?) = println(s)
       
       fun implicitExplicitCoercions() =
-          print(TwitterHandle("@aballano"), 1, "@danieeehh".twitterHandle())
+          print(TwitterHandle("@aballano"), 1, "@danieeehh")
     """.trimIndent()
 }
