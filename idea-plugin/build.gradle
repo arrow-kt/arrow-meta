@@ -14,16 +14,8 @@ repositories {
 
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-  compileOnly project(':compiler-plugin')
-  compile "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
-  // runtime "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-//  compile "org.jetbrains.kotlin:kotlin-scripting-jsr223-embeddable:$KOTLIN_VERSION"
-  //compile group: 'org.jline', name: 'jline-reader', version: '3.14.0'
-//  compile "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
-//  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
-//  compile "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:$KOTLIN_VERSION"
-//  compile "org.jetbrains.kotlin:kotlin-script-runtime:$KOTLIN_VERSION"
-  compile project(path: ':compiler-plugin', configuration: 'shadow')
+  api "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
+  api project(path: ':compiler-plugin', configuration: 'shadow')
 }
 
 compileKotlin {
@@ -39,7 +31,6 @@ jar {
     attributes["Implementation-Title"] = "arrow.meta.plugin.idea"
     attributes["Implementation-Version"] = project.version
   }
-  //from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 buildSearchableOptions.enabled = false

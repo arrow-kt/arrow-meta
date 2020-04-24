@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugins>
-    <plugin id="io.arrow-kt.arrow" url="https://oss.jfrog.org/artifactory/oss-snapshot-local/io/arrow-kt/idea-plugin/%MAIN_VERSION%/idea-plugin-%SPECIFIC_VERSION%.jar" version="%MAIN_VERSION%">
+    <plugin id="io.arrow-kt.arrow" url="https://meta.arrow-kt.io/idea-plugin/snapshots/%MAIN_VERSION%/Arrow%20Meta%20Intellij%20IDEA%20Plugin-%MAIN_VERSION%.zip" version="%SPECIFIC_VERSION%">
         <name>Arrow Meta</name>
-        <description>SNAPSHOT VERSION: %SPECIFIC_VERSION%</description>
+        <description>SNAPSHOT VERSION</description>
         <idea-version since-build=%SINCE_BUILD% until-build=%UNTIL_BUILD% />
     </plugin>
 </plugins>
