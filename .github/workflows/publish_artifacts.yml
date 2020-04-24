@@ -58,17 +58,29 @@ jobs:
         echo "Uploading artifacts..."
         ./gradlew uploadArchives
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
-    - name: Publish IDEA plugin into private repository
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    - name: Create the private IDEA plugin repository (preparation)
       run: |
         VERSION_NAME=$(grep VERSION_NAME gradle.properties | cut -d= -f2)
         sed -i "s/%MAIN_VERSION%/$VERSION_NAME/g" .github/workflows/templates/updatePlugins.xml
         mkdir -p artifacts/idea-plugin/$VERSION_NAME
         cp .github/workflows/templates/updatePlugins.xml artifacts/idea-plugin/$VERSION_NAME/
         cp idea-plugin/build/distributions/*.zip artifacts/idea-plugin/$VERSION_NAME/
+    - name: Create the private IDEA plugin repository (SNAPSHOT)
+      if: steps.properties.outputs.is-snapshot == 'true'
+      run: |
+        mkdir artifacts/idea-plugin/latest-snapshot
+        cp .github/workflows/templates/updatePlugins.xml artifacts/idea-plugin/latest-snapshot
+    - name: Create the private IDEA plugin repository (RELEASE)
+      if: steps.properties.outputs.is-snapshot == 'false'
+      run: |
+        mkdir artifacts/idea-plugin/latest-release
+        cp .github/workflows/templates/updatePlugins.xml artifacts/idea-plugin/latest-release
+    - name: Publish IDEA plugin into private repository
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
         aws s3 cp artifacts s3://$S3_BUCKET --recursive > aws_sync_jekyll.log
     - name: Publish IDEA plugin into Jetbrains repository
       if: steps.properties.outputs.is-snapshot == 'false'
