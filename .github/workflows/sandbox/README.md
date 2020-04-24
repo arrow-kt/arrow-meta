@@ -29,28 +29,6 @@ For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev.di
 
 Update `.github/workflows/sandbox/1.4.0-dev.diff` with the new required changes.
 
-### What if there are failures when applying a patch on a development branch?
-
-Follow these steps:
-
-1. Create a stash entry for that patch:
-```
-git checkout master
-git apply .github/workflows/sandbox/<version>.diff
-git stash
-```
-2. Apply the stash entry on development branch:
-```
-git checkout <dev-branch>
-git stash apply
-```
-3. Fix the conflicts
-4. Update the patch:
-```
-git diff > .github/workflows/sandbox/<version>.diff
-```
-5. Commit the change
-
 ## What will it be done with those patch files automatically?
 
 ### Build check with every pull request
