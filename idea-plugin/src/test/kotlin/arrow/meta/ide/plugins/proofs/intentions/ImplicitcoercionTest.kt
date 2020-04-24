@@ -7,6 +7,7 @@ import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.Ignore
 import org.junit.Test
 
 const val proof = """
@@ -39,6 +40,7 @@ class ImplicitcoercionTest : IdeTestSetUp() {
 
 
   @Test
+  @Ignore
   fun name() {
     val code = """
       package testArrow

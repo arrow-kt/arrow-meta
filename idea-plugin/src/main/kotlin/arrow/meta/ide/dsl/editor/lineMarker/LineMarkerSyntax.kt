@@ -20,6 +20,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -126,7 +127,7 @@ interface LineMarkerSyntax {
    * provides a function [f] from a Leaf PsiElement
    * @receiver is the Leaf PsiElement
    */
-  fun <A : PsiNameIdentifierOwner, L : LineMarkerInfo<PsiElement>> PsiElement.onComposite(composite: Class<A>, f: (A) -> L): L? =
+  fun <A : PsiElement, L : LineMarkerInfo<PsiElement>> PsiElement.onComposite(composite: Class<A>, f: (A) -> L): L? =
     PsiTreeUtil.getParentOfType(this, composite)?.let(f)
 
   /**
@@ -239,6 +240,25 @@ interface LineMarkerSyntax {
       { transform(it)?.identifyingElement },
       {
         it.onComposite(composite) { psi: A ->
+          mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
+        }
+      }
+    )
+
+  fun IdeMetaPlugin.addLineMarkerProviderM(
+    icon: Icon,
+    transform: (PsiElement) -> KtValueArgument?,
+    message: DescriptorRenderer.Companion.(KtValueArgument) -> String = Noop.string2(),
+    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
+    mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
+    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
+    clickAction: AnAction? = null
+  ): ExtensionPhase =
+    addLineMarkerProvider(
+      { transform(it)?.getArgumentExpression() },
+      {
+        it.onComposite(KtValueArgument::class.java) { psi: KtValueArgument ->
           mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }

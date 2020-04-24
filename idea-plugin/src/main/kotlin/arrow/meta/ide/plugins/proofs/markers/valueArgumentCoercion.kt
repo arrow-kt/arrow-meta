@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.implicitCoercionValueArgumentLineMarker: ExtensionPhase
-  get() = addLineMarkerProvider(
+  get() = addLineMarkerProviderM(
     icon = ArrowIcons.ICON4,
     transform = { psiElement: PsiElement ->
       psiElement.ctx()?.let { ctx ->
