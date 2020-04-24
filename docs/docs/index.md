@@ -51,11 +51,26 @@ apply plugin: "io.arrow-kt.arrow"
 
 There are several ways to install the Arrow Meta Intellij IDEA Plugin.
 
-* When using the Arrow Meta Gradle Plugin from Intellij IDEA, there is a Gradle task available to install it:
+### Λrrow Meta Intellij IDEA Plugin: installation from a Gradle task
+
+When using the Arrow Meta Gradle Plugin from Intellij IDEA, there is a Gradle task available to install it:
+
 (screenshots)
-* From Intellij IDEA Plugins section when adding a private repository: https://meta.arrow-kt.io/idea-plugin/updatePlugins.xml
+
+### Λrrow Meta Intellij IDEA Plugin: installation from a private repository
+
+Besides the [Jetbrains Plugins Repository](https://plugins.jetbrains.com), there are 2 private repositories:
+
+* To install the latest SNAPSHOT version: https://meta.arrow-kt.io/idea-plugin/latest-snapshot/updatePlugins.xml
+* To install the latest RELEASE version: https://meta.arrow-kt.io/idea-plugin/latest-release/updatePlugins.xml
+
 (screenshots)
-* From Intellij IDEA Plugins section when a RELEASE version will be published into the [Jetbrains Plugins Repository](https://plugins.jetbrains.com).
+
+## Λrrow Meta Intellij IDEA Plugin: installation from Jetbrains Plugins Repository
+
+When a RELEASE version is published into the [Jetbrains Plugins Repository](https://plugins.jetbrains.com), it will be able to install the plugin from ...
+
+(screenshots)
 
 ## Λrrow Meta examples
 
