@@ -51,7 +51,7 @@ class CoercionTest : IdeTestSetUp() {
           },
           result = resolvesWhen("CoercionTest3 for 1 LM ") { descriptor ->
             println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
+            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
           }
         ),
         IdeTest(
