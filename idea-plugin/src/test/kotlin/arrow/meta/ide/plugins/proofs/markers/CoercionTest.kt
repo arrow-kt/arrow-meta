@@ -13,8 +13,8 @@ class CoercionTest : IdeTestSetUp() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
     myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
+    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
   @org.junit.Test
@@ -29,7 +29,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest for 2 LM ") { descriptor ->
+          result = resolvesWhen("CoercionTest1 for 2 LM ") { descriptor ->
             println("CoercionTest1 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
             descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
@@ -39,7 +39,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest for 0 LM ") { descriptor ->
+          result = resolvesWhen("CoercionTest2 for 0 LM ") { descriptor ->
             println("CoercionTest2 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
             descriptor.lineMarker.isEmpty() && descriptor.slowLM.isEmpty()
           }
@@ -49,9 +49,19 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest for 1 LM ") { descriptor ->
+          result = resolvesWhen("CoercionTest3 for 1 LM ") { descriptor ->
             println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
+            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
+          }
+        ),
+        IdeTest(
+          code = CoercionTestCode.code4,
+          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
+            collectLM(code, myFixture, ArrowIcons.ICON4)
+          },
+          result = resolvesWhen("CoercionTest4 for 2 LM ") { descriptor ->
+            println("CoercionTest4 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         )
       )

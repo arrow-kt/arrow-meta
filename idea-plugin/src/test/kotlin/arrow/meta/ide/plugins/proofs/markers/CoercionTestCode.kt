@@ -89,11 +89,26 @@ object CoercionTestCode {
       package consumer
 
       import consumer.TwitterHandle
-      import consumer.twitterHandle
       
       fun print(s: String, i: Int, s2: TwitterHandle?) = println(s)
       
       fun implicitExplicitCoercions() =
           print(TwitterHandle("@aballano"), 1, "@danieeehh")
+    """.trimIndent()
+
+  val code4 =
+    """
+      package consumer
+
+      import consumer.TwitterHandle
+      
+      fun print(s: String, i: Int, s2: TwitterHandle?) = println(s)
+      
+      fun implicitExplicitCoercions() =
+          print(
+              TwitterHandle("@aballano"),
+              1,
+              "@danieeehh"
+          )
     """.trimIndent()
 }
