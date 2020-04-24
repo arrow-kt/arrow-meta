@@ -33,6 +33,7 @@ dependencies {
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   compile "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
   runtime "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+  runtimeOnly "xerces:xercesImpl:$XERCES_VERSION"
   runtimeOnly "io.arrow-kt:compiler-plugin:$VERSION_NAME"
 }
 
