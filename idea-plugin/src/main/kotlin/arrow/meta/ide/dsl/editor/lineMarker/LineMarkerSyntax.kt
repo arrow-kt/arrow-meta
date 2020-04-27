@@ -18,6 +18,7 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -256,7 +257,7 @@ interface LineMarkerSyntax {
     clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
-      { transform(it)?.getArgumentExpression() },
+      { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
       {
         it.onComposite(KtValueArgument::class.java) { psi: KtValueArgument ->
           mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
