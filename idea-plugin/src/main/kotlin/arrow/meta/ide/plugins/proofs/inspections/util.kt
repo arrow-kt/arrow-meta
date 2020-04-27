@@ -1,4 +1,4 @@
-package arrow.meta.ide.plugins.proofs.intentions
+package arrow.meta.ide.plugins.proofs.inspections
 
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtExpression

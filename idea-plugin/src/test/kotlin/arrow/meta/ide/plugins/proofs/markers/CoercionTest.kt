@@ -49,9 +49,9 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest3 for 1 LM ") { descriptor ->
+          result = resolvesWhen("CoercionTest3 for 2 LM ") { descriptor ->
             println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-            descriptor.lineMarker.size == 1 && descriptor.slowLM.isEmpty()
+            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         ),
         IdeTest(

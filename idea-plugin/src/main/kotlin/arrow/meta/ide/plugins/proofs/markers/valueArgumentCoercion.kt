@@ -1,9 +1,9 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.intentions.PairTypes
-import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
-import arrow.meta.ide.plugins.proofs.intentions.resolveKotlinType
+import arrow.meta.ide.plugins.proofs.inspections.PairTypes
+import arrow.meta.ide.plugins.proofs.inspections.PairTypes.Companion.pairOrNull
+import arrow.meta.ide.plugins.proofs.inspections.resolveKotlinType
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase

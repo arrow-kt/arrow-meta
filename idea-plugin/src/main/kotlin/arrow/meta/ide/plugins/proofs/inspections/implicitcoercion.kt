@@ -1,33 +1,33 @@
-package arrow.meta.ide.plugins.proofs.intentions
+package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.intentions.PairTypes.Companion.pairOrNull
+import arrow.meta.ide.dsl.IdeSyntax
+import arrow.meta.ide.plugins.proofs.inspections.PairTypes.Companion.pairOrNull
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
+import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 
 /**
- * [implicitCoercionIntention]: for explicit coercion to make it implicit
+ * [implicitCoercionInspection]: for explicit coercion to make it implicit
  */
-val IdeMetaPlugin.implicitCoercionIntention: ExtensionPhase
-  get() = addApplicableInspection(
+val IdeMetaPlugin.implicitCoercionInspection: ExtensionPhase
+  get() = addLocalInspection(
+    inspection = implicitCoercionInspectionSyntax,
+    level = HighlightDisplayLevel.WARNING,
+    groupPath = ProofPath + arrayOf("Coercion")
+  )
+
+val IdeSyntax.implicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
+  get() = applicableInspection(
     defaultFixText = "Make_coercion_implicit",
+    inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
-    enabledByDefault = true,
-    isApplicable = { ktCall: KtDotQualifiedExpression ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
-          compilerContext.areTypesCoerced(subtype, supertype)
-        }
-      } ?: false
-    },
-    applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
-      ktCall.replace(ktCall.receiverExpression)
-    },
     inspectionText = { ktDotQualifiedExpression: KtDotQualifiedExpression ->
       // TODO: research ways to display this nicely and align it with [arrow.meta.ide.plugins.proofs.markers.CoercionKt.coerceProofLineMarker]
       val coercionMessage = ktDotQualifiedExpression.ctx()?.let { context ->
@@ -35,8 +35,16 @@ val IdeMetaPlugin.implicitCoercionIntention: ExtensionPhase
       }
       "Expression: ${ktDotQualifiedExpression.text} can be replaced for only its receiver because there is a $coercionMessage"
     },
-    inspectionHighlightType = { ProblemHighlightType.WARNING },
-    groupPath = ProofPath + arrayOf("Coercion")
+    applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
+      ktCall.replace(ktCall.receiverExpression)
+    },
+    isApplicable = { ktCall: KtDotQualifiedExpression ->
+      ktCall.ctx()?.let { compilerContext ->
+        ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
+          compilerContext.areTypesCoerced(subtype, supertype)
+        }
+      } ?: false
+    }
   )
 
 private fun KtDotQualifiedExpression.implicitParticipatingTypes(): List<PairTypes> =

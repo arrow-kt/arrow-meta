@@ -5,8 +5,8 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.intentions.explicitCoercionIntention
-import arrow.meta.ide.plugins.proofs.intentions.implicitCoercionIntention
+import arrow.meta.ide.plugins.proofs.inspections.explicitCoercionInspection
+import arrow.meta.ide.plugins.proofs.inspections.implicitCoercionInspection
 import arrow.meta.ide.plugins.proofs.markers.coercionLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -38,8 +38,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       coercionLineMarker,
-      explicitCoercionIntention,
-      implicitCoercionIntention,
+      explicitCoercionInspection,
+      implicitCoercionInspection,
       codeFolding
     )
   }
