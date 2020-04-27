@@ -27,12 +27,9 @@ class ArrowGradlePlugin : Plugin<Project> {
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
-    val kotlinVersion = project.getKotlinPluginVersion()
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-script-util:$kotlinVersion")
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
+      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:compiler-plugin:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
