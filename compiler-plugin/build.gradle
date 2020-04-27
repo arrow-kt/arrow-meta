@@ -4,9 +4,15 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     // WARNING: don't change the configuration name because it's used by shadowJar
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    compileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
+    compile "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+    compile("org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION") {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+    }
+    api "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
 
     testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
     testImplementation("io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION") {
@@ -16,6 +22,7 @@ dependencies {
     testImplementation project(":meta-test")
     testRuntimeOnly project(':compiler-plugin')
 
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")
     testCompileOnly "io.arrow-kt:arrow-core-data:$ARROW_VERSION"
     testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
@@ -26,6 +33,7 @@ dependencies {
     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
     }
+    testRuntimeOnly project(":prelude")
 }
 
 compileKotlin {
@@ -57,7 +65,11 @@ tasks.withType(AbstractArchiveTask) {
 shadowJar {
     configurations = [project.configurations.compile]
     relocate 'org.jetbrains.kotlin.com.intellij', 'com.intellij'
-    relocate 'org.jetbrains.kotlin.load', 'kotlin.reflect.jvm.internal.impl.load'
+//    dependencies {
+//        exclude(dependency {
+//            it.moduleGroup == 'org.jetbrains.kotlin'
+//        })
+//    }
 }
 
 test {

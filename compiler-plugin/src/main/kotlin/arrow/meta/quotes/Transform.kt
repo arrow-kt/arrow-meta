@@ -77,7 +77,7 @@ sealed class Transform<out K : KtElement> {
     val removing: PsiElement,
     val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
   ) : Transform<K>()
-  
+
   /**
    * A Transform that allows transformations combining. See below:
    *
@@ -120,7 +120,7 @@ sealed class Transform<out K : KtElement> {
   data class Many<K : KtElement>(
     val transforms: ArrayList<Transform<K>>
   ) : Transform<K>()
-  
+
   /**
    * A Transform that allows code generation. See below:
    *
@@ -181,7 +181,7 @@ sealed class Transform<out K : KtElement> {
       removeIn: PsiElement,
       declarations: List<Scope<KtExpressionCodeFragment>>
     ): Transform<K> = Remove(removeIn, declarations)
-    
+
     fun <K : KtElement> newSources(
       vararg files: File
     ): Transform<K> = NewSource(files.toList())

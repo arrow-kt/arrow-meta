@@ -26,26 +26,26 @@ interface IconProviderSyntax {
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
-   * // import org.jetbrains.kotlin.idea.KotlinIcons
+   * import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
-   *  get() = "File- and StructureViewIcons" {
-   *   meta(
-   *    // addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
-   *    //   psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
-   *    // },
-   *    // addIcon(KotlinIcons.OBJECT) { psi, _ ->
-   *    //  psi.safeAs<KtObjectDeclaration>()
-   *    // }
-   *   )
-   *  }
+   *   get() = "File- and StructureViewIcons" {
+   *     meta(
+   *       addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
+   *         psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
+   *       },
+   *       addIcon(KotlinIcons.OBJECT) { psi, _ ->
+   *         psi.safeAs<KtObjectDeclaration>()
+   *       }
+   *     )
+   *   }
    * ```
    * This implementation creates 2 [IconProvider]s. The first registers the [KotlinIcons.GRADLE_SCRIPT] Icon to any Kotlin ScriptFile, which ends with `.gradle.kts`.
    * The other registers [KotlinIcons.OBJECT] Icon to any [KtObjectDeclaration], so that it appears in the StructureView.
@@ -67,27 +67,27 @@ interface IconProviderSyntax {
    * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
    * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
-   * // import org.jetbrains.kotlin.idea.KotlinIcons
+   * import org.jetbrains.kotlin.idea.KotlinIcons
    * import org.jetbrains.kotlin.psi.KtFile
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
-   *  get() = "File- and StructureViewIcons" {
-   *   meta(
-   *    addIcons(
-   *     // icon(KotlinIcons.GRADLE_SCRIPT) { psi, _ ->
-   *     //   psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
-   *     // },
-   *     // icon(KotlinIcons.OBJECT) { psi, _ ->
-   *     //   psi.safeAs<KtObjectDeclaration>()
-   *     // }
-   *    )
-   *   )
-   *  }
+   *   get() = "File- and StructureViewIcons" {
+   *     meta(
+   *       addIcons(
+   *         icon(KotlinIcons.GRADLE_SCRIPT) { psi, _ ->
+   *           psi.safeAs<KtFile>()?.takeIf { it.isScript() && it.name.endsWith(".gradle.kts") }
+   *         },
+   *         icon(KotlinIcons.OBJECT) { psi, _ ->
+   *           psi.safeAs<KtObjectDeclaration>()
+   *         }
+   *       )
+   *     )
+   *   }
    * ```
    * @see IconProviderSyntax
    * @see addIcon

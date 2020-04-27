@@ -243,7 +243,7 @@ interface ToolWindowSyntax {
    * val IdeMetaPlugin.editorToolwindow: IdePlugin
    *   get() = "TestEditor in Toolwindow" {
    *     meta(
-   *       addToolWindowWithAction(
+   *       addToolWindowFromAction(
    *         "TestEditor",
    *         "Unique",
    *         ArrowIcons.ICON4,

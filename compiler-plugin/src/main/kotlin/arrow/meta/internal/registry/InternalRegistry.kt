@@ -10,7 +10,6 @@ import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
-import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.phases.codegen.asm.ClassBuilder
@@ -22,7 +21,6 @@ import arrow.meta.phases.resolve.DeclarationAttributeAlterer
 import arrow.meta.phases.resolve.PackageProvider
 import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
-import arrow.meta.plugins.higherkind.KindAwareTypeChecker
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.backend.common.BackendContext
@@ -37,6 +35,7 @@ import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
 import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -108,33 +107,10 @@ interface InternalRegistry : ConfigSyntax {
           componentProvider: ComponentProvider
         ): AnalysisResult? {
           ctx.module = module
-          ctx.files = files
           ctx.componentProvider = componentProvider
           return null
         }
       })
-    }
-    ide {
-      PackageFragmentProviderExtension.registerExtension(project, object : PackageFragmentProviderExtension {
-        override fun getPackageFragmentProvider(project: Project, module: ModuleDescriptor, storageManager: StorageManager, trace: BindingTrace, moduleInfo: ModuleInfo?, lookupTracker: LookupTracker): PackageFragmentProvider? {
-          println("getPackageFragmentProvider")
-          return null
-        }
-      })
-      StorageComponentContainerContributor.registerExtension(
-        project,
-        object : StorageComponentContainerContributor {
-          override fun registerModuleComponents(
-            container: org.jetbrains.kotlin.container.StorageComponentContainer,
-            platform: TargetPlatform,
-            moduleDescriptor: ModuleDescriptor
-          ) {
-            ctx.module = moduleDescriptor
-            ctx.componentProvider = container
-            super.registerModuleComponents(container, platform, moduleDescriptor)
-          }
-        }
-      )
     }
   }
 
@@ -153,9 +129,11 @@ interface InternalRegistry : ConfigSyntax {
     configuration: CompilerConfiguration,
     context: CompilerContext? = null
   ) {
-    println("Project allowed extensions: ${(Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
+    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
+      registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
     }
     ide {
       println("it's the IDEA plugin")
@@ -168,6 +146,7 @@ interface InternalRegistry : ConfigSyntax {
           cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
         CompilerContext(project, messageCollector)
       }
+    ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
     println("System.properties are: " + System.getProperties().map {
@@ -177,10 +156,7 @@ interface InternalRegistry : ConfigSyntax {
     installArrowPlugin()
 
     val initialPhases = listOf("Initial setup" {
-      listOf(
-        compilerContextService(),
-        registerMetaAnalyzer()
-      )
+      listOf(compilerContextService())
     })
     (initialPhases + intercept(ctx)).forEach { plugin ->
       println("Registering plugin: $plugin extensions: ${plugin.meta}")
@@ -212,6 +188,12 @@ interface InternalRegistry : ConfigSyntax {
         }
         currentPhase.registerPhase()
       }
+    }
+  }
+
+  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
+    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
+      SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }
   }
 
@@ -251,7 +233,7 @@ interface InternalRegistry : ConfigSyntax {
       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
         phase.run {
           listOf(
-            object : SyntheticScope.Default() {
+            object : SyntheticScope {
               override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
                 phase.run { ctx.syntheticConstructor(constructor) }
 
@@ -592,12 +574,6 @@ interface InternalRegistry : ConfigSyntax {
       phase.run { ctx.check(declaration, descriptor, context) }
     }
   }
-
-  fun registerKindAwareTypeChecker(): StorageComponentContainer =
-    typeChecker {
-      if (it !is KindAwareTypeChecker) KindAwareTypeChecker(it)
-      else it
-    }
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(

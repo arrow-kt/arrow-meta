@@ -1,8 +1,8 @@
 package arrow.meta.plugins.higherkind
 
 import arrow.meta.Meta
-import arrow.meta.CliPlugin
 import arrow.meta.invoke
+import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
@@ -22,41 +22,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val Meta.higherKindedTypes: CliPlugin
-  get() =
-    "higherKindedTypes" {
-      meta(
-        registerKindAwareTypeChecker(),
-        suppressDiagnostic(Diagnostic::kindsTypeMismatch),
-        classDeclaration(::isHigherKindedType) { c ->
-          println("Processing Higher Kind: ${c.name}: ${c.superTypeIsSealedInFile()}")
-          Transform.replace(c, listOfNotNull(
-            /** Kind Marker **/
-            "class For$name private constructor() { companion object }".`class`.syntheticScope,
-            /** Single arg type alias **/
-            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrow.Kind${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope,
-            /** KindedJ Support **/
-            if (c.arity < 5)
-              "typealias ${name}KindedJ<${`(typeParameters)`.invariant()}> = arrow.HkJ${c.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope
-            else null,
-            """|fun <${`(typeParameters)`.invariant(true)}> ${name}Of<${`(typeParameters)`.invariant()}>.fix(): $name<${`(typeParameters)`.invariant()}> =
-               |  this as $name<${`(typeParameters)`.invariant()}>
-               |""".function.syntheticScope,
-            /** generate partial aliases if this kind has > 1 type parameters **/
-            if (c.arity > 1)
-              "typealias ${name}PartialOf<${c.partialTypeParameters}> = arrow.Kind${c.partialKindAritySuffix}<For$name, ${c.partialTypeParameters}>".declaration<KtTypeAlias>().syntheticScope
-            else null,
-            /** Class redefinition with kinded super type **/
-            """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : ${supertypes.."${name}Of<${`(typeParameters)`.invariant()}>"} {
-               |  $body
-               |}
-               |""".`class`.syntheticScope
-          )
-          )
-        }
-      )
-    }
-
 fun Diagnostic.kindsTypeMismatch(): Boolean =
   factory == Errors.TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH &&
     safeAs<DiagnosticWithParameters2<KtElement, KotlinType, KotlinType>>()?.let { diagnosticWithParameters ->
@@ -66,7 +31,7 @@ fun Diagnostic.kindsTypeMismatch(): Boolean =
       KotlinTypeChecker.DEFAULT.isSubtypeOf(a, b)
     } == true
 
-private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
+fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false): String =
   value.joinToString {
     it.text
       .replace("out ", "")
@@ -76,30 +41,32 @@ private fun ScopedList<KtTypeParameter>.invariant(constrained: Boolean = false):
       }.trim()
   }
 
-private val KtClass.partialTypeParameters: String
+val KtClass.partialTypeParameters: String
   get() = typeParameters
     .dropLast(1)
     .joinToString(separator = ", ") {
       it.nameAsSafeName.identifier
     }
 
-private val KtClass.arity: Int
+val KtClass.arity: Int
   get() = typeParameters.size
 
-private val KtClass.kindAritySuffix: String
+val KtClass.kindAritySuffix: String
   get() = arity.let { if (it > 1) "$it" else "" }
 
-private val KtClass.partialKindAritySuffix: String
+val KtClass.partialKindAritySuffix: String
   get() = (arity - 1).let { if (it > 1) "$it" else "" }
 
 fun isHigherKindedType(ktClass: KtClass): Boolean =
-  ktClass.annotationEntries.any { it.text.matches(Regex("@(arrow\\.)?higherkind")) } &&
+  ktClass.isAnnotatedWith(higherKindAnnotation) &&
     ktClass.fqName?.asString()?.startsWith("arrow.Kind") != true &&
     !ktClass.isAnnotation() &&
     !ktClass.isNested() &&
     !ktClass.superTypeIsSealedInFile() &&
     ktClass.typeParameters.isNotEmpty() &&
     ktClass.parent is KtFile
+
+val higherKindAnnotation: Regex = Regex("@(arrow\\.)?higherkind")
 
 private fun KtClass.superTypeIsSealedInFile(): Boolean =
   superTypeListEntries.isNotEmpty() &&

@@ -1,6 +1,8 @@
 package arrow.meta.quotes
 
 import arrow.meta.phases.analysis.ElementScope
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -27,3 +29,8 @@ fun <K : KtElement> Scope<K>?.orEmpty(): Scope<K> =
 
 fun <K : KtElement> K?.scope(): Scope<K> =
   Scope(this)
+
+fun <K : KtElement> Scope<K>.map(f: (K) -> K): Scope<K> {
+  val el = value
+  return if (el != null) Scope(f(el)) else Scope.empty<K>()
+}

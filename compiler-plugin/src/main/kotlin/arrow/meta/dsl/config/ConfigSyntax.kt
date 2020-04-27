@@ -1,19 +1,29 @@
 package arrow.meta.dsl.config
 
+import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
+import arrow.meta.dsl.platform.ide
+import arrow.meta.internal.Noop
 import arrow.meta.internal.registry.setFinalStatic
+import arrow.meta.log.Log
+import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.config.Config
-import arrow.meta.plugins.higherkind.KindAwareTypeChecker
+import arrow.meta.plugins.proofs.phases.resolve.ProofTypeChecker
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.StorageComponentContainer
+import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 
 /**
  * The configuration phase allows changing the compiler configuration prior to compilation.
@@ -46,7 +56,7 @@ interface ConfigSyntax {
    */
   fun storageComponent(
     registerModuleComponents: CompilerContext.(container: StorageComponentContainer, moduleDescriptor: ModuleDescriptor) -> Unit,
-    check: CompilerContext.(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) -> Unit
+    check: CompilerContext.(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) -> Unit = Noop.effect4
   ): arrow.meta.phases.config.StorageComponentContainer =
     object : arrow.meta.phases.config.StorageComponentContainer {
       override fun CompilerContext.check(
@@ -82,18 +92,47 @@ interface ConfigSyntax {
    * The [typeChecker] function allows the user to provide a custom implementation of the [KotlinTypeChecker].
    * With a custom [KotlinTypeChecker], we can redefine what subtyping and type equality means.
    */
-  fun typeChecker(replace: (KotlinTypeChecker) -> KotlinTypeChecker): arrow.meta.phases.config.StorageComponentContainer =
-    storageComponent(
+  fun Meta.typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): ExtensionPhase =
+    Composite(storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
         val defaultTypeChecker = KotlinTypeChecker.DEFAULT
         val replacement = replace(defaultTypeChecker)
         if (replacement != defaultTypeChecker) {
           val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-          setFinalStatic(defaultTypeCheckerField, replace(defaultTypeChecker))
+           setFinalStatic(defaultTypeCheckerField, replacement)
         }
       },
       check = { _, _, _ ->
       }
-    )
+    ), registerArgumentTypeResolver())
+
+
+  private fun Meta.registerArgumentTypeResolver(): ExtensionPhase =
+    cli {
+      analysis(
+        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          Log.Verbose({ "analysis.registerArgumentTypeResolver.initializeProofCache + replace type checker" }) {
+            replaceArgumentTypeResolverTypeChecker(componentProvider)
+            null
+          }
+        }
+      )
+    } ?: ide {
+      packageFragmentProvider { project, module, storageManager, trace, moduleInfo, lookupTracker ->
+        componentProvider?.let { replaceArgumentTypeResolverTypeChecker(it) }
+        null
+      }
+    } ?: ExtensionPhase.Empty
+
+  private fun CompilerContext.replaceArgumentTypeResolverTypeChecker(componentProvider: ComponentProvider) {
+    val argumentTypeResolver: ArgumentTypeResolver = componentProvider.get()
+    replaceTypeChecker(argumentTypeResolver)
+  }
+
+  private fun CompilerContext.replaceTypeChecker(argumentTypeResolver: ArgumentTypeResolver) =
+    Log.Verbose({ "replaceArgumentTypeResolverTypeChecker $argumentTypeResolver" }) {
+      val typeCheckerField = ArgumentTypeResolver::class.java.getDeclaredField("kotlinTypeChecker").also { it.isAccessible = true }
+      typeCheckerField.set(argumentTypeResolver, ProofTypeChecker(this))
+    }
 
 }

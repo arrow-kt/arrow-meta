@@ -53,12 +53,11 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  * One IdeTest is composed by the source code, a test described with algebras in [IdeTestSyntax], and the expected result.
  * Based on a dummy IdePlugin
  * ```kotlin
- * class MyIdePlugin : IdeSyntax, IdeInternalRegistry
+ * class MyIdePlugin : IdeSyntax
  * ```
  * a general schema looks like this:
  * ```kotlin:ank:playground
  * import arrow.meta.ide.dsl.IdeSyntax
- * import arrow.meta.ide.internal.registry.IdeInternalRegistry
  * import arrow.meta.ide.testing.IdeTest
  * import arrow.meta.ide.testing.Source
  * import arrow.meta.ide.testing.env.IdeTestSetUp
@@ -73,7 +72,7 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  *       myFixture = myFixture, // the IntelliJ test environment spins up [myFixture] automatically at runtime.
  *       ctx = MyIdePlugin() // add here your ide plugin, to get dependencies and created features in the scope of [test] and [result].
  *     ) {
- *       listOf<IdeTest<Unit, MyIdePlugin>>( // type inference is not able to resolve the types here
+ *       listOf<IdeTest<MyIdePlugin, Unit>>( // type inference is not able to resolve the types here
  *         IdeTest(
  *           "val exampleCode = 2",
  *           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: MyIdePlugin ->
@@ -85,12 +84,12 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  *              **/
  *           },
  *           result = resolves("Any result is accepted") // here we define what behavior is expected
- *         )... // you may add more test suit's for the same or related ide feature with different code examples and test's
+ *         ) // ... you may add more test suit's for the same or related ide feature with different code examples and test's
  *       )
  *     }
  * }
  * //sampleEnd
- * class MyIdePlugin : IdeSyntax, IdeInternalRegistry
+ * class MyIdePlugin : IdeSyntax
  * ```
  * Given the [helloWorld] ide plugin, one concrete example may look like this:
  * ```kotlin
@@ -100,7 +99,7 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  *     myFixture = myFixture,
  *     ctx = IdeMetaPlugin()
  *   ) {
- *     listOf<IdeTest<LineMarkerDescription, IdeMetaPlugin>>(
+ *     listOf<IdeTest<IdeMetaPlugin, LineMarkerDescription>>(
  *       IdeTest(
  *         code = """
  *         | fun helloWorld(): String =

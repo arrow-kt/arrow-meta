@@ -79,6 +79,14 @@ fun typeConstructorEq(): Eq<KotlinType> =
   }
 
 /**
+ * defines Equality on types, where FunctionTypes are reduced to their return type
+ */
+fun resolveFunctionTypeEq(): Eq<KotlinType> =
+  Eq { t1, t2 ->
+    resolveFunctionType(t1) == resolveFunctionType(t2)
+  }
+
+/**
  * Given [eq] this function returns [KotlinType]s that [intersect] with the returnType from the list in [types].
  * One concrete example for equality on [TypeConstructor] may look like this:
  * ```kotlin:ank

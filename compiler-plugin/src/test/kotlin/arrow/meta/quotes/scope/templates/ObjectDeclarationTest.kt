@@ -12,9 +12,9 @@ class ObjectDeclarationTest  {
     val objectDeclarationExpression = """
                          | //metadebug
                          | 
-                         | @Deprecated("Test") object Test {
-                         |   fun test() { println("Test") }
-                         |   fun test2() { println("Test2") }
+                         | @Deprecated("Test") object X {
+                         |   fun x() { println("Test") }
+                         |   fun x2() { println("Test2") }
                          | }""".source
   }
   

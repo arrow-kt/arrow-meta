@@ -14,11 +14,10 @@ repositories {
 
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-  compile "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
-  compile project(path: ':compiler-plugin', configuration: 'shadow')
+  api "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
+  api project(path: ':compiler-plugin', configuration: 'shadow')
 
-  // needed for the JetBrains Gradle test framework
-  testCompile 'org.apache.ant:ant:1.10.5'
+  testCompile("org.apache.ant:ant:1.10.5") // for the JetBrains Gradle test framework
 }
 
 compileKotlin {
@@ -34,7 +33,6 @@ jar {
     attributes["Implementation-Title"] = "arrow.meta.plugin.idea"
     attributes["Implementation-Version"] = project.version
   }
-  from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
 
 buildSearchableOptions.enabled = false
@@ -52,7 +50,8 @@ patchPluginXml {
 }
 
 runIde {
-  jvmArgs '-Xmx2G'
+  jvmArgs '-Xmx8G'
+  systemProperties['idea.is.internal'] = "false"
 }
 
 test {

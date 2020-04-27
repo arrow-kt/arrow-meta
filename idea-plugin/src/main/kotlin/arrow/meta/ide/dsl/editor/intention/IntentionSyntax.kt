@@ -44,7 +44,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * This extension registers an [SelfTargetingIntention].
    * The following example renames a `helloWorld` function to `renamed`, whenever the user decides to trigger that Intention.
-   * ```kotlin:ank:playground
+   * ```kotlin
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.IdeMetaPlugin
    * import arrow.meta.ide.invoke

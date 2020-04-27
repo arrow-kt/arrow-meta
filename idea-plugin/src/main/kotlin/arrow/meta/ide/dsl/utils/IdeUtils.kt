@@ -73,6 +73,9 @@ val KtElement.callElements: List<KtCallElement>
 val KtElement.typeReferences: List<KtTypeReference>
   get() = sequence(KtTypeReference::class.java)
 
+val KtTypeReference.argumentList: List<KtTypeReference>
+  get() = sequence(KtTypeReference::class.java)
+
 val KtElement.typeProjections: List<KtTypeProjection>
   get() = sequence(KtTypeProjection::class.java)
 
