@@ -5,13 +5,8 @@ import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
-import com.intellij.codeHighlighting.Pass
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.core.moveCaret
-import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.psi.KtFile
 
 class CoercionInspectionTest : IdeTestSetUp() {
 
@@ -27,74 +22,27 @@ class CoercionInspectionTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<IdeMetaPlugin, String>>(
+      listOf<IdeTest<IdeMetaPlugin, List<HighlightInfo>>>(
         IdeTest(
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            myFixture.openFileInEditor(file.virtualFile)
-
-            val inspection: AbstractKotlinInspection = explicitCoercionInspectionSyntax
-            myFixture.enableInspections(inspection)
-            myFixture.editor.moveCaret(myFixture.file.text.indexOf("@danieeehh"))
-            //val psi = myFixture.elementAtCaret
-
-            val highlightInfos = CodeInsightTestFixtureImpl.instantiateAndRun(
-              file, myFixture.editor, intArrayOf(
-              Pass.LINE_MARKERS,
-              Pass.EXTERNAL_TOOLS,
-              Pass.POPUP_HINTS,
-              Pass.UPDATE_ALL,
-              Pass.UPDATE_FOLDING,
-              Pass.WOLF
-            ), (file as? KtFile)?.isScript() == true
-            )
-            // .filter { it.description != null /*&& caretOffset in it.startOffset..it.endOffset*/ }
-
-            // TODO() currently only built-in inspections are instantiated, none from Meta
-            println("highlightInfos[${highlightInfos.size}] = $highlightInfos")
-            //collectLM(code, myFixture, ArrowIcons.ICON4)
-            ""
+            collectInspections(code, myFixture, listOf(explicitCoercionInspectionSyntax))
+              .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
           },
-          result = resolvesWhen("CoercionInspectionTest1 for 2 LM ") { descriptor ->
-//            println("CoercionTest1 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-//            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
-            true
+          result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { descriptor ->
+            println("highlightInfos[${descriptor.size}] = $descriptor")
+            descriptor.size == 1
           }
         ),
         IdeTest(
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-
-            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            myFixture.openFileInEditor(file.virtualFile)
-
-            val inspection: AbstractKotlinInspection = implicitCoercionInspectionSyntax
-            myFixture.enableInspections(inspection)
-            myFixture.editor.moveCaret(myFixture.file.text.indexOf("@danieeehh"))
-            //val psi = myFixture.elementAtCaret
-
-            val highlightInfos = CodeInsightTestFixtureImpl.instantiateAndRun(
-              file, myFixture.editor, intArrayOf(
-              Pass.LINE_MARKERS,
-              Pass.EXTERNAL_TOOLS,
-              Pass.POPUP_HINTS,
-              Pass.UPDATE_ALL,
-              Pass.UPDATE_FOLDING,
-              Pass.WOLF
-            ), (file as? KtFile)?.isScript() == true
-            )
-            // .filter { it.description != null /*&& caretOffset in it.startOffset..it.endOffset*/ }
-
-            // TODO() currently only built-in inspections are instantiated, none from Meta
-            println("highlightInfos[${highlightInfos.size}] = $highlightInfos")
-            //collectLM(code, myFixture, ArrowIcons.ICON4)
-            ""
+            collectInspections(code, myFixture, listOf(implicitCoercionInspectionSyntax))
+              .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
           },
-          result = resolvesWhen("CoercionInspectionTest2 for 2 LM ") { descriptor ->
-//            println("CoercionTest1 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
-//            descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
-            true
+          result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { descriptor ->
+            println("highlightInfos[${descriptor.size}] = $descriptor")
+            descriptor.size == 1
           }
         ))
     }

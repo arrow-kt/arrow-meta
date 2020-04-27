@@ -23,9 +23,11 @@ val IdeMetaPlugin.implicitCoercionInspection: ExtensionPhase
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
+const val IMPLICIT_COERCION_INSPECTION_ID = "Make_coercion_implicit"
+
 val IdeSyntax.implicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
-    defaultFixText = "Make_coercion_implicit",
+    defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktDotQualifiedExpression: KtDotQualifiedExpression ->

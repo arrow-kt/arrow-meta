@@ -32,9 +32,11 @@ val IdeMetaPlugin.explicitCoercionInspection: ExtensionPhase
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
+const val EXPLICIT_COERCION_INSPECTION_ID = "Make_coercion_explicit"
+
 val IdeSyntax.explicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspection<KtElement>
   get() = applicableInspection(
-    defaultFixText = "Make_coercion_explicit",
+    defaultFixText = EXPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtElement::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
