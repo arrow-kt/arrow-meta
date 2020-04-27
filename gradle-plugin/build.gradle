@@ -32,8 +32,6 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   implementation "xerces:xercesImpl:$XERCES_VERSION"
-  runtime "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
-  runtime "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
   runtime "io.arrow-kt:compiler-plugin:$VERSION_NAME"
 }
 
