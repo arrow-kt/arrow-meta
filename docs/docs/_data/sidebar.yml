@@ -8,93 +8,93 @@ options:
         url: /
 
       - title: Hello World
-        url: /docs/apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
+        url: /apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
       - title: Hello World IntelliJ Platform
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
+        url: /apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
 
   - title: Quotes
 
     nested_options:
 
       - title: Index
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes/
 
       - title: ClassOrObject
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.classorobject/
 
       - title: Declaration
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.declaration/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.declaration/
 
       - title: Element
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.element/
 
       - title: WhenCondition
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.element.whencondition/
 
       - title: Expression
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.expression/
 
       - title: ExpressionWithLabel
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.expression.expressionwithlabel/
 
       - title: LoopExpression
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.expression.loopexpression/
 
       - title: Filebase
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.filebase/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.filebase/
 
       - title: Modifierlist
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.modifierlist/
 
       - title: NamedDeclaration - NotStubbed
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.notstubbed/
 
       - title: NamedDeclaration - Stub
-        url: /docs/apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
+        url: /apidocs/compiler-plugin/arrow.meta.quotes.nameddeclaration.stub/
 
   - title: Compiler API
 
     nested_options:
 
       - title: Config
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/
+        url: /apidocs/compiler-plugin/arrow.meta.dsl.config/-config-syntax/
 
       - title: Analysis
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/
+        url: /apidocs/compiler-plugin/arrow.meta.dsl.analysis/-analysis-syntax/
 
       - title: Resolution
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/
+        url: /apidocs/compiler-plugin/arrow.meta.dsl.resolve/-resolve-syntax/
 
       - title: ASM Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/
+        url: /apidocs/compiler-plugin/arrow.meta.dsl.codegen.asm/-asm-syntax/
 
       - title: IR Codegen
-        url: /docs/apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
+        url: /apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
   - title: IntelliJ Platform API
 
     nested_options:
 
       - title: ExtensionProviderSyntax
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.extensions/-extension-provider-syntax/
+        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.extensions/-extension-provider-syntax/
 
         nested_options:
 
           - title: InspectionSyntax
-            url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.inspection/add-applicable-inspection.html
+            url: /apidocs/idea-plugin/arrow.meta.ide.dsl.inspection/add-applicable-inspection.html
 
           - title: LineMarkerSyntax
-            url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.line-marker/add-line-marker-provider.html
+            url: /apidocs/idea-plugin/arrow.meta.ide.dsl.line-marker/add-line-marker-provider.html
 
       - title: AnActionSyntax
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.action/-an-action-syntax/
+        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.action/-an-action-syntax/
 
       - title: IntentionSyntax
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
+        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
 
       - title: SyntaxHighlighterSyntax
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/-syntax-highlighter-syntax/add-syntax-highlighter.html
+        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/-syntax-highlighter-syntax/add-syntax-highlighter.html
 
 
   - title: Testing
@@ -102,20 +102,20 @@ options:
     nested_options:
 
       - title: Compiler Plugins Tests
-        url: /docs/apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
+        url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
 
       - title: IntelliJ Plugin Tests
-        url: /docs/apidocs/idea-plugin/arrow.meta.ide.testing.env/ide-test.html
+        url: /apidocs/idea-plugin/arrow.meta.ide.testing.env/ide-test.html
 
   - title: API Docs
 
     nested_options:
 
       - title: Compiler plugin
-        url: /docs/apidocs/compiler-plugin/
+        url: /apidocs/compiler-plugin/
 
       - title: IntelliJ plugin
-        url: /docs/apidocs/idea-plugin/
+        url: /apidocs/idea-plugin/
 
       - title: Testing library
-        url: /docs/apidocs/meta-test/
+        url: /apidocs/meta-test/
