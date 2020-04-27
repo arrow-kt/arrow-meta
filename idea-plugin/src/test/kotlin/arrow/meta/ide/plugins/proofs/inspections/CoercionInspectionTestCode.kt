@@ -66,20 +66,40 @@ object CoercionInspectionTestCode {
 
   val code1 =
     """
-      package consumer
+      package test
 
       import consumer.TwitterHandle
       
-      val implicit: TwitterHandle? = "@danieeehh"
+      val coercion: TwitterHandle? = "@danieeehh"
     """.trimIndent()
 
-  val code2 =
+  val code1_after_fix =
     """
-      package consumer
+      package test
 
       import consumer.TwitterHandle
       import consumer.twitterHandle
       
-      val explicit: TwitterHandle? = "@danieeehh".twitterHandle()
+      val coercion: TwitterHandle? = "@danieeehh".twitterHandle()
+    """.trimIndent()
+
+  val code2 =
+    """
+      package test
+
+      import consumer.TwitterHandle
+      import consumer.twitterHandle
+      
+      val coercion: TwitterHandle? = "@danieeehh".twitterHandle()
+    """.trimIndent()
+
+  val code2_after_fix =
+    """
+      package test
+
+      import consumer.TwitterHandle
+      import consumer.twitterHandle
+      
+      val coercion: TwitterHandle? = "@danieeehh"
     """.trimIndent()
 }
