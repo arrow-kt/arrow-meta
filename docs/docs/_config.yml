@@ -26,7 +26,7 @@ exclude: ['config.ru', 'Gemfile', 'Gemfile.lock', 'vendor', 'Procfile', 'Rakefil
 #-------------------------
 defaults:
   - scope:
-      path: "docs/apidocs"
+      path: "apidocs"
       type: "pages"
     values:
       layout: "docs"
