@@ -27,7 +27,7 @@ class GradleTypeproofsTest : GradleTestSetUp() {
           myProject,
           projectPath,
           tasks = listOf(
-            "clean", "build", "test"
+            "clean", "build"
           )
         ).forEach(::println)
       }.doesNotThrowAnyException()
