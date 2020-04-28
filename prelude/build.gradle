@@ -25,4 +25,13 @@ tasks.withType(AbstractArchiveTask) {
     reproducibleFileOrder = true
 }
 
+// Avoid local publication with module name (or project name)
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = POM_ARTIFACT_ID
+        }
+    }
+}
+
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
