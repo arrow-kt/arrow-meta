@@ -30,7 +30,7 @@ class GradleTypeproofsTest : GradleTestSetUp() {
             "clean", "build", "test"
           )
         ).forEach(::println)
-      }
+      }.doesNotThrowAnyException()
     }
   }
 }
