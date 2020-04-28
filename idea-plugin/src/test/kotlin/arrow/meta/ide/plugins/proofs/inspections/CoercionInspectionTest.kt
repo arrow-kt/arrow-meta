@@ -32,7 +32,6 @@ class CoercionInspectionTest : IdeTestSetUp() {
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
           },
           result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { descriptor ->
-            println("highlightInfos[${descriptor.size}] = $descriptor")
             descriptor.size == 1
           }
         ),
@@ -43,7 +42,6 @@ class CoercionInspectionTest : IdeTestSetUp() {
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
           },
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { descriptor ->
-            println("highlightInfos[${descriptor.size}] = $descriptor")
             descriptor.size == 1
           }
         ))
@@ -71,8 +69,6 @@ class CoercionInspectionTest : IdeTestSetUp() {
             file.text
           },
           result = resolvesWhen("CoercionInspectionFixTest1 for 1 explicit coercion") { resultCode ->
-            println("Expected = ${CoercionInspectionTestCode.code1_after_fix}")
-            println("Result   = $resultCode")
             resultCode == CoercionInspectionTestCode.code1_after_fix
           }
         ),
@@ -91,8 +87,6 @@ class CoercionInspectionTest : IdeTestSetUp() {
             file.text
           },
           result = resolvesWhen("CoercionInspectionFixTest2 for 1 implicit coercion") { resultCode ->
-            println("Expected = ${CoercionInspectionTestCode.code2_after_fix}")
-            println("Result   = $resultCode")
             resultCode == CoercionInspectionTestCode.code2_after_fix
           }
         ))

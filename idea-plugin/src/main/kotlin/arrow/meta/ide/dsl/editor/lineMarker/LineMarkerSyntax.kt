@@ -226,7 +226,7 @@ interface LineMarkerSyntax {
    * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addLineMarkerProviderM(
+  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderM(
     icon: Icon,
     transform: (PsiElement) -> A?,
     composite: Class<A>,
@@ -238,28 +238,14 @@ interface LineMarkerSyntax {
     clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
-      { transform(it)?.identifyingElement },
+      {
+        transform(it)?.let { psi ->
+          (psi as? PsiNameIdentifierOwner)?.identifyingElement
+            ?: PsiTreeUtil.findChildOfType(psi, LeafPsiElement::class.java)
+        }
+      },
       {
         it.onComposite(composite) { psi: A ->
-          mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
-        }
-      }
-    )
-
-  fun IdeMetaPlugin.addLineMarkerProviderM(
-    icon: Icon,
-    transform: (PsiElement) -> KtValueArgument?,
-    message: DescriptorRenderer.Companion.(KtValueArgument) -> String = Noop.string2(),
-    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
-    mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    clickAction: AnAction? = null
-  ): ExtensionPhase =
-    addLineMarkerProvider(
-      { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
-      {
-        it.onComposite(KtValueArgument::class.java) { psi: KtValueArgument ->
           mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }
