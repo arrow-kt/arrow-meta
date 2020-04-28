@@ -12,6 +12,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
 /**
  * [implicitCoercionInspection]: for explicit coercion to make it implicit
@@ -41,7 +42,7 @@ val IdeSyntax.implicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspec
       ktCall.replace(ktCall.receiverExpression)
     },
     isApplicable = { ktCall: KtDotQualifiedExpression ->
-      ktCall.ctx()?.let { compilerContext ->
+      (ktCall.parent !is KtSafeQualifiedExpression) && ktCall.ctx()?.let { compilerContext ->
         ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }

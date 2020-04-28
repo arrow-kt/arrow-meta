@@ -41,12 +41,11 @@ fun KtValueArgument.participatingTypes(): List<PairTypes> {
 
   val ktCallExpression = PsiTreeUtil.getParentOfType(this, KtCallExpression::class.java)
   val myselfIndex = ktCallExpression?.valueArguments?.indexOf(this) ?: 0
-  val resolvedCall = ktCallExpression.getResolvedCall(analyze())
-  val superType5 = resolvedCall?.let {
+  val superType = ktCallExpression.getResolvedCall(analyze())?.let { resolvedCall ->
     resolvedCall.resultingDescriptor.valueParameters[myselfIndex].type
   }
 
-  return listOfNotNull((subType pairOrNull superType5))
+  return listOfNotNull((subType pairOrNull superType))
 }
 
 private fun KtValueArgument.isCoerced(compilerContext: CompilerContext): Boolean =
