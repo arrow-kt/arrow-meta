@@ -36,7 +36,7 @@ val IdeMetaPlugin.implicitCoercionValueArgumentLineMarker: ExtensionPhase
     }
   )
 
-fun KtValueArgument.participatingTypes(): List<PairTypes> {
+internal fun KtValueArgument.participatingTypes(): List<PairTypes> {
   val subType: KotlinType? = getArgumentExpression()?.resolveKotlinType()
 
   val ktCallExpression = PsiTreeUtil.getParentOfType(this, KtCallExpression::class.java)

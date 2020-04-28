@@ -31,7 +31,7 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
     }
   )
 
-fun KtProperty.participatingTypes(): List<PairTypes> {
+internal fun KtProperty.participatingTypes(): List<PairTypes> {
   val subType = initializer?.resolveKotlinType()
   val superType = type()
   return listOfNotNull((subType pairOrNull superType))

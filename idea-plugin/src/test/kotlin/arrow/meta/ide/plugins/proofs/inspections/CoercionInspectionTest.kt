@@ -5,10 +5,9 @@ import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
+import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 
 class CoercionInspectionTest : IdeTestSetUp() {
 
@@ -19,103 +18,52 @@ class CoercionInspectionTest : IdeTestSetUp() {
   }
 
   @org.junit.Test
-  fun `coercion highlight inspection test`() =
+  fun `coercion inspection test`() =
     ideTest(
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<IdeMetaPlugin, List<HighlightInfo>>>(
+      listOf<IdeTest<IdeMetaPlugin, Pair<List<HighlightInfo>, String>>>(
         IdeTest(
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(explicitCoercion))
+            val file = code.toKtFile(myFixture)
+            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercion))
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            Pair(highlightInfos, codeFixed)
           },
-          result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { descriptor ->
-            descriptor.size == 1
+          result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult ->
+            pairResult.first.size == 1
+              && pairResult.second == CoercionInspectionTestCode.code1_after_fix
           }
         ),
         IdeTest(
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(implicitCoercion))
+            val file = code.toKtFile(myFixture)
+            val highlightInfos = collectInspections(code, myFixture, listOf(implicitCoercion))
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            Pair(highlightInfos, codeFixed)
           },
-          result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { descriptor ->
-            descriptor.size == 1
-          }
-        ),
-        IdeTest(
-          code = CoercionInspectionTestCode.code3_after_fix,
-          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(implicitCoercion))
-              .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
-          },
-          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { descriptor ->
-            descriptor.size == 1
-          }
-        ))
-    }
-
-  @org.junit.Test
-  fun `coercion fix inspection test`() =
-    ideTest(
-      myFixture = myFixture,
-      ctx = IdeMetaPlugin()
-    ) {
-      listOf<IdeTest<IdeMetaPlugin, String>>(
-        IdeTest(
-          code = CoercionInspectionTestCode.code1,
-          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercion))
-              .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
-              .flatMap { it.quickFixActionMarkers ?: emptyList() }
-              .map { it.first.action }
-              .firstOrNull()
-            project.executeWriteCommand(localFixAction!!.text, null) {
-              localFixAction.invoke(project, myFixture.editor, file)
-            }
-            file.text
-          },
-          result = resolvesWhen("CoercionInspectionFixTest1 for 1 explicit coercion") { resultCode ->
-            resultCode == CoercionInspectionTestCode.code1_after_fix
-          }
-        ),
-        IdeTest(
-          code = CoercionInspectionTestCode.code2,
-          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(implicitCoercion))
-              .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
-              .flatMap { it.quickFixActionMarkers ?: emptyList() }
-              .map { it.first.action }
-              .firstOrNull()
-            project.executeWriteCommand(localFixAction!!.text, null) {
-              localFixAction.invoke(project, myFixture.editor, file)
-            }
-            file.text
-          },
-          result = resolvesWhen("CoercionInspectionFixTest2 for 1 implicit coercion") { resultCode ->
-            resultCode == CoercionInspectionTestCode.code2_after_fix
+          result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult ->
+            pairResult.first.size == 1
+              && pairResult.second == CoercionInspectionTestCode.code2_after_fix
           }
         ),
         IdeTest(
           code = CoercionInspectionTestCode.code3,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercion))
+            val file = code.toKtFile(myFixture)
+            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercion))
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
-              .flatMap { it.quickFixActionMarkers ?: emptyList() }
-              .map { it.first.action }
-              .firstOrNull()
-            project.executeWriteCommand(localFixAction!!.text, null) {
-              localFixAction.invoke(project, myFixture.editor, file)
-            }
-            file.text
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            Pair(highlightInfos, codeFixed)
           },
-          result = resolvesWhen("CoercionInspectionFixTest3 for 1 explicit coercion") { resultCode ->
-            resultCode == CoercionInspectionTestCode.code3_after_fix
+          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult ->
+            pairResult.first.size == 1
+              && pairResult.second == CoercionInspectionTestCode.code3_after_fix
           }
         ))
     }
