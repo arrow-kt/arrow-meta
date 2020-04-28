@@ -26,14 +26,14 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
  */
 val IdeMetaPlugin.explicitCoercionInspection: ExtensionPhase
   get() = addLocalInspection(
-    inspection = explicitCoercionInspectionSyntax,
+    inspection = explicitCoercion,
     level = HighlightDisplayLevel.WEAK_WARNING,
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
 const val EXPLICIT_COERCION_INSPECTION_ID = "Make_coercion_explicit"
 
-val IdeSyntax.explicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspection<KtElement>
+val IdeSyntax.explicitCoercion: AbstractApplicabilityBasedInspection<KtElement>
   get() = applicableInspection(
     defaultFixText = EXPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },

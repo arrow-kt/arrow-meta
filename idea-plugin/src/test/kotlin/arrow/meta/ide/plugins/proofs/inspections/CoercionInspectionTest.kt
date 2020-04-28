@@ -28,7 +28,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(explicitCoercionInspectionSyntax))
+            collectInspections(code, myFixture, listOf(explicitCoercion))
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
           },
           result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { descriptor ->
@@ -38,7 +38,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(implicitCoercionInspectionSyntax))
+            collectInspections(code, myFixture, listOf(implicitCoercion))
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
           },
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { descriptor ->
@@ -48,7 +48,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code3_after_fix,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectInspections(code, myFixture, listOf(implicitCoercionInspectionSyntax))
+            collectInspections(code, myFixture, listOf(implicitCoercion))
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
           },
           result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { descriptor ->
@@ -68,7 +68,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercionInspectionSyntax))
+            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercion))
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
               .flatMap { it.quickFixActionMarkers ?: emptyList() }
               .map { it.first.action }
@@ -86,7 +86,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(implicitCoercionInspectionSyntax))
+            val localFixAction = collectInspections(code, myFixture, listOf(implicitCoercion))
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
               .flatMap { it.quickFixActionMarkers ?: emptyList() }
               .map { it.first.action }
@@ -104,7 +104,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           code = CoercionInspectionTestCode.code3,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
-            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercionInspectionSyntax))
+            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercion))
               .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
               .flatMap { it.quickFixActionMarkers ?: emptyList() }
               .map { it.first.action }

@@ -19,14 +19,14 @@ import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
  */
 val IdeMetaPlugin.implicitCoercionInspection: ExtensionPhase
   get() = addLocalInspection(
-    inspection = implicitCoercionInspectionSyntax,
+    inspection = implicitCoercion,
     level = HighlightDisplayLevel.WARNING,
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
 const val IMPLICIT_COERCION_INSPECTION_ID = "Make_coercion_implicit"
 
-val IdeSyntax.implicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
+val IdeSyntax.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.WARNING },
