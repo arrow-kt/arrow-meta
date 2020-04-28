@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
@@ -40,17 +39,17 @@ val IdeSyntax.explicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspec
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtElement::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
-    applyTo = { ktCall: KtElement, _, _ ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.makeExplicit(compilerContext)
-      }
-    },
     isApplicable = { ktCall: KtElement ->
       ktCall.ctx()?.let { compilerContext ->
         ktCall.getParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       } ?: false
+    },
+    applyTo = { ktCall: KtElement, _, _ ->
+      ktCall.ctx()?.let { compilerContext ->
+        ktCall.makeExplicit(compilerContext)
+      }
     }
   )
 
@@ -58,9 +57,7 @@ private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
   when (this) {
     is KtValueArgument -> {
       // Get the coerced types (parameter type and actual definition type)
-      participatingTypes().firstOrNull { (subtype: KotlinType, supertype: KotlinType) ->
-        compilerContext.areTypesCoerced(subtype, supertype)
-      }?.let { pairType: PairTypes ->
+      participatingTypes().firstOrNull()?.let { pairType ->
         getArgumentExpression()?.let { ktExpression ->
           val type = ktExpression.resolveKotlinType()
           if (pairType.subType == type) {

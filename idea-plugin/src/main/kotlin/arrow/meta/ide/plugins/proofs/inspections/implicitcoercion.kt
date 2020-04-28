@@ -38,15 +38,15 @@ val IdeSyntax.implicitCoercionInspectionSyntax: AbstractApplicabilityBasedInspec
       }
       "Expression: ${ktDotQualifiedExpression.text} can be replaced for only its receiver because there is a $coercionMessage"
     },
-    applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
-      ktCall.replace(ktCall.receiverExpression)
-    },
     isApplicable = { ktCall: KtDotQualifiedExpression ->
       (ktCall.parent !is KtSafeQualifiedExpression) && ktCall.ctx()?.let { compilerContext ->
         ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       } ?: false
+    },
+    applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
+      ktCall.replace(ktCall.receiverExpression)
     }
   )
 
