@@ -13,8 +13,5 @@ data class PairTypes(val subType: KotlinType, val superType: KotlinType) {
   }
 }
 
-//TODO check for named and switched arguments
-//TODO check destructuring
-
 fun KtExpression.resolveKotlinType(): KotlinType? =
   analyze(BodyResolveMode.PARTIAL).getType(this)
