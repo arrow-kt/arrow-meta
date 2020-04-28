@@ -17,7 +17,7 @@ dependencies {
   api "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
   api project(path: ':compiler-plugin', configuration: 'shadow')
 
-  testCompile("org.apache.ant:ant:1.10.5") // for the JetBrains Gradle test framework
+  testCompile("org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION") // for the JetBrains Gradle test framework
 }
 
 compileKotlin {

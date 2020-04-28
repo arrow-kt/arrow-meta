@@ -1,7 +1,6 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package arrow.meta.ide.jetbrainsGradle;
+package external.forks.jb.gradle;
 
-import arrow.meta.ide.jetbrainsGradle.AbstractModelBuilderTest.DistributionLocator;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.importing.ImportSpec;
@@ -55,7 +54,6 @@ import java.util.*;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import static arrow.meta.ide.jetbrainsGradle.AbstractModelBuilderTest.SUPPORTED_GRADLE_VERSIONS;
 import static org.junit.Assume.assumeThat;
 
 @RunWith(value = Parameterized.class)
@@ -258,7 +256,7 @@ public abstract class GradleImportingTestCase extends ExternalSystemImportingTes
 
   private PathAssembler.LocalDistribution configureWrapper() throws IOException, URISyntaxException {
 
-    final URI distributionUri = new DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion));
+    final URI distributionUri = new AbstractModelBuilderTest.DistributionLocator().getDistributionFor(GradleVersion.version(gradleVersion));
 
     myProjectSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     final VirtualFile wrapperJarFrom = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(wrapperJar());
@@ -359,7 +357,7 @@ public abstract class GradleImportingTestCase extends ExternalSystemImportingTes
 
   @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
   public static Collection<Object[]> data() {
-    return Arrays.asList(SUPPORTED_GRADLE_VERSIONS);
+    return Arrays.asList(AbstractModelBuilderTest.SUPPORTED_GRADLE_VERSIONS);
   }
 
   @NotNull

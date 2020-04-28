@@ -1,4 +1,4 @@
-package arrow.meta.ide.testing.env.github
+package arrow.meta.ide.testing.env.git
 
 import arrow.meta.internal.Noop
 import com.intellij.openapi.project.Project
@@ -8,17 +8,18 @@ import git4idea.commands.GitCommand
 import git4idea.commands.GitCommandResult
 import git4idea.commands.GitLineHandler
 
-interface GithubSyntax {
+interface GitSyntax {
   fun gitClone(project: Project, url: String, vcsRoot: VirtualFile = project.baseDir): GitCommandResult =
-    gitCmd(
-      project,
-      GitCommand.CLONE,
-      vcsRoot,
-      f = {
-        setUrl(url)
-        addParameters(url)
-      }
-    )
+    gitCmd(project, GitCommand.CLONE, vcsRoot) {
+      setUrl(url)
+      addParameters(url)
+    }
+
+
+  fun gitCheckout(project: Project, branch: String, vcsRoot: VirtualFile = project.baseDir): GitCommandResult =
+    gitCmd(project, GitCommand.CHECKOUT, vcsRoot) {
+      addParameters(branch)
+    }
 
   fun gitCmd(
     project: Project,

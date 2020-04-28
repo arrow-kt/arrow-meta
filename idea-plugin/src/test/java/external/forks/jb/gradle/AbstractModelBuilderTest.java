@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package arrow.meta.ide.jetbrainsGradle;
+package external.forks.jb.gradle;
 
 import com.amazon.ion.IonType;
 import com.intellij.openapi.util.Pair;
