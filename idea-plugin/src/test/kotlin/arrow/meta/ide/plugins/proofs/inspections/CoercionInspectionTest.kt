@@ -44,6 +44,16 @@ class CoercionInspectionTest : IdeTestSetUp() {
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { descriptor ->
             descriptor.size == 1
           }
+        ),
+        IdeTest(
+          code = CoercionInspectionTestCode.code3_after_fix,
+          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
+            collectInspections(code, myFixture, listOf(implicitCoercionInspectionSyntax))
+              .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
+          },
+          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { descriptor ->
+            descriptor.size == 1
+          }
         ))
     }
 
@@ -88,6 +98,24 @@ class CoercionInspectionTest : IdeTestSetUp() {
           },
           result = resolvesWhen("CoercionInspectionFixTest2 for 1 implicit coercion") { resultCode ->
             resultCode == CoercionInspectionTestCode.code2_after_fix
+          }
+        ),
+        IdeTest(
+          code = CoercionInspectionTestCode.code3,
+          test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
+            val file = myFixture.configureByText(KotlinFileType.INSTANCE, code)
+            val localFixAction = collectInspections(code, myFixture, listOf(explicitCoercionInspectionSyntax))
+              .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
+              .flatMap { it.quickFixActionMarkers ?: emptyList() }
+              .map { it.first.action }
+              .firstOrNull()
+            project.executeWriteCommand(localFixAction!!.text, null) {
+              localFixAction.invoke(project, myFixture.editor, file)
+            }
+            file.text
+          },
+          result = resolvesWhen("CoercionInspectionFixTest3 for 1 explicit coercion") { resultCode ->
+            resultCode == CoercionInspectionTestCode.code3_after_fix
           }
         ))
     }

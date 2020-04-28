@@ -102,4 +102,29 @@ object CoercionInspectionTestCode {
       
       val coercion: TwitterHandle? = "@danieeehh"
     """.trimIndent()
+
+  val code3 =
+    """
+      package test
+
+      import consumer.TwitterHandle
+      
+      fun print(s: String, i: Int, s2: TwitterHandle?) = println(s)
+      
+      fun implicitExplicitCoercions() =
+          print(TwitterHandle("@aballano"), 1, "@aballano")
+    """.trimIndent()
+
+  val code3_after_fix =
+    """
+      package test
+
+      import consumer.TwitterHandle
+      import consumer.handle
+      
+      fun print(s: String, i: Int, s2: TwitterHandle?) = println(s)
+      
+      fun implicitExplicitCoercions() =
+          print(TwitterHandle("@aballano").handle(), 1, "@aballano")
+    """.trimIndent()
 }
