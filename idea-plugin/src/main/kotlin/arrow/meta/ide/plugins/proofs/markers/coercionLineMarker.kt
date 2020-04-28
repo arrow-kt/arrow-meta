@@ -4,7 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 
-val IdeMetaPlugin.coercionLineMarker: ExtensionPhase
+val IdeMetaPlugin.coercionCallSiteLineMarker: ExtensionPhase
   get() = Composite(
     implicitCoercionValueArgumentLineMarker,
     implicitCoercionPropertyLineMarker

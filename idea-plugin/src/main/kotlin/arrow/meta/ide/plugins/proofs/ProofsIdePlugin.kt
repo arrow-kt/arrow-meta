@@ -4,10 +4,10 @@ import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.inspections.explicitCoercionInspection
-import arrow.meta.ide.plugins.proofs.inspections.implicitCoercionInspection
-import arrow.meta.ide.plugins.proofs.markers.coercionLineMarker
+import arrow.meta.ide.plugins.proofs.inspections.coercionInspections
+import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -27,7 +27,6 @@ import arrow.meta.invoke as cli
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-      // refinementAnnotator(),
       proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
       proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
@@ -35,11 +34,11 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
+      refinementAnnotator(),
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      coercionLineMarker,
-      explicitCoercionInspection,
-      implicitCoercionInspection,
+      coercionCallSiteLineMarker,
+      coercionInspections,
       codeFolding
     )
   }
