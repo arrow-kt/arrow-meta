@@ -55,6 +55,7 @@ runIde {
 }
 
 test {
+  dependsOn ':publishIdeTestingDependencies'
   testLogging.showStandardStreams = true
 }
 

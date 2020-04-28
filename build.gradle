@@ -66,8 +66,8 @@ subprojects { project ->
   }
 }
 
-// To run tests for Arrow TypeProofs Playground from Arrow Meta IDEA Plugin
-task publishArrowTypeProofsPlaygroundDependencies {
+// To run tests for Arrow Meta IDEA Plugin
+task publishIdeTestingDependencies {
   dependsOn ':compiler-plugin:publishToMavenLocal'
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':prelude:publishToMavenLocal'
@@ -88,11 +88,11 @@ task buildMeta {
   // 'build' task is not executed for :gradle-plugin because it depends on the publication of compiler-plugin 
   // and it could fail when changing version
   dependsOn ':gradle-plugin:jar'
-  dependsOn ':publishArrowTypeProofsPlaygroundDependencies'
+  dependsOn ':publishIdeTestingDependencies'
   dependsOn ':idea-plugin:build'
   dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
-  tasks.findByPath(':idea-plugin:build').mustRunAfter ':publishArrowTypeProofsPlaygroundDependencies'
+  tasks.findByPath(':idea-plugin:build').mustRunAfter ':publishIdeTestingDependencies'
 }
 
 task publishMeta {
