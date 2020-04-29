@@ -1,4 +1,4 @@
-package arrow.meta.ide.testing.env.github
+package arrow.meta.ide.testing.env.git
 
 import arrow.meta.internal.Noop
 import com.intellij.openapi.project.Project
@@ -8,23 +8,26 @@ import git4idea.commands.GitCommand
 import git4idea.commands.GitCommandResult
 import git4idea.commands.GitLineHandler
 
-interface GithubSyntax {
-  fun gitClone(project: Project, url: String): GitCommandResult =
-    gitCmd(
-      project,
-      GitCommand.CLONE,
-      f = {
-        setUrl(url)
-        addParameters(url)
-      }
-    )
+interface GitSyntax {
+  fun gitClone(project: Project, url: String, vcsRoot: VirtualFile = project.baseDir): GitCommandResult =
+    gitCmd(project, GitCommand.CLONE, vcsRoot) {
+      setUrl(url)
+      addParameters(url)
+    }
+
+
+  fun gitCheckout(project: Project, branch: String, vcsRoot: VirtualFile = project.baseDir): GitCommandResult =
+    gitCmd(project, GitCommand.CHECKOUT, vcsRoot) {
+      addParameters(branch)
+    }
 
   fun gitCmd(
     project: Project,
     cmd: GitCommand,
+    vcsRoot: VirtualFile = project.baseDir,
     f: GitLineHandler.() -> Unit = Noop.effect1
   ): GitCommandResult =
-    gitCmd(gitHandler(project, project.baseDir, cmd, f))
+    gitCmd(gitHandler(project, vcsRoot, cmd, f))
 
   fun <A> git(f: Git.() -> A): A =
     Git.getInstance().f()

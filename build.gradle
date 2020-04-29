@@ -66,6 +66,13 @@ subprojects { project ->
   }
 }
 
+// To run tests for Arrow Meta IDEA Plugin
+task publishIdeTestingDependencies {
+  dependsOn ':compiler-plugin:publishToMavenLocal'
+  dependsOn ':gradle-plugin:publishToMavenLocal'
+  dependsOn ':prelude:publishToMavenLocal'
+}
+
 task cleanMeta {
   dependsOn ':compiler-plugin:clean'
   dependsOn ':gradle-plugin:clean'
@@ -75,11 +82,17 @@ task cleanMeta {
 }
 
 task buildMeta {
+  group = "Arrow Meta"
+  description = "Assembles and tests"
   dependsOn ':compiler-plugin:build'
+  // 'build' task is not executed for :gradle-plugin because it depends on the publication of compiler-plugin 
+  // and it could fail when changing version
   dependsOn ':gradle-plugin:jar'
+  dependsOn ':publishIdeTestingDependencies'
   dependsOn ':idea-plugin:build'
   dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
+  tasks.findByPath(':idea-plugin:build').mustRunAfter ':publishIdeTestingDependencies'
 }
 
 task publishMeta {
@@ -91,6 +104,8 @@ task publishMeta {
 }
 
 task publishAndRunIde {
+  group = "Arrow Meta"
+  description = "Publishes and runs IDE on local workspace"
   dependsOn ':cleanMeta'
   dependsOn ':publishMeta'
   dependsOn ':idea-plugin:runIde'
@@ -117,7 +132,7 @@ task runValidation(type:Exec) {
 
 task buildMetaDoc {
     group = "Arrow Meta"
-    description = "Generate API Doc and validate"
+    description = "Generates API Doc and validates all the documentation"
     dependsOn 'generateDoc'
     dependsOn 'configureValidation'
     dependsOn 'runValidation'
