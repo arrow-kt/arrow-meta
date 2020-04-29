@@ -1,10 +1,8 @@
 package arrow.meta.ide.plugins.proofs
 
-import arrow.meta.CliPlugin
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
-import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.inspections.coercionInspections
 import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
@@ -22,7 +20,6 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
-import arrow.meta.invoke as cli
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
@@ -40,12 +37,5 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       coercionCallSiteLineMarker,
       coercionInspections,
       codeFolding
-    )
-  }
-
-val IdeMetaPlugin.typeProofsCli: CliPlugin
-  get() = "Type Proofs Cli Integration".cli {
-    meta(
-      suppressDiagnostic { suppressProvenTypeMismatch(it) }
     )
   }
