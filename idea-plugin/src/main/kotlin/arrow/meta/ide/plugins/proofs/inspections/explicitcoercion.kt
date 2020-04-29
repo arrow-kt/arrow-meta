@@ -40,11 +40,11 @@ val IdeMetaPlugin.explicitCoercionPropertyInspection: ExtensionPhase
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
-const val EXPLICIT_COERCION_ARGUMENTS_ID = "Make_coercion_explicit_for_arguments"
+const val COERCION_EXPLICIT_ARGS = "Coercion_explicit_args"
 
 val IdeSyntax.explicitCoercionKtValueArgument: AbstractApplicabilityBasedInspection<KtValueArgument>
   get() = applicableInspection(
-    defaultFixText = EXPLICIT_COERCION_ARGUMENTS_ID,
+    defaultFixText = COERCION_EXPLICIT_ARGS,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtValueArgument::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
@@ -63,11 +63,11 @@ val IdeSyntax.explicitCoercionKtValueArgument: AbstractApplicabilityBasedInspect
     enabledByDefault = true
   )
 
-const val EXPLICIT_COERCION_PROPERTIES_ID = "Make_coercion_explicit_for_properties"
+const val COERCION_EXPLICIT_PROP = "Coercion_explicit_prop"
 
 val IdeSyntax.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
-    defaultFixText = EXPLICIT_COERCION_PROPERTIES_ID,
+    defaultFixText = COERCION_EXPLICIT_PROP,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },

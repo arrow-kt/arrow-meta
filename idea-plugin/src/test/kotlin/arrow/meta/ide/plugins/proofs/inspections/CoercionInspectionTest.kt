@@ -29,7 +29,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = code.toKtFile(myFixture)
             val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercionKtProperty))
-              .filter { it.inspectionToolId == EXPLICIT_COERCION_PROPERTIES_ID }
+              .filter { it.inspectionToolId == COERCION_EXPLICIT_PROP }
             val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file)
             Pair(highlightInfos, codeFixed)
           },
@@ -57,7 +57,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = code.toKtFile(myFixture)
             val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercionKtValueArgument))
-              .filter { it.inspectionToolId == EXPLICIT_COERCION_ARGUMENTS_ID }
+              .filter { it.inspectionToolId == COERCION_EXPLICIT_ARGS }
             val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file)
             Pair(highlightInfos, codeFixed)
           },
