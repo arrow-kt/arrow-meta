@@ -1,8 +1,7 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.inspections.PairTypes
-import arrow.meta.ide.plugins.proofs.inspections.PairTypes.Companion.pairOrNull
+import arrow.meta.ide.plugins.proofs.inspections.pairOrNull
 import arrow.meta.ide.plugins.proofs.inspections.resolveKotlinType
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.CompilerContext
@@ -30,13 +29,13 @@ val IdeMetaPlugin.implicitCoercionValueArgumentLineMarker: ExtensionPhase
       }
     },
     message = { ktElement: KtValueArgument ->
-      ktElement.participatingTypes().mapNotNull { (subtype, supertype) ->
+      ktElement.participatingTypes()?.let { (subtype, supertype) ->
         ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
-      }.firstOrNull() ?: "Proof not found"
+      } ?: "Proof not found"
     }
   )
 
-internal fun KtValueArgument.participatingTypes(): List<PairTypes> {
+internal fun KtValueArgument.participatingTypes(): Pair<KotlinType, KotlinType>? {
   val subType: KotlinType? = getArgumentExpression()?.resolveKotlinType()
 
   val ktCallExpression = PsiTreeUtil.getParentOfType(this, KtCallExpression::class.java)
@@ -45,10 +44,10 @@ internal fun KtValueArgument.participatingTypes(): List<PairTypes> {
     resolvedCall.resultingDescriptor.valueParameters[myselfIndex].type
   }
 
-  return listOfNotNull((subType pairOrNull superType))
+  return subType.pairOrNull(superType)
 }
 
 private fun KtValueArgument.isCoerced(compilerContext: CompilerContext): Boolean =
-  participatingTypes().any { (subtype, supertype) ->
+  participatingTypes()?.let { (subtype, supertype) ->
     compilerContext.areTypesCoerced(subtype, supertype)
-  }
+  } ?: false

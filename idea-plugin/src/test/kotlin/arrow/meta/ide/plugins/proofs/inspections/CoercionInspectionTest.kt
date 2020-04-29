@@ -28,9 +28,9 @@ class CoercionInspectionTest : IdeTestSetUp() {
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = code.toKtFile(myFixture)
-            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercion))
-              .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercionKtProperty))
+              .filter { it.inspectionToolId == EXPLICIT_COERCION_PROPERTIES_ID }
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file)
             Pair(highlightInfos, codeFixed)
           },
           result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult ->
@@ -44,7 +44,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
             val file = code.toKtFile(myFixture)
             val highlightInfos = collectInspections(code, myFixture, listOf(implicitCoercion))
               .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file)
             Pair(highlightInfos, codeFixed)
           },
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult ->
@@ -56,9 +56,9 @@ class CoercionInspectionTest : IdeTestSetUp() {
           code = CoercionInspectionTestCode.code3,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             val file = code.toKtFile(myFixture)
-            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercion))
-              .filter { it.inspectionToolId == EXPLICIT_COERCION_INSPECTION_ID }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file, project)
+            val highlightInfos = collectInspections(code, myFixture, listOf(explicitCoercionKtValueArgument))
+              .filter { it.inspectionToolId == EXPLICIT_COERCION_ARGUMENTS_ID }
+            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, file)
             Pair(highlightInfos, codeFixed)
           },
           result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult ->

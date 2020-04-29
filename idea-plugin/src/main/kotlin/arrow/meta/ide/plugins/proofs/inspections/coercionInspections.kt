@@ -6,6 +6,7 @@ import arrow.meta.phases.ExtensionPhase
 
 val IdeMetaPlugin.coercionInspections: ExtensionPhase
   get() = Composite(
-    explicitCoercionInspection,
-    implicitCoercionInspection
+    implicitCoercionInspection,
+    explicitCoercionArgumentInspection,
+    explicitCoercionPropertyInspection
   )

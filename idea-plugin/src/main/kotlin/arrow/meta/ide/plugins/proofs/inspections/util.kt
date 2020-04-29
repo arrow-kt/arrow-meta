@@ -5,13 +5,9 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
-internal data class PairTypes(val subType: KotlinType, val superType: KotlinType) {
-  companion object {
-    infix fun KotlinType?.pairOrNull(b: KotlinType?): PairTypes? =
-      if (this != null && b != null) PairTypes(this, b)
-      else null
-  }
-}
+internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType>? =
+  if (this != null && b != null) Pair(this, b)
+  else null
 
-fun KtExpression.resolveKotlinType(): KotlinType? =
+internal fun KtExpression.resolveKotlinType(): KotlinType? =
   analyze(BodyResolveMode.PARTIAL).getType(this)

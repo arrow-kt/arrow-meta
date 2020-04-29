@@ -13,68 +13,99 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
- * [explicitCoercionInspection]: for implicit coercion to make it explicit
+ * [explicitCoercionArgumentInspection]: for implicit coercion on arguments to make them explicit
  */
-val IdeMetaPlugin.explicitCoercionInspection: ExtensionPhase
+val IdeMetaPlugin.explicitCoercionArgumentInspection: ExtensionPhase
   get() = addLocalInspection(
-    inspection = explicitCoercion,
+    inspection = explicitCoercionKtValueArgument,
     level = HighlightDisplayLevel.WEAK_WARNING,
     groupPath = ProofPath + arrayOf("Coercion")
   )
 
-const val EXPLICIT_COERCION_INSPECTION_ID = "Make_coercion_explicit"
+/**
+ * [explicitCoercionPropertyInspection]: for implicit coercion on properties to make them explicit
+ */
+val IdeMetaPlugin.explicitCoercionPropertyInspection: ExtensionPhase
+  get() = addLocalInspection(
+    inspection = explicitCoercionKtProperty,
+    level = HighlightDisplayLevel.WEAK_WARNING,
+    groupPath = ProofPath + arrayOf("Coercion")
+  )
 
-val IdeSyntax.explicitCoercion: AbstractApplicabilityBasedInspection<KtElement>
+const val EXPLICIT_COERCION_ARGUMENTS_ID = "Make_coercion_explicit_for_arguments"
+
+val IdeSyntax.explicitCoercionKtValueArgument: AbstractApplicabilityBasedInspection<KtValueArgument>
   get() = applicableInspection(
-    defaultFixText = EXPLICIT_COERCION_INSPECTION_ID,
+    defaultFixText = EXPLICIT_COERCION_ARGUMENTS_ID,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
-    kClass = KtElement::class.java,
+    kClass = KtValueArgument::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
-    isApplicable = { ktCall: KtElement ->
+    isApplicable = { ktCall: KtValueArgument ->
       ktCall.ctx()?.let { compilerContext ->
-        ktCall.getParticipatingTypes().any { (subtype, supertype) ->
+        ktCall.participatingTypes()?.let { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       } ?: false
     },
-    applyTo = { ktCall: KtElement, _, _ ->
+    applyTo = { ktCall: KtValueArgument, _, _ ->
       ktCall.ctx()?.let { compilerContext ->
         ktCall.makeExplicit(compilerContext)
       }
-    }
+    },
+    enabledByDefault = true
   )
 
-private fun KtElement.makeExplicit(compilerContext: CompilerContext) {
-  when (this) {
-    is KtValueArgument -> {
-      // Get the coerced types (parameter type and actual definition type)
-      participatingTypes().firstOrNull()?.let { pairType ->
-        getArgumentExpression()?.let { ktExpression ->
-          val type = ktExpression.resolveKotlinType()
-          if (pairType.subType == type) {
-            ktExpression.replaceWithProof(compilerContext, pairType)
-          }
-        }
-      }
-    }
+const val EXPLICIT_COERCION_PROPERTIES_ID = "Make_coercion_explicit_for_properties"
 
-    is KtProperty -> participatingTypes().first().let { pairType ->
-      initializer?.replaceWithProof(compilerContext, pairType)
+val IdeSyntax.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
+  get() = applicableInspection(
+    defaultFixText = EXPLICIT_COERCION_PROPERTIES_ID,
+    inspectionHighlightType = { ProblemHighlightType.INFORMATION },
+    kClass = KtProperty::class.java,
+    inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
+    isApplicable = { ktCall: KtProperty ->
+      ktCall.ctx()?.let { compilerContext ->
+        ktCall.participatingTypes()?.let { (subtype, supertype) ->
+          compilerContext.areTypesCoerced(subtype, supertype)
+        }
+      } ?: false
+    },
+    applyTo = { ktCall: KtProperty, _, _ ->
+      ktCall.ctx()?.let { compilerContext ->
+        ktCall.makeExplicit(compilerContext)
+      }
+    },
+    enabledByDefault = true
+  )
+
+private fun KtValueArgument.makeExplicit(compilerContext: CompilerContext) {
+  // Get the coerced types (parameter type and actual definition type)
+  participatingTypes()?.let { pairType ->
+    getArgumentExpression()?.let { ktExpression ->
+      val type = ktExpression.resolveKotlinType()
+      if (pairType.first == type) {
+        ktExpression.replaceWithProof(compilerContext, pairType)
+      }
     }
   }
 }
 
-private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: PairTypes) = with(compilerContext) {
-  val through = coerceProof(pairType.subType, pairType.superType)!!.through
+private fun KtProperty.makeExplicit(compilerContext: CompilerContext) {
+  participatingTypes()?.let { pairType ->
+    initializer?.replaceWithProof(compilerContext, pairType)
+  }
+}
+
+private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pairType: Pair<KotlinType, KotlinType>) = with(compilerContext) {
+  val through = coerceProof(pairType.first, pairType.second)!!.through
   val importList = containingKtFile.importList!!
   val importableFqName = through.importableFqName
   val throughPackage = through.ktFile()?.packageFqName
@@ -87,13 +118,9 @@ private fun KtExpression.replaceWithProof(compilerContext: CompilerContext, pair
       importDirective(ImportPath(it, false)).value
     }
     proofImport?.let { importDirective: KtImportDirective ->
-      importList.add(importDirective as PsiElement)// TODO sort?
+      importList.add(importDirective as PsiElement)
     }
   }
   val ktExpression: KtExpression? = "$text.${through.name}()".expression.value
   ktExpression?.let(::replace)
 }
-
-private fun KtElement.getParticipatingTypes(): List<PairTypes> =
-  (this.safeAs<KtValueArgument>()?.participatingTypes() ?: emptyList()) +
-    (this.safeAs<KtProperty>()?.participatingTypes() ?: emptyList())

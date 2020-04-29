@@ -2,7 +2,6 @@ package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.IdeSyntax
-import arrow.meta.ide.plugins.proofs.inspections.PairTypes.Companion.pairOrNull
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -13,6 +12,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * [implicitCoercionInspection]: for explicit coercion to make it implicit
@@ -40,7 +40,7 @@ val IdeSyntax.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualif
     },
     isApplicable = { ktCall: KtDotQualifiedExpression ->
       (ktCall.parent !is KtSafeQualifiedExpression) && ktCall.ctx()?.let { compilerContext ->
-        ktCall.implicitParticipatingTypes().any { (subtype, supertype) ->
+        ktCall.implicitParticipatingTypes()?.let { (subtype, supertype) ->
           compilerContext.areTypesCoerced(subtype, supertype)
         }
       } ?: false
@@ -50,10 +50,10 @@ val IdeSyntax.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualif
     }
   )
 
-private fun KtDotQualifiedExpression.implicitParticipatingTypes(): List<PairTypes> =
-  listOfNotNull(receiverExpression.resolveKotlinType() pairOrNull selectorExpression?.resolveKotlinType())
+private fun KtDotQualifiedExpression.implicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
+  receiverExpression.resolveKotlinType().pairOrNull(selectorExpression?.resolveKotlinType())
 
 private fun KtDotQualifiedExpression.coercionProofMessage(ctx: CompilerContext): String =
-  implicitParticipatingTypes().mapNotNull { (subtype, supertype) ->
+  implicitParticipatingTypes()?.let { (subtype, supertype) ->
     ctx.coerceProof(subtype, supertype)?.coercionMessage()
-  }.firstOrNull() ?: "Proof not found"
+  } ?: "Proof not found"

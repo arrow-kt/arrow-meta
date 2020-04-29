@@ -5,7 +5,6 @@ import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
@@ -26,12 +25,12 @@ interface InspectionTestSyntax {
       code.toKtFile(myFixture)?.run { highlighting(myFixture, toIgnore, changes) }
     }.orEmpty()
 
-  fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?, project: Project): String {
+  fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): String {
     quickFixActionMarkers
       .map { it.first.action }
       .firstOrNull()?.let { localFixAction ->
-        project.executeWriteCommand(localFixAction.text, null) {
-          localFixAction.invoke(project, myFixture.editor, file)
+        myFixture.project.executeWriteCommand(localFixAction.text, null) {
+          localFixAction.invoke(myFixture.project, myFixture.editor, file)
         }
       }
     return file?.text ?: ""
