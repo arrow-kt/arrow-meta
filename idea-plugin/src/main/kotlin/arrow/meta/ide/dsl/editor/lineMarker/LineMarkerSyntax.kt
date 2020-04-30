@@ -250,10 +250,10 @@ interface LineMarkerSyntax {
    * Similar to [addLineMarkerProviderM], is an extension for PsiElements that are not leafs
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderMLeaf(
+  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderMNotLeaf(
     icon: Icon,
     transform: (PsiElement) -> A?,
-    composite: Class<A>,
+    notALeafComposite: Class<A>,
     message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
     commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
@@ -264,7 +264,7 @@ interface LineMarkerSyntax {
     addLineMarkerProvider(
       { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
       {
-        it.onComposite(composite) { psi: A ->
+        it.onComposite(notALeafComposite) { psi: A ->
           mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }
