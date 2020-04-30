@@ -31,11 +31,9 @@ internal fun KtElement.participatingTypes(): Pair<KotlinType, KotlinType>? =
   }
 
 internal fun KtElement.isCoerced(compilerContext: CompilerContext): Boolean =
-  when (this) {
-    is KtProperty -> isCoerced(compilerContext)
-    is KtValueArgument -> isCoerced(compilerContext)
-    else -> false
-  }
+  participatingTypes()?.let { (subtype, supertype) ->
+    compilerContext.areTypesCoerced(subtype, supertype)
+  } ?: false
 
 private fun KtProperty.participatingTypes(): Pair<KotlinType, KotlinType>? {
   val subType = initializer?.resolveKotlinType()
@@ -54,13 +52,3 @@ private fun KtValueArgument.participatingTypes(): Pair<KotlinType, KotlinType>? 
 
   return subType.pairOrNull(superType)
 }
-
-private fun KtProperty.isCoerced(compilerContext: CompilerContext): Boolean =
-  participatingTypes()?.let { (subtype, supertype) ->
-    compilerContext.areTypesCoerced(subtype, supertype)
-  } ?: false
-
-private fun KtValueArgument.isCoerced(compilerContext: CompilerContext): Boolean =
-  participatingTypes()?.let { (subtype, supertype) ->
-    compilerContext.areTypesCoerced(subtype, supertype)
-  } ?: false
