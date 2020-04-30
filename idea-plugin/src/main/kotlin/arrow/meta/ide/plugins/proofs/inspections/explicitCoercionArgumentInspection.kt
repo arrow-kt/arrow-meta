@@ -37,7 +37,7 @@ val IdeSyntax.explicitCoercionKtValueArgument: AbstractApplicabilityBasedInspect
     },
     applyTo = { ktCall: KtValueArgument, _, _ ->
       ktCall.ctx()?.let { compilerContext ->
-        ktCall.makeExplicit(compilerContext)
+        ktCall.explicit(compilerContext)
       }
     }
   )

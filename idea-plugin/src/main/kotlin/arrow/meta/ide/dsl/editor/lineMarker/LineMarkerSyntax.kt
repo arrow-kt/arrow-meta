@@ -18,10 +18,8 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -241,30 +239,6 @@ interface LineMarkerSyntax {
       { transform(it)?.identifyingElement },
       {
         it.onComposite(composite) { psi: A ->
-          mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
-        }
-      }
-    )
-
-  /**
-   * Similar to [addLineMarkerProviderM], is an extension for PsiElements that are not leafs
-   */
-  @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderMNotLeaf(
-    icon: Icon,
-    transform: (PsiElement) -> A?,
-    notALeafComposite: Class<A>,
-    message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
-    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
-    mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
-    navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-    clickAction: AnAction? = null
-  ): ExtensionPhase =
-    addLineMarkerProvider(
-      { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
-      {
-        it.onComposite(notALeafComposite) { psi: A ->
           mergeableLineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, commonIcon, mergeWith, placed, navigate, clickAction)
         }
       }
