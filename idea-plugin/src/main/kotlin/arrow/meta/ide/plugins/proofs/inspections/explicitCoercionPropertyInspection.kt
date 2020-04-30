@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
- * [explicitCoercionPropertyInspection]: for implicit coercion on properties to make them explicit
+ * [explicitCoercionPropertyInspection]: adds an explict call for implicit coercions on properties
  */
 val IdeMetaPlugin.explicitCoercionPropertyInspection: ExtensionPhase
   get() = addLocalInspection(

@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
- * [explicitCoercionArgumentInspection]: for implicit coercion on arguments to make them explicit
+ * [explicitCoercionArgumentInspection]: adds an explict call for implicit coercions on arguments
  */
 val IdeMetaPlugin.explicitCoercionArgumentInspection: ExtensionPhase
   get() = addLocalInspection(
