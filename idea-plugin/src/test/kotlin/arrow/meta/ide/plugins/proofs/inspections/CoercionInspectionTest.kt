@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.markers.CoercionTestCode
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.env.IdeTestSetUp
@@ -13,8 +14,8 @@ class CoercionInspectionTest : IdeTestSetUp() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("arrow/prelude.kt", CoercionInspectionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionInspectionTestCode.twitterHandleDeclaration)
+    myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
+    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
   @org.junit.Test
