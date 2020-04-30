@@ -6,13 +6,17 @@ import arrow.meta.ide.plugins.proofs.markers.participatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.coerceProof
 import arrow.meta.quotes.ktFile
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.imports.importableFqName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtImportList
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.ImportPath
@@ -60,11 +64,11 @@ internal fun CompilerContext.explicit(ktProperty: KtProperty) {
 }
 
 private fun CompilerContext.replaceWithProof(ktExpression: KtExpression, pairType: Pair<KotlinType, KotlinType>) {
-  coerceProof(pairType.first, pairType.second)?.let { proof ->
+  coerceProof(pairType.first, pairType.second)?.let { proof: CoercionProof ->
     // Add import (if needed)
-    val importList = ktExpression.containingKtFile.importList
-    val importableFqName = proof.through.importableFqName
-    val throughPackage = proof.through.ktFile()?.packageFqName
+    val importList: KtImportList? = ktExpression.containingKtFile.importList
+    val importableFqName: FqName? = proof.through.importableFqName
+    val throughPackage: FqName? = proof.through.ktFile()?.packageFqName
 
     val notImported = importList?.let { ktImportList ->
       !ktImportList.imports.any { it.importedFqName == importableFqName }
@@ -72,8 +76,8 @@ private fun CompilerContext.replaceWithProof(ktExpression: KtExpression, pairTyp
     val differentPackage = ktExpression.containingKtFile.packageFqName != throughPackage
 
     if (notImported && differentPackage) {
-      importableFqName?.let {
-        importDirective(ImportPath(it, false)).value?.let { importDirective ->
+      importableFqName?.let { fqName: FqName ->
+        importDirective(ImportPath(fqName, false)).value?.let { importDirective: KtImportDirective ->
           importList?.add(importDirective as PsiElement)
         }
       }
