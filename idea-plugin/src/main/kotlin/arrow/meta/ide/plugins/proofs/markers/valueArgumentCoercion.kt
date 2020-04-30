@@ -22,10 +22,8 @@ val IdeMetaPlugin.implicitCoercionValueArgumentLineMarker: ExtensionPhase
     icon = ArrowIcons.ICON4,
     composite = KtValueArgument::class.java,
     transform = { psiElement: PsiElement ->
-      psiElement.ctx()?.let { ctx ->
-        psiElement.safeAs<KtValueArgument>()?.takeIf {
-          it.isCoerced(ctx)
-        }
+      psiElement.safeAs<KtValueArgument>()?.takeIf {
+        psiElement.ctx()?.isCoerced(it) ?: false
       }
     },
     message = { ktElement: KtValueArgument ->

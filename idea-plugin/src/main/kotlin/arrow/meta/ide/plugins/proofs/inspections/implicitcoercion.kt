@@ -27,19 +27,16 @@ val IdeSyntax.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualif
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
-    inspectionText = { ktDotQualifiedExpression: KtDotQualifiedExpression ->
+    inspectionText = { ktCall: KtDotQualifiedExpression ->
       // TODO: research ways to display this nicely and align it with [arrow.meta.ide.plugins.proofs.markers.CoercionKt.coerceProofLineMarker]
-      val coercionMessage = ktDotQualifiedExpression.ctx()?.let { context ->
-        ktDotQualifiedExpression.coercionProofMessage(context)
-      }
-      "Expression: ${ktDotQualifiedExpression.text} can be replaced for only its receiver because there is a $coercionMessage"
+      val coercionMessage = ktCall.ctx()?.coercionProofMessage(ktCall)
+      "Expression: ${ktCall.text} can be replaced for only its receiver because there is a $coercionMessage"
     },
     isApplicable = { ktCall: KtDotQualifiedExpression ->
-      (ktCall.parent !is KtSafeQualifiedExpression) && ktCall.ctx()?.let { compilerContext ->
+      (ktCall.parent !is KtSafeQualifiedExpression) &&
         ktCall.implicitParticipatingTypes()?.let { (subtype, supertype) ->
-          compilerContext.areTypesCoerced(subtype, supertype)
-        }
-      } ?: false
+          ktCall.ctx()?.areTypesCoerced(subtype, supertype)
+        } ?: false
     },
     applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
       ktCall.replace(ktCall.receiverExpression)

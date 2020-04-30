@@ -12,7 +12,6 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -30,9 +29,9 @@ val IdeMetaPlugin.coercionInspections: ExtensionPhase
 internal fun KtDotQualifiedExpression.implicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
   receiverExpression.resolveKotlinType().pairOrNull(selectorExpression?.resolveKotlinType())
 
-internal fun KtDotQualifiedExpression.coercionProofMessage(ctx: CompilerContext): String =
-  implicitParticipatingTypes()?.let { (subtype, supertype) ->
-    ctx.coerceProof(subtype, supertype)?.coercionMessage()
+internal fun CompilerContext.coercionProofMessage(ktDotQualifiedExpression: KtDotQualifiedExpression): String =
+  ktDotQualifiedExpression.implicitParticipatingTypes()?.let { (subtype, supertype) ->
+    coerceProof(subtype, supertype)?.coercionMessage()
   } ?: "Proof not found"
 
 internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType>? =
@@ -42,28 +41,21 @@ internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType
 internal fun KtExpression.resolveKotlinType(): KotlinType? =
   analyze(BodyResolveMode.PARTIAL).getType(this)
 
-internal fun KtElement.explicit(compilerContext: CompilerContext) =
-  when (this) {
-    is KtProperty -> explicit(compilerContext)
-    is KtValueArgument -> explicit(compilerContext)
-    else -> Unit
-  }
-
-private fun KtValueArgument.explicit(compilerContext: CompilerContext) {
+internal fun CompilerContext.explicit(ktValueArgument: KtValueArgument) {
   // Get the coerced types (parameter type and actual definition type)
-  participatingTypes()?.let { pairType ->
-    getArgumentExpression()?.let { ktExpression ->
+  ktValueArgument.participatingTypes()?.let { pairType ->
+    ktValueArgument.getArgumentExpression()?.let { ktExpression ->
       val type = ktExpression.resolveKotlinType()
       if (pairType.first == type) {
-        compilerContext.replaceWithProof(ktExpression, pairType)
+        replaceWithProof(ktExpression, pairType)
       }
     }
   }
 }
 
-private fun KtProperty.explicit(compilerContext: CompilerContext) {
-  participatingTypes()?.let { pairType ->
-    initializer?.let { compilerContext.replaceWithProof(it, pairType) }
+internal fun CompilerContext.explicit(ktProperty: KtProperty) {
+  ktProperty.participatingTypes()?.let { pairType ->
+    ktProperty.initializer?.let { replaceWithProof(it, pairType) }
   }
 }
 

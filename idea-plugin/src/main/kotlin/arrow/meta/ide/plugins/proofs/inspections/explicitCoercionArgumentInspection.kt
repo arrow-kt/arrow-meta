@@ -29,15 +29,11 @@ val IdeSyntax.explicitCoercionKtValueArgument: AbstractApplicabilityBasedInspect
     kClass = KtValueArgument::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     isApplicable = { ktCall: KtValueArgument ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.participatingTypes()?.let { (subtype, supertype) ->
-          compilerContext.areTypesCoerced(subtype, supertype)
-        }
+      ktCall.participatingTypes()?.let { (subtype, supertype) ->
+        ktCall.ctx()?.areTypesCoerced(subtype, supertype)
       } ?: false
     },
     applyTo = { ktCall: KtValueArgument, _, _ ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.explicit(compilerContext)
-      }
+      ktCall.ctx()?.explicit(ktCall)
     }
   )

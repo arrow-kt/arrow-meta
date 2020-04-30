@@ -29,15 +29,11 @@ val IdeSyntax.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<K
     kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     isApplicable = { ktCall: KtProperty ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.participatingTypes()?.let { (subtype, supertype) ->
-          compilerContext.areTypesCoerced(subtype, supertype)
-        }
+      ktCall.participatingTypes()?.let { (subtype, supertype) ->
+        ktCall.ctx()?.areTypesCoerced(subtype, supertype)
       } ?: false
     },
     applyTo = { ktCall: KtProperty, _, _ ->
-      ktCall.ctx()?.let { compilerContext ->
-        ktCall.explicit(compilerContext)
-      }
+      ktCall.ctx()?.explicit(ktCall)
     }
   )
