@@ -25,17 +25,6 @@ interface InspectionTestSyntax {
       code.toKtFile(myFixture)?.run { highlighting(myFixture, toIgnore, changes) }
     }.orEmpty()
 
-  fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): Source {
-    quickFixActionMarkers
-      .map { it.first.action }
-      .firstOrNull()?.let { localFixAction ->
-        myFixture.project.executeWriteCommand(localFixAction.text, null) {
-          localFixAction.invoke(myFixture.project, myFixture.editor, file)
-        }
-      }
-    return file?.text.orEmpty()
-  }
-
   /**
    * https://github.com/JetBrains/kotlin/blob/d95a94a6c1ba08e83c7974a108e0b186ca96c3f7/idea/tests/org/jetbrains/kotlin/idea/inspections/AbstractLocalInspectionTest.kt#L140
    */

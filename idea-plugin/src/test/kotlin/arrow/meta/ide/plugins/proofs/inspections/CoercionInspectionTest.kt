@@ -15,6 +15,8 @@ import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
+import org.jetbrains.kotlin.psi.KtFile
 
 class CoercionInspectionTest : IdeTestSetUp() {
 
@@ -71,4 +73,15 @@ class CoercionInspectionTest : IdeTestSetUp() {
           }
         ))
     }
+}
+
+fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): Source {
+  quickFixActionMarkers
+    .map { it.first.action }
+    .firstOrNull()?.let { localFixAction ->
+      myFixture.project.executeWriteCommand(localFixAction.text, null) {
+        localFixAction.invoke(myFixture.project, myFixture.editor, file)
+      }
+    }
+  return file?.text.orEmpty()
 }
