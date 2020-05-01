@@ -25,7 +25,7 @@ interface InspectionTestSyntax {
       code.toKtFile(myFixture)?.run { highlighting(myFixture, toIgnore, changes) }
     }.orEmpty()
 
-  fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): String {
+  fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): Source {
     quickFixActionMarkers
       .map { it.first.action }
       .firstOrNull()?.let { localFixAction ->
@@ -33,7 +33,7 @@ interface InspectionTestSyntax {
           localFixAction.invoke(myFixture.project, myFixture.editor, file)
         }
       }
-    return file?.text ?: ""
+    return file?.text.orEmpty()
   }
 
   /**

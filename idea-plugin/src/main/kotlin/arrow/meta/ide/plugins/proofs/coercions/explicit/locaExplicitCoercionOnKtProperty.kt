@@ -1,7 +1,7 @@
-package arrow.meta.ide.plugins.proofs.inspections
+package arrow.meta.ide.plugins.proofs.coercions.explicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.IdeSyntax
+import arrow.meta.ide.plugins.proofs.coercions.explicit
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.psi.KtProperty
 
 /**
- * [explicitCoercionPropertyInspection]: adds an explict call for implicit coercions on properties
+ * [localExplicitCoercionOnKtProperty]: adds an explict call for implicit coercions on properties
  */
-val IdeMetaPlugin.explicitCoercionPropertyInspection: ExtensionPhase
+val IdeMetaPlugin.localExplicitCoercionOnKtProperty: ExtensionPhase
   get() = addLocalInspection(
     inspection = explicitCoercionKtProperty,
     level = HighlightDisplayLevel.WEAK_WARNING,
@@ -22,7 +22,7 @@ val IdeMetaPlugin.explicitCoercionPropertyInspection: ExtensionPhase
 
 const val COERCION_EXPLICIT_PROP = "Coercion_explicit_prop"
 
-val IdeSyntax.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
+val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_PROP,
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },

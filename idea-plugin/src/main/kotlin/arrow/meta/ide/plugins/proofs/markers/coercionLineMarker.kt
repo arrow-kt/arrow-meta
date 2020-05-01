@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.inspections.pairOrNull
-import arrow.meta.ide.plugins.proofs.inspections.resolveKotlinType
+import arrow.meta.ide.plugins.proofs.coercions.pairOrNull
+import arrow.meta.ide.plugins.proofs.coercions.resolveKotlinType
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase

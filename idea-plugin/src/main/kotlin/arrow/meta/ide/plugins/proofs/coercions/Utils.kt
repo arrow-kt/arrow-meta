@@ -1,11 +1,9 @@
-package arrow.meta.ide.plugins.proofs.inspections
+package arrow.meta.ide.plugins.proofs.coercions
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.replaceK
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.Composite
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CoercionProof
 import arrow.meta.plugins.proofs.phases.coerceProof
 import arrow.meta.quotes.ktFile
@@ -23,13 +21,6 @@ import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 
-val IdeMetaPlugin.coercionInspections: ExtensionPhase
-  get() = Composite(
-    implicitCoercionInspection,
-    explicitCoercionArgumentInspection,
-    explicitCoercionPropertyInspection
-  )
-
 internal fun KtDotQualifiedExpression.implicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
   receiverExpression.resolveKotlinType().pairOrNull(selectorExpression?.resolveKotlinType())
 
@@ -45,35 +36,30 @@ internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType
 internal fun KtExpression.resolveKotlinType(): KotlinType? =
   analyze(BodyResolveMode.PARTIAL).getType(this)
 
-internal fun CompilerContext.explicit(ktValueArgument: KtValueArgument) {
+internal fun CompilerContext.explicit(ktValueArgument: KtValueArgument): KtExpression? =
   // Get the coerced types (parameter type and actual definition type)
   ktValueArgument.participatingTypes()?.let { pairType ->
-    ktValueArgument.getArgumentExpression()?.let { ktExpression ->
-      val type = ktExpression.resolveKotlinType()
-      if (pairType.first == type) {
-        replaceWithProof(ktExpression, pairType)
-      }
-    }
+    ktValueArgument.getArgumentExpression()
+      ?.takeIf { it.resolveKotlinType() == pairType.first }
+      ?.let { replaceWithProof(it, pairType) }
   }
-}
 
-internal fun CompilerContext.explicit(ktProperty: KtProperty) {
+internal fun CompilerContext.explicit(ktProperty: KtProperty): KtExpression? =
   ktProperty.participatingTypes()?.let { pairType ->
     ktProperty.initializer?.let { replaceWithProof(it, pairType) }
   }
-}
 
-private fun CompilerContext.replaceWithProof(ktExpression: KtExpression, pairType: Pair<KotlinType, KotlinType>) {
+private fun CompilerContext.replaceWithProof(ktExpression: KtExpression, pairType: Pair<KotlinType, KotlinType>): KtExpression? =
   coerceProof(pairType.first, pairType.second)?.let { proof: CoercionProof ->
     // Add import (if needed)
     val importList: KtImportList? = ktExpression.containingKtFile.importList
     val importableFqName: FqName? = proof.through.importableFqName
     val throughPackage: FqName? = proof.through.ktFile()?.packageFqName
 
-    val notImported = importList?.let { ktImportList ->
+    val notImported: Boolean = importList?.let { ktImportList ->
       !ktImportList.imports.any { it.importedFqName == importableFqName }
     } ?: true
-    val differentPackage = ktExpression.containingKtFile.packageFqName != throughPackage
+    val differentPackage: Boolean = ktExpression.containingKtFile.packageFqName != throughPackage
 
     if (notImported && differentPackage) {
       importableFqName?.let { fqName: FqName ->
@@ -84,7 +70,7 @@ private fun CompilerContext.replaceWithProof(ktExpression: KtExpression, pairTyp
     }
 
     // Replace with Proof
-    val ktExpressionNew: KtExpression? = "${ktExpression.text}.${proof.through.name}()".expression.value
-    ktExpressionNew?.let { ktExpression.replace(it) }
+    "${ktExpression.text}.${proof.through.name}()".expression.value?.let { new: KtExpression ->
+      ktExpression.replaceK(new)
+    }
   }
-}

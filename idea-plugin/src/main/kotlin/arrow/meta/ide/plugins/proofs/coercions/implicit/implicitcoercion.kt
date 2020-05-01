@@ -1,7 +1,8 @@
-package arrow.meta.ide.plugins.proofs.inspections
+package arrow.meta.ide.plugins.proofs.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.IdeSyntax
+import arrow.meta.ide.plugins.proofs.coercions.coercionProofMessage
+import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -11,9 +12,9 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
 /**
- * [implicitCoercionInspection]: for explicit coercion to make it implicit
+ * [localImplicitCoercion]: for explicit coercion to make it implicit
  */
-val IdeMetaPlugin.implicitCoercionInspection: ExtensionPhase
+val IdeMetaPlugin.localImplicitCoercion: ExtensionPhase
   get() = addLocalInspection(
     inspection = implicitCoercion,
     level = HighlightDisplayLevel.WARNING,
@@ -22,7 +23,7 @@ val IdeMetaPlugin.implicitCoercionInspection: ExtensionPhase
 
 const val IMPLICIT_COERCION_INSPECTION_ID = "Make_coercion_implicit"
 
-val IdeSyntax.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
+val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
     inspectionHighlightType = { ProblemHighlightType.WARNING },
