@@ -9,6 +9,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * [localExplicitCoercionOnKtValArg]: adds an explict call for implicit coercions on arguments
@@ -27,7 +28,7 @@ val IdeMetaPlugin.explicitCoercionKtValArg: AbstractApplicabilityBasedInspection
     kClass = KtValueArgument::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     isApplicable = { ktCall: KtValueArgument ->
-      ktCall.participatingTypes()?.let { (subtype, supertype) ->
+      ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx()?.areTypesCoerced(subtype, supertype)
       } ?: false
     },
