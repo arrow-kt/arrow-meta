@@ -29,8 +29,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest1 for 2 LM ") { descriptor ->
-            println("CoercionTest1 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+          result = resolvesWhen("CoercionTest1 for 2 LM ") { descriptor: LineMarkerDescription ->
             descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         ),
@@ -39,8 +38,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest2 for 0 LM ") { descriptor ->
-            println("CoercionTest2 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+          result = resolvesWhen("CoercionTest2 for 0 LM ") { descriptor: LineMarkerDescription ->
             descriptor.lineMarker.isEmpty() && descriptor.slowLM.isEmpty()
           }
         ),
@@ -49,8 +47,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest3 for 2 LM ") { descriptor ->
-            println("CoercionTest3 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+          result = resolvesWhen("CoercionTest3 for 2 LM ") { descriptor: LineMarkerDescription ->
             descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         ),
@@ -59,8 +56,7 @@ class CoercionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
             collectLM(code, myFixture, ArrowIcons.ICON4)
           },
-          result = resolvesWhen("CoercionTest4 for 2 LM ") { descriptor ->
-            println("CoercionTest4 Result[${descriptor.lineMarker.size}]=${descriptor.lineMarker}")
+          result = resolvesWhen("CoercionTest4 for 2 LM ") { descriptor: LineMarkerDescription ->
             descriptor.lineMarker.size == 2 && descriptor.slowLM.isEmpty()
           }
         )

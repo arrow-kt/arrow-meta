@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.coerceProof
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -11,7 +12,7 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
   get() = addLineMarkerProvider(
     icon = ArrowIcons.ICON4,
     composite = KtProperty::class.java,
-    transform = { psiElement ->
+    transform = { psiElement: PsiElement ->
       psiElement.safeAs<KtProperty>()?.takeIf {
         psiElement.ctx()?.isCoerced(it) ?: false
       }
