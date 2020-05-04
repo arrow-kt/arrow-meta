@@ -41,12 +41,14 @@ private val controller: TooltipController
     /**
      * Returns newly created hint, or already existing (for the same renderer)
      */
-    override fun showTooltipByMouseMove(editor: Editor,
-                                        point: RelativePoint,
-                                        tooltipObject: TooltipRenderer?,
-                                        alignToRight: Boolean,
-                                        group: TooltipGroup,
-                                        hintHint: HintHint): LightweightHint? {
+    override fun showTooltipByMouseMove(
+      editor: Editor,
+      point: RelativePoint,
+      tooltipObject: TooltipRenderer?,
+      alignToRight: Boolean,
+      group: TooltipGroup,
+      hintHint: HintHint): LightweightHint? {
+
       val currentTooltip = myCurrentTooltip
       if (currentTooltip == null || !currentTooltip.isVisible) {
         if (currentTooltip != null) {
@@ -67,9 +69,11 @@ private val controller: TooltipController
 
       if (tooltipObject != null) {
         val p = point.getPointOn(editor.component.rootPane.layeredPane).point
+
         if (!hintHint.isAwtTooltip) {
           p.x += if (alignToRight) -10 else 10
         }
+
         val project = editor.project
         if (project != null && !project.isOpen) return null
         if (editor.contentComponent.isShowing) {
