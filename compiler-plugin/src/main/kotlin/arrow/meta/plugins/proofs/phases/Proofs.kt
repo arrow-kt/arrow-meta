@@ -4,23 +4,19 @@ import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
-import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
+import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
+import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi2ir.unwrappedGetMethod
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
-import org.jetbrains.kotlin.resolve.descriptorUtil.isPrimaryConstructorOfInlineClass
-import org.jetbrains.kotlin.synthetic.isVisibleOutside
 import org.jetbrains.kotlin.types.KotlinType
 
 val ArrowExtensionProof: FqName = FqName("arrow.Extension")
@@ -143,25 +139,17 @@ fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
   module.proofs.filterIsInstance<GivenProof>()
     .matchingCandidates(this, superType)
 
-fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): ExtensionProof? =
+fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): CoercionProof? =
   coerceProofs(subType, superType).firstOrNull()
 
-fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
+fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<CoercionProof> =
   module.proofs
-    .filterIsInstance<ExtensionProof>()
+    .filterIsInstance<CoercionProof>()
     .filter { it.coerce }
     .matchingCandidates(this, subType, superType)
 
-fun CompilerContext.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean {
-  val isSubtypeOf = baseLineTypeChecker.isSubtypeOf(subType, supertype)
-
-  return if (!isSubtypeOf) {
-    val isProofSubtype = ctx.coerceProof(subType, supertype) != null
-
-    !isSubtypeOf && isProofSubtype
-
-  } else false
-}
+fun CompilerContext?.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean =
+  !baseLineTypeChecker.isSubtypeOf(subType, supertype) && this?.coerceProof(subType, supertype) != null
 
 val ModuleDescriptor.proofs: List<Proof>
   get() =

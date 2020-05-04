@@ -126,7 +126,7 @@ interface LineMarkerSyntax {
    * provides a function [f] from a Leaf PsiElement
    * @receiver is the Leaf PsiElement
    */
-  fun <A : PsiNameIdentifierOwner, L : LineMarkerInfo<PsiElement>> PsiElement.onComposite(composite: Class<A>, f: (A) -> L): L? =
+  fun <A : PsiElement, L : LineMarkerInfo<PsiElement>> PsiElement.onComposite(composite: Class<A>, f: (A) -> L): L? =
     PsiTreeUtil.getParentOfType(this, composite)?.let(f)
 
   /**

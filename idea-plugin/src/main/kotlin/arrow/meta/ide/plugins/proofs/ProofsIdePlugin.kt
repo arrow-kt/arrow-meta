@@ -3,9 +3,9 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
-import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.markers.coerceProofLineMarker
+import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
+import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -31,13 +31,11 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
-//      refinementAnnotator(),
+      // refinementAnnotator(),
       proofsKotlinCache,
-      coerceProofLineMarker(ArrowIcons.ICON4),
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      //makeExplicitCoercionIntention(ctx),
-      //makeImplicitCoercionIntention(ctx),
+      coercionCallSiteLineMarker,
+      coercionInspections,
       codeFolding
     )
   }
-
