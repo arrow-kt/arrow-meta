@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.markers
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
+import arrow.meta.ide.resources.MetaIdeBundle
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -105,9 +106,10 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
   )
 
 fun CoercionProof.coercionMessage(): String =
-  """
-    Coercion happening by proof:
-    <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
-    Link to proof declaration:
-    <code lang="kotlin">$through</code>
-  """.trimIndent()
+  MetaIdeBundle.htmlMessage("proofs.markers.coercion.message", from, to, through)
+//  """
+//    Coercion happening by proof:
+//    <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
+//    Link to proof declaration:
+//    <code lang="kotlin">$through</code>
+//  """.trimIndent()
