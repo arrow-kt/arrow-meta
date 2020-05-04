@@ -61,8 +61,8 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtValArg), COERCION_EXPLICIT_ARGS)
           },
-          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
-            pairResult.first.size == 1
+          result = resolvesWhen("CoercionInspectionTest3 for 2 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
+            pairResult.first.size == 2
               && pairResult.second == CoercionInspectionTestCode.code3_after_fix
           }
         ))
