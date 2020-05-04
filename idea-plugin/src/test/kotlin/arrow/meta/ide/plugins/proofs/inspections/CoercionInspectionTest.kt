@@ -15,6 +15,7 @@ import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
@@ -40,7 +41,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtProperty), COERCION_EXPLICIT_PROP)
           },
-          result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult ->
+          result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 1
               && pairResult.second == CoercionInspectionTestCode.code1_after_fix
           }
@@ -50,7 +51,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             collectAndApplyInspection(code, myFixture, listOf(ctx.implicitCoercion), IMPLICIT_COERCION_INSPECTION_ID)
           },
-          result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult ->
+          result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 1
               && pairResult.second == CoercionInspectionTestCode.code2_after_fix
           }
@@ -60,7 +61,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
             collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtValArg), COERCION_EXPLICIT_ARGS)
           },
-          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult ->
+          result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 1
               && pairResult.second == CoercionInspectionTestCode.code3_after_fix
           }
@@ -73,9 +74,9 @@ class CoercionInspectionTest : IdeTestSetUp() {
     inspections: List<InspectionProfileEntry>,
     inspectionId: String
   ): Pair<List<HighlightInfo>, Source> {
-    val highlightInfos = collectInspections(code, myFixture, inspections)
+    val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
       .filter { it.inspectionToolId == inspectionId }
-    val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
+    val codeFixed: Source = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
     return Pair(highlightInfos, codeFixed)
   }
 }
@@ -83,7 +84,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
 fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): Source {
   quickFixActionMarkers
     .map { it.first.action }
-    .firstOrNull()?.let { localFixAction ->
+    .firstOrNull()?.let { localFixAction: IntentionAction ->
       myFixture.project.executeWriteCommand(localFixAction.text, null) {
         localFixAction.invoke(myFixture.project, myFixture.editor, file)
       }
