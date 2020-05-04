@@ -23,7 +23,7 @@ val IdeMetaPlugin.implicitCoercionValueArgumentLineMarker: ExtensionPhase
     composite = KtValueArgument::class.java,
     transform = { psiElement: PsiElement ->
       psiElement.safeAs<KtValueArgument>()?.takeIf {
-        psiElement.ctx()?.isCoerced(it) ?: false
+        psiElement.ctx().isCoerced(it)
       }
     },
     message = { ktElement: KtValueArgument ->

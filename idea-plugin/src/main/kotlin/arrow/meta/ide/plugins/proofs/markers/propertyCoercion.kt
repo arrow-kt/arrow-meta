@@ -13,7 +13,7 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
     composite = KtProperty::class.java,
     transform = { psiElement ->
       psiElement.safeAs<KtProperty>()?.takeIf {
-        psiElement.ctx()?.isCoerced(it) ?: false
+        psiElement.ctx().isCoerced(it)
       }
     },
     message = { ktElement: KtProperty ->

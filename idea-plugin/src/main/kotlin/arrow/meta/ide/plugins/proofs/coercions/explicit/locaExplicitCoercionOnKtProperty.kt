@@ -31,7 +31,7 @@ val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspecti
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     isApplicable = { ktCall: KtProperty ->
       ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
-        ktCall.ctx()?.areTypesCoerced(subtype, supertype)
+        ktCall.ctx().areTypesCoerced(subtype, supertype)
       } ?: false
     },
     applyTo = { ktCall: KtProperty, _, _ ->
