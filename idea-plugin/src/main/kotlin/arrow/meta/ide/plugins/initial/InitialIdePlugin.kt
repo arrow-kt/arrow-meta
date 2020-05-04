@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
+import arrow.meta.ide.plugins.initial.tooltip.toolTipController
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.openapi.diagnostic.Logger
@@ -22,6 +23,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
   get() = "Initial Ide Setup" {
     meta(
       metaPluginRegistrar,
+      toolTipController,
       addDiagnosticSuppressor { diagnostic ->
         LOG.debug("isSupressed: ${diagnostic.factory.name}: \n ${diagnostic.psiElement.text}")
         val result = diagnostic.suppressMetaDiagnostics()
