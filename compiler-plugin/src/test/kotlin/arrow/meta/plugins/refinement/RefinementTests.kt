@@ -15,15 +15,13 @@ class RefinementTests {
 
   private fun twitterHandle(): String =
     """
-    @Refinement
-    inline class TwitterHandle(val handle: String) {
+    @Refinement class TwitterHandle(val handle: String)  {
       companion object : Refined<String, TwitterHandle> {
-        override val target = ::TwitterHandle
+        override val target: (String) -> TwitterHandle = ::TwitterHandle
         override val validate: String.() -> Map<String, Boolean> = {
           mapOf(
             "Should start with '@'" to startsWith("@"),
             "Should have length <= 16" to (length <= 16),
-            "Should have length > 2" to (length > 2),
             "Should not contain the word 'twitter'" to !contains("twitter"),
             "Should not contain the word 'admin'" to !contains("admin")
           )
