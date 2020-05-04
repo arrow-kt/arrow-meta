@@ -36,7 +36,7 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
     isApplicable = { ktCall: KtDotQualifiedExpression ->
       (ktCall.parent !is KtSafeQualifiedExpression) &&
         ktCall.implicitParticipatingTypes()?.let { (subtype, supertype) ->
-          ktCall.ctx()?.areTypesCoerced(subtype, supertype)
+          ktCall.ctx().areTypesCoerced(subtype, supertype)
         } ?: false
     },
     applyTo = { ktCall: KtDotQualifiedExpression, _, _ ->
