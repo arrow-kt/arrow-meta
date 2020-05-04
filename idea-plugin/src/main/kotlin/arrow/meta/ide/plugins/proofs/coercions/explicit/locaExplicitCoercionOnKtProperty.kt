@@ -9,6 +9,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * [localExplicitCoercionOnKtProperty]: adds an explict call for implicit coercions on properties
@@ -29,7 +30,7 @@ val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspecti
     kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
     isApplicable = { ktCall: KtProperty ->
-      ktCall.participatingTypes()?.let { (subtype, supertype) ->
+      ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx()?.areTypesCoerced(subtype, supertype)
       } ?: false
     },

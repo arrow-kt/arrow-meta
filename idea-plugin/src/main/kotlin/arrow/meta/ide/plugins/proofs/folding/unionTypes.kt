@@ -24,7 +24,7 @@ fun unionTypeMatches(typeReference: KtTypeReference): Boolean =
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
-private fun KotlinType?.isTypeMatching() =
+private fun KotlinType?.isTypeMatching(): Boolean =
   this?.constructor?.declarationDescriptor?.fqNameSafe?.asString() == "arrow.Union22"
 
 private fun KtTypeReference.foldString(): String =
