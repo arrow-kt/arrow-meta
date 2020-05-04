@@ -10,10 +10,12 @@ import arrow.meta.ide.plugins.proofs.coercions.implicit.implicitCoercion
 import arrow.meta.ide.plugins.proofs.markers.CoercionTestCode
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
+import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
@@ -32,14 +34,11 @@ class CoercionInspectionTest : IdeTestSetUp() {
       myFixture = myFixture,
       ctx = IdeMetaPlugin()
     ) {
-      listOf<IdeTest<IdeMetaPlugin, Pair<List<HighlightInfo>, String>>>(
+      listOf<IdeTest<IdeMetaPlugin, Pair<List<HighlightInfo>, Source>>>(
         IdeTest(
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            val highlightInfos = collectInspections(code, myFixture, listOf(ctx.explicitCoercionKtProperty))
-              .filter { it.inspectionToolId == COERCION_EXPLICIT_PROP }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
-            Pair(highlightInfos, codeFixed)
+            collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtProperty), COERCION_EXPLICIT_PROP)
           },
           result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult ->
             pairResult.first.size == 1
@@ -49,10 +48,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            val highlightInfos = collectInspections(code, myFixture, listOf(ctx.implicitCoercion))
-              .filter { it.inspectionToolId == IMPLICIT_COERCION_INSPECTION_ID }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
-            Pair(highlightInfos, codeFixed)
+            collectAndApplyInspection(code, myFixture, listOf(ctx.implicitCoercion), IMPLICIT_COERCION_INSPECTION_ID)
           },
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult ->
             pairResult.first.size == 1
@@ -62,10 +58,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code3,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            val highlightInfos = collectInspections(code, myFixture, listOf(ctx.explicitCoercionKtValArg))
-              .filter { it.inspectionToolId == COERCION_EXPLICIT_ARGS }
-            val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
-            Pair(highlightInfos, codeFixed)
+            collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtValArg), COERCION_EXPLICIT_ARGS)
           },
           result = resolvesWhen("CoercionInspectionTest3 for 1 explicit coercion") { pairResult ->
             pairResult.first.size == 1
@@ -73,6 +66,18 @@ class CoercionInspectionTest : IdeTestSetUp() {
           }
         ))
     }
+
+  private fun IdeTestSyntax.collectAndApplyInspection(
+    code: Source,
+    myFixture: CodeInsightTestFixture,
+    inspections: List<InspectionProfileEntry>,
+    inspectionId: String
+  ): Pair<List<HighlightInfo>, Source> {
+    val highlightInfos = collectInspections(code, myFixture, inspections)
+      .filter { it.inspectionToolId == inspectionId }
+    val codeFixed = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
+    return Pair(highlightInfos, codeFixed)
+  }
 }
 
 fun HighlightInfo.fixFirstInspection(myFixture: CodeInsightTestFixture, file: KtFile?): Source {
