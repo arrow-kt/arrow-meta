@@ -22,6 +22,5 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
       ktElement.participatingTypes()?.let { (subtype, supertype) ->
         ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
       } ?: MetaIdeBundle.message("proofs.markers.proof.not.found")
-      //} ?: "Proof not found"
     }
   )

@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.coercions.explicit
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.coercions.explicit
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.ide.resources.MetaIdeBundle
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -17,18 +18,20 @@ import org.jetbrains.kotlin.types.KotlinType
 val IdeMetaPlugin.localExplicitCoercionOnKtProperty: ExtensionPhase
   get() = addLocalInspection(
     inspection = explicitCoercionKtProperty,
-    level = HighlightDisplayLevel.WEAK_WARNING,
-    groupPath = ProofPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf(MetaIdeBundle.message("proofs.coercion")),
+    groupDisplayName = MetaIdeBundle.message("proofs.coercion"),
+    level = HighlightDisplayLevel.WEAK_WARNING
   )
 
-const val COERCION_EXPLICIT_PROP = "Coercion_explicit_prop"
+const val COERCION_EXPLICIT_PROP = "CoercionExplicitProp"
 
 val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_PROP,
+    staticDescription = MetaIdeBundle.message("proofs.coercions.explicit.property.static.description"),
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtProperty::class.java,
-    inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
+    inspectionText = { MetaIdeBundle.message("proofs.coercions.explicit.property.inspection.text") },
     isApplicable = { ktCall: KtProperty ->
       ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx().areTypesCoerced(subtype, supertype)

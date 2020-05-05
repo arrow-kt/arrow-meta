@@ -24,7 +24,8 @@ val IdeMetaPlugin.purity: IdePlugin
       addLocalInspection(
         inspection = purityInspection,
         level = HighlightDisplayLevel.ERROR,
-        groupPath = ArrowPath + "PurityPlugin"
+        groupPath = ArrowPath + "PurityPlugin",
+        groupDisplayName = "PurityPlugin"
       )
     )
   }
@@ -32,6 +33,7 @@ val IdeMetaPlugin.purity: IdePlugin
 val IdeSyntax.purityInspection: AbstractApplicabilityBasedInspection<KtNamedFunction>
   get() = applicableInspection(
     defaultFixText = "Suspend",
+    staticDescription = "Purity Inspection",
     inspectionHighlightType = { ProblemHighlightType.ERROR },
     kClass = KtNamedFunction::class.java,
     highlightingRange = { f -> f.nameIdentifierTextRangeInThis() },

@@ -106,10 +106,4 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
   )
 
 fun CoercionProof.coercionMessage(): String =
-  MetaIdeBundle.htmlMessage("proofs.markers.coercion.message", from, to, through)
-//  """
-//    Coercion happening by proof:
-//    <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :
-//    Link to proof declaration:
-//    <code lang="kotlin">$through</code>
-//  """.trimIndent()
+  MetaIdeBundle.message("proofs.markers.coercion.message", from, to, through)

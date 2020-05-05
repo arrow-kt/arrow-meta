@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.coercions.implicit
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.coercions.coercionProofMessage
 import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
+import arrow.meta.ide.resources.MetaIdeBundle
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -17,15 +18,17 @@ import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 val IdeMetaPlugin.localImplicitCoercion: ExtensionPhase
   get() = addLocalInspection(
     inspection = implicitCoercion,
-    level = HighlightDisplayLevel.WARNING,
-    groupPath = ProofPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf(MetaIdeBundle.message("proofs.coercion")),
+    groupDisplayName = MetaIdeBundle.message("proofs.coercion"),
+    level = HighlightDisplayLevel.WARNING
   )
 
-const val IMPLICIT_COERCION_INSPECTION_ID = "Make_coercion_implicit"
+const val IMPLICIT_COERCION_INSPECTION_ID = "CoercionImplicit"
 
 val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
+    staticDescription = MetaIdeBundle.message("proofs.coercions.implicit.static.description"),
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktCall: KtDotQualifiedExpression ->

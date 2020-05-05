@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.coercions.explicit
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.coercions.explicit
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.ide.resources.MetaIdeBundle
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -17,13 +18,19 @@ import org.jetbrains.kotlin.types.KotlinType
 val IdeMetaPlugin.localExplicitCoercionOnKtValArg: ExtensionPhase
   get() = addLocalInspection(
     inspection = explicitCoercionKtValArg,
-    level = HighlightDisplayLevel.WEAK_WARNING,
-    groupPath = ProofPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf(MetaIdeBundle.message("proofs.coercion")),
+    groupDisplayName = MetaIdeBundle.message("proofs.coercion"),
+    level = HighlightDisplayLevel.WEAK_WARNING
   )
-const val COERCION_EXPLICIT_ARGS = "Coercion_explicit_args"
+
+// This should be the name of the html file, matching the `shortName` of the inspection..in our case the defaultFixText
+// is also used for the shortName
+const val COERCION_EXPLICIT_ARGS = "CoercionExplicitArgs"
+
 val IdeMetaPlugin.explicitCoercionKtValArg: AbstractApplicabilityBasedInspection<KtValueArgument>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_ARGS,
+    staticDescription = MetaIdeBundle.message("proofs.coercions.explicit.args.static.description"),
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtValueArgument::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
