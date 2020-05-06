@@ -23,18 +23,30 @@ val IdeMetaPlugin.toolTipController: ExtensionPhase
 private val controller: TooltipController
   get() = object : TooltipController() {
 
-    private var myCurrentTooltip: LightweightHint? = null
-    private var myCurrentTooltipObject: TooltipRenderer? = null
-    private var myCurrentTooltipGroup: TooltipGroup? = null
+    private var currentMetaTooltip: LightweightHint? = null
+    private var currentMetaTooltipGroup: TooltipGroup? = null
+    private var currentMetaTooltipRenderer: TooltipRenderer? = null
 
     override fun cancelTooltips() {
-      hideCurrentTooltip()
+      super.cancelTooltips() // cancels any parent tooltips first, if any. (all the non arrow-meta ones)
+      hideMetaTooltip()
+    }
+
+    private fun hideMetaTooltip() {
+      currentMetaTooltip?.let { tooltip ->
+        currentMetaTooltip = null
+        currentMetaTooltipGroup = null
+        tooltip.hide()
+        IdeTooltipManager.getInstance().hide(null) // resets everything in the TooltipManager.
+      }
     }
 
     override fun cancelTooltip(groupId: TooltipGroup, mouseEvent: MouseEvent?, forced: Boolean) {
-      if (groupId == myCurrentTooltipGroup) {
-        if (!forced && myCurrentTooltip != null && myCurrentTooltip!!.canControlAutoHide()) return
+      if (groupId == currentMetaTooltipGroup) {
+        if (!forced && currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide()) return
         cancelTooltips()
+      } else {
+        super.cancelTooltip(groupId, mouseEvent, forced)
       }
     }
 
@@ -49,47 +61,34 @@ private val controller: TooltipController
       group: TooltipGroup,
       hintHint: HintHint): LightweightHint? {
 
-      val currentTooltip = myCurrentTooltip
-      if (currentTooltip == null || !currentTooltip.isVisible) {
-        if (currentTooltip != null) {
-          if (!IdeTooltipManager.getInstance().isQueuedToShow(currentTooltip.currentIdeTooltip)) {
-            myCurrentTooltipObject = null
-          }
+      if (tooltipObject != null && tooltipObject.isArrowMetaTooltip()) {
+        val currentTooltip = currentMetaTooltip
+        if (currentTooltip == null || !currentTooltip.isVisible || !currentTooltip.isQueuedToShow()) {
+          currentMetaTooltipRenderer = null
+        }
+
+        // Returns current tooltip if it's the same one and it's available.
+        if (Comparing.equal(tooltipObject, currentMetaTooltipRenderer)) {
+          IdeTooltipManager.getInstance().cancelAutoHide()
+          return currentMetaTooltip
         } else {
-          myCurrentTooltipObject = null
+          hideMetaTooltip()
+
+          val p = point.getPointOn(editor.component.rootPane.layeredPane).point
+          if (!hintHint.isAwtTooltip) {
+            p.x += if (alignToRight) -10 else 10
+          }
+
+          val project = editor.project
+          if (project != null && !project.isOpen) return null
+          if (editor.contentComponent.isShowing) {
+            return doShowMetaTooltip(editor, p, tooltipObject, alignToRight, group, hintHint)
+          }
+
+          return null
         }
-      }
-
-      if (Comparing.equal(tooltipObject, myCurrentTooltipObject)) {
-        IdeTooltipManager.getInstance().cancelAutoHide()
-        return myCurrentTooltip
-      }
-
-      hideCurrentTooltip()
-
-      if (tooltipObject != null) {
-        val p = point.getPointOn(editor.component.rootPane.layeredPane).point
-
-        if (!hintHint.isAwtTooltip) {
-          p.x += if (alignToRight) -10 else 10
-        }
-
-        val project = editor.project
-        if (project != null && !project.isOpen) return null
-        if (editor.contentComponent.isShowing) {
-          return doShowTooltip(editor, p, tooltipObject, alignToRight, group, hintHint)
-        }
-      }
-      return null
-    }
-
-    private fun hideCurrentTooltip() {
-      if (myCurrentTooltip != null) {
-        val currentTooltip: LightweightHint? = myCurrentTooltip
-        myCurrentTooltip = null
-        currentTooltip?.hide()
-        myCurrentTooltipGroup = null
-        IdeTooltipManager.getInstance().hide(null)
+      } else {
+        return super.showTooltipByMouseMove(editor, point, tooltipObject, alignToRight, group, hintHint)
       }
     }
 
@@ -99,60 +98,70 @@ private val controller: TooltipController
                              alignToRight: Boolean,
                              group: TooltipGroup,
                              hintInfo: HintHint) {
-      doShowTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
+      if (tooltipRenderer.isArrowMetaTooltip()) {
+        doShowMetaTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
+      } else {
+        super.showTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
+      }
     }
 
-    private fun doShowTooltip(editor: Editor,
-                              p: Point,
-                              tooltipRenderer: TooltipRenderer,
-                              alignToRight: Boolean,
-                              group: TooltipGroup,
-                              hintInfo: HintHint): LightweightHint? {
-      if (myCurrentTooltip == null || !myCurrentTooltip!!.isVisible) {
-        myCurrentTooltipObject = null
+    private fun doShowMetaTooltip(
+      editor: Editor,
+      p: Point,
+      tooltipRenderer: TooltipRenderer,
+      alignToRight: Boolean,
+      group: TooltipGroup,
+      hintInfo: HintHint
+    ): LightweightHint? {
+
+      val currentTooltip = currentMetaTooltip
+      if (currentTooltip == null || !currentTooltip.isVisible) {
+        currentMetaTooltipRenderer = null
       }
 
-      if (Comparing.equal(tooltipRenderer, myCurrentTooltipObject)) {
+      // If it's the same renderer we don't want to show it again, but keep it there.
+      if (Comparing.equal(tooltipRenderer, currentMetaTooltipRenderer)) {
         IdeTooltipManager.getInstance().cancelAutoHide()
         return null
-      }
-
-      if (myCurrentTooltipGroup != null && group < myCurrentTooltipGroup) return null
-      val point = Point(p)
-      hideCurrentTooltip()
-
-      val renderer = if (isAnArrowMetaTooltip() &&
-        tooltipRenderer is LineTooltipRenderer &&
-        tooltipRenderer.text != null) {
-        MetaTooltipRenderer(tooltipRenderer.text!!, arrayOf())
       } else {
-        tooltipRenderer
+        if (currentMetaTooltipGroup != null && group < currentMetaTooltipGroup) return null
+        val point = Point(p)
+        hideMetaTooltip()
+
+        val renderer = MetaTooltipRenderer(tooltipRenderer.unsafeLineText(), arrayOf())
+
+        val hint = renderer.show(editor, point, alignToRight, group, hintInfo)
+        currentMetaTooltipGroup = group
+        currentMetaTooltip = hint
+        currentMetaTooltipRenderer = tooltipRenderer
+        return hint
       }
-      val hint = renderer.show(editor, point, alignToRight, group, hintInfo)
-      myCurrentTooltipGroup = group
-      myCurrentTooltip = hint
-      myCurrentTooltipObject = tooltipRenderer
-      return hint
     }
 
     override fun shouldSurvive(e: MouseEvent?): Boolean {
-      if (myCurrentTooltip != null) {
-        if (myCurrentTooltip!!.canControlAutoHide()) return true
-      }
-      return false
+      return super.shouldSurvive(e) ||
+        (currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide())
     }
 
     override fun hide(lightweightHint: LightweightHint) {
-      if (myCurrentTooltip != null && myCurrentTooltip == lightweightHint) {
-        hideCurrentTooltip()
+      super.hide(lightweightHint)
+      if (currentMetaTooltip != null && currentMetaTooltip == lightweightHint) {
+        hideMetaTooltip()
       }
     }
 
     override fun resetCurrent() {
-      myCurrentTooltip = null
-      myCurrentTooltipGroup = null
-      myCurrentTooltipObject = null
+      super.resetCurrent()
+      currentMetaTooltip = null
+      currentMetaTooltipGroup = null
+      currentMetaTooltipRenderer = null
     }
   }
 
-private fun isAnArrowMetaTooltip(): Boolean = true
+private fun TooltipRenderer.isArrowMetaTooltip(): Boolean =
+  this is LineTooltipRenderer && !this.text.isNullOrEmpty()
+
+private fun TooltipRenderer.unsafeLineText(): String = (this as LineTooltipRenderer).text!!
+
+private fun LightweightHint.isQueuedToShow() =
+  IdeTooltipManager.getInstance().isQueuedToShow(this.currentIdeTooltip)
