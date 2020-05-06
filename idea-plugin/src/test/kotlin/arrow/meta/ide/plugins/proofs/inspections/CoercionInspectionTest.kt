@@ -1,11 +1,8 @@
 package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_ARGS
-import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_PROP
 import arrow.meta.ide.plugins.proofs.coercions.explicit.explicitCoercionKtProperty
 import arrow.meta.ide.plugins.proofs.coercions.explicit.explicitCoercionKtValArg
-import arrow.meta.ide.plugins.proofs.coercions.implicit.IMPLICIT_COERCION_INSPECTION_ID
 import arrow.meta.ide.plugins.proofs.coercions.implicit.implicitCoercion
 import arrow.meta.ide.plugins.proofs.markers.CoercionTestCode
 import arrow.meta.ide.testing.IdeTest
@@ -39,7 +36,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code1,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtProperty), COERCION_EXPLICIT_PROP)
+            collectAndApplyInspection(code, myFixture, ctx.explicitCoercionKtProperty)
           },
           result = resolvesWhen("CoercionInspectionTest1 for 1 implicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 1
@@ -49,7 +46,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code2,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            collectAndApplyInspection(code, myFixture, listOf(ctx.implicitCoercion), IMPLICIT_COERCION_INSPECTION_ID)
+            collectAndApplyInspection(code, myFixture, ctx.implicitCoercion)
           },
           result = resolvesWhen("CoercionInspectionTest2 for 1 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 1
@@ -59,7 +56,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
         IdeTest(
           code = CoercionInspectionTestCode.code3,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            collectAndApplyInspection(code, myFixture, listOf(ctx.explicitCoercionKtValArg), COERCION_EXPLICIT_ARGS)
+            collectAndApplyInspection(code, myFixture, ctx.explicitCoercionKtValArg)
           },
           result = resolvesWhen("CoercionInspectionTest3 for 2 explicit coercion") { pairResult: Pair<List<HighlightInfo>, Source> ->
             pairResult.first.size == 2
@@ -71,11 +68,10 @@ class CoercionInspectionTest : IdeTestSetUp() {
   private fun IdeTestSyntax.collectAndApplyInspection(
     code: Source,
     myFixture: CodeInsightTestFixture,
-    inspections: List<InspectionProfileEntry>,
-    inspectionId: String
+    inspection: InspectionProfileEntry
   ): Pair<List<HighlightInfo>, Source> {
-    val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
-      .filter { it.inspectionToolId == inspectionId }
+    val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, listOf(inspection))
+      .filter { it.inspectionToolId == inspection.shortName }
     val codeFixed: Source = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
     return Pair(highlightInfos, codeFixed)
   }
