@@ -84,14 +84,13 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
 
     if (!editorComponent.isShowing) return null
 
-    val layeredPane = editorComponent.rootPane.layeredPane
-
     val textToDisplay = if (newLayout) colorizeSeparators(dressedText) else dressedText
 
-    val availableWidthToTheRightOfMarker = layeredPane.width - p.x
+    val rootPane = editorComponent.rootPane.layeredPane
+    val availableWidthToTheRightOfMarker = rootPane.width - p.x
     val preferredTooltipWidth = (availableWidthToTheRightOfMarker * 0.8).toInt()
 
-    val editorPane = IdeTooltipPaneUtils.initTooltipPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
+    val editorPane = MetaTooltipJPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
 
     editorPane.putClientProperty(UIUtil.TEXT_COPY_ROOT, java.lang.Boolean.TRUE)
     hintHint.isContentActive = isContentAction(dressedText)
