@@ -1,5 +1,6 @@
 package arrow.meta.ide.dsl.editor.inspection
 
+import arrow.meta.ide.resources.MetaIdeBundle
 import org.jetbrains.kotlin.idea.util.actualsForExpected
 import org.jetbrains.kotlin.idea.util.liftToExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -12,8 +13,8 @@ interface InspectionUtilitySyntax {
   }
 
   val ArrowPath: Array<String>
-    get() = arrayOf("Kotlin", "Λrrow")
+    get() = arrayOf(MetaIdeBundle.message("proofs.kotlin"), MetaIdeBundle.message("proofs.arrow"))
 
   val ProofPath: Array<String>
-    get() = ArrowPath + arrayOf("Type Proofs")
+    get() = ArrowPath + arrayOf(MetaIdeBundle.message("proofs.type.proofs"))
 }

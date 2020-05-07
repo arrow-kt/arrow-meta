@@ -28,10 +28,10 @@ const val COERCION_EXPLICIT_PROP = "CoercionExplicitProp"
 val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_PROP,
-    staticDescription = MetaIdeBundle.message("proofs.coercions.explicit.property.static.description"),
+    staticDescription = MetaIdeBundle.message("proofs.coercions.inspection.explicit.property.static.description"),
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtProperty::class.java,
-    inspectionText = { MetaIdeBundle.message("proofs.coercions.explicit.property.inspection.text") },
+    inspectionText = { MetaIdeBundle.message("proofs.coercions.inspection.explicit.property.inspection.text") },
     isApplicable = { ktCall: KtProperty ->
       ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx().areTypesCoerced(subtype, supertype)

@@ -23,17 +23,15 @@ val IdeMetaPlugin.localExplicitCoercionOnKtValArg: ExtensionPhase
     level = HighlightDisplayLevel.WEAK_WARNING
   )
 
-// This should be the name of the html file, matching the `shortName` of the inspection..in our case the defaultFixText
-// is also used for the shortName
 const val COERCION_EXPLICIT_ARGS = "CoercionExplicitArgs"
 
 val IdeMetaPlugin.explicitCoercionKtValArg: AbstractApplicabilityBasedInspection<KtValueArgument>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_ARGS,
-    staticDescription = MetaIdeBundle.message("proofs.coercions.explicit.args.static.description"),
+    staticDescription = MetaIdeBundle.message("proofs.coercions.inspection.explicit.args.static.description"),
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtValueArgument::class.java,
-    inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
+    inspectionText = { MetaIdeBundle.message("proofs.coercions.inspection.explicit.property.inspection.text") },
     isApplicable = { ktCall: KtValueArgument ->
       ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx().areTypesCoerced(subtype, supertype)

@@ -199,6 +199,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * [defaultFixText] is being reused for the `shortName` and it should be matching the pattern '[a-zA-Z_0-9.-]+'
    * and not so long
    * [staticDescription] refers to little description of the inspection
+   * For the inspection tool dialog description, the name of the html file should match the [defaultFixText]/shortName
    */
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(

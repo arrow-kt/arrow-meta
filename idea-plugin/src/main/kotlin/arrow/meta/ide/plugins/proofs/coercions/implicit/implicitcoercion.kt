@@ -28,13 +28,13 @@ const val IMPLICIT_COERCION_INSPECTION_ID = "CoercionImplicit"
 val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
-    staticDescription = MetaIdeBundle.message("proofs.coercions.implicit.static.description"),
+    staticDescription = MetaIdeBundle.message("proofs.coercions.inspection.implicit.static.description"),
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktCall: KtDotQualifiedExpression ->
       // TODO: research ways to display this nicely and align it with [arrow.meta.ide.plugins.proofs.markers.CoercionKt.coerceProofLineMarker]
-      val coercionMessage = ktCall.ctx()?.coercionProofMessage(ktCall)
-      "Expression: ${ktCall.text} can be replaced for only its receiver because there is a $coercionMessage"
+      val coercionMessage = ktCall.ctx()?.coercionProofMessage(ktCall).orEmpty()
+      MetaIdeBundle.message("proofs.coercions.inspection.implicit.inspection.text", ktCall.text, coercionMessage)
     },
     isApplicable = { ktCall: KtDotQualifiedExpression ->
       (ktCall.parent !is KtSafeQualifiedExpression) &&
