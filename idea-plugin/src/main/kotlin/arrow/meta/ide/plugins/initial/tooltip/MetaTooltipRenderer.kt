@@ -92,8 +92,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
 
     val editorPane = MetaTooltipJPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
 
-    editorPane.putClientProperty(UIUtil.TEXT_COPY_ROOT, java.lang.Boolean.TRUE)
-    hintHint.isContentActive = isContentAction(dressedText)
+    hintHint.isContentActive = true
     if (!hintHint.isAwtTooltip) {
       correctLocation(editor, editorPane, p, alignToRight, expanded, myCurrentWidth)
     }
