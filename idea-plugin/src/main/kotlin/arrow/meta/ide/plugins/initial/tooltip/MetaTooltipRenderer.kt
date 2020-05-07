@@ -51,10 +51,13 @@ import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 @Suppress("UnstableApiUsage")
-internal class MetaTooltipRenderer(text: String, comparable: Array<Any?>) : LineTooltipRenderer(text, comparable) {
+internal class MetaTooltipRenderer : LineTooltipRenderer {
 
   @Volatile
   private var myActiveLink = false
+
+  constructor(text: String, comparable: Array<out Any> = arrayOf()) : super(text, comparable)
+  constructor(text: String, width: Int, comparable: Array<out Any> = arrayOf()) : super(text, width, comparable)
 
   override fun createHint(
     editor: Editor,
@@ -68,26 +71,26 @@ internal class MetaTooltipRenderer(text: String, comparable: Array<Any?>) : Line
     tooltipReloader: TooltipReloader?
   ): LightweightHint? {
 
-    if (myText == null) return null
+    val currentText: String = requireNotNull(myText)
 
     //setup text
-    val tooltipPreText = myText!!.replace(UIUtil.MNEMONIC.toString().toRegex(), "")
+    val tooltipPreText = currentText.replace(UIUtil.MNEMONIC.toString().toRegex(), "")
     val dressedText = dressDescription(editor, tooltipPreText, myCurrentWidth > 0)
 
     val expanded = myCurrentWidth > 0 && dressedText != tooltipPreText
 
     val contentComponent = editor.contentComponent
-
     val editorComponent = editor.component
+
     if (!editorComponent.isShowing) return null
+
     val layeredPane = editorComponent.rootPane.layeredPane
 
     val textToDisplay = if (newLayout) colorizeSeparators(dressedText) else dressedText
     val editorPane = IdeTooltipPaneUtils.initPane(
       Html(textToDisplay).setKeepFont(true),
       hintHint,
-      layeredPane,
-      limitWidthToScreen
+      layeredPane.width - p.x
     )
 
     editorPane.putClientProperty(UIUtil.TEXT_COPY_ROOT, java.lang.Boolean.TRUE)
@@ -256,7 +259,7 @@ internal class MetaTooltipRenderer(text: String, comparable: Array<Any?>) : Line
       override fun getPreferredHeight(width: Int): Int {
         val size = editorPane.size
         val sideComponentsWidth = sideComponentWidth
-        editorPane.setSize(width - leftBorder - rightBorder - sideComponentsWidth, Math.max(1, size.height))
+        editorPane.setSize(width - leftBorder - rightBorder - sideComponentsWidth, 1.coerceAtLeast(size.height))
         val height: Int
         height = try {
           preferredSize.height

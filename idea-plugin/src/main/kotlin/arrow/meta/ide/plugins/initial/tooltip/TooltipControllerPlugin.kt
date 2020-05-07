@@ -128,7 +128,7 @@ private val controller: TooltipController
         val point = Point(p)
         hideMetaTooltip()
 
-        val renderer = MetaTooltipRenderer(tooltipRenderer.unsafeLineText(), arrayOf())
+        val renderer = MetaTooltipRenderer(tooltipRenderer.unsafeLineText())
 
         val hint = renderer.show(editor, point, alignToRight, group, hintInfo)
         currentMetaTooltipGroup = group

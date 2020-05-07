@@ -4,9 +4,7 @@ import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.AppUIUtil
 import com.intellij.ui.HintHint
-import com.intellij.ui.ScreenUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.Html
 import com.intellij.util.ui.JBHtmlEditorKit
@@ -15,8 +13,6 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.Dimension
 import javax.swing.JEditorPane
-import javax.swing.JLayeredPane
-import javax.swing.JRootPane
 import javax.swing.text.AbstractDocument
 import javax.swing.text.Element
 import javax.swing.text.StyleConstants
@@ -31,56 +27,40 @@ object IdeTooltipPaneUtils {
   fun initPane(
     @NonNls html: Html,
     hintHint: HintHint,
-    layeredPane: JLayeredPane?,
-    limitWidthToScreen: Boolean
+    preferredWidth: Int
   ): JEditorPane {
     val prefSize = Ref<Dimension>(null)
     @NonNls var text = prepareHintText(html)
-    val prefSizeWasComputed = booleanArrayOf(false)
-    val pane: JEditorPane = if (limitWidthToScreen) {
-      object : JEditorPane() {
-        override fun getPreferredSize(): Dimension {
-          if (!prefSizeWasComputed[0] && hintHint.isAwtTooltip) {
-            var lp: JLayeredPane? = layeredPane
-            if (lp == null) {
-              val rootPane: JRootPane? = UIUtil.getRootPane(this)
-              if (rootPane != null) {
-                lp = rootPane.layeredPane
-              }
-            }
-            val size: Dimension = if (lp != null) {
-              AppUIUtil.targetToDevice(this, lp)
-              prefSizeWasComputed[0] = true
-              lp.size
-            } else {
-              ScreenUtil.getScreenRectangle(0, 0).size
-            }
-            val fitWidth: Int = (size.width * 0.8).toInt()
-            val prefSizeOriginal: Dimension = super.getPreferredSize()
-            if (prefSizeOriginal.width > fitWidth) {
-              setSize(Dimension(fitWidth, Integer.MAX_VALUE))
-              val fixedWidthSize: Dimension = super.getPreferredSize()
-              val minSize: Dimension = super.getMinimumSize()
-              prefSize.set(Dimension(max(fitWidth, minSize.width), fixedWidthSize.height))
-            } else {
-              prefSize.set(Dimension(prefSizeOriginal))
-            }
-          }
-          val s: Dimension = if (prefSize.get() != null) Dimension(prefSize.get()) else super.getPreferredSize()
-          if (border != null) {
-            JBInsets.addTo(s, border.getBorderInsets(this))
-          }
-          return s
-        }
+    var isSizeComputed = false
+    val pane: JEditorPane = object : JEditorPane() {
+      override fun getPreferredSize(): Dimension {
+        if (!isSizeComputed && hintHint.isAwtTooltip) {
+          isSizeComputed = true
 
-        override fun setPreferredSize(preferredSize: Dimension) {
-          super.setPreferredSize(preferredSize)
-          prefSize.set(preferredSize)
+          val fitWidth: Int = (preferredWidth * 0.8).toInt()
+          val prefSizeOriginal: Dimension = super.getPreferredSize()
+          if (prefSizeOriginal.width > fitWidth) {
+            size = Dimension(fitWidth, Integer.MAX_VALUE)
+            val fixedWidthSize: Dimension = super.getPreferredSize()
+            val minSize: Dimension = super.getMinimumSize()
+            prefSize.set(Dimension(max(fitWidth, minSize.width), fixedWidthSize.height))
+          } else {
+            prefSize.set(Dimension(prefSizeOriginal))
+          }
         }
+        val s: Dimension = if (prefSize.get() != null) Dimension(prefSize.get()) else super.getPreferredSize()
+        if (border != null) {
+          JBInsets.addTo(s, border.getBorderInsets(this))
+        }
+        return s
       }
-    } else {
-      JEditorPane()
+
+      override fun setPreferredSize(preferredSize: Dimension) {
+        super.setPreferredSize(preferredSize)
+        prefSize.set(preferredSize)
+      }
     }
+
     val kit: HTMLEditorKit = object : JBHtmlEditorKit() {
       val factory: HTMLFactory = object : HTMLFactory() {
         override fun create(elem: Element): View {
@@ -124,12 +104,12 @@ object IdeTooltipPaneUtils {
       pane.border = null
     }
     if (!hintHint.isAwtTooltip) {
-      prefSizeWasComputed[0] = true
+      isSizeComputed = true
     }
     val opaque = hintHint.isOpaqueAllowed
     pane.isOpaque = opaque
     pane.background = hintHint.textBackground
-    if (!limitWidthToScreen) AppUIUtil.targetToDevice(pane, layeredPane)
+
     return pane
   }
 
