@@ -61,6 +61,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *     meta(
    *       addApplicableInspection(
    *         defaultFixText = "PurityPlugin",
+   *         staticDescription = "Purity Inspection",
    *         inspectionHighlightType = { ProblemHighlightType.ERROR },
    *         kClass = KtNamedFunction::class.java,
    *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
@@ -80,7 +81,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *             } == true
    *         },
    *         level = HighlightDisplayLevel.ERROR,
-   *         groupPath = arrayOf("Meta", "SimplePlugin")
+   *         groupPath = arrayOf("Meta", "SimplePlugin"),
+   *         groupDisplayName = "PurityPlugin"
    *       )
    *     )
    *   }
