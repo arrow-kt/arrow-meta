@@ -1,12 +1,12 @@
 package arrow.meta.ide.plugins.initial.tooltip
 
+import arrow.meta.ide.plugins.initial.tooltip.formatting.applyStylesFromCDN
 import arrow.meta.ide.plugins.initial.tooltip.formatting.htmlEditorKit
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.util.Ref
 import com.intellij.ui.HintHint
 import com.intellij.util.ui.Html
 import com.intellij.util.ui.JBInsets
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.Dimension
 import javax.swing.JEditorPane
@@ -14,14 +14,14 @@ import kotlin.math.max
 
 object IdeTooltipPaneUtils {
 
-  fun initPane(
+  fun initTooltipPane(
     @NonNls html: Html,
     hintHint: HintHint,
     preferredWidth: Int
   ): JEditorPane {
     val prefSize = Ref<Dimension>(null)
-    @NonNls val text = prepareHintText(html)
     var isSizeComputed = false
+
     val pane: JEditorPane = object : JEditorPane() {
       override fun getPreferredSize(): Dimension {
         if (!isSizeComputed && hintHint.isAwtTooltip) {
@@ -53,7 +53,7 @@ object IdeTooltipPaneUtils {
     }
 
     pane.editorKit = htmlEditorKit()
-    pane.text = text
+    pane.text = html.applyStylesFromCDN()
     pane.caretPosition = 0
     pane.isEditable = false
     if (hintHint.isOwnBorderAllowed) {
@@ -70,19 +70,5 @@ object IdeTooltipPaneUtils {
     pane.background = hintHint.textBackground
 
     return pane
-  }
-
-  private fun prepareHintText(text: Html): String {
-    val htmlBody = UIUtil.getHtmlBody(text)
-    return """
-      <html>
-        <head>
-          <link rel="stylesheet" type="text/css" href="https://47deg-academy.s3.amazonaws.com/css/edutools-style-light.css">
-        </head>
-        <body>
-          $htmlBody
-        </body>
-      </html>
-    """.trimIndent()
   }
 }

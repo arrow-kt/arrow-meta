@@ -91,7 +91,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     val availableWidthToTheRightOfMarker = layeredPane.width - p.x
     val preferredTooltipWidth = (availableWidthToTheRightOfMarker * 0.8).toInt()
 
-    val editorPane = IdeTooltipPaneUtils.initPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
+    val editorPane = IdeTooltipPaneUtils.initTooltipPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
 
     editorPane.putClientProperty(UIUtil.TEXT_COPY_ROOT, java.lang.Boolean.TRUE)
     hintHint.isContentActive = isContentAction(dressedText)
