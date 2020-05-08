@@ -1,4 +1,4 @@
-package arrow.meta.ide.plugins.initial.tooltip
+package arrow.meta.ide.plugins.external.ui.tooltip
 
 import com.intellij.codeInsight.hint.HintManagerImpl.ActionToIgnore
 import com.intellij.codeInsight.hint.LineTooltipRenderer
@@ -17,13 +17,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.ColorUtil
-import com.intellij.ui.ComponentWithMnemonics
-import com.intellij.ui.HintHint
-import com.intellij.ui.LightweightHint
-import com.intellij.ui.ListenerUtil
-import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.WidthBasedLayout
+import com.intellij.ui.*
 import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.Html
 import com.intellij.util.ui.JBUI
@@ -31,22 +25,13 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
 import com.intellij.util.ui.accessibility.ScreenReader
 import com.intellij.xml.util.XmlStringUtil
-import java.awt.Component
-import java.awt.Container
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.Point
+import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.accessibility.AccessibleContext
-import javax.swing.JComponent
-import javax.swing.JEditorPane
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.ScrollPaneConstants
-import javax.swing.SwingUtilities
+import javax.swing.*
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 

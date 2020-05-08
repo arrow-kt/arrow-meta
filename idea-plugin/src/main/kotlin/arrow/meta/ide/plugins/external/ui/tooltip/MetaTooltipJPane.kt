@@ -1,7 +1,7 @@
-package arrow.meta.ide.plugins.initial.tooltip
+package arrow.meta.ide.plugins.external.ui.tooltip
 
-import arrow.meta.ide.plugins.initial.tooltip.formatting.applyStylesFromCDN
-import arrow.meta.ide.plugins.initial.tooltip.formatting.htmlEditorKit
+import arrow.meta.ide.plugins.external.ui.tooltip.formatting.MetaHtmlEditorKit
+import arrow.meta.ide.plugins.external.ui.tooltip.formatting.applyStylesFromCDN
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.util.Ref
 import com.intellij.ui.HintHint
@@ -21,7 +21,7 @@ import kotlin.math.max
  * * Constrain its width to be the 80% of the available editors space, or the minimum imposed by parent in case it's
  * bigger.
  */
-class MetaTooltipJPane(
+internal class MetaTooltipJPane(
   html: Html,
   private val hintHint: HintHint,
   private val preferredWidth: Int
@@ -31,7 +31,7 @@ class MetaTooltipJPane(
   private var isSizeComputed = false
 
   init {
-    editorKit = htmlEditorKit()
+    editorKit = MetaHtmlEditorKit()
     text = html.applyStylesFromCDN()
     caretPosition = 0
     isEditable = false

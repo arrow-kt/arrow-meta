@@ -4,9 +4,10 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
-import arrow.meta.ide.plugins.initial.tooltip.toolTipController
+import arrow.meta.ide.plugins.external.ui.tooltip.MetaTooltipController
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
+import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.cfg.ClassMissingCase
@@ -52,6 +53,11 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
       // TODO: make sure that all registered extensions are disposed
     }
   )
+
+val IdeMetaPlugin.toolTipController: ExtensionPhase
+    get() = addAppService(TooltipController::class.java) {
+        MetaTooltipController() // hijack TooltipController and replace it with ours
+    }
 
 private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||
