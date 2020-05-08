@@ -111,3 +111,8 @@ fun CoercionProof.coercionMessage(): String =
     Link to proof declaration:
     <code lang="kotlin">$through</code>
   """.trimIndent()
+
+fun unionMessage(): String =
+  """
+    This is an Union
+  """.trimIndent()
