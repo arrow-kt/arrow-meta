@@ -15,30 +15,35 @@ import java.awt.event.MouseEvent
 
 internal class MetaTooltipController : TooltipController() {
 
+  private companion object {
+    val tooltipGroup = TooltipGroup("ARROW_META_GROUP", 10)
+  }
+
   private var currentMetaTooltip: LightweightHint? = null
-  private var currentMetaTooltipGroup: TooltipGroup? = null
   private var currentMetaTooltipRenderer: TooltipRenderer? = null
 
+  override fun cancelTooltip(groupId: TooltipGroup, mouseEvent: MouseEvent?, forced: Boolean) {
+    if (groupId == tooltipGroup) {
+      if (!forced && currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide()) return
+      cancelTooltips()
+    } else {
+      super.cancelTooltip(groupId, mouseEvent, forced)
+    }
+  }
+
+  /**
+   * Cancel any currently showing parent tooltips if any. Then try to cancel Meta one, if any.
+   */
   override fun cancelTooltips() {
-    super.cancelTooltips() // cancels any parent tooltips first, if any. (all the non arrow-meta ones)
+    super.cancelTooltips()
     hideMetaTooltip()
   }
 
   private fun hideMetaTooltip() {
     currentMetaTooltip?.let { tooltip ->
       currentMetaTooltip = null
-      currentMetaTooltipGroup = null
       tooltip.hide()
       IdeTooltipManager.getInstance().hide(null) // resets everything in the TooltipManager.
-    }
-  }
-
-  override fun cancelTooltip(groupId: TooltipGroup, mouseEvent: MouseEvent?, forced: Boolean) {
-    if (groupId == currentMetaTooltipGroup) {
-      if (!forced && currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide()) return
-      cancelTooltips()
-    } else {
-      super.cancelTooltip(groupId, mouseEvent, forced)
     }
   }
 
@@ -111,22 +116,20 @@ internal class MetaTooltipController : TooltipController() {
       currentMetaTooltipRenderer = null
     }
 
-    // If it's the same renderer we don't want to show it again, but keep it there.
-    if (Comparing.equal(tooltipRenderer, currentMetaTooltipRenderer)) {
+    // If it's the same renderer we don't want to show it again, but keep the one showing already.
+    return if (Comparing.equal(tooltipRenderer, currentMetaTooltipRenderer)) {
       IdeTooltipManager.getInstance().cancelAutoHide()
-      return null
+      null
     } else {
-      if (currentMetaTooltipGroup != null && group < currentMetaTooltipGroup) return null
       val point = Point(p)
       hideMetaTooltip()
 
       val renderer = MetaTooltipRenderer(tooltipRenderer.unsafeLineText())
 
       val hint = renderer.show(editor, point, alignToRight, group, hintInfo)
-      currentMetaTooltipGroup = group
       currentMetaTooltip = hint
       currentMetaTooltipRenderer = tooltipRenderer
-      return hint
+      hint
     }
   }
 
@@ -145,7 +148,6 @@ internal class MetaTooltipController : TooltipController() {
   override fun resetCurrent() {
     super.resetCurrent()
     currentMetaTooltip = null
-    currentMetaTooltipGroup = null
     currentMetaTooltipRenderer = null
   }
 
