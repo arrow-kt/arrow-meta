@@ -165,8 +165,8 @@ public abstract class AbstractModelBuilderTest {
   }
 
   @NotNull
-  private Set<Class> getToolingExtensionClasses() {
-    final Set<Class> classes = ContainerUtil.set(
+  private Set<Class<?>> getToolingExtensionClasses() {
+    final Set<Class<?>> classes = ContainerUtil.set(
       ExternalProject.class,
       // gradle-tooling-extension-api jar
       ProjectImportAction.class,
@@ -198,7 +198,7 @@ public abstract class AbstractModelBuilderTest {
     }
   }
 
-  protected abstract Set<Class> getModels();
+  protected abstract Set<Class<?>> getModels();
 
   protected <T> Map<String, T> getModulesMap(final Class<T> aClass) {
     final DomainObjectSet<? extends IdeaModule> ideaModules = allModels.getIdeaProject().getModules();
