@@ -58,7 +58,7 @@ jobs:
         git status
         curl -o intellij-idea-releases.html https://www.jetbrains.com/intellij-repository/releases/
         html2text -style pretty -o intellij-idea-releases.txt intellij-idea-releases.html
-        LATEST_INTELLIJ_IDEA_VERSION=$(grep -A 100 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\+\.[0-9]\+\.\?[0-9]*' | head -2 | tail -1)
+        LATEST_INTELLIJ_IDEA_VERSION=$(grep -A 100 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\+\.[0-9]\+\.\?[0-9]*' | sort | tail -1)
         rm -f intellij-idea-releases*
         echo "Latest Intellij IDEA version: $LATEST_INTELLIJ_IDEA_VERSION"
         LATEST_KOTLIN_IDEA_VERSION=${LATEST_KOTLIN_VERSION}-release-IJ$(echo $LATEST_INTELLIJ_IDEA_VERSION | cut -d. -f1-2)-1
