@@ -58,5 +58,6 @@ class File(
   val fileType: FileType = value.fileType,
   val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, postfix = ", "),
   val stub: KotlinFileStub? = value.stub,
-  val classes: Array<PsiClass> = value.classes
+  val classes: Array<PsiClass> = value.classes,
+  val sourcePath: FqName? = null
 ): Scope<KtFile>(value)

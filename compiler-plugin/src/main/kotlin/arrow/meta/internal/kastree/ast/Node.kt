@@ -28,7 +28,8 @@ sealed class Node {
     override val pkg: Package?,
     override val imports: List<Import>,
     val commands: List<Command>,
-    val decls: List<Decl>
+    val decls: List<Decl>,
+    val path: String?
   ) : Node(), Entry
 
   data class Script(

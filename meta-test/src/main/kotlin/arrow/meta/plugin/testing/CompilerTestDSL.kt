@@ -204,6 +204,14 @@ interface AssertSyntax {
    * @param source Code snippet with the expected quote output.
    */
   fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert = Assert.QuoteOutputMatches(source)
+
+  /**
+   * Checks that quote output during the compilation matches with the code snippet provided.
+   *
+   * @param source Code snippet with the expected quote output.
+   * @param sourcePath Source path of the expected file.
+   */
+  fun quoteOutputMatches(source: Code.Source, sourcePath: String): Assert.SingleAssert = Assert.QuoteOutputWithCustomPathMatches(source, sourcePath)
   
   /**
    * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
@@ -212,6 +220,16 @@ interface AssertSyntax {
    * @param source Code snippet with the expected quote output.
    */
   fun quoteFileMatches(filename: String, source: Code.Source): Assert.SingleAssert = Assert.QuoteFileMatches(filename, source)
+
+  /**
+   * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
+   *
+   * @param filename Name of the specific file that will be evaluated.
+   * @param source Code snippet with the expected quote output.
+   * @param sourcePath Source path of the expected file.
+   */
+  fun quoteFileMatches(filename: String, source: Code.Source, sourcePath: String): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
+
 
   /**
    * Checks if a code snippet evals to a provided value after the compilation.
@@ -248,7 +266,9 @@ sealed class Assert {
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
   internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
+  internal data class QuoteOutputWithCustomPathMatches(val source: Code.Source, val sourcePath: String) : SingleAssert()
   internal data class QuoteFileMatches(val filename: String, val source: Code.Source) : SingleAssert()
+  internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: String) : SingleAssert()
   internal data class EvalsTo(val source: Code.Source, val output: Any?) : SingleAssert()
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
   internal sealed class CompilationResult : SingleAssert() {

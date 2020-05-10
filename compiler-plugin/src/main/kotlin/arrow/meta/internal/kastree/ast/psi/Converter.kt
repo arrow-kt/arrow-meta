@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.PsiWhiteSpace
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtAnnotation
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -389,7 +390,17 @@ open class Converter {
     pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
     imports = v.importDirectives.map(::convertImportDirective),
     commands = convertCommands(v),
-    decls = v.declarations.map(::convertDecl)
+    decls = v.declarations.map(::convertDecl),
+    path = null
+  ).map(v)
+
+  open fun convertFile(v: KtFile, sourcePath: FqName?) = Node.File(
+    anns = convertAnnotationSets(v),
+    pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
+    imports = v.importDirectives.map(::convertImportDirective),
+    commands = convertCommands(v),
+    decls = v.declarations.map(::convertDecl),
+    path = sourcePath?.asString()
   ).map(v)
 
   open fun convertFor(v: KtForExpression) = Node.Expr.For(

@@ -446,6 +446,8 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
 
+  override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
+
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
 
