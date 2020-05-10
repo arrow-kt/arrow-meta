@@ -385,16 +385,7 @@ open class Converter {
     else -> error("Unrecognized expression type from $v")
   }
 
-  open fun convertFile(v: KtFile) = Node.File(
-    anns = convertAnnotationSets(v),
-    pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
-    imports = v.importDirectives.map(::convertImportDirective),
-    commands = convertCommands(v),
-    decls = v.declarations.map(::convertDecl),
-    path = null
-  ).map(v)
-
-  open fun convertFile(v: KtFile, sourcePath: FqName?) = Node.File(
+  open fun convertFile(v: KtFile, sourcePath: FqName? = null) = Node.File(
     anns = convertAnnotationSets(v),
     pkg = v.packageDirective?.takeIf { it.packageNames.isNotEmpty() }?.let(::convertPackage),
     imports = v.importDirectives.map(::convertImportDirective),

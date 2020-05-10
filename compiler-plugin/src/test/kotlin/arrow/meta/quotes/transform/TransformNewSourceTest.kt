@@ -53,7 +53,7 @@ class TransformNewSourceTest : AnnotationSpec() {
         )
       }
     ))
-    }
+  }
   
   @Test
   fun `Check if the file is modified and another file is created`() {
@@ -80,6 +80,51 @@ class TransformNewSourceTest : AnnotationSpec() {
                  fun say(name: String) = println(name)
                }
             """.source
+          )
+        )
+      }
+    ))
+  }
+
+  @Test
+  fun `validate single extra file is created with custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """ class NewSourceWithCustomPath {} """.source
+      },
+      assert = { quoteFileMatches("NewSourceWithCustomPath_Generated.kt",
+        """
+          package arrow
+          class NewSourceWithCustomPath_Generated
+        """.source,
+        "build/generated/source/kapt/test/files"
+      )}
+    ))
+  }
+
+  @Test
+  fun `validate multiple extra files are created with custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """ class NewMultipleSourceWithCustomPath {} """.source
+      },
+      assert = {
+        allOf(
+          quoteFileMatches("NewMultipleSourceWithCustomPath_Generated.kt",
+            """
+             package arrow
+             class NewMultipleSourceWithCustomPath_Generated
+            """.source,
+            "build/generated/source/kapt/test/files"
+          ),
+          quoteFileMatches("NewMultipleSourceWithCustomPath_Generated_2.kt",
+            """
+             package arrow
+             class NewMultipleSourceWithCustomPath_Generated_2
+            """.source,
+            "build/generated/source/kapt/test/files/source"
           )
         )
       }

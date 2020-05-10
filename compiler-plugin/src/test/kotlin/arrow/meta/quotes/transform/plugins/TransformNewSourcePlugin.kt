@@ -11,7 +11,7 @@ import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
 val Meta.transformNewSource: List<CliPlugin>
-  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration)
+  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration, transformNewSourceSingleGenerationWithCustomPath, transformNewSourceMultipleGenerationWithCustomPath)
 
 private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
@@ -96,3 +96,38 @@ private fun CompilerContext.generateSupplierClass(declaration: ClassDeclaration)
     }
   """.file("${name}_Generated")
 )}
+
+private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration({ name == "NewSourceWithCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt", filePath = "build/generated/source/kapt/test/files")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration({ name == "NewMultipleSourceWithCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated", "build/generated/source/kapt/test/files"),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2", "build/generated/source/kapt/test/files/source")
+        )
+      }
+    )
+  }
