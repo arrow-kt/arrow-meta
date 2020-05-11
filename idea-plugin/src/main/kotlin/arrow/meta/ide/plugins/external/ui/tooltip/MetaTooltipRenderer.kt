@@ -78,10 +78,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     val editorPane = MetaTooltipJPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
 
     hintHint.isContentActive = true
-    if (!hintHint.isAwtTooltip) {
-      correctLocation(editor, editorPane, p, alignToRight, expanded, myCurrentWidth)
-    }
-
+    
     val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true)
 
     scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -144,26 +141,28 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     editorPane.addHyperlinkListener(HyperlinkListener { e ->
       myActiveLink = true
 
-      if (e.eventType == HyperlinkEvent.EventType.EXITED) {
-        myActiveLink = false
-        return@HyperlinkListener
-      }
-
-      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        val url = e.url
-        if (url != null) {
-          BrowserUtil.browse(url)
-          hint.hide()
+      when (e.eventType) {
+        HyperlinkEvent.EventType.EXITED -> {
+          myActiveLink = false
           return@HyperlinkListener
         }
-        val description = e.description
-        if (description != null &&
-          handle(description, editor)) {
-          hint.hide()
-          return@HyperlinkListener
+        HyperlinkEvent.EventType.ACTIVATED -> {
+          val url = e.url
+          if (url != null) {
+            BrowserUtil.browse(url)
+            hint.hide()
+            return@HyperlinkListener
+          } else {
+            val description = e.description
+            if (description != null && TooltipLinkHandlerEP.handleLink(description, editor)) {
+              hint.hide()
+              return@HyperlinkListener
+            } else {
+              logShowDescription(editor.project, "more.link", e.inputEvent, null)
+              reloader.reload(!expanded)
+            }
+          }
         }
-        logShowDescription(editor.project, "more.link", e.inputEvent, null)
-        reloader.reload(!expanded)
       }
     })
 
@@ -201,10 +200,6 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     }
 
     return hint
-  }
-
-  private fun handle(ref: String, editor: Editor): Boolean {
-    return TooltipLinkHandlerEP.handleLink(ref, editor)
   }
 
   private fun colorizeSeparators(html: String): String {
