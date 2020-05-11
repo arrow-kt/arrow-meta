@@ -80,16 +80,15 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     hintHint.isContentActive = true
 
     val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true)
-
-    scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-    scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-
-    scrollPane.isOpaque = hintHint.isOpaqueAllowed
-    scrollPane.viewport.isOpaque = hintHint.isOpaqueAllowed
-
-    scrollPane.background = hintHint.textBackground
-    scrollPane.viewport.background = hintHint.textBackground
-    scrollPane.viewportBorder = null
+    with(scrollPane) {
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+      isOpaque = hintHint.isOpaqueAllowed
+      viewport.isOpaque = hintHint.isOpaqueAllowed
+      background = hintHint.textBackground
+      viewport.background = hintHint.textBackground
+      viewportBorder = null
+    }
 
     if (!newLayout) editorPane.border = JBUI.Borders.emptyBottom(2)
     if (hintHint.isRequestFocus) {
