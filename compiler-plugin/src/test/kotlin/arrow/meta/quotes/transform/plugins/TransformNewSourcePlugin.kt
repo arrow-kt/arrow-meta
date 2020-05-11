@@ -106,7 +106,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", filePath = "build/generated/source/kapt/test/files")
+          """.file("${name}_Generated.kt", "build/generated/source/kapt/test/files")
         )
       }
     )
