@@ -79,8 +79,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
 
     hintHint.isContentActive = true
 
-    val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true)
-    with(scrollPane) {
+    val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true).apply {
       horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
       verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
       isOpaque = hintHint.isOpaqueAllowed
