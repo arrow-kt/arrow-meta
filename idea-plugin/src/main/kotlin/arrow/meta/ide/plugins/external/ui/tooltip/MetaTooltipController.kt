@@ -16,16 +16,17 @@ import java.awt.event.MouseEvent
 internal class MetaTooltipController : TooltipController() {
 
   private companion object {
-    val tooltipGroup = TooltipGroup("ARROW_META_GROUP", 10)
+    val metaTooltipGroup = TooltipGroup("ARROW_META_GROUP", 10)
   }
 
   private var currentMetaTooltip: LightweightHint? = null
   private var currentMetaTooltipRenderer: TooltipRenderer? = null
 
   override fun cancelTooltip(groupId: TooltipGroup, mouseEvent: MouseEvent?, forced: Boolean) {
-    if (groupId == tooltipGroup) {
-      if (!forced && currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide()) return
-      cancelTooltips()
+    if (groupId == metaTooltipGroup) {
+      if (forced || currentMetaTooltip?.canControlAutoHide() == false) {
+        cancelTooltips()
+      }
     } else {
       super.cancelTooltip(groupId, mouseEvent, forced)
     }
@@ -44,6 +45,19 @@ internal class MetaTooltipController : TooltipController() {
       currentMetaTooltip = null
       tooltip.hide()
       IdeTooltipManager.getInstance().hide(null) // resets everything in the TooltipManager.
+    }
+  }
+
+  override fun showTooltip(editor: Editor,
+                           p: Point,
+                           tooltipRenderer: TooltipRenderer,
+                           alignToRight: Boolean,
+                           group: TooltipGroup,
+                           hintInfo: HintHint) {
+    if (tooltipRenderer.isArrowMetaTooltip()) {
+      doShowMetaTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
+    } else {
+      super.showTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
     }
   }
 
@@ -86,19 +100,6 @@ internal class MetaTooltipController : TooltipController() {
       }
     } else {
       return super.showTooltipByMouseMove(editor, point, tooltipObject, alignToRight, group, hintHint)
-    }
-  }
-
-  override fun showTooltip(editor: Editor,
-                           p: Point,
-                           tooltipRenderer: TooltipRenderer,
-                           alignToRight: Boolean,
-                           group: TooltipGroup,
-                           hintInfo: HintHint) {
-    if (tooltipRenderer.isArrowMetaTooltip()) {
-      doShowMetaTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
-    } else {
-      super.showTooltip(editor, p, tooltipRenderer, alignToRight, group, hintInfo)
     }
   }
 
