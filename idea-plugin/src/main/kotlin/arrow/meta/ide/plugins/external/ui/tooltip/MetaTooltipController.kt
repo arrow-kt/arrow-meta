@@ -136,7 +136,7 @@ internal class MetaTooltipController : TooltipController() {
 
   override fun shouldSurvive(e: MouseEvent?): Boolean {
     return super.shouldSurvive(e) ||
-      (currentMetaTooltip != null && currentMetaTooltip!!.canControlAutoHide())
+      (currentMetaTooltip != null && currentMetaTooltip?.canControlAutoHide() == true)
   }
 
   override fun hide(lightweightHint: LightweightHint) {
