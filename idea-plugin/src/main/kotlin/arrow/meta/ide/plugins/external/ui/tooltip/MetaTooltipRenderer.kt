@@ -78,7 +78,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     val editorPane = MetaTooltipJPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
 
     hintHint.isContentActive = true
-    
+
     val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true)
 
     scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
