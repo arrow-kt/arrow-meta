@@ -86,10 +86,6 @@ internal class MetaTooltipController : TooltipController() {
         hideMetaTooltip()
 
         val p = point.getPointOn(editor.component.rootPane.layeredPane).point
-        if (!hintHint.isAwtTooltip) {
-          p.x += if (alignToRight) -10 else 10
-        }
-
         val project = editor.project
         if (project != null && !project.isOpen) return null
         if (editor.contentComponent.isShowing) {
