@@ -97,19 +97,6 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     val actions: MutableList<AnAction> = ArrayList()
     val grid = createMainPanel(hintHint, scrollPane, editorPane, newLayout, highlightActions, textToDisplay != dressedText)
 
-    if (ScreenReader.isActive()) {
-      grid.isFocusTraversalPolicyProvider = true
-      grid.focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-        override fun getDefaultComponent(aContainer: Container): Component {
-          return editorPane
-        }
-
-        override fun getImplicitDownCycleTraversal(): Boolean {
-          return true
-        }
-      }
-    }
-
     val hint: LightweightHint = object : LightweightHint(grid) {
       override fun hide() {
         onHide(editorPane)
