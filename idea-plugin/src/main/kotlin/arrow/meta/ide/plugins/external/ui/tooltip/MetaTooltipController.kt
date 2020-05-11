@@ -112,11 +112,6 @@ internal class MetaTooltipController : TooltipController() {
     hintInfo: HintHint
   ): LightweightHint? {
 
-    val currentTooltip = currentMetaTooltip
-    if (currentTooltip == null || !currentTooltip.isVisible) {
-      currentMetaTooltipRenderer = null
-    }
-
     // If it's the same renderer we don't want to show it again, but keep the one showing already.
     return if (Comparing.equal(tooltipRenderer, currentMetaTooltipRenderer)) {
       IdeTooltipManager.getInstance().cancelAutoHide()
