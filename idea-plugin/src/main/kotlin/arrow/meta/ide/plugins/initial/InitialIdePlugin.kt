@@ -10,6 +10,7 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.EditorMouseHoverPopupManager
 import com.intellij.openapi.extensions.ExtensionPoint
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
@@ -34,6 +35,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
+      removeEditorListener("MyEditorMouseEventListener"),
       addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener()),
       addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
     )
