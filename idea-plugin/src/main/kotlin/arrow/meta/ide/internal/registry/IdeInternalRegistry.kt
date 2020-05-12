@@ -122,7 +122,10 @@ internal interface IdeInternalRegistry : InternalRegistry {
       ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
       is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
-      is ApplicationProvider.MouseEditorListener -> EditorFactory.getInstance().eventMulticaster.addEditorMouseListener(phase.listener, app)
+      is ApplicationProvider.MouseEditorListener -> {
+        // EditorFactory.getInstance().eventMulticaster.removeEditorMouseListener()
+        EditorFactory.getInstance().eventMulticaster.addEditorMouseListener(phase.listener, app)
+      }
       is ApplicationProvider.MouseMotionEditorListener -> EditorFactory.getInstance().eventMulticaster.addEditorMouseMotionListener(phase.listener, app)
     }
       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")

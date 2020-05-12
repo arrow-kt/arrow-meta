@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
+import arrow.meta.ide.plugins.external.ui.tooltip.MetaEditorMouseHoverPopupManager
 import arrow.meta.ide.plugins.external.ui.tooltip.MetaTooltipController
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
@@ -33,8 +34,8 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
-      addEditorMouseListener(),
-      addEditorMouseMotionListener()
+      addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener()),
+      addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
     )
   }
 
