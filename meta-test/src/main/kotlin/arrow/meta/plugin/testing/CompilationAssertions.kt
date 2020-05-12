@@ -12,6 +12,7 @@ import java.nio.file.Paths
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
+private const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
 
 /**
  * Allows checking if a compiler plugin is working as expected.
@@ -166,7 +167,7 @@ private fun assertQuoteFileMatches(
   compilationResult: Result,
   actualFileName: String,
   expectedSource: Code.Source,
-  actualFileDirectoryPath: Path = Paths.get("", *System.getProperty("arrow.meta.generated.source.output").split("/").toTypedArray())
+  actualFileDirectoryPath: Path = Paths.get("", *(System.getProperty("arrow.meta.generated.source.output") ?: DEFAULT_SOURCE_PATH).split("/").toTypedArray())
 ): Unit {
   assertCompiles(compilationResult)
   val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
