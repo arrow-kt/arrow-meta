@@ -75,7 +75,9 @@ jobs:
         aws s3 cp artifacts s3://$S3_BUCKET --recursive > aws_sync_jekyll.log
     - name: Publish IDEA plugin into Jetbrains repository
       if: steps.properties.outputs.is-snapshot == 'false'
-      run: echo "Pending of an account and a token"
+      env:
+        JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
+      run: ./gradlew :idea-plugin:publishPlugin
     - name: Publish Gradle Plugin into Gradle Plugins Portal
       if: steps.properties.outputs.is-snapshot == 'false'
       env:
