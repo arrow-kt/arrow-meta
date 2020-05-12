@@ -32,7 +32,9 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
         result
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
-        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
+        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
+      addEditorMouseListener(),
+      addEditorMouseMotionListener()
     )
   }
 

@@ -3,6 +3,7 @@ package arrow.meta.ide.dsl.application
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.phases.application.ApplicationProvider
+import arrow.meta.ide.plugins.external.ui.tooltip.MetaEditorMouseHoverPopupManager
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -244,6 +245,9 @@ interface ApplicationSyntax {
    */
   val ApplicationSyntax.availableServices: List<ServiceDescriptor>
     get() = PluginManagerCore.getLoadedPlugins().mapNotNull { it.safeAs<IdeaPluginDescriptorImpl>()?.project?.services?.filterNotNull() }.flatten()
+
+  fun IdeMetaPlugin.addEditorMouseListener(): ExtensionPhase = ApplicationProvider.MouseEditorListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener())
+  fun IdeMetaPlugin.addEditorMouseMotionListener(): ExtensionPhase = ApplicationProvider.MouseMotionEditorListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
 
   /**
    * @see StartupActivity
