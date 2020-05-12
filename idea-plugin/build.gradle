@@ -54,6 +54,10 @@ runIde {
   systemProperties['idea.is.internal'] = "false"
 }
 
+publishPlugin {
+  token System.getenv("JETBRAINS_TOKEN")
+}
+
 test {
   dependsOn ':publishIdeTestingDependencies'
   testLogging.showStandardStreams = true
