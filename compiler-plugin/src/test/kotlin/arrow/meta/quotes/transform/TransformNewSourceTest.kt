@@ -93,12 +93,12 @@ class TransformNewSourceTest : AnnotationSpec() {
       code = {
         """ class NewSourceWithCustomPath {} """.source
       },
-      assert = { quoteFileMatches("NewSourceWithCustomPath_Generated.kt",
-        """
+      assert = { quoteFileMatches( filename = "NewSourceWithCustomPath_Generated.kt",
+        source = """
           package arrow
           class NewSourceWithCustomPath_Generated
         """.source,
-        "build/generated/source/kapt/test/files"
+        sourcePath = "build/generated/source/kapt/test/files"
       )}
     ))
   }
@@ -112,19 +112,19 @@ class TransformNewSourceTest : AnnotationSpec() {
       },
       assert = {
         allOf(
-          quoteFileMatches("NewMultipleSourceWithCustomPath_Generated.kt",
-            """
+          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated.kt",
+            source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
-            "build/generated/source/kapt/test/files"
+            sourcePath = "build/generated/source/kapt/test/files"
           ),
-          quoteFileMatches("NewMultipleSourceWithCustomPath_Generated_2.kt",
-            """
+          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
+            source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
             """.source,
-            "build/generated/source/kapt/test/files/source"
+            sourcePath = "build/generated/source/kapt/test/files/source"
           )
         )
       }
