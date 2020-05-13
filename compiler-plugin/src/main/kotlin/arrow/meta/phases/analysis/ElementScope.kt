@@ -325,6 +325,8 @@ interface ElementScope {
   
   fun String.file(fileName: String): File
 
+  fun String.file(fileName: String, filePath: String): File
+
   val String.functionLiteral: FunctionLiteral
   
   val String.classBody: ClassBody
