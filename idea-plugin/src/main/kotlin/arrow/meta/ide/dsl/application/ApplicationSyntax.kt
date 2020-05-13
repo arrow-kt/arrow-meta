@@ -12,8 +12,6 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.editor.event.EditorMouseListener
-import com.intellij.openapi.editor.event.EditorMouseMotionListener
 import com.intellij.openapi.extensions.LoadingOrder
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
@@ -246,12 +244,6 @@ interface ApplicationSyntax {
    */
   val ApplicationSyntax.availableServices: List<ServiceDescriptor>
     get() = PluginManagerCore.getLoadedPlugins().mapNotNull { it.safeAs<IdeaPluginDescriptorImpl>()?.project?.services?.filterNotNull() }.flatten()
-
-  fun IdeMetaPlugin.addEditorMouseListener(listener: EditorMouseListener): ExtensionPhase =
-    ApplicationProvider.MouseEditorListener(listener)
-
-  fun IdeMetaPlugin.addEditorMouseMotionListener(listener: EditorMouseMotionListener): ExtensionPhase =
-    ApplicationProvider.MouseMotionEditorListener(listener)
 
   /**
    * @see StartupActivity

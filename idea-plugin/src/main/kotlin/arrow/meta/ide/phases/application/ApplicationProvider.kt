@@ -1,13 +1,10 @@
 package arrow.meta.ide.phases.application
 
 import arrow.meta.ide.dsl.application.ApplicationSyntax
-import arrow.meta.ide.plugins.external.ui.tooltip.MetaEditorMouseHoverPopupManager
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.plugins.ContainerDescriptor
 import com.intellij.openapi.application.ApplicationListener
-import com.intellij.openapi.editor.event.EditorMouseListener
-import com.intellij.openapi.editor.event.EditorMouseMotionListener
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
@@ -76,8 +73,4 @@ sealed class ApplicationProvider : ExtensionPhase {
    * @see EditorSyntax
    */
   data class FileEditorListener(val listener: FileEditorManagerListener) : ApplicationProvider()
-
-  data class MouseEditorListener(val listener: EditorMouseListener) : ApplicationProvider()
-
-  data class MouseMotionEditorListener(val listener: EditorMouseMotionListener) : ApplicationProvider()
 }
