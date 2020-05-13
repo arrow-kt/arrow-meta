@@ -55,7 +55,7 @@ jobs:
         unzip ${SINCE_VERSION}.zip -d ${SINCE_VERSION}
         unzip ${UNTIL_VERSION}.zip -d ${UNTIL_VERSION}
     - name: Verify configuration
-      run: ./gradlew :idea-plugin:verifyPlugin
+      run: ./gradlew clean :idea-plugin:verifyPlugin
     - name: Verify 'since' version
       run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.since }}
     - name: Verify 'until' version
