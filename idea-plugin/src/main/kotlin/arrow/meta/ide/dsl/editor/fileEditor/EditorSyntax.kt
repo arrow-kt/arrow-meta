@@ -22,11 +22,13 @@ import com.intellij.openapi.vfs.VirtualFile
 interface EditorSyntax {
 
   /**
-   * Removes extension hooked to the given [epName].
+   * Removes an extension with the given [extensionToRemoveQualifiedClassName] that is hooked to the given [epName].
+   * The predicate is a bit confusing here due to how it is implemented by the open api, since it unsubscribes all
+   * extensions not matching the predicate.
    */
-  fun <T> IdeMetaPlugin.removeExtension(epName: ExtensionPointName<T>, extensionToRemoveClassName: String) {
+  fun <T> IdeMetaPlugin.removeExtension(epName: ExtensionPointName<T>, extensionToRemoveQualifiedClassName: String) {
     epName.getPoint(null).unregisterExtensions({ className, _ ->
-      className != extensionToRemoveClassName
+      className != extensionToRemoveQualifiedClassName
     }, true)
   }
 
