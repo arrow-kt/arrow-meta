@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.types.KotlinType
 
 interface KotlinExtensionSyntax {
+
   fun IdeMetaPlugin.addKotlinIndicesHelper(
     appendExtensionCallables: (consumer: MutableList<in CallableDescriptor>,
                                moduleDescriptor: ModuleDescriptor,

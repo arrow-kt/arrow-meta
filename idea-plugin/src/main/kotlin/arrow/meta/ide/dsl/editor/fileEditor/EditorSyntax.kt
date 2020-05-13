@@ -9,6 +9,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -19,6 +20,15 @@ import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vfs.VirtualFile
 
 interface EditorSyntax {
+
+  /**
+   * Removes extension hooked to the given [epName].
+   */
+  fun <T> IdeMetaPlugin.removeExtension(epName: ExtensionPointName<T>, extensionToRemoveClassName: String) {
+    epName.getPoint(null).unregisterExtensions({ className, _ ->
+      className != extensionToRemoveClassName
+    }, true)
+  }
 
   /**
    * Registers a [CaretListener] for each editor

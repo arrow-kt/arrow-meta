@@ -6,6 +6,7 @@ import arrow.meta.ide.invoke
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.external.ui.tooltip.MetaEditorMouseHoverPopupManager
 import arrow.meta.ide.plugins.external.ui.tooltip.MetaTooltipController
+import arrow.meta.ide.plugins.external.ui.tooltip.MetaTooltipRenderer
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.codeInsight.hint.TooltipController
@@ -42,25 +43,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
-      addFileEditorListener(
-        fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
-          EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
-            val editorMouseEP = ExtensionPointName<EditorMouseListener>("com.intellij.editorFactoryMouseListener")
-            val editorMouseMotionEP = ExtensionPointName<EditorMouseMotionListener>("com.intellij.editorFactoryMouseMotionListener")
-
-            editorMouseEP.getPoint(null).unregisterExtensions({ className, _ ->
-              className != "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseEventListener"
-            }, true)
-
-            editorMouseMotionEP.getPoint(null).unregisterExtensions({ className, _ ->
-              className != "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseMotionEventListener"
-            }, true)
-
-            editor.addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener())
-            editor.addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
-          }
-        }
-      )
+      replaceEditorMouseListeners
     )
   }
 
@@ -82,10 +65,42 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
     }
   )
 
+/**
+ * Replaces TooltipController by our custom one that provides custom CSS support. Relies on [MetaTooltipRenderer] for
+ * the rendering logic.
+ *
+ * TooltipController is what the open api uses to render tooltips for LineMarkers, so this effectively enables us to
+ * show custom CSS for all Meta line marker tooltips.
+ *
+ * @see [TooltipController].
+ */
 val IdeMetaPlugin.toolTipController: ExtensionPhase
   get() = addAppService(TooltipController::class.java) {
     MetaTooltipController() // hijack TooltipController and replace it with ours
   }
+
+/**
+ * Removes default Editor mouse hover popup listeners and replaces them by custom ones. The custom ones rely on
+ * [MetaTooltipRenderer] for the rendering logic. Mouse hover popup listeners are the ones showing tooltips for
+ * applicable inspections, so this effectively enables us to show custom CSS for applicable inspections.
+ *
+ * @see [MetaTooltipRenderer].
+ */
+private val IdeMetaPlugin.replaceEditorMouseListeners: ExtensionPhase
+  get() = addFileEditorListener(
+    fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
+      EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
+        val editorMouseEP = ExtensionPointName<EditorMouseListener>("com.intellij.editorFactoryMouseListener")
+        val editorMouseMotionEP = ExtensionPointName<EditorMouseMotionListener>("com.intellij.editorFactoryMouseMotionListener")
+
+        removeExtension(editorMouseEP, "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseEventListener")
+        removeExtension(editorMouseMotionEP, "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseMotionEventListener")
+
+        editor.addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener())
+        editor.addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
+      }
+    }
+  )
 
 private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||
