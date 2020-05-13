@@ -57,9 +57,9 @@ jobs:
     - name: Verify configuration
       run: ./gradlew clean :idea-plugin:verifyPlugin
     - name: Verify 'since' version
-      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.since }}
+      run: java -jar verifier-all.jar check-plugin "$(ls idea-plugin/build/distributions/*.zip)" ${{ steps.versions.outputs.since }}
     - name: Verify 'until' version
-      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.until }}
+      run: java -jar verifier-all.jar check-plugin "$(ls idea-plugin/build/distributions/*.zip)" ${{ steps.versions.outputs.until }}
     - name: Check next version
       run: |
         echo "Is there an upcoming version to check?"
