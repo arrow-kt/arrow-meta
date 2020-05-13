@@ -9,9 +9,7 @@ import com.intellij.codeInsight.documentation.DocumentationComponent
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.documentation.QuickDocUtil
 import com.intellij.codeInsight.hint.HintManagerImpl
-import com.intellij.codeInsight.hint.LineTooltipRenderer
 import com.intellij.codeInsight.hint.TooltipGroup
-import com.intellij.codeInsight.hint.TooltipRenderer
 import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.Disposable
@@ -25,10 +23,16 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.editor.VisualPosition
-import com.intellij.openapi.editor.event.*
-import com.intellij.openapi.editor.ex.*
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.editor.event.EditorMouseEvent
+import com.intellij.openapi.editor.event.EditorMouseEventArea
+import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.event.EditorMouseMotionListener
+import com.intellij.openapi.editor.event.VisibleAreaListener
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.EditorSettingsExternalizable
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.EditorMouseHoverPopupControl
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -37,34 +41,46 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.psi.*
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiPlainText
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.reference.SoftReference
-import com.intellij.ui.*
+import com.intellij.ui.HintHint
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.LightweightHint
+import com.intellij.ui.MouseMovementTracker
+import com.intellij.ui.SideBorder
+import com.intellij.ui.WidthBasedLayout
 import com.intellij.ui.popup.AbstractPopup
 import com.intellij.ui.popup.PopupFactoryImpl
 import com.intellij.ui.popup.PopupPositionManager
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-
-import javax.swing.*
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Container
+import java.awt.Dimension
+import java.awt.KeyboardFocusManager
+import java.awt.LayoutManager
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.lang.ref.WeakReference
-import java.util.ArrayList
-import java.util.Objects
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 @Service
 class MetaEditorMouseHoverPopupManager : Disposable {
@@ -652,7 +668,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
     }
   }
 
-  class MyEditorMouseMotionEventListener : EditorMouseMotionListener {
+  class MetaEditorMouseMotionEventListener : EditorMouseMotionListener {
     override fun mouseMoved(e: EditorMouseEvent) {
       if (!Registry.`is`("editor.new.mouse.hover.popups")) {
         return
@@ -662,7 +678,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
     }
   }
 
-  class MyEditorMouseEventListener : EditorMouseListener {
+  class MetaEditorMouseEventListener : EditorMouseListener {
     override fun mouseEntered(event: EditorMouseEvent) {
       if (!Registry.`is`("editor.new.mouse.hover.popups")) {
         return
