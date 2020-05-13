@@ -689,8 +689,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
     private val MAX_POPUP_WIDTH = 650
 
     private fun isPopupDisabled(editor: Editor): Boolean {
-      // return isAnotherAppInFocus ||
-      return EditorMouseHoverPopupControl.arePopupsDisabled(editor) ||
+      return isAnotherAppInFocus || EditorMouseHoverPopupControl.arePopupsDisabled(editor) ||
         LookupManager.getActiveLookup(editor) != null
     }
 

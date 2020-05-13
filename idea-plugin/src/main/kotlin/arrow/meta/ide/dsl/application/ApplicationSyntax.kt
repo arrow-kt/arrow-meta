@@ -3,7 +3,6 @@ package arrow.meta.ide.dsl.application
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.phases.application.ApplicationProvider
-import arrow.meta.ide.plugins.external.ui.tooltip.MetaEditorMouseHoverPopupManager
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -13,7 +12,6 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.PreloadingActivity
 import com.intellij.openapi.components.ServiceDescriptor
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.event.EditorMouseMotionListener
 import com.intellij.openapi.extensions.LoadingOrder
@@ -248,9 +246,6 @@ interface ApplicationSyntax {
    */
   val ApplicationSyntax.availableServices: List<ServiceDescriptor>
     get() = PluginManagerCore.getLoadedPlugins().mapNotNull { it.safeAs<IdeaPluginDescriptorImpl>()?.project?.services?.filterNotNull() }.flatten()
-
-  fun IdeMetaPlugin.removeEditorListener(name: String): ExtensionPhase =
-    ApplicationProvider.RemoveEditorMouseListener(name)
 
   fun IdeMetaPlugin.addEditorMouseListener(listener: EditorMouseListener): ExtensionPhase =
     ApplicationProvider.MouseEditorListener(listener)

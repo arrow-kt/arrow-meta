@@ -123,13 +123,6 @@ internal interface IdeInternalRegistry : InternalRegistry {
       ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
       is ApplicationProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
-      is ApplicationProvider.RemoveEditorMouseListener -> {
-        val MOUSE_EP = ExtensionPointName<EditorMouseListener>("com.intellij.editorFactoryMouseListener")
-        val listener = MOUSE_EP.findFirstSafe { it.javaClass.simpleName == phase.listenerName }
-        listener?.let {
-          EditorFactory.getInstance().eventMulticaster.removeEditorMouseListener(it)
-        }
-      }
       is ApplicationProvider.MouseEditorListener -> EditorFactory.getInstance().eventMulticaster.addEditorMouseListener(phase.listener, app)
       is ApplicationProvider.MouseMotionEditorListener -> EditorFactory.getInstance().eventMulticaster.addEditorMouseMotionListener(phase.listener, app)
     }

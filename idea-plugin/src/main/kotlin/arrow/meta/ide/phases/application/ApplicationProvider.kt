@@ -77,8 +77,6 @@ sealed class ApplicationProvider : ExtensionPhase {
    */
   data class FileEditorListener(val listener: FileEditorManagerListener) : ApplicationProvider()
 
-  data class RemoveEditorMouseListener(val listenerName: String) : ApplicationProvider()
-
   data class MouseEditorListener(val listener: EditorMouseListener) : ApplicationProvider()
 
   data class MouseMotionEditorListener(val listener: EditorMouseMotionListener) : ApplicationProvider()

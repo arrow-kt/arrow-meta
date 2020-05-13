@@ -10,8 +10,15 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.higherkind.kindsTypeMismatch
 import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.EditorMouseHoverPopupManager
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.event.EditorMouseMotionListener
 import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.cfg.ClassMissingCase
 import org.jetbrains.kotlin.cfg.WhenMissingCase
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -35,9 +42,25 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
         KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
-      removeEditorListener("MyEditorMouseEventListener"),
-      addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener()),
-      addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
+      addFileEditorListener(
+        fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
+          EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
+            val editorMouseEP = ExtensionPointName<EditorMouseListener>("com.intellij.editorFactoryMouseListener")
+            val editorMouseMotionEP = ExtensionPointName<EditorMouseMotionListener>("com.intellij.editorFactoryMouseMotionListener")
+
+            editorMouseEP.getPoint(null).unregisterExtensions({ className, _ ->
+              className != "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseEventListener"
+            }, true)
+
+            editorMouseMotionEP.getPoint(null).unregisterExtensions({ className, _ ->
+              className != "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseMotionEventListener"
+            }, true)
+
+            editor.addEditorMouseListener(MetaEditorMouseHoverPopupManager.MyEditorMouseEventListener())
+            editor.addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MyEditorMouseMotionEventListener())
+          }
+        }
+      )
     )
   }
 
@@ -60,9 +83,9 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
   )
 
 val IdeMetaPlugin.toolTipController: ExtensionPhase
-    get() = addAppService(TooltipController::class.java) {
-        MetaTooltipController() // hijack TooltipController and replace it with ours
-    }
+  get() = addAppService(TooltipController::class.java) {
+    MetaTooltipController() // hijack TooltipController and replace it with ours
+  }
 
 private fun Diagnostic.suppressMetaDiagnostics(): Boolean =
   suppressInvisibleMember() ||
