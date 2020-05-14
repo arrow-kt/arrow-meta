@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Quick Start
+title: Overview
 permalink: /
 video: WKR384ZeBgk
 ---
