@@ -3,7 +3,7 @@ name: Intellij Plugin Verification
 on: pull_request
 
 jobs:
-  build_artifacts:
+  intellij_plugin_verification:
 
     env:
       INTELLIJ_PLUGIN_VERIFIER: 1.241
@@ -56,22 +56,8 @@ jobs:
         unzip ${SINCE_VERSION}.zip -d ${SINCE_VERSION}
         unzip ${UNTIL_VERSION}.zip -d ${UNTIL_VERSION}
     - name: Verify configuration
-      run: ./gradlew clean :idea-plugin:verifyPlugin
+      run: ./gradlew :idea-plugin:verifyPlugin
     - name: Verify 'since' version
-      run: java -jar verifier-all.jar check-plugin "$(ls idea-plugin/build/distributions/*.zip)" ${{ steps.versions.outputs.since }}
+      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.since }}
     - name: Verify 'until' version
-      run: java -jar verifier-all.jar check-plugin "$(ls idea-plugin/build/distributions/*.zip)" ${{ steps.versions.outputs.until }}
-    - name: Check next version
-      run: |
-        echo "Is there an upcoming version to check?"
-        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
-          echo "Checking $patch ..."
-          PATCH_VERSION=$(basename -s .diff $patch)
-          NEXT_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep $PATCH_VERSION | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
-          echo "For version $NEXT_VERSION ..."
-          git apply $patch
-          git status
-          sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$NEXT_VERSION/g" gradle.properties
-          ./gradlew clean :compiler-plugin:jar # TODO: build
-        done
+      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.until }}
