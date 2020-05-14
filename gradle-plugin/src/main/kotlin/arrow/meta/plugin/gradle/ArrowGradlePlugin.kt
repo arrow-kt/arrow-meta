@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import io.github.classgraph.ClassGraph
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import java.util.Properties
 
 /**
@@ -35,12 +34,16 @@ class ArrowGradlePlugin : Plugin<Project> {
         it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
     }
-    project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java)
+    val installIdeaPluginTask = project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java)
+    installIdeaPluginTask.configure { task ->
+      task.group = "Arrow Meta"
+      task.description = "Installs the correspondent Arrow Meta IDE Plugin if it's not already installed."
+    }
 
     when {
       inIdea() && pluginsDirExists() && !ideaPluginExists() -> {
-        println("Arrow Meta IDEA Plugin is not installed!")
-        println("Run 'install-idea-plugin' Gradle task from Intellij IDEA to install it.")
+        println("Arrow Meta IDE Plugin is not installed!")
+        println("Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it.")
       }
     }
   }
