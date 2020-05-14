@@ -34,7 +34,7 @@ apply plugin: "io.arrow-kt.arrow"
 
 ## Λrrow Meta IDE Plugin
 
-Arrow Meta IDEA Plugin is compatible with the same versions as [Kotlin Plugin for Intellij IDEA](https://plugins.jetbrains.com/plugin/6954-kotlin).
+Arrow Meta IDE Plugin is compatible with the same versions as [Kotlin Plugin for Intellij IDEA](https://plugins.jetbrains.com/plugin/6954-kotlin).
 
 ### Λrrow Meta IDE Plugin: installation from a Gradle task
 
@@ -44,7 +44,7 @@ This message will appear with every Gradle task execution if Arrow Meta IDE Plug
 
 ```
 > Configure project :
-Arrow Meta IDEA Plugin is not installed!
+Arrow Meta IDE Plugin is not installed!
 Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it.
 ```
 
@@ -52,7 +52,7 @@ Go to `Arrow Meta` group for Gradle tasks and run `install-idea-plugin`:
 
 ```
 > Task :install-idea-plugin
-Arrow Meta IDEA Plugin is not installed! Downloading ...
+Arrow Meta IDE Plugin is not installed! Downloading ...
 Restart Intellij IDEA to finish the installation!
 ```
 
@@ -62,8 +62,8 @@ It will be necessary to restart the IDE to finish the installation.
 
 There are two custom plugin repositories according to the correspondent version:
 
-* To install the latest SNAPSHOT version: https://meta.arrow-kt.io/idea-plugin/latest-snapshot/updatePlugins.xml
-* To install the latest RELEASE version: https://meta.arrow-kt.io/idea-plugin/latest-release/updatePlugins.xml
+* For the latest SNAPSHOT version: `https://meta.arrow-kt.io/idea-plugin/latest-snapshot/updatePlugins.xml`
+* For the latest RELEASE version: `https://meta.arrow-kt.io/idea-plugin/latest-release/updatePlugins.xml`
 
 Follow the steps about the use of [Custom plugin repositories](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_repo) to install the Arrow Meta IDE Plugin.
 
