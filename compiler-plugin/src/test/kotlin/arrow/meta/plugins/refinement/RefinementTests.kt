@@ -137,6 +137,7 @@ class RefinementTests {
     ))
   }
 
+  @Ignore
   @Test
   fun `Runtime validation for nullable types coerces to null if invalid`() {
     assertThis(CompilerTest(
