@@ -36,20 +36,6 @@ apply plugin: "io.arrow-kt.arrow"
 
 Arrow Meta IDEA Plugin is compatible with the same versions as [Kotlin Plugin for Intellij IDEA](https://plugins.jetbrains.com/plugin/6954-kotlin).
 
-### Λrrow Meta IDE Plugin: how to extend it or to develop from it
-
-If you are interested in extending the Arrow Meta IDE Plugin or developing from it:
-
-```
-dependencies {
-    implementation "io.arrow-kt:idea-plugin:<version>"
-}
-
-repositories {
-    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-}
-```
-
 ### Λrrow Meta IDE Plugin: installation from a Gradle task
 
 When using the Arrow Meta Gradle Plugin from Intellij IDEA, there is a Gradle task available to install the Arrow Meta IDE Plugin.
@@ -86,6 +72,20 @@ Follow the steps about the use of [Custom plugin repositories](https://www.jetbr
 When a RELEASE version is published into the [Jetbrains Plugins Repository](https://plugins.jetbrains.com), it will be possible [to install the plugin from the Marketplace](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_repo).
 
 See more details at [Arrow Meta for Intellij IDEA](https://plugins.jetbrains.com/plugin/14291-arrow-meta).
+
+### Λrrow Meta IDE Plugin: how to extend it or to develop from it
+
+If you are interested in extending the Arrow Meta IDE Plugin or developing from it:
+
+```
+dependencies {
+    implementation "io.arrow-kt:idea-plugin:<version>"
+}
+
+repositories {
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+}
+```
 
 # See Also
 
