@@ -107,7 +107,7 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
 
 fun CoercionProof.coercionMessage(): String =
   """
-    <h3>Coercion</h3>
+    <h2>Coercion</h2>
     Coercion happening by proof:
     <p>
       <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :

@@ -4,8 +4,8 @@ import com.intellij.util.ui.Html
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 
-internal const val cdnStyleLight = "https://47deg-academy.s3.amazonaws.com/css/edutools-style-light.css"
-internal const val cdnStyleDark = "https://47deg-academy.s3.amazonaws.com/css/edutools-style-dark.css"
+internal const val cdnStyleLight = "https://47deg-academy.s3.amazonaws.com/css/edutools/edutools-style-light.css"
+internal const val cdnStyleDark = "https://47deg-academy.s3.amazonaws.com/css/edutools/edutools-style-dark.css"
 
 internal fun Html.applyStylesFromCDN(): String {
   val htmlBody = UIUtil.getHtmlBody(this)
@@ -15,11 +15,10 @@ internal fun Html.applyStylesFromCDN(): String {
     cdnStyleDark
   }
 
-  // <link rel="stylesheet" type="text/css" href="$stylesToUse">
   return """
       <html>
         <head>
-          <style>body { background-color: red; }</style>
+          <link rel="stylesheet" type="text/css" href="$stylesToUse">
         </head>
         <body>
           $htmlBody
