@@ -21,16 +21,12 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.getValueArgument
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.putValueArgument
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.dump
@@ -151,25 +147,29 @@ class ProofsIrCodegen(
   fun CompilerContext.proveNestedCalls(expression: IrCall): IrCall? =
     expression.apply {
       dfsCalls().forEach {
-        proveCall(it)
+        proveCall(it, expression)
       }
     }
 
-  private fun CompilerContext.proveCall(expression: IrCall): IrCall =
+  private fun CompilerContext.proveCall(expression: IrCall, parent: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       val givenTypeParamUpperBound = GivenUpperBound(expression.descriptor)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
-      else insertExtensionSyntaxCall(expression)
+      else insertExtensionSyntaxCall(expression, parent)
       expression
     }
 
-  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) {
-    val valueType = expression.dispatchReceiver?.type?.toKotlinType()
+  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall, parent: IrCall) {
+    val valueType: KotlinType? = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
-    val targetType =
+      ?: expression.descriptor.returnType
+
+    val targetType: KotlinType? =
       (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
         ?: expression.descriptor.extensionReceiverParameter?.type
+        ?: (if (parent.descriptor.valueParameters.isNotEmpty()) parent.descriptor.valueParameters.firstOrNull()?.type else null)
+
     if (targetType != null && valueType != null && targetType != valueType) {
       expression.apply {
         val proofCall = extensionProofCall(valueType, targetType)
@@ -179,16 +179,22 @@ class ProofsIrCodegen(
               when {
                 this.dispatchReceiver != null -> {
                   proofCall.extensionReceiver = this.dispatchReceiver
-                  proofCall.also {
-                    dispatchReceiver = it
+                  proofCall.also { irMemberAccessExpression: IrMemberAccessExpression ->
+                    dispatchReceiver = irMemberAccessExpression
                     extensionReceiver = null
                   }
                 }
                 this.extensionReceiver != null -> {
                   proofCall.extensionReceiver = this.extensionReceiver
-                  proofCall.also {
+                  proofCall.also { irMemberAccessExpression: IrMemberAccessExpression ->
                     dispatchReceiver = null
-                    extensionReceiver = it
+                    extensionReceiver = irMemberAccessExpression
+                  }
+                }
+                targetType.arguments.contains(valueType.asTypeProjection()) -> {
+                  proofCall.also { irMemberAccessExpression: IrMemberAccessExpression ->
+                    dispatchReceiver = null
+                    extensionReceiver = irMemberAccessExpression
                   }
                 }
               }

@@ -18,8 +18,8 @@ open class MetaPlugin : Meta {
     listOf(
       //higherKindedTypes2,
       //typeClasses,
-      comprehensions,
-      lenses,
+      //comprehensions,
+      //lenses,
       typeProofs
     )
 }
