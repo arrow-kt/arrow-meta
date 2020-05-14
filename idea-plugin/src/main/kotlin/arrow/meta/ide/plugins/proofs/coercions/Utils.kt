@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.coercions
 
 import arrow.meta.ide.dsl.utils.replaceK
+import arrow.meta.ide.plugins.external.ui.tooltip.util.applyMetaStyles
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
 import arrow.meta.phases.CompilerContext
@@ -25,9 +26,9 @@ internal fun KtDotQualifiedExpression.implicitParticipatingTypes(): Pair<KotlinT
   receiverExpression.resolveKotlinType().pairOrNull(selectorExpression?.resolveKotlinType())
 
 internal fun CompilerContext.coercionProofMessage(ktDotQualifiedExpression: KtDotQualifiedExpression): String =
-  ktDotQualifiedExpression.implicitParticipatingTypes()?.let { (subtype, supertype) ->
+  (ktDotQualifiedExpression.implicitParticipatingTypes()?.let { (subtype, supertype) ->
     coerceProof(subtype, supertype)?.coercionMessage()
-  } ?: "Proof not found"
+  } ?: "Proof not found")
 
 internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType>? =
   if (this != null && b != null) Pair(this, b)

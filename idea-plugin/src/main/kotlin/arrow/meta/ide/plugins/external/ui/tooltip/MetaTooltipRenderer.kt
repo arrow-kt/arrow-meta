@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.external.ui.tooltip
 
+import arrow.meta.ide.plugins.external.ui.tooltip.util.removeMetaTag
 import com.intellij.codeInsight.hint.HintManagerImpl.ActionToIgnore
 import com.intellij.codeInsight.hint.LineTooltipRenderer
 import com.intellij.codeInsight.hint.LineTooltipRenderer.TooltipReloader
@@ -73,7 +74,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
     val currentText: String = requireNotNull(myText)
 
     //setup text
-    val tooltipPreText = currentText.replace(UIUtil.MNEMONIC.toString().toRegex(), "")
+    val tooltipPreText = currentText.replace(UIUtil.MNEMONIC.toString().toRegex(), "").removeMetaTag()
     val dressedText = dressDescription(editor, tooltipPreText, myCurrentWidth > 0)
 
     val expanded = myCurrentWidth > 0 && dressedText != tooltipPreText

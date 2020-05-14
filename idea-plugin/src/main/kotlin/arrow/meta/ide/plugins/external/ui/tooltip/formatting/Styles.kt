@@ -15,10 +15,11 @@ internal fun Html.applyStylesFromCDN(): String {
     cdnStyleDark
   }
 
+  // <link rel="stylesheet" type="text/css" href="$stylesToUse">
   return """
       <html>
         <head>
-          <link rel="stylesheet" type="text/css" href="$stylesToUse">
+          <style>body { background-color: red; }</style>
         </head>
         <body>
           $htmlBody

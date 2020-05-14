@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.external.ui.tooltip.util.applyMetaStyles
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.coerceProof
@@ -18,8 +19,8 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
       }
     },
     message = { ktElement: KtProperty ->
-      ktElement.participatingTypes()?.let { (subtype, supertype) ->
+      (ktElement.participatingTypes()?.let { (subtype, supertype) ->
         ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
-      } ?: "Proof not found"
+      } ?: "Proof not found").applyMetaStyles()
     }
   )

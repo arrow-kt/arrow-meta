@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.external.ui.tooltip
 
+import arrow.meta.ide.plugins.external.ui.tooltip.util.isArrowMetaTooltip
 import com.intellij.codeInsight.hint.LineTooltipRenderer
 import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.codeInsight.hint.TooltipGroup
@@ -144,7 +145,7 @@ internal class MetaTooltipController : TooltipController() {
   }
 
   private fun TooltipRenderer.isArrowMetaTooltip(): Boolean =
-    this is LineTooltipRenderer && !this.text.isNullOrEmpty()
+    this is LineTooltipRenderer && this.text.isArrowMetaTooltip()
 
   private fun TooltipRenderer.unsafeLineText(): String = (this as LineTooltipRenderer).text!!
 
