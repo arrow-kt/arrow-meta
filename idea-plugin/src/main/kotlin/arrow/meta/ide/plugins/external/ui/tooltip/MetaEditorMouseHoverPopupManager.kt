@@ -1,6 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package arrow.meta.ide.plugins.external.ui.tooltip
 
+import arrow.meta.ide.plugins.external.ui.tooltip.util.isArrowMetaTooltip
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -9,6 +10,7 @@ import com.intellij.codeInsight.documentation.DocumentationComponent
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.documentation.QuickDocUtil
 import com.intellij.codeInsight.hint.HintManagerImpl
+import com.intellij.codeInsight.hint.LineTooltipRenderer
 import com.intellij.codeInsight.hint.TooltipGroup
 import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.IdeEventQueue
@@ -32,6 +34,7 @@ import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.event.EditorMouseMotionListener
 import com.intellij.openapi.editor.event.VisibleAreaListener
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.EditorMarkupModel
 import com.intellij.openapi.editor.ex.EditorSettingsExternalizable
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.EditorMouseHoverPopupControl
@@ -85,9 +88,9 @@ import javax.swing.JPanel
 @Service
 class MetaEditorMouseHoverPopupManager : Disposable {
 
-  private val myAlarm: Alarm
-  private val myMouseMovementTracker = MouseMovementTracker()
-  private var myKeepPopupOnMouseMove: Boolean = false
+  private val schedulerAlarm: Alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+  private val mouseMovementTracker = MouseMovementTracker()
+  private var keepPopupOnMouseMove: Boolean = false
   private var myCurrentEditor: WeakReference<Editor>? = null
   private var myPopupReference: WeakReference<AbstractPopup>? = null
   private var myContext: Context? = null
@@ -113,14 +116,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
       return hint
     }
 
-  val documentationComponent: DocumentationComponent?
-    get() {
-      val hint = currentHint
-      return if (hint == null) null else UIUtil.findComponentOfType(hint.component, DocumentationComponent::class.java)
-    }
-
   init {
-    myAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
     val multicaster = EditorFactory.getInstance().eventMulticaster
     multicaster.addCaretListener(object : CaretListener {
       override fun caretPositionChanged(event: CaretEvent) {
@@ -188,7 +184,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
   }
 
   private fun cancelCurrentProcessing() {
-    myAlarm.cancelAllRequests()
+    schedulerAlarm.cancelAllRequests()
     if (myCurrentProgress != null) {
       myCurrentProgress!!.cancel()
       myCurrentProgress = null
@@ -206,7 +202,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
                                  requestFocus: Boolean) {
     val progress = ProgressIndicatorBase()
     myCurrentProgress = progress
-    myAlarm.addRequest({
+    schedulerAlarm.addRequest({
       ProgressManager.getInstance().executeProcessUnderProgress({
         val info = context.calcInfo(editor)
         ApplicationManager.getApplication().invokeLater {
@@ -253,7 +249,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
       return true
     }
     val currentHintBounds = getCurrentHintBounds(e.editor)
-    return myMouseMovementTracker.isMovingTowards(e.mouseEvent, currentHintBounds) || currentHintBounds != null && myKeepPopupOnMouseMove
+    return mouseMovementTracker.isMovingTowards(e.mouseEvent, currentHintBounds) || currentHintBounds != null && keepPopupOnMouseMove
   }
 
   private fun getCurrentHintBounds(editor: Editor): Rectangle? {
@@ -267,8 +263,8 @@ class MetaEditorMouseHoverPopupManager : Disposable {
 
   private fun showHintInEditor(hint: AbstractPopup, editor: Editor, context: Context) {
     closeHint()
-    myMouseMovementTracker.reset()
-    myKeepPopupOnMouseMove = false
+    mouseMovementTracker.reset()
+    keepPopupOnMouseMove = false
     editor.putUserData(PopupFactoryImpl.ANCHOR_POPUP_POSITION, context.getPopupPosition(editor))
     try {
       PopupPositionManager.positionPopupInBestPosition(hint, editor, null)
@@ -280,7 +276,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
       window.focusableWindowState = true
       IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
         if (e.id == MouseEvent.MOUSE_PRESSED && e.source === window) {
-          myKeepPopupOnMouseMove = true
+          keepPopupOnMouseMove = true
         }
         false
       }, hint)
@@ -323,17 +319,16 @@ class MetaEditorMouseHoverPopupManager : Disposable {
     scheduleProcessing(editor, context, false, true, requestFocus)
   }
 
-  public open class Context(private val targetOffset: Int, highlightInfo: HighlightInfo?, elementForQuickDoc: PsiElement?) {
-    private val highlightInfo: WeakReference<HighlightInfo>?
-    private val elementForQuickDoc: WeakReference<PsiElement>?
+  internal open class Context(private val targetOffset: Int, highlightInfo: HighlightInfo?, elementForQuickDoc: PsiElement?) {
+
+    private val highlightInfo: WeakReference<HighlightInfo>? =
+      if (highlightInfo == null) null else WeakReference(highlightInfo)
+
+    private val elementForQuickDoc: WeakReference<PsiElement>? =
+      if (elementForQuickDoc == null) null else WeakReference(elementForQuickDoc)
 
     internal open val showingDelay: Long
       get() = EditorSettingsExternalizable.getInstance().tooltipsDelay.toLong()
-
-    init {
-      this.highlightInfo = if (highlightInfo == null) null else WeakReference(highlightInfo)
-      this.elementForQuickDoc = if (elementForQuickDoc == null) null else WeakReference(elementForQuickDoc)
-    }
 
     private fun getElementForQuickDoc(): PsiElement? {
       return SoftReference.dereference(elementForQuickDoc)
@@ -367,11 +362,16 @@ class MetaEditorMouseHoverPopupManager : Disposable {
         if (endPosition.line <= targetPosition.line) return targetPosition
         val targetPoint = editor.visualPositionToXY(targetPosition)
         val endPoint = editor.visualPositionToXY(endPosition)
-        val resultPoint = Point(targetPoint.x, if (endPoint.x > targetPoint.x) endPoint.y else editor.visualLineToY(endPosition.line - 1))
+        val resultPoint = Point(targetPoint.x, if (endPoint.x > targetPoint.x) {
+          endPoint.y
+        } else {
+          editor.visualLineToY(endPosition.line - 1)
+        })
         return editor.xyToVisualPosition(resultPoint)
       }
     }
 
+    @Suppress("UnstableApiUsage")
     internal fun calcInfo(editor: Editor): Info? {
       var info = getHighlightInfo()
       if (info != null && (info.description == null || info.toolTip == null)) {
@@ -414,6 +414,7 @@ class MetaEditorMouseHoverPopupManager : Disposable {
     }
   }
 
+  @Suppress("UnstableApiUsage")
   class Info(
     private val highlightInfo: HighlightInfo?,
     private val quickDocMessage: String?,
@@ -446,13 +447,26 @@ class MetaEditorMouseHoverPopupManager : Disposable {
                                              requestFocus: Boolean): JComponent? {
       if (highlightInfo == null) return null
       val action = TooltipActionProvider.calcTooltipAction(highlightInfo, editor)
-      // val provider = (editor.markupModel as EditorMarkupModel).errorStripTooltipRendererProvider
-      val tooltipRenderer = MetaTooltipRenderer(highlightInfo.description)
-      return createHighlightInfoComponent(editor, tooltipRenderer, highlightActions, popupBridge, requestFocus)
+
+      val provider = (editor.markupModel as EditorMarkupModel).errorStripTooltipRendererProvider
+
+      val tooltipRenderer = provider.calcTooltipRenderer(
+        Objects.requireNonNull(highlightInfo.toolTip)!!, action, -1
+      ) as? LineTooltipRenderer ?: return null
+
+      val metaTooltipRenderer = MetaTooltipRenderer(highlightInfo.description)
+
+      val renderer = if (highlightInfo.description.isArrowMetaTooltip()) {
+        metaTooltipRenderer
+      } else {
+        tooltipRenderer
+      }
+
+      return createHighlightInfoComponent(editor, renderer, highlightActions, popupBridge, requestFocus)
     }
 
     private fun createHighlightInfoComponent(editor: Editor,
-                                             renderer: MetaTooltipRenderer,
+                                             renderer: LineTooltipRenderer,
                                              highlightActions: Boolean,
                                              popupBridge: PopupBridge,
                                              requestFocus: Boolean): JComponent? {
@@ -460,7 +474,13 @@ class MetaEditorMouseHoverPopupManager : Disposable {
       val mockHintRef = Ref<LightweightHint>()
       val hintHint = HintHint().setAwtTooltip(true).setRequestFocus(requestFocus)
       val hint = renderer.createHint(editor, Point(), false, EDITOR_INFO_GROUP, hintHint, true, highlightActions, false) { expand ->
-        val newRenderer = MetaTooltipRenderer(renderer.text!!)
+
+        val newRenderer = if (renderer.text!!.isArrowMetaTooltip()) {
+          MetaTooltipRenderer(renderer.text!!)
+        } else {
+          renderer.createRenderer(renderer.text, if (expand) 1 else 0)
+        }
+
         val newComponent = createHighlightInfoComponent(editor, newRenderer, highlightActions, popupBridge, requestFocus)
         val popup = popupBridge.popup
         val wrapper = wrapperPanelRef.get()

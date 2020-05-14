@@ -106,7 +106,7 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
 
 fun CoercionProof.coercionMessage(): String =
   """
-    <h2>Coercion</h2>
+    <h4>Coercion</h4>
     <p>
       Coercion happening by proof:
     </p>
