@@ -27,10 +27,6 @@ jobs:
         sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
         sed -i "s/%SINCE_BUILD%/$SINCE_BUILD/g" .github/workflows/templates/updatePlugins.xml
         sed -i "s/%UNTIL_BUILD%/$UNTIL_BUILD/g" .github/workflows/templates/updatePlugins.xml
-    - name: Build with Gradle
-      env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
-      run: ./gradlew buildMeta
     - name: Check properties
       id: properties
       run: |
