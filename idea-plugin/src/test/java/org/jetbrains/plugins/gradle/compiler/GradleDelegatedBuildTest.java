@@ -1,5 +1,5 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package external.forks.jb.gradle;
+package org.jetbrains.plugins.gradle.compiler;
 
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -147,20 +147,20 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
 
     compileModules("project.main");
 
-    String langPart = isGradleOlderThen_4_0() ? "build/classes" : "build/classes/java";
+    String langPart = isGradleOlderThen("4.0") ? "build/classes" : "build/classes/java";
     List<String> expected = newArrayList(path(langPart + "/main"),
                                          path("api/" + langPart + "/main"),
                                          path("impl/" + langPart + "/main"),
                                          path("api/build/libs/api.jar"),
                                          path("impl/build/libs/impl.jar"));
 
-    if (isGradleOlderThen_3_3()) {
+    if (isGradleOlderThen("3.3")) {
       expected.addAll(asList(path("build/dependency-cache"),
                              path("api/build/dependency-cache"),
                              path("impl/build/dependency-cache")));
     }
 
-    if (!isGradleOlderThen_5_2()) {
+    if (!isGradleOlderThen("5.2")) {
       expected.addAll(asList(path("build/generated/sources/annotationProcessor/java/main"),
                              path("api/build/generated/sources/annotationProcessor/java/main"),
                              path("impl/build/generated/sources/annotationProcessor/java/main")));
@@ -190,10 +190,10 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
     expected = newArrayList(path(langPart + "/main"),
                             path(langPart + "/test"));
 
-    if (isGradleOlderThen_3_3()) {
+    if (isGradleOlderThen("3.3")) {
       expected.add(path("build/dependency-cache"));
     }
-    if (!isGradleOlderThen_5_2()) {
+    if (!isGradleOlderThen("5.2")) {
       expected.addAll(asList(path("build/generated/sources/annotationProcessor/java/main"),
                              path("build/generated/sources/annotationProcessor/java/test")));
     }
