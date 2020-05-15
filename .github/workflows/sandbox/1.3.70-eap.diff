@@ -1279,10 +1279,10 @@ index 8c4fde2a..f52d0342 100644
 +  }
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
-index 8f795e8e..2539d650 100644
+index cc6655f3..5d103954 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
-@@ -50,7 +50,6 @@ interface ResolveSyntax {
+@@ -54,7 +54,6 @@ interface ResolveSyntax {
          declaration: DeclarationDescriptor?,
          containingDeclaration: DeclarationDescriptor?,
          currentModality: Modality,
@@ -1290,7 +1290,7 @@ index 8f795e8e..2539d650 100644
          isImplicitModality: Boolean
        ): Modality? =
          refineDeclarationModality(
-@@ -58,7 +57,6 @@ interface ResolveSyntax {
+@@ -62,7 +61,6 @@ interface ResolveSyntax {
            declaration,
            containingDeclaration,
            currentModality,
@@ -1299,7 +1299,7 @@ index 8f795e8e..2539d650 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 15cfa85e..331c1f05 100644
+index 202dc277..1a082575 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 @@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
@@ -1331,7 +1331,7 @@ index 15cfa85e..331c1f05 100644
  import org.jetbrains.kotlin.name.Name
  import org.jetbrains.kotlin.platform.TargetPlatform
  import org.jetbrains.kotlin.psi.KtDeclaration
-@@ -132,11 +129,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -129,11 +126,11 @@ interface InternalRegistry : ConfigSyntax {
      configuration: CompilerConfiguration,
      context: CompilerContext? = null
    ) {
@@ -1346,7 +1346,7 @@ index 15cfa85e..331c1f05 100644
      }
      ide {
        println("it's the IDEA plugin")
-@@ -194,11 +191,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -191,11 +188,11 @@ interface InternalRegistry : ConfigSyntax {
      }
    }
  
@@ -1363,7 +1363,7 @@ index 15cfa85e..331c1f05 100644
  
    fun installArrowPlugin() {
      val ideaPath = System.getProperty("idea.plugins.path")
-@@ -232,6 +229,7 @@ interface InternalRegistry : ConfigSyntax {
+@@ -229,6 +226,7 @@ interface InternalRegistry : ConfigSyntax {
    }
  
    fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
@@ -1371,7 +1371,7 @@ index 15cfa85e..331c1f05 100644
      SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
        override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
          phase.run {
-@@ -276,11 +274,11 @@ interface InternalRegistry : ConfigSyntax {
+@@ -273,11 +271,11 @@ interface InternalRegistry : ConfigSyntax {
    ) {
      IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
        override fun generate(
@@ -1387,7 +1387,7 @@ index 15cfa85e..331c1f05 100644
        }
      })
    }
-@@ -424,7 +422,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -421,7 +419,6 @@ interface InternalRegistry : ConfigSyntax {
            declaration: DeclarationDescriptor?,
            containingDeclaration: DeclarationDescriptor?,
            currentModality: Modality,
@@ -1395,7 +1395,7 @@ index 15cfa85e..331c1f05 100644
            isImplicitModality: Boolean
          ): Modality? {
            return phase.run {
-@@ -433,7 +430,6 @@ interface InternalRegistry : ConfigSyntax {
+@@ -430,7 +427,6 @@ interface InternalRegistry : ConfigSyntax {
                declaration,
                containingDeclaration,
                currentModality,
@@ -1403,7 +1403,7 @@ index 15cfa85e..331c1f05 100644
                isImplicitModality
              )
            }
-@@ -602,4 +598,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+@@ -599,4 +595,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
  
    field.set(null, newValue)
@@ -1589,10 +1589,10 @@ index fcbbb97c..7b2596e4 100644
    ): Modality?
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-index c5247590..651a5aaf 100644
+index 7bfc9c4c..40339370 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-@@ -54,7 +54,7 @@ class ProofsIrCodegen(
+@@ -55,7 +55,7 @@ class ProofsIrCodegen(
        if (this is IrMemberAccessExpression) {
          fn.typeParameters.forEachIndexed { n, descriptor ->
            //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
@@ -1601,7 +1601,7 @@ index c5247590..651a5aaf 100644
          }
        }
      }
-@@ -156,7 +156,7 @@ class ProofsIrCodegen(
+@@ -157,7 +157,7 @@ class ProofsIrCodegen(
  
    private fun CompilerContext.proveCall(expression: IrCall): IrCall =
      Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
@@ -1610,30 +1610,19 @@ index c5247590..651a5aaf 100644
        val upperBound = givenTypeParamUpperBound.givenUpperBound
        if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
        else insertExtensionSyntaxCall(expression)
-@@ -168,9 +168,9 @@ class ProofsIrCodegen(
+@@ -168,8 +168,8 @@ class ProofsIrCodegen(
+     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
        ?: expression.extensionReceiver?.type?.toKotlinType()
-       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
      val targetType =
 -      (expression.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
 -        ?: expression.descriptor.extensionReceiverParameter?.type
--        ?: expression.descriptor.valueParameters.firstOrNull()?.type
 +      (expression.symbol.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
 +        ?: expression.symbol.descriptor.extensionReceiverParameter?.type
-+        ?: expression.symbol.descriptor.valueParameters.firstOrNull()?.type
-     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
+     if (targetType != null && valueType != null && targetType != valueType) {
        expression.apply {
          val proofCall = extensionProofCall(valueType, targetType)
-@@ -196,7 +196,7 @@ class ProofsIrCodegen(
-               expression.mapValueParametersIndexed { n: Int, v: ValueParameterDescriptor ->
-                 val valueArgument = expression.getValueArgument(n)
-                 val valueType2 = valueArgument?.type?.toKotlinType()!!
--                val targetType2 = expression.descriptor.valueParameters[n].type
-+                val targetType2 = expression.symbol.descriptor.valueParameters[n].type
-                 val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
-                 if (proofCall2 != null) {
-                   proofCall2.extensionReceiver = valueArgument
 diff --git a/gradle.properties b/gradle.properties
-index 266952f7..6e1ca5ec 100644
+index d37ca090..80d5c392 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -3,8 +3,8 @@ GROUP=io.arrow-kt
@@ -1643,7 +1632,7 @@ index 266952f7..6e1ca5ec 100644
 -KOTLIN_VERSION=1.3.61
 -KOTLIN_IDEA_VERSION=1.3.61-release-IJ2019.3-1
 +KOTLIN_VERSION=1.3.72
-+KOTLIN_IDEA_VERSION=1.3.72-release-IJ2020.1-3
- INTELLIJ_IDEA_VERSION=2020.1.2
++KOTLIN_IDEA_VERSION=1.3.72-release-IJ2020.1-1
+ INTELLIJ_IDEA_VERSION=2020.1.1
  JVM_TARGET_VERSION=1.8
  KOTLIN_TEST_VERSION=3.4.2
