@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.external.ui.tooltip
 
+import arrow.meta.ide.plugins.external.ui.tooltip.formatting.applyStylesFromCDN
 import arrow.meta.ide.plugins.external.ui.tooltip.util.removeMetaTags
 import com.intellij.codeInsight.hint.HintManagerImpl.ActionToIgnore
 import com.intellij.codeInsight.hint.LineTooltipRenderer
@@ -8,6 +9,7 @@ import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.codeInsight.hint.TooltipGroup
 import com.intellij.codeInsight.hint.TooltipLinkHandlerEP
 import com.intellij.ide.BrowserUtil
+import com.intellij.ide.IdeTooltipManager
 import com.intellij.ide.TooltipEvent
 import com.intellij.internal.statistic.service.fus.collectors.TooltipActionsLogger.logShowDescription
 import com.intellij.openapi.actionSystem.AnAction
@@ -27,6 +29,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.WidthBasedLayout
 import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.Html
+import com.intellij.util.ui.JBHtmlEditorKit
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
@@ -86,11 +89,10 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
 
     val textToDisplay = if (newLayout) colorizeSeparators(dressedText) else dressedText
 
-    val rootPane = editorComponent.rootPane.layeredPane
-    val availableWidthToTheRightOfMarker = rootPane.width - p.x
-    val preferredTooltipWidth = (availableWidthToTheRightOfMarker * 0.8).toInt()
-
-    val editorPane = MetaTooltipJPane(Html(textToDisplay), hintHint, preferredTooltipWidth)
+    val layeredPane = editorComponent.rootPane.layeredPane
+    val editorPane = IdeTooltipManager.initPane(Html(textToDisplay), hintHint, layeredPane, limitWidthToScreen)
+    editorPane.editorKit = JBHtmlEditorKit()
+    editorPane.text = Html(textToDisplay).applyStylesFromCDN()
 
     hintHint.isContentActive = true
 
@@ -237,7 +239,7 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
       override fun getPreferredHeight(width: Int): Int {
         val size = editorPane.size
         val sideComponentsWidth = sideComponentWidth
-        editorPane.setSize(width - leftBorder - rightBorder - sideComponentsWidth, 1.coerceAtLeast(size.height))
+        editorPane.setSize(width - leftBorder - rightBorder - sideComponentsWidth, Math.max(1, size.height))
         val height: Int
         height = try {
           preferredSize.height
@@ -256,12 +258,11 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
       }
 
       private val sideComponentWidth: Int
-        get() {
+        private get() {
           val layout = layout as GridBagLayout
           var sideComponent: Component? = null
           var sideComponentConstraints: GridBagConstraints? = null
           var unsupportedLayout = false
-
           for (component in components) {
             val c = layout.getConstraints(component)
             if (c.gridx > 0) {
@@ -273,11 +274,9 @@ internal class MetaTooltipRenderer : LineTooltipRenderer {
               }
             }
           }
-
           if (unsupportedLayout) {
             Logger.getInstance(LineTooltipRenderer::class.java).error("Unsupported tooltip layout")
           }
-
           return if (sideComponent == null) {
             0
           } else {
