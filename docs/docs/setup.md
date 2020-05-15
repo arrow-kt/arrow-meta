@@ -58,7 +58,7 @@ Restart Intellij IDEA to finish the installation!
 
 It will be necessary to restart the IDE to finish the installation.
 
-### Λrrow Meta IDE Plugin: installation from a private repository
+### Λrrow Meta IDE Plugin: installation from a custom plugin repository
 
 There are two custom plugin repositories according to the correspondent version:
 
