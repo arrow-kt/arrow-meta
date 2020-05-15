@@ -47,7 +47,7 @@ ank {
 task getLocalPaths {
     // Reason: local paths cannot be generated in Ank extension neither ext section
     doLast {
-        def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar']
+        def libraries = ['kotlin-plugin.jar', 'platform-api.jar', 'platform-impl.jar', 'idea.jar', 'testFramework.jar']
         def localPaths = libraries.collect{ library -> sourceSets.main.compileClasspath.find{ path -> path.name == "$library" } }
         def localPathsFile = new File("$LOCAL_PATHS_FILE")
         localPathsFile.write localPaths.join("\n")
