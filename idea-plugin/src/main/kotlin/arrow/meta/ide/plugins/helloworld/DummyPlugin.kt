@@ -35,6 +35,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
  *
  * For every function with the name `helloWorld`, our IDE plugin will register a lineMarker with our custom icon. And whenever
  * the user hovers over the Icon, it will display the message.
+ *
+ * Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
+ *
  * @see [LineMarkerSyntax]
  */
 val IdeMetaPlugin.helloWorld: IdePlugin // TODO: Add Animation or example picture
