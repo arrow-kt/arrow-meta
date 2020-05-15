@@ -3,6 +3,7 @@ package arrow.meta.plugins.refinement
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
+import org.junit.Ignore
 
 class RefinementTests {
 
@@ -136,6 +137,7 @@ class RefinementTests {
     ))
   }
 
+  @Ignore
   @Test
   fun `Runtime validation for nullable types coerces to null if invalid`() {
     assertThis(CompilerTest(
@@ -152,6 +154,7 @@ class RefinementTests {
     ))
   }
 
+  @Ignore
   @Test
   fun `Runtime validation for nullable types accepts if valid`() {
     assertThis(CompilerTest(

@@ -8,11 +8,11 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.script.ScriptEngineManager
 
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
+private const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
 
 /**
  * Allows checking if a compiler plugin is working as expected.
@@ -96,8 +96,10 @@ private val interpreter: (CompilerTest) -> Unit = {
       Assert.CompilationResult.Fails -> assertFails(compilationResult)
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
+      is Assert.QuoteOutputWithCustomPathMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source, singleAssert.sourcePath)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
       is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
+      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get("", *singleAssert.sourcePath.split("/").toTypedArray()))
       else -> TODO()
     }
 
@@ -154,11 +156,18 @@ private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: 
   actualFileDirectoryPath = Paths.get(compilationResult.outputDirectory.parent, "sources")
 )
 
+private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source, expectedSourcePath: String): Unit = assertQuoteFileMatches(
+  compilationResult = compilationResult,
+  expectedSource = expectedSource,
+  actualFileName = "$DEFAULT_FILENAME.meta",
+  actualFileDirectoryPath = Paths.get(expectedSourcePath, "sources")
+)
+
 private fun assertQuoteFileMatches(
   compilationResult: Result,
   actualFileName: String,
   expectedSource: Code.Source,
-  actualFileDirectoryPath: Path = Paths.get("", *System.getProperty("arrow.meta.generated.source.output").split("/").toTypedArray())
+  actualFileDirectoryPath: Path = Paths.get("", *(System.getProperty("arrow.meta.generated.source.output") ?: DEFAULT_SOURCE_PATH).split("/").toTypedArray())
 ): Unit {
   assertCompiles(compilationResult)
   val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
