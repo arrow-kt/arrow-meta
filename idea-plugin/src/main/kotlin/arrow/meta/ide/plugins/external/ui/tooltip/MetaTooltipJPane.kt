@@ -1,11 +1,11 @@
 package arrow.meta.ide.plugins.external.ui.tooltip
 
-import arrow.meta.ide.plugins.external.ui.tooltip.formatting.MetaHtmlEditorKit
 import arrow.meta.ide.plugins.external.ui.tooltip.formatting.applyStylesFromCDN
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.util.Ref
 import com.intellij.ui.HintHint
 import com.intellij.util.ui.Html
+import com.intellij.util.ui.JBHtmlEditorKit
 import com.intellij.util.ui.JBInsets
 import java.awt.Dimension
 import javax.swing.JEditorPane
@@ -31,7 +31,7 @@ internal class MetaTooltipJPane(
   private var isSizeComputed = false
 
   init {
-    editorKit = MetaHtmlEditorKit()
+    editorKit = JBHtmlEditorKit()
     text = html.applyStylesFromCDN()
     caretPosition = 0
     isEditable = false
