@@ -4,14 +4,17 @@ options:
 
     nested_options:
 
-      - title: Building Compiler Plugins
+      - title: Overview
         url: /
 
-      - title: Hello World
+      - title: Hello World Compiler Plugin
         url: /apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
-      - title: Hello World IntelliJ Platform
+      - title: Hello World IDE Plugin
         url: /apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
+
+      - title: Setup
+        url: /setup.html
 
   - title: Quotes
 

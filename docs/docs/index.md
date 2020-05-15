@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Quick Start
+title: Overview
 permalink: /
 video: WKR384ZeBgk
 ---
@@ -17,9 +17,5 @@ video: WKR384ZeBgk
 
 Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, and automatic code refactoring are just a few of the things that can be accomplished with Meta.
 
-## Λrrow Meta examples
-
 {:.gif}
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})
-
-Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
