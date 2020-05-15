@@ -36,6 +36,7 @@ import kotlin.reflect.KClass
 
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"
+const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
 
 /**
  * ### Quote Templates DSL
@@ -306,10 +307,10 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
   mutations: java.util.ArrayList<Transform<K>>,
   noinline match: K.() -> Boolean
 ): List<KtFile> {
-  val newSource: List<Pair<KtFile, String>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map {
+  val newSource: List<Pair<KtFile, Node.File>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map {
     (it.first ?: ktFile) to it.second
   }
-  val newFile = newSource.map { source -> changeSource(source.first, source.second, ktFile) }
+  val newFile = newSource.map { source -> changeSource(source.first, Writer.write(source.second), ktFile, sourcePath = source.second.path) }
   println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
@@ -318,7 +319,7 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
   mutations: ArrayList<Transform<K>>,
   compilerContext: CompilerContext,
   match: K.() -> Boolean
-): List<Pair<KtFile?, String>> {
+): List<Pair<KtFile?, Node.File>> {
   var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
   val saveTransformation: (Node.File) -> Unit = { nodeFile -> dummyFile = null to nodeFile }
@@ -336,7 +337,7 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
       Transform.Empty -> Unit
     }
   }
-  return (newSource + dummyFile).map { it.first to Writer.write(it.second) }
+  return (newSource + dummyFile).map { it.first to it.second }
 }
 
 fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.File>> =
@@ -344,9 +345,9 @@ fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.F
     it.value to
       if (it.value.text.contains(META_DEBUG_COMMENT))
         Converter
-          .convertFile(it.value)
+          .convertFile(it.value, it.sourcePath)
           .copy(commands = listOf(Node.Command(name = META_DEBUG_COMMENT)))
-      else Converter.convertFile(it.value)
+      else Converter.convertFile(it.value, it.sourcePath)
   }
 
 inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
@@ -406,10 +407,10 @@ fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>
   addAll(fileIndex, newFile)
 }
 
-fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile): KtFile {
+fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = rootFile.virtualFile
   if (file.name != DEFAULT_META_FILE_NAME) {
-    val path = System.getProperty("arrow.meta.generated.source.output", "build/generated/source/kapt/main")
+    val path = sourcePath ?: System.getProperty("arrow.meta.generated.source.output", DEFAULT_SOURCE_PATH)
     val directory = Paths.get("", *path.split("/").toTypedArray()).toFile()
     directory.mkdirs()
     virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
