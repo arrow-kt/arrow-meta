@@ -1,5 +1,5 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package external.forks.jb.gradle;
+package com.intellij.compiler.artifacts;
 
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
@@ -16,16 +16,15 @@ import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.elements.ArchivePackagingElement;
 import com.intellij.packaging.impl.elements.DirectoryPackagingElement;
 import com.intellij.packaging.impl.elements.ManifestFileUtil;
-import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-/**
- * @author nik
- */
+import static com.intellij.testFramework.assertions.Assertions.assertThat;
+
 public class ArtifactsTestUtil {
   public static String printToString(PackagingElement element, int level) {
     StringBuilder builder = new StringBuilder(StringUtil.repeatSymbol(' ', level));
@@ -48,8 +47,7 @@ public class ArtifactsTestUtil {
   }
 
   public static void assertLayout(PackagingElement element, String expected) {
-    //fixme
-    //assertThat(printToString(element, 0)).isEqualTo(adjustMultiLine(expected));
+    assertThat(printToString(element, 0)).isEqualTo(adjustMultiLine(expected));
   }
 
   private static String adjustMultiLine(String expected) {
@@ -74,13 +72,11 @@ public class ArtifactsTestUtil {
   }
 
   public static void assertOutputPath(Project project, String artifactName, String expected) {
-    //fixme
-    //assertThat(findArtifact(project, artifactName).getOutputPath()).isEqualTo(expected);
+    assertThat(findArtifact(project, artifactName).getOutputPath()).isEqualTo(expected);
   }
 
   public static void assertOutputFileName(Project project, String artifactName, String expected) {
-    //fixme
-    //assertThat(findArtifact(project, artifactName).getRootElement().getName()).isEqualTo(expected);
+    assertThat(findArtifact(project, artifactName).getRootElement().getName()).isEqualTo(expected);
   }
 
   public static void setOutput(final Project project, final String artifactName, final String outputPath) {
@@ -103,29 +99,24 @@ public class ArtifactsTestUtil {
   public static Artifact findArtifact(Project project, String artifactName) {
     final ArtifactManager manager = ArtifactManager.getInstance(project);
     final Artifact artifact = manager.findArtifact(artifactName);
-    Assertions.assertThat(artifact).describedAs("'" + artifactName + "' artifact not found").isNotNull();
+    assertThat(artifact).describedAs("'" + artifactName + "' artifact not found").isNotNull();
     return artifact;
   }
 
-  public static void assertManifest(Artifact artifact,
-                                    PackagingElementResolvingContext context,
-                                    @Nullable String mainClass,
-                                    @Nullable String classpath) {
+  public static void assertManifest(Artifact artifact, PackagingElementResolvingContext context, @Nullable String mainClass, @Nullable String classpath) {
     final CompositePackagingElement<?> rootElement = artifact.getRootElement();
     final ArtifactType type = artifact.getArtifactType();
     assertManifest(rootElement, context, type, mainClass, classpath);
   }
 
   public static void assertManifest(CompositePackagingElement<?> rootElement,
-                                    PackagingElementResolvingContext context,
-                                    ArtifactType type,
-                                    @Nullable String mainClass, @Nullable String classpath) {
+                                     PackagingElementResolvingContext context,
+                                     ArtifactType type,
+                                     @Nullable String mainClass, @Nullable String classpath) {
     final VirtualFile file = ManifestFileUtil.findManifestFile(rootElement, context, type);
-    Assertions.assertThat(file).isNotNull();
+    assertThat(file).isNotNull();
     final Manifest manifest = ManifestFileUtil.readManifest(file);
-
-    //fixme
-    //assertThat(manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)).isEqualTo(mainClass);
-    //assertThat(manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH)).isEqualTo(classpath);
+    assertThat(manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)).isEqualTo(mainClass);
+    assertThat(manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH)).isEqualTo(classpath);
   }
 }

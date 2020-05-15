@@ -1,5 +1,5 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package external.forks.jb.gradle;
+package com.intellij.openapi.externalSystem.test;
 
 import com.intellij.find.FindManager;
 import com.intellij.find.findUsages.FindUsagesHandler;
@@ -65,6 +65,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import static com.intellij.testFramework.EdtTestUtil.runInEdtAndGet;
@@ -181,6 +182,47 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     doAssertContentFolders(rootUrl, contentRoots, rootType, expected);
   }
 
+  protected static List<SourceFolder> doAssertContentFolders(@Nullable String rootUrl,
+                                                             ContentEntry[] contentRoots,
+                                                             @NotNull JpsModuleSourceRootType<?> rootType,
+                                                             String... expected) {
+    List<SourceFolder> result = new ArrayList<>();
+    List<String> actual = new ArrayList<>();
+    for (ContentEntry contentRoot : contentRoots) {
+      for (SourceFolder f : contentRoot.getSourceFolders(rootType)) {
+        rootUrl = VirtualFileManager.extractPath(rootUrl == null ? contentRoot.getUrl() : rootUrl);
+        String folderUrl = VirtualFileManager.extractPath(f.getUrl());
+        if (folderUrl.startsWith(rootUrl)) {
+          int length = rootUrl.length() + 1;
+          folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
+        }
+
+        actual.add(folderUrl);
+        result.add(f);
+      }
+    }
+
+    assertOrderedElementsAreEqual(actual, Arrays.asList(expected));
+    return result;
+  }
+
+  private static void doAssertContentFolders(ContentEntry e, final List<? extends ContentFolder> folders, String... expected) {
+    List<String> actual = new ArrayList<>();
+    for (ContentFolder f : folders) {
+      String rootUrl = e.getUrl();
+      String folderUrl = f.getUrl();
+
+      if (folderUrl.startsWith(rootUrl)) {
+        int length = rootUrl.length() + 1;
+        folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
+      }
+
+      actual.add(folderUrl);
+    }
+
+    assertOrderedElementsAreEqual(actual, Arrays.asList(expected));
+  }
+
   protected void assertModuleOutputs(String moduleName, String... outputs) {
     String[] outputPaths = ContainerUtil.map2Array(CompilerPaths.getOutputPaths(new Module[]{getModule(moduleName)}), String.class,
                                                    s -> getAbsolutePath(s));
@@ -198,6 +240,12 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
   protected void assertModuleInheritedOutput(String moduleName) {
     CompilerModuleExtension e = getCompilerExtension(moduleName);
     assertTrue(e.isCompilerOutputPathInherited());
+  }
+
+  protected static String getAbsolutePath(String path) {
+    path = VfsUtilCore.urlToPath(path);
+    path = PathUtil.getCanonicalPath(path);
+    return FileUtil.toSystemIndependentName(path);
   }
 
   protected void assertProjectOutput(String module) {
@@ -238,6 +286,16 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     assertModuleLibDepPath(lib, JavadocOrderRootType.getInstance(), javadocPaths);
   }
 
+  private static void assertModuleLibDepPath(LibraryOrderEntry lib, OrderRootType type, List<String> paths) {
+    assertNotNull(lib);
+    if (paths == null) return;
+    assertUnorderedPathsAreEqual(Arrays.asList(lib.getRootUrls(type)), paths);
+    // also check the library because it may contain slight different set of urls (e.g. with duplicates)
+    final Library library = lib.getLibrary();
+    assertNotNull(library);
+    assertUnorderedPathsAreEqual(Arrays.asList(library.getUrls(type)), paths);
+  }
+
   protected void assertModuleLibDepScope(String moduleName, String depName, DependencyScope... scopes) {
     List<LibraryOrderEntry> deps = getModuleLibDeps(moduleName, depName);
     assertUnorderedElementsAreEqual(ContainerUtil.map2Array(deps, entry -> entry.getScope()), scopes);
@@ -249,6 +307,10 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
   protected void assertModuleLibDeps(String moduleName, String... expectedDeps) {
     assertModuleDeps(moduleName, LibraryOrderEntry.class, expectedDeps);
+  }
+
+  protected void assertModuleLibDeps(BiPredicate<String, String> predicate, String moduleName, String... expectedDeps) {
+    assertModuleDeps(predicate, moduleName, LibraryOrderEntry.class, expectedDeps);
   }
 
   protected void assertExportedDeps(String moduleName, String... expectedDeps) {
@@ -276,7 +338,11 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
   }
 
   private void assertModuleDeps(String moduleName, Class clazz, String... expectedDeps) {
-    assertOrderedElementsAreEqual(collectModuleDepsNames(moduleName, clazz), expectedDeps);
+    assertModuleDeps(equalsPredicate(), moduleName, clazz, expectedDeps);
+  }
+
+  private void assertModuleDeps(BiPredicate<String, String> predicate, String moduleName, Class clazz, String... expectedDeps) {
+    assertOrderedElementsAreEqual(predicate, collectModuleDepsNames(moduleName, clazz), expectedDeps);
   }
 
   protected void assertProductionOnTestDependencies(String moduleName, String... expectedDeps) {
@@ -346,8 +412,8 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
   protected void assertArtifacts(String... expectedNames) {
     final List<String> actualNames = ContainerUtil.map(
-      ArtifactManager.getInstance(myProject).getAllArtifactsIncludingInvalid(),
-      (Function<Artifact, String>)artifact -> artifact.getName());
+        ArtifactManager.getInstance(myProject).getAllArtifactsIncludingInvalid(),
+        (Function<Artifact, String>)artifact -> artifact.getName());
 
     assertUnorderedElementsAreEqual(actualNames, expectedNames);
   }
@@ -491,83 +557,6 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
     return sdk;
   }
 
-  @Nullable
-  protected SourceFolder findSource(@NotNull String moduleName, @NotNull String sourcePath) {
-    return findSource(getRootManager(moduleName), sourcePath);
-  }
-
-  @Nullable
-  protected SourceFolder findSource(@NotNull ModuleRootModel moduleRootManager, @NotNull String sourcePath) {
-    ContentEntry[] contentRoots = moduleRootManager.getContentEntries();
-    Module module = moduleRootManager.getModule();
-    String rootUrl = getAbsolutePath(ExternalSystemApiUtil.getExternalProjectPath(module));
-    for (ContentEntry contentRoot : contentRoots) {
-      for (SourceFolder f : contentRoot.getSourceFolders()) {
-        String folderPath = getAbsolutePath(f.getUrl());
-        String rootPath = getAbsolutePath(rootUrl + "/" + sourcePath);
-        if (folderPath.equals(rootPath)) return f;
-      }
-    }
-    return null;
-  }
-
-  protected static List<SourceFolder> doAssertContentFolders(@Nullable String rootUrl,
-                                                             ContentEntry[] contentRoots,
-                                                             @NotNull JpsModuleSourceRootType<?> rootType,
-                                                             String... expected) {
-    List<SourceFolder> result = new ArrayList<>();
-    List<String> actual = new ArrayList<>();
-    for (ContentEntry contentRoot : contentRoots) {
-      for (SourceFolder f : contentRoot.getSourceFolders(rootType)) {
-        rootUrl = VirtualFileManager.extractPath(rootUrl == null ? contentRoot.getUrl() : rootUrl);
-        String folderUrl = VirtualFileManager.extractPath(f.getUrl());
-        if (folderUrl.startsWith(rootUrl)) {
-          int length = rootUrl.length() + 1;
-          folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
-        }
-
-        actual.add(folderUrl);
-        result.add(f);
-      }
-    }
-
-    assertOrderedElementsAreEqual(actual, Arrays.asList(expected));
-    return result;
-  }
-
-  private static void doAssertContentFolders(ContentEntry e, final List<? extends ContentFolder> folders, String... expected) {
-    List<String> actual = new ArrayList<>();
-    for (ContentFolder f : folders) {
-      String rootUrl = e.getUrl();
-      String folderUrl = f.getUrl();
-
-      if (folderUrl.startsWith(rootUrl)) {
-        int length = rootUrl.length() + 1;
-        folderUrl = folderUrl.substring(Math.min(length, folderUrl.length()));
-      }
-
-      actual.add(folderUrl);
-    }
-
-    assertOrderedElementsAreEqual(actual, Arrays.asList(expected));
-  }
-
-  protected static String getAbsolutePath(String path) {
-    path = VfsUtilCore.urlToPath(path);
-    path = PathUtil.getCanonicalPath(path);
-    return FileUtil.toSystemIndependentName(path);
-  }
-
-  private static void assertModuleLibDepPath(LibraryOrderEntry lib, OrderRootType type, List<String> paths) {
-    assertNotNull(lib);
-    if (paths == null) return;
-    assertUnorderedPathsAreEqual(Arrays.asList(lib.getRootUrls(type)), paths);
-    // also check the library because it may contain slight different set of urls (e.g. with duplicates)
-    final Library library = lib.getLibrary();
-    assertNotNull(library);
-    assertUnorderedPathsAreEqual(Arrays.asList(library.getUrls(type)), paths);
-  }
-
   protected static Sdk createJdk(String versionName) {
     return IdeaTestUtil.getMockJdk17(versionName);
   }
@@ -616,6 +605,26 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
         });
       }
     });
+  }
+
+  @Nullable
+  protected SourceFolder findSource(@NotNull String moduleName, @NotNull String sourcePath) {
+    return findSource(getRootManager(moduleName), sourcePath);
+  }
+
+  @Nullable
+  protected SourceFolder findSource(@NotNull ModuleRootModel moduleRootManager, @NotNull String sourcePath) {
+    ContentEntry[] contentRoots = moduleRootManager.getContentEntries();
+    Module module = moduleRootManager.getModule();
+    String rootUrl = getAbsolutePath(ExternalSystemApiUtil.getExternalProjectPath(module));
+    for (ContentEntry contentRoot : contentRoots) {
+      for (SourceFolder f : contentRoot.getSourceFolders()) {
+        String folderPath = getAbsolutePath(f.getUrl());
+        String rootPath = getAbsolutePath(rootUrl + "/" + sourcePath);
+        if (folderPath.equals(rootPath)) return f;
+      }
+    }
+    return null;
   }
 
   //protected void assertProblems(String... expectedProblems) {
