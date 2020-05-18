@@ -34,7 +34,8 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
   get() = "Initial Ide Setup" {
     meta(
       metaPluginRegistrar,
-      toolTipController,
+      lineMarkerToolTipController,
+      applicableInspectionTooltipMouseListeners,
       addDiagnosticSuppressor { diagnostic ->
         LOG.debug("isSupressed: ${diagnostic.factory.name}: \n ${diagnostic.psiElement.text}")
         val result = diagnostic.suppressMetaDiagnostics()
@@ -42,8 +43,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
         result
       },
       registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
-        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE),
-      replaceEditorMouseListeners
+        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
     )
   }
 
@@ -74,7 +74,7 @@ private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
  *
  * @see [TooltipController].
  */
-val IdeMetaPlugin.toolTipController: ExtensionPhase
+val IdeMetaPlugin.lineMarkerToolTipController: ExtensionPhase
   get() = addAppService(TooltipController::class.java) {
     MetaTooltipController() // hijack TooltipController and replace it with ours
   }
@@ -86,7 +86,7 @@ val IdeMetaPlugin.toolTipController: ExtensionPhase
  *
  * @see [MetaTooltipRenderer].
  */
-private val IdeMetaPlugin.replaceEditorMouseListeners: ExtensionPhase
+private val IdeMetaPlugin.applicableInspectionTooltipMouseListeners: ExtensionPhase
   get() = addFileEditorListener(
     fileOpened = { _: FileEditorManager, _: VirtualFile, _: FileEditor, document: Document ->
       EditorFactory.getInstance().getEditors(document).mapNotNull { editor ->
