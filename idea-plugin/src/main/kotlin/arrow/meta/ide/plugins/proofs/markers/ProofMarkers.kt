@@ -108,6 +108,7 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
 fun CoercionProof.coercionMessage(): String =
   """
     <h2>Coercion</h2>
+    <img width="300" src="https://47deg-academy.s3.amazonaws.com/assets/animations/kotlin-arrow-helloworld/arrow-meta-1-helloWorld.gif"/>
     Coercion happening by proof:
     <p>
       <code lang="kotlin">$from</code> is not a subtype of <code lang="kotlin">$to</code>.. but there is a proof to go from: <code lang="kotlin">$from</code> to <code lang="kotlin">$to</code> :

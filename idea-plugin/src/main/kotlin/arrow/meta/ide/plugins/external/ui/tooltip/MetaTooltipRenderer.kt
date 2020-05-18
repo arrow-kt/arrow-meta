@@ -5,7 +5,6 @@ import arrow.meta.ide.plugins.external.ui.tooltip.util.removeMetaTags
 import com.intellij.codeInsight.daemon.impl.createActionLabel
 import com.intellij.codeInsight.daemon.impl.runActionCustomShortcutSet
 import com.intellij.codeInsight.daemon.impl.tooltips.TooltipActionProvider
-import com.intellij.codeInsight.hint.HintManagerImpl
 import com.intellij.codeInsight.hint.HintManagerImpl.ActionToIgnore
 import com.intellij.codeInsight.hint.LineTooltipRenderer
 import com.intellij.codeInsight.hint.LineTooltipRenderer.TooltipReloader
@@ -18,7 +17,6 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.ide.TooltipEvent
 import com.intellij.ide.ui.UISettings
-import com.intellij.internal.statistic.service.fus.collectors.TooltipActionsLogger
 import com.intellij.internal.statistic.service.fus.collectors.TooltipActionsLogger.logShowDescription
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -81,6 +79,7 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
+import kotlin.math.max
 
 /**
  * This is the tooltip renderer implementation used in Meta. Open API instantiates different implementations of
@@ -114,7 +113,7 @@ internal class MetaTooltipRenderer(
   ): LightweightHint? {
     if (!editor.component.isShowing) return null
 
-    val sanitizedText = requireNotNull(myText).replace(UIUtil.MNEMONIC.toString().toRegex(), "").removeMetaTags()
+    val sanitizedText = requireNotNull(myText).removeMetaTags()
     val htmlText = Html(sanitizedText)
 
     val layeredPane = editor.component.rootPane.layeredPane
@@ -125,8 +124,8 @@ internal class MetaTooltipRenderer(
     hintHint.isContentActive = true
 
     val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true).apply {
-      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
       isOpaque = hintHint.isOpaqueAllowed
       viewport.isOpaque = hintHint.isOpaqueAllowed
       background = hintHint.textBackground
@@ -297,7 +296,7 @@ internal class MetaTooltipRenderer(
     }
 
     val shortcutRunActionText = KeymapUtil.getShortcutsText(runActionCustomShortcutSet.shortcuts)
-    val shortcutShowAllActionsText = getKeymap(IdeActions.ACTION_SHOW_INTENTION_ACTIONS)
+    val shortcutShowAllActionsText = getKeymap()
 
     val gridBag = GridBag()
       .fillCellHorizontally()
@@ -355,64 +354,9 @@ internal class MetaTooltipRenderer(
     val leftBorder = if (newLayout) 10 else 8
     val rightBorder = 12
 
-    class ConstrainedWidthGridBagLayout : JPanel(GridBagLayout()), WidthBasedLayout {
-      override fun getPreferredWidth(): Int {
-        return preferredSize.width
-      }
-
-      override fun getPreferredHeight(width: Int): Int {
-        val size = editorPane.size
-        val sideComponentsWidth = sideComponentWidth
-        editorPane.setSize(width - leftBorder - rightBorder - sideComponentsWidth, Math.max(1, size.height))
-        val height: Int
-        height = try {
-          preferredSize.height
-        } finally {
-          editorPane.size = size
-        }
-        return height
-      }
-
-      override fun getAccessibleContext(): AccessibleContext {
-        return object : AccessibleContextDelegate(editorPane.accessibleContext) {
-          override fun getDelegateParent(): Container {
-            return parent
-          }
-        }
-      }
-
-      private val sideComponentWidth: Int
-        get() {
-          val layout = layout as GridBagLayout
-          var sideComponent: Component? = null
-          var sideComponentConstraints: GridBagConstraints? = null
-          var unsupportedLayout = false
-          for (component in components) {
-            val c = layout.getConstraints(component)
-            if (c.gridx > 0) {
-              if (sideComponent == null && c.gridy == 0) {
-                sideComponent = component
-                sideComponentConstraints = c
-              } else {
-                unsupportedLayout = true
-              }
-            }
-          }
-          if (unsupportedLayout) {
-            Logger.getInstance(LineTooltipRenderer::class.java).error("Unsupported tooltip layout")
-          }
-          return if (sideComponent == null) {
-            0
-          } else {
-            val insets = sideComponentConstraints!!.insets
-            sideComponent.preferredSize.width + if (insets == null) 0 else insets.left + insets.right
-          }
-        }
-    }
-
-    val grid: JPanel = ConstrainedWidthGridBagLayout()
+    val grid = JPanel(GridBagLayout())
     val bag = GridBag()
-      .anchor(GridBagConstraints.CENTER) // weight required for correct working ScrollPane inside GridBadLayout
+      .anchor(GridBagConstraints.LINE_START) // weight required for correct working ScrollPane inside GridBadLayout
       .weightx(1.0)
       .weighty(1.0)
       .fillCell()
@@ -458,29 +402,23 @@ internal class MetaTooltipRenderer(
     return wrapper
   }
 
-  private fun getKeymap(key: String): String {
-    val keymapManager = KeymapManager.getInstance()
-    if (keymapManager != null) {
-      val keymap = keymapManager.activeKeymap
-      return KeymapUtil.getShortcutsText(keymap.getShortcuts(key))
-    }
-
-    return ""
+  private fun getKeymap(): String {
+    return KeymapManager.getInstance()?.let { manager ->
+      val keymap = manager.activeKeymap
+      KeymapUtil.getShortcutsText(keymap.getShortcuts(IdeActions.ACTION_SHOW_INTENTION_ACTIONS))
+    } ?: ""
   }
 
   private fun createKeymapHint(shortcutRunAction: String): JComponent {
     val fixHint = object : JBLabel(shortcutRunAction) {
       override fun getForeground(): Color {
-        return getKeymapColor()
+        val propertyName = "ToolTip.Actions.infoForeground"
+        return JBColor.namedColor(propertyName, JBColor(0x99a4ad, 0x919191))
       }
     }
     fixHint.border = JBUI.Borders.empty()
     fixHint.font = getActionFont()
     return fixHint
-  }
-
-  private fun getKeymapColor(): Color {
-    return JBColor.namedColor("ToolTip.Actions.infoForeground", JBColor(0x99a4ad, 0x919191))
   }
 
   private fun getActionFont(): Font? {
@@ -531,14 +469,14 @@ internal class MetaTooltipRenderer(
     }
   }
 
-  private class SettingsActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions), HintManagerImpl.ActionToIgnore, DumbAware {
+  private class SettingsActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions), ActionToIgnore, DumbAware {
     init {
       isPopup = true
     }
   }
 
   private inner class ShowActionsAction(val reloader: TooltipReloader, val isEnabled: Boolean) : ToggleAction(
-    "Show Quick Fixes"), HintManagerImpl.ActionToIgnore {
+    "Show Quick Fixes"), ActionToIgnore {
 
     override fun isSelected(e: AnActionEvent): Boolean {
       return TooltipActionProvider.isShowActions()
@@ -556,7 +494,7 @@ internal class MetaTooltipRenderer(
   }
 
   private inner class ShowDocAction(val reloader: TooltipReloader, val isEnabled: Boolean) : ToggleAction(
-    "Show Inspection Description"), HintManagerImpl.ActionToIgnore, DumbAware, PopupAction {
+    "Show Inspection Description"), ActionToIgnore, DumbAware, PopupAction {
 
     init {
       shortcutSet = KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION)
@@ -567,7 +505,7 @@ internal class MetaTooltipRenderer(
     }
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
-      TooltipActionsLogger.logShowDescription(e.project, "gear", e.inputEvent, e.place)
+      logShowDescription(e.project, "gear", e.inputEvent, e.place)
       reloader.reload(state)
     }
 
