@@ -89,11 +89,11 @@ internal class MetaTooltipController : TooltipController() {
         val p = point.getPointOn(editor.component.rootPane.layeredPane).point
         val project = editor.project
         if (project != null && !project.isOpen) return null
-        if (editor.contentComponent.isShowing) {
-          return doShowMetaTooltip(editor, p, tooltipObject, alignToRight, group, hintHint)
+        return if (editor.contentComponent.isShowing) {
+          doShowMetaTooltip(editor, p, tooltipObject, alignToRight, group, hintHint)
+        } else {
+          null
         }
-
-        return null
       }
     } else {
       return super.showTooltipByMouseMove(editor, point, tooltipObject, alignToRight, group, hintHint)
