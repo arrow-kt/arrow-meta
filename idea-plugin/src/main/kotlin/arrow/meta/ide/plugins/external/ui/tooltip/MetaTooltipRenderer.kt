@@ -1,6 +1,6 @@
 package arrow.meta.ide.plugins.external.ui.tooltip
 
-import arrow.meta.ide.plugins.external.ui.tooltip.formatting.applyStylesFromCDN
+import arrow.meta.ide.plugins.external.ui.tooltip.style.applyStylesFromCDN
 import arrow.meta.ide.plugins.external.ui.tooltip.util.removeMetaTags
 import com.intellij.codeInsight.daemon.impl.createActionLabel
 import com.intellij.codeInsight.daemon.impl.runActionCustomShortcutSet
@@ -12,6 +12,7 @@ import com.intellij.codeInsight.hint.LineTooltipRenderer.TooltipReloader
 import com.intellij.codeInsight.hint.TooltipController
 import com.intellij.codeInsight.hint.TooltipGroup
 import com.intellij.codeInsight.hint.TooltipLinkHandlerEP
+import com.intellij.codeInsight.hint.TooltipRenderer
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdeTooltipManager
@@ -38,9 +39,7 @@ import com.intellij.openapi.ui.GraphicsConfig
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.BalloonImpl
-import com.intellij.ui.ColorUtil
 import com.intellij.ui.ComponentWithMnemonics
 import com.intellij.ui.HintHint
 import com.intellij.ui.JBColor
@@ -57,7 +56,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
 import com.intellij.util.ui.accessibility.ScreenReader
-import com.intellij.xml.util.XmlStringUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -83,15 +81,16 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
-import com.intellij.codeInsight.hint.TooltipRenderer
 
 /**
  * This is the tooltip renderer implementation used in Meta. Open API instantiates different implementations of
  * [TooltipRenderer] interface like [LineTooltipRenderer], DaemonTooltipRenderer or DaemonTooltipWithActionRenderer and
- * a few more depending on the needs. Most of those implementations are internal, but makes sense that Meta provides
- * its own one to take care of rendering tooltips.
+ * a few more depending on the needs. All those implementations are internal, but makes sense that Meta provides its
+ * own one to take care of rendering tooltips.
  *
  * All the Meta features rely on this renderer to render tooltips now.
+ *
+ * What is a tooltip? It's the visual popup window you see when hovering a line marker, or an inspection for example.
  */
 @Suppress("UnstableApiUsage")
 internal class MetaTooltipRenderer(
@@ -101,7 +100,6 @@ internal class MetaTooltipRenderer(
 
   @Volatile
   private var myActiveLink = false
-
 
   override fun createHint(
     editor: Editor,
@@ -114,27 +112,16 @@ internal class MetaTooltipRenderer(
     limitWidthToScreen: Boolean,
     tooltipReloader: TooltipReloader?
   ): LightweightHint? {
+    if (!editor.component.isShowing) return null
 
-    val currentText: String = requireNotNull(myText)
+    val sanitizedText = requireNotNull(myText).replace(UIUtil.MNEMONIC.toString().toRegex(), "").removeMetaTags()
+    val htmlText = Html(sanitizedText)
 
-    //setup text
-    val tooltipPreText = currentText.replace(UIUtil.MNEMONIC.toString().toRegex(), "").removeMetaTags()
-    val dressedText = dressDescription(editor, tooltipPreText, myCurrentWidth > 0)
+    val layeredPane = editor.component.rootPane.layeredPane
+    val editorPane = IdeTooltipManager.initPane(htmlText, hintHint, layeredPane, limitWidthToScreen)
 
-    val expanded = myCurrentWidth > 0 && dressedText != tooltipPreText
-
-    val contentComponent = editor.contentComponent
-    val editorComponent = editor.component
-
-    if (!editorComponent.isShowing) return null
-
-    val textToDisplay = if (newLayout) colorizeSeparators(dressedText) else dressedText
-
-    val layeredPane = editorComponent.rootPane.layeredPane
-    val editorPane = IdeTooltipManager.initPane(Html(textToDisplay), hintHint, layeredPane, limitWidthToScreen)
     editorPane.editorKit = JBHtmlEditorKit()
-    editorPane.text = Html(textToDisplay).applyStylesFromCDN()
-
+    editorPane.text = htmlText.applyStylesFromCDN()
     hintHint.isContentActive = true
 
     val scrollPane = ScrollPaneFactory.createScrollPane(editorPane, true).apply {
@@ -153,14 +140,14 @@ internal class MetaTooltipRenderer(
     }
 
     val actions: MutableList<AnAction> = ArrayList()
-    val grid = createMainPanel(hintHint, scrollPane, editorPane, newLayout, highlightActions, textToDisplay != dressedText)
+    val grid = createMainPanel(hintHint, scrollPane, editorPane, newLayout, highlightActions, sanitizedText != sanitizedText)
 
     val hint: LightweightHint = object : LightweightHint(grid) {
       override fun hide() {
         onHide(editorPane)
         super.hide()
         for (action in actions) {
-          action.unregisterCustomShortcutSet(contentComponent)
+          action.unregisterCustomShortcutSet(editor.contentComponent)
         }
       }
 
@@ -175,10 +162,10 @@ internal class MetaTooltipRenderer(
       reloadFor(hint, editor, p, editorPane, alignToRight, group, hintHint, toExpand)
     }
 
-    val reloadAction = ReloadHintAction(hintHint, reloader, expanded)
+    val reloadAction = ReloadHintAction(hintHint, reloader)
     // an action to expand description when tooltip was shown after mouse move; need to unregister from editor component
     // an action to expand description when tooltip was shown after mouse move; need to unregister from editor component
-    reloadAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION), contentComponent)
+    reloadAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION), editor.contentComponent)
     actions.add(reloadAction)
 
     editorPane.addHyperlinkListener(HyperlinkListener { e ->
@@ -202,7 +189,7 @@ internal class MetaTooltipRenderer(
               return@HyperlinkListener
             } else {
               logShowDescription(editor.project, "more.link", e.inputEvent, null)
-              reloader.reload(!expanded)
+              reloader.reload(false)
             }
           }
         }
@@ -217,16 +204,15 @@ internal class MetaTooltipRenderer(
         // by MousePressed and this MousePressed goes into the underlying editor component.
         override fun mouseReleased(e: MouseEvent) {
           if (!myActiveLink) {
-            val newMouseEvent = SwingUtilities.convertMouseEvent(e.component, e, contentComponent)
+            val newMouseEvent = SwingUtilities.convertMouseEvent(e.component, e, editor.contentComponent)
             hint.hide()
-            contentComponent.dispatchEvent(newMouseEvent)
+            editor.contentComponent.dispatchEvent(newMouseEvent)
           }
         }
       })
 
       ListenerUtil.addMouseListener(grid, object : MouseAdapter() {
         override fun mouseExited(e: MouseEvent) {
-          if (expanded) return
           var parentContainer: Container = grid
           //ComponentWithMnemonics is top balloon component
           while (parentContainer !is ComponentWithMnemonics) {
@@ -247,7 +233,7 @@ internal class MetaTooltipRenderer(
 
   override fun fillPanel(editor: Editor, grid: JPanel, hint: LightweightHint, hintHint: HintHint, actions: MutableList<in AnAction>, tooltipReloader: TooltipReloader, newLayout: Boolean, highlightActions: Boolean) {
     super.fillPanel(editor, grid, hint, hintHint, actions, tooltipReloader, newLayout, highlightActions)
-    val hasMore = LineTooltipRenderer.isActiveHtml(myText!!)
+    val hasMore = isActiveHtml(requireNotNull(myText))
     if (tooltipAction == null && !hasMore) return
 
     val settingsComponent = createSettingsComponent(hintHint, tooltipReloader, hasMore, newLayout)
@@ -360,26 +346,8 @@ internal class MetaTooltipRenderer(
     grid.add(wrapper, buttonsConstraints)
   }
 
-  private fun colorizeSeparators(html: String): String {
-    val body = UIUtil.getHtmlBody(html)
-    val parts = StringUtil.split(body, UIUtil.BORDER_LINE, true, false)
-    if (parts.size <= 1) return html
-    val b = StringBuilder()
-    for (part in parts) {
-      val addBorder = b.isNotEmpty()
-      b.append("<div")
-      if (addBorder) {
-        b.append(" style='margin-top:6; padding-top:6; border-top: thin solid #")
-        b.append(ColorUtil.toHex(UIUtil.getTooltipSeparatorColor()))
-        b.append("'")
-      }
-      b.append("'>").append(part).append("</div>")
-    }
-    return XmlStringUtil.wrapInHtml(b.toString())
-  }
-
   private fun createMainPanel(hintHint: HintHint,
-                              pane: JComponent,
+                              scrollPane: JComponent,
                               editorPane: JEditorPane,
                               newLayout: Boolean,
                               highlightActions: Boolean,
@@ -387,7 +355,7 @@ internal class MetaTooltipRenderer(
     val leftBorder = if (newLayout) 10 else 8
     val rightBorder = 12
 
-    class MyPanel : JPanel(GridBagLayout()), WidthBasedLayout {
+    class ConstrainedWidthGridBagLayout : JPanel(GridBagLayout()), WidthBasedLayout {
       override fun getPreferredWidth(): Int {
         return preferredSize.width
       }
@@ -414,7 +382,7 @@ internal class MetaTooltipRenderer(
       }
 
       private val sideComponentWidth: Int
-        private get() {
+        get() {
           val layout = layout as GridBagLayout
           var sideComponent: Component? = null
           var sideComponentConstraints: GridBagConstraints? = null
@@ -442,19 +410,19 @@ internal class MetaTooltipRenderer(
         }
     }
 
-    val grid: JPanel = MyPanel()
+    val grid: JPanel = ConstrainedWidthGridBagLayout()
     val bag = GridBag()
-      .anchor(GridBagConstraints.CENTER) //weight is required for correct working scrollpane inside gridbaglayout
+      .anchor(GridBagConstraints.CENTER) // weight required for correct working ScrollPane inside GridBadLayout
       .weightx(1.0)
       .weighty(1.0)
       .fillCell()
 
-    pane.border = JBUI.Borders.empty(if (newLayout) 10 else 6,
+    scrollPane.border = JBUI.Borders.empty(if (newLayout) 10 else 6,
       leftBorder,
       if (newLayout) if (highlightActions) 10 else if (hasSeparators) 8 else 3 else 6,
       rightBorder)
 
-    grid.add(pane, bag)
+    grid.add(scrollPane, bag)
     grid.background = hintHint.textBackground
     grid.border = JBUI.Borders.empty()
     grid.isOpaque = hintHint.isOpaqueAllowed
@@ -553,14 +521,13 @@ internal class MetaTooltipRenderer(
 
   private class ReloadHintAction constructor(
     private val myHintHint: HintHint,
-    private val myReloader: TooltipReloader,
-    private val myExpanded: Boolean
+    private val myReloader: TooltipReloader
   ) : AnAction(), ActionToIgnore {
 
     override fun actionPerformed(e: AnActionEvent) { // The tooltip gets the focus if using a screen reader and invocation through a keyboard shortcut.
       myHintHint.isRequestFocus = ScreenReader.isActive() && e.inputEvent is KeyEvent
       logShowDescription(e.project, "shortcut", e.inputEvent, e.place)
-      myReloader.reload(!myExpanded)
+      myReloader.reload(false)
     }
   }
 

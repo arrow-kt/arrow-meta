@@ -30,7 +30,7 @@ fun Proof.markerMessage(): String =
     is CoercionProof -> markerMessage()
     is ProjectionProof -> markerMessage()
     is RefinementProof -> markerMessage()
-  }
+  }.applyMetaStyles()
 
 fun ExtensionProof.markerMessage(): String {
   return """

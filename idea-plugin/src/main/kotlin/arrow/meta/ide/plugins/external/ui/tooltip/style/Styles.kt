@@ -1,4 +1,4 @@
-package arrow.meta.ide.plugins.external.ui.tooltip.formatting
+package arrow.meta.ide.plugins.external.ui.tooltip.style
 
 import com.intellij.util.ui.Html
 import com.intellij.util.ui.StartupUiUtil
