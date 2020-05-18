@@ -448,14 +448,14 @@ class MetaEditorMouseHoverPopupManager : Disposable {
       val provider = (editor.markupModel as EditorMarkupModel).errorStripTooltipRendererProvider
       val tooltipRenderer = provider.calcTooltipRenderer(Objects.requireNonNull(highlightInfo.toolTip)!!, tooltipAction, -1) as? LineTooltipRenderer
         ?: return null
-      val metaTooltipRenderer = MetaTooltipRenderer(highlightInfo.description, arrayOf())
+      val metaTooltipRenderer = MetaTooltipRenderer(highlightInfo.description, arrayOf(), tooltipAction)
       val renderer: LineTooltipRenderer
       renderer = if (highlightInfo.description.isArrowMetaTooltip()) {
         metaTooltipRenderer
       } else {
         tooltipRenderer
       }
-      return createHighlightInfoComponent(editor, renderer, highlightActions, popupBridge, requestFocus)
+      return createHighlightInfoComponent(editor, renderer, highlightActions, popupBridge, tooltipAction, requestFocus)
     }
 
     private fun createQuickDocComponent(editor: Editor,
@@ -513,17 +513,18 @@ class MetaEditorMouseHoverPopupManager : Disposable {
                                                renderer: LineTooltipRenderer,
                                                highlightActions: Boolean,
                                                popupBridge: PopupBridge,
+                                               tooltipAction: TooltipAction?,
                                                requestFocus: Boolean): JComponent? {
         val wrapperPanelRef = Ref<WrapperPanel>()
         val mockHintRef = Ref<LightweightHint>()
         val hintHint = HintHint().setAwtTooltip(true).setRequestFocus(requestFocus)
         val hint = renderer.createHint(editor, Point(), false, EDITOR_INFO_GROUP, hintHint, true, highlightActions, false) { expand: Boolean ->
           val newRenderer: LineTooltipRenderer = if (renderer.text != null && renderer.text.isArrowMetaTooltip()) {
-            MetaTooltipRenderer(renderer.text!!, arrayOf())
+            MetaTooltipRenderer(renderer.text!!, arrayOf(), tooltipAction)
           } else {
             renderer.createRenderer(renderer.text, if (expand) 1 else 0)
           }
-          val newComponent = createHighlightInfoComponent(editor, newRenderer, highlightActions, popupBridge, requestFocus)
+          val newComponent = createHighlightInfoComponent(editor, newRenderer, highlightActions, popupBridge, tooltipAction, requestFocus)
           val popup: AbstractPopup? = popupBridge.getPopup()
           val wrapper = wrapperPanelRef.get()
           if (newComponent != null && popup != null && wrapper != null) {
