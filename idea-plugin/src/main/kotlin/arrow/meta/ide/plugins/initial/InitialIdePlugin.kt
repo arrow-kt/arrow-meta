@@ -96,8 +96,8 @@ private val IdeMetaPlugin.replaceEditorMouseListeners: ExtensionPhase
         removeExtension(editorMouseEP, "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseEventListener")
         removeExtension(editorMouseMotionEP, "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$MyEditorMouseMotionEventListener")
 
-        editor.addEditorMouseListener(MetaEditorMouseHoverPopupManager.MetaEditorMouseEventListener())
-        editor.addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.MetaEditorMouseMotionEventListener())
+        editor.addEditorMouseListener(MetaEditorMouseHoverPopupManager.EditorMouseEventListener())
+        editor.addEditorMouseMotionListener(MetaEditorMouseHoverPopupManager.EditorMouseMotionEventListener())
       }
     }
   )
