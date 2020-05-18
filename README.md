@@ -20,7 +20,7 @@ alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kot
 
 ## Λrrow Meta examples
 
-![Hello World Compiler Plugin Demo](docs/img/demos/hello-world-compiler-plugin.gif)
+![Hello World Compiler Plugin Demo](docs/docs/img/demos/hello-world-compiler-plugin.gif)
 
 Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
 
