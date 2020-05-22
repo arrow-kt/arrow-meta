@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package external.forks.jb.gradle;
+package org.jetbrains.plugins.gradle.tooling;
 
 import org.gradle.util.GradleVersion;
 import org.hamcrest.CoreMatchers;
@@ -27,8 +27,8 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /**
- * @author Vladislav.Soroka
- */
+* @author Vladislav.Soroka
+*/
 public class VersionMatcherRule extends TestWatcher {
 
   @Nullable

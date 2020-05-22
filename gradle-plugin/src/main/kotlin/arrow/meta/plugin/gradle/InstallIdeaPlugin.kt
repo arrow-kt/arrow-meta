@@ -11,7 +11,7 @@ import java.nio.file.Paths
 import java.util.Properties
 import java.util.zip.ZipFile
 
-private const val IDEA_PLUGIN_NAME = "Arrow Meta Intellij IDEA Plugin"
+private const val IDEA_PLUGIN_NAME = "Arrow Meta"
 
 open class InstallIdeaPlugin: DefaultTask() {
 
@@ -28,11 +28,11 @@ open class InstallIdeaPlugin: DefaultTask() {
     }
 
     if (ideaPluginExists()) {
-      println("Arrow Meta IDEA Plugin is already installed!")
+      println("$IDEA_PLUGIN_NAME IDE Plugin is already installed!")
       return
     }
 
-    println("Arrow Meta IDEA Plugin is not installed! Downloading ...")
+    println("$IDEA_PLUGIN_NAME IDE Plugin is not installed! Downloading ...")
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
 

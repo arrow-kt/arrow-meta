@@ -4,10 +4,10 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.application.options.colors.FontEditorPreview
 import com.intellij.application.options.colors.InspectionColorSettingsPage
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.Annotator
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.EditorEx
@@ -218,7 +218,7 @@ interface ColorSettingsSyntax {
     additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
     attributesDescriptor: Array<AttributesDescriptor> =
       additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
-    demoText: String = FontEditorPreview.getIDEDemoText(),
+    demoText: String = this.demoText,
     highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
@@ -247,7 +247,7 @@ interface ColorSettingsSyntax {
     additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
     attributesDescriptor: Array<AttributesDescriptor> =
       additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
-    demoText: String = FontEditorPreview.getIDEDemoText(),
+    demoText: String = this.demoText,
     highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
@@ -284,4 +284,13 @@ interface ColorSettingsSyntax {
    */
   val TextAttributesKey.descriptor: AttributesDescriptor
     get() = externalName toA this
+
+  val ColorSettingsSyntax.demoText: String
+    get() = """${ApplicationNamesInfo.getInstance().fullProductName} is a full-featured IDE
+            with a high level of usability and outstanding
+            advanced code editing and refactoring support.
+            abcdefghijklmnopqrstuvwxyz 0123456789 (){}[]
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^
+            <!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@
+            """
 }

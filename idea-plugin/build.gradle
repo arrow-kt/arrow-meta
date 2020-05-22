@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+  implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
   compileOnly "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
   api project(path: ':compiler-plugin', configuration: 'shadow')
 
@@ -39,7 +40,7 @@ buildSearchableOptions.enabled = false
 
 intellij {
   version = "$INTELLIJ_IDEA_VERSION"
-  pluginName = "Arrow Meta Intellij IDEA Plugin"
+  pluginName = "Arrow Meta"
   plugins = ["gradle", "gradle-java", "java", "org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}", "git4idea"]
 }
 

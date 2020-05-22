@@ -8,6 +8,8 @@ on:
 jobs:
   publish_artifacts:
 
+    env:
+      JAVA_OPTS: -Xms512m -Xmx1024m
     runs-on: ubuntu-latest
 
     steps:
@@ -17,20 +19,18 @@ jobs:
       with:
         java-version: 1.8
         architecture: x64
-    - name: Set compatibility IDEA versions
+    - name: Set compatibility IDEA builds
       run: |
         KOTLIN_VERSION=$(grep KOTLIN_VERSION gradle.properties | cut -d= -f2)
-        BRANCH_NUMBER=$(grep INTELLIJ_IDEA_VERSION gradle.properties | cut -d= -f2 | cut -b 3-4,6)
+        # TODO: plugin.xml.201 doesn't exist for v1.3.61
+        #BRANCH_NUMBER=$(grep INTELLIJ_IDEA_VERSION gradle.properties | cut -d= -f2 | cut -b 3-4,6)
+        BRANCH_NUMBER=193
         curl -o plugin.xml https://raw.githubusercontent.com/JetBrains/kotlin/v$KOTLIN_VERSION/idea/resources/META-INF/plugin.xml.$BRANCH_NUMBER
         SINCE_BUILD=$(cat plugin.xml | grep -o -e 'since-build="[^"]\+"' | cut -d= -f2)
         UNTIL_BUILD=$(cat plugin.xml | grep -o -e 'until-build="[^"]\+"' | cut -d= -f2)
         sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
         sed -i "s/%SINCE_BUILD%/$SINCE_BUILD/g" .github/workflows/templates/updatePlugins.xml
         sed -i "s/%UNTIL_BUILD%/$UNTIL_BUILD/g" .github/workflows/templates/updatePlugins.xml
-    - name: Build with Gradle
-      env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
-      run: ./gradlew buildMeta
     - name: Check properties
       id: properties
       run: |
@@ -81,7 +81,6 @@ jobs:
     - name: Publish Gradle Plugin into Gradle Plugins Portal
       if: steps.properties.outputs.is-snapshot == 'false'
       env:
-        JAVA_OPTS: -Xms512m -Xmx1024m
         GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
         GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
       run: |
