@@ -197,7 +197,6 @@ class ProofsIrCodegen(
                 val valueArgument = expression.getValueArgument(n)
                 val valueType2 = valueArgument?.type?.toKotlinType()!!
                 val targetType2 = expression.descriptor.valueParameters[n].type
-                //val proofCall2 = extensionProofCall(v.type, expression.descriptor.valueParameters[n].type) as? IrMemberAccessExpression
                 val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
                 if (proofCall2 != null) {
                   proofCall2.extensionReceiver = valueArgument
