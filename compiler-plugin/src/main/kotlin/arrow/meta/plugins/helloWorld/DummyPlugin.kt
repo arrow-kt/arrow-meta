@@ -36,56 +36,6 @@ import arrow.meta.quotes.namedFunction
  * +  println("Hello ΛRROW Meta!")
  * ```
  *
- * The Arrow Meta Compiler Plugin can be enabled in your project with the Arrow Meta Gradle Plugin.
- *
- * It's published in the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/io.arrow-kt.arrow).
- *
- * It can be used with the plugins DSL for release versions:
- *
- * ```
- * plugins {
- *   id "io.arrow-kt.arrow" version "<release-version>"
- * }
- * ```
- *
- * If using a snapshot version, it must be included with the legacy plugin application:
- *
- * ```
- * buildscript {
- *   repositories {
- *     maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
- *   }
- *   dependencies {
- *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
- *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
- *   }
- * }
- *
- * apply plugin: "io.arrow-kt.arrow"
- * ```
- *
- * In case of debugging Arrow Meta Gradle Plugin, install local dependencies:
- *
- * ```
- * $> ./gradlew publishMeta 
- * ```
- *
- * and then:
- *
- * ```
- * buildscript {
- *   repositories {
- *     mavenLocal()
- *   }
- *   dependencies {
- *     classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
- *     classpath "io.arrow-kt:compiler-plugin:<snapshot-version>"
- *   }
- * }
- *
- * apply plugin: "io.arrow-kt.arrow"
- * ```
- *
  * Take a look at the [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
  */
 val Meta.helloWorld: CliPlugin

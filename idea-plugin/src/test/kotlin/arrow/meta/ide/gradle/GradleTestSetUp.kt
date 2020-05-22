@@ -4,9 +4,9 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.testFramework.EdtTestUtil
 import com.intellij.testFramework.RunAll
-import external.forks.jb.gradle.GradleDelegatedBuildTestCase
 import org.junit.After
 import com.intellij.util.ThrowableRunnable
+import org.jetbrains.plugins.gradle.compiler.GradleDelegatedBuildTestCase
 
 
 abstract class GradleTestSetUp : GradleDelegatedBuildTestCase() {

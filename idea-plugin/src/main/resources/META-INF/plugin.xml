@@ -5,7 +5,7 @@
     <vendor email="hello@47deg.com" url="https://arrow-kt.io/">Arrow</vendor>
 
     <description><![CDATA[
-    The Arrow Meta Intellij IDEA plugin.
+    The Arrow Meta Intellij IDEA plugin, a functional companion to Kotlin's Compiler & IDE.
     ]]></description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
