@@ -3,7 +3,6 @@ package arrow.meta.plugins.union
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
-import org.junit.Ignore
 
 class UnionTest {
 
@@ -24,8 +23,6 @@ class UnionTest {
       }
     ))
   }
-
-
 
   @Test
   fun `Union accepts typed values in the union 2`() {
@@ -237,4 +234,60 @@ class UnionTest {
     ))
   }
 
+  @Test
+  fun `Union coercion with a single value argument evals correctly to the expected type`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+          import arrow.Union2
+          import arrow.first
+          
+          data class UserName(val name: String)
+          data class Password(val hash: String)
+        
+          fun help(id: Union2<UserName, Password>): String? {
+            val userName: UserName? = id
+            val password: Password? = id
+            return userName?.name ?: password?.hash
+          }
+          
+          val userName = UserName("userName")
+          val result = help(userName)
+        """.trimIndent().source
+      },
+      assert = {
+        allOf("result".source.evalsTo("userName"))
+      }
+    ))
+  }
+
+  @Test
+  fun `Union coercion within the value arguments evals correctly to the expected type`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+          import arrow.Union2
+          import arrow.first
+          
+          data class UserName(val name: String)
+          data class Password(val hash: String)
+        
+          fun help(id: Union2<UserName, Password>, id2: Union2<UserName, Password>): String? {
+              val userName: UserName? = id
+              val password: Password? = id2
+              return userName?.name ?: password?.hash
+          }
+    
+          val userName = UserName("userName")
+          val password = Password("password")
+          val result = help(userName, password)
+        """.trimIndent().source
+      },
+      assert = {
+        allOf("result".source.evalsTo("userName"))
+      }
+    ))
+  }
 }
