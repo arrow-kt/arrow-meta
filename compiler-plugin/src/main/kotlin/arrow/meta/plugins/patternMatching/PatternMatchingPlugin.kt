@@ -1,4 +1,4 @@
-package arrow.meta.plugins.patternmatching
+package arrow.meta.plugins.patternMatching
 
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
