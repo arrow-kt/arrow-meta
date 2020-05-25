@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.IdeCoercionTestSetUp
 import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_ARGS
 import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_PROP
 import arrow.meta.ide.plugins.proofs.coercions.explicit.explicitCoercionKtProperty
@@ -24,7 +23,14 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
 
-class CoercionInspectionTest : IdeCoercionTestSetUp() {
+class CoercionInspectionTest : IdeTestSetUp() {
+
+  override fun setUp() {
+    super.setUp()
+    myFixture.addFileToProject("arrow/preludeCoercion.kt", CoercionTestCode.prelude)
+    myFixture.addFileToProject("consumer/consumerCoercion.kt", CoercionTestCode.twitterHandleDeclaration)
+  }
+
   @org.junit.Test
   fun `coercion inspection test`() =
     ideTest(
