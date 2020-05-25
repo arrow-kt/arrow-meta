@@ -8,7 +8,6 @@ import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerDescription
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.junit.Ignore
 
 class CoercionTest : IdeTestSetUp() {
 
@@ -18,7 +17,6 @@ class CoercionTest : IdeTestSetUp() {
     myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
-  @Ignore
   @org.junit.Test
   fun `test coercion line marker`() =
     ideTest(
