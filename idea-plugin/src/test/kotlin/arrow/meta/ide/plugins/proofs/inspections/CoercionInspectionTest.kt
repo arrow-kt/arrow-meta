@@ -14,8 +14,6 @@ import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.InspectionProfileEntry
@@ -76,17 +74,10 @@ class CoercionInspectionTest : IdeTestSetUp() {
     inspections: List<InspectionProfileEntry>,
     inspectionId: String
   ): Pair<List<HighlightInfo>, Source> {
-    return try {
-      val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
-        .filter { it.inspectionToolId == inspectionId }
-      val codeFixed: Source = highlightInfos.firstOrNull()?.fixFirstInspection(myFixture, code.toKtFile(myFixture)).orEmpty()
-      Pair(highlightInfos, codeFixed)
-    } catch (ex: Exception) {
-      Log.Verbose({ "collectAndApplyInspection Error: ${ex.localizedMessage}, $this" }) {
-        ex.printStackTrace()
-      }
-      Pair(emptyList(), "")
-    }
+    val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
+      .filter { it.inspectionToolId == inspectionId }
+    val codeFixed: Source = highlightInfos.firstOrNull()?.fixFirstInspection(myFixture, code.toKtFile(myFixture)).orEmpty()
+    return Pair(highlightInfos, codeFixed)
   }
 }
 
