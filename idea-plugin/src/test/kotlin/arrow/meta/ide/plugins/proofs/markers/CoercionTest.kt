@@ -1,22 +1,15 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.IdeCoercionTestSetUp
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerDescription
-import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-class CoercionTest : IdeTestSetUp() {
-
-  override fun setUp() {
-    super.setUp()
-    myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
-  }
-
+class CoercionTest : IdeCoercionTestSetUp() {
   @org.junit.Test
   fun `test coercion line marker`() =
     ideTest(
