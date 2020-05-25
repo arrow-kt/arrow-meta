@@ -1,23 +1,37 @@
 package arrow.meta.plugins.patternMatching
 
-import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
-import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugin.testing.*
+import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
+import arrow.meta.plugin.testing.CompilerTest.Companion.source
+import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
+import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import org.junit.Test
 
 class PatternMatchingTests {
+  private val arrowVersion: String = System.getProperty("ARROW_VERSION")
+  private val arrowOptics = Dependency("arrow-optics:$arrowVersion")
+
+  // To DRY the test assertions and I really miss kotest infix matchers :(
+  private infix fun String.verify(assertion: (CompilerTest.Companion) -> Assert) = also {
+    assertThis(CompilerTest(
+//      config = { CompilerTest.metaDependencies + CompilerTest.addDependencies(arrowOptics) },
+      config = { CompilerTest.metaDependencies },
+      code = { it.source }, assert = assertion
+    ))
+  }
+
+  private val personSource =
+    """|data class Person(val firstName: String, val lastName: String)
+       |val person = Person("Matt", "Moore")
+       |"""
+
   @Test
   fun `destructuring`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowOptics = Dependency("arrow-optics:$arrowVersion")
-
     /**
      * Since Kotlin doesn't allow for top-level destructuring, we have to wrap in something (I'm using a function here).
      */
-    val codeSnippet =
-      """|data class Person(val firstName: String, val lastName: String)
-         |
-         |val person: Person = Person("Matt", "Moore")
+    val code =
+      """$personSource
          |
          |fun destructure(): List<String> {
          |  val (fName, lName) = person
@@ -28,18 +42,25 @@ class PatternMatchingTests {
          |val lastName = destructure()[1]
          |"""
 
-    assertThis(CompilerTest(
-      config = { metaDependencies + addDependencies(arrowOptics) },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        allOf(
-          "firstName".source.evalsTo("Matt"),
-          "lastName".source.evalsTo("Moore")
-        )
-      }
-    ))
+    code verify {
+      allOf(
+        "firstName".source.evalsTo("Matt"),
+        "lastName".source.evalsTo("Moore")
+      )
+    }
+  }
+
+  @Test
+  fun `error suppression for pattern matching syntax`() {
+    val code =
+      """|$personSource
+         |
+         |val Person(_, lastName) = person
+         |"""
+
+//    code verify {
+//      failsWith { it.contains("val Person: [ERROR : No type, no body]") }
+//    }
   }
 
 }

@@ -3,42 +3,41 @@ package arrow.meta.plugins.patternMatching
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.invoke
-import arrow.meta.quotes.whenExpression
+import arrow.meta.quotes.*
 import org.jetbrains.kotlin.psi.*
-
-/**
- * Keyword that sets apart a match. It cannot be `is` or `in`
- */
-const val matchKeyword = "match"
 
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      whenExpression(KtWhenExpression::containsPMatching) { whenExpr ->
-        TODO()
-      },
-      TODO()
+      namedFunction({ name == "patmat" }) { c ->
+        Transform.replace(
+          replacing = c,
+          newDeclaration = transformFunction(c).function.syntheticScope
+        )
+      }
     )
   }
 
-fun KtWhenExpression.containsPMatching() = entries.any(KtWhenEntry::isPMCondition)
+fun transformFunction(function: KtNamedFunction) =
+  """|fun ${function.name}(): ${function.typeReference?.text ?: "Unit"} {
+     ${transformBlockExpression(function.bodyBlockExpression!!)}
+     |}"""
 
-/**
- * Whether an entry follows the EBNF grammar:
- * PM -> [matchKeyword] `Type`? '[' PM+ ']' ?
- * which corresponds to a pattern match.
- *
- * Initially, we will not consider disjunctions
- */
-private fun KtWhenEntry.isPMCondition() =
-  conditions.size == 1 && conditions[0].isPM()
+fun transformBlockExpression(blockExpression: KtBlockExpression) =
+  """|${transformStatements(blockExpression).joinToString("\n|")}"""
 
-fun KtWhenCondition.isPM() = this is KtWhenConditionWithExpression
-  && this.expression.let {
-  it ?: return@let false
-  it is KtBinaryExpression
-    && it.right is KtCollectionLiteralExpression
-    && it.left.let { leftExpr ->
-    leftExpr is KtReferenceExpression && leftExpr.text == "match"
+fun transformStatements(blockExpression: KtBlockExpression) =
+  blockExpression.statements.map { transformStatement(it) }
+
+fun transformStatement(statementExpression: KtExpression) =
+  when {
+    statementExpression is KtProperty && isConstructorPattern(statementExpression) ->
+      desugarConstructorPattern(statementExpression)
+    else -> "${statementExpression.text}"
   }
-}
+
+fun isConstructorPattern(property: KtProperty) =
+  property.name!!.first().isUpperCase()
+
+fun desugarConstructorPattern(property: KtProperty) =
+  "${property.valOrVarKeyword.text} ${property.node.treeNext.text}"
