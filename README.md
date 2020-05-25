@@ -29,13 +29,13 @@ Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-ex
 **Build and run tests**
 
 ```
-./gradlew buildMeta -Dorg.gradle.debug=true
+./gradlew buildMeta
 ```
 
 **Build and run test + IDE plugin**
 
 ```
-./gradlew publishAndRunIde -Dorg.gradle.debug=true
+./gradlew publishAndRunIde
 ```
 
 **Generate API Doc and validate it**
