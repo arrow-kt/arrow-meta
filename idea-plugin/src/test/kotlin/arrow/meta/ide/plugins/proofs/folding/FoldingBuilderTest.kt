@@ -20,7 +20,7 @@ class FoldingBuilderTest : IdeTestSetUp() {
         IdeTest(
           code = FoldingBuilderTestCode.unionCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, ctx: IdeMetaPlugin ->
-            myFixture.addFileToProject("arrow/union/unions.kt", FoldingBuilderTestCode.unionPrelude)
+            myFixture.addFileToProject("arrow/unions.kt", FoldingBuilderTestCode.unionPrelude)
             collectFolding(code, myFixture) { unionTypeMatches(it) }
           },
           result = resolvesWhen("Unions foldingBuilder should return 3 folding regions") {
