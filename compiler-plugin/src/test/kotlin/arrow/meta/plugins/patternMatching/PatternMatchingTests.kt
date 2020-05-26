@@ -51,16 +51,23 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `error suppression for pattern matching syntax`() {
+  fun `rewrite constructor pattern match expression`() {
     val code =
       """|$personSource
          |
-         |val Person(_, lastName) = person
+         |fun destructure(): String {
+         |  val Person(_, lastName) = person
+         |  return lastName
+         |}
+         |
+         |val x = destructure()
          |"""
 
-//    code verify {
-//      failsWith { it.contains("val Person: [ERROR : No type, no body]") }
-//    }
+    code verify {
+      allOf(
+        "x".source.evalsTo("Moore")
+      )
+    }
   }
 
 }

@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.psi.*
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      namedFunction({ name == "patmat" }) { c ->
+      namedFunction({ true }) { c ->
         Transform.replace(
           replacing = c,
           newDeclaration = transformFunction(c).function.syntheticScope
