@@ -13,7 +13,7 @@ class UnionLineMarkerTest : IdeTestSetUp() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("arrow/union/unions.kt", UnionLineMarkerTestCode.unionPrelude)
+    myFixture.addFileToProject("arrow/union/unionPrelude.kt", UnionLineMarkerTestCode.unionPrelude)
   }
 
   @org.junit.Test

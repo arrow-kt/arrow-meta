@@ -25,8 +25,8 @@ class CoercionInspectionTest : IdeTestSetUp() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
+    myFixture.addFileToProject("arrow/preludeCoercion.kt", CoercionTestCode.prelude)
+    myFixture.addFileToProject("consumer/consumerCoercion.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
   @org.junit.Test
