@@ -59,13 +59,11 @@ class PatternMatchingTests {
          |  val Person(_, lastName) = person
          |  return lastName
          |}
-         |
-         |val x = destructure()
          |"""
 
     code verify {
       allOf(
-        "x".source.evalsTo("Moore")
+        "destructure()".source.evalsTo("Moore")
       )
     }
   }
