@@ -6,7 +6,6 @@ import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
 
 interface InspectionTestSyntax {

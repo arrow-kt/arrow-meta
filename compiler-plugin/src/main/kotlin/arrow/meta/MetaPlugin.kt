@@ -19,7 +19,7 @@ open class MetaPlugin : Meta {
       //higherKindedTypes2,
       //typeClasses,
       comprehensions,
-      lenses,
+      //lenses,
       typeProofs
     )
 }

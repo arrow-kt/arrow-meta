@@ -25,8 +25,8 @@ class CoercionInspectionTest : IdeTestSetUp() {
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
+    myFixture.addFileToProject("arrow/preludeCoercion.kt", CoercionTestCode.prelude)
+    myFixture.addFileToProject("consumer/consumerCoercion.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
   @org.junit.Test
@@ -76,7 +76,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
   ): Pair<List<HighlightInfo>, Source> {
     val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
       .filter { it.inspectionToolId == inspectionId }
-    val codeFixed: Source = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
+    val codeFixed: Source = highlightInfos.firstOrNull()?.fixFirstInspection(myFixture, code.toKtFile(myFixture)).orEmpty()
     return Pair(highlightInfos, codeFixed)
   }
 }
