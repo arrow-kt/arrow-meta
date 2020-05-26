@@ -76,7 +76,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
   ): Pair<List<HighlightInfo>, Source> {
     val highlightInfos: List<HighlightInfo> = collectInspections(code, myFixture, inspections)
       .filter { it.inspectionToolId == inspectionId }
-    val codeFixed: Source = highlightInfos[0].fixFirstInspection(myFixture, code.toKtFile(myFixture))
+    val codeFixed: Source = highlightInfos.firstOrNull()?.fixFirstInspection(myFixture, code.toKtFile(myFixture)).orEmpty()
     return Pair(highlightInfos, codeFixed)
   }
 }
