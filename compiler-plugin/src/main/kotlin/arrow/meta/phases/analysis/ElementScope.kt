@@ -18,6 +18,7 @@ import arrow.meta.quotes.element.whencondition.WhenCondition
 import arrow.meta.quotes.expression.AnnotatedExpression
 import arrow.meta.quotes.expression.BinaryExpression
 import arrow.meta.quotes.expression.BlockExpression
+import arrow.meta.quotes.expression.CallExpression
 import arrow.meta.quotes.expression.DotQualifiedExpression
 import arrow.meta.quotes.expression.IfExpression
 import arrow.meta.quotes.expression.IsExpression
@@ -48,6 +49,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -294,6 +296,8 @@ interface ElementScope {
   val String.delegatedSuperTypeEntry: Scope<KtConstructorDelegationCall>
   
   val String.block: BlockExpression
+
+  val String.callExpression: Scope<KtCallExpression>
 
   val String.`for`: ForExpression
 
