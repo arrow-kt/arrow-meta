@@ -22,6 +22,6 @@ open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
   //purity +
   //comprehensionsIdePlugin +
     //opticsIdePlugin +
-    listOf(initialIdeSetUp, quotes,
+    listOf(initialIdeSetUp, //quotes,
       typeProofsIde)
 }
