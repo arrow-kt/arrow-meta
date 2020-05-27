@@ -4,17 +4,11 @@ import arrow.meta.plugin.testing.*
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
-import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import org.junit.Test
 
 class PatternMatchingTests {
-  private val arrowVersion: String = System.getProperty("ARROW_VERSION")
-  private val arrowOptics = Dependency("arrow-optics:$arrowVersion")
-
-  // To DRY the test assertions and I really miss kotest infix matchers :(
   private infix fun String.verify(assertion: (CompilerTest.Companion) -> Assert) = also {
     assertThis(CompilerTest(
-//      config = { CompilerTest.metaDependencies + CompilerTest.addDependencies(arrowOptics) },
       config = { CompilerTest.metaDependencies },
       code = { it.source }, assert = assertion
     ))
@@ -27,9 +21,6 @@ class PatternMatchingTests {
 
   @Test
   fun `destructuring`() {
-    /**
-     * Since Kotlin doesn't allow for top-level destructuring, we have to wrap in something (I'm using a function here).
-     */
     val code =
       """$personSource
          |
