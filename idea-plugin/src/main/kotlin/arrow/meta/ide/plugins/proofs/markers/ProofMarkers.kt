@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.markers
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
+import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -14,11 +15,18 @@ import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.scope
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.awt.event.MouseEvent
 import javax.swing.Icon
 
 fun Proof.markerMessage(): String =
@@ -99,6 +107,7 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
     transform = {
       it.safeAs<A>()?.takeIf(filter)
     },
+    composite = KtDeclaration::class.java,
     message = {
       it.markerMessage()
     }
@@ -111,3 +120,26 @@ fun CoercionProof.coercionMessage(): String =
     Link to proof declaration:
     <code lang="kotlin">$through</code>
   """.trimIndent()
+
+/**
+ * Similar to [arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax.addLineMarkerProvider], is an extension for
+ * PsiElements that are not leafs so it will look for the first Leaf corresponding the targeted psiElement
+ */
+@Suppress("UNCHECKED_CAST")
+fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+  icon: Icon,
+  transform: (PsiElement) -> A?,
+  composite: Class<A>,
+  message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
+  placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
+  navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
+  clickAction: AnAction? = null
+): ExtensionPhase =
+  addLineMarkerProvider(
+    { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
+    {
+      it.onComposite(composite) { psi: A ->
+        lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
+      }
+    }
+  )
