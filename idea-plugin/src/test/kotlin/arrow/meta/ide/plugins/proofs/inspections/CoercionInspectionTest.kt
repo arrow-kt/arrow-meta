@@ -20,6 +20,7 @@ import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.Ignore
 
 class CoercionInspectionTest : IdeTestSetUp() {
 
@@ -29,6 +30,7 @@ class CoercionInspectionTest : IdeTestSetUp() {
     myFixture.addFileToProject("consumer/consumerCoercion.kt", CoercionTestCode.twitterHandleDeclaration)
   }
 
+  @Ignore
   @org.junit.Test
   fun `coercion inspection test`() =
     ideTest(
