@@ -7,8 +7,10 @@ import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore
 class FoldingBuilderTest : IdeTestSetUp() {
   @Test
   fun `folding builder test for Union and Tuple types`() =
