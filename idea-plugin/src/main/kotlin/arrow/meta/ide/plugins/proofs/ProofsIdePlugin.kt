@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
@@ -31,7 +32,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
-      // refinementAnnotator(),
+      refinementAnnotator(),
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       coercionCallSiteLineMarker,

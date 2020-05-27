@@ -8,7 +8,9 @@ import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerDescription
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.junit.Ignore
 
+@Ignore
 class CoercionTest : IdeTestSetUp() {
 
   override fun setUp() {

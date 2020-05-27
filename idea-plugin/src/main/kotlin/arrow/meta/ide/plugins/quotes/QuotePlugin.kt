@@ -12,6 +12,13 @@ import arrow.meta.invoke as cli
 
 /**
  * Please, view the sub directories `cache` , `resolve` and `system` for quotes related IDE features.
+ * Disabling [quotes] implies disabling the quote-related features in the plugin.xml that is:
+ * [arrow.meta.ide.plugins.quotes.cache.QuoteCacheService]
+ * [arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache]
+ * [arrow.meta.ide.plugins.quotes.system.QuoteSystem]
+ * [arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingPassFactory]
+ * [arrow.meta.ide.plugins.quotes.resolve.QuoteSyntheticResolveExtension]
+ * [quotesCli]
  */
 val IdeMetaPlugin.quotes: IdePlugin
   get() = "Quote Ide Plugin" {
