@@ -42,14 +42,14 @@ private fun KtProperty.participatingTypes(): Pair<KotlinType, KotlinType>? {
   val superType: KotlinType? = type()
   return subType.pairOrNull(superType)
 }
-
+// TODO: can'r resolve Pair<Type, Type> or other HKT * -> *
 private fun KtValueArgument.participatingTypes(): Pair<KotlinType, KotlinType>? {
   val subType: KotlinType? = getArgumentExpression()?.resolveKotlinType()
 
   val ktCallExpression: KtCallExpression? = PsiTreeUtil.getParentOfType(this, KtCallExpression::class.java)
   val myselfIndex: Int = ktCallExpression?.valueArguments?.indexOf(this) ?: 0
   val superType: KotlinType? = ktCallExpression.getResolvedCall(analyze())?.let { resolvedCall: ResolvedCall<out CallableDescriptor> ->
-    resolvedCall.resultingDescriptor.valueParameters[myselfIndex].type
+    resolvedCall.resultingDescriptor.valueParameters.getOrNull(myselfIndex)?.type
   }
   return subType.pairOrNull(superType)
 }
