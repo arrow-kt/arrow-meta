@@ -1,9 +1,11 @@
 package arrow.meta.plugins.patternMatching
 
-import arrow.meta.plugin.testing.*
+import arrow.meta.plugin.testing.Assert
+import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
-import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
+import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
 class PatternMatchingTests {
