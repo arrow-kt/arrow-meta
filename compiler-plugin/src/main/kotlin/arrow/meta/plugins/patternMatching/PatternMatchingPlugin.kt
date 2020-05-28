@@ -4,13 +4,17 @@ import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.quotes.Transform
-import arrow.meta.quotes.whenEntry
+import arrow.meta.quotes.callExpression
+import org.jetbrains.kotlin.psi.KtCallExpression
 
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      whenEntry({ text.startsWith("case") }) { expr ->
+      callExpression({ isPatternMatchExpression() }) { expr ->
         Transform.replace(expr, expr.desugar.whenEntry)
       }
     )
   }
+
+private fun KtCallExpression.isPatternMatchExpression(): Boolean =
+  text.contains("_")
