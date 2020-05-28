@@ -31,10 +31,6 @@ jobs:
         sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
         echo "::set-output name=since::$SINCE_BUILD"
         echo "::set-output name=until::$UNTIL_BUILD"
-    - name: Build the IDEA Plugin
-      run: ./gradlew :idea-plugin:buildPlugin
-    - name: Download intellij-plugin-verifier
-      run: curl -L --output verifier-all.jar https://dl.bintray.com/jetbrains/intellij-plugin-service/org/jetbrains/intellij/plugins/verifier-cli/${INTELLIJ_PLUGIN_VERIFIER}/verifier-cli-${INTELLIJ_PLUGIN_VERIFIER}-all.jar
     - name: Calculate compatibility IDEA versions for compatibility IDEA builds
       id: versions
       run: |
@@ -49,17 +45,13 @@ jobs:
         UNTIL_VERSION=$(grep -A 500 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\{4\}\.[0-9]\+\.\?[0-9]*' | grep $PART_OF_UNTIL_VERSION | sort | tail -1)
         echo "::set-output name=since::$SINCE_VERSION"
         echo "::set-output name=until::$UNTIL_VERSION"
-    - name: Download Intellij IDEA (Ultimate) and unzip
-      run: |
-        SINCE_VERSION=${{ steps.versions.outputs.since }}
-        UNTIL_VERSION=${{ steps.versions.outputs.until }}
-        curl -L --output ${SINCE_VERSION}.zip https://www.jetbrains.com/intellij-repository/releases/com/jetbrains/intellij/idea/ideaIU/${SINCE_VERSION}/ideaIU-${SINCE_VERSION}.zip
-        curl -L --output ${UNTIL_VERSION}.zip https://www.jetbrains.com/intellij-repository/releases/com/jetbrains/intellij/idea/ideaIU/${UNTIL_VERSION}/ideaIU-${UNTIL_VERSION}.zip
-        unzip ${SINCE_VERSION}.zip -d ${SINCE_VERSION}
-        unzip ${UNTIL_VERSION}.zip -d ${UNTIL_VERSION}
     - name: Verify configuration
       run: ./gradlew :idea-plugin:verifyPlugin
     - name: Verify 'since' version
-      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.since }}
+      run: |
+         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.since }}\")/g" idea-plugin/build.gradle 
+         ./gradlew :idea-plugin:runPluginVerifier
     - name: Verify 'until' version
-      run: java -jar verifier-all.jar check-plugin idea-plugin/build/distributions/*.zip ${{ steps.versions.outputs.until }}
+      run: |
+         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.until }}\")/g" idea-plugin/build.gradle
+         ./gradlew :idea-plugin:runPluginVerifier
