@@ -22,41 +22,19 @@ class PatternMatchingTests {
        |"""
 
   @Test
-  fun `destructuring`() {
-    val code =
-      """$personSource
-         |
-         |fun destructure(): List<String> {
-         |  val (fName, lName) = person
-         |  return listOf(fName, lName)
-         |}
-         |
-         |val firstName = destructure()[0]
-         |val lastName = destructure()[1]
-         |"""
-
-    code verify {
-      allOf(
-        "firstName".source.evalsTo("Matt"),
-        "lastName".source.evalsTo("Moore")
-      )
-    }
-  }
-
-  @Test
   fun `rewrite constructor pattern match expression`() {
     val code =
       """|$personSource
          |
-         |fun destructure(): String {
-         |  val Person(_, lastName) = person
-         |  return lastName
+         |val result = when(person) {
+         |  Person(_, "Moore") -> "Matched"
+         |  else -> "Not matched"
          |}
          |"""
 
     code verify {
       allOf(
-        "destructure()".source.evalsTo("Moore")
+        "result".source.evalsTo("Matched")
       )
     }
   }

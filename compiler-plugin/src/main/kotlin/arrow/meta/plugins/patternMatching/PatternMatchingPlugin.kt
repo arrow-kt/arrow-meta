@@ -9,7 +9,7 @@ import arrow.meta.quotes.callExpression
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      callExpression({ isConstructorPattern }) { expr ->
+      callExpression({ this matches constructorWithWildcardPattern }) { expr ->
         Transform.replace(expr, expr.desugar.callExpression)
       }
     )

@@ -25,7 +25,7 @@ val KtBlockExpression.desugar: String
 
 val KtExpression.desugar: String
   get() = when {
-    isConstructorPattern -> desugar
+    this matches constructorPattern -> desugar
     else -> text
   }
 
