@@ -49,9 +49,16 @@ jobs:
       run: ./gradlew :idea-plugin:verifyPlugin
     - name: Verify 'since' version
       run: |
-         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.since }}\")/g" idea-plugin/build.gradle 
-         ./gradlew :idea-plugin:runPluginVerifier
+        sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.since }}\")/g" idea-plugin/build.gradle 
+        ./gradlew :idea-plugin:runPluginVerifier
+        mkdir reports
+        cp -r idea-plugin/build/pluginVerifier/reports/* reports/
     - name: Verify 'until' version
       run: |
-         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.until }}\")/g" idea-plugin/build.gradle
-         ./gradlew :idea-plugin:runPluginVerifier
+        sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.until }}\")/g" idea-plugin/build.gradle
+        ./gradlew :idea-plugin:runPluginVerifier
+        cp -r idea-plugin/build/pluginVerifier/reports/* reports/ 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: reports
+        path: reports
