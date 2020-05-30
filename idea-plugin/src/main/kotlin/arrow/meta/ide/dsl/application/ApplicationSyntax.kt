@@ -17,6 +17,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.psi.PsiElement
@@ -387,6 +389,34 @@ interface ApplicationSyntax {
 
       override fun afterProjectClosed(project: Project): Unit =
         afterProjectClosed(project)
+    }
+
+  fun IdeMetaPlugin.addPMListener(
+    closing: (Project) -> Unit = Noop.effect1,
+    closed: (Project) -> Unit = Noop.effect1,
+    closingBeforeSave: (Project) -> Unit = Noop.effect1,
+    opened: (Project) -> Unit = Noop.effect1
+  ): ExtensionPhase =
+    ApplicationProvider.PMListener(PMListener(closing, closed, closingBeforeSave, opened))
+
+  fun ApplicationSyntax.PMListener(
+    closing: (Project) -> Unit = Noop.effect1,
+    closed: (Project) -> Unit = Noop.effect1,
+    closingBeforeSave: (Project) -> Unit = Noop.effect1,
+    opened: (Project) -> Unit = Noop.effect1
+  ): ProjectManagerListener =
+    object : ProjectManagerListener {
+      override fun projectClosing(project: Project):Unit =
+        closing(project)
+
+      override fun projectClosed(project: Project): Unit =
+        closed(project)
+
+      override fun projectClosingBeforeSave(project: Project): Unit =
+        closingBeforeSave(project)
+
+      override fun projectOpened(project: Project):Unit =
+        opened(project)
     }
 
   /**

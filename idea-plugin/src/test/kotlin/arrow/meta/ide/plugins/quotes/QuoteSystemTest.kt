@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.quotes
 
-/*
+
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
-import arrow.meta.ide.plugins.quotes.resolve.isMetaSynthetic
+import arrow.meta.ide.plugins.quotes.synthetic.isMetaSynthetic
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.unavailable
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.junit.Ignore
 import org.junit.Test
 
+@Ignore
 class QuoteSystemTest : IdeTestSetUp() {
 
   @Test
@@ -63,7 +64,6 @@ class QuoteSystemTest : IdeTestSetUp() {
 
   // fixme: this test is still failing, see below for the reason
   @Test
-  @Ignore
   fun higherKindAllCacheItemsResolved() {
     val code = """
       package testArrow
@@ -89,4 +89,4 @@ class QuoteSystemTest : IdeTestSetUp() {
       } ?: throw unavailable(QuoteCache::class.java)
     } ?: throw unavailable(TestQuoteSystemService::class.java)
   }
-}*/
+}

@@ -3,7 +3,7 @@ package arrow.meta.ide.plugins.quotes.system
 import arrow.meta.ide.dsl.utils.resolve
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
-import arrow.meta.ide.plugins.quotes.resolve.isMetaSynthetic
+import arrow.meta.ide.plugins.quotes.synthetic.isMetaSynthetic
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.AnalysisDefinition
 import arrow.meta.quotes.processKtFile

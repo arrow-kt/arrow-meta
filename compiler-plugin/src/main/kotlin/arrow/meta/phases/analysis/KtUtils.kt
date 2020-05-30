@@ -156,5 +156,5 @@ get() = Eq { a, b ->
   resolveFunctionType(a) == resolveFunctionType(b)
 }
 
-fun KtAnnotated.isAnnotatedWith(regex: Regex) =
+fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }

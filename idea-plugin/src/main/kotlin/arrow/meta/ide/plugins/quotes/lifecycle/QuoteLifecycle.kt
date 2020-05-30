@@ -6,11 +6,12 @@ import arrow.meta.ide.dsl.utils.quoteRelevantFile
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
-import arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache
+import arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
 import arrow.meta.ide.testing.UnavailableServices
 import arrow.meta.ide.testing.unavailableServices
+import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.quotes.analysisIdeExtensions
 import com.intellij.openapi.application.Application
@@ -27,6 +28,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
@@ -48,25 +50,32 @@ import java.util.concurrent.TimeUnit
  * [quoteLifecycle] addresses ide lifecycle specific manipulates utilizing the [QuoteSystemService], [QuoteCache] and [QuoteHighlightingCache].
  */
 val IdeMetaPlugin.quoteLifecycle: ExtensionPhase
-  get() = addProjectLifecycle(
-    // the usual registration should be in `beforeProjectOpened`, but this is only possible when #446 is unlocked
-    initialize = { project: Project ->
-      project.quoteConfigs()?.let { (system, cache) ->
-        initializeQuotes(project, system, cache)
-      }
-    }
-    /* TODO: project is already disposed at this point are the following functions needed to preserve the lifecycle
-    afterProjectClosed = { project: Project ->
-      project.quoteConfigs()?.let { (quoteSystem, cache) ->
-        try {
-          quoteSystem.context.cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
-        } catch (e: Exception) {
-          LOG.warn("error shutting down pool", e)
-        } finally {
-          cache.clear()
+  get() = Composite(
+    addProjectLifecycle(
+      // the usual registration should be in `beforeProjectOpened`, but this is only possible when #446 is unlocked
+      initialize = { project: Project ->
+        project.quoteConfigs()?.let { (system, cache) ->
+          initializeQuotes(project, system, cache)
         }
       }
-    }*/
+      /* TODO: project is already disposed at this point are the following functions needed to preserve the lifecycle
+      afterProjectClosed = { project: Project ->
+        project.quoteConfigs()?.let { (quoteSystem, cache) ->
+          try {
+            quoteSystem.context.cacheExec.safeAs<BoundedTaskExecutor>()?.shutdownNow()
+          } catch (e: Exception) {
+            LOG.warn("error shutting down pool", e)
+          } finally {
+            cache.clear()
+          }
+        }
+      }*/
+    ),
+    addPostStartupActivity(
+      StartupActivity.DumbAware {
+        quoteProjectOpened(it)
+      }
+    )
   )
 
 data class QuoteConfigs(
@@ -110,7 +119,7 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
         value.extract().latch.countDown()
       } ?: unavailableServices(QuoteHighlightingCache::class.java)
     }
-  } ?: unavailableServices(QuoteCache::class.java, QuoteSystemService::class.java)
+  } ?: Unit
 
 
 internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache): Unit {

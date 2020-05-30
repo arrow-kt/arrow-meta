@@ -2,6 +2,7 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
+import arrow.meta.plugins.higherkind.higherKindedTypes2
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.proofs.typeProofs
 import kotlin.contracts.ExperimentalContracts
