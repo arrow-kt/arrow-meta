@@ -27,7 +27,7 @@ class PatternMatchingTests {
       """|$personSource
          |
          |val result = when(person) {
-         |  Person(_, "Moore") -> "Matched"
+         |  case(Person(_, "Moore")) -> "Matched"
          |  else -> "Not matched"
          |}
          |"""

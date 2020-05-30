@@ -10,14 +10,9 @@ typealias ExpressionPattern = List<(KtExpression) -> Boolean>
 infix fun KtExpression.matches(pattern: ExpressionPattern): Boolean =
   pattern.all { it(this) }
 
-val constructorPattern: ExpressionPattern = listOf(
+val casePattern: ExpressionPattern = listOf(
   { expr -> expr is KtCallExpression },
   { expr -> expr.firstChild is KtReferenceExpression },
-  { expr -> expr.text.first().isUpperCase() },
+  { expr -> expr.firstChild.textMatches("case") },
   { expr -> expr.firstChild.nextSibling is KtValueArgumentList }
 )
-
-val wildcardPattern: ExpressionPattern =
-  listOf { expr -> (expr.firstChild.nextSibling as KtValueArgumentList).arguments.any { it.textMatches("_") } }
-
-val constructorWithWildcardPattern = constructorPattern + wildcardPattern
