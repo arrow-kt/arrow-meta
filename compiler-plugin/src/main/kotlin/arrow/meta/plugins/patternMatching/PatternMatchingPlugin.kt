@@ -9,8 +9,8 @@ import arrow.meta.quotes.callExpression
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      callExpression({ this matches casePattern }) { expr ->
-        Transform.replace(expr, expr.desugar.callExpression)
+      callExpression({ this follows casePatternRules }) { expr ->
+        Transform.replace(expr, expr.desugared.callExpression)
       }
     )
   }

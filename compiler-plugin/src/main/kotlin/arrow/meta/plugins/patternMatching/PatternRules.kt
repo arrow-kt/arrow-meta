@@ -7,10 +7,10 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 typealias ExpressionPattern = List<(KtExpression) -> Boolean>
 
-infix fun KtExpression.matches(pattern: ExpressionPattern): Boolean =
+infix fun KtExpression.follows(pattern: ExpressionPattern): Boolean =
   pattern.all { it(this) }
 
-val casePattern: ExpressionPattern = listOf(
+val casePatternRules: ExpressionPattern = listOf(
   { expr -> expr is KtCallExpression },
   { expr -> expr.firstChild is KtReferenceExpression },
   { expr -> expr.firstChild.textMatches("case") },
