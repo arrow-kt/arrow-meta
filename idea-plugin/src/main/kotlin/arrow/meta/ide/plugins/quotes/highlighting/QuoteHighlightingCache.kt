@@ -32,9 +32,9 @@ internal class QuoteHighlightingCache private constructor() : IdService<Highligh
     value.extract().let { cache ->
       if (!cache.initialized) { // this is not executed anymore
         cache.latch.await(5, TimeUnit.SECONDS)
-        println("BOOOOOOMMMMMMM")
+        //println("BOOOOOOMMMMMMM")
       } else {
-        println("NALALALLAL")
+        //println("NALALALLAL")
       }
     }
 }
