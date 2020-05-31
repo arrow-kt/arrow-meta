@@ -23,14 +23,26 @@ class PatternMatchingTests {
 
   @Test
   fun `rewrite constructor pattern match expression`() {
+//    data class Person(val firstName: String, val lastName: String)
+//    val person = Person("Matt", "Moore")
+//
+//    fun case(arg: Any): Person = TODO("Deal with later...")
+//
+//    @Suppress("UNRESOLVED_REFERENCE") //allows y and gets you until analysis:
+//    val result = when (person) {
+//      case(Person(_, "Moore")) -> "Matched"
+//      else -> "Not matched"
+//    }
     val code =
-      """|$personSource
-         |
-         |val result = when(person) {
-         |  case(Person(_, "Moore")) -> "Matched"
-         |  else -> "Not matched"
-         |}
-         |"""
+      """$personSource
+         fun case(arg: Any): Person = TODO("Deal with later...")
+         
+         @Suppress("UNRESOLVED_REFERENCE")
+         val result = when (person) {
+           case(Person(_, "Moore")) -> "Matched"
+           else -> "Not matched"
+         }
+         """
 
     code verify {
       allOf(

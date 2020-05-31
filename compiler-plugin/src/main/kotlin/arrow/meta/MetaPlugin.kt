@@ -21,8 +21,8 @@ open class MetaPlugin : Meta {
       //typeClasses,
       // comprehensions,
       //lenses,
-      patternMatching,
-      typeProofs
+      patternMatching
+//      typeProofs
     )
 }
 
