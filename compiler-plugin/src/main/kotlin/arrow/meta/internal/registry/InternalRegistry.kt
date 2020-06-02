@@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -34,6 +34,9 @@ import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
+import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
@@ -59,7 +62,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -126,11 +129,11 @@ interface InternalRegistry : ConfigSyntax {
     configuration: CompilerConfiguration,
     context: CompilerContext? = null
   ) {
-    // val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
-    // println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
+    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
+    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
-      // registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
+      registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
     }
     ide {
       println("it's the IDEA plugin")
@@ -188,11 +191,11 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-//  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
-//    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
-//      SyntheticScopeProviderExtension.registerExtensionPoint(project)
-//    }
-//  }
+  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
+    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
+      SyntheticScopeProviderExtension.registerExtensionPoint(project)
+    }
+  }
 
   fun installArrowPlugin() {
     val ideaPath = System.getProperty("idea.plugins.path")
@@ -226,7 +229,6 @@ interface InternalRegistry : ConfigSyntax {
   }
 
   fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
-    SyntheticScopeProviderExtension.registerExtensionPoint(project)
     SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
         phase.run {
@@ -271,11 +273,11 @@ interface InternalRegistry : ConfigSyntax {
   ) {
     IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
       override fun generate(
-        moduleFragment: IrModuleFragment,
-        pluginContext: IrPluginContext
+        file: IrFile,
+        backendContext: BackendContext,
+        bindingContext: BindingContext
       ) {
-        phase.run { moduleFragment.files.forEach { compilerContext.generate(it, pluginContext) }
-        }
+        phase.run { compilerContext.generate(file, backendContext, bindingContext) }
       }
     })
   }
@@ -419,6 +421,7 @@ interface InternalRegistry : ConfigSyntax {
           declaration: DeclarationDescriptor?,
           containingDeclaration: DeclarationDescriptor?,
           currentModality: Modality,
+          bindingContext: BindingContext,
           isImplicitModality: Boolean
         ): Modality? {
           return phase.run {
@@ -427,6 +430,7 @@ interface InternalRegistry : ConfigSyntax {
               declaration,
               containingDeclaration,
               currentModality,
+              bindingContext,
               isImplicitModality
             )
           }
