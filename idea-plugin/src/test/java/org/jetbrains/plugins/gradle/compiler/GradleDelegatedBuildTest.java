@@ -36,37 +36,37 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
     createProjectSubFile("impl/src/main/resources/dir/file-impl.properties");
     createProjectSubFile("impl/src/test/resources/dir/file-impl-test.properties");
     importProject(
-      "allprojects {\n" +
-      "  apply plugin: 'java'\n" +
-      "}\n" +
-      "\n" +
-      "dependencies {\n" +
-      "  compile project(':api')\n" +
-      "}\n" +
-      "configure(project(':api')) {\n" +
-      "  dependencies {\n" +
-      "    compile project(':impl')\n" +
-      "  }\n" +
-      "}"
+            "allprojects {\n" +
+                    "  apply plugin: 'java'\n" +
+                    "}\n" +
+                    "\n" +
+                    "dependencies {\n" +
+                    "  compile project(':api')\n" +
+                    "}\n" +
+                    "configure(project(':api')) {\n" +
+                    "  dependencies {\n" +
+                    "    compile project(':impl')\n" +
+                    "  }\n" +
+                    "}"
     );
     assertModules("project", "project.main", "project.test",
-                  "project.api", "project.api.main", "project.api.test",
-                  "project.impl", "project.impl.main", "project.impl.test");
+            "project.api", "project.api.main", "project.api.test",
+            "project.impl", "project.impl.main", "project.impl.test");
 
 
     EdtTestUtil.runInEdtAndWait(() -> VirtualFileManager.getInstance().syncRefresh());
     PathsList pathsBeforeMake = new PathsList();
     OrderEnumerator.orderEntries(getModule("project.main")).withoutSdk().recursively().runtimeOnly().classes()
-      .collectPaths(pathsBeforeMake);
+            .collectPaths(pathsBeforeMake);
     assertSameElements(pathsBeforeMake.getPathList(), Collections.emptyList());
 
     compileModules("project.main");
     PathsList pathsAfterMake = new PathsList();
     OrderEnumerator.orderEntries(getModule("project.main")).withoutSdk().recursively().runtimeOnly().classes().collectPaths(pathsAfterMake);
     assertSameElements(pathsAfterMake.getPathList(),
-                       toSystemDependentName(path("build/resources/main")),
-                       toSystemDependentName(path("api/build/resources/main")),
-                       toSystemDependentName(path("impl/build/resources/main")));
+            toSystemDependentName(path("build/resources/main")),
+            toSystemDependentName(path("api/build/resources/main")),
+            toSystemDependentName(path("impl/build/resources/main")));
 
     assertCopied("build/resources/main/dir/file.properties");
     assertNotCopied("build/resources/test/dir/file-test.properties");
@@ -83,51 +83,51 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
     createSettingsFile("include 'api', 'impl' ");
 
     createProjectSubFile("src/main/java/my/pack/App.java",
-                         "package my.pack;\n" +
-                         "public class App {\n" +
-                         "  public int method() { return 42; }" +
-                         "}");
+            "package my.pack;\n" +
+                    "public class App {\n" +
+                    "  public int method() { return 42; }" +
+                    "}");
     createProjectSubFile("src/test/java/my/pack/AppTest.java",
-                         "package my.pack;\n" +
-                         "public class AppTest {\n" +
-                         "  public void test() { new App().method(); }" +
-                         "}");
+            "package my.pack;\n" +
+                    "public class AppTest {\n" +
+                    "  public void test() { new App().method(); }" +
+                    "}");
 
     createProjectSubFile("api/src/main/java/my/pack/Api.java",
-                         "package my.pack;\n" +
-                         "public class Api {\n" +
-                         "  public int method() { return 42; }" +
-                         "}");
+            "package my.pack;\n" +
+                    "public class Api {\n" +
+                    "  public int method() { return 42; }" +
+                    "}");
     createProjectSubFile("api/src/test/java/my/pack/ApiTest.java",
-                         "package my.pack;\n" +
-                         "public class ApiTest {}");
+            "package my.pack;\n" +
+                    "public class ApiTest {}");
 
     createProjectSubFile("impl/src/main/java/my/pack/Impl.java",
-                         "package my.pack;\n" +
-                         "import my.pack.Api;\n" +
-                         "public class Impl extends Api {}");
+            "package my.pack;\n" +
+                    "import my.pack.Api;\n" +
+                    "public class Impl extends Api {}");
     createProjectSubFile("impl/src/test/java/my/pack/ImplTest.java",
-                         "package my.pack;\n" +
-                         "import my.pack.ApiTest;\n" +
-                         "public class ImplTest extends ApiTest {}");
+            "package my.pack;\n" +
+                    "import my.pack.ApiTest;\n" +
+                    "public class ImplTest extends ApiTest {}");
 
     importProject(
-      "allprojects {\n" +
-      "  apply plugin: 'java'\n" +
-      "}\n" +
-      "\n" +
-      "dependencies {\n" +
-      "  compile project(':impl')\n" +
-      "}\n" +
-      "configure(project(':impl')) {\n" +
-      "  dependencies {\n" +
-      "    compile project(':api')\n" +
-      "  }\n" +
-      "}"
+            "allprojects {\n" +
+                    "  apply plugin: 'java'\n" +
+                    "}\n" +
+                    "\n" +
+                    "dependencies {\n" +
+                    "  compile project(':impl')\n" +
+                    "}\n" +
+                    "configure(project(':impl')) {\n" +
+                    "  dependencies {\n" +
+                    "    compile project(':api')\n" +
+                    "  }\n" +
+                    "}"
     );
     assertModules("project", "project.main", "project.test",
-                  "project.api", "project.api.main", "project.api.test",
-                  "project.impl", "project.impl.main", "project.impl.test");
+            "project.api", "project.api.main", "project.api.test",
+            "project.impl", "project.impl.main", "project.impl.test");
 
     List<String> dirtyOutputRoots = new ArrayList<>();
 
@@ -141,29 +141,29 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
       @Override
       public void finished(@NotNull ProjectTaskManager.Result result) {
         result.getContext().getDirtyOutputPaths()
-          .ifPresent(paths -> dirtyOutputRoots.addAll(paths.map(PathUtil::toSystemIndependentName).collect(Collectors.toList())));
+                .ifPresent(paths -> dirtyOutputRoots.addAll(paths.map(PathUtil::toSystemIndependentName).collect(Collectors.toList())));
       }
     });
 
     compileModules("project.main");
 
-    String langPart = isGradleOlderThen("4.0") ? "build/classes" : "build/classes/java";
+    String langPart = isGradleOlderThen_4_0() ? "build/classes" : "build/classes/java";
     List<String> expected = newArrayList(path(langPart + "/main"),
-                                         path("api/" + langPart + "/main"),
-                                         path("impl/" + langPart + "/main"),
-                                         path("api/build/libs/api.jar"),
-                                         path("impl/build/libs/impl.jar"));
+            path("api/" + langPart + "/main"),
+            path("impl/" + langPart + "/main"),
+            path("api/build/libs/api.jar"),
+            path("impl/build/libs/impl.jar"));
 
-    if (isGradleOlderThen("3.3")) {
+    if (isGradleOlderThen_3_3()) {
       expected.addAll(asList(path("build/dependency-cache"),
-                             path("api/build/dependency-cache"),
-                             path("impl/build/dependency-cache")));
+              path("api/build/dependency-cache"),
+              path("impl/build/dependency-cache")));
     }
 
-    if (!isGradleOlderThen("5.2")) {
+    if (!isGradleOlderThen_5_2()) {
       expected.addAll(asList(path("build/generated/sources/annotationProcessor/java/main"),
-                             path("api/build/generated/sources/annotationProcessor/java/main"),
-                             path("impl/build/generated/sources/annotationProcessor/java/main")));
+              path("api/build/generated/sources/annotationProcessor/java/main"),
+              path("impl/build/generated/sources/annotationProcessor/java/main")));
     }
 
     assertSameElements(dirtyOutputRoots, expected);
@@ -180,22 +180,22 @@ public class GradleDelegatedBuildTest extends GradleDelegatedBuildTestCase {
     //----check incremental make and build dependant module----//
     dirtyOutputRoots.clear();
     createProjectSubFile("src/main/java/my/pack/App.java",
-                         "package my.pack;\n" +
-                         "public class App {\n" +
-                         "  public int method() { return 42; }" +
-                         "  public int methodX() { return 42; }" +
-                         "}");
+            "package my.pack;\n" +
+                    "public class App {\n" +
+                    "  public int method() { return 42; }" +
+                    "  public int methodX() { return 42; }" +
+                    "}");
     compileModules("project.test");
 
     expected = newArrayList(path(langPart + "/main"),
-                            path(langPart + "/test"));
+            path(langPart + "/test"));
 
-    if (isGradleOlderThen("3.3")) {
+    if (isGradleOlderThen_3_3()) {
       expected.add(path("build/dependency-cache"));
     }
-    if (!isGradleOlderThen("5.2")) {
+    if (!isGradleOlderThen_5_2()) {
       expected.addAll(asList(path("build/generated/sources/annotationProcessor/java/main"),
-                             path("build/generated/sources/annotationProcessor/java/test")));
+              path("build/generated/sources/annotationProcessor/java/test")));
     }
     assertUnorderedElementsAreEqual(dirtyOutputRoots, expected);
 
