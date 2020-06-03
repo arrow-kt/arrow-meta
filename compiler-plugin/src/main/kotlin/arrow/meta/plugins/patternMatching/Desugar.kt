@@ -12,7 +12,6 @@
 package arrow.meta.plugins.patternMatching
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
@@ -28,23 +27,25 @@ import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 //      .firstChild.nextSibling
 //      .text.replace("_", "person.firstName")
 
-fun reconcileTypes(project: Project, bindingTrace: BindingTrace): Unit {
+fun reconcileTypes(project: Project, bindingTrace: BindingTrace) {
   val underscoreTypeInfo = bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
     .filter { it.value.type == null && it.key.text == "_" }
 
-  val replacementTypeInfo = KotlinTypeInfo(
-    type = constructorFieldTypeInfo(bindingTrace),
-    dataFlowInfo = underscoreTypeInfo.first().value.dataFlowInfo,
-    jumpOutPossible = underscoreTypeInfo.first().value.jumpOutPossible,
-    jumpFlowInfo = underscoreTypeInfo.first().value.jumpFlowInfo
-  )
-
-  bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, underscoreTypeInfo.first().key, replacementTypeInfo)
+  val replacementType = constructorFieldTypeInfo(bindingTrace)
+  if (replacementType != null) {
+    val replacementTypeInfo = KotlinTypeInfo(
+      type = replacementType,
+      dataFlowInfo = underscoreTypeInfo.first().value.dataFlowInfo,
+      jumpOutPossible = underscoreTypeInfo.first().value.jumpOutPossible,
+      jumpFlowInfo = underscoreTypeInfo.first().value.jumpFlowInfo
+    )
+    bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, underscoreTypeInfo.first().key, replacementTypeInfo)
+  }
 }
 
 fun constructorFieldTypeInfo(bindingTrace: BindingTrace) =
   bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO)
     .entries
-    .find { it.key.textMatches("\"Matt\"") }!!
-    .value
-    .type
+    .find { it.key.textMatches(""""Matt"""") }
+    ?.value
+    ?.type
