@@ -51,7 +51,7 @@ import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.event.HyperlinkListener
 
-internal interface IdeInternalRegistry : InternalRegistry {
+interface IdeInternalRegistry : InternalRegistry {
 
   fun intercept(ctx: IdeContext): List<IdePlugin>
 
