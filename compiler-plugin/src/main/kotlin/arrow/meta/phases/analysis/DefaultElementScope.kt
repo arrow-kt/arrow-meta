@@ -52,7 +52,6 @@ import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstructorDelegationCall
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -118,9 +117,6 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.callArguments: Scope<KtValueArgumentList>
     get() = Scope(delegate.createCallArguments(trimMargin().trim()))
-
-  override val String.callExpression: Scope<KtCallExpression>
-    get() = Scope(delegate.createExpression(this) as KtCallExpression)
 
   override val String.typeArguments: Scope<KtTypeArgumentList>
     get() = Scope(delegate.createTypeArguments(trimMargin().trim()))
