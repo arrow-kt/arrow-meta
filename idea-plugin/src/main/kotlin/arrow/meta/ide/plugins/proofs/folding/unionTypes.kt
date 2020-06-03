@@ -8,7 +8,6 @@ import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
-import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -43,14 +42,16 @@ private fun KtTypeReference.foldString(): String =
 
 
 private fun KtElement.foldTypeString(): String =
-  this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.children.orEmpty().joinToString(
-    separator = " | ",
-    transform = {
-      it.safeAs<KtTypeProjection>()?.typeReference?.let { ktTypeReference ->
-        if (ktTypeReference.getType().isTypeMatching()) {
-          ktTypeReference.foldString()
-        } else {
-          ktTypeReference.text
-        }
-      } ?: it.text
-    })
+  this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.let {
+    it.children.joinToString(
+      separator = " | ",
+      transform = {
+        it.safeAs<KtTypeProjection>()?.typeReference?.let { ktTypeReference ->
+          if (ktTypeReference.getType().isTypeMatching()) {
+            ktTypeReference.foldString()
+          } else {
+            ktTypeReference.text
+          }
+        } ?: it.text
+      })
+  } ?: text
