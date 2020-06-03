@@ -7,12 +7,14 @@ import arrow.meta.invoke
 val Meta.patternMatching: CliPlugin
   get() = "pattern matching" {
     meta(
-      analysis(doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-       null
-      },
-      analysisCompleted = { project, module, bindingTrace, files ->
-        bindingTrace.desugar
-        null
-      })
+      analysis(
+        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          null
+        },
+        analysisCompleted = { project, module, bindingTrace, files ->
+          reconcileTypes(project, bindingTrace)
+          null
+        }
+      )
     )
   }
