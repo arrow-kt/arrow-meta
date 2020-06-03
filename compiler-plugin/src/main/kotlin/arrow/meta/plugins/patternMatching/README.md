@@ -43,6 +43,17 @@ This plugin works by:
 1. Finding the sections of the tree representing the invalid code.
 1. Rewriting those invalid sections into code that the compiler understands. This process is called "desugaring".
 
-While it is possible to have the Kotlin compiler understand this process via the Meta Quotes system, that is not sufficient for IntelliJ. Consequently, we have to do this in the _analysis phase_.
+While it is possible to have the Kotlin CLI understand this process via the Meta Quotes system, that is not sufficient for IntelliJ. Consequently, we have to do this in the _analysis phase_. Once the analysis phase has been properly accounted for, IntelliJ will understand that the pattern match expressions are valid, based on the rules provided in this plugin.
 
-Once the analysis phase has been properly accounted for, IntelliJ will understand that the pattern match expressions are valid, based on the rules provided in this plugin.
+### Analysis phase
+
+The analysis phase is where we get the `_` coming through with a `null` type. In analysis phase we are able to alter the type for `_`. We do this with `BindingTrace.record`:
+
+```kotlin
+bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, underscoreTypeInfo.key, replacementTypeInfo)
+````
+
+where the `underscoreTypeInfo.key` is the `KtExpression` representing `_` and `replacementTypeInfo` is the new `KotlinTypeInfo` to replace the `null` type info originally assigned to `_`.
+
+### IR Codegen Phase
+
