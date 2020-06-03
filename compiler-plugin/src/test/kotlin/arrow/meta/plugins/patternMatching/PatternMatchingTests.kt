@@ -1,5 +1,9 @@
 package arrow.meta.plugins.patternMatching
 
+import arrow.meta.CliPlugin
+import arrow.meta.Meta
+import arrow.meta.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
@@ -7,20 +11,35 @@ import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 
+open class PatternMatchingPlugin : Meta {
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
+    patternMatchingPlugin
+  )
+}
+
+val Meta.patternMatchingPlugin: CliPlugin
+  get() =
+    "Binary Expression Scope Plugin" {
+      meta(
+        analysis(
+          doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+            null
+          },
+          analysisCompleted = { project, module, bindingTrace, files ->
+            reconcileTypes(project, bindingTrace)
+            null
+          }
+        )
+      )
+    }
+
 class PatternMatchingTests {
   private infix fun String.verify(assertion: (CompilerTest.Companion) -> Assert) = also {
     assertThis(CompilerTest(
-//      config = { listOf(CompilerTest.addMetaPlugins(PatternMatchingPlugin())) },
-      config = { metaDependencies },
+      config = { listOf(CompilerTest.addMetaPlugins(PatternMatchingPlugin())) },
       code = { it.source }, assert = assertion
     ))
   }
-
-//  open class PatternMatchingPlugin : Meta {
-//    override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-//      patternMatching
-//    )
-//  }
 
   @Test
   fun `rewrite constructor pattern match expression`() {
