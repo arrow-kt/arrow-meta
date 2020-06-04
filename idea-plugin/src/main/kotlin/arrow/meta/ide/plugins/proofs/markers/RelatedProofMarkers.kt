@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.psi.givenAnnotation
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -11,10 +12,14 @@ import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
+import com.intellij.core.CoreJavaFileManager
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.jvm.KotlinCliJavaFileManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
@@ -28,7 +33,7 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofRelatedLineMarkers(ico
     composite = KtDeclaration::class.java,
     targets = {
       it.proof { proof ->
-        proof.targets()
+        proof.targets(it.project)
       }.orEmpty()
     },
     popUpTitle = { decl, targets ->
@@ -36,24 +41,51 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofRelatedLineMarkers(ico
     }
   )
 
-fun Proof.targets(): List<PsiElement> =
+fun Proof.targets(project: Project): List<PsiElement> =
   when (this) {
-    is ClassProof -> targets()
-    is ObjectProof -> targets()
-    is CallableMemberProof -> targets()
-    is CoercionProof -> targets()
-    is ProjectionProof -> targets()
-    is RefinementProof -> targets()
+    is ClassProof -> targets(project)
+    is ObjectProof -> targets(project)
+    is CallableMemberProof -> targets(project)
+    is CoercionProof -> targets(project)
+    is ProjectionProof -> targets(project)
+    is RefinementProof -> targets(project)
   }
 
-fun GivenProof.targets(): List<PsiElement> =
-  listOfNotNull(to).psi()
+/**
+ *
+ */
+fun GivenProof.targets(project: Project): List<PsiElement> =
+  listOfNotNull(to).psi(project)
 
-fun ExtensionProof.targets(): List<PsiElement> =
-  listOf(from, to).psi()
+fun Proof.description(): String =
+  fold(
+    given = {
+      when (this) {
+        is ObjectProof -> """$to is available in all given<$to>() as a singleton value"""
+        is ClassProof -> """$to is available in all given<$to>() as a new instance of this class"""
+        is CallableMemberProof -> """$to is available in all given<$to>() as a call to this member"""
+      }
+    },
+    refinement = {
+      ""
+    },
+    projection = {
+      ""
+    },
+    coercion = {
+      ""
+    }
+  )
 
-fun RefinementProof.targets(): List<PsiElement> =
-  listOf(from, to).psi()
+fun ExtensionProof.targets(project: Project): List<PsiElement> =
+  listOf(from, to).psi(project)
 
-fun List<KotlinType>.psi(): List<PsiElement> =
-  mapNotNull { it.constructor.declarationDescriptor?.source.safeAs<KotlinSourceElement>()?.psi }
+fun RefinementProof.targets(project: Project): List<PsiElement> =
+  listOf(from, to).psi(project)
+
+fun List<KotlinType>.psi(project: Project): List<PsiElement> =
+  mapNotNull {
+    ServiceManager.getService(project, CoreJavaFileManager::class.java).safeAs<KotlinCliJavaFileManager>()?.findClass(
+      it.constructor.declarationDescriptor?.fqNameSafe?.asString() ?: "ERROR", GlobalSearchScope.allScope(project)
+    )
+  }
