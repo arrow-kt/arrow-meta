@@ -26,9 +26,9 @@ import javax.swing.Icon
 
 fun Proof.markerMessage(renderer: DescriptorRenderer): String? =
   when (this) {
-    is ClassProof -> "${renderer.renderType(to)} is available in all given<$to>() as a new instance of this class"
-    is ObjectProof -> "${renderer.renderType(to)} is available in all given<$to>() as a singleton value"
-    is CallableMemberProof -> "${renderer.renderType(to)} is available in all given<$to>() as a call to this member"
+    is ClassProof -> "${renderer.renderType(to)} is available in all given() as a new instance of ${renderer.renderType(to)}"
+    is ObjectProof -> "${renderer.renderType(to)} is available in all given() as a singleton value"
+    is CallableMemberProof -> "${renderer.renderType(to)} is available in all given() as a call to this member"
     is CoercionProof -> """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
     is ProjectionProof -> """all members of $to are available as members of $from"""
     is RefinementProof -> null
