@@ -4,9 +4,12 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
+import com.intellij.ide.util.DefaultPsiElementCellRenderer
+import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -32,6 +35,34 @@ fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
     {
       it.onComposite(composite) { psi: A ->
         lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
+      }
+    }
+  )
+
+@Suppress("UNCHECKED_CAST")
+fun <A : PsiElement, B : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
+  icon: Icon,
+  transform: (PsiElement) -> A?,
+  composite: Class<A>,
+  targets: (A) -> List<B>,
+  message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
+  cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+  popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
+  placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
+): ExtensionPhase =
+  relatedLineMarkerProvider(
+    { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
+    {
+      it.onComposite(composite) { a: A ->
+        navigateGutter(
+          icon,
+          a,
+          targets,
+          { a: A, list: List<B> -> message(DescriptorRenderer.Companion, a, list) },
+          cellRenderer,
+          { a: A, list: List<B> -> popUpTitle(DescriptorRenderer.Companion, a, list) },
+          placed
+        ).invoke(it)
       }
     }
   )

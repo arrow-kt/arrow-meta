@@ -88,16 +88,16 @@ interface LineMarkerSyntax {
   ): ExtensionPhase =
     relatedLineMarkerProvider(
       transform,
-      { element: A ->
-        val list: List<B> = targets(element)
-        navigationGutter(icon, element, targets) { element: A ->
-          setCellRenderer(cellRenderer)
-          setTarget(element)
-          popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
-          message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
-          setAlignment(placed)
-          createLineMarkerInfo(element)
-        }
+      { a: A ->
+        navigateGutter(
+          icon,
+          a,
+          targets,
+          { a: A, list: List<B> -> message(DescriptorRenderer.Companion, a, list) },
+          cellRenderer,
+          { a: A, list: List<B> -> popUpTitle(DescriptorRenderer.Companion, a, list) },
+          placed
+        ).invoke(a)
       }
     )
 
@@ -204,16 +204,16 @@ interface LineMarkerSyntax {
     relatedLineMarkerProvider(
       { transform(it)?.identifyingElement },
       {
-        it.onComposite(composite) { psi: A ->
-          val list: List<B> = targets(psi)
-          navigationGutter(icon, psi, targets) { element: A ->
-            setCellRenderer(cellRenderer)
-            setTarget(element)
-            popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
-            message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
-            setAlignment(placed)
-            createLineMarkerInfo(it)
-          }
+        it.onComposite(composite) { a: A ->
+          navigateGutter(
+            icon,
+            a,
+            targets,
+            { a: A, list: List<B> -> message(DescriptorRenderer.Companion, a, list) },
+            cellRenderer,
+            { a: A, list: List<B> -> popUpTitle(DescriptorRenderer.Companion, a, list) },
+            placed
+          ).invoke(it)
         }
       }
     )
@@ -280,6 +280,28 @@ interface LineMarkerSyntax {
     config: NavigationGutterIconBuilder<A>.(A) -> R
   ): R =
     NavigationGutterIconBuilder.create(icon, targets).config(element)
+
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiElement, B : PsiElement> LineMarkerSyntax.navigateGutter(
+    icon: Icon,
+    psi: A,
+    targets: (A) -> List<B>,
+    message: (A, targets: List<B>) -> String? = Noop.nullable2(),
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    popUpTitle: (A, targets: List<B>) -> String? = Noop.string2(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
+  ): (PsiElement) -> RelatedItemLineMarkerInfo<PsiElement> =
+    {
+      val list: List<B> = targets(psi)
+      navigationGutter(icon, psi, targets) { element: A ->
+        setCellRenderer(cellRenderer)
+        setTarget(element)
+        popUpTitle(element, list)?.let(::setPopupTitle)
+        message(element, list)?.let(::setTooltipText)
+        setAlignment(placed)
+        createLineMarkerInfo(it)
+      }
+    }
 
   /**
    * `MergeableLineMarkerInfo` can merge multiple LineMarkerInfo's into one, if [mergeWith] is true.
