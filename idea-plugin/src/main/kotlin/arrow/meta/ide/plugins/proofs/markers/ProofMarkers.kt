@@ -3,7 +3,6 @@ package arrow.meta.ide.plugins.proofs.markers
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
-import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -15,28 +14,21 @@ import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.scope
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import java.awt.event.MouseEvent
 import javax.swing.Icon
 
-fun Proof.markerMessage(): String =
+fun Proof.markerMessage(): String? =
   when (this) {
-    is ClassProof -> markerMessage()
-    is ObjectProof -> markerMessage()
-    is CallableMemberProof -> markerMessage()
-    is CoercionProof -> markerMessage()
-    is ProjectionProof -> markerMessage()
-    is RefinementProof -> markerMessage()
+    is ClassProof -> """$to is available in all given<$to>() as a new instance of this class"""
+    is ObjectProof -> """$to is available in all given<$to>() as a singleton value"""
+    is CallableMemberProof -> """$to is available in all given<$to>() as a call to this member"""
+    is CoercionProof -> """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
+    is ProjectionProof -> """all members of $to are available as members of $from"""
+    is RefinementProof -> null
   }
 
 fun ExtensionProof.markerMessage(): String {
@@ -93,10 +85,8 @@ fun ExtensionProof.subtypingMarkerMessage(): String {
 fun KtDeclaration.markerMessage(): String =
   scope().run {
     value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
-      val message = proof.markerMessage()
       """
-      <code lang="kotlin">${text}</code> 
-      $message
+      ${proof.markerMessage()}
     """.trimIndent()
     }.orEmpty()
   }
