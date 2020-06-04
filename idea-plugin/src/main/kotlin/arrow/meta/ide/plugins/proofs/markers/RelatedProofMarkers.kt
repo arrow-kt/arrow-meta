@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.psi.givenAnnotation
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -37,7 +36,9 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofRelatedLineMarkers(ico
       }.orEmpty()
     },
     popUpTitle = { decl, targets ->
-      ""
+      decl.proof {
+        it.description()
+      }
     }
   )
 
@@ -57,7 +58,7 @@ fun Proof.targets(project: Project): List<PsiElement> =
 fun GivenProof.targets(project: Project): List<PsiElement> =
   listOfNotNull(to).psi(project)
 
-fun Proof.description(): String =
+fun Proof.description(): String? =
   fold(
     given = {
       when (this) {
@@ -67,13 +68,13 @@ fun Proof.description(): String =
       }
     },
     refinement = {
-      ""
+      null
     },
     projection = {
-      ""
+      """all members of $to are available as members of $from"""
     },
     coercion = {
-      ""
+      """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
     }
   )
 
