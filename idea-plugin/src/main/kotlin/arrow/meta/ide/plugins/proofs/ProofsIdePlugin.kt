@@ -27,7 +27,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
     meta(
       proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
       proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.REFINEMENT, KtClass::isRefinementProof),
       proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
