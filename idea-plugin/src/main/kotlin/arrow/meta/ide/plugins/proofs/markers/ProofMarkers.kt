@@ -19,15 +19,16 @@ import com.intellij.psi.PsiNameIdentifierOwner
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
-fun Proof.markerMessage(): String? =
+fun Proof.markerMessage(renderer: DescriptorRenderer): String? =
   when (this) {
-    is ClassProof -> """$to is available in all given<$to>() as a new instance of this class"""
-    is ObjectProof -> """$to is available in all given<$to>() as a singleton value"""
-    is CallableMemberProof -> """$to is available in all given<$to>() as a call to this member"""
+    is ClassProof -> "${renderer.renderType(to)} is available in all given<$to>() as a new instance of this class"
+    is ObjectProof -> "${renderer.renderType(to)} is available in all given<$to>() as a singleton value"
+    is CallableMemberProof -> "${renderer.renderType(to)} is available in all given<$to>() as a call to this member"
     is CoercionProof -> """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
     is ProjectionProof -> """all members of $to are available as members of $from"""
     is RefinementProof -> null
@@ -84,11 +85,11 @@ fun ExtensionProof.subtypingMarkerMessage(): String {
         """.trimIndent()
 }
 
-fun KtDeclaration.markerMessage(): String =
+fun KtDeclaration.markerMessage(renderer: DescriptorRenderer): String =
   scope().run {
     value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
       """
-      ${proof.markerMessage()}
+      ${proof.markerMessage(renderer)}
     """.trimIndent()
     }.orEmpty()
   }
@@ -100,9 +101,7 @@ inline fun <reified B : PsiNameIdentifierOwner>
     composite = B::class.java,
     transform = { transform(it) },
     message = {
-      it.onComposite(KtDeclaration::class.java) { a ->
-        a.markerMessage()
-      } ?: ""
+      it.safeAs<KtDeclaration>()?.markerMessage(this.HTML) ?: ""
     }
   )
 
