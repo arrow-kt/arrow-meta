@@ -82,7 +82,7 @@ interface LineMarkerSyntax {
     transform: (PsiElement) -> A?,
     targets: (A) -> List<B>,
     message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
-    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
     popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
@@ -197,7 +197,7 @@ interface LineMarkerSyntax {
     composite: Class<A>,
     targets: (A) -> List<B>,
     message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
-    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
     popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
@@ -217,6 +217,8 @@ interface LineMarkerSyntax {
         }
       }
     )
+
+
 
   /**
    * Similar to [addLineMarkerProvider], but with mergeable LineMarkers, based on the predicate [mergeWith].
@@ -287,7 +289,7 @@ interface LineMarkerSyntax {
     psi: A,
     targets: (A) -> List<B>,
     message: (A, targets: List<B>) -> String? = Noop.nullable2(),
-    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
     popUpTitle: (A, targets: List<B>) -> String? = Noop.string2(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): (PsiElement) -> RelatedItemLineMarkerInfo<PsiElement> =

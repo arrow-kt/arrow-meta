@@ -14,6 +14,7 @@ import arrow.meta.plugins.proofs.phases.RefinementProof
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
@@ -29,6 +30,9 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofRelatedLineMarkers(ico
       it.proof { proof ->
         proof.targets()
       }.orEmpty()
+    },
+    popUpTitle = { decl, targets ->
+      ""
     }
   )
 
@@ -43,13 +47,13 @@ fun Proof.targets(): List<PsiElement> =
   }
 
 fun GivenProof.targets(): List<PsiElement> =
-  listOfNotNull(to.constructor.declarationDescriptor?.findPsi(), through.findPsi())
+  listOfNotNull(to).psi()
 
 fun ExtensionProof.targets(): List<PsiElement> =
-  listOf(from, to).psi() + listOfNotNull(through.findPsi())
+  listOf(from, to).psi()
 
 fun RefinementProof.targets(): List<PsiElement> =
-  listOf(from, to).psi() + listOfNotNull(through.findPsi())
+  listOf(from, to).psi()
 
 fun List<KotlinType>.psi(): List<PsiElement> =
-  mapNotNull { it.constructor.declarationDescriptor?.findPsi() }
+  mapNotNull { it.constructor.declarationDescriptor?.source.safeAs<KotlinSourceElement>()?.psi }
