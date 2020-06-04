@@ -18,7 +18,7 @@ import javax.swing.Icon
  * PsiElements that are not leafs so it will look for the first Leaf corresponding the targeted psiElement
  */
 @Suppress("UNCHECKED_CAST")
-fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider1(
   icon: Icon,
   transform: (PsiElement) -> A?,
   composite: Class<A>,

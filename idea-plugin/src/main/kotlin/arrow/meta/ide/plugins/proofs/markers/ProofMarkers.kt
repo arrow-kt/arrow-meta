@@ -14,6 +14,8 @@ import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.scope
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -91,15 +93,16 @@ fun KtDeclaration.markerMessage(): String =
     }.orEmpty()
   }
 
-inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
+inline fun <reified B : PsiNameIdentifierOwner>
+  IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline transform: (PsiElement) -> B?): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
-    transform = {
-      it.safeAs<A>()?.takeIf(filter)
-    },
-    composite = KtDeclaration::class.java,
+    composite = B::class.java,
+    transform = { transform(it) },
     message = {
-      it.markerMessage()
+      it.onComposite(KtDeclaration::class.java) { a ->
+        a.markerMessage()
+      } ?: ""
     }
   )
 
