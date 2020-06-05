@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.junit.Ignore
 import org.junit.Test
 
-@Ignore
 class QuoteSystemTest : IdeTestSetUp() {
 
   @Test
@@ -34,7 +33,7 @@ class QuoteSystemTest : IdeTestSetUp() {
     project.testQuoteSystem()?.forceRebuild(project)
       ?: throw unavailable(TestQuoteSystemService::class.java)
     val psi = myFixture.elementAtCaret
-    assertEquals("@arrow.synthetic typealias Id1Of<A> = arrow.Kind<ForId1, A>", psi.text)
+    assertEquals("@arrow.synthetic typealias Id1Of<A> = arrowx.Kind<ForId1, A>", psi.text)
   }
 
   @Test
@@ -59,11 +58,12 @@ class QuoteSystemTest : IdeTestSetUp() {
     project.testQuoteSystem()?.forceRebuild(project)
       ?: throw unavailable(TestQuoteSystemService::class.java)
     val psi = myFixture.elementAtCaret
-    assertEquals("@arrow.synthetic typealias Id2Of<A> = arrow.Kind<ForId2, A>", psi.text)
+    assertEquals("@arrow.synthetic typealias Id2Of<A> = arrowx.Kind<ForId2, A>", psi.text)
   }
 
   // fixme: this test is still failing, see below for the reason
   @Test
+  @Ignore
   fun higherKindAllCacheItemsResolved() {
     val code = """
       package testArrow

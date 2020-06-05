@@ -6,6 +6,7 @@ import arrow.meta.ide.internal.registry.IdeInternalRegistry
 import arrow.meta.ide.phases.IdeContext
 import arrow.meta.ide.plugins.initial.initialIdeSetUp
 import arrow.meta.ide.plugins.proofs.typeProofsIde
+import arrow.meta.ide.plugins.quotes.quotes
 import kotlin.contracts.ExperimentalContracts
 
 open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
@@ -13,7 +14,7 @@ open class IdeMetaPlugin : MetaPlugin(), IdeInternalRegistry, IdeSyntax {
   override fun intercept(ctx: IdeContext): List<IdePlugin> =
     listOf(
       initialIdeSetUp,
-      //quotes,
+      quotes,
       typeProofsIde
     )
 }

@@ -210,7 +210,7 @@ private fun LazyClassDescriptor.synthetic(declarationProvider: DeclarationProvid
     kind = kind,
     isCompanionObject = isCompanionObject
   ).apply {
-    initialize(declaredTypeParameters)
+    initialize()
   }
 }
 
