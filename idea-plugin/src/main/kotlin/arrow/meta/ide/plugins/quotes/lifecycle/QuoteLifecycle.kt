@@ -182,8 +182,7 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
             ProgressManager.getInstance().runProcess({
               app.updateDoc(document, indicator, project, quoteSystem, cache)
             }, indicator)
-          }.cancelWith(indicator)
-            .expireWhen(indicator::isCanceled)
+          }.wrapProgress(indicator)
             .expireWith(project)
             .submit(quoteSystem.context.docExec)
         }

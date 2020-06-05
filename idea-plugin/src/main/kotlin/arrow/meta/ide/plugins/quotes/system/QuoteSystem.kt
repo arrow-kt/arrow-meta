@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicLong
 
 private class QuoteSystem(project: Project) : QuoteSystemService {
@@ -88,7 +89,7 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
     LOG.assertTrue(strategy.indicator.isRunning)
     LOG.info("refreshCache(): updating/adding ${files.size} files, currently cached ${cache.size} files")
 
-    if (files.isEmpty()) {
+    if (files.isEmpty() || project.isDisposed) {
       return
     }
 
@@ -106,8 +107,8 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
         LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
       }
     }
-      .cancelWith(strategy.indicator)
-      .expireWhen { strategy.indicator.isCanceled }
+      .expireWith(project)
+      .wrapProgress(strategy.indicator)
       .submit(context.docExec)
       .then { transformed ->
         // limit to one pool to avoid cache corruption
@@ -120,7 +121,7 @@ private class QuoteSystem(project: Project) : QuoteSystemService {
         //    best would be partial transformation results for the valid parts of a file (Quote system changes needed)
 
         // IllegalStateExceptions are usually caused by syntax errors in the source files, thrown by quote system
-        if (LOG.isDebugEnabled) {
+        if (e !is CancellationException && LOG.isDebugEnabled) {
           LOG.debug("error transforming files $files", e)
         }
       }
@@ -185,8 +186,7 @@ private fun QuoteSystemService.performRefresh(cache: QuoteCache, files: List<KtF
         }
       }
     }, strategy.indicator)
-  }.cancelWith(strategy.indicator)
-    .expireWhen { strategy.indicator.isCanceled }
+  }.wrapProgress(strategy.indicator)
     .expireWith(project)
     .inSmartMode(project)
     .submit(context.cacheExec)
