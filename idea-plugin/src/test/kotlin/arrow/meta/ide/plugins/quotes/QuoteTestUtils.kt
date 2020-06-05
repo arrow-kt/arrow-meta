@@ -7,13 +7,10 @@ import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
 import arrow.meta.internal.Noop
 import arrow.meta.quotes.analysisIdeExtensions
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.testFramework.EdtTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
-import com.intellij.util.ThrowableRunnable
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
