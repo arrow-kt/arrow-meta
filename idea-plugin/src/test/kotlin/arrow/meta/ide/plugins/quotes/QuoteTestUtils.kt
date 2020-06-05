@@ -33,6 +33,8 @@ interface TestQuoteSystemService {
 
 
   fun forceRebuild(project: Project): Unit {
+    PsiDocumentManager.getInstance(project).commitAllDocuments()
+
     val quoteFiles = project.quoteRelevantFiles()
     val cache = project.getService(QuoteCache::class.java)
     LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
