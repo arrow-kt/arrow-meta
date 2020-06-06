@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.application
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.annotator.AnnotatorSyntax
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.internal.Noop
@@ -17,7 +18,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.startup.StartupActivity
@@ -48,14 +48,14 @@ interface ApplicationSyntax {
    * }
    * ```
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
-   * val IdeMetaPlugin.services: IdePlugin
+   * val MetaIde.services: IdePlugin
    *   get() = "Register application-level services" {
    *     meta(
    *       addAppService(MyService::class.java) {
@@ -74,7 +74,7 @@ interface ApplicationSyntax {
    * ```
    * The service is now available at runtime and there is also the option to utilise project-level services with [addProjectService] - please check the Docs on how to register those.
    * ```kotlin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
@@ -84,7 +84,7 @@ interface ApplicationSyntax {
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    * //sampleStart
-   * val IdeMetaPlugin.logAnnotator: IdePlugin
+   * val MetaIde.logAnnotator: IdePlugin
    *   get() = "Log Annotator" {
    *     meta(
    *       addAnnotator( // Annotators traverse PsiElements and are means to write language Plugins
@@ -113,14 +113,14 @@ interface ApplicationSyntax {
    * @see AnnotatorSyntax
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : Any> IdeMetaPlugin.addAppService(service: Class<A>, instance: (A?) -> A?): ExtensionPhase =
+  fun <A : Any> MetaIde.addAppService(service: Class<A>, instance: (A?) -> A?): ExtensionPhase =
     ApplicationProvider.AppService(service) { service -> instance(service as A?) }
 
   /**
    * replaces an application [service] with [instance].
    * In this example this [Annotator] needs a different [instance] for `MyService` than what is currently provided - see our example in [addAppService].
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import arrow.meta.plugins.higherkind.isHigherKindedType
@@ -130,7 +130,7 @@ interface ApplicationSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.logAnnotator: IdePlugin
+   * val MetaIde.logAnnotator: IdePlugin
    *   get() = "Log Function Annotator" {
    *     meta(
    *       replaceAppService(MyService::class.java) { myOldService ->
@@ -158,7 +158,7 @@ interface ApplicationSyntax {
    * @see AnnotatorSyntax
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : Any> IdeMetaPlugin.replaceAppService(service: Class<A>, instance: (A?) -> A): ExtensionPhase =
+  fun <A : Any> MetaIde.replaceAppService(service: Class<A>, instance: (A?) -> A): ExtensionPhase =
     ApplicationProvider.ReplaceAppService(service) { service -> instance(service as A?) }
 
   /**
@@ -167,7 +167,7 @@ interface ApplicationSyntax {
    * The application will raise an error at runtime if the latter is not valid or
    * when [override] == false and there is already a service instance associated with [from].
    */
-  fun IdeMetaPlugin.overrideService(from: Class<*>, to: Class<*>, override: Boolean = true): ExtensionPhase =
+  fun MetaIde.overrideService(from: Class<*>, to: Class<*>, override: Boolean = true): ExtensionPhase =
     ApplicationProvider.OverrideService(from, to, override)
 
   /**
@@ -175,7 +175,7 @@ interface ApplicationSyntax {
    * Meanwhile this is deprecated.
    */
   /*@Suppress("UNCHECKED_CAST")
-  fun <A : Any> IdeMetaPlugin.replaceProjectService(service: Class<A>, instance: (Project, A?) -> A): ExtensionPhase =
+  fun <A : Any> MetaIde.replaceProjectService(service: Class<A>, instance: (Project, A?) -> A): ExtensionPhase =
     ApplicationProvider.ReplaceProjectService(service) { project, service -> instance(project, service as A?) }
   */
 
@@ -186,7 +186,7 @@ interface ApplicationSyntax {
    * There are several use-cases like [org.jetbrains.kotlin.caches.resolve.KotlinCacheService] for project-level services.
    * The following example registers a logger for the KotlinCacheService by hijacking it's standard implementation from the kotlin plugin.
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.project.Project
@@ -198,7 +198,7 @@ interface ApplicationSyntax {
    * import org.jetbrains.kotlin.psi.KtElement
    * import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
    * //sampleStart
-   * val IdeMetaPlugin.logKotlinCachePlugin: IdePlugin
+   * val MetaIde.logKotlinCachePlugin: IdePlugin
    *   get() = "Log Kotlin Cache Plugin" {
    *     meta(
    *       addProjectService(KotlinCacheService::class.java) { project: Project, kotlinCache: KotlinCacheService? ->
@@ -238,7 +238,7 @@ interface ApplicationSyntax {
    * With this example in mind, the usage of KotlinCacheService implies logging the example output on console.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : Any> IdeMetaPlugin.addProjectService(service: Class<A>, instance: (Project, A?) -> A?): ExtensionPhase =
+  fun <A : Any> MetaIde.addProjectService(service: Class<A>, instance: (Project, A?) -> A?): ExtensionPhase =
     ApplicationProvider.ProjectService(service) { project, service -> instance(project, service as A?) }
 
   /**
@@ -251,7 +251,7 @@ interface ApplicationSyntax {
    * @see StartupActivity
    * @see StartupActivity.DumbAware and their Subtypes
    */
-  fun IdeMetaPlugin.addPostStartupActivity(activity: StartupActivity): ExtensionPhase =
+  fun MetaIde.addPostStartupActivity(activity: StartupActivity): ExtensionPhase =
     extensionProvider(StartupActivity.POST_STARTUP_ACTIVITY, activity, LoadingOrder.FIRST)
 
   /**
@@ -259,33 +259,33 @@ interface ApplicationSyntax {
    * See https://github.com/JetBrains/intellij-community/blob/master/platform/service-container/overview.md#startup-activity
    * @see StartupActivity.Background and their Subtypes
    */
-  fun IdeMetaPlugin.addBackgroundPostStartupActivity(activity: StartupActivity.Background): ExtensionPhase =
+  fun MetaIde.addBackgroundPostStartupActivity(activity: StartupActivity.Background): ExtensionPhase =
     extensionProvider(StartupActivity.BACKGROUND_POST_STARTUP_ACTIVITY, activity, LoadingOrder.FIRST)
 
-  fun IdeMetaPlugin.stopServicePreloading(): ExtensionPhase =
+  fun MetaIde.stopServicePreloading(): ExtensionPhase =
     ApplicationProvider.StopServicePreloading
 
-  fun IdeMetaPlugin.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
+  fun MetaIde.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
     extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
 
   /**
    * registers an activity, which is executed eagerly in the background on startup.
    * @see PreloadingActivity
    */
-  fun IdeMetaPlugin.addPreloadingActivity(preload: (ProgressIndicator) -> Unit): ExtensionPhase =
+  fun MetaIde.addPreloadingActivity(preload: (ProgressIndicator) -> Unit): ExtensionPhase =
     addPreloadingActivity(preloadingActivity(preload))
 
-  fun IdeMetaPlugin.addAppLifecycleListener(listener: AppLifecycleListener): ExtensionPhase =
+  fun MetaIde.addAppLifecycleListener(listener: AppLifecycleListener): ExtensionPhase =
     ApplicationProvider.AppListener(listener)
 
   /**
    * registers an [AppLifecycleListener].
    * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    *
-   * val IdeMetaPlugin.goodbye: IdePlugin
+   * val MetaIde.goodbye: IdePlugin
    *   get() = "Goodbye after Application is closed" {
    *     meta(
    *       addAppLifecycleListener(
@@ -297,7 +297,7 @@ interface ApplicationSyntax {
    *   }
    * ```
    */
-  fun IdeMetaPlugin.addAppLifecycleListener(
+  fun MetaIde.addAppLifecycleListener(
     appClosing: () -> Unit = Noop.effect0,
     projectOpenFailed: () -> Unit = Noop.effect0,
     appFrameCreated: (cliArgs: MutableList<String>) -> Unit = Noop.effect1,
@@ -335,7 +335,7 @@ interface ApplicationSyntax {
   /**
    * registers a [ProjectLifecycle]
    */
-  fun IdeMetaPlugin.addProjectLifecycle(
+  fun MetaIde.addProjectLifecycle(
     initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
     dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
@@ -391,7 +391,7 @@ interface ApplicationSyntax {
         afterProjectClosed(project)
     }
 
-  fun IdeMetaPlugin.addPMListener(
+  fun MetaIde.addPMListener(
     closing: (Project) -> Unit = Noop.effect1,
     closed: (Project) -> Unit = Noop.effect1,
     closingBeforeSave: (Project) -> Unit = Noop.effect1,
@@ -406,7 +406,7 @@ interface ApplicationSyntax {
     opened: (Project) -> Unit = Noop.effect1
   ): ProjectManagerListener =
     object : ProjectManagerListener {
-      override fun projectClosing(project: Project):Unit =
+      override fun projectClosing(project: Project): Unit =
         closing(project)
 
       override fun projectClosed(project: Project): Unit =
@@ -415,14 +415,14 @@ interface ApplicationSyntax {
       override fun projectClosingBeforeSave(project: Project): Unit =
         closingBeforeSave(project)
 
-      override fun projectOpened(project: Project):Unit =
+      override fun projectOpened(project: Project): Unit =
         opened(project)
     }
 
   /**
    * convenience extension to register the CliPlugins from an [IdeMetaPlugin] Plugin
    */
-  fun IdeMetaPlugin.registerMetaPlugin(
+  fun MetaIde.registerMetaPlugin(
     conf: CompilerConfiguration = CompilerConfiguration(),
     dispose: ProjectLifecycle.() -> Unit = Noop.effect1
   ): ExtensionPhase =
@@ -436,7 +436,7 @@ interface ApplicationSyntax {
   /**
    * registers an [ModuleListener]
    */
-  fun IdeMetaPlugin.addModuleListener(
+  fun MetaIde.addModuleListener(
     moduleAdded: (project: Project, module: Module) -> Unit,
     moduleRemoved: (project: Project, module: Module) -> Unit,
     beforeModuleRemoved: (project: Project, module: Module) -> Unit,

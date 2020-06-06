@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.goto
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.navigation.GotoRelatedItem
@@ -16,7 +16,7 @@ interface GotoRelatedSyntax {
    * one example is here org.jetbrains.kotlin.idea.goto.KotlinExpectOrActualGotoRelatedProvider
    * @see com.intellij.navigation.GotoRelatedProvider
    */
-  fun IdeMetaPlugin.addGotoRelatedProvider(
+  fun MetaIde.addGotoRelatedProvider(
     psiBased: (psi: PsiElement) -> List<GotoRelatedItem> = Noop.emptyList1(),
     ctxBased: (ctx: DataContext) -> List<GotoRelatedItem> = Noop.emptyList1()
   ): ExtensionPhase =

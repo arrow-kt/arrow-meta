@@ -95,6 +95,9 @@ interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<CliPlugin>
 
+  fun meta(vararg phases: ExtensionPhase): List<ExtensionPhase> =
+    phases.toList()
+
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
       AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {

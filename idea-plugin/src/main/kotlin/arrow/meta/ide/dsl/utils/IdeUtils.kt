@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
@@ -159,7 +160,7 @@ internal val KtFile.ctx: BindingContext?
 /**
  * Renders descriptors with the specified options
  */
-internal val IdeMetaPlugin.descriptorRender: DescriptorRenderer
+internal val MetaIde.descriptorRender: DescriptorRenderer
   get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
     textFormat = RenderingFormat.HTML
     classifierNamePolicy = classifierNamePolicy()

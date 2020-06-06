@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.lineMarker
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.descriptorRender
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -33,10 +33,10 @@ import javax.swing.Icon
 interface LineMarkerSyntax {
   // TODO: Add more Techniques such as the one from Elm
 
-  fun IdeMetaPlugin.registerLineMarker(provider: LineMarkerProvider): ExtensionPhase =
+  fun MetaIde.registerLineMarker(provider: LineMarkerProvider): ExtensionPhase =
     extensionProvider(LineMarkerProviders.getInstance(), provider)
 
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+  fun <A : PsiElement> MetaIde.addLineMarkerProvider(
     transform: (PsiElement) -> A?,
     lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
     slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
@@ -63,7 +63,7 @@ interface LineMarkerSyntax {
    * @sample [arrow.meta.ide.plugins.optics.opticsIdePlugin]
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
+  fun <A : PsiElement> MetaIde.addLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
@@ -77,7 +77,7 @@ interface LineMarkerSyntax {
     )
 
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement, B : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
+  fun <A : PsiElement, B : PsiElement> MetaIde.addRelatedLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
     targets: (A) -> List<B>,
@@ -107,7 +107,7 @@ interface LineMarkerSyntax {
    * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderM(
+  fun <A : PsiElement> MetaIde.addLineMarkerProviderM(
     icon: Icon,
     transform: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
@@ -135,7 +135,7 @@ interface LineMarkerSyntax {
    * In addition, plugin developer's can compose sophisticated messages, as the whole scope of [A] can be exploited.
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
@@ -144,7 +144,7 @@ interface LineMarkerSyntax {
    * import org.jetbrains.kotlin.renderer.ParameterNameRenderingPolicy
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.descriptorLineMarker: IdePlugin
+   * val MetaIde.descriptorLineMarker: IdePlugin
    *   get() = "Render Descriptor Plugin" {
    *     meta(
    *       addLineMarkerProvider(
@@ -168,7 +168,7 @@ interface LineMarkerSyntax {
    * @param message you may use a [DescriptorRenderer] for rendering descriptors see [descriptorRender]
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addLineMarkerProvider(
+  fun <A : PsiNameIdentifierOwner> MetaIde.addLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
     composite: Class<A>,
@@ -191,7 +191,7 @@ interface LineMarkerSyntax {
    * // com.intellij.psi.SmartPointerManager as the receiver #createSmartPsiElementPointer {
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiNameIdentifierOwner, B : PsiElement> IdeMetaPlugin.addRelatedLineMarkerProvider(
+  fun <A : PsiNameIdentifierOwner, B : PsiElement> MetaIde.addRelatedLineMarkerProvider(
     icon: Icon,
     transform: (PsiElement) -> A?,
     composite: Class<A>,
@@ -224,7 +224,7 @@ interface LineMarkerSyntax {
    * @param navigate this function allows you to execute anything based on your use-case: actions, manipulations to PsiElements, opening Files or anything else.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <A : PsiNameIdentifierOwner> IdeMetaPlugin.addLineMarkerProviderM(
+  fun <A : PsiNameIdentifierOwner> MetaIde.addLineMarkerProviderM(
     icon: Icon,
     transform: (PsiElement) -> A?,
     composite: Class<A>,
@@ -312,7 +312,7 @@ interface LineMarkerSyntax {
   /**
    * registers a RelatedItemLineMarkerProvider
    */
-  fun <A : PsiElement> IdeMetaPlugin.relatedLineMarkerProvider(
+  fun <A : PsiElement> MetaIde.relatedLineMarkerProvider(
     transform: (PsiElement) -> A?,
     lineMarkerInfo: (a: A) -> RelatedItemLineMarkerInfo<PsiElement>?
   ): ExtensionPhase =
