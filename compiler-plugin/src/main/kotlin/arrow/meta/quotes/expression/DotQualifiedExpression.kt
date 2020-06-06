@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *    get() =
  *      "Reformat Dot Qualified Expression" {
  *        meta(
- *          dotQualifiedExpression({ true }) { expression ->
+ *          dotQualifiedExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """$receiverExpression.$selectorExpression""".dotQualifiedExpression

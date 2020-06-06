@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *    get() =
  *      "Reformat Destructuring Declaration" {
  *        meta(
- *          destructuringDeclaration({ true }) { declaration ->
+ *          destructuringDeclaration(this, { true }) { declaration ->
  *            Transform.replace(
  *              replacing = declaration,
  *              newDeclaration = """$valOrVar ($entries) = $initializer """.destructuringDeclaration

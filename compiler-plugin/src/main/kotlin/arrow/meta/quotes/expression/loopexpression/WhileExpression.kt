@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  *    get() =
  *      "Reformat While Expression" {
  *        meta(
- *          whileExpression(ths, { true }) { loopExpression ->
+ *          whileExpression(this, { true }) { loopExpression ->
  *            Transform.replace(
  *              replacing = loopExpression,
  *              newDeclaration = """"while ($condition) $body""".`while`

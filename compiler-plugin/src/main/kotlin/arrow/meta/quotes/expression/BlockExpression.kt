@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *    get() =
  *      "Reformat Block Expression" {
  *        meta(
- *          blockExpression({ true }) { expression ->
+ *          blockExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *       newDeclaration = """$statements""".block
