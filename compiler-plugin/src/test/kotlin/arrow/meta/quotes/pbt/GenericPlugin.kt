@@ -71,6 +71,7 @@ open class GenericPlugin : Meta {
     "Generic Plugin" {
       meta(
         quote(
+          this,
           { implemented(this) },
           { element: KtElement ->
             Transform.replace(

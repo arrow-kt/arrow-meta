@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtParameter
  *   get() =
  *     "ReformatLambda" {
  *       meta(
- *        lambdaExpression({ true }) { e ->
+ *        lambdaExpression(this, { true }) { e ->
  *          Transform.replace(
  *            replacing = e,
  *            newDeclaration = lambdaExpression("""$`(params)`""", """$bodyExpression""")

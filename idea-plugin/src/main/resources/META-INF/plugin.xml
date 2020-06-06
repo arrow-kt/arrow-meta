@@ -19,6 +19,9 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
+    <!--For a consistent Ide experience one may not unregister the entry point of Meta - applicationInitializedListener,
+        and the various project and applicationService registration, as those abilities haven't been made available through the Meta Ide internals, yet.
+        However if one wishes to disable, remove or manipulate a feature set of Ide extensions, one may choose to do so by utilising the Meta APIs instead of the plugin.xml-->
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
         <applicationService serviceInterface="arrow.meta.ide.MetaIde" serviceImplementation="arrow.meta.ide.IdeMetaPlugin"/>
@@ -27,14 +30,12 @@
 <!--        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>-->
 <!--        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"-->
 <!--                        serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>-->
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.initial.CompilerContextService"
                         serviceInterface="arrow.meta.phases.CompilerContext"/>
-<!--        <highlightingPassFactory implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingPassFactory"/>-->
     </extensions>
-
-<!--    <extensions defaultExtensionNs="org.jetbrains.kotlin">-->
-<!--        <syntheticResolveExtension-->
-<!--                implementation="arrow.meta.ide.plugins.quotes.resolve.QuoteSyntheticResolveExtension"/>-->
-<!--    </extensions>-->
-
 </idea-plugin>

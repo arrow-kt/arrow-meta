@@ -1,9 +1,13 @@
 package arrow.meta.ide.dsl.editor.fileEditor
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.phases.application.ApplicationProvider
+import arrow.meta.ide.phases.editor.fileEditor.EditorProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import com.intellij.codeHighlighting.TextEditorHighlightingPass
+import com.intellij.codeHighlighting.TextEditorHighlightingPassFactory
+import com.intellij.codeHighlighting.TextEditorHighlightingPassFactoryRegistrar
+import com.intellij.codeHighlighting.TextEditorHighlightingPassRegistrar
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -15,8 +19,10 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 
 interface EditorSyntax {
 
@@ -49,7 +55,7 @@ interface EditorSyntax {
     fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<List<FileEditor>, List<FileEditorProvider>>) -> Unit = Noop.effect3,
     fileClosed: (source: FileEditorManager, file: VirtualFile) -> Unit = Noop.effect2
   ): ExtensionPhase =
-    ApplicationProvider.FileEditorListener(fileEditorListener(selectionChanged, fileOpened, fileOpenedSync, fileClosed))
+    EditorProvider.FileEditorListener(fileEditorListener(selectionChanged, fileOpened, fileOpenedSync, fileClosed))
 
   fun EditorSyntax.fileEditorListener(
     selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
@@ -90,4 +96,31 @@ interface EditorSyntax {
       override fun caretRemoved(event: CaretEvent) =
         caretRemoved(event)
     }
+
+  fun IdeMetaPlugin.textEditorHighlighting(
+    factoryRegistrar: TextEditorHighlightingPassFactoryRegistrar
+  ): ExtensionPhase =
+    addPMListener(opened = { project ->
+      TextEditorHighlightingPassRegistrar.getInstance(project)?.run {
+        // registration method in com.intellij.codeInsight.daemon.impl.TextEditorHighlightingPassRegistrarImpl.TextEditorHighlightingPassRegistrarImpl
+        // clear room of improvement, but leaving it as is for backward compatibility
+        factoryRegistrar.registerHighlightingPassFactory(this, project)
+      }
+    })
+
+  fun IdeMetaPlugin.addTextEditorHighlighting(
+    factory: TextEditorHighlightingPassRegistrar.(project: Project) -> Unit = Noop.effect2,
+    highlightingPass: Editor.(file: PsiFile) -> TextEditorHighlightingPass? = Noop.nullable2()
+  ): ExtensionPhase =
+    textEditorHighlighting(
+      // TODO: Extend it with TextEditorHighlightingPass, com.intellij.codeHighlighting.MainHighlightingPassFactory, etc.
+      object : TextEditorHighlightingPassFactoryRegistrar, TextEditorHighlightingPassFactory {
+        override fun registerHighlightingPassFactory(registrar: TextEditorHighlightingPassRegistrar, project: Project): Unit =
+          factory(registrar, project)
+
+        // uses casts in the internals to call this check TextEditorHighlightingPassRegistrarImpl and calls from com.intellij.codeHighlighting.TextEditorHighlightingPassRegistrar
+        override fun createHighlightingPass(file: PsiFile, editor: Editor): TextEditorHighlightingPass? =
+          highlightingPass(editor, file)
+      }
+    )
 }

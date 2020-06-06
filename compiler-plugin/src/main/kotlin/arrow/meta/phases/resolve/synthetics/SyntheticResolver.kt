@@ -2,6 +2,7 @@ package arrow.meta.phases.resolve.synthetics
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -12,7 +13,7 @@ import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import org.jetbrains.kotlin.types.KotlinType
-import java.util.ArrayList
+import java.util.*
 
 /**
  * @see [ExtensionPhase]
@@ -61,4 +62,10 @@ interface SyntheticResolver : ExtensionPhase {
   fun CompilerContext.getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name>
 
   fun CompilerContext.getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name>
+
+  fun CompilerContext.generateSyntheticSecondaryConstructors(
+    thisDescriptor: ClassDescriptor,
+    bindingContext: BindingContext,
+    result: MutableCollection<ClassConstructorDescriptor>
+  ): Unit
 }

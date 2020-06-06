@@ -1,9 +1,8 @@
-package arrow.meta.ide.plugins.quotes.resolve
+package arrow.meta.ide.plugins.quotes.synthetic
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -21,21 +20,25 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.Printer
 
 val IdeMetaPlugin.quoteSyntheticPackageFragmentProvider: ExtensionPhase
-  get() = packageFragmentProvider { project, module, _, _, _, _ ->
-    descriptorCachePackageFragmentProvider(module, project)
+  get() = packageFragmentProvider { project ->
+    project.getService(QuoteCache::class.java)?.let { quoteCache ->
+      packageFragmentProvider { _, module, _, _, _, _ ->
+        descriptorCachePackageFragmentProvider(module, quoteCache)
+      }
+    }
   }
 
-private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, Project) -> PackageFragmentProvider
-  get() = { module, project ->
-    val quoteCache: QuoteCache? = project.getService(QuoteCache::class.java)
+
+private val descriptorCachePackageFragmentProvider: (ModuleDescriptor, QuoteCache) -> PackageFragmentProvider
+  get() = { module, quoteCache ->
     object : PackageFragmentProvider {
       // fixme always provide a value or only when a cached value exists?
       override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-        quoteCache?.run { listOf(buildCachePackageFragmentDescriptor(module, fqName, this)) }.orEmpty()
+        listOf(buildCachePackageFragmentDescriptor(module, fqName, quoteCache))
 
       //fixme optimize this
       override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-        quoteCache?.packages()?.filter { it.parent() == fqName }.orEmpty()
+        quoteCache.packages().filter { it.parent() == fqName }
     }
   }
 

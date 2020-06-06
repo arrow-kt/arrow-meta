@@ -17,7 +17,7 @@ val Meta.thisExpressionPlugin
   get() =
     "This Expression Scope Plugin" {
       meta(
-        thisExpression({ true }) { expression ->
+        thisExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

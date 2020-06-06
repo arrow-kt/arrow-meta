@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *  get() =
  *   "ReformatCatchClause" {
  *    meta(
- *     catchClause({ true }) { c ->
+ *     catchClause(this, { true }) { c ->
  *      Transform.replace(
  *       replacing = c,
  *       newDeclaration = """catch ($parameter) $`{ catchBody }`""".catch

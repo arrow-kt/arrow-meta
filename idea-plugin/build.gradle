@@ -68,6 +68,7 @@ publishPlugin {
 test {
   dependsOn ':publishIdeTestingDependencies'
   testLogging.showStandardStreams = true
+  systemProperties['idea.is.internal'] = "false"
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
