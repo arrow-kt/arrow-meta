@@ -25,11 +25,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
         <applicationService serviceInterface="arrow.meta.ide.MetaIde" serviceImplementation="arrow.meta.ide.IdeMetaPlugin"/>
-<!--        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"-->
-<!--                        serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>-->
-<!--        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.resolve.QuoteHighlightingCache"/>-->
-<!--        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"-->
-<!--                        serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>-->
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
                         serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache"/>
