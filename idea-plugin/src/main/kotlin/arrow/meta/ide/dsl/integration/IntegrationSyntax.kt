@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.integration
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.integration.PackageProvider
 import arrow.meta.ide.phases.integration.SyntheticResolver
 import arrow.meta.ide.phases.integration.indices.KotlinIndicesHelper
@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.types.KotlinType
  * [IntegrationSyntax] servers as an interoperability algebra to register compiler extensions and kotlin extensions regarding the Ide.
  */
 interface IntegrationSyntax {
-  fun IdeMetaPlugin.syntheticResolver(
+  fun MetaIde.syntheticResolver(
     f: (Project) -> arrow.meta.phases.resolve.synthetics.SyntheticResolver?
   ): ExtensionPhase =
     object : SyntheticResolver {
@@ -24,7 +24,7 @@ interface IntegrationSyntax {
         f(project)
     }
 
-  fun IdeMetaPlugin.packageFragmentProvider(
+  fun MetaIde.packageFragmentProvider(
     f: (Project) -> arrow.meta.phases.resolve.PackageProvider?
   ): ExtensionPhase =
     object : PackageProvider {
@@ -32,7 +32,7 @@ interface IntegrationSyntax {
         f(project)
     }
 
-  fun IdeMetaPlugin.kotlinIndices(
+  fun MetaIde.kotlinIndices(
     appendExtensionCallables:
     CompilerContext.(
       project: Project,

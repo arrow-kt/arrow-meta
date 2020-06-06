@@ -1,6 +1,6 @@
 package arrow.meta.ide.internal
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -16,9 +16,7 @@ class IdeRegistrar : ApplicationInitializedListener {
   override fun componentsInitialized(): Unit {
     LOG.info("componentsInitialized")
     ApplicationManager.getApplication()?.let { app ->
-      metaPlugin.registerMetaIdeComponents(app)
+      app.getService(MetaIde::class.java)?.registerMetaIdeComponents(app)
     }
   }
 }
-
-private val metaPlugin = IdeMetaPlugin()

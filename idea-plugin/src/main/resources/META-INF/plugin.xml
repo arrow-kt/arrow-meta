@@ -24,6 +24,7 @@
         However if one wishes to disable, remove or manipulate a feature set of Ide extensions, one may choose to do so by utilising the Meta APIs instead of the plugin.xml-->
     <extensions defaultExtensionNs="com.intellij">
         <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
+        <applicationService serviceInterface="arrow.meta.ide.MetaIde" serviceImplementation="arrow.meta.ide.IdeMetaPlugin"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
                         serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
         <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache"/>

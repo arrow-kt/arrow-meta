@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.fileEditor
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.fileEditor.EditorProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -29,7 +29,7 @@ interface EditorSyntax {
   /**
    * Registers a [CaretListener] for each editor
    */
-  fun IdeMetaPlugin.addCaretListener(
+  fun MetaIde.addCaretListener(
     caretAdded: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3,
     caretPositionChanged: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3,
     caretRemoved: Editor.(document: Document, event: CaretEvent) -> Unit = Noop.effect3
@@ -49,7 +49,7 @@ interface EditorSyntax {
   /**
    * Registers a [FileEditorManagerListener]
    */
-  fun IdeMetaPlugin.addFileEditorListener(
+  fun MetaIde.addFileEditorListener(
     selectionChanged: (event: FileEditorManagerEvent) -> Unit = Noop.effect1,
     fileOpened: (manager: FileEditorManager, file: VirtualFile, fileEditor: FileEditor, document: Document) -> Unit = Noop.effect4,
     fileOpenedSync: (source: FileEditorManager, file: VirtualFile, editors: Pair<List<FileEditor>, List<FileEditorProvider>>) -> Unit = Noop.effect3,
@@ -97,7 +97,7 @@ interface EditorSyntax {
         caretRemoved(event)
     }
 
-  fun IdeMetaPlugin.textEditorHighlighting(
+  fun MetaIde.textEditorHighlighting(
     factoryRegistrar: TextEditorHighlightingPassFactoryRegistrar
   ): ExtensionPhase =
     addPMListener(opened = { project ->
@@ -108,7 +108,7 @@ interface EditorSyntax {
       }
     })
 
-  fun IdeMetaPlugin.addTextEditorHighlighting(
+  fun MetaIde.addTextEditorHighlighting(
     factory: TextEditorHighlightingPassRegistrar.(project: Project) -> Unit = Noop.effect2,
     highlightingPass: Editor.(file: PsiFile) -> TextEditorHighlightingPass? = Noop.nullable2()
   ): ExtensionPhase =
