@@ -11,7 +11,8 @@ import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
-import arrow.meta.phases.analysis.dfs
+import arrow.meta.phases.analysis.sequence
+import arrow.meta.phases.analysis.traverseFilter
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -30,9 +31,7 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Paths
-import java.util.ArrayList
-import java.util.Date
-import kotlin.reflect.KClass
+import java.util.*
 
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"
@@ -51,7 +50,7 @@ const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         ...
  *       }
  *     )
@@ -66,7 +65,7 @@ const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
@@ -141,31 +140,30 @@ class QuoteFactory<K : KtElement, S : Scope<K>>(
 }
 
 inline fun <reified K : KtElement> Meta.quote(
+  ctx: CompilerContext,
   noinline match: K.() -> Boolean,
   noinline map: Scope<K>.(K) -> Transform<K>
 ): ExtensionPhase =
-  quote(match, map) { Scope(it) }
+  quote(ctx, match, map) { Scope(it) }
 
 inline fun <reified K : KtElement, S : Scope<K>> Meta.quote(
+  ctx: CompilerContext,
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>,
   noinline transform: (K) -> S
 ): ExtensionPhase =
-  quote(QuoteFactory(transform), match, map)
+  quote(ctx, QuoteFactory(transform), match, map)
 
-// fixme: AnalysisDefinition and analysisIdeExtensions are in place until a better integration with the IDE is found
-// AnalysisDefinition is a data class to store the information about registered analysis extensions
-// to make this accessible to the IDE plugin later on
-data class AnalysisDefinition(val type: KClass<KtElement>,
-                              val quoteFactory: Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
-                              val match: KtElement.() -> Boolean,
-                              val map: Scope<KtElement>.(KtElement) -> Transform<KtElement>)
-
-// the ide extensions are currently stored here to be accessible to the IDE (QuoteSystemComponent)
-val analysisIdeExtensions: MutableList<AnalysisDefinition> = ArrayList()
+data class QuoteDefinition<P : KtElement, K : KtElement, S : Scope<K>>(
+  val on: Class<K>,
+  val quoteFactory: Quote.Factory<P, K, S>,
+  val match: K.() -> Boolean,
+  val map: S.(K) -> Transform<K>
+)
 
 @Suppress("UNCHECKED_CAST")
-inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
+inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
+  ctx: CompilerContext,
   quoteFactory: Quote.Factory<P, K, S>,
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>
@@ -196,14 +194,8 @@ inline fun <P : KtElement, reified K : KtElement, S> Meta.quote(
         null
       }
     )
-  } ?: ide {
-    // store combination of PSI element type, quoteFactory, match, and map
-    analysisIdeExtensions.add(AnalysisDefinition(
-      K::class as KClass<KtElement>,
-      quoteFactory as Quote.Factory<KtElement, KtElement, Scope<KtElement>>,
-      match as KtElement.() -> Boolean,
-      map as Scope<KtElement>.(KtElement) -> Transform<KtElement>))
-    null
+  }.apply {
+    ctx.quotes.add(QuoteDefinition(K::class.java, quoteFactory, match, map))
   } ?: ExtensionPhase.Empty
 
 fun PackageViewDescriptor.declarations(): Collection<DeclarationDescriptor> =
@@ -227,64 +219,46 @@ fun KtClassOrObject.functionNames(): List<Name> =
   declarations.filterIsInstance<KtFunction>().mapNotNull { it.name }.map(Name::identifier)
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified K : KtElement, P : KtElement, S> processFiles(
+inline fun <reified K : KtElement, P : KtElement, S : Scope<K>> processFiles(
   files: Collection<KtFile>,
   quoteFactory: Quote.Factory<P, K, S>,
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>
-): List<Pair<KtFile, ArrayList<Transform<K>>>> {
-  return files.map { file ->
+): List<Pair<KtFile, List<Transform<K>>>> =
+  files.map { file ->
     processKtFile(file, quoteFactory, match, map)
   }
-}
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified K : KtElement, P : KtElement, S> processKtFile(
+inline fun <reified K : KtElement, P : KtElement, S : Scope<K>> processKtFile(
   file: KtFile,
   quoteFactory: Quote.Factory<P, K, S>,
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>
-): Pair<KtFile, ArrayList<Transform<K>>> {
-  return processKtFile(file, K::class, quoteFactory, match, map)
-}
+): Pair<KtFile, List<Transform<K>>> =
+  processKtFile(file, K::class.java, quoteFactory, match, map)
 
-/**
- * Overloaded method, which is also used by the IDE quote system transformation code.
- */
 @Suppress("UNCHECKED_CAST")
-fun <K : KtElement, P : KtElement, S> processKtFile(
+fun <K : KtElement, P : KtElement, S : Scope<K>> processKtFile(
   file: KtFile,
-  elementType: KClass<K>,
+  on: Class<K>,
   quoteFactory: Quote.Factory<P, K, S>,
   match: K.() -> Boolean,
   map: S.(K) -> Transform<K>
-): Pair<KtFile, ArrayList<Transform<K>>> {
-  val mutatingDocument = file.viewProvider.document
-  val mutations = arrayListOf<Transform<K>>()
-  if (mutatingDocument != null) {
-    val childrenMatch: List<KtElement> = file.dfs { element ->
-      val result = elementType.java.isAssignableFrom(element.javaClass)
-      result
-    }
-    //dfs does not send through the file which we have as quote too
-    val allMatches = if (elementType.java.isAssignableFrom(KtFile::class.java)) {
-      listOf(file) + childrenMatch
-    } else childrenMatch
-    allMatches.forEach { element ->
-      val transformation = quoteFactory(
+): Pair<KtFile, List<Transform<K>>> =
+  file to file.viewProvider.document?.run {
+    file.sequence(on).mapNotNull { element: K ->
+      quoteFactory(
         containingDeclaration = element.psiOrParent as P,
         match = match,
         map = map
-      ).process(element as K)
-      transformation?.let { mutations.add(it) }
+      ).process(element)
     }
-  }
-  return file to mutations
-}
+  }.orEmpty()
 
 inline fun <reified K : KtElement> CompilerContext.updateFiles(
-  result: java.util.ArrayList<KtFile>,
-  fileMutations: List<Pair<KtFile, java.util.ArrayList<Transform<K>>>>,
+  result: ArrayList<KtFile>,
+  fileMutations: List<Pair<KtFile, List<Transform<K>>>>,
   noinline match: K.() -> Boolean
 ) {
   fileMutations.forEach { (file, mutations) ->
@@ -294,7 +268,7 @@ inline fun <reified K : KtElement> CompilerContext.updateFiles(
 }
 
 inline fun <reified K : KtElement> CompilerContext.updateFile(
-  mutations: java.util.ArrayList<Transform<K>>,
+  mutations: List<Transform<K>>,
   file: KtFile,
   noinline match: K.() -> Boolean
 ): List<KtFile> =
@@ -304,7 +278,7 @@ inline fun <reified K : KtElement> CompilerContext.updateFile(
 
 inline fun <reified K : KtElement> CompilerContext.transformFile(
   ktFile: KtFile,
-  mutations: java.util.ArrayList<Transform<K>>,
+  mutations: List<Transform<K>>,
   noinline match: K.() -> Boolean
 ): List<KtFile> {
   val newSource: List<Pair<KtFile, Node.File>> = ktFile.sourceWithTransformationsAst(mutations, this, match).map {
@@ -316,9 +290,9 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
 }
 
 inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
-  mutations: ArrayList<Transform<K>>,
+  mutations: List<Transform<K>>,
   compilerContext: CompilerContext,
-  match: K.() -> Boolean
+  noinline match: K.() -> Boolean
 ): List<Pair<KtFile?, Node.File>> {
   var dummyFile: Pair<KtFile?, Node.File> = null to Converter.convertFile(this)
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
@@ -350,7 +324,7 @@ fun <K : KtElement> Transform.NewSource<K>.newSource(): List<Pair<KtFile, Node.F
       else Converter.convertFile(it.value, it.sourcePath)
   }
 
-inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
+inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compilerContext: CompilerContext, noinline match: K.() -> Boolean): Pair<Node.File, MutableList<Pair<KtFile, Node.File>>> {
   var dummyFile: KtFile = ktFile
   val newSource: MutableList<Pair<KtFile, Node.File>> = mutableListOf()
   var context: K? = null
@@ -397,14 +371,17 @@ private fun List<Scope<KtExpressionCodeFragment>>.elementsFromItsContexts(contex
   psiElements
 }
 
-inline fun <reified K : KtElement> processContext(source: KtFile, match: K.() -> Boolean): K? = source.dfs {
-  K::class.java.isAssignableFrom(it.javaClass)
-}.firstOrNull { (it as K).match() } as K
+inline fun <reified K : KtElement> processContext(source: KtFile, noinline match: K.() -> Boolean): K? =
+  source.traverseFilter(K::class.java) { it.takeIf(match) }.firstOrNull()
 
-fun java.util.ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
-  val fileIndex = indexOf(file)
-  removeAt(fileIndex)
-  addAll(fileIndex, newFile)
+fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
+  when (val x = indexOf(file)) {
+    -1 -> Unit
+    else -> {
+      removeAt(x)
+      addAll(x, newFile)
+    }
+  }
 }
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {

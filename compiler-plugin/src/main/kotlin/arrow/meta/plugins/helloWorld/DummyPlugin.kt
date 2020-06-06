@@ -15,7 +15,7 @@ import arrow.meta.quotes.namedFunction
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
@@ -42,7 +42,7 @@ val Meta.helloWorld: CliPlugin
   get() =
     "Hello World" {
       meta(
-        namedFunction({ name == "helloWorld" }) { c ->
+        namedFunction(this, { name == "helloWorld" }) { c ->
           Transform.replace(
             replacing = c,
             newDeclaration =

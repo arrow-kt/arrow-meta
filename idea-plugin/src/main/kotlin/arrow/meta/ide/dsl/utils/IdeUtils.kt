@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
 import com.intellij.openapi.application.ApplicationManager
@@ -176,6 +177,12 @@ fun KtCallableDeclaration.toFir(phase: FirResolvePhase = FirResolvePhase.BODY_RE
 
 val Project.ktPsiFactory: KtPsiFactory
   get() = KtPsiFactory(this)
+
+fun PsiElement.ctx(): CompilerContext? =
+  project.ctx()
+
+fun Project.ctx(): CompilerContext? =
+  getService(CompilerContext::class.java)
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 

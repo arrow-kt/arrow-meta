@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  *  get() =
  *   "ReformatFinallySection" {
  *    meta(
- *     finallySection({ true }) { s ->
+ *     finallySection(this, { true }) { s ->
  *      Transform.replace(
  *       replacing = s,
  *       newDeclaration = """finally { $finallyExpression }""".finally

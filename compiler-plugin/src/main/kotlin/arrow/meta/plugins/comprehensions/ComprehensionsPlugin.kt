@@ -27,7 +27,7 @@ val Meta.comprehensions: CliPlugin
   get() =
     "comprehensions" {
       meta(
-        quote(KtDotQualifiedExpression::containsFxBlock) { fxExpression: KtDotQualifiedExpression ->
+        quote(this, KtDotQualifiedExpression::containsFxBlock) { fxExpression: KtDotQualifiedExpression ->
           println("fxBlock: ${fxExpression.text}")
           Transform.replace(
             replacing = fxExpression,

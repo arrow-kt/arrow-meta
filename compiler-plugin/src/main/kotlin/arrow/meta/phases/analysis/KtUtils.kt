@@ -3,6 +3,8 @@ package arrow.meta.phases.analysis
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.com.intellij.psi.SyntaxTraverser
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -57,6 +59,19 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
   })
   return found
 }
+
+/**
+ * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
+ */
+fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B?): List<B> =
+  SyntaxTraverser.psiTraverser(this).filter(on).mapNotNull(f).toList()
+
+/**
+ * a convenient function that collects all child nodes [A] starting from [receiver]
+ * it applies [traverseFilter] with the identity function
+ */
+fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
+  traverseFilter(on) { it }
 
 interface Eq<A> { // from arrow
   fun A.eqv(other: A): Boolean
@@ -152,9 +167,9 @@ val resolveFunctionType: (KotlinType) -> KotlinType
  * naive type equality where function types are reduced to their return type
  */
 val returnTypeEq: Eq<KotlinType>
-get() = Eq { a, b ->
-  resolveFunctionType(a) == resolveFunctionType(b)
-}
+  get() = Eq { a, b ->
+    resolveFunctionType(a) == resolveFunctionType(b)
+  }
 
 fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }

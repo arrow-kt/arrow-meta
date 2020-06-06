@@ -17,7 +17,7 @@ val Meta.ifExpressionPlugin : CliPlugin
   get() =
     "If Expression Scope Plugin" {
       meta(
-        ifExpression({ true }) { expression ->
+        ifExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()
