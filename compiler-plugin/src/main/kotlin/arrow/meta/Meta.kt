@@ -26,7 +26,7 @@ data class Plugin<A>(
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction({ name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =

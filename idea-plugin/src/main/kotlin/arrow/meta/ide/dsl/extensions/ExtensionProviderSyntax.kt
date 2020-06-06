@@ -23,6 +23,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import com.intellij.openapi.util.ClassExtension
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.resolve.diagnostics.DiagnosticSuppressor

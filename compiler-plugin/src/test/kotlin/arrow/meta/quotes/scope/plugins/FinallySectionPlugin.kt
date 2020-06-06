@@ -17,7 +17,7 @@ val Meta.finallySectionPlugin
   get() =
     "Finally Section Scope Plugin" {
       meta(
-        finallySection({ true }) { expression ->
+        finallySection(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

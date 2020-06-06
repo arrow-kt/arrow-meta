@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *    get() =
  *      "Reformat Return Expression" {
  *        meta(
- *          returnExpression({ true }) { expressionWithLabel ->
+ *          returnExpression(this, { true }) { expressionWithLabel ->
  *            Transform.replace(
  *              replacing = expressionWithLabel,
  *              newDeclaration = when {

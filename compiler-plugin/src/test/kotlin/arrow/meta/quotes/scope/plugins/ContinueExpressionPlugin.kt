@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -13,11 +13,11 @@ open class ContinueExpressionPlugin : Meta {
   )
 }
 
-val Meta.continueExpressionPlugin : CliPlugin
+val Meta.continueExpressionPlugin: CliPlugin
   get() =
     "Continue Expression Scope Plugin" {
       meta(
-        continueExpression({ true }) { expression ->
+        continueExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

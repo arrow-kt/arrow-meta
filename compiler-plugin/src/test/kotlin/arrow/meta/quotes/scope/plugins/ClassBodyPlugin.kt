@@ -24,7 +24,7 @@ private val Meta.classBody : CliPlugin
   get() =
     "Class Body Scope Plugin" {
       meta(
-        classBody({ true }) { c ->
+        classBody(this, { true }) { c ->
           Transform.replace(
             replacing = c,
             newDeclaration = identity()
@@ -38,7 +38,7 @@ private val Meta.enumBody : CliPlugin
   get() =
     "Enum Body Scope Plugin" {
       meta(
-        classBody({ true }) { c ->
+        classBody(this, { true }) { c ->
           Transform.replace(
             replacing = c,
             newDeclaration = identity()

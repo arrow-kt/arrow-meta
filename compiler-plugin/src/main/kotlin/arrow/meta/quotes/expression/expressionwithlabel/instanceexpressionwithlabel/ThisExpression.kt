@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtThisExpression
  *  get() =
  *   "ReformatThis" {
  *     meta(
- *       thisExpression({ true }) { instanceExpressionWithLabel ->
+ *       thisExpression(this, { true }) { instanceExpressionWithLabel ->
  *         Transform.replace(
  *           replacing = instanceExpressionWithLabel,
  *           newDeclaration = when {

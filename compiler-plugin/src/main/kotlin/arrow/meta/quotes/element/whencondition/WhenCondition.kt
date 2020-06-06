@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.psi.KtWhenCondition
  *  get() =
  *   "ReformatWhenCondition" {
  *    meta(
- *     whenCondition({ true }) { c ->
+ *     whenCondition(this, { true }) { c ->
  *      Transform.replace(
  *       replacing = c,
  *       newDeclaration = condition.whenCondition
