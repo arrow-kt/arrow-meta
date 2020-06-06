@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *  get() =
  *   "Reformat Property Setter" {
  *    meta(
- *     property({ true }) { e ->
+ *     property(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = """$modality $visibility $valOrVar $name $returnType $initializer

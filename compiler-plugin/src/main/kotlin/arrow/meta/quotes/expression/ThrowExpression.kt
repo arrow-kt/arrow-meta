@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  *    get() =
  *      "Reformat Throw Expression" {
  *        meta(
- *          throwExpression({ true }) { expression ->
+ *          throwExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """throw $thrownExpression""".`throw`

@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentName
  *  get() =
  *   "ReformatValueArg" {
  *    meta(
- *     valueArgument({ true }) { e ->
+ *     valueArgument(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument

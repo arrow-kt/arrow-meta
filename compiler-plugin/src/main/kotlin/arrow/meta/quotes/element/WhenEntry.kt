@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
  *  get() =
  *   "ReformatWhenEntry" {
  *    meta(
- *     whenEntry({ true }) { e ->
+ *     whenEntry(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry

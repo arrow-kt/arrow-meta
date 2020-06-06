@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  * val Meta.reformatTypeAlias: CliPlugin
  *    get() =
  *      "Reformat Type Alias" {
- *        typeAlias({ true }) { typeParameterListOwner ->
+ *        typeAlias(this, { true }) { typeParameterListOwner ->
  *          Transform.replace(
  *            replacing = typeParameterListOwner,
  *            newDeclaration = typeAlias("""$name""", `(typeParameters)`.toStringList() , """$type""")

@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.quotes.lifecycle
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.ctx
 import arrow.meta.ide.dsl.utils.files
 import arrow.meta.ide.dsl.utils.quoteRelevantFile
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
@@ -9,11 +10,14 @@ import arrow.meta.ide.plugins.quotes.cache.QuoteCache
 import arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
+import arrow.meta.ide.plugins.quotes.system.refreshCache
 import arrow.meta.ide.testing.UnavailableServices
 import arrow.meta.ide.testing.unavailableServices
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.quotes.analysisIdeExtensions
+import arrow.meta.quotes.QuoteDefinition
+import arrow.meta.quotes.Scope
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -42,6 +46,7 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import com.intellij.util.ui.update.Update
 import org.jetbrains.kotlin.idea.debugger.readAction
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.TimeUnit
@@ -54,8 +59,8 @@ val IdeMetaPlugin.quoteLifecycle: ExtensionPhase
     addProjectLifecycle(
       // the usual registration should be in `beforeProjectOpened`, but this is only possible when #446 is unlocked
       initialize = { project: Project ->
-        project.quoteConfigs()?.let { (system, cache) ->
-          initializeQuotes(project, system, cache)
+        project.quoteConfigs()?.let { (system, cache, ctx) ->
+          initializeQuotes(project, system, cache, ctx)
         }
       }
       /* TODO: project is already disposed at this point are the following functions needed to preserve the lifecycle
@@ -80,18 +85,23 @@ val IdeMetaPlugin.quoteLifecycle: ExtensionPhase
 
 data class QuoteConfigs(
   val quoteSystem: QuoteSystemService,
-  val cache: QuoteCache
+  val cache: QuoteCache,
+  val ctx: CompilerContext
 )
 
 fun Project.quoteConfigs(): QuoteConfigs? =
   getService(QuoteSystemService::class.java)?.let { quoteSystem ->
     getService(QuoteCache::class.java)?.let { cache ->
-      QuoteConfigs(quoteSystem, cache)
+      ctx()?.let {
+        QuoteConfigs(quoteSystem, cache, it)
+      }
     }
-  } ?: throw UnavailableServices(listOf(QuoteSystemService::class.java, QuoteCache::class.java))
+  }
+    ?: throw UnavailableServices(listOf(QuoteSystemService::class.java, QuoteCache::class.java, CompilerContext::class.java))
 
-internal fun quoteProjectOpened(project: Project): Unit = // previously in QuoteSystemCache.projectOpend()
-  project.quoteConfigs()?.let { (quoteSystem: QuoteSystemService, cache: QuoteCache) ->
+@Suppress("UNCHECKED_CAST")
+internal fun quoteProjectOpened(project: Project): Unit =
+  project.quoteConfigs()?.let { (quoteSystem: QuoteSystemService, cache: QuoteCache, ctx: CompilerContext) ->
     // add a startup activity to populate the cache with a transformation of all project files
     //StartupManager.getInstance(project).runWhenProjectIsInitialized {
     //runBackgroundableTask("Arrow Meta", project, cancellable = false) {
@@ -102,7 +112,7 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
           LOG.info("collected ${it.size} quote relevant files for Project:${project.name}")
         }
       }
-      quoteSystem.refreshCache(cache, project, files, analysisIdeExtensions, cacheStrategy())
+      quoteSystem.refreshCache(cache, project, files, ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy())
     } finally {
       try {
         quoteSystem.context.run {
@@ -121,8 +131,8 @@ internal fun quoteProjectOpened(project: Project): Unit = // previously in Quote
     }
   } ?: Unit
 
-
-internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache): Unit {
+@Suppress("UNCHECKED_CAST")
+internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache, ctx: CompilerContext): Unit {
   // register an async file listener.
   // We need to update the transformations of .kt files as soon as they were modified.
   VirtualFileManager.getInstance().addAsyncFileListener(object : AsyncFileListener {
@@ -152,7 +162,7 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
             relevantFiles
               .filter { it.quoteRelevantFile() && it.isInLocalFileSystem }
               .files(project),
-            analysisIdeExtensions,
+            ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>,
             cacheStrategy(false))
         }
       }
@@ -174,13 +184,13 @@ internal fun initializeQuotes(project: Project, quoteSystem: QuoteSystemService,
         if (app.isUnitTestMode) {
           readAction {
             ProgressManager.getInstance().runProcess({
-              app.updateDoc(document, indicator, project, quoteSystem, cache)
+              app.updateDoc(document, indicator, project, quoteSystem, cache, ctx)
             }, indicator)
           }
         } else {
           ReadAction.nonBlocking {
             ProgressManager.getInstance().runProcess({
-              app.updateDoc(document, indicator, project, quoteSystem, cache)
+              app.updateDoc(document, indicator, project, quoteSystem, cache, ctx)
             }, indicator)
           }.wrapProgress(indicator)
             .expireWith(project)
@@ -197,7 +207,8 @@ private val KEY_DOC_UPDATE = Key.create<ProgressIndicator>("arrow.quoteDocUpdate
 /**
  * lifecycle dependent
  */
-private fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndicator, project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache): Unit {
+@Suppress("UNCHECKED_CAST")
+private fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndicator, project: Project, quoteSystem: QuoteSystemService, cache: QuoteCache, ctx: CompilerContext): Unit {
   assertReadAccessAllowed()
   FileDocumentManager.getInstance()
     .getFile(doc)
@@ -217,7 +228,7 @@ private fun Application.updateDoc(doc: Document, progressIndicator: ProgressIndi
           if (isWriteAccessAllowed) {
             PsiDocumentManager.getInstance(project).commitDocument(doc)
           }
-          quoteSystem.refreshCache(cache, project, listOf(ktFile), analysisIdeExtensions, cacheStrategy(false, progressIndicator))
+          quoteSystem.refreshCache(cache, project, listOf(ktFile), ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy(false, progressIndicator))
         }
     }
 }
