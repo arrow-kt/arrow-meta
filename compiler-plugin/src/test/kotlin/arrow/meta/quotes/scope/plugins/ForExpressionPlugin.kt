@@ -17,7 +17,7 @@ val Meta.forExpressionPlugin : CliPlugin
   get() =
     "For Expression Scope Plugin" {
       meta(
-        forExpression({ true }) { expression ->
+        forExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

@@ -12,6 +12,7 @@ import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
 import arrow.meta.ide.testing.env.IdeTestSetUp
+import arrow.meta.ide.testing.env.file
 import arrow.meta.ide.testing.env.ideTest
 import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -20,17 +21,13 @@ import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
-import org.junit.Ignore
 
-class CoercionInspectionTest : IdeTestSetUp() {
+class CoercionInspectionTest :
+  IdeTestSetUp(
+    CoercionTestCode.prelude.file("arrow/preludeCoercion.kt"),
+    CoercionTestCode.twitterHandleDeclaration.file("consumer/consumerCoercion.kt")
+  ) {
 
-  override fun setUp() {
-    super.setUp()
-    myFixture.addFileToProject("arrow/preludeCoercion.kt", CoercionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumerCoercion.kt", CoercionTestCode.twitterHandleDeclaration)
-  }
-
-  @Ignore
   @org.junit.Test
   fun `coercion inspection test`() =
     ideTest(

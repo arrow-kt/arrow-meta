@@ -24,7 +24,7 @@ sealed class Transform<out K : KtElement> {
    *  get() =
    *   "Replace Transform" {
    *     meta(
-   *      namedFunction({ name == "helloWorld" }) { c ->
+   *      namedFunction(this, { name == "helloWorld" }) { c ->
    *        Transform.replace(
    *          replacing = c,
    *          newDeclaration =
@@ -60,7 +60,7 @@ sealed class Transform<out K : KtElement> {
    *  get() =
    *   "Remove Transform" {
    *     meta(
-   *      namedFunction({ name == "helloWorld" }) { c ->
+   *      namedFunction(this, { name == "helloWorld" }) { c ->
    *        Transform.remove(
    *          removeIn = c,
    *          declaration = """ println("") """.expressionIn(c)
@@ -95,7 +95,7 @@ sealed class Transform<out K : KtElement> {
    * val Meta.transformManySimpleCase: CliPlugin
    *  get() = "Transform Many" {
    *   meta(
-   *      classDeclaration({ name == "ManySimpleCase" }) { c ->
+   *      classDeclaration(this, { name == "ManySimpleCase" }) { c ->
    *       changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
    *     }
    *    )
@@ -134,7 +134,7 @@ sealed class Transform<out K : KtElement> {
    * val Meta.transformNewSource: CliPlugin
    *  get() = "Transform New Source" {
    *   meta(
-   *    classDeclaration({ name == "NewSource" }) {
+   *    classDeclaration(this, { name == "NewSource" }) {
    *     Transform.newSources(
    *      """
    *      package arrow

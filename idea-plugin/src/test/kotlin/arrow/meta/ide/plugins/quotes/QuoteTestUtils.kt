@@ -3,10 +3,13 @@ package arrow.meta.ide.plugins.quotes
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
+import arrow.meta.ide.plugins.quotes.lifecycle.quoteConfigs
 import arrow.meta.ide.plugins.quotes.system.QuoteSystemService
 import arrow.meta.ide.plugins.quotes.system.cacheStrategy
+import arrow.meta.ide.plugins.quotes.system.refreshCache
 import arrow.meta.internal.Noop
-import arrow.meta.quotes.analysisIdeExtensions
+import arrow.meta.quotes.QuoteDefinition
+import arrow.meta.quotes.Scope
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -14,6 +17,7 @@ import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestC
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.TimeUnit
@@ -28,15 +32,16 @@ interface TestQuoteSystemService {
       cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
     }
 
-
+  @Suppress("UNCHECKED_CAST")
   fun forceRebuild(project: Project): Unit {
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
     val quoteFiles = project.quoteRelevantFiles()
-    val cache = project.getService(QuoteCache::class.java)
-    LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
-    service.refreshCache(cache, project, quoteFiles, analysisIdeExtensions, cacheStrategy())
-    flush()
+    project.quoteConfigs()?.let { (_, cache, ctx) ->
+      LOG.info("collected ${quoteFiles.size} quote relevant files for Project:${project.name}")
+      service.refreshCache(cache, project, quoteFiles, ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy())
+      flush()
+    }
   }
 }
 

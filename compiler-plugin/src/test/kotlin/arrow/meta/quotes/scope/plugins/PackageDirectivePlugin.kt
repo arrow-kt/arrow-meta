@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -18,7 +18,7 @@ open class PackageDirectivePlugin : Meta {
 private val Meta.packageDirectivePlugin
   get() = "Package Directive Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "test" }) { element ->
+      packageDirective(this, { packageNames.last().text == "test" }) { element ->
         Transform.replace(
           replacing = element,
           newDeclaration = identity()
@@ -30,7 +30,7 @@ private val Meta.packageDirectivePlugin
 private val Meta.packageDirectivePackageNames
   get() = "Package Directive Package Names Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "package_names" }) { element ->
+      packageDirective(this, { packageNames.last().text == "package_names" }) { element ->
         Transform.replace(
           replacing = element,
           newDeclaration = identity()
@@ -42,7 +42,7 @@ private val Meta.packageDirectivePackageNames
 private val Meta.packageDirectiveLastPackageName
   get() = "Package Directive Last Package Name Scope Plugin" {
     meta(
-      packageDirective({ packageNames.last().text == "package_last_name" }) { element ->
+      packageDirective(this, { packageNames.last().text == "package_last_name" }) { element ->
         Transform.replace(
           replacing = element,
           newDeclaration = identity()

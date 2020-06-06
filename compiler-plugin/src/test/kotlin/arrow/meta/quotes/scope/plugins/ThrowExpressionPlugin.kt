@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -17,7 +17,7 @@ val Meta.throwExpressionPlugin
   get() =
     "Throw Expression Scope Plugin" {
       meta(
-        throwExpression({ true }) { expression ->
+        throwExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()
