@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.resolve
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -13,71 +13,71 @@ import com.intellij.psi.search.GlobalSearchScope
 interface ResolveProviderSyntax {
 
 
-    /**
-     * registers an ResolveScopeProvider.
-     * [GlobalSearchScope] defines a Scope based on [VirtualFile]s or Modules.
-     * One minimal example from [KotlinScriptResolveScopeProvider], may look like this:
-     * ```kotlin
-     * import arrow.meta.ide.IdeMetaPlugin
-     * import arrow.meta.phases.ExtensionPhase
-     * import com.intellij.openapi.project.Project
-     * import com.intellij.openapi.vfs.VirtualFile
-     * import com.intellij.psi.PsiManager
-     * import com.intellij.psi.search.GlobalSearchScope
-     * import org.jetbrains.kotlin.idea.KotlinFileType
-     * import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
-     * import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-     * import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
-     * import org.jetbrains.kotlin.scripting.resolve.KotlinScriptDefinitionFromAnnotatedTemplate
-     * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-     *
-     * val IdeMetaPlugin.scopeProvider: ExtensionPhase
-     *    get() = addResolveScopeProvider { file: VirtualFile, project: Project ->
-     *      file.takeIf {
-     *          it.fileType == KotlinFileType.INSTANCE &&
-     *                  PsiManager.getInstance(project)
-     *                          .findFile(it)
-     *                          ?.findScriptDefinition()
-     *                          ?.safeAs<ScriptDefinition.FromConfigurations>()
-     *                          ?.asLegacyOrNull<KotlinScriptDefinitionFromAnnotatedTemplate>() != null
-     *      }.let { file ->
-     *          GlobalSearchScope
-     *                  .fileScope(project, file)
-     *                  .union(
-     *                          ScriptConfigurationManager
-     *                                 .getInstance(project)
-     *                                 .getScriptDependenciesClassFilesScope(file)
-     *                  )
-     *  }
-     * }
-     *
-     *
-     */
-    fun IdeMetaPlugin.addResolveScopeProvider(
-        getResolveScope: (file: VirtualFile, project: Project) -> GlobalSearchScope?
-    ): ExtensionPhase =
-            extensionProvider(
-                    ResolveScopeProvider.EP_NAME,
-                    object : ResolveScopeProvider(){
-                        override fun getResolveScope(file: VirtualFile, project: Project?): GlobalSearchScope? =
-                                getResolveScope(file, project)
-                    }
-            )
+  /**
+   * registers an ResolveScopeProvider.
+   * [GlobalSearchScope] defines a Scope based on [VirtualFile]s or Modules.
+   * One minimal example from [KotlinScriptResolveScopeProvider], may look like this:
+   * ```kotlin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.phases.ExtensionPhase
+   * import com.intellij.openapi.project.Project
+   * import com.intellij.openapi.vfs.VirtualFile
+   * import com.intellij.psi.PsiManager
+   * import com.intellij.psi.search.GlobalSearchScope
+   * import org.jetbrains.kotlin.idea.KotlinFileType
+   * import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
+   * import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+   * import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
+   * import org.jetbrains.kotlin.scripting.resolve.KotlinScriptDefinitionFromAnnotatedTemplate
+   * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+   *
+   * val MetaIde.scopeProvider: ExtensionPhase
+   *    get() = addResolveScopeProvider { file: VirtualFile, project: Project ->
+   *      file.takeIf {
+   *          it.fileType == KotlinFileType.INSTANCE &&
+   *                  PsiManager.getInstance(project)
+   *                          .findFile(it)
+   *                          ?.findScriptDefinition()
+   *                          ?.safeAs<ScriptDefinition.FromConfigurations>()
+   *                          ?.asLegacyOrNull<KotlinScriptDefinitionFromAnnotatedTemplate>() != null
+   *      }.let { file ->
+   *          GlobalSearchScope
+   *                  .fileScope(project, file)
+   *                  .union(
+   *                          ScriptConfigurationManager
+   *                                 .getInstance(project)
+   *                                 .getScriptDependenciesClassFilesScope(file)
+   *                  )
+   *  }
+   * }
+   *
+   *
+   */
+  fun MetaIde.addResolveScopeProvider(
+    getResolveScope: (file: VirtualFile, project: Project) -> GlobalSearchScope?
+  ): ExtensionPhase =
+    extensionProvider(
+      ResolveScopeProvider.EP_NAME,
+      object : ResolveScopeProvider() {
+        override fun getResolveScope(file: VirtualFile, project: Project?): GlobalSearchScope? =
+          getResolveScope(file, project)
+      }
+    )
 
-    /**
-     * @see com.intellij.psi.search.GlobalSearchScope
-     */
-    fun ResolveProviderSyntax.globalSearchScope(
-        containsFile: (file: VirtualFile) -> Boolean,
-        isSearchInModuleContent: (module: Module) -> Boolean,
-        isSearchInLibraries: () -> Boolean
-    ): GlobalSearchScope =
-            object :  GlobalSearchScope(){
-                override fun contains(file: VirtualFile): Boolean = containsFile(file)
+  /**
+   * @see com.intellij.psi.search.GlobalSearchScope
+   */
+  fun ResolveProviderSyntax.globalSearchScope(
+    containsFile: (file: VirtualFile) -> Boolean,
+    isSearchInModuleContent: (module: Module) -> Boolean,
+    isSearchInLibraries: () -> Boolean
+  ): GlobalSearchScope =
+    object : GlobalSearchScope() {
+      override fun contains(file: VirtualFile): Boolean = containsFile(file)
 
-                override fun isSearchInModuleContent(aModule: Module): Boolean = isSearchInModuleContent(aModule)
+      override fun isSearchInModuleContent(aModule: Module): Boolean = isSearchInModuleContent(aModule)
 
-                override fun isSearchInLibraries(): Boolean = isSearchInLibraries()
+      override fun isSearchInLibraries(): Boolean = isSearchInLibraries()
 
-            }
+    }
 }

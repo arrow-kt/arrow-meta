@@ -2,7 +2,6 @@ package arrow.meta.ide.plugins.purity
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
-import arrow.meta.ide.dsl.IdeSyntax
 import arrow.meta.ide.dsl.utils.intersectFunction
 import arrow.meta.ide.invoke
 import arrow.meta.phases.analysis.returnTypeEq
@@ -29,7 +28,7 @@ val IdeMetaPlugin.purity: IdePlugin
     )
   }
 
-val IdeSyntax.purityInspection: AbstractApplicabilityBasedInspection<KtNamedFunction>
+val IdeMetaPlugin.purityInspection: AbstractApplicabilityBasedInspection<KtNamedFunction>
   get() = applicableInspection(
     defaultFixText = "Suspend",
     inspectionHighlightType = { ProblemHighlightType.ERROR },

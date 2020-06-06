@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *    get() =
  *      "Reformat If Expression" {
  *        meta(
- *          ifExpression({ true }) { expression ->
+ *          ifExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = when {

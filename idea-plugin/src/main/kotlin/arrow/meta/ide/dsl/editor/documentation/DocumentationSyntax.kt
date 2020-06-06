@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.documentation
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -20,7 +20,7 @@ interface DocumentationSyntax {
    * Users are now able to hover over descriptors and see the provided documentation.
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
    * import org.jetbrains.kotlin.idea.HtmlClassifierNamePolicy
@@ -45,7 +45,7 @@ interface DocumentationSyntax {
    * }
    *
    * //sampleStart
-   * val IdeMetaPlugin.sampleQuickDocs: IdePlugin
+   * val MetaIde.sampleQuickDocs: IdePlugin
    *  get() = "QuickDocsDeclarations" {
    *   meta(
    *    addDocumentationProvider(
@@ -68,7 +68,7 @@ interface DocumentationSyntax {
    * Hence, the KDoc's of this declaration should be added in [generateDoc].
    * @see quickDocumentationProvider
    */
-  fun IdeMetaPlugin.addDocumentationProvider(
+  fun MetaIde.addDocumentationProvider(
     quickNavigateInfo: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
     generateDoc: (element: PsiElement, originalElement: PsiElement) -> String? = Noop.nullable2(),
     documentationElementForLink: (psiManager: PsiManager, link: String, context: PsiElement) -> PsiElement? = Noop.nullable3()

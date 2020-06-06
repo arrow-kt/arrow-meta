@@ -1,0 +1,47 @@
+buildscript {
+  ext {
+    getURLfrom = { library ->
+      def (groupId, artifactId, artifactVersion) = library.tokenize(':')
+      "https://repo1.maven.org/maven2/${groupId.replaceAll('\\.', '/')}/${artifactId}/${artifactVersion}/${artifactId}-${artifactVersion}.jar"
+    }
+    mapToDownloadURLs = { libraries ->
+      libraries.collect { getURLfrom(it) }
+    }
+  }
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "de.undercouch:gradle-download-task:4.0.4"
+  }
+}
+
+apply plugin: "de.undercouch.download"
+
+task downloadLibraries(type: Download) {
+  src(
+    mapToDownloadURLs([
+      "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION",
+      "com.jcabi:jcabi-aether:$JCABI_AETHER_VERSION",
+      "org.jetbrains.kotlinx:atomicfu:$ATOMICFU_VERSION",
+      "org.sonarsource.slang:sonar-kotlin-plugin:$SONAR_KOTLIN_PLUGIN_VERSION",
+      "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION",
+      "org.sonatype.aether:aether-api:$AETHER_API_VERSION",
+      "org.sonatype.aether:aether-util:$AETHER_API_VERSION"
+      ]
+    )
+  )
+  dest "${buildDir}/libs4Plugin"
+  overwrite false
+}
+
+buildPlugin.dependsOn downloadLibraries
+
+prepareSandbox {
+  from("${buildDir}/libs4Plugin") {
+    include "*.jar"
+    into "${intellij.pluginName}/lib/"
+  }
+}

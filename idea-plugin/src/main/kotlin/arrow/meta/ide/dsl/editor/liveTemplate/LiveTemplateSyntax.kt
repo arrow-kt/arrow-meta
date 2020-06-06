@@ -1,13 +1,13 @@
 package arrow.meta.ide.dsl.editor.liveTemplate
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.template.TemplateContextType
 import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 import com.intellij.psi.PsiFile
 
 interface LiveTemplateSyntax {
-  fun IdeMetaPlugin.addLiveTemplateContext(
+  fun MetaIde.addLiveTemplateContext(
     id: String,
     presentableName: String,
     isInContext: (file: PsiFile, offset: Int) -> Boolean
@@ -20,7 +20,7 @@ interface LiveTemplateSyntax {
       }
     )
 
-  fun IdeMetaPlugin.addLiveTemplateProvider(
+  fun MetaIde.addLiveTemplateProvider(
     defaultLiveTemplateFiles: Array<String>,
     hiddenLiveTemplateFiles: Array<String>?
   ): ExtensionPhase =

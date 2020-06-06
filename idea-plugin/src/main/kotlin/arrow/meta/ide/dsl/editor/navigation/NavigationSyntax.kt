@@ -1,13 +1,13 @@
 package arrow.meta.ide.dsl.editor.navigation
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.navigation.ChooseByNameContributor
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.project.Project
 
 interface NavigationSyntax {
-  fun IdeMetaPlugin.addChooseByNameContributorForFile(
+  fun MetaIde.addChooseByNameContributorForFile(
     itemsByName: (name: String?, pattern: String?, project: Project?, includeNonProjectItems: Boolean) -> Array<NavigationItem>,
     names: (project: Project?, includeNonProjectItems: Boolean) -> Array<String>
   ): ExtensionPhase =
@@ -16,7 +16,7 @@ interface NavigationSyntax {
       chooseByNameContributor(itemsByName, names)
     )
 
-  fun IdeMetaPlugin.addChooseByNameContributorForClass(
+  fun MetaIde.addChooseByNameContributorForClass(
     itemsByName: (name: String?, pattern: String?, project: Project?, includeNonProjectItems: Boolean) -> Array<NavigationItem>,
     names: (project: Project?, includeNonProjectItems: Boolean) -> Array<String>
   ): ExtensionPhase =
@@ -25,7 +25,7 @@ interface NavigationSyntax {
       chooseByNameContributor(itemsByName, names)
     )
 
-  fun IdeMetaPlugin.addChooseByNameContributorForSymbol(
+  fun MetaIde.addChooseByNameContributorForSymbol(
     itemsByName: (name: String?, pattern: String?, project: Project?, includeNonProjectItems: Boolean) -> Array<NavigationItem>,
     names: (project: Project?, includeNonProjectItems: Boolean) -> Array<String>
   ): ExtensionPhase =

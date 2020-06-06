@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtForExpression
  *    get() =
  *    "Reformat For Expression" {
  *      meta(
- *        forExpression({ true }) { loopExpression ->
+ *        forExpression(this, { true }) { loopExpression ->
  *          Transform.replace(
  *            replacing = loopExpression,
  *            newDeclaration = if (destructuringDeclaration.entries.isEmpty()) {

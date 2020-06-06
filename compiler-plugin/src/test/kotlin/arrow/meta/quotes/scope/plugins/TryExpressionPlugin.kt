@@ -17,7 +17,7 @@ val Meta.tryExpressionPlugin : CliPlugin
   get() =
     "Try Expression Scope Plugin" {
       meta(
-        tryExpression({ true }) { expression ->
+        tryExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.extensions
 
 import arrow.meta.dsl.analysis.AnalysisSyntax
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
@@ -47,7 +47,7 @@ interface ExtensionProviderSyntax {
    * ```kotlin:ank
    * import arrow.meta.internal.Noop
    * import arrow.meta.phases.ExtensionPhase
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import com.intellij.ide.IconProvider
    * import com.intellij.openapi.extensions.LoadingOrder
    * import com.intellij.openapi.project.DumbAware
@@ -55,7 +55,7 @@ interface ExtensionProviderSyntax {
    * import javax.swing.Icon
    *
    * //sampleStart
-   * fun <A : PsiElement> IdeMetaPlugin.addIcon(
+   * fun <A : PsiElement> MetaIde.addIcon(
    *   icon: Icon? = null,
    *   transform: (psiElement: PsiElement, flag: Int) -> A? = Noop.nullable2()
    *  ): ExtensionPhase =
@@ -77,7 +77,7 @@ interface ExtensionProviderSyntax {
    * @param loadingOrder has to be set as [LoadingOrder.FIRST], whenever we introduce visual changes
    * @see ExtensionProviderSyntax
    */
-  fun <E> IdeMetaPlugin.extensionProvider(
+  fun <E> MetaIde.extensionProvider(
     EP_NAME: ExtensionPointName<E>,
     impl: E,
     loadingOrder: LoadingOrder = LoadingOrder.ANY // Todo: Check LoadingOrder
@@ -88,7 +88,7 @@ interface ExtensionProviderSyntax {
    * The [extensionProvider] extension registers a concrete implementation for [LanguageExtension]'s.
    * @see [extensionProvider] KDoc's
    */
-  fun <E> IdeMetaPlugin.extensionProvider(
+  fun <E> MetaIde.extensionProvider(
     LE: LanguageExtension<E>,
     impl: E,
     lang: Language = KotlinLanguage.INSTANCE
@@ -99,7 +99,7 @@ interface ExtensionProviderSyntax {
    * The [extensionProvider] function registers a concrete implementation for [FileTypeExtension]'s.
    * @see [extensionProvider] KDoc's
    */
-  fun <E> IdeMetaPlugin.extensionProvider(
+  fun <E> MetaIde.extensionProvider(
     FE: FileTypeExtension<E>,
     impl: E,
     fileType: LanguageFileType = KotlinFileType.INSTANCE
@@ -110,7 +110,7 @@ interface ExtensionProviderSyntax {
    * The [extensionProvider] extension registers a concrete implementation for [ClassExtension]'s.
    * @see [extensionProvider] KDoc's
    */
-  fun <E> IdeMetaPlugin.extensionProvider(
+  fun <E> MetaIde.extensionProvider(
     CE: ClassExtension<E>,
     forClass: Class<*>,
     impl: E
@@ -121,7 +121,7 @@ interface ExtensionProviderSyntax {
    * Registers [BaseExtensionPointName]'s
    * @see [registerExtensionPoint] for [ExtensionPointName]
    */
-  fun <E> IdeMetaPlugin.registerExtensionPoint(
+  fun <E> MetaIde.registerExtensionPoint(
     EP_NAME: BaseExtensionPointName<E>,
     aClass: Class<E>,
     kind: ExtensionPoint.Kind
@@ -148,7 +148,7 @@ interface ExtensionProviderSyntax {
    * Registering [MetaProvider] in `Meta` may look like this:
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.extensions.ExtensionPointName
@@ -163,7 +163,7 @@ interface ExtensionProviderSyntax {
    *   }
    * }
    * //sampleStart
-   * val IdeMetaPlugin.registeringIdeExtensions: IdePlugin
+   * val MetaIde.registeringIdeExtensions: IdePlugin
    *   get() = "Register ExtensionPoints" {
    *     meta(
    *        registerExtensionPoint(MetaProvider.EP_NAME, MetaProvider::class.java, ExtensionPoint.Kind.INTERFACE)
@@ -173,7 +173,7 @@ interface ExtensionProviderSyntax {
    * ```
    * @param kind There are more [resources] on the ExtensionPointKinds [here](http://www.jetbrains.org/intellij/sdk/docs/basics/plugin_structure/plugin_extension_points.html)
    */
-  fun <E> IdeMetaPlugin.registerExtensionPoint(
+  fun <E> MetaIde.registerExtensionPoint(
     EP_NAME: ExtensionPointName<E>,
     aClass: Class<E>,
     kind: ExtensionPoint.Kind
@@ -184,7 +184,7 @@ interface ExtensionProviderSyntax {
    * registers a [ContainerProvider].
    * @param transform defines on which [PsiElement] the [ContainerProvider] is registered.
    */
-  fun IdeMetaPlugin.addContainerProvider(transform: (PsiElement) -> PsiElement?): ExtensionPhase =
+  fun MetaIde.addContainerProvider(transform: (PsiElement) -> PsiElement?): ExtensionPhase =
     extensionProvider(
       ContainerProvider.EP_NAME,
       ContainerProvider { transform(it) }
@@ -194,7 +194,7 @@ interface ExtensionProviderSyntax {
    * The editor integration for [AnalysisSyntax.suppressDiagnostic].
    * @param f reuse your implementation from the compiler-plugin
    */
-  fun IdeMetaPlugin.addDiagnosticSuppressor(
+  fun MetaIde.addDiagnosticSuppressor(
     f: (diagnostic: Diagnostic) -> Boolean
   ): ExtensionPhase =
     extensionProvider(
@@ -204,7 +204,7 @@ interface ExtensionProviderSyntax {
       }
     )
 
-  fun IdeMetaPlugin.addDiagnosticSuppressorWithCtx(
+  fun MetaIde.addDiagnosticSuppressorWithCtx(
     f: CompilerContext.(diagnostic: Diagnostic) -> Boolean
   ): ExtensionPhase =
     extensionProvider(

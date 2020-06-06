@@ -4,7 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.phases.analysis.dfs
+import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
-  meta.file(KtFile::containsGivenConstrains) {
+  meta.file(this, KtFile::containsGivenConstrains) {
     Transform.newSources(
       """
       $importList
@@ -40,9 +40,9 @@ private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
   value.givenConstrainedDeclarations().map { NamedFunction(it) }
 
 private fun KtFile.givenConstrainedDeclarations(): List<KtNamedFunction> =
-  dfs {
-    it is KtNamedFunction && it.containsGivenConstrain()
-  }.filterIsInstance<KtNamedFunction>()
+  traverseFilter(KtNamedFunction::class.java) {
+    it.takeIf { f -> f.containsGivenConstrain() }
+  }
 
 private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedFunction>): ScopedList<KtNamedFunction> =
   ScopedList(functions.map {

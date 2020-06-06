@@ -17,7 +17,7 @@ val Meta.binaryExpressionPlugin: CliPlugin
   get() =
     "Binary Expression Scope Plugin" {
       meta(
-        binaryExpression({ true }) { expression ->
+        binaryExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

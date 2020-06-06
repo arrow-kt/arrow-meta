@@ -17,7 +17,7 @@ val Meta.namedFunctionPlugin : CliPlugin
     get() =
         "Named Function Scope Plugin" {
             meta(
-              namedFunction({ true }) { namedFunction ->
+              namedFunction(this, { true }) { namedFunction ->
                   Transform.replace(
                     replacing = namedFunction,
                     newDeclaration = identity()

@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.intention
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
@@ -28,7 +28,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * registers [intention]
    */
-  fun IdeMetaPlugin.addIntention(
+  fun MetaIde.addIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.RegisterIntention(intention)
@@ -36,7 +36,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * unregisters [intention] from the editor
    */
-  fun IdeMetaPlugin.unregisterIntention(
+  fun MetaIde.unregisterIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.UnregisterIntention(intention)
@@ -46,14 +46,14 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * The following example renames a `helloWorld` function to `renamed`, whenever the user decides to trigger that Intention.
    * ```kotlin
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * // import com.intellij.codeInsight.intention.PriorityAction
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import com.intellij.openapi.editor.Editor
    *
    * //sampleStart
-   * val IdeMetaPlugin.example: IdePlugin
+   * val MetaIde.example: IdePlugin
    *  get() = "SampleIntention"{
    *   meta(
    *    addIntention(
@@ -74,7 +74,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * @see ktIntention has more information about the parameters.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <K : KtElement> IdeMetaPlugin.addIntention(
+  fun <K : KtElement> MetaIde.addIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
@@ -87,13 +87,13 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * Intentions can be enabled and disabled before at application start.
    * @param enabled true set's [intention] available false otherwise
    */
-  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
+  fun MetaIde.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
     IntentionExtensionProvider.SetAvailability(intention, enabled)
 
   /**
    * This function is similar to [setIntentionAsEnabled] for [IntentionActionMetaData]
    */
-  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionActionMetaData, enabled: Boolean): ExtensionPhase =
+  fun MetaIde.setIntentionAsEnabled(intention: IntentionActionMetaData, enabled: Boolean): ExtensionPhase =
     IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
 
   /**

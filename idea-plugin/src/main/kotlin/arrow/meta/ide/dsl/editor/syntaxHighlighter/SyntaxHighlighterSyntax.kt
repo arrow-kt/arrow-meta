@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.syntaxHighlighter
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.Language
@@ -28,7 +28,7 @@ interface SyntaxHighlighterSyntax {
    * The following example registers a sample amount of the generated Tokens from the KotlinLexer.
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
    * import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -38,7 +38,7 @@ interface SyntaxHighlighterSyntax {
    * import org.jetbrains.kotlin.lexer.KtTokens
    *
    * //sampleStart
-   * val IdeMetaPlugin.expressionHints: IdePlugin
+   * val MetaIde.expressionHints: IdePlugin
    *  get() = "MiniKotlinHighlighter" {
    *   meta(
    *    addSyntaxHighlighter(
@@ -69,7 +69,7 @@ interface SyntaxHighlighterSyntax {
    * @see syntaxHighlighterFactory
    * @see KotlinHighlighter
    */
-  fun IdeMetaPlugin.addSyntaxHighlighter(
+  fun MetaIde.addSyntaxHighlighter(
     highlightingLexer: Lexer,
     language: Language,
     tokenHighlights: (tokenType: IElementType) -> Array<TextAttributesKey>
