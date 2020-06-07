@@ -8,6 +8,8 @@ import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.fileEditor.EditorProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
+import arrow.meta.ide.phases.additional.AdditionalIdePhase
+import arrow.meta.ide.phases.additional.AdditionalRegistry
 import arrow.meta.ide.phases.integration.indices.KotlinIndicesHelper
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.phases.ui.ToolwindowProvider
@@ -104,6 +106,7 @@ interface IdeInternalRegistry : InternalRegistry {
             is ToolwindowProvider -> registerToolwindowProvider(phase)
             is EditorProvider -> registerEditorProvider(phase, ctx.app)
             is ApplicationProvider -> registerApplicationProvider(phase, ctx.app)
+            is AdditionalIdePhase -> ctx.app.registerAdditional(phase)
             is Composite -> phase.phases.forEach { composite -> rec(composite) }
             else -> LOG.error("Unsupported ide extension phase: $phase")
           }
@@ -131,6 +134,12 @@ interface IdeInternalRegistry : InternalRegistry {
         f(project, ctx)
       }
     }
+
+  fun Application.registerAdditional(phase: AdditionalIdePhase) {
+    getService(AdditionalRegistry::class.java)?.run {
+      register(this@registerAdditional, phase)
+    }
+  }
 
   fun Project.kotlinIndicesHelper(phase: KotlinIndicesHelper, ctx: CompilerContext): Unit =
     KotlinIndicesHelperExtension.registerExtension(
