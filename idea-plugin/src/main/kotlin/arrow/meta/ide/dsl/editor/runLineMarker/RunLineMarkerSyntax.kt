@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.runLineMarker
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.execution.lineMarker.RunLineMarkerContributor.Info
@@ -15,7 +15,7 @@ interface RunLineMarkerSyntax {
    * a free RunLineMarker based on an Action
    * Use [arrow.meta.ide.dsl.editor.action.AnActionSyntax.anAction] to construct an Action
    */
-  fun <A : PsiElement> IdeMetaPlugin.toRunLineMarkerProvider(action: AnAction, transform: (PsiElement) -> A?): ExtensionPhase =
+  fun <A : PsiElement> MetaIde.toRunLineMarkerProvider(action: AnAction, transform: (PsiElement) -> A?): ExtensionPhase =
     extensionProvider(
       EP_NAME,
       object : RunLineMarkerContributor() {
@@ -24,7 +24,7 @@ interface RunLineMarkerSyntax {
       }
     )
 
-  fun IdeMetaPlugin.addRunLineMarkerProvider(transform: (element: PsiElement) -> Info?): ExtensionPhase =
+  fun MetaIde.addRunLineMarkerProvider(transform: (element: PsiElement) -> Info?): ExtensionPhase =
     extensionProvider(EP_NAME, runLineMarker(transform))
 
   fun RunLineMarkerSyntax.runLineMarker(

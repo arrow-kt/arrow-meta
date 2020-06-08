@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.inspection
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -42,7 +42,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.dsl.utils.intersectFunction
    * import arrow.meta.ide.invoke
@@ -55,7 +55,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
-   * val IdeMetaPlugin.simplyPure: IdePlugin
+   * val MetaIde.simplyPure: IdePlugin
    *   get() = "Draft PurityPlugin" {
    *     meta(
    *       addApplicableInspection(
@@ -93,7 +93,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @sample arrow.meta.ide.plugins.purity.purity
    */
   @Suppress("UNCHECKED_CAST")
-  fun <K : KtElement> IdeMetaPlugin.addApplicableInspection(
+  fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
@@ -112,7 +112,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       level
     )
 
-  fun <K : KtElement> IdeMetaPlugin.addLocalInspection(
+  fun <K : KtElement> MetaIde.addLocalInspection(
     inspection: AbstractApplicabilityBasedInspection<K>,
     groupPath: Array<String>,
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
@@ -125,7 +125,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @see addLocalInspection
    * TODO: Add easy first issue for contributor's
    */
-  fun IdeMetaPlugin.addGlobalInspection(
+  fun MetaIde.addGlobalInspection(
     inspectionTool: GlobalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
@@ -146,7 +146,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @param groupPath The specified path where your Inspection is located. Use Strings without spacing.
    * @param shortName The displayed text, whenever [inspectionTool] is applicable.
    */
-  fun IdeMetaPlugin.addLocalInspection(
+  fun MetaIde.addLocalInspection(
     inspectionTool: LocalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
@@ -165,7 +165,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @sample [org.jetbrains.kotlin.idea.inspections.KotlinInspectionSuppressor]
    * TODO: Add a representation of [KotlinSuppressIntentionAction] with Meta
    */
-  fun IdeMetaPlugin.addInspectionSuppressor(
+  fun MetaIde.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
     suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): ExtensionPhase =

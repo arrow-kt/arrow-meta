@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.folding
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.typeReferences
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
@@ -24,7 +24,7 @@ interface FoldingSyntax {
    * @param match: matches on the specified KtTypeReference and adds the element to the folding region
    * @param hint: the resulting hint for the matched folding region
    */
-  fun IdeMetaPlugin.addFoldingBuilder(
+  fun MetaIde.addFoldingBuilder(
     match: (KtTypeReference) -> Boolean,
     hint: (KtTypeReference) -> String
   ): ExtensionPhase =
@@ -47,21 +47,21 @@ interface FoldingSyntax {
         node.psi.safeAs<KtTypeReference>()?.let(match) ?: false
       })
 
-  fun IdeMetaPlugin.addFoldingBuilder(
+  fun MetaIde.addFoldingBuilder(
     placeHolderText: (node: ASTNode) -> String?,
     foldRegions: (node: ASTNode, document: Document) -> List<FoldingDescriptor>,
     isCollapsedByDefault: (node: ASTNode) -> Boolean,
     lang: Language = KotlinLanguage.INSTANCE): ExtensionPhase =
     registerFoldingBuilder(foldingBuilder(placeHolderText, foldRegions, isCollapsedByDefault), lang)
 
-  fun IdeMetaPlugin.addFoldingBuilder(
+  fun MetaIde.addFoldingBuilder(
     placeHolderText: (node: ASTNode) -> String?,
     foldRegions: (element: PsiElement, document: Document, quick: Boolean) -> List<FoldingDescriptor>,
     isCollapsedByDefault: (node: ASTNode) -> Boolean,
     lang: Language = KotlinLanguage.INSTANCE): ExtensionPhase =
     registerFoldingBuilder(foldingBuilder(placeHolderText, foldRegions, isCollapsedByDefault), lang)
 
-  fun IdeMetaPlugin.registerFoldingBuilder(foldingBuilder: FoldingBuilder, lang: Language = KotlinLanguage.INSTANCE): ExtensionPhase =
+  fun MetaIde.registerFoldingBuilder(foldingBuilder: FoldingBuilder, lang: Language = KotlinLanguage.INSTANCE): ExtensionPhase =
     ExtensionProvider.AddFoldingBuilder(lang, foldingBuilder)
 
   fun FoldingSyntax.foldingBuilder(

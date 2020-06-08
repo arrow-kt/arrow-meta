@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.language
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
@@ -17,7 +17,7 @@ import com.intellij.lang.jvm.actions.EP_NAME
 import com.intellij.lang.jvm.actions.JvmElementActionsFactory
 
 interface LanguageSyntax {
-  fun IdeMetaPlugin.addJvmElementActionsFactory(
+  fun MetaIde.addJvmElementActionsFactory(
     annotationActions: (target: JvmModifiersOwner, request: AnnotationRequest) -> List<IntentionAction> = Noop.emptyList2(),
     constructorActions: (targetClass: JvmClass, request: CreateConstructorRequest) -> List<IntentionAction> = Noop.emptyList2(),
     fieldActions: (targetClass: JvmClass, request: CreateFieldRequest) -> List<IntentionAction> = Noop.emptyList2(),

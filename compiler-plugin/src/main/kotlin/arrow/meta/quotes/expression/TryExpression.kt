@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  *    get() =
  *      "Reformat Try Expression" {
  *        meta(
- *          tryExpression({ true }) { expression ->
+ *          tryExpression(this, { true }) { expression ->
  *            Transform.replace(
  *            replacing = expression,
  *            newDeclaration = """try $tryBlock$catchClauses$finallySection""".`try`

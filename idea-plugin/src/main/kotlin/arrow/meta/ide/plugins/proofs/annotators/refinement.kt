@@ -71,7 +71,14 @@ var scriptEngine: ScriptEngine? =
       System.setProperty("kotlin.fatal.error.notification", "disabled")
 
       val engine = KotlinJsr223StandardScriptEngineFactory4Idea().scriptEngine
-      engine.eval("0") //trigger initialization
+      if (!ApplicationManager.getApplication().isUnitTestMode) {
+        // trigger initialization, unless we're in a unit test
+        // in unit tests, the engine assumes it's running in unit tests of the Kotlin plugin
+        // it throws an AssertionException if the script compiler jars are not in a dir named "dist"
+        // this is never the case with Arrow Meta and would always fail
+        // https://github.com/JetBrains/kotlin/blob/master/idea/idea-repl/src/org/jetbrains/kotlin/jsr223/KotlinJsr223JvmScriptEngine4Idea.kt#L49
+        engine.eval("0")
+      }
       engine
     } finally {
       if (prevValue != null) {

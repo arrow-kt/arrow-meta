@@ -2,6 +2,7 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
+import arrow.meta.plugins.higherkind.higherKindedTypes2
 import arrow.meta.plugins.optics.lenses
 import arrow.meta.plugins.patternMatching.patternMatching
 import arrow.meta.plugins.proofs.typeProofs
@@ -17,7 +18,7 @@ open class MetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
-      //higherKindedTypes2,
+      higherKindedTypes2,
       //typeClasses,
       //comprehensions,
       //lenses,

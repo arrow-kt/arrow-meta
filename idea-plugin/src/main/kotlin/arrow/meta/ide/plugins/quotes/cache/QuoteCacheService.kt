@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  * fixme cache both per module? modules may define different ktFiles for the same package fqName
  * TODO: register this via Meta.
  */
-private object QuoteCacheService : IdService<ConcurrentHashMap<KtFile, QuoteInfo>>, QuoteCache {
+private class QuoteCacheService : IdService<ConcurrentHashMap<KtFile, QuoteInfo>>, QuoteCache {
   override var value: Id<ConcurrentHashMap<KtFile, QuoteInfo>> =
     Id.just(ConcurrentHashMap<KtFile, QuoteInfo>())
 

@@ -11,7 +11,6 @@ import arrow.meta.ide.dsl.editor.goto.GotoRelatedSyntax
 import arrow.meta.ide.dsl.editor.hints.HintingSyntax
 import arrow.meta.ide.dsl.editor.icon.IconProviderSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
-import arrow.meta.ide.dsl.editor.kotlinextensions.KotlinExtensionSyntax
 import arrow.meta.ide.dsl.editor.language.LanguageSyntax
 import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.liveTemplate.LiveTemplateSyntax
@@ -22,6 +21,7 @@ import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.ide.dsl.editor.usage.UsageSyntax
 import arrow.meta.ide.dsl.extensions.ExtensionProviderSyntax
+import arrow.meta.ide.dsl.integration.IntegrationSyntax
 import arrow.meta.ide.dsl.resolve.ResolveScopeSyntax
 import arrow.meta.ide.dsl.resolve.ResolveProviderSyntax
 import arrow.meta.ide.dsl.ui.dialogs.DialogSyntax
@@ -32,6 +32,6 @@ import arrow.meta.ide.dsl.ui.toolwindow.ToolWindowSyntax
 interface IdeSyntax : IconProviderSyntax,
   SyntaxHighlighterSyntax, InspectionSyntax, AnActionSyntax, ColorSettingsSyntax, HintingSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
-  UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, KotlinExtensionSyntax, DialogSyntax, PopupSyntax,
+  UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, DialogSyntax, PopupSyntax,
   NotificationSyntax, ToolWindowSyntax, GotoRelatedSyntax, AnnotatorSyntax, ParserSyntax, ApplicationSyntax,
-  FoldingSyntax, EditorSyntax, ResolveScopeSyntax, ResolveProviderSyntax
+  FoldingSyntax, EditorSyntax, ResolveScopeSyntax, ResolveProviderSyntax, IntegrationSyntax

@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  *    get() =
  *      "ReformatObjectDeclaration" {
  *        meta(
- *          objectDeclaration({ isObjectLiteral() }) { c ->
+ *          objectDeclaration(this, { isObjectLiteral() }) { c ->
  *            Transform.replace(
  *              replacing = c,
  *              newDeclaration = """

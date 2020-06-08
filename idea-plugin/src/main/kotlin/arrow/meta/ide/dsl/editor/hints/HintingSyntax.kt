@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.editor.hints
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.lookup.LookupElement
@@ -63,7 +64,7 @@ interface HintingSyntax {
    *
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.editor.ex.util.EditorUtil
    * import com.intellij.openapi.fileEditor.FileEditorManager
@@ -81,7 +82,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.expressionHints: IdePlugin
+   * val MetaIde.expressionHints: IdePlugin
    *  get() = "Hints for KtExpressions" {
    *   meta(
    *    addExpressionTypeProviderForKotlin(
@@ -110,7 +111,7 @@ interface HintingSyntax {
    *  }
    * //sampleEnd
    *
-   * private val IdeMetaPlugin.typeRenderer: DescriptorRenderer
+   * private val MetaIde.typeRenderer: DescriptorRenderer
    *  get() = DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
    *    textFormat = RenderingFormat.HTML
    *    classifierNamePolicy = classifierNamePolicy()
@@ -135,7 +136,7 @@ interface HintingSyntax {
    * @param errorHint if the Type can't be detected
    * @sample [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider]
    */
-  fun IdeMetaPlugin.addExpressionTypeProviderForKotlin(
+  fun MetaIde.addExpressionTypeProviderForKotlin(
     informationHint: BindingContext.(expression: KtExpression) -> String,
     expressionAt: (elementAt: PsiElement) -> List<KtExpression>,
     errorHint: String = "No expression Found",
@@ -149,7 +150,7 @@ interface HintingSyntax {
    * This extension can be used to bring TypeInferenceAlgorithms to the ide and is a language independent version of [addExpressionTypeProviderForKotlin].
    * @see addExpressionTypeProviderForKotlin
    */
-  fun <A : PsiElement> IdeMetaPlugin.addExpressionTypeProvider(
+  fun <A : PsiElement> MetaIde.addExpressionTypeProvider(
     informationHint: (expression: A) -> String,
     expressionAt: (elementAt: PsiElement) -> List<A>,
     errorHint: String = "No expression Found",
@@ -175,14 +176,14 @@ interface HintingSyntax {
    * @param Owner is the list of Parameters in the Descriptor [Type]
    * @see addParameterInfoHandlerForKotlin
    */
-  fun <Owner : PsiElement, Type> IdeMetaPlugin.addParameterInfoHandler(handler: ParameterInfoHandler<Owner, Type>): ExtensionPhase =
+  fun <Owner : PsiElement, Type> MetaIde.addParameterInfoHandler(handler: ParameterInfoHandler<Owner, Type>): ExtensionPhase =
     extensionProvider(LanguageParameterInfo.INSTANCE, handler)
 
   /**
    * @param findElementForUpdatingParameterInfo returning null removes hint
    * @see addParameterInfoHandler
    */
-  fun <Owner : PsiElement, Type> IdeMetaPlugin.parameterInfoHandler(
+  fun <Owner : PsiElement, Type> MetaIde.parameterInfoHandler(
     showParameterInfo: (element: Owner, context: CreateParameterInfoContext) -> Unit,
     updateParameterInfo: (parameterOwner: Owner, context: UpdateParameterInfoContext) -> Unit,
     updateUI: (p: Type, context: ParameterInfoUIContext) -> Unit = Noop.effect2,
@@ -225,7 +226,7 @@ interface HintingSyntax {
    * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.descriptors.ClassDescriptor
    * import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
@@ -234,7 +235,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: IdePlugin
+   * val MetaIde.parameterHints: IdePlugin
    *  get() =  "Hints for ClassDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(
@@ -251,7 +252,7 @@ interface HintingSyntax {
    * @see addParameterInfoHandlerForKotlin
    *
    */
-  fun <Type : DeclarationDescriptor, A> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <Type : DeclarationDescriptor, A> MetaIde.addParameterInfoHandlerForKotlin(
     fetchTypeParameters: (descriptor: Type) -> List<TypeParameterDescriptor>,
     findParameterOwners: (argumentList: KtTypeArgumentList) -> Collection<Type>?,
     argumentListAllowedParentClasses: Set<Class<A>>
@@ -275,7 +276,7 @@ interface HintingSyntax {
    * The following example is for [KtLambdaArgument]s from [org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler]:
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.lexer.KtTokens
    * import org.jetbrains.kotlin.psi.KtCallElement
@@ -283,7 +284,7 @@ interface HintingSyntax {
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
    * //sampleStart
-   * val IdeMetaPlugin.parameterHints: IdePlugin
+   * val MetaIde.parameterHints: IdePlugin
    *  get() =  "Hints for FunctionDescriptor" {
    *   meta(
    *    addParameterInfoHandlerForKotlin(
@@ -305,7 +306,7 @@ interface HintingSyntax {
    * @param parameterIndex default count's each occurrence of a [KtTokens.COMMA]
    */
   @Suppress
-  fun <ArgumentList : KtElement, Argument : KtElement, A> IdeMetaPlugin.addParameterInfoHandlerForKotlin(
+  fun <ArgumentList : KtElement, Argument : KtElement, A> MetaIde.addParameterInfoHandlerForKotlin(
     argumentList: KClass<ArgumentList>,
     argument: KClass<Argument>,
     actualParameters: (o: ArgumentList) -> Array<Argument>,

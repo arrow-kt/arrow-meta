@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  *    get() =
  *      "Reformat Binary Expression" {
  *        meta(
- *          binaryExpression({ true }) { expression ->
+ *          binaryExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """$left $operationReference $right""".binaryExpression

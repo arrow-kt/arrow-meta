@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.annotator
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.Language
@@ -21,7 +21,7 @@ interface AnnotatorSyntax {
    * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
    * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.plugins.purity.isImpure
    * import arrow.meta.ide.invoke
    * import com.intellij.lang.annotation.Annotator
@@ -30,7 +30,7 @@ interface AnnotatorSyntax {
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.purityAnnotator: IdePlugin
+   * val MetaIde.purityAnnotator: IdePlugin
    *   get() = "PurityCheck Annotator" {
    *     meta(
    *       addAnnotator(
@@ -46,6 +46,6 @@ interface AnnotatorSyntax {
    *   }
    * ```
    */
-  fun IdeMetaPlugin.addAnnotator(lang: Language = KotlinLanguage.INSTANCE, annotator: Annotator): ExtensionPhase =
+  fun MetaIde.addAnnotator(lang: Language = KotlinLanguage.INSTANCE, annotator: Annotator): ExtensionPhase =
     ExtensionProvider.AddLanguageAnnotator(lang, annotator)
 }
