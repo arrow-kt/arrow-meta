@@ -9,6 +9,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 import org.junit.Test
 
 open class PatternMatchingPlugin : Meta {
@@ -19,8 +20,10 @@ open class PatternMatchingPlugin : Meta {
 
 val Meta.patternMatchingPlugin: CliPlugin
   get() =
-    "Binary Expression Scope Plugin" {
+    "Pattern Matching Plugin" {
       meta(
+        enableIr(),
+        suppressDiagnostic { ctx.suppressUnresolvedReference(it) },
         analysis(
           doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
             null
@@ -48,8 +51,6 @@ class PatternMatchingTests {
          val person = Person("Matt", "Moore")
 
          fun case(arg: Any): Person = TODO("Deal with later...")
-
-         @Suppress("UNRESOLVED_REFERENCE")
 
          val result = when (person) {
            case(Person(_, "Moore")) -> "Matched"
