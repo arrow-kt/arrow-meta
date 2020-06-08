@@ -16,7 +16,7 @@ val Meta.transformNewSource: List<CliPlugin>
 private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration({ name == "NewSource" }) {
+      classDeclaration(this, { name == "NewSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -33,7 +33,7 @@ private val Meta.transformNewSourceSingleGeneration: CliPlugin
 private val Meta.transformNewSourceMultipleGeneration: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration({ name == "NewMultipleSource" }) {
+      classDeclaration(this, { name == "NewMultipleSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -57,7 +57,7 @@ private val Meta.transformNewSourceMultipleGeneration: CliPlugin
 private val Meta.transformNewSourceWithManyTransformation: CliPlugin
   get() = "Transform New Source With Many Transformation" {
     meta(
-      classDeclaration({ name == "NewSourceMany" }) { c ->
+      classDeclaration(this, { name == "NewSourceMany" }) { c ->
         (
           changeClassVisibility("NewSourceMany", c, this)
           + removeFooPrint(c, this)
@@ -100,7 +100,7 @@ private fun CompilerContext.generateSupplierClass(declaration: ClassDeclaration)
 private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration({ name == "NewSourceWithCustomPath" }) {
+      classDeclaration(this, { name == "NewSourceWithCustomPath" }) {
         Transform.newSources(
           """
             package arrow
@@ -115,7 +115,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
 private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration({ name == "NewMultipleSourceWithCustomPath" }) {
+      classDeclaration(this, { name == "NewMultipleSourceWithCustomPath" }) {
         Transform.newSources(
           """
             package arrow

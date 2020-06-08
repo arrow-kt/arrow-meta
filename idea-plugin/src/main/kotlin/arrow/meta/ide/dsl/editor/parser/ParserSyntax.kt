@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.parser
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LanguageParserDefinitions
@@ -15,7 +15,7 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 
 interface ParserSyntax {
-  fun IdeMetaPlugin.addParser(
+  fun MetaIde.addParser(
     parser: (Project) -> PsiParser,
     file: (FileViewProvider) -> PsiFile,
     stringLiteralElements: TokenSet,
@@ -26,7 +26,7 @@ interface ParserSyntax {
   ): ExtensionPhase =
     parser(parser(parser, file, stringLiteralElements, fileNodeType, lexer, element, commentTokens))
 
-  fun IdeMetaPlugin.parser(parser: ParserDefinition): ExtensionPhase =
+  fun MetaIde.parser(parser: ParserDefinition): ExtensionPhase =
     extensionProvider(LanguageParserDefinitions.INSTANCE, parser)
 
   fun ParserSyntax.parser(

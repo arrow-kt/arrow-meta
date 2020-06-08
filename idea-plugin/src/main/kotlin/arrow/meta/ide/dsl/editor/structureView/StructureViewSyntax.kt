@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.structureView
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.structureView.StructureViewBuilder
@@ -27,7 +27,7 @@ interface StructureViewSyntax {
   /**
    * Convenient function to construct a StructureView
    */
-  fun IdeMetaPlugin.addStructureViewForKtFile(
+  fun MetaIde.addStructureViewForKtFile(
     putInfo: (info: MutableMap<String, String>) -> Unit,
     childrenBase: (file: KtFile) -> MutableCollection<StructureViewTreeElement> =
       { KotlinStructureViewElement(it).childrenBase.toMutableList() },
@@ -56,7 +56,7 @@ interface StructureViewSyntax {
   /**
    * Room for improvement: the function parameters should also adapt to transform
    */
-  fun <A : PsiElement> IdeMetaPlugin.addStructureView(
+  fun <A : PsiElement> MetaIde.addStructureView(
     transform: (psiFile: PsiFile) -> A?,
     putInfo: (info: MutableMap<String, String>) -> Unit,
     childrenBase: (file: PsiFile) -> MutableCollection<StructureViewTreeElement> =

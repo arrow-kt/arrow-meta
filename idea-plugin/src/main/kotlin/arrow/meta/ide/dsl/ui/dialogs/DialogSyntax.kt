@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.ui.dialogs
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.IdeView
@@ -28,11 +28,11 @@ interface DialogSyntax {
   /**
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.idea.KotlinFileType
    *
-   * val IdeMetaPlugin.createFilePlugin: IdePlugin
+   * val MetaIde.createFilePlugin: IdePlugin
    *  get() = "Create File Dialog" {
    *   meta(
    *     addFileAction("ExampleAction", "New File", "Creates a new File",
@@ -46,7 +46,7 @@ interface DialogSyntax {
    * ```
    * @param actionId has to be unique
    */
-  fun IdeMetaPlugin.addFileAction(
+  fun MetaIde.addFileAction(
     actionId: String,
     createText: String,
     actionDescription: String,

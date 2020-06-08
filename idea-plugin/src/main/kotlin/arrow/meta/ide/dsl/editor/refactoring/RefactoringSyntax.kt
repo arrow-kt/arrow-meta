@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.refactoring
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.lang.ImportOptimizer
@@ -19,7 +19,7 @@ import com.intellij.refactoring.changeSignature.ChangeSignatureHandler
 import com.intellij.refactoring.rename.RenamePsiFileProcessor
 
 interface RefactoringSyntax {
-  fun IdeMetaPlugin.addImportOptimizer(
+  fun MetaIde.addImportOptimizer(
     supports: (file: PsiFile) -> Boolean,
     processFile: (file: PsiFile) -> Runnable
   ): ExtensionPhase =
@@ -35,7 +35,7 @@ interface RefactoringSyntax {
   /**
    * TODO: Test Default values
    */
-  fun IdeMetaPlugin.addRefactoringSupportProvider(
+  fun MetaIde.addRefactoringSupportProvider(
     introduceFunctionalParameterHandler: RefactoringActionHandler? = null,
     pushDownHandler: RefactoringActionHandler? = null,
     introduceFunctionalVariableHandler: RefactoringActionHandler? = null,
@@ -123,7 +123,7 @@ interface RefactoringSyntax {
       }
     )
 
-  fun IdeMetaPlugin.addNamesValidator(
+  fun MetaIde.addNamesValidator(
     isKeyword: (name: String, project: Project?) -> Boolean,
     isIdentifier: (name: String, project: Project?) -> Boolean
   ): ExtensionPhase =
@@ -141,7 +141,7 @@ interface RefactoringSyntax {
   /**
    * [RenamePsiFileProcessor]
    */
-  fun IdeMetaPlugin.addRenamePsiFileProcessor():
+  fun MetaIde.addRenamePsiFileProcessor():
     ExtensionPhase =
     extensionProvider(
       RenamePsiFileProcessor.EP_NAME,

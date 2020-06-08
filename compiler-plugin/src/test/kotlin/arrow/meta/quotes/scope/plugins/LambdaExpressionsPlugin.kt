@@ -17,7 +17,7 @@ val Meta.lambdaExpressionPlugin
   get() =
     "Lambda Expression Scope Plugin" {
       meta(
-        lambdaExpression({ true }) { expression ->
+        lambdaExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

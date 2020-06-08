@@ -6,16 +6,14 @@ import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerDescription
 import arrow.meta.ide.testing.env.IdeTestSetUp
+import arrow.meta.ide.testing.env.file
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-class CoercionTest : IdeTestSetUp() {
-
-  override fun setUp() {
-    super.setUp()
-    myFixture.addFileToProject("arrow/prelude.kt", CoercionTestCode.prelude)
-    myFixture.addFileToProject("consumer/consumer.kt", CoercionTestCode.twitterHandleDeclaration)
-  }
+class CoercionTest : IdeTestSetUp(
+  CoercionTestCode.prelude.file("arrow/prelude.kt"),
+  CoercionTestCode.twitterHandleDeclaration.file("consumer/consumer.kt")
+) {
 
   @org.junit.Test
   fun `test coercion line marker`() =

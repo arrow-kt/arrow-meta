@@ -1,3 +1,9 @@
+buildscript {
+  ext {
+    set('INTELLIJ_IDEA_VERSION_UNDER_TEST', INTELLIJ_IDEA_VERSION)
+  }
+}
+
 plugins {
   id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
 }
@@ -15,7 +21,7 @@ repositories {
 dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
-  compileOnly "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
+  implementation "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
   api project(path: ':compiler-plugin', configuration: 'shadow')
 
   testCompile("org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION") // for the JetBrains Gradle test framework
@@ -62,6 +68,15 @@ publishPlugin {
 test {
   dependsOn ':publishIdeTestingDependencies'
   testLogging.showStandardStreams = true
+  systemProperties['idea.is.internal'] = "false"
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
+apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
+apply from: file("${rootProject.rootDir}/gradle/build-idea-plugin.gradle")
+
+runPluginVerifier {
+    pluginFileName = "Arrow Meta-$VERSION_NAME"
+    ides = ["IC-$INTELLIJ_IDEA_VERSION_UNDER_TEST"]
+    verifierVersion = "1.241"
+}

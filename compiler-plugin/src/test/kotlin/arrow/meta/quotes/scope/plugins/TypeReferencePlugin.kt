@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -17,7 +17,7 @@ val Meta.typeReferencePlugin
   get() =
     "Type Reference Scope Plugin" {
       meta(
-        typeReference({ true }) { expression ->
+        typeReference(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

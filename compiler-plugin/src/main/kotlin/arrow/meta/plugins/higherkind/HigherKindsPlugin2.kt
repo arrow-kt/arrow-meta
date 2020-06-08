@@ -13,7 +13,7 @@ val Meta.higherKindedTypes2: CliPlugin
   get() =
     "higherKindedTypes2" {
       meta(
-        classDeclaration(::isHigherKindedType) { c ->
+        classDeclaration(this, ::isHigherKindedType) { c ->
           Transform.replace(c, listOfNotNull(
             /** Kind Marker **/
             "class For$name private constructor()".`class`.syntheticScope,

@@ -17,7 +17,7 @@ val Meta.functionLiteralPlugin : CliPlugin
   get() =
     "Function Literal Scope Plugin" {
       meta(
-        functionLiteral({ true }) { expression ->
+        functionLiteral(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

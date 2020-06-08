@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.resolve.ImportPath
  *  get() =
  *   "ReformatImportDirective" {
  *    meta(
- *     importDirective({ true }) { e ->
+ *     importDirective(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = importDirective(ImportPath(importedFqName, isAllUnder, alias))
