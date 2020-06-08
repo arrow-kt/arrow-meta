@@ -1,5 +1,5 @@
 diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
-index f524d67..7fced89 100644
+index a1a14a7..f7f7485 100644
 --- a/compiler-plugin/build.gradle
 +++ b/compiler-plugin/build.gradle
 @@ -33,6 +33,7 @@ dependencies {
@@ -19,10 +19,10 @@ index f524d67..7fced89 100644
  }
  
 diff --git a/meta-test/build.gradle b/meta-test/build.gradle
-index 58c53fb..2b8c008 100755
+index 1cbcaac..5e04d91 100755
 --- a/meta-test/build.gradle
 +++ b/meta-test/build.gradle
-@@ -25,6 +25,7 @@ dependencies {
+@@ -23,6 +23,7 @@ dependencies {
      testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
          exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
      }
@@ -30,7 +30,7 @@ index 58c53fb..2b8c008 100755
      testRuntimeOnly project(':prelude')
  }
  
-@@ -43,6 +44,7 @@ test {
+@@ -41,6 +42,7 @@ test {
      }
      systemProperty "CURRENT_VERSION", "$VERSION_NAME"
      systemProperty "ARROW_VERSION", "$ARROW_VERSION"
