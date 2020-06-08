@@ -1,4 +1,4 @@
-package arrow.meta.plugins.patternMatching
+package arrow.meta.plugins.patternMatching.phases.resolve.diagnostics
 
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtCallExpression

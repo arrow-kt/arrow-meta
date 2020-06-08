@@ -3,6 +3,7 @@ package arrow.meta.plugins.patternMatching
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.invoke
+import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternTypes
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 
 val Meta.patternMatching: CliPlugin
@@ -15,7 +16,7 @@ val Meta.patternMatching: CliPlugin
           null
         },
         analysisCompleted = { project, module, bindingTrace, files ->
-          reconcileTypes(project, bindingTrace)
+          resolvePatternTypes(project, bindingTrace)
           null
         }
       )

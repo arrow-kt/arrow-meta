@@ -9,6 +9,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternTypes
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 import org.junit.Test
 
@@ -29,7 +30,7 @@ val Meta.patternMatchingPlugin: CliPlugin
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            reconcileTypes(project, bindingTrace)
+            resolvePatternTypes(project, bindingTrace)
             null
           }
         ),

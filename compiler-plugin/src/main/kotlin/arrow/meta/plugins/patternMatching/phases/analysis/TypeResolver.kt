@@ -9,7 +9,7 @@
       so that _ doesn't cause an unresolved reference. I'm doing this in the test manually.
  */
 
-package arrow.meta.plugins.patternMatching
+package arrow.meta.plugins.patternMatching.phases.analysis
 
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 //      .firstChild.nextSibling
 //      .text.replace("_", "person.firstName")
 
-fun reconcileTypes(project: Project, bindingTrace: BindingTrace) {
+fun resolvePatternTypes(project: Project, bindingTrace: BindingTrace) {
   val underscoreTypeInfo = bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
     .filter { it.value.type == null && it.key.text == "_" }
 
@@ -43,7 +43,7 @@ fun reconcileTypes(project: Project, bindingTrace: BindingTrace) {
   }
 }
 
-fun constructorFieldTypeInfo(bindingTrace: BindingTrace) =
+private fun constructorFieldTypeInfo(bindingTrace: BindingTrace) =
   bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO)
     .entries
     .find { it.key.textMatches(""""Matt"""") }
