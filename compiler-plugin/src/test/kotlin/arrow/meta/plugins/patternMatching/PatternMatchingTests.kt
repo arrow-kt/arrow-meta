@@ -32,7 +32,8 @@ val Meta.patternMatchingPlugin: CliPlugin
             reconcileTypes(project, bindingTrace)
             null
           }
-        )
+        ),
+        irDump()
       )
     }
 
@@ -67,7 +68,7 @@ class PatternMatchingTests {
             In codegen we'll need to transform _ to the property that goes along with the constructor for the class.
          */
         //"result".source.evalsTo("Matched")
-        failsWith { it.contains("Failed to generate expression: KtNameReferenceExpression") }
+        failsWith { it.contains("_: KtCallExpression:") }
       )
     }
   }
