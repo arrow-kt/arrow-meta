@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.markers.coercionMessage
 import arrow.meta.ide.plugins.proofs.markers.isCoerced
 import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.coerceProof
@@ -24,13 +25,12 @@ val IdeMetaPlugin.coercionAnnotator: ExtensionPhase
 val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
   get() = addAnnotator(
     annotator = Annotator { element: PsiElement, holder: AnnotationHolder ->
+      val ctx = element.project.getService(CompilerContext::class.java)
       element.safeAs<KtProperty>()?.takeIf { psiElement: KtProperty ->
-        //true
-        psiElement.ctx().isCoerced(psiElement)
+        ctx.isCoerced(psiElement)
       }?.let { psiElement: KtProperty ->
         val message = psiElement.participatingTypes()?.let { (subtype, supertype) ->
-          //"some message"
-          psiElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+          ctx.coerceProof(subtype, supertype)?.coercionMessage()
         } ?: "Proof not found"
         psiElement.delegateExpressionOrInitializer?.let {
           holder.createInfoAnnotation(it, message)
@@ -43,13 +43,12 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
 val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
   get() = addAnnotator(
     annotator = Annotator { element: PsiElement, holder: AnnotationHolder ->
+      val ctx = element.project.getService(CompilerContext::class.java)
       element.safeAs<KtValueArgument>()?.takeIf { psiElement: KtValueArgument ->
-        //true
-        psiElement.ctx().isCoerced(psiElement)
+        ctx.isCoerced(psiElement)
       }?.let { psiElement: KtValueArgument ->
         val message = psiElement.participatingTypes()?.let { (subtype, supertype) ->
-          //"some message"
-          psiElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+          ctx.coerceProof(subtype, supertype)?.coercionMessage()
         } ?: "Proof not found"
         psiElement.getArgumentExpression()?.let {
           holder.createInfoAnnotation(it, message)
