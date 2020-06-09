@@ -3,10 +3,10 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofRelatedLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -32,7 +32,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementAnnotator(),
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      coercionCallSiteLineMarker,
+      // coercionCallSiteLineMarker,
+      coercionAnnotator,
       coercionInspections,
       codeFolding
     )
