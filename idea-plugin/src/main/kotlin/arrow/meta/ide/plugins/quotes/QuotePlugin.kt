@@ -7,6 +7,11 @@ import arrow.meta.ide.plugins.quotes.highlighting.quoteHighlighting
 import arrow.meta.ide.plugins.quotes.lifecycle.quoteLifecycle
 import arrow.meta.ide.plugins.quotes.synthetic.quoteSyntheticPackageFragmentProvider
 import arrow.meta.ide.plugins.quotes.synthetic.quoteSyntheticResolver
+import com.intellij.lang.annotation.AnnotationHolder
+import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.PsiElement
+import arrow.meta.ide.dsl.utils.ctx
+import arrow.meta.phases.CompilerContext
 
 /**
  * Please, view the sub directories `cache` , `synthetic`, `system`, `lifecycle` and `highlighting` for quotes related IDE features.
@@ -27,3 +32,15 @@ val IdeMetaPlugin.quotes: IdePlugin
       quoteSyntheticPackageFragmentProvider
     )
   }
+
+
+class ErrorAnnotator : Annotator {
+  override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+    element.ctx()?.let {
+      println("HIIII I HAVE THE EXTENSION calling ctx()")
+    }
+    element.project.getService(CompilerContext::class.java)?.let {
+      println("I HAVE THE EXTENSION with an explicit call")
+    }
+  }
+}
