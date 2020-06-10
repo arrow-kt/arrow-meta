@@ -16,6 +16,7 @@ import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.dsl.editor.liveTemplate.LiveTemplateSyntax
 import arrow.meta.ide.dsl.editor.navigation.NavigationSyntax
 import arrow.meta.ide.dsl.editor.parser.ParserSyntax
+import arrow.meta.ide.dsl.editor.references.ReferenceSyntax
 import arrow.meta.ide.dsl.editor.search.SearchSyntax
 import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
@@ -34,4 +35,4 @@ interface IdeSyntax : IconProviderSyntax,
   LanguageSyntax, LineMarkerSyntax, LiveTemplateSyntax, NavigationSyntax, SearchSyntax, StructureViewSyntax,
   UsageSyntax, ExtensionProviderSyntax, DocumentationSyntax, DialogSyntax, PopupSyntax,
   NotificationSyntax, ToolWindowSyntax, GotoRelatedSyntax, AnnotatorSyntax, ParserSyntax, ApplicationSyntax,
-  FoldingSyntax, EditorSyntax, ResolveScopeSyntax, ResolveProviderSyntax, IntegrationSyntax
+  FoldingSyntax, EditorSyntax, ResolveScopeSyntax, ResolveProviderSyntax, IntegrationSyntax, ReferenceSyntax

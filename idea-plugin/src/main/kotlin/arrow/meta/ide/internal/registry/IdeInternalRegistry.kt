@@ -2,14 +2,15 @@ package arrow.meta.ide.internal.registry
 
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.phases.IdeContext
+import arrow.meta.ide.phases.additional.AdditionalIdePhase
+import arrow.meta.ide.phases.additional.AdditionalRegistry
 import arrow.meta.ide.phases.application.ApplicationProvider
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.ide.phases.editor.extension.ExtensionProvider
 import arrow.meta.ide.phases.editor.fileEditor.EditorProvider
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
+import arrow.meta.ide.phases.editor.references.ReferenceProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
-import arrow.meta.ide.phases.additional.AdditionalIdePhase
-import arrow.meta.ide.phases.additional.AdditionalRegistry
 import arrow.meta.ide.phases.integration.indices.KotlinIndicesHelper
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.phases.ui.ToolwindowProvider
@@ -50,6 +51,8 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.impl.source.resolve.reference.PsiReferenceRegistrarImpl
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistryImpl
 import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.messages.Topic
@@ -107,6 +110,7 @@ interface IdeInternalRegistry : InternalRegistry {
             is EditorProvider -> registerEditorProvider(phase, ctx.app)
             is ApplicationProvider -> registerApplicationProvider(phase, ctx.app)
             is AdditionalIdePhase -> ctx.app.registerAdditional(phase)
+            is ReferenceProvider -> registerReferenceProvider(phase, ctx.app)
             is Composite -> phase.phases.forEach { composite -> rec(composite) }
             else -> LOG.error("Unsupported ide extension phase: $phase")
           }
@@ -120,13 +124,13 @@ interface IdeInternalRegistry : InternalRegistry {
   fun <A> Application.registerTopic(topic: Topic<A>, listeners: A): Unit =
     messageBus.connect(this).subscribe(topic, listeners)
 
-  fun Application.projectOpened(opened: (Project) -> Unit): Unit =
+  private fun Application.projectOpened(opened: (Project) -> Unit): Unit =
     registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
       override fun projectOpened(project: Project): Unit =
         opened(project)
     })
 
-  fun Application.registerCliExtension(
+  private fun Application.registerCliExtension(
     f: Project.(CompilerContext) -> Unit
   ): Unit =
     projectOpened { project ->
@@ -135,13 +139,13 @@ interface IdeInternalRegistry : InternalRegistry {
       }
     }
 
-  fun Application.registerAdditional(phase: AdditionalIdePhase) {
+  private fun Application.registerAdditional(phase: AdditionalIdePhase) {
     getService(AdditionalRegistry::class.java)?.run {
       register(this@registerAdditional, phase)
     }
   }
 
-  fun Project.kotlinIndicesHelper(phase: KotlinIndicesHelper, ctx: CompilerContext): Unit =
+  private fun Project.kotlinIndicesHelper(phase: KotlinIndicesHelper, ctx: CompilerContext): Unit =
     KotlinIndicesHelperExtension.registerExtension(
       this,
       object : KotlinIndicesHelperExtension {
@@ -156,14 +160,23 @@ interface IdeInternalRegistry : InternalRegistry {
       }
     )
 
+  private fun registerReferenceProvider(phase: ReferenceProvider, app: Application): Unit =
+    when (phase) {
+      is ReferenceProvider.RegisterReferenceContributor -> {
+        class Registry : ReferenceProvidersRegistryImpl()
+        TODO("Unfinished")
+      }
+    }
+
+
   @Suppress("UNCHECKED_CAST")
-  fun registerEditorProvider(phase: EditorProvider, app: Application): Unit =
+  private fun registerEditorProvider(phase: EditorProvider, app: Application): Unit =
     when (phase) {
       is EditorProvider.FileEditorListener -> app.registerTopic(FileEditorManagerListener.FILE_EDITOR_MANAGER, phase.listener)
     }
 
   @Suppress("UNCHECKED_CAST")
-  fun registerApplicationProvider(phase: ApplicationProvider, app: Application): Unit =
+  private fun registerApplicationProvider(phase: ApplicationProvider, app: Application): Unit =
     when (phase) {
       is ApplicationProvider.AppService<*> -> phase.run { instance(app.getService(service))?.let { app.registerService(service as Class<Any>, it) } }
       is ApplicationProvider.ReplaceAppService<*> -> phase.run { app.replaceService(service as Class<Any>, instance(app.getService(service))) }
@@ -196,22 +209,22 @@ interface IdeInternalRegistry : InternalRegistry {
     }
       ?: LOG.warn("The registration process failed for extension:$phase from arrow.meta.ide.phases.application.ApplicationProvider.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
-  fun Application.overrideService(fromService: Class<*>, toService: Class<*>, override: Boolean): Unit =
+  private fun Application.overrideService(fromService: Class<*>, toService: Class<*>, override: Boolean): Unit =
     (this as? ApplicationImpl)
       ?.registerService(fromService, toService, DefaultPluginDescriptor("overrides service:${fromService.simpleName} to ${toService.simpleName}"), override)
       ?: LOG.error("Service:${fromService.simpleName} could not be OVERRIDDEN properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
-  fun <T : Any> ComponentManager.registerService(service: Class<T>, instance: T): Unit =
+  private fun <T : Any> ComponentManager.registerService(service: Class<T>, instance: T): Unit =
     (this as? ComponentManagerImpl)
       ?.registerServiceInstance(service, instance, DefaultPluginDescriptor("registers service:${service.simpleName}"))
       ?: LOG.error("Service:${service.simpleName} could not be REGISTERED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
-  fun <T : Any> ComponentManager.replaceService(service: Class<T>, instance: T): Unit =
+  private fun <T : Any> ComponentManager.replaceService(service: Class<T>, instance: T): Unit =
     (this as? ComponentManagerImpl)
       ?.replaceServiceInstance(service, instance, this)
       ?: LOG.error("Service:${service.simpleName} could not be REPLACED properly.\nPlease raise an Issue in Github: https://github.com/arrow-kt/arrow-meta")
 
-  fun registerToolwindowProvider(phase: ToolwindowProvider): Unit =
+  private fun registerToolwindowProvider(phase: ToolwindowProvider): Unit =
     when (phase) {
       is ToolwindowProvider.RegisterToolWindow -> phase.registerOrActivate()
       is ToolwindowProvider.UnRegisterToolWindow -> phase.unregister()
@@ -233,14 +246,14 @@ interface IdeInternalRegistry : InternalRegistry {
   fun ToolwindowProvider.Notification.register(): Unit =
     ToolWindowManager.getInstance(project).notifyByBalloon(id, type, html, icon, HyperlinkListener(listener))
 
-  fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
+  private fun registerSyntaxHighlighterExtensionProvider(phase: SyntaxHighlighterExtensionProvider): Unit =
     when (phase) {
       is SyntaxHighlighterExtensionProvider.RegisterSyntaxHighlighter -> phase.run {
         SyntaxHighlighterFactory.LANGUAGE_FACTORY.addExplicitExtension(language, factory)
       }
     }
 
-  fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider): Unit =
+  private fun registerIntentionExtensionProvider(phase: IntentionExtensionProvider): Unit =
     when (phase) {
       is IntentionExtensionProvider.RegisterIntention -> phase.run {
         IntentionManager.getInstance()?.addAction(intention)
@@ -258,7 +271,7 @@ interface IdeInternalRegistry : InternalRegistry {
       }
     }
 
-  fun registerAnActionExtensionProvider(phase: AnActionExtensionProvider): Unit =
+  private fun registerAnActionExtensionProvider(phase: AnActionExtensionProvider): Unit =
     when (phase) {
       is AnActionExtensionProvider.RegisterAction -> phase.run {
         ActionManager.getInstance()?.registerAction(actionId, action)
@@ -290,7 +303,7 @@ interface IdeInternalRegistry : InternalRegistry {
       }
     }
 
-  fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, disposable: Disposable): Unit =
+  private fun <E> registerExtensionProvider(phase: ExtensionProvider<E>, disposable: Disposable): Unit =
     when (phase) {
       is ExtensionProvider.AddExtension -> phase.run { Extensions.getRootArea().getExtensionPoint(EP_NAME).registerExtension(impl, loadingOrder, disposable) }
       is ExtensionProvider.AddLanguageExtension -> phase.run { LE.addExplicitExtension(lang, impl) }
