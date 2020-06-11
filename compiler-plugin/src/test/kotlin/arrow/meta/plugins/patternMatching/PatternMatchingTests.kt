@@ -9,8 +9,11 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternTypes
+import arrow.meta.plugins.patternMatching.phases.analysis.resolveTypesFor
+import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.junit.Test
 
 open class PatternMatchingPlugin : Meta {
@@ -30,7 +33,7 @@ val Meta.patternMatchingPlugin: CliPlugin
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            resolvePatternTypes(project, bindingTrace)
+            bindingTrace.resolveTypesFor { wildcards(it) }
             null
           }
         ),

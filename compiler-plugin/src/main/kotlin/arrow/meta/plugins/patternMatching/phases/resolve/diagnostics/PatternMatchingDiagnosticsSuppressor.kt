@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-
 fun CompilerContext.suppressUnresolvedReference(diagnostic: Diagnostic): Boolean =
   diagnostic.factory == Errors.UNRESOLVED_REFERENCE &&
     diagnostic.safeAs<DiagnosticWithParameters1<KtNameReferenceExpression, KtNameReferenceExpression>>()?.let { diagnosticWithParameters ->

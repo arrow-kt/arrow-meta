@@ -1,3 +1,5 @@
+package arrow.meta.plugins.patternMatching.phases.analysis
+
 /* TODO:
     This demonstrates getting past type-checking phase but is hard-coded and needs to be cleaned up.
     Right now I'm still just hardcoding a lot to experiment with the concept.
@@ -9,41 +11,33 @@
       so that _ doesn't cause an unresolved reference. I'm doing this in the test manually.
  */
 
-package arrow.meta.plugins.patternMatching.phases.analysis
-
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 
-/* TODO:
-    This can go away or be rewritten for codegen at some point.
-    I'm leaving it here to demonstrate a naive example
-    of what we're trying to do with transforms.
- */
-//val KtCallExpression.desugar: String
-//  get() =
-//    firstChild.nextSibling
-//      .firstChild.nextSibling
-//      .text.replace("_", "person.firstName")
+fun BindingTrace.resolveTypesFor(resolution: (BindingTrace) -> Unit) =
+  resolution(this)
 
-fun resolvePatternTypes(project: Project, bindingTrace: BindingTrace) {
-  val underscoreTypeInfo = bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
+fun wildcards(bindingTrace: BindingTrace) =
+  bindingTrace.wildcardTypeInfoEntries.forEach { entry ->
+    constructorArgTypeInfo(bindingTrace).let { replacementType ->
+      KotlinTypeInfo(
+        type = replacementType,
+        dataFlowInfo = entry.value.dataFlowInfo,
+        jumpOutPossible = entry.value.jumpOutPossible,
+        jumpFlowInfo = entry.value.jumpFlowInfo
+      ).let { replacementTypeInfo ->
+        bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, entry.key, replacementTypeInfo)
+      }
+    }
+  }
+
+val BindingTrace.wildcardTypeInfoEntries: List<MutableMap.MutableEntry<KtExpression, KotlinTypeInfo>>
+  get() = bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
     .filter { it.value.type == null && it.key.text == "_" }
 
-  val replacementType = constructorFieldTypeInfo(bindingTrace)
-  if (replacementType != null) {
-    val replacementTypeInfo = KotlinTypeInfo(
-      type = replacementType,
-      dataFlowInfo = underscoreTypeInfo.first().value.dataFlowInfo,
-      jumpOutPossible = underscoreTypeInfo.first().value.jumpOutPossible,
-      jumpFlowInfo = underscoreTypeInfo.first().value.jumpFlowInfo
-    )
-    bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, underscoreTypeInfo.first().key, replacementTypeInfo)
-  }
-}
-
-private fun constructorFieldTypeInfo(bindingTrace: BindingTrace) =
+private fun constructorArgTypeInfo(bindingTrace: BindingTrace) =
   bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO)
     .entries
     .find { it.key.textMatches(""""Matt"""") }
