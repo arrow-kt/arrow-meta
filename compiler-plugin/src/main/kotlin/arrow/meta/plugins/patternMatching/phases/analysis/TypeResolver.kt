@@ -22,14 +22,7 @@ fun BindingTrace.resolveTypesFor(resolution: (BindingTrace) -> Unit) =
 fun wildcards(bindingTrace: BindingTrace) =
   bindingTrace.wildcardTypeInfoEntries.forEach { entry ->
     constructorArgTypeInfo(bindingTrace).let { replacementType ->
-      KotlinTypeInfo(
-        type = replacementType,
-        dataFlowInfo = entry.value.dataFlowInfo,
-        jumpOutPossible = entry.value.jumpOutPossible,
-        jumpFlowInfo = entry.value.jumpFlowInfo
-      ).let { replacementTypeInfo ->
-        bindingTrace.record(BindingContext.EXPRESSION_TYPE_INFO, entry.key, replacementTypeInfo)
-      }
+      bindingTrace.recordType(entry.key, replacementType)
     }
   }
 

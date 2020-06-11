@@ -7,13 +7,13 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
+import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
+import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.patternMatching.phases.analysis.resolveTypesFor
 import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.junit.Test
 
 open class PatternMatchingPlugin : Meta {
@@ -50,12 +50,33 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `rewrite constructor pattern match expression`() {
+  fun `without case pattern match expression`() {
     val code =
       """data class Person(val firstName: String, val lastName: String)
          val person = Person("Matt", "Moore")
 
-         fun case(arg: Any): Person = TODO("Deal with later...")
+         fun case(arg: Any?): Any? = arg
+
+         val result = when (person) {
+           case(Person("Matt", "Moore")) -> "Matched"
+           else -> "Not matched"
+         }
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Matched")
+      )
+    }
+  }
+
+  @Test
+  fun `with case pattern match expression`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+         val person = Person("Matt", "Moore")
+
+         fun case(arg: Any): Any = arg
 
          val result = when (person) {
            case(Person(_, "Moore")) -> "Matched"
