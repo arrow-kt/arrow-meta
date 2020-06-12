@@ -58,26 +58,6 @@ fun Proof.targets(project: Project): List<PsiElement> =
 fun GivenProof.targets(project: Project): List<PsiElement> =
   listOfNotNull(to).psi(project)
 
-fun Proof.description(): String? =
-  fold(
-    given = {
-      when (this) {
-        is ObjectProof -> """$to is available in all given<$to>() as a singleton value"""
-        is ClassProof -> """$to is available in all given<$to>() as a new instance of this class"""
-        is CallableMemberProof -> """$to is available in all given<$to>() as a call to this member"""
-      }
-    },
-    refinement = {
-      null
-    },
-    projection = {
-      """all members of $to are available as members of $from"""
-    },
-    coercion = {
-      """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
-    }
-  )
-
 fun ExtensionProof.targets(project: Project): List<PsiElement> =
   listOf(from, to).psi(project)
 

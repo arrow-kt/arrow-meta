@@ -7,6 +7,7 @@ import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
+import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.proofRelatedLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -23,11 +24,11 @@ import org.jetbrains.kotlin.psi.KtProperty
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-      proofRelatedLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
-      proofRelatedLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofRelatedLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
-      proofRelatedLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
-      proofRelatedLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
+      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
