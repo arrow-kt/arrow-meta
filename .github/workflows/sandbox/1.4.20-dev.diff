@@ -1,0 +1,98 @@
+diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
+index f524d67..7fced89 100644
+--- a/compiler-plugin/build.gradle
++++ b/compiler-plugin/build.gradle
+@@ -33,6 +33,7 @@ dependencies {
+     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+     }
++    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(":prelude")
+ }
+ 
+@@ -76,6 +77,7 @@ test {
+     testLogging.showStandardStreams = true
+     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
++    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
+     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+ }
+ 
+diff --git a/meta-test/build.gradle b/meta-test/build.gradle
+index 58c53fb..2b8c008 100755
+--- a/meta-test/build.gradle
++++ b/meta-test/build.gradle
+@@ -25,6 +25,7 @@ dependencies {
+     testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
+         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+     }
++    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(':prelude')
+ }
+ 
+@@ -43,6 +44,7 @@ test {
+     }
+     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
++    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
+ }
+ 
+ jar {
+diff --git a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+index 033600b..51b7f05 100644
+--- a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
++++ b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+@@ -9,13 +9,16 @@ import java.io.File
+ 
+ internal const val DEFAULT_FILENAME = "Source.kt"
+ 
+-internal fun compile(data: CompilationData): Result =
+-  KotlinCompilation().apply {
++internal fun compile(data: CompilationData): Result {
++  val kotlinVersion = System.getProperty("KOTLIN_VERSION")
++
++  return KotlinCompilation().apply {
+     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
+-    classpaths = data.dependencies.map { classpathOf(it) }
++    classpaths = data.dependencies.map { classpathOf(it) } + listOf(classpathOf("kotlin-stdlib:$kotlinVersion"))
+     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
+     compilerPlugins = data.metaPlugins
+   }.compile()
++}
+ 
+ private fun classpathOf(dependency: String): File {
+   val regex = Regex(".*${dependency.replace(':', '-')}.*")
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
+index 3f8927df..575faf37 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
+@@ -6,6 +6,7 @@ import arrow.meta.phases.CompilerContext
+ import arrow.meta.plugins.proofs.phases.Proof
+ import org.jetbrains.kotlin.backend.common.SimpleMemberScope
+ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
++import org.jetbrains.kotlin.descriptors.VariableDescriptor
+ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+ import org.jetbrains.kotlin.incremental.components.LookupLocation
+ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
+@@ -50,8 +51,19 @@ class ProofsScopeTower(
+   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
+   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
+ 
+-  override fun interceptCandidates(resolutionScope: ResolutionScope, name: Name, initialResults: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
+-    Log.Verbose({"ProofsScopeTower.interceptCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
++  override fun interceptFunctionCandidates(resolutionScope: ResolutionScope, name: Name,
++                                           initialResults: Collection<FunctionDescriptor>, location: LookupLocation,
++                                           dispatchReceiver: ReceiverValueWithSmartCastInfo?, extensionReceiver: ReceiverValueWithSmartCastInfo?
++  ): Collection<FunctionDescriptor> =
++    Log.Verbose({"ProofsScopeTower.interceptFunctionCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
++      emptyList()
++    }
++
++  override fun interceptVariableCandidates(resolutionScope: ResolutionScope, name: Name,
++                                           initialResults: Collection<VariableDescriptor>, location: LookupLocation,
++                                           dispatchReceiver: ReceiverValueWithSmartCastInfo?, extensionReceiver: ReceiverValueWithSmartCastInfo?
++  ): Collection<VariableDescriptor> =
++    Log.Verbose({"ProofsScopeTower.interceptVariableCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
+       emptyList()
+     }
+ }
