@@ -23,12 +23,13 @@ jobs:
       run: |
         echo "Is there an upcoming version to check?"
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+        PATCH_LIST=(1.3.70-eap.diff  1.4.20-dev.diff  1.4-M3-eap.diff)
+        for patch in ${PATCH_LIST[*]}; do # TODO: ls -v .github/workflows/sandbox/*.diff
           echo "Checking $patch ..."
-          PATCH_VERSION=$(basename -s .diff $patch)
+          PATCH_VERSION=$(basename -s .diff .github/workflows/sandbox/$patch)
           NEXT_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep $PATCH_VERSION | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
           echo "For version $NEXT_VERSION ..."
-          git apply $patch
+          git apply .github/workflows/sandbox/$patch
           git status
           sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$NEXT_VERSION/g" gradle.properties
           ./gradlew clean :compiler-plugin:jar # TODO: build
