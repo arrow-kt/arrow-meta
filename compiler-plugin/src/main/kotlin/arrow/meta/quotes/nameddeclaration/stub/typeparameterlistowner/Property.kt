@@ -6,6 +6,7 @@ import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.declaration.PropertyAccessor
 import arrow.meta.quotes.modifierlistowner.TypeReference
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtParameter
@@ -48,6 +49,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  */
 class Property(
   override val value: KtProperty,
+  override val typeInformation: PropertyDescriptor,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters
@@ -71,7 +73,7 @@ class Property(
   }.let(Name::identifier),
   val getter : PropertyAccessor = PropertyAccessor(value.getter),
   val setter : PropertyAccessor = PropertyAccessor(value.setter)
-) : TypeParameterListOwner<KtProperty>(value), SyntheticElement {
+) : TypeParameterListOwner<KtProperty, PropertyDescriptor>(value, typeInformation), SyntheticElement {
   override fun ElementScope.identity(): Scope<KtProperty> {
     return """$modality $visibility $valOrVar $name $returnType $initializer
                   $getter

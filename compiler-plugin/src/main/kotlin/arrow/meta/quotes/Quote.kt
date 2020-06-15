@@ -13,12 +13,16 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
 import arrow.meta.phases.analysis.traverseFilter
+import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.com.google.common.collect.ImmutableMap
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
@@ -28,6 +32,10 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.descriptorUtil.parents
+import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Paths
@@ -36,6 +44,27 @@ import java.util.*
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"
 const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
+
+interface QuoteProcessor<K : KtElement, T, S> {
+
+  /**
+   * Returns a String representation of what a match for a tree may look like. For example:
+   * ```
+   * "fun <$typeArgs> $name($params): $returnType = $body"
+   * ```
+   */
+  fun T.match(): Boolean
+
+  /**
+   * Given real matches of a [quoteTemplate] the user is then given a chance to replace them with new trees
+   * where also uses code as a template
+   */
+  fun S.map(quoteTemplate: T): Transform<K>
+
+
+  fun transform(quoteTemplate: T): S
+  fun process(quoteTemplate: T): Transform<K>?
+}
 
 /**
  * ### Quote Templates DSL
@@ -84,44 +113,56 @@ const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
  * More namely, A declaration quasi quote matches tree previous to the analysis and synthetic resolution and gives the
  * compiler plugin the chance to transform the source tree before they are processed by the Kotlin compiler.
  */
-interface Quote<P : KtElement, K : KtElement, S> {
+
+interface Quote<P : KtElement, K : KtElement, S> : QuoteProcessor<K, K, S> {
 
   val containingDeclaration: P
-
-  /**
-   * Returns a String representation of what a match for a tree may look like. For example:
-   * ```
-   * "fun <$typeArgs> $name($params): $returnType = $body"
-   * ```
-   */
-  fun K.match(): Boolean
-
-  /**
-   * Given real matches of a [quotedTemplate] the user is then given a chance to replace them with new trees
-   * where also uses code as a template
-   */
-  fun S.map(quotedTemplate: K): Transform<K>
 
   interface Factory<P : KtElement, K : KtElement, S> {
     operator fun invoke(
       containingDeclaration: P,
       match: K.() -> Boolean,
-      map: S.(quotedTemplate: K) -> Transform<K>
+      map: S.(quoteTemplate: K) -> Transform<K>
     ): Quote<P, K, S>
   }
 
-  fun transform(ktElement: K): S
-
-  fun process(ktElement: K): Transform<K>? {
-    return if (ktElement.match()) {
+  override fun process(quoteTemplate: K): Transform<K>? {
+    return if (quoteTemplate.match()) {
       // a new scope is transformed
-      val transformedScope = transform(ktElement)
+      val transformedScope = transform(quoteTemplate)
       // the user transforms the expression into a new list of declarations
-      transformedScope.map(ktElement)
+      transformedScope.map(quoteTemplate)
     } else null
   }
 
 }
+
+interface TypedQuote<P : KtElement, K : KtElement, D : DeclarationDescriptor, S> : QuoteProcessor<K, TypedQuoteTemplate<K, D>, S> {
+
+  val containingDeclaration: P
+
+  interface Factory<P : KtElement, K : KtElement, D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, S> {
+    operator fun invoke(
+      containingDeclaration: P,
+      match: (T) -> Boolean,
+      map: S.(quoteTemplate: T) -> Transform<K>
+    )
+  }
+
+  override fun process(quoteTemplate: TypedQuoteTemplate<K, D>): Transform<K>? {
+    return if (quoteTemplate.match()) {
+      // a new scope is transformed
+      val transformedScope = transform(quoteTemplate)
+      // the user transforms the expression into a new list of declarations
+      transformedScope.map(quoteTemplate)
+    } else null
+  }
+}
+
+data class TypedQuoteTemplate<out K : KtElement, out D : DeclarationDescriptor>(
+  val element: K,
+  val descriptor: D
+)
 
 class QuoteFactory<K : KtElement, S : Scope<K>>(
   val transform: (K) -> S
@@ -133,11 +174,16 @@ class QuoteFactory<K : KtElement, S : Scope<K>>(
   ): Quote<KtElement, K, S> =
     object : Quote<KtElement, K, S> {
       override fun K.match(): Boolean = match(this)
-      override fun S.map(quotedTemplate: K): Transform<K> = map(quotedTemplate)
+      override fun S.map(quoteTemplate: K): Transform<K> = map(quoteTemplate)
       override val containingDeclaration: KtElement = containingDeclaration
-      override fun transform(ktElement: K): S = this@QuoteFactory.transform(ktElement)
+      override fun transform(quoteTemplate: K): S = this@QuoteFactory.transform(quoteTemplate)
     }
 }
+
+class TypedQuoteFactory<K : KtElement, D : DeclarationDescriptor, S : TypedScope<K, D>>(
+  val transform: (K, D) -> S,
+  val s: String
+)
 
 inline fun <reified K : KtElement> Meta.quote(
   ctx: CompilerContext,
@@ -154,6 +200,13 @@ inline fun <reified K : KtElement, S : Scope<K>> Meta.quote(
 ): ExtensionPhase =
   quote(ctx, QuoteFactory(transform), match, map)
 
+inline fun <reified K : KtElement, D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, S : TypedScope<K, D>> Meta.typedQuote(
+  ctx: CompilerContext,
+  noinline match: T.() -> Boolean,
+  noinline map: S.(T) -> Transform<K>,
+  noinline transform: (T) -> S
+): ExtensionPhase = TODO()
+
 data class QuoteDefinition<P : KtElement, K : KtElement, S : Scope<K>>(
   val on: Class<K>,
   val quoteFactory: Quote.Factory<P, K, S>,
@@ -167,8 +220,9 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
   quoteFactory: Quote.Factory<P, K, S>,
   noinline match: K.() -> Boolean,
   noinline map: S.(K) -> Transform<K>
-): ExtensionPhase =
-  cli {
+): ExtensionPhase {
+  val list: MutableList<Pair<Any, Any>> = mutableListOf()
+  return cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         files as ArrayList
@@ -176,6 +230,9 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
         println("END quote.doAnalysis: $files")
+        list.forEach {
+          messageCollector?.report(CompilerMessageSeverity.WARNING, "HUE2 - ${it.second}")
+        }
         files.forEach {
           val fileText = it.text
           if (fileText.contains(META_DEBUG_COMMENT)) {
@@ -191,12 +248,20 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
         null
       },
       analysisCompleted = { project, module, bindingTrace, files ->
-        null
+        val x = BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
+          it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).toList()
+        }
+        messageCollector?.report(CompilerMessageSeverity.WARNING, "HUE3 - ${
+          x.map { (it.second as? PropertyDescriptor)?.type?.supertypes() ?: "HEYYY" }
+        }")
+        list.addAll(x)
+        AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
       }
     )
   }.apply {
     ctx.quotes.add(QuoteDefinition(K::class.java, quoteFactory, match, map))
   } ?: ExtensionPhase.Empty
+}
 
 fun PackageViewDescriptor.declarations(): Collection<DeclarationDescriptor> =
   memberScope.getContributedDescriptors { true }

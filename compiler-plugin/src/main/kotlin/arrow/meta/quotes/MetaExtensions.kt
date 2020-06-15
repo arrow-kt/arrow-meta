@@ -37,6 +37,9 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
@@ -247,10 +250,10 @@ fun Meta.lambdaExpression(
  */
 fun Meta.namedFunction(
   ctx: CompilerContext,
-  match: KtNamedFunction.() -> Boolean,
+  match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
   map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
-  quote(ctx, match, map) { NamedFunction(it) }
+  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor) }
 
 /**
  * @see [ObjectDeclaration]
@@ -287,10 +290,10 @@ fun Meta.parameter(
  */
 fun Meta.property(
   ctx: CompilerContext,
-  match: KtProperty.() -> Boolean,
+  match: TypedQuoteTemplate<KtProperty, PropertyDescriptor>.() -> Boolean,
   map: Property.(KtProperty) -> Transform<KtProperty>
 ): ExtensionPhase =
-  quote(ctx, match, map) { Property(it) }
+  typedQuote(ctx, match, map) { (element, descriptor) -> Property(element, descriptor) }
 
 /**
  * @see [PropertyAccessor]
@@ -397,10 +400,10 @@ fun Meta.tryExpression(
  */
 fun Meta.typeAlias(
   ctx: CompilerContext,
-  match: KtTypeAlias.() -> Boolean,
+  match: TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>.() -> Boolean,
   map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
 ): ExtensionPhase =
-  quote(ctx, match, map) { TypeAlias(it) }
+  typedQuote(ctx, match, map) { (element, descriptor) -> TypeAlias(element, descriptor) }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""
