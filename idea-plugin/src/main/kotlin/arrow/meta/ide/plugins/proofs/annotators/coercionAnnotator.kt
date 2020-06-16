@@ -53,17 +53,19 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
           ktProperty.delegateExpressionOrInitializer?.let {
             ktProperty.participatingTypes()?.let { (subtype, supertype) ->
               ctx.coerceProof(subtype, supertype)?.let { proof ->
-                val message = proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
-                  html {
-                    body {
-                      p {
-                        "Implicit coercion applied by ${KDocRenderer.renderKDocContent(kDocTag)}"
-                      } + p {
-                        declarationRenderer.render(proof.through)
-                      }
+                val message = html {
+                  body {
+                    p {
+                      "Implicit coercion applied by"
+                    } + p {
+                      proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+                        KDocRenderer.renderKDocContent(kDocTag)
+                      }.orEmpty()
+                    } + p {
+                      declarationRenderer.render(proof.through)
                     }
-                  }.render()
-                }
+                  }
+                }.render()
                 // println("Annotator messageProperty: $message")
                 holder.createAnnotation(HighlightSeverity.INFORMATION, ktProperty.delegateExpressionOrInitializer!!.textRange, null, message).apply {
                   enforcedTextAttributes = coercionAnnotatorTextAttributes
@@ -89,17 +91,19 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
           ktValueArgument.getArgumentExpression()?.let {
             ktValueArgument.participatingTypes()?.let { (subtype, supertype) ->
               ctx.coerceProof(subtype, supertype)?.let { proof ->
-                val message = proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
-                  html {
-                    body {
-                      p {
-                        "Implicit coercion applied by ${KDocRenderer.renderKDocContent(kDocTag)}"
-                      } + p {
-                        declarationRenderer.render(proof.through)
-                      }
+                val message = html {
+                  body {
+                    p {
+                      "Implicit coercion applied by"
+                    } + p {
+                      proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+                        KDocRenderer.renderKDocContent(kDocTag)
+                      }.orEmpty()
+                    } + p {
+                      declarationRenderer.render(proof.through)
                     }
-                  }.render()
-                }
+                  }
+                }.render()
                 // println("Annotator messageValArgs: $message")
                 holder.createAnnotation(HighlightSeverity.INFORMATION, ktValueArgument.textRange, null, message).apply {
                   enforcedTextAttributes = coercionAnnotatorTextAttributes
@@ -133,7 +137,7 @@ val IdeMetaPlugin.declarationDocProvider: ExtensionPhase
 private val coercionAnnotatorTextAttributes =
   TextAttributes(null, null, Color(192, 192, 192), EffectType.WAVE_UNDERSCORE, Font.PLAIN)
 
-private val declarationRenderer: DescriptorRenderer = HTML.withOptions {
+internal val declarationRenderer: DescriptorRenderer = HTML.withOptions {
   classifierNamePolicy = HtmlClassifierNamePolicy(ClassifierNamePolicy.SHORT)
   valueParametersHandler = WrapValueParameterHandler(valueParametersHandler)
   annotationArgumentsRenderingPolicy = AnnotationArgumentsRenderingPolicy.UNLESS_EMPTY

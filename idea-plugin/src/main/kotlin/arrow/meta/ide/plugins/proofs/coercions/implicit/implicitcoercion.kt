@@ -1,13 +1,21 @@
 package arrow.meta.ide.plugins.proofs.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.annotators.declarationRenderer
 import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
+import org.celtric.kotlin.html.body
+import org.celtric.kotlin.html.html
+import org.celtric.kotlin.html.p
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
+import org.jetbrains.kotlin.idea.kdoc.KDocRenderer
+import org.jetbrains.kotlin.idea.kdoc.findKDoc
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
@@ -17,22 +25,35 @@ import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 val IdeMetaPlugin.localImplicitCoercion: ExtensionPhase
   get() = addLocalInspection(
     inspection = implicitCoercion,
-    level = HighlightDisplayLevel.WARNING,
-    groupPath = ProofPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf("Coercion"),
+    groupDisplayName = "Coercion",
+    level = HighlightDisplayLevel.WARNING
   )
 
-const val IMPLICIT_COERCION_INSPECTION_ID = "Make_coercion_implicit"
+const val IMPLICIT_COERCION_INSPECTION_ID = "CoercionImplicit"
 
 val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
+    staticDescription = "Make coercion implicit",
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktCall: KtDotQualifiedExpression ->
-      // TODO: research ways to display this nicely and align it with [arrow.meta.ide.plugins.proofs.markers.CoercionKt.coerceProofLineMarker]
       ktCall.implicitParticipatingTypes()?.let { (subtype, supertype) ->
-        ktCall.ctx()?.coerceProof(subtype, supertype)?.let {
-          "Apply implicit coercion available by ${it.through}"
+        ktCall.ctx()?.coerceProof(subtype, supertype)?.let { proof ->
+          html {
+            body {
+              p {
+                "Apply implicit coercion available by"
+              } + p {
+                proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+                  KDocRenderer.renderKDocContent(kDocTag)
+                }.orEmpty()
+              } + p {
+                declarationRenderer.render(proof.through)
+              }
+            }
+          }.render()
         }
       } ?: "Proof not found"
     },
