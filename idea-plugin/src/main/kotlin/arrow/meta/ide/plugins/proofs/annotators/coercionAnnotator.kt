@@ -17,9 +17,11 @@ import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
-import org.celtric.kotlin.html.p
+import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.idea.HtmlClassifierNamePolicy
+import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
 import org.jetbrains.kotlin.idea.WrapValueParameterHandler
+import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.kdoc.KDocRenderer
 import org.jetbrains.kotlin.idea.kdoc.findKDoc
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -55,15 +57,15 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
               ctx.coerceProof(subtype, supertype)?.let { proof ->
                 val message = html {
                   body {
-                    p {
-                      "Implicit coercion applied by"
-                    } + p {
-                      proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+                    text("Implicit coercion applied by") +
+                      text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
                         KDocRenderer.renderKDocContent(kDocTag)
-                      }.orEmpty()
-                    } + p {
-                      declarationRenderer.render(proof.through)
-                    }
+                      }.orEmpty()) +
+                      //declarationRenderer.render(proof.through)
+                      text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
+                        proof.through.findPsi(),
+                        SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
+                      ).orEmpty())
                   }
                 }.render()
                 // println("Annotator messageProperty: $message")
@@ -93,15 +95,15 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
               ctx.coerceProof(subtype, supertype)?.let { proof ->
                 val message = html {
                   body {
-                    p {
-                      "Implicit coercion applied by"
-                    } + p {
-                      proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+                    text("Implicit coercion applied by") +
+                      text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
                         KDocRenderer.renderKDocContent(kDocTag)
-                      }.orEmpty()
-                    } + p {
-                      declarationRenderer.render(proof.through)
-                    }
+                      }.orEmpty()) +
+                      //declarationRenderer.render(proof.through)
+                      text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
+                        proof.through.findPsi(),
+                        SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
+                      ).orEmpty())
                   }
                 }.render()
                 // println("Annotator messageValArgs: $message")

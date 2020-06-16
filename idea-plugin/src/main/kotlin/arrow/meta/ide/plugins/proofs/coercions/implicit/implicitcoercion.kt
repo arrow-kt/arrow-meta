@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.proofs.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.annotators.declarationRenderer
 import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
@@ -10,12 +9,15 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
-import org.celtric.kotlin.html.p
+import org.celtric.kotlin.html.text
+import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.idea.kdoc.KDocRenderer
 import org.jetbrains.kotlin.idea.kdoc.findKDoc
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
@@ -43,15 +45,15 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
         ktCall.ctx()?.coerceProof(subtype, supertype)?.let { proof ->
           html {
             body {
-              p {
-                "Apply implicit coercion available by"
-              } + p {
-                proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
+              text("Apply implicit coercion available by") +
+                text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
                   KDocRenderer.renderKDocContent(kDocTag)
-                }.orEmpty()
-              } + p {
-                declarationRenderer.render(proof.through)
-              }
+                }.orEmpty()) +
+                //declarationRenderer.render(proof.through)
+                text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
+                  proof.through.findPsi(),
+                  SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
+                ).orEmpty())
             }
           }.render()
         }
