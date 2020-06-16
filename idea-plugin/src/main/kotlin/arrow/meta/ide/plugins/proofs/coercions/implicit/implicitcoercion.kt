@@ -38,13 +38,14 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
     inspectionText = { ktCall: KtDotQualifiedExpression ->
       ktCall.implicitParticipatingTypes()?.let { (subtype, supertype) ->
         ktCall.ctx()?.coerceProof(subtype, supertype)?.let { proof ->
-          html {
-            body {
-              text("Apply implicit coercion available by") +
-                text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(proof.through.findPsi()!!, ktCall)
-                  .orEmpty())
-            }
-          }.render()
+          proof.through.findPsi()?.let { proofPsi ->
+            html {
+              body {
+                text("Apply implicit coercion available by") +
+                  text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktCall).orEmpty())
+              }
+            }.render()
+          }
         }
       } ?: "Proof not found"
     },
