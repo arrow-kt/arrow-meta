@@ -37,6 +37,7 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
@@ -251,9 +252,10 @@ fun Meta.lambdaExpression(
 fun Meta.namedFunction(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
-  map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>
+  map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>,
+  mapDescriptor: List<DeclarationDescriptor>.() -> FunctionDescriptor
 ): ExtensionPhase =
-  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor) }
+  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor.mapDescriptor()) }
 
 /**
  * @see [ObjectDeclaration]

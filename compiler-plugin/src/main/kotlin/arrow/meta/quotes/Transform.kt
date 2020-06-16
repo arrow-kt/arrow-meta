@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 /**
  * The resulting action from matching on transformation
  */
-sealed class Transform<out K : KtElement> {
+sealed class Transform<out K> {
 
   /**
    * A Transform that replaces some element in AST. See below:
