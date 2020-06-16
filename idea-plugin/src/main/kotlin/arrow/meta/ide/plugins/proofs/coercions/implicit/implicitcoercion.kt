@@ -11,13 +11,8 @@ import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
-import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
-import org.jetbrains.kotlin.idea.kdoc.KDocRenderer
-import org.jetbrains.kotlin.idea.kdoc.findKDoc
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 
@@ -46,14 +41,8 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
           html {
             body {
               text("Apply implicit coercion available by") +
-                text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
-                  KDocRenderer.renderKDocContent(kDocTag)
-                }.orEmpty()) +
-                //declarationRenderer.render(proof.through)
-                text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
-                  proof.through.findPsi(),
-                  SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
-                ).orEmpty())
+                text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(proof.through.findPsi()!!, ktCall)
+                  .orEmpty())
             }
           }.render()
         }

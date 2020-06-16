@@ -21,11 +21,7 @@ import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.idea.HtmlClassifierNamePolicy
 import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
 import org.jetbrains.kotlin.idea.WrapValueParameterHandler
-import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
-import org.jetbrains.kotlin.idea.kdoc.KDocRenderer
-import org.jetbrains.kotlin.idea.kdoc.findKDoc
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.kdoc.psi.impl.KDocTag
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -58,22 +54,17 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
                 val message = html {
                   body {
                     text("Implicit coercion applied by") +
-                      text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
-                        KDocRenderer.renderKDocContent(kDocTag)
-                      }.orEmpty()) +
                       //declarationRenderer.render(proof.through)
-                      text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
-                        proof.through.findPsi(),
-                        SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
-                      ).orEmpty())
+                      text(KotlinQuickDocumentationProvider().generateDoc(proof.through.findPsi()!!, ktProperty)
+                        .orEmpty())
                   }
                 }.render()
                 // println("Annotator messageProperty: $message")
-                holder.createAnnotation(HighlightSeverity.INFORMATION, ktProperty.delegateExpressionOrInitializer!!.textRange, null, message).apply {
+                holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
                   enforcedTextAttributes = coercionAnnotatorTextAttributes
                   registerFix(
                     GoToSymbolFix(proof.through.findPsi() as KtDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                    ktProperty.delegateExpressionOrInitializer!!.textRange
+                    it.textRange
                   )
                 }
               }
@@ -96,22 +87,16 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
                 val message = html {
                   body {
                     text("Implicit coercion applied by") +
-                      text(proof.through.containingDeclaration.findKDoc { proof.through.findPsi() }?.let { kDocTag: KDocTag ->
-                        KDocRenderer.renderKDocContent(kDocTag)
-                      }.orEmpty()) +
-                      //declarationRenderer.render(proof.through)
-                      text(KotlinQuickDocumentationProvider().getQuickNavigateInfo(
-                        proof.through.findPsi(),
-                        SourceNavigationHelper.getNavigationElement((proof.through.findPsi() as KtDeclaration))
-                      ).orEmpty())
+                      text(KotlinQuickDocumentationProvider().generateDoc(proof.through.findPsi()!!, ktValueArgument)
+                        .orEmpty())
                   }
                 }.render()
                 // println("Annotator messageValArgs: $message")
-                holder.createAnnotation(HighlightSeverity.INFORMATION, ktValueArgument.textRange, null, message).apply {
+                holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
                   enforcedTextAttributes = coercionAnnotatorTextAttributes
                   registerFix(
                     GoToSymbolFix(proof.through.findPsi() as KtDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                    ktValueArgument.textRange
+                    it.textRange
                   )
                 }
               }
@@ -131,6 +116,13 @@ val IdeMetaPlugin.declarationDocProvider: ExtensionPhase
 //          DocumentationManagerUtil.createHyperlink(stringBuilder, declarationRenderer.render(proof.through), proof.through.name.asString(), false)
 //          println(stringBuilder.toString())
 //          stringBuilder.toString()
+        }
+      }
+    },
+    generateDoc = { element, originalElement ->
+      element.safeAs<KtDeclaration>()?.let { ktDeclaration ->
+        ktDeclaration.proof { proof ->
+          KotlinQuickDocumentationProvider().generateDoc(proof.through.findPsi()!!, ktDeclaration)
         }
       }
     }
