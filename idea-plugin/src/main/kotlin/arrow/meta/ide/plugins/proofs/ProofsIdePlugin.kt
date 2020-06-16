@@ -4,7 +4,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
-import arrow.meta.ide.plugins.proofs.annotators.declarationDocProvider
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
