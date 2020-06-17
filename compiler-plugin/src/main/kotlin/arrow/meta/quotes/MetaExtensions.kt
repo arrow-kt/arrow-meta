@@ -253,9 +253,9 @@ fun Meta.namedFunction(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
   map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>,
-  mapDescriptor: List<DeclarationDescriptor>.() -> FunctionDescriptor
+  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> namedFunctionDescriptor(element) }
 ): ExtensionPhase =
-  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor.mapDescriptor()) }
+  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor) }
 
 /**
  * @see [ObjectDeclaration]
@@ -293,7 +293,8 @@ fun Meta.parameter(
 fun Meta.property(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtProperty, PropertyDescriptor>.() -> Boolean,
-  map: Property.(KtProperty) -> Transform<KtProperty>
+  map: Property.(KtProperty) -> Transform<KtProperty>,
+  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> propertyDescriptor(element) }
 ): ExtensionPhase =
   typedQuote(ctx, match, map) { (element, descriptor) -> Property(element, descriptor) }
 
@@ -403,7 +404,8 @@ fun Meta.tryExpression(
 fun Meta.typeAlias(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>.() -> Boolean,
-  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>
+  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>,
+  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> typeAliasDescriptor(element) }
 ): ExtensionPhase =
   typedQuote(ctx, match, map) { (element, descriptor) -> TypeAlias(element, descriptor) }
 

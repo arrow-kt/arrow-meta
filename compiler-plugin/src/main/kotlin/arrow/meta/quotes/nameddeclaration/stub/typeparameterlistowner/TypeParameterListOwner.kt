@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
  */
 open class TypeParameterListOwner<out T: KtTypeParameterListOwner, out D: DeclarationDescriptor>(
   override val value: T,
-  override val typeInformation: D,
+  override val typeInformation: D?,
   open val `(typeConstraints)`: ScopedList<KtTypeConstraint> = ScopedList(value = value.typeConstraints),
   open val `(typeParams)`: ScopedList<KtTypeParameter> = ScopedList(value = value.typeParameters)
 ) : TypedScope<T, D>(value, typeInformation)

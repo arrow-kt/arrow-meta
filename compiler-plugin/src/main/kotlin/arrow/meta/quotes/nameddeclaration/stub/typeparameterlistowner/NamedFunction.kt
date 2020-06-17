@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  */
 class NamedFunction(
   override val value: KtNamedFunction,
-  override val typeInformation: FunctionDescriptor,
+  override val typeInformation: FunctionDescriptor?,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val modifiers: Scope<KtModifierList> = Scope(value.modifierList),
