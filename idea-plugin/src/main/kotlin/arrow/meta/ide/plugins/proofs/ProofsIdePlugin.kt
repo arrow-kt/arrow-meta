@@ -34,7 +34,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       // coercionCallSiteLineMarker,
       coercionAnnotator,
-      // declarationDocProvider,
       coercionInspections,
       codeFolding
     )

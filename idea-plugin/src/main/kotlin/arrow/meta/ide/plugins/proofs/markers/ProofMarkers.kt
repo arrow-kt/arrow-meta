@@ -18,17 +18,18 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 
-inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
+inline fun <reified A : KtNamedDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
   addLineMarkerProvider(
     icon = icon,
     transform = {
       it.safeAs<A>()?.takeIf(filter)
     },
-    composite = KtDeclaration::class.java,
+    composite = KtNamedDeclaration::class.java,
     message = { decl: KtDeclaration ->
       StringUtil.escapeXmlEntities(decl.markerMessage())
     }

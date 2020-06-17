@@ -178,7 +178,7 @@ interface LineMarkerSyntax {
     clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
-      { transform(it)?.identifyingElement },
+      { transform(it)?.nameIdentifier },
       {
         it.onComposite(composite) { psi: A ->
           lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
