@@ -207,16 +207,26 @@ index d68e9052..d167c3b3 100644
          }
          GivenUpperBound(givenValueParameters, intersection)
        }
+diff --git a/settings.gradle b/settings.gradle
+index a4a9a291..2d893030 100755
+--- a/settings.gradle
++++ b/settings.gradle
+@@ -1,6 +1,6 @@
+ include ':compiler-plugin'
+ include ':gradle-plugin'
+-include ':idea-plugin'
++// include ':idea-plugin'
+ include ':meta-test'
+-include ':docs'
+-include ':prelude'
+\ No newline at end of file
++// include ':docs'
++include ':prelude'
 diff --git a/build.gradle b/build.gradle
-index 1cab7b6a..c79d892c 100644
+index 1cab7b6a..9d773a92 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -1,11 +1,12 @@
- buildscript {
-   repositories {
-     mavenCentral()
-+maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
-   }
+@@ -5,7 +5,7 @@ buildscript {
    dependencies {
      classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
@@ -225,15 +235,7 @@ index 1cab7b6a..c79d892c 100644
    }
  }
  
-@@ -37,6 +38,7 @@ allprojects {
-       }
-     }
-     mavenCentral()
-+maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
-     jcenter()
-     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-   }
-@@ -76,7 +78,7 @@ task publishIdeTestingDependencies {
+@@ -76,7 +76,7 @@ task publishIdeTestingDependencies {
  task cleanMeta {
    dependsOn ':compiler-plugin:clean'
    dependsOn ':gradle-plugin:clean'
@@ -242,7 +244,7 @@ index 1cab7b6a..c79d892c 100644
    dependsOn ':meta-test:clean'
    dependsOn ':prelude:clean'
  }
-@@ -89,16 +91,16 @@ task buildMeta {
+@@ -89,16 +89,16 @@ task buildMeta {
    // and it could fail when changing version
    dependsOn ':gradle-plugin:jar'
    dependsOn ':publishIdeTestingDependencies'
@@ -262,7 +264,7 @@ index 1cab7b6a..c79d892c 100644
    dependsOn ':meta-test:publishToMavenLocal'
    dependsOn ':prelude:publishToMavenLocal'
  }
-@@ -108,9 +110,9 @@ task publishAndRunIde {
+@@ -108,9 +108,9 @@ task publishAndRunIde {
    description = "Publishes and runs IDE on local workspace"
    dependsOn ':cleanMeta'
    dependsOn ':publishMeta'
@@ -274,18 +276,3 @@ index 1cab7b6a..c79d892c 100644
  }
  
  task generateDoc(type:Exec) {
-diff --git a/settings.gradle b/settings.gradle
-index a4a9a291..2d893030 100755
---- a/settings.gradle
-+++ b/settings.gradle
-@@ -1,6 +1,6 @@
- include ':compiler-plugin'
- include ':gradle-plugin'
--include ':idea-plugin'
-+// include ':idea-plugin'
- include ':meta-test'
--include ':docs'
--include ':prelude'
-\ No newline at end of file
-+// include ':docs'
-+include ':prelude'
