@@ -40,6 +40,10 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
+/*
+ * it has to be initernal expect for given proof
+ * Extension -> Coercion
+ */
 @Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
   val irUtils: IrUtils
