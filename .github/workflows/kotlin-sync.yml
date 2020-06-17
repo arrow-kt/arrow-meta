@@ -43,7 +43,7 @@ jobs:
         git status
         sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-        sed -i "s/org.jetbrains.kotlin.kapt.gradle.plugin:\$KOTLIN_VERSION/org.jetbrains.kotlin.kapt.gradle.plugin:$LATEST_KOTLIN_PLUGIN_DEV_VERSION/g" build.gradle
+        sed -i "s/org.jetbrains.kotlin.kapt.gradle.plugin.*/org.jetbrains.kotlin.kapt.gradle.plugin:$LATEST_KOTLIN_PLUGIN_DEV_VERSION\"/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
         echo "Latest org.jetbrains.kotlin.kapt.gradle.plugin version: $LATEST_KOTLIN_PLUGIN_DEV_VERSION"
         ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
