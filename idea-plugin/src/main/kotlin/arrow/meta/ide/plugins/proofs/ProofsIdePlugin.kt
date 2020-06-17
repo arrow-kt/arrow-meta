@@ -18,6 +18,7 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMi
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
@@ -28,11 +29,11 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      proofLineMarkers(ArrowIcons.ICON1, KtParameter::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      // coercionCallSiteLineMarker,
       coercionAnnotator,
       coercionInspections,
       codeFolding

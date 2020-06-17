@@ -30,7 +30,7 @@ inline fun <reified A : KtNamedDeclaration> IdeMetaPlugin.proofLineMarkers(icon:
       it.safeAs<A>()?.takeIf(filter)
     },
     composite = KtNamedDeclaration::class.java,
-    message = { decl: KtDeclaration ->
+    message = { decl: KtNamedDeclaration ->
       StringUtil.escapeXmlEntities(decl.markerMessage())
     }
   )

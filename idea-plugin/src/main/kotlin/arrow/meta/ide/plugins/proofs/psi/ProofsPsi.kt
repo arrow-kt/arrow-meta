@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.isTopLevelKtOrJavaMember
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -18,6 +19,9 @@ val refinementAnnotation: Regex = Regex("@(arrow\\.)?Refinement")
 
 fun KtAnnotated.isGivenProof(): Boolean =
   isTopLevelKtOrJavaMember() && isAnnotatedWith(givenAnnotation)
+
+fun KtParameter.isGivenProof(): Boolean =
+  typeReference?.isAnnotatedWith(givenAnnotation) ?: false
 
 fun KtAnnotated.isCoercionProof(): Boolean =
   isTopLevelKtOrJavaMember() && isAnnotatedWith(coercionAnnotation)
