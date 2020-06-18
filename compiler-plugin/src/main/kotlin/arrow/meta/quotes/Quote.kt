@@ -137,19 +137,19 @@ interface Quote<P : KtElement, K : KtElement, S> : QuoteProcessor<K, K, S> {
 
 }
 
-interface TypedQuote<P : KtElement, K : KtElement, T : TypedQuoteTemplate<K, DeclarationDescriptor>, S> : QuoteProcessor<T, K, S> {
+interface TypedQuote<P : KtElement, K : KtElement, D : DeclarationDescriptor, S> : QuoteProcessor<TypedQuoteTemplate<K, D>, K, S> {
 
   val containingDeclaration: P
 
-  interface Factory<P : KtElement, K : KtElement, T : TypedQuoteTemplate<K, DeclarationDescriptor>, S> {
+  interface Factory<P : KtElement, K : KtElement, D : DeclarationDescriptor, S> {
     operator fun invoke(
       containingDeclaration: P,
-      match: T.() -> Boolean,
-      map: S.(quoteTemplate: T) -> Transform<K>
-    ): TypedQuote<P, K, T, S>
+      match: TypedQuoteTemplate<K, D>.() -> Boolean,
+      map: S.(quoteTemplate: TypedQuoteTemplate<K, D>) -> Transform<K>
+    ): TypedQuote<P, K, D, S>
   }
 
-  override fun process(quoteTemplate: T): Transform<K>? {
+  override fun process(quoteTemplate: TypedQuoteTemplate<K, D>): Transform<K>? {
     return if (quoteTemplate.match()) {
       // a new scope is transformed
       val transformedScope = transform(quoteTemplate)
@@ -180,19 +180,19 @@ class QuoteFactory<K : KtElement, S : Scope<K>>(
     }
 }
 
-class TypedQuoteFactory<K : KtElement, T : TypedQuoteTemplate<K, DeclarationDescriptor>, S : TypedScope<KtElement, DeclarationDescriptor>>(
-  val transform: (T) -> S
-): TypedQuote.Factory<KtElement, K, T, S> {
+class TypedQuoteFactory<K : KtElement, D : DeclarationDescriptor, S : TypedScope<K, D>>(
+  val transform: (TypedQuoteTemplate<K, D>) -> S
+): TypedQuote.Factory<KtElement, K, D, S> {
   override fun invoke(
     containingDeclaration: KtElement,
-    match: T.() -> Boolean,
-    map: S.(quoteTemplate: T) -> Transform<K>
-  ): TypedQuote<KtElement, K, T, S> =
-    object : TypedQuote<KtElement, K, T, S> {
-      override fun T.match(): Boolean = match(this)
-      override fun S.map(quoteTemplate: T): Transform<K> = map(quoteTemplate)
+    match: TypedQuoteTemplate<K, D>.() -> Boolean,
+    map: S.(quoteTemplate: TypedQuoteTemplate<K, D>) -> Transform<K>
+  ): TypedQuote<KtElement, K, D, S> =
+    object : TypedQuote<KtElement, K, D, S> {
+      override fun TypedQuoteTemplate<K, D>.match(): Boolean = match(this)
+      override fun S.map(quoteTemplate: TypedQuoteTemplate<K, D>): Transform<K> = map(quoteTemplate)
       override val containingDeclaration: KtElement = containingDeclaration
-      override fun transform(quoteTemplate: T): S = this@TypedQuoteFactory.transform(quoteTemplate)
+      override fun transform(quoteTemplate: TypedQuoteTemplate<K, D>): S = this@TypedQuoteFactory.transform(quoteTemplate)
     }
 }
 
@@ -211,12 +211,12 @@ inline fun <reified K : KtElement, S : Scope<K>> Meta.quote(
 ): ExtensionPhase =
   quote(ctx, QuoteFactory(transform), match, map)
 
-inline fun <reified K : KtElement, reified D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, S : TypedScope<K, D>> Meta.typedQuote(
+inline fun <reified K : KtElement, reified D : DeclarationDescriptor, S : TypedScope<K, D>> Meta.typedQuote(
   ctx: CompilerContext,
-  noinline match: T.() -> Boolean,
-  noinline map: S.(T) -> Transform<K>,
-  noinline transform: (T) -> S,
-  noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?
+  noinline match: TypedQuoteTemplate<K, D>.() -> Boolean,
+  noinline map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
+  noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?,
+  noinline transform: (TypedQuoteTemplate<K, D>) -> S
 ): ExtensionPhase =
   typedQuote(ctx, TypedQuoteFactory(transform), match, map, mapDescriptor)
 
@@ -263,21 +263,22 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
   } ?: ExtensionPhase.Empty
 
 @Suppress("UNCHECKED_CAST")
-inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, S : TypedScope<K, D>> Meta.typedQuote(
+inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescriptor, S : TypedScope<K, D>> Meta.typedQuote(
   ctx: CompilerContext,
-  quoteFactory: TypedQuote.Factory<P, K, T, S>,
-  noinline match: T.() -> Boolean,
-  noinline map: S.(T) -> Transform<K>,
+  quoteFactory: TypedQuote.Factory<P, K, D, S>,
+  noinline match: TypedQuoteTemplate<K, D>.() -> Boolean,
+  noinline map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
   noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?
 ): ExtensionPhase {
-  val analysedDescriptors: List<DeclarationDescriptor> = listOf()
+  val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
   return cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+        if (analysedDescriptors.isEmpty()) return@analysis null
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map, mapDescriptor, analysedDescriptors)
-        updateFiles(files, fileMutations, match.let { m -> { element: K -> m(TypedQuoteTemplate(element, analysedDescriptors.mapDescriptor(element)) as T) } })
+        updateFiles(files, fileMutations, match.let { m -> { element: K -> m(TypedQuoteTemplate(element, analysedDescriptors.mapDescriptor(element))) } })
         println("END quote.doAnalysis: $files")
         files.forEach {
           val fileText = it.text
@@ -300,7 +301,7 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
         messageCollector?.report(CompilerMessageSeverity.WARNING, "HUE3 - ${
         x.map { (it as? PropertyDescriptor)?.type?.supertypes() ?: "HEYYY" }
         }")
-        analysedDescriptors.plus(x)
+        analysedDescriptors.addAll(x)
         AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
       }
     )
@@ -341,13 +342,13 @@ inline fun <reified K : KtElement, P : KtElement, S : Scope<K>> processFiles(
   }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified K : KtElement, reified D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, P : KtElement, S : TypedScope<K, D>> processFiles(
+inline fun <reified K : KtElement, reified D : DeclarationDescriptor, P : KtElement, S : TypedScope<K, D>> processFiles(
   files: Collection<KtFile>,
-  quoteFactory: TypedQuote.Factory<P, K, T, S>,
-  noinline match: T.() -> Boolean,
-  noinline map: S.(T) -> Transform<K>,
+  quoteFactory: TypedQuote.Factory<P, K, D, S>,
+  noinline match: TypedQuoteTemplate<K, D>.() -> Boolean,
+  noinline map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
   noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?,
-  descriptors: List<D>
+  descriptors: List<DeclarationDescriptor>
 ): List<Pair<KtFile, List<Transform<K>>>> =
   files.map { file ->
     processKtFile(file, quoteFactory, match, map, mapDescriptor, descriptors)
@@ -363,13 +364,13 @@ inline fun <reified K : KtElement, P : KtElement, S : Scope<K>> processKtFile(
   processKtFile(file, K::class.java, quoteFactory, match, map)
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified K : KtElement, reified D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, P : KtElement, S : TypedScope<K, D>> processKtFile(
+inline fun <reified K : KtElement, reified D : DeclarationDescriptor, P : KtElement, S : TypedScope<K, D>> processKtFile(
   file: KtFile,
-  quoteFactory: TypedQuote.Factory<P, K, T, S>,
-  noinline match: T.() -> Boolean,
-  noinline map: S.(T) -> Transform<K>,
+  quoteFactory: TypedQuote.Factory<P, K, D, S>,
+  noinline match: TypedQuoteTemplate<K, D>.() -> Boolean,
+  noinline map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
   noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?,
-  descriptors: List<D>
+  descriptors: List<DeclarationDescriptor>
 ): Pair<KtFile, List<Transform<K>>> =
   processKtFile(file, K::class.java, quoteFactory, match, map, mapDescriptor, descriptors)
 
@@ -392,14 +393,14 @@ fun <K : KtElement, P : KtElement, S : Scope<K>> processKtFile(
   }.orEmpty()
 
 @Suppress("UNCHECKED_CAST")
-fun <K : KtElement, D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, P : KtElement, S : TypedScope<K, D>> processKtFile(
+fun <K : KtElement, D : DeclarationDescriptor, P : KtElement, S : TypedScope<K, D>> processKtFile(
   file: KtFile,
   on: Class<K>,
-  quoteFactory: TypedQuote.Factory<P, K, T, S>,
-  match: T.() -> Boolean,
-  map: S.(T) -> Transform<K>,
+  quoteFactory: TypedQuote.Factory<P, K, D, S>,
+  match: TypedQuoteTemplate<K, D>.() -> Boolean,
+  map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
   mapDescriptor: List<DeclarationDescriptor>.(K) -> D?,
-  descriptors: List<D>
+  descriptors: List<DeclarationDescriptor>
 ): Pair<KtFile, List<Transform<K>>> =
   file to file.viewProvider.document?.run {
     file.sequence(on).mapNotNull { element: K ->
@@ -407,7 +408,7 @@ fun <K : KtElement, D : DeclarationDescriptor, T : TypedQuoteTemplate<K, D>, P :
         containingDeclaration = element.psiOrParent as P,
         match = match,
         map = map
-      ).process(TypedQuoteTemplate(element, descriptors.mapDescriptor(element)) as T)
+      ).process(TypedQuoteTemplate(element, descriptors.mapDescriptor(element)))
     }
   }.orEmpty()
 

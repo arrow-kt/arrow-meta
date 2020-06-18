@@ -37,7 +37,7 @@ private fun KtFile.containsGivenConstrains(): Boolean =
   givenConstrainedDeclarations().isNotEmpty()
 
 private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
-  value.givenConstrainedDeclarations().map { NamedFunction(it) }
+  value.givenConstrainedDeclarations().map { NamedFunction(it, null) }
 
 private fun KtFile.givenConstrainedDeclarations(): List<KtNamedFunction> =
   traverseFilter(KtNamedFunction::class.java) {
@@ -58,7 +58,7 @@ private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedF
       """
       public fun $`(unconstrainedTypeParams)` $receiver$name $`(paramsWithGiven)`$returnType =
           ${runScope(this, `(givenParams)`)}
-      """.function.value
+      """.function(null).value
     }
   }, separator = "\n")
 

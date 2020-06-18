@@ -252,10 +252,10 @@ fun Meta.lambdaExpression(
 fun Meta.namedFunction(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
-  map: NamedFunction.(KtNamedFunction) -> Transform<KtNamedFunction>,
-  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> namedFunctionDescriptor(element) }
+  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> namedFunctionDescriptor(element) },
+  map: NamedFunction.(TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map) { (element, descriptor) -> NamedFunction(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> NamedFunction(element, descriptor) }
 
 /**
  * @see [ObjectDeclaration]
@@ -293,10 +293,10 @@ fun Meta.parameter(
 fun Meta.property(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtProperty, PropertyDescriptor>.() -> Boolean,
-  map: Property.(KtProperty) -> Transform<KtProperty>,
-  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> propertyDescriptor(element) }
+  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> propertyDescriptor(element) },
+  map: Property.(TypedQuoteTemplate<KtProperty, PropertyDescriptor>) -> Transform<KtProperty>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map) { (element, descriptor) -> Property(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> Property(element, descriptor) }
 
 /**
  * @see [PropertyAccessor]
@@ -404,10 +404,10 @@ fun Meta.tryExpression(
 fun Meta.typeAlias(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>.() -> Boolean,
-  map: TypeAlias.(KtTypeAlias) -> Transform<KtTypeAlias>,
-  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> typeAliasDescriptor(element) }
+  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> typeAliasDescriptor(element) },
+  map: TypeAlias.(TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>) -> Transform<KtTypeAlias>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map) { (element, descriptor) -> TypeAlias(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> TypeAlias(element, descriptor) }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""

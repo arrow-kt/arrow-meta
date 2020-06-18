@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import org.jetbrains.kotlin.codegen.coroutines.createCustomCopy
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -19,6 +20,7 @@ private fun <D : DeclarationDescriptor> descriptorQuote(transform: () -> D?): De
 
 fun List<DeclarationDescriptor>.namedFunctionDescriptor(element: KtNamedFunction): FunctionDescriptor? = descriptorQuote {
   this.firstOrNull { (it as? FunctionDescriptor)?.let {
+    it.isOperator
     it.name == element.nameAsSafeName
     && it.returnType?.toString() == element.typeReference?.text
     && it.valueParameters.zip(element.valueParameters) { descriptor, element -> descriptor.type.toString() == element.typeReference?.text }.none { !it }

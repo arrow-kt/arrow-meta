@@ -17,10 +17,10 @@ val Meta.typeAliasPlugin
   get() =
     "Type Alias Expression Scope Plugin" {
       meta(
-        typeAlias(this, { true }) { element ->
+        typeAlias(this, { true }) { (element, _) ->
           Transform.replace(
             replacing = element,
-            newDeclaration = identity()
+            newDeclaration = identity(descriptor)
           )
         }
       )

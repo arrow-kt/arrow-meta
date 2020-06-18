@@ -141,7 +141,7 @@ fun transform(ktElement: KtElement): Scope<KtElement> {
     is KtThisExpression -> ThisExpression(ktElement)
     is KtThrowExpression -> ThrowExpression(ktElement)
     is KtTryExpression -> TryExpression(ktElement)
-    is KtTypeAlias -> TypeAlias(ktElement)
+    is KtTypeAlias -> TypeAlias(ktElement, null)
     is KtTypeReference -> TypeReference(ktElement)
     is KtValueArgument -> ValueArgument(ktElement)
     is KtWhenCondition -> WhenCondition(ktElement)

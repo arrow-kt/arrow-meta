@@ -13,10 +13,10 @@ val Meta.transformReplace: List<CliPlugin>
 private val Meta.transformReplaceFunction: CliPlugin
   get() = "Transform Replace Function" {
     meta(
-      namedFunction(this, { name == "transformReplace" }) { f ->
+      namedFunction(this, { element.name == "transformReplace" }) { (f, _) ->
         Transform.replace(
           f,
-          """ fun transformReplace() = println("Transform Replace") """.function.syntheticScope
+          """ fun transformReplace() = println("Transform Replace") """.function(descriptor).syntheticScope
         )
       }
     )

@@ -17,10 +17,10 @@ val Meta.namedFunctionPlugin : CliPlugin
     get() =
         "Named Function Scope Plugin" {
             meta(
-              namedFunction(this, { true }) { namedFunction ->
+              namedFunction(this, { true }) { (namedFunction, _) ->
                   Transform.replace(
                     replacing = namedFunction,
-                    newDeclaration = identity()
+                    newDeclaration = identity(descriptor)
                   )
               }
             )

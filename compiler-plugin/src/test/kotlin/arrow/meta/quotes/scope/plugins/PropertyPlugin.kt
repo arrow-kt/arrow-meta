@@ -16,10 +16,10 @@ open class PropertyPlugin : Meta {
 val Meta.propertyPlugin
   get() = "Property scope plugin" {
     meta(
-      property(this, { true }) { property ->
+      property(this, { true }) { (property, _) ->
         Transform.replace(
           replacing = property,
-          newDeclaration = identity()
+          newDeclaration = identity(descriptor)
         )
       }
     )

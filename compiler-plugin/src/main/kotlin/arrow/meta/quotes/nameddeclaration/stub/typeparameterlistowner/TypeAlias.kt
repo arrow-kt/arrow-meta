@@ -34,12 +34,12 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  */
 class TypeAlias(
   override val value: KtTypeAlias,
-  override val typeInformation: TypeAliasDescriptor,
+  override val descriptor: TypeAliasDescriptor?,
   val name: Name? = value.nameAsName,
   val type: TypeReference = TypeReference(value.getTypeReference())
-) : TypeParameterListOwner<KtTypeAlias, TypeAliasDescriptor>(value, typeInformation) {
+) : TypeParameterListOwner<KtTypeAlias, TypeAliasDescriptor>(value, descriptor) {
 
-  override fun ElementScope.identity(): TypeAlias =
-    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
+  override fun ElementScope.identity(descriptor: TypeAliasDescriptor?): TypeAlias =
+    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""", descriptor)
 
 }

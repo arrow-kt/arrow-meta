@@ -42,13 +42,13 @@ val Meta.helloWorld: CliPlugin
   get() =
     "Hello World" {
       meta(
-        namedFunction(this, { name == "helloWorld" }) { c ->
+        namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
           Transform.replace(
             replacing = c,
             newDeclaration =
             """|fun helloWorld(): Unit = 
                |  println("Hello ΛRROW Meta!")
-               |""".function.syntheticScope
+               |""".function(descriptor).syntheticScope
           )
         }
       )

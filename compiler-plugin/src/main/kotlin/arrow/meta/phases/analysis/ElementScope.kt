@@ -42,6 +42,9 @@ import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -107,13 +110,15 @@ interface ElementScope {
   fun typeAlias(
     name: String,
     typeParameters: List<String>,
-    typeElement: KtTypeElement
+    typeElement: KtTypeElement,
+    descriptor: TypeAliasDescriptor?
   ): TypeAlias
   
   fun typeAlias(
     name: String,
     typeParameters: List<String>,
-    body: String
+    body: String,
+    descriptor: TypeAliasDescriptor?
   ): TypeAlias
   
   val star: PsiElement
@@ -153,23 +158,26 @@ interface ElementScope {
     name: String,
     type: String?,
     isVar: Boolean,
-    initializer: String?
+    initializer: String?,
+    descriptor: PropertyDescriptor?
   ): Property
   
   fun property(
     name: String,
     type: String?,
     isVar: Boolean,
-    initializer: String?
+    initializer: String?,
+    descriptor: PropertyDescriptor?
   ): Property
   
   fun property(
     name: String,
     type: String?,
-    isVar: Boolean
+    isVar: Boolean,
+    descriptor: PropertyDescriptor?
   ): Property
   
-  val String.property: Property
+  val String.property: (PropertyDescriptor?) -> Property
   
   fun propertyGetter(expression: KtExpression): PropertyAccessor
   
@@ -195,7 +203,7 @@ interface ElementScope {
   
   val String.identifier: PsiElement
   
-  val String.function: NamedFunction
+  val String.function: (FunctionDescriptor?) -> NamedFunction
 
   val String.binaryExpression: BinaryExpression
   

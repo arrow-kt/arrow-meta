@@ -10,7 +10,7 @@ val Meta.helloWorld: CliPlugin
   get() =
     "Hello World" {
       meta(
-        namedFunction(this, { name == "helloWorld" }) { c ->
+        namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
           Transform.replace(
             replacing = c,
             newDeclaration =
@@ -18,7 +18,7 @@ val Meta.helloWorld: CliPlugin
                | fun helloWorld(): String = 
                |   "Hello ΛRROW Meta!"
                |   
-               |""".function.syntheticScope
+               |""".function(descriptor).syntheticScope
           )
         }
       )
