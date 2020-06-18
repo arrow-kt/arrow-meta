@@ -1,8 +1,10 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.folding.getType
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -13,12 +15,19 @@ import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
+import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.quotes.scope
 import com.intellij.openapi.util.text.StringUtil
+import org.celtric.kotlin.html.body
+import org.celtric.kotlin.html.html
+import org.celtric.kotlin.html.text
+import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.refactoring.pullUp.renderForConflicts
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
@@ -31,14 +40,28 @@ inline fun <reified A : KtNamedDeclaration> IdeMetaPlugin.proofLineMarkers(icon:
     },
     composite = KtNamedDeclaration::class.java,
     message = { decl: KtNamedDeclaration ->
-      StringUtil.escapeXmlEntities(decl.markerMessage())
+      decl.markerMessage(decl.ctx())
     }
   )
 
-fun KtDeclaration.markerMessage(): String =
-  proof {
-    it.description().trimIndent()
-  }.orEmpty()
+fun KtDeclaration.markerMessage(ctx: CompilerContext?): String =
+  when (this) {
+    is KtParameter -> typeReference?.getType()?.let { kotlinType ->
+      ctx?.givenProof(kotlinType)?.let { proof ->
+        proof.through.findPsi()?.let { proofPsi ->
+          html {
+            body {
+              text("$name is implicitly injected by given proof unless explicitly passed as argument at the use site") +
+                text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, this).orEmpty())
+            }
+          }.render().trimIndent()
+        }
+      }
+    }.orEmpty()
+    else -> proof {
+      StringUtil.escapeXmlEntities(it.description().trimIndent())
+    }.orEmpty()
+  }
 
 fun <A> KtDeclaration.proof(f: (Proof) -> A): A? =
   scope().value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let(f)

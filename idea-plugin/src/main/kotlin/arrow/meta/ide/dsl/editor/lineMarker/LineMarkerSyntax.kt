@@ -11,7 +11,6 @@ import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
-import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -217,8 +216,6 @@ interface LineMarkerSyntax {
         }
       }
     )
-
-
 
   /**
    * Similar to [addLineMarkerProvider], but with mergeable LineMarkers, based on the predicate [mergeWith].
