@@ -15,6 +15,7 @@ import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -72,6 +73,7 @@ class ProofsIrCodegen(
       val proofs = matchingCandidates.map { proof ->
         substitutedProofCall(proof, superType)
       }
+      ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Am")
       proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
 
@@ -82,7 +84,7 @@ class ProofsIrCodegen(
     )
 
 
-  fun CompilerContext.extensionProofCall(
+  fun CompilerContext.extensionAndCoercionProofCall(
     subType: KotlinType,
     superType: KotlinType
   ): IrExpression? =
@@ -140,7 +142,7 @@ class ProofsIrCodegen(
     val valueType = it.initializer?.type?.originalKotlinType
     return if (targetType != null && valueType != null) {
       it.apply {
-        val proofCall = extensionProofCall(valueType, targetType)
+        val proofCall = extensionAndCoercionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
           proofCall.extensionReceiver = initializer
         }
@@ -177,7 +179,7 @@ class ProofsIrCodegen(
         ?: expression.descriptor.valueParameters.firstOrNull()?.type
     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
       expression.apply {
-        val proofCall = extensionProofCall(valueType, targetType)
+        val proofCall = extensionAndCoercionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
           when {
             this.dispatchReceiver != null -> {
@@ -201,7 +203,7 @@ class ProofsIrCodegen(
                 val valueArgument = expression.getValueArgument(n)
                 val valueType2 = valueArgument?.type?.toKotlinType()!!
                 val targetType2 = expression.descriptor.valueParameters[n].type
-                val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
+                val proofCall2 = extensionAndCoercionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
                 if (proofCall2 != null) {
                   proofCall2.extensionReceiver = valueArgument
                   if (proofCall2.typeArgumentsCount > 0) {
@@ -241,7 +243,7 @@ class ProofsIrCodegen(
     return if (targetType != null && valueType != null && targetType != valueType) {
       it.backingField?.let { field ->
         val replacement = field.initializer?.expression?.let {
-          extensionProofCall(valueType, targetType)?.apply {
+          extensionAndCoercionProofCall(valueType, targetType)?.apply {
             if (this is IrMemberAccessExpression)
               extensionReceiver = it
           }
@@ -256,7 +258,7 @@ class ProofsIrCodegen(
     val targetType = it.returnTarget.returnType
     val valueType = it.value.type.originalKotlinType
     return if (targetType != null && valueType != null && targetType != valueType) {
-      extensionProofCall(valueType, targetType)?.let { call ->
+      extensionAndCoercionProofCall(valueType, targetType)?.let { call ->
         if (call is IrMemberAccessExpression)
           call.extensionReceiver = it.value
 
@@ -275,7 +277,7 @@ class ProofsIrCodegen(
     val targetType = it.type.toKotlinType()
     val valueType = it.argument.type.toKotlinType()
     return if (targetType != valueType) {
-      extensionProofCall(valueType, targetType)?.let { call ->
+      extensionAndCoercionProofCall(valueType, targetType)?.let { call ->
         if (call is IrMemberAccessExpression)
           call.extensionReceiver = it.argument
         call
