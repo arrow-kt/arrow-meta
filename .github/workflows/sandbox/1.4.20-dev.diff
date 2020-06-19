@@ -231,7 +231,7 @@ index 1cab7b6a..9d773a92 100644
      classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
 -    classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$KOTLIN_VERSION"
-+    classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:1.4.20-dev-697"
++    classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:1.4.20-dev-889"
    }
  }
  
