@@ -96,7 +96,13 @@ class ProofsIrCodegen(
           typeSubstitutor = it.substitutor(subType)
         )
       }
-      proofs.firstOrNull() //TODO handle ambiguity and orphan selection
+      selectProof(proofs) //TODO handle ambiguity and orphan selection
+    }
+
+  fun CompilerContext.selectProof(candidates: List<IrExpression>): IrExpression? =
+    irUtils.run {
+
+      candidates.firstOrNull()
     }
 
   fun Proof.substitutor(

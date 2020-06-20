@@ -13,9 +13,14 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.Annotated
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -115,7 +120,16 @@ data class RefinementProof(
   val coerce: Boolean = true
 ) : Proof(to, through)
 
-fun DeclarationDescriptor.isProof(): Boolean =
+fun KtAnnotated.isProof(trace: BindingTrace): Boolean =
+  ArrowProofSet.any { hasAnnotation(trace, it) }
+
+fun KtAnnotated.annotations(trace: BindingTrace): List<AnnotationDescriptor> =
+  annotationEntries.mapNotNull { trace.get(BindingContext.ANNOTATION, it) }
+
+fun KtAnnotated.hasAnnotation(trace: BindingTrace, fqName: FqName): Boolean =
+  annotations(trace).any { it.fqName == fqName }
+
+fun Annotated.isProof(): Boolean =
   ArrowProofSet.any(annotations::hasAnnotation)
 
 fun CompilerContext.extending(types: Collection<KotlinType>): List<ExtensionProof> =

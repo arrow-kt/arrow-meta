@@ -6,6 +6,7 @@ import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import io.kotlintest.sourceRef
 import org.junit.Test
+import org.junit.jupiter.api.fail
 
 // build ide peace with annotator
 class ResolutionTests {
@@ -71,15 +72,17 @@ class ResolutionTests {
   fun `prohibited published internal orphan`() {
     resolutionTest("""
       @Coercion
-      fun String.toInt10(): Int? = // 30 -> 30
+      fun String.toInt10(): Int? =
         toIntOrNull(10)
       
       @Coercion
       @PublishedApi
-      internal fun String.toInt16(): Int? = // 30 -> 48
+      internal fun String.toInt16(): Int? =
         toIntOrNull(16)
       """) {
-      compiles
+      failsWith {
+        it.contains("Internal overrides of proofs are not permitted to be published, due to coherence reasons. Please remove the @PublishedApi annotation.")
+      }
     }
   }
 
@@ -92,11 +95,11 @@ class ResolutionTests {
       },
       code = {
         """
+          |package test
           |import arrow.*
           |import arrowx.*
           |
           |$source
-          |
         """.trimMargin().source
       },
       assert = assert
