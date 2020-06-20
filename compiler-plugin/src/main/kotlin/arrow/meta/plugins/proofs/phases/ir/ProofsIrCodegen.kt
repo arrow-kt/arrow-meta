@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -83,27 +84,27 @@ class ProofsIrCodegen(
       typeSubstitutor = proof.substitutor(superType)
     )
 
-
+  /**
+   * applicable for both  [@Extension] and [@Coercion]
+   */
   fun CompilerContext.extensionAndCoercionProofCall(
     subType: KotlinType,
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val matchingCandidates = extensionProofs(subType, superType)
-      val proofs = matchingCandidates.map {
+      val candidate = extensionProofCandidate(extensionProofs(subType, superType))
+      candidate?.let {
         matchedCandidateProofCall(
           fn = it.through,
           typeSubstitutor = it.substitutor(subType)
         )
       }
-      selectProof(proofs) //TODO handle ambiguity and orphan selection
     }
 
-  fun CompilerContext.selectProof(candidates: List<IrExpression>): IrExpression? =
-    irUtils.run {
-
-      candidates.firstOrNull()
-    }
+  //TODO handle ambiguity and orphan selection by package
+  fun CompilerContext.extensionProofCandidate(candidates: List<ExtensionProof>): ExtensionProof? =
+    // internal orphans take precedence
+    candidates.minBy { it.through.visibility != Visibilities.INTERNAL }
 
   fun Proof.substitutor(
     superType: KotlinType

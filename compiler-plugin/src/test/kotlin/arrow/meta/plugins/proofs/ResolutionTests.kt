@@ -4,9 +4,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import io.kotlintest.sourceRef
 import org.junit.Test
-import org.junit.jupiter.api.fail
 
 // build ide peace with annotator
 class ResolutionTests {
@@ -15,14 +13,16 @@ class ResolutionTests {
     resolutionTest(
       source = """
       @Coercion
-      fun String.toInt10(): Int? = // 30 -> 30
+      fun String.toInt10(): Int? =
         toIntOrNull(10)
       
       @Coercion
-      internal fun String.toInt16(): Int? = // 30 -> 48
+      internal fun String.toInt16(): Int? =
         toIntOrNull(16)
+        
+      val x: Int? = "30"
       """) {
-      compiles
+      "x".source.evalsTo(48)
     }
   }
 
@@ -31,39 +31,39 @@ class ResolutionTests {
     resolutionTest(
       """
       @Coercion
-      fun String.toInt10(): Int? = // 30 -> 30
+      fun String.toInt10(): Int? = // "30" -> 30
         toIntOrNull(10)
       
       @Coercion
-      internal fun String.toInt16(): Int? = // 30 -> 48
+      internal fun String.toInt16(): Int? = // "30" -> 48
         toIntOrNull(16)
       
       @Coercion
-      internal fun String.toInt8(): Int? = // 30 -> 24
+      internal fun String.toInt8(): Int? = // "30" -> 24
         toIntOrNull(8)
       """) {
-      compiles
+      fails
     }
   }
 
 
   @Test
-  fun `ambiguous public coercions`() {
+  fun `ambiguous public coercion proofs`() {
     resolutionTest(
       source = """
       @Coercion
-      fun String.toInt10(): Int? = // 30 -> 30
+      fun String.toInt10(): Int? = // "30" -> 30
         toIntOrNull(10)
       
       @Coercion
-      fun String.toInt16(): Int? = // 30 -> 48
+      fun String.toInt16(): Int? = // "30" -> 48
         toIntOrNull(16)
       
       @Coercion
-      internal fun String.toInt8(): Int? = // 30 -> 24
+      internal fun String.toInt8(): Int? = // "30" -> 24
         toIntOrNull(8)
       """) {
-      compiles
+      fails
     }
   }
 

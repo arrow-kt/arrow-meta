@@ -1,6 +1,5 @@
 package arrow.meta.ide.dsl.utils
 
-import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.MetaIde
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
