@@ -270,11 +270,10 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
   noinline map: S.(TypedQuoteTemplate<K, D>) -> Transform<K>,
   noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?
 ): ExtensionPhase {
-  val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
   return cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-        if (analysedDescriptors.isEmpty()) return@analysis null
+        if (!analysisPhaseDone) return@analysis null
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map, mapDescriptor, analysedDescriptors)
@@ -295,13 +294,10 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
         null
       },
       analysisCompleted = { project, module, bindingTrace, files ->
-        val x = BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
+        analysedDescriptors.addAll(BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
           it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).values.map { it as DeclarationDescriptor }
-        }
-        messageCollector?.report(CompilerMessageSeverity.WARNING, "HUE3 - ${
-        x.map { (it as? PropertyDescriptor)?.type?.supertypes() ?: "HEYYY" }
-        }")
-        analysedDescriptors.addAll(x)
+        })
+        analysisPhaseDone = true
         AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
       }
     )

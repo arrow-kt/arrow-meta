@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -34,6 +35,10 @@ open class CompilerContext(
 
   val quotes: MutableList<QuoteDefinition<out KtElement, out KtElement, out Scope<KtElement>>> =
     mutableListOf()
+
+  val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
+
+  var analysisPhaseDone: Boolean = false
 
   val ModuleDescriptor?.proofs: List<Proof>
     get() = this?.tp ?: emptyList()
