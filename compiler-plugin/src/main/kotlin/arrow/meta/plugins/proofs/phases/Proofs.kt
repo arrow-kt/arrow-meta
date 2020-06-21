@@ -146,21 +146,32 @@ fun CompilerContext.extensionProof(subType: KotlinType, superType: KotlinType): 
   extensionProofs(subType, superType).firstOrNull()
 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
-  module.proofs.filterIsInstance<ExtensionProof>()
-    .matchingCandidates(this, subType, superType)
+  proof<ExtensionProof>().matchingCandidates(this, subType, superType)
 
 fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
-  module.proofs.filterIsInstance<GivenProof>()
-    .matchingCandidates(this, superType)
+  proof<GivenProof>().matchingCandidates(this, superType)
+
+inline fun <reified P : Proof> CompilerContext.proof(): List<P> =
+  module.proofs.filterIsInstance<P>()
+
+/**
+ * returns a Map, where the keys are from [KotlinType] -> to [KotlinType] and the values are the corresponding Proofs
+ */
+fun CompilerContext.extensionProofs(): Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>> =
+  proof<ExtensionProof>()
+    .fold(mutableMapOf<Pair<KotlinType, KotlinType>, List<ExtensionProof>>()) { acc, proof ->
+      val key = proof.from to proof.to
+      acc.apply {
+        if (acc.containsKey(key)) acc[key] = acc[key].orEmpty() + proof
+        else acc[key] = listOf(proof)
+      }
+    }.toMap()
 
 fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): CoercionProof? =
   coerceProofs(subType, superType).firstOrNull()
 
 fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): List<CoercionProof> =
-  module.proofs
-    .filterIsInstance<CoercionProof>()
-    .filter { it.coerce }
-    .matchingCandidates(this, subType, superType)
+  proof<CoercionProof>().filter { it.coerce }.matchingCandidates(this, subType, superType)
 
 fun CompilerContext?.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean =
   !baseLineTypeChecker.isSubtypeOf(subType, supertype) && this?.coerceProof(subType, supertype) != null

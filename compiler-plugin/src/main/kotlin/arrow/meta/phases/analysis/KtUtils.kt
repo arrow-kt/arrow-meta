@@ -61,6 +61,19 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
 }
 
 /**
+ * collects all distinct witnesses of [f] from the receiver,
+ * where the return type contains pairs of [A] and a list of other corresponding elements that full fill f
+ */
+fun <A> List<A>.exists(f: (A, A) -> Boolean): List<Pair<A, List<A>>> =
+  fold(emptyList()) { acc: List<Pair<A, List<A>>>, a: A ->
+    acc +
+      (a to
+        filter { b: A ->
+          if (a != b) f(a, b) else false
+        })
+  }
+
+/**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
  */
 fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B?): List<B> =

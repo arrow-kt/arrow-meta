@@ -20,6 +20,7 @@ import org.celtric.kotlin.html.InlineElement
 import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -82,6 +83,12 @@ val KtElement.typeProjections: List<KtTypeProjection>
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
+
+fun KtElement.cacheService(): KotlinCacheService? =
+  project.getService(KotlinCacheService::class.java)
+
+fun KtElement.bindingCtx(mode: BodyResolveMode = BodyResolveMode.FULL): BindingContext? =
+  cacheService()?.getResolutionFacade(listOf(this.containingKtFile))?.analyze(this, mode)
 
 /**
  * returns all return types of each call-site starting from the receiver

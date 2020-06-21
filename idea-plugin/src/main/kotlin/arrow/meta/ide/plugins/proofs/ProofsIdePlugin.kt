@@ -31,6 +31,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
+      // proofAnnotator, WIP
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       coercionCallSiteLineMarker,
       coercionInspections,
