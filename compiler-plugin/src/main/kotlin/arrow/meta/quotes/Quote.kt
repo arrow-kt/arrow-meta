@@ -237,6 +237,7 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
   cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+        if (!analysisPhaseDone) return@analysis null
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map)
@@ -256,7 +257,10 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
         }
         null
       },
-      analysisCompleted = { _, _, _, _ -> null }
+      analysisCompleted = { _, module, bindingTrace, _ ->
+        analysisPhaseDone = true
+        AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
+      }
     )
   }.apply {
     ctx.quotes.add(QuoteDefinition(K::class.java, quoteFactory, match, map))
@@ -301,8 +305,6 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
         AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
       }
     )
-  }.apply {
-    //ctx.quotes.add(QuoteDefinition(K::class.java, quoteFactory, match, map))
   } ?: ExtensionPhase.Empty
 }
 

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.container.useInstance
 fun Meta.enableProofCallResolver(): ExtensionPhase =
   storageComponent(
     registerModuleComponents = { container, moduleDescriptor ->
+      if (!ctx.analysisPhaseDone) return@storageComponent
       println("Replacing ${ctx.module} for $moduleDescriptor")
       ctx.module = moduleDescriptor
       container.useInstance(container)
