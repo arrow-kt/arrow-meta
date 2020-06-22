@@ -40,21 +40,25 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   }
 }
 
-internal fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
+fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
-    declaration.takeIf {
-      it.isProof(trace) &&
-        it.hasAnnotation(trace, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
-        it.hasModifier(KtTokens.INTERNAL_KEYWORD)
-    }
+    declaration.isPublishedInternalOrphan(trace)
   }
+
+fun KtDeclaration.isPublishedInternalOrphan(trace: BindingTrace): KtDeclaration? =
+  takeIf {
+    it.isProof(trace) &&
+      it.hasAnnotation(trace, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
+      it.hasModifier(KtTokens.INTERNAL_KEYWORD)
+  }
+
 
 private fun reportProhibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): Unit =
   prohibitedPublishedInternalOrphans(trace, file).forEach {
     trace.report(MetaErrors.PublishedInternalOrphan.on(it))
   }
 
-internal fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedAmbiguities(): Map<Pair<ExtensionProof, KtNamedFunction>, List<ExtensionProof>> =
+fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedAmbiguities(): List<Pair<Pair<ExtensionProof, KtNamedFunction>, List<ExtensionProof>>> =
   mapNotNull { (_, proofs) ->
     val ambiguousProofs = proofs.exists { p1, p2 ->
       (p1.through.visibility == Visibilities.PUBLIC && p2.through.visibility == Visibilities.PUBLIC
@@ -70,7 +74,7 @@ internal fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedA
           (proof to it) to others
         }
       }
-  }.flatten().toMap()
+  }.flatten()
 
 
 /**
@@ -78,7 +82,8 @@ internal fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedA
  * Either by disambiguating proofs through a proper scope or removing dependencies that lead to undefined behavior of proof resolution for the project or 3rd parties depending on coherence.
  */
 private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportDisallowedAmbiguities(trace: BindingTrace): Unit =
-  disallowedAmbiguities().forEach { (proof, f), conflicts ->
-    trace.report(AmbiguousExtensionProof.on(f, proof, conflicts))
-    //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
-  }
+  disallowedAmbiguities().toMap()
+    .forEach { (proof, f), conflicts ->
+      trace.report(AmbiguousExtensionProof.on(f, proof, conflicts))
+      //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
+    }

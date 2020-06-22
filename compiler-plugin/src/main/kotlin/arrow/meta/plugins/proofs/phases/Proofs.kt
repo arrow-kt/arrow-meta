@@ -123,11 +123,20 @@ data class RefinementProof(
 fun KtAnnotated.isProof(trace: BindingTrace): Boolean =
   ArrowProofSet.any { hasAnnotation(trace, it) }
 
+fun KtAnnotated.isProof(ctx: BindingContext): Boolean =
+  ArrowProofSet.any { hasAnnotation(ctx, it) }
+
 fun KtAnnotated.annotations(trace: BindingTrace): List<AnnotationDescriptor> =
   annotationEntries.mapNotNull { trace.get(BindingContext.ANNOTATION, it) }
 
+fun KtAnnotated.annotations(ctx: BindingContext): List<AnnotationDescriptor> =
+  annotationEntries.mapNotNull { ctx.get(BindingContext.ANNOTATION, it) }
+
 fun KtAnnotated.hasAnnotation(trace: BindingTrace, fqName: FqName): Boolean =
   annotations(trace).any { it.fqName == fqName }
+
+fun KtAnnotated.hasAnnotation(ctx: BindingContext, fqName: FqName): Boolean =
+  annotations(ctx).any { it.fqName == fqName }
 
 fun Annotated.isProof(): Boolean =
   ArrowProofSet.any(annotations::hasAnnotation)

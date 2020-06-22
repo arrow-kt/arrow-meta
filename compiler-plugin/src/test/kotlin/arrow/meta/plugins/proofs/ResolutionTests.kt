@@ -101,7 +101,7 @@ class ResolutionTests {
         toIntOrNull(10)
       
       @Coercion
-      @PublishedApi
+      @kotlin.PublishedApi
       internal fun String.toInt16(): Int? =
         toIntOrNull(16)
       """) {
