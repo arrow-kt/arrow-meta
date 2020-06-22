@@ -1,3 +1,23 @@
+diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
+index a1a14a79..f7f74855 100644
+--- a/compiler-plugin/build.gradle
++++ b/compiler-plugin/build.gradle
+@@ -33,6 +33,7 @@ dependencies {
+     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+     }
++    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(":prelude")
+ }
+ 
+@@ -76,6 +77,7 @@ test {
+     testLogging.showStandardStreams = true
+     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
++    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
+     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+ }
+ 
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 index 2539d650..07db641e 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
@@ -157,10 +177,18 @@ index b71d5ea9..7335517c 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
-index 575faf37..a72dbdd9 100644
+index 3f8927df..a72dbdd9 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
-@@ -38,13 +38,13 @@ class ProofsScopeTower(
+@@ -6,6 +6,7 @@ import arrow.meta.phases.CompilerContext
+ import arrow.meta.plugins.proofs.phases.Proof
+ import org.jetbrains.kotlin.backend.common.SimpleMemberScope
+ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
++import org.jetbrains.kotlin.descriptors.VariableDescriptor
+ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+ import org.jetbrains.kotlin.incremental.components.LookupLocation
+ import org.jetbrains.kotlin.incremental.components.NoLookupLocation
+@@ -37,21 +38,32 @@ class ProofsScopeTower(
    override val dynamicScope: MemberScope = SimpleMemberScope(proofs.map { it.through })
    override val isDebuggerContext: Boolean = false
    override val isNewInferenceEnabled: Boolean = false
@@ -176,7 +204,28 @@ index 575faf37..a72dbdd9 100644
    )//.addImportingScope(memberScope.memberScopeAsImportingScope())
    override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
    override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes(null, compilerContext)
-@@ -73,4 +73,4 @@ class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: Compiler
+   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
+   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
+ 
+-  override fun interceptCandidates(resolutionScope: ResolutionScope, name: Name, initialResults: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
+-    Log.Verbose({"ProofsScopeTower.interceptCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
++  override fun interceptFunctionCandidates(resolutionScope: ResolutionScope, name: Name,
++                                           initialResults: Collection<FunctionDescriptor>, location: LookupLocation,
++                                           dispatchReceiver: ReceiverValueWithSmartCastInfo?, extensionReceiver: ReceiverValueWithSmartCastInfo?
++  ): Collection<FunctionDescriptor> =
++    Log.Verbose({"ProofsScopeTower.interceptFunctionCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
++      emptyList()
++    }
++
++  override fun interceptVariableCandidates(resolutionScope: ResolutionScope, name: Name,
++                                           initialResults: Collection<VariableDescriptor>, location: LookupLocation,
++                                           dispatchReceiver: ReceiverValueWithSmartCastInfo?, extensionReceiver: ReceiverValueWithSmartCastInfo?
++  ): Collection<VariableDescriptor> =
++    Log.Verbose({"ProofsScopeTower.interceptVariableCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
+       emptyList()
+     }
+ }
+@@ -61,4 +73,4 @@ class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: Compiler
      Log.Silent({ "ProofsSyntheticScopes.scopes $this" }) {
        delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(ctx))
      }
@@ -263,3 +312,47 @@ index 3f7250f5..4d3705f1 100644
          emptyList()
        }
      },
+diff --git a/meta-test/build.gradle b/meta-test/build.gradle
+index 1cbcaac9..5e04d916 100755
+--- a/meta-test/build.gradle
++++ b/meta-test/build.gradle
+@@ -23,6 +23,7 @@ dependencies {
+     testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
+         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+     }
++    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+     testRuntimeOnly project(':prelude')
+ }
+ 
+@@ -41,6 +42,7 @@ test {
+     }
+     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
++    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
+ }
+ 
+ jar {
+diff --git a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+index 033600b4..51b7f05b 100644
+--- a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
++++ b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
+@@ -9,13 +9,16 @@ import java.io.File
+ 
+ internal const val DEFAULT_FILENAME = "Source.kt"
+ 
+-internal fun compile(data: CompilationData): Result =
+-  KotlinCompilation().apply {
++internal fun compile(data: CompilationData): Result {
++  val kotlinVersion = System.getProperty("KOTLIN_VERSION")
++
++  return KotlinCompilation().apply {
+     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
+-    classpaths = data.dependencies.map { classpathOf(it) }
++    classpaths = data.dependencies.map { classpathOf(it) } + listOf(classpathOf("kotlin-stdlib:$kotlinVersion"))
+     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
+     compilerPlugins = data.metaPlugins
+   }.compile()
++}
+ 
+ private fun classpathOf(dependency: String): File {
+   val regex = Regex(".*${dependency.replace(':', '-')}.*")
