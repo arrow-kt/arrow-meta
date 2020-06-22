@@ -13,6 +13,6 @@ fun CompilerContext.suppressUnresolvedReference(diagnostic: Diagnostic): Boolean
   diagnostic.factory == Errors.UNRESOLVED_REFERENCE &&
     diagnostic.safeAs<DiagnosticWithParameters1<KtNameReferenceExpression, KtNameReferenceExpression>>()?.let { diagnosticWithParameters ->
       Log.Verbose({ "suppressUnresolvedReference: $this" }) {
-        diagnosticWithParameters.psiElement.textMatches("_")
+        diagnosticWithParameters.psiElement.text == "_"
       }
     } == true

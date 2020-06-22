@@ -11,7 +11,7 @@ import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.patternMatching.phases.analysis.resolveTypesFor
+import arrow.meta.plugins.patternMatching.phases.analysis.resolveExpression
 import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 import org.junit.Test
@@ -33,7 +33,7 @@ val Meta.patternMatchingPlugin: CliPlugin
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            bindingTrace.resolveTypesFor { wildcards(it) }
+            bindingTrace.resolveExpression { wildcards(project, it) }
             null
           }
         ),
@@ -89,8 +89,6 @@ class PatternMatchingTests {
         /* TODO:
             We're past the type-checking phase, however I still need to properly search for the right parameter type.
             Right now I'm still just hardcoding a lot to experiment with the concept.
-            This does demonstrate getting past the type-checking phase, and now we'll have a codegen failure.
-            In codegen we'll need to transform _ to the property that goes along with the constructor for the class.
          */
         //"result".source.evalsTo("Matched")
         failsWith { it.contains("_: KtCallExpression:") }
