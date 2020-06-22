@@ -34,29 +34,28 @@ internal fun Meta.proofResolutionRules(): AnalysisHandler =
 
 internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collection<KtFile>): Unit {
   extensionProofs()
-    .disallowAmbiguity(trace)
+    .reportDisallowedAmbiguities(trace)
   files.forEach { file: KtFile ->
-    prohibitPublishedInternalOrphans(trace, file)
+    reportProhibitedPublishedInternalOrphans(trace, file)
   }
 }
 
-private fun prohibitPublishedInternalOrphans(trace: BindingTrace, file: KtFile): Unit =
+internal fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
     declaration.takeIf {
       it.isProof(trace) &&
         it.hasAnnotation(trace, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
         it.hasModifier(KtTokens.INTERNAL_KEYWORD)
     }
-  }.forEach {
+  }
+
+private fun reportProhibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): Unit =
+  prohibitedPublishedInternalOrphans(trace, file).forEach {
     trace.report(MetaErrors.PublishedInternalOrphan.on(it))
   }
 
-/**
- * the strategy that follows is that authors are responsible for a coherent resolution of the project.
- * Either by disambiguating proofs through a proper scope or removing dependencies that lead to undefined behavior of proof resolution for the project or 3rd parties depending on coherence.
- */
-private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowAmbiguity(trace: BindingTrace): Unit =
-  forEach { (_, _), proofs ->
+internal fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedAmbiguities(): Map<Pair<ExtensionProof, KtNamedFunction>, List<ExtensionProof>> =
+  mapNotNull { (_, proofs) ->
     val ambiguousProofs = proofs.exists { p1, p2 ->
       (p1.through.visibility == Visibilities.PUBLIC && p2.through.visibility == Visibilities.PUBLIC
         )
@@ -70,8 +69,16 @@ private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowAmbi
         proof.through.findPsi().safeAs<KtNamedFunction>()?.let {
           (proof to it) to others
         }
-      }.toMap().forEach { (proof, f), conflicts ->
-        trace.report(AmbiguousExtensionProof.on(f, proof, conflicts))
-        //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
       }
+  }.flatten().toMap()
+
+
+/**
+ * the strategy that follows is that authors are responsible for a coherent resolution of the project.
+ * Either by disambiguating proofs through a proper scope or removing dependencies that lead to undefined behavior of proof resolution for the project or 3rd parties depending on coherence.
+ */
+private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportDisallowedAmbiguities(trace: BindingTrace): Unit =
+  disallowedAmbiguities().forEach { (proof, f), conflicts ->
+    trace.report(AmbiguousExtensionProof.on(f, proof, conflicts))
+    //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
   }
