@@ -11,7 +11,7 @@ import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.patternMatching.phases.analysis.resolveExpression
+import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
 import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 import org.junit.Test
@@ -33,7 +33,7 @@ val Meta.patternMatchingPlugin: CliPlugin
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            bindingTrace.resolveExpression { wildcards(project, it) }
+            bindingTrace.resolvePatternExpression { it.wildcards }
             null
           }
         ),
@@ -87,7 +87,7 @@ class PatternMatchingTests {
     code verify {
       allOf(
         /* TODO:
-            We're past the type-checking phase, however I still need to properly search for the right parameter type.
+            We're past type-checking, however I still need to properly search for the right parameter type.
             Right now I'm still just hardcoding a lot to experiment with the concept.
          */
         //"result".source.evalsTo("Matched")

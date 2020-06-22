@@ -1,28 +1,32 @@
 package arrow.meta.plugins.patternMatching.phases.analysis
 
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.constants.CompileTimeConstant
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 
-fun BindingTrace.resolveExpression(resolution: (BindingTrace) -> Unit) =
+fun BindingTrace.resolvePatternExpression(resolution: (BindingTrace) -> Unit) =
   resolution(this)
 
-fun wildcards(project: Project, bindingTrace: BindingTrace) =
-  bindingTrace.wildcardTypeInfoEntries.forEach { entry ->
-    constructorArgTypeInfo(bindingTrace).let { replacementType ->
-      bindingTrace.recordType(entry.key, replacementType?.type)
-    }
+val BindingTrace.wildcards
+  get() = wildcardTypeInfoEntries.forEach { entry ->
+    recordType(entry.key, bindingContext.targetType?.type)
+    record<KtExpression, CompileTimeConstant<*>>(
+      BindingContext.COMPILE_TIME_VALUE,
+      entry.key,
+      bindingContext.targetExpression
+    )
   }
 
-val BindingTrace.wildcardTypeInfoEntries: List<MutableMap.MutableEntry<KtExpression, KotlinTypeInfo>>
+private val BindingTrace.wildcardTypeInfoEntries: List<MutableMap.MutableEntry<KtExpression, KotlinTypeInfo>>
   get() = bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
     .filter { it.value.type == null && it.key.text == "_" }
 
-private fun constructorArgTypeInfo(bindingTrace: BindingTrace) =
-  bindingTrace.bindingContext.getSliceContents(BindingContext.EXPRESSION_TYPE_INFO)
-    .entries
-    .find { it.key.textMatches(""""Matt"""") }
-    ?.value
+private val BindingContext.targetType
+  get() = getSliceContents(BindingContext.EXPRESSION_TYPE_INFO).entries
+    .find { it.key.textMatches(""""Matt"""") }?.value
+
+private val BindingContext.targetExpression
+  get() = getSliceContents(BindingContext.COMPILE_TIME_VALUE).entries
+    .find { it.key.text == """"Matt"""" }?.value
