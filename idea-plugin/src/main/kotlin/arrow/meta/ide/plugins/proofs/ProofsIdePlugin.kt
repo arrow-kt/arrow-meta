@@ -7,6 +7,7 @@ import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
+import arrow.meta.ide.plugins.proofs.markers.givenCallLineMarker
 import arrow.meta.ide.plugins.proofs.markers.givenParamLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
@@ -30,8 +31,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
       proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
-      // proofLineMarkers(ArrowIcons.ICON1, KtParameter::isGivenProof),
       givenParamLineMarker,
+      givenCallLineMarker,
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,

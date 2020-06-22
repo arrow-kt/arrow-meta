@@ -328,6 +328,9 @@ interface LineMarkerSyntax {
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
         }
+
+      override fun getElementPresentation(element: PsiElement): String =
+        message(element)
     }
 
   /**
