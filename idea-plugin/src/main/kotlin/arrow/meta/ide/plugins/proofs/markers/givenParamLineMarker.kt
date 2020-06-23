@@ -35,13 +35,13 @@ val IdeMetaPlugin.givenParamLineMarker: ExtensionPhase
     }
   )
 
-private fun KtParameter.givenMessage(ctx: CompilerContext?, extra: String = ""): String =
+private fun KtParameter.givenMessage(ctx: CompilerContext?): String =
   typeReference?.getType()?.let { kotlinType ->
     ctx?.givenProof(kotlinType)?.let { proof ->
       proof.through.findPsi()?.let { proofPsi ->
         html {
           body {
-            text("${nameIdentifier?.text} is implicitly injected by given proof unless explicitly passed as argument at the use site ($extra)") +
+            text("${nameIdentifier?.text} is implicitly injected by given proof unless explicitly passed as argument at the use site") +
               text(KotlinQuickDocumentationProvider().generateDoc(proofPsi as KtNamedDeclaration, this).orEmpty())
           }
         }.render().trimIndent()

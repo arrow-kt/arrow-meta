@@ -11,21 +11,17 @@ import com.intellij.codeInsight.daemon.impl.quickfix.GoToSymbolFix
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.editor.markup.EffectType
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import java.awt.Color
-import java.awt.Font
 
 val IdeMetaPlugin.coercionAnnotator: ExtensionPhase
   get() = Composite(
@@ -52,9 +48,9 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
                     }
                   }.render()
                   holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
-                    enforcedTextAttributes = coercionAnnotatorTextAttributes
+                    enforcedTextAttributes = implicitProofAnnotatorTextAttributes
                     registerFix(
-                      GoToSymbolFix(proofPsi as KtDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
+                      GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
                       it.textRange
                     )
                   }
@@ -85,9 +81,9 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
                     }
                   }.render()
                   holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
-                    enforcedTextAttributes = coercionAnnotatorTextAttributes
+                    enforcedTextAttributes = implicitProofAnnotatorTextAttributes
                     registerFix(
-                      GoToSymbolFix(proofPsi as KtDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
+                      GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
                       it.textRange
                     )
                   }
@@ -98,6 +94,3 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
         }
     }
   )
-
-private val coercionAnnotatorTextAttributes =
-  TextAttributes(null, null, Color(192, 192, 192), EffectType.WAVE_UNDERSCORE, Font.PLAIN)

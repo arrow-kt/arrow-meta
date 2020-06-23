@@ -36,12 +36,12 @@ val IdeMetaPlugin.givenCallLineMarker: ExtensionPhase
     }
   )
 
-private fun PsiElement.message(ctx: CompilerContext?, extra: String = ""): String =
+private fun PsiElement.message(ctx: CompilerContext?): String =
   html {
     body {
       getParentOfType<KtCallExpression>(true)?.returnType?.let { kotlinType ->
         ctx?.givenProof(kotlinType)?.through?.findPsi()?.let { proofPsi ->
-          text("Implicit injection by given proof ($extra)") +
+          text("Implicit injection by given proof") +
             text(KotlinQuickDocumentationProvider().generateDoc(proofPsi as KtNamedDeclaration, this).orEmpty())
         }
       }.orEmpty()
