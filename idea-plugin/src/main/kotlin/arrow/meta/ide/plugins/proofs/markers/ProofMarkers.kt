@@ -56,7 +56,7 @@ fun Proof.description(): String =
       null
     },
     projection = {
-      """all members of $to are available as members of $from"""
+      """All members of $to are available as members of $from"""
     },
     coercion = {
       """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
