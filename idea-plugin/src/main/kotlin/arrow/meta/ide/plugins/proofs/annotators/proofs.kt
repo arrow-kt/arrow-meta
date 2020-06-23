@@ -18,6 +18,7 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -26,6 +27,7 @@ import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.proofAnnotator: ExtensionPhase
@@ -46,18 +48,20 @@ val IdeMetaPlugin.proofAnnotator: ExtensionPhase
     ),
     addAnnotator(
       annotator = Annotator { element, holder ->
-        // ambeguity
-        element.safeAs<KtNamedFunction>()?.let { ff: KtNamedFunction ->
-          element.project.getService(CompilerContext::class.java)?.let { ctx: CompilerContext ->
-            ctx.extensionProofs()
-              .disallowedAmbiguities()
-              .firstOrNull { (f, _) ->
-                f.second == ff //|| f.first.through == ff.resolveToDescriptorIfAny()
-              }
-              ?.let { (f, conflicts) ->
-                f.second.identifyingElement?.textRangeInParent?.let { holder.registerAmbiguousProofs(f.first, it, conflicts) }
-              }
-          }
+        // proof resolution ambiguities
+        element.project.getService(CompilerContext::class.java)?.let { ctx: CompilerContext ->
+          val map = ctx.extensionProofs()
+            .disallowedAmbiguities()
+          element.safeAs<KtNamedFunction>()
+            ?.let {
+              it.resolveToDescriptorIfAny()?.let { f ->
+                map.firstOrNull { (ff, _) ->
+                  ff.first.through.fqNameSafe == f.fqNameSafe
+                }
+              }?.run { it to this }
+            }?.let { (f, ambiguaties) ->
+              holder.registerAmbiguousProofs(ambiguaties.first.first, f.textRangeWithoutComments, ambiguaties.second)
+            }
         }
       }
     )
