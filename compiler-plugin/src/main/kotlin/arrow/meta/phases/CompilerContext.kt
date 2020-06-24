@@ -1,5 +1,6 @@
 package arrow.meta.phases
 
+import arrow.meta.internal.kastree.ast.Node
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.quotes.QuoteDefinition
@@ -11,8 +12,10 @@ import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import java.util.concurrent.atomic.AtomicBoolean
 import arrow.meta.plugins.proofs.phases.proofs as tp
 
 /**
@@ -38,7 +41,9 @@ open class CompilerContext(
 
   val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
 
-  var analysisPhaseDone: Boolean = false
+  var analysisPhaseWasRewind: AtomicBoolean = AtomicBoolean(false)
+
+  var analysisPhaseCanBeRewind: AtomicBoolean = AtomicBoolean(false)
 
   val ModuleDescriptor?.proofs: List<Proof>
     get() = this?.tp ?: emptyList()
@@ -56,4 +61,12 @@ open class CompilerContext(
     }
 
   val ctx: CompilerContext = this
+}
+
+fun CompilerContext.evaluateDependsOn(
+  noRewindablePhase: () -> Unit,
+  rewindablePhase: (Boolean) -> Unit
+): Unit {
+  if (!analysisPhaseCanBeRewind.get()) return noRewindablePhase()
+  rewindablePhase(analysisPhaseWasRewind.get())
 }

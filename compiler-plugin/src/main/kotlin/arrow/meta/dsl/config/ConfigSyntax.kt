@@ -11,6 +11,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.config.Config
+import arrow.meta.phases.evaluateDependsOn
 import arrow.meta.plugins.proofs.phases.resolve.ProofTypeChecker
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -95,7 +96,6 @@ interface ConfigSyntax {
   fun Meta.typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): ExtensionPhase =
     Composite(storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
-        if (!ctx.analysisPhaseDone) return@storageComponent
         val defaultTypeChecker = KotlinTypeChecker.DEFAULT
         val replacement = replace(defaultTypeChecker)
         if (replacement != defaultTypeChecker) {
@@ -112,7 +112,7 @@ interface ConfigSyntax {
     cli {
       analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-          if (!ctx.analysisPhaseDone) return@analysis null
+          if (!ctx.analysisPhaseWasRewind.get()) return@analysis null
           Log.Verbose({ "analysis.registerArgumentTypeResolver.initializeProofCache + replace type checker" }) {
             replaceArgumentTypeResolverTypeChecker(componentProvider)
             null

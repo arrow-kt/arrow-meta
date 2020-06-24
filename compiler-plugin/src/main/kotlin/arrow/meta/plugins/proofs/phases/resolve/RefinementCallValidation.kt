@@ -37,7 +37,6 @@ internal fun Meta.cliValidateRefinedCalls(): AnalysisHandler =
   analysis(
     doAnalysis = Noop.nullable7<AnalysisResult>(),
     analysisCompleted = { project, module, bindingTrace, files ->
-      if (!ctx.analysisPhaseDone) return@analysis null
       validateRefinedCalls(bindingTrace)
       null
     }

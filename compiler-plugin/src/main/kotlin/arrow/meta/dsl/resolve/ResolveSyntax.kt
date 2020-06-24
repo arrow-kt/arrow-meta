@@ -108,31 +108,31 @@ interface ResolveSyntax {
   ): ExtensionPhase =
     object : SyntheticScopeProvider {
       override fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
-        if(analysisPhaseDone) syntheticConstructor(constructor) else null
+        syntheticConstructor(constructor)
 
       override fun CompilerContext.syntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticConstructors(scope) else listOf()
+        syntheticConstructors(scope)
 
       override fun CompilerContext.syntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticConstructorsForName(scope, name, location) else listOf()
+        syntheticConstructorsForName(scope, name, location)
 
       override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
-        if(analysisPhaseDone) syntheticExtensionProperties(receiverTypes, location) else listOf()
+        syntheticExtensionProperties(receiverTypes, location)
 
       override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-        if(analysisPhaseDone) syntheticExtensionPropertiesForName(receiverTypes, name, location) else listOf()
+        syntheticExtensionPropertiesForName(receiverTypes, name, location)
 
       override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticMemberFunctions(receiverTypes) else listOf()
+        syntheticMemberFunctions(receiverTypes)
 
       override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticMemberFunctionsForName(receiverTypes, name, location) else listOf()
+        syntheticMemberFunctionsForName(receiverTypes, name, location)
 
       override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticStaticFunctions(scope) else listOf()
+        syntheticStaticFunctions(scope)
 
       override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-        if(analysisPhaseDone) syntheticStaticFunctionsForName(scope, name, location) else listOf()
+        syntheticStaticFunctionsForName(scope, name, location)
     }
 
 

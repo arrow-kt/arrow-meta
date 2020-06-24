@@ -13,8 +13,8 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
 import arrow.meta.phases.analysis.traverseFilter
+import arrow.meta.phases.evaluateDependsOn
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.com.google.common.collect.ImmutableMap
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
@@ -33,8 +32,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.parents
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
@@ -237,7 +234,6 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
   cli {
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-        if (!analysisPhaseDone) return@analysis null
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map)
@@ -258,8 +254,7 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
         null
       },
       analysisCompleted = { _, module, bindingTrace, _ ->
-        analysisPhaseDone = true
-        AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
+        null
       }
     )
   }.apply {
@@ -275,9 +270,10 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
   noinline mapDescriptor: List<DeclarationDescriptor>.(K) -> D?
 ): ExtensionPhase {
   return cli {
+    ctx.analysisPhaseCanBeRewind.set(true)
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-        if (!analysisPhaseDone) return@analysis null
+        if (!ctx.analysisPhaseWasRewind.get()) return@analysis null
         files as ArrayList
         println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map, mapDescriptor, analysedDescriptors)
@@ -298,11 +294,13 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
         null
       },
       analysisCompleted = { project, module, bindingTrace, files ->
-        analysedDescriptors.addAll(BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
-          it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).values.map { it as DeclarationDescriptor }
-        })
-        analysisPhaseDone = true
-        AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
+        if (!analysisPhaseWasRewind.get()) {
+          analysedDescriptors.addAll(BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
+            it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).values.map { it as DeclarationDescriptor }
+          })
+          analysisPhaseWasRewind.set(true)
+          AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
+        } else null
       }
     )
   } ?: ExtensionPhase.Empty
@@ -458,10 +456,20 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
       is Transform.Many -> {
         transform.many(this, compilerContext, match).let {
           saveTransformation(it.first)
-          newSource.addAll(it.second)
+          compilerContext.evaluateDependsOn(
+            noRewindablePhase = { newSource.addAll(it.second) },
+            rewindablePhase = { phaseWasRewind -> if (phaseWasRewind) newSource.addAll(it.second) }
+          )
         }
       }
-      is Transform.NewSource -> newSource.addAll(transform.newSource())
+      is Transform.NewSource -> {
+        transform.newSource().let {
+          compilerContext.evaluateDependsOn(
+            noRewindablePhase = { newSource.addAll(it) },
+            rewindablePhase = { phaseWasRewind -> if (phaseWasRewind) newSource.addAll(it) }
+          )
+        }
+      }
       Transform.Empty -> Unit
     }
   }
