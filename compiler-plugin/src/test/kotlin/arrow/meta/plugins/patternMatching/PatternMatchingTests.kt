@@ -8,7 +8,6 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
-import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
@@ -86,14 +85,30 @@ class PatternMatchingTests {
 
     code verify {
       allOf(
-        /* TODO:
-            We're past type-checking, however I still need to properly search for the right parameter type.
-            Right now I'm still just hardcoding a lot to experiment with the concept.
-         */
-        //"result".source.evalsTo("Matched")
-        failsWith { it.contains("_: KtCallExpression:") }
+        "result".source.evalsTo("Matched")
       )
     }
   }
+
+    @Test
+    fun `with case pattern second param match expression`() {
+        val code =
+            """data class Person(val firstName: String, val lastName: String)
+         val person = Person("Matt", "Moore")
+
+         fun case(arg: Any): Any = arg
+
+         val result = when (person) {
+           case(Person("Matt", _)) -> "Matched"
+           else -> "Not matched"
+         }
+         """
+
+        code verify {
+            allOf(
+                "result".source.evalsTo("Matched")
+            )
+        }
+    }
 
 }
