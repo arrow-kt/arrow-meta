@@ -8,6 +8,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
+import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
@@ -90,25 +91,89 @@ class PatternMatchingTests {
     }
   }
 
-    @Test
-    fun `with case pattern second param match expression`() {
-        val code =
-            """data class Person(val firstName: String, val lastName: String)
-         val person = Person("Matt", "Moore")
+  @Test
+  fun `with case pattern second param match expression`() {
+    val code =
+        """data class Person(val firstName: String, val lastName: String)
+     val person = Person("Matt", "Moore")
 
-         fun case(arg: Any): Any = arg
+     fun case(arg: Any): Any = arg
 
-         val result = when (person) {
-           case(Person("Matt", _)) -> "Matched"
-           else -> "Not matched"
-         }
-         """
+     val result = when (person) {
+       case(Person("Matt", _)) -> "Matched"
+       else -> "Not matched"
+     }
+     """
 
-        code verify {
-            allOf(
-                "result".source.evalsTo("Matched")
-            )
-        }
+    code verify {
+        allOf(
+            "result".source.evalsTo("Matched")
+        )
     }
+  }
 
+  @Test
+  fun `with case pattern captured param results in value`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+     val person = Person("Matt", "Moore")
+
+     fun case(arg: Any): Any = arg
+
+     val result = when (person) {
+       case(Person(capturedFirstName, _)) -> capturedFirstName
+       else -> "Not matched"
+     }
+     """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Matt")
+      )
+    }
+  }
+
+  @Test
+  fun `with case pattern captured second param results in value`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+     val person = Person("Matt", "Moore")
+
+     fun case(arg: Any): Any = arg
+
+     val result = when (person) {
+       case(Person(_, capturedSecondName)) -> capturedSecondName
+       else -> "Not matched"
+     }
+     """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Moore")
+      )
+    }
+  }
+
+  @Test
+  fun `with case pattern both captured params result in value`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+     val person = Person("Matt", "Moore")
+
+     fun case(arg: Any): Any = arg
+
+     val result = when (person) {
+       case(Person(capturedFirstName, capturedSecondName)) -> capturedFirstName + capturedSecondName
+       else -> "Not matched"
+     }
+     """
+
+    code verify {
+      allOf(
+//        "result".source.evalsTo("MattMoore")
+        // TODO value argument types seem to be not patched when we resolve identifier
+        failsWith { it.contains("Value argument in function call is mapped with error") }
+      )
+    }
+  }
 }
