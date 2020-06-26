@@ -11,7 +11,7 @@ import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
-import arrow.meta.plugins.proofs.phases.resolve.disallowedAmbiguities
+import arrow.meta.plugins.proofs.phases.resolve.disallowedUserDefinedAmbiguities
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -51,7 +50,7 @@ val IdeMetaPlugin.proofAnnotator: ExtensionPhase
         // proof resolution ambiguities
         element.project.getService(CompilerContext::class.java)?.let { ctx: CompilerContext ->
           val map = ctx.extensionProofs()
-            .disallowedAmbiguities()
+            .disallowedUserDefinedAmbiguities()
           element.safeAs<KtNamedFunction>()
             ?.let {
               it.resolveToDescriptorIfAny()?.let { f ->
@@ -59,8 +58,9 @@ val IdeMetaPlugin.proofAnnotator: ExtensionPhase
                   ff.first.through.fqNameSafe == f.fqNameSafe
                 }
               }?.run { it to this }
-            }?.let { (f, ambiguaties) ->
-              holder.registerAmbiguousProofs(ambiguaties.first.first, f.textRangeWithoutComments, ambiguaties.second)
+            }?.let { (f, ambiguities) ->
+              val (proof, conflicts) = ambiguities
+              holder.registerAmbiguousProofs(proof.first, f.textRangeWithoutComments, conflicts)
             }
         }
       }
@@ -83,15 +83,13 @@ private fun AnnotationHolder.registerProhibitedProof(publishedApi: Pair<KtAnnota
 
 private fun AnnotationHolder.registerAmbiguousProofs(proof: ExtensionProof, range: TextRange, conflicts: List<ExtensionProof>): Unit =
   newAnnotation(HighlightSeverity.ERROR,
-    DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.withOptions {
-      textFormat = RenderingFormat.HTML
-    }.run {
+    DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.run {
       """
-      |The proof
-      |${render(proof.through)}
-      |is in Conflict with the following proofs:
-      |${conflicts.joinToString(separator = "<br/>") { render(it.through) }}
-      |Please take following measures to disambiguate proof resolution: TODO!
+      The proof
+      ${"\n"}${render(proof.through)}
+      ${"\n"}is in Conflict with the following proof/s:
+      ${"\n"}${conflicts.joinToString(separator = "\n") { render(it.through) }}
+      ${"\n"}Please take following measures to disambiguate proof resolution: TODO!
         """".trimIndent()
     }
   ).needsUpdateOnTyping()

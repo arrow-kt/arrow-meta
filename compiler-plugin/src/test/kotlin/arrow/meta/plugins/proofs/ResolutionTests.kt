@@ -9,14 +9,30 @@ import org.junit.Test
 // build ide peace with annotator
 class ResolutionTests {
   // the first tests define their proofs in the same package
+  // adds ownership rules on types
+  // skipped internal instances for public and internal proofs
   @Test
-  fun `internal orphan override`() {
+  fun `prohibited public proof of non user types`() {
     resolutionTest(
       """
       @Coercion
       fun String.toInt10(): Int? =
         toIntOrNull(10)
       
+      @Coercion
+      internal fun String.toInt16(): Int? =
+        toIntOrNull(16)
+        
+      val x: Int? = "30"
+      """) {
+      fails
+    }
+  }
+
+  @Test
+  fun `internal orphan override`() {
+    resolutionTest(
+      """
       @Coercion
       internal fun String.toInt16(): Int? =
         toIntOrNull(16)
@@ -32,10 +48,6 @@ class ResolutionTests {
     resolutionTest(
       """
       @Coercion
-      fun String.toInt10(): Int? = // "30" -> 30
-        toIntOrNull(10)
-      
-      @Coercion
       internal fun String.toInt16(): Int? = // "30" -> 48
         toIntOrNull(16)
       
@@ -47,22 +59,24 @@ class ResolutionTests {
     }
   }
 
-
+  /**
+   * some context to the following proofs.
+   */
   @Test
   fun `ambiguous public coercion proofs`() {
     resolutionTest(
       """
       @Coercion
-      fun String.toInt10(): Int? = // "30" -> 30
-        toIntOrNull(10)
+      fun Pair<String, Int>.toPerson(): Person =
+        Person(first, second)
+
+      @Coercion
+      fun Pair<String, Int>.toPersonWithLeapYear(): Person =
+        Person(first, second % 383)
       
       @Coercion
-      fun String.toInt16(): Int? = // "30" -> 48
-        toIntOrNull(16)
-      
-      @Coercion
-      internal fun String.toInt8(): Int? = // "30" -> 24
-        toIntOrNull(8)
+      internal fun Pair<String, Int>.toPersonMod355(): Person =
+        Person(first, second % 355)
       """) {
       fails
     }
@@ -74,20 +88,20 @@ class ResolutionTests {
     resolutionTest(
       """
       @Coercion
-      fun String.toInt10(): Int? = // "30" -> 30
-        toIntOrNull(10)
+      fun Pair<String, Int>.toPerson(): Person =
+        Person(first, second)
       
       @Coercion
-      fun String.toInt16(): Int? = // "30" -> 48
-        toIntOrNull(16)
+      fun Pair<String, Int>.toPerson365(): Person =
+        Person(first, second % 365)
       
       @Coercion
-      internal fun String.toInt8(): Int? = // "30" -> 24
-        toIntOrNull(8)
-        
+      internal fun Pair<String, Int>.toPersonWithLeapYear(): Person =
+        Person(first, second % 383)
+      
       @Coercion
-      internal fun String.toInt9(): Int? = // "30" -> 27
-        toIntOrNull(9)
+      internal fun Pair<String, Int>.toPersonMod355(): Person =
+        Person(first, second % 355)
       """) {
       fails
     }
@@ -96,10 +110,6 @@ class ResolutionTests {
   @Test
   fun `prohibited published internal orphan`() {
     resolutionTest("""
-      @Coercion
-      fun String.toInt10(): Int? =
-        toIntOrNull(10)
-      
       @Coercion
       @kotlin.PublishedApi
       internal fun String.toInt16(): Int? =
@@ -124,35 +134,12 @@ class ResolutionTests {
           |import arrow.*
           |import arrowx.*
           |
+          |data class Person(val name: String, val age: Int)
+          |
           |$source
         """.trimMargin().source
       },
       assert = assert
     ))
   }
-
-  private fun resolutionTest(vararg pkgToSrc: Pair<String, String>, assert: CompilerTest.Companion.() -> Assert) {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
-    assertThis(CompilerTest(
-      config = {
-        metaDependencies + addDependencies(arrowCoreData)
-      },
-      code = {
-        sources(
-          pkgToSrc.map { (pack, src) ->
-            """
-          |package $pack
-          |import arrow.*
-          |import arrowx.*
-          |
-          |$src
-        """.trimMargin().source
-          }
-        )
-      },
-      assert = assert
-    ))
-  }
-
 }
