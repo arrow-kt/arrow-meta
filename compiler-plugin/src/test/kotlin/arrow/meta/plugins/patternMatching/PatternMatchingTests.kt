@@ -55,10 +55,8 @@ class PatternMatchingTests {
       """data class Person(val firstName: String, val lastName: String)
          val person = Person("Matt", "Moore")
 
-         fun case(arg: Any?): Any? = arg
-
          val result = when (person) {
-           case(Person("Matt", "Moore")) -> "Matched"
+           Person("Matt", "Moore") -> "Matched"
            else -> "Not matched"
          }
          """
@@ -76,10 +74,8 @@ class PatternMatchingTests {
       """data class Person(val firstName: String, val lastName: String)
          val person = Person("Matt", "Moore")
 
-         fun case(arg: Any): Any = arg
-
          val result = when (person) {
-           case(Person(_, "Moore")) -> "Matched"
+           Person(_, "Moore") -> "Matched"
            else -> "Not matched"
          }
          """
@@ -95,15 +91,13 @@ class PatternMatchingTests {
   fun `with case pattern second param match expression`() {
     val code =
         """data class Person(val firstName: String, val lastName: String)
-     val person = Person("Matt", "Moore")
+           val person = Person("Matt", "Moore")
 
-     fun case(arg: Any): Any = arg
-
-     val result = when (person) {
-       case(Person("Matt", _)) -> "Matched"
-       else -> "Not matched"
-     }
-     """
+           val result = when (person) {
+             Person("Matt", _) -> "Matched"
+             else -> "Not matched"
+           }
+           """
 
     code verify {
         allOf(
@@ -116,15 +110,13 @@ class PatternMatchingTests {
   fun `with case pattern captured param results in value`() {
     val code =
       """data class Person(val firstName: String, val lastName: String)
-     val person = Person("Matt", "Moore")
+         val person = Person("Matt", "Moore")
 
-     fun case(arg: Any): Any = arg
-
-     val result = when (person) {
-       case(Person(capturedFirstName, _)) -> capturedFirstName
-       else -> "Not matched"
-     }
-     """
+         val result = when (person) {
+           Person(capturedFirstName, _) -> capturedFirstName
+           else -> "Not matched"
+         }
+         """
 
     code verify {
       allOf(
@@ -137,15 +129,13 @@ class PatternMatchingTests {
   fun `with case pattern captured second param results in value`() {
     val code =
       """data class Person(val firstName: String, val lastName: String)
-     val person = Person("Matt", "Moore")
+         val person = Person("Matt", "Moore")
 
-     fun case(arg: Any): Any = arg
-
-     val result = when (person) {
-       case(Person(_, capturedSecondName)) -> capturedSecondName
-       else -> "Not matched"
-     }
-     """
+         val result = when (person) {
+           Person(_, capturedSecondName) -> capturedSecondName
+           else -> "Not matched"
+         }
+         """
 
     code verify {
       allOf(
@@ -158,15 +148,13 @@ class PatternMatchingTests {
   fun `with case pattern both captured params result in value`() {
     val code =
       """data class Person(val firstName: String, val lastName: String)
-     val person = Person("Matt", "Moore")
+         val person = Person("Matt", "Moore")
 
-     fun case(arg: Any): Any = arg
-
-     val result = when (person) {
-       case(Person(capturedFirstName, capturedSecondName)) -> capturedFirstName + capturedSecondName
-       else -> "Not matched"
-     }
-     """
+         val result = when (person) {
+           Person(capturedFirstName, capturedSecondName) -> capturedFirstName + capturedSecondName
+           else -> "Not matched"
+         }
+         """
 
     code verify {
       allOf(
