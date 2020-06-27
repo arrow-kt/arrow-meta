@@ -33,10 +33,10 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *    get() =
  *      "Reformat Named Function" {
  *        meta(
- *          namedFunction(this, { true }) { typeParameterListOwner ->
+ *          namedFunction(this, { true }) { (typeParameterListOwner, d) ->
  *            Transform.replace(
  *              replacing = typeParameterListOwner,
- *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
+ *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function(d)
  *            )
  *          }
  *        )

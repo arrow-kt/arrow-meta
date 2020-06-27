@@ -24,13 +24,13 @@ sealed class Transform<out K> {
    *  get() =
    *   "Replace Transform" {
    *     meta(
-   *      namedFunction(this, { name == "helloWorld" }) { c ->
+   *      namedFunction(this, { element.name == "helloWorld" }) { (c, d) ->
    *        Transform.replace(
    *          replacing = c,
    *          newDeclaration =
    *          """|fun helloWorld(): Unit =
    *             |  println("Hello ΛRROW Meta!")
-   *             |""".function.syntheticScope
+   *             |""".function(d).syntheticScope
    *        )
    *      }
    *     )
@@ -60,7 +60,7 @@ sealed class Transform<out K> {
    *  get() =
    *   "Remove Transform" {
    *     meta(
-   *      namedFunction(this, { name == "helloWorld" }) { c ->
+   *      namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
    *        Transform.remove(
    *          removeIn = c,
    *          declaration = """ println("") """.expressionIn(c)
