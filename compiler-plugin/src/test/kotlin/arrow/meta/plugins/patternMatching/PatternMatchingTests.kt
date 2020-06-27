@@ -8,12 +8,14 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
-import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
 import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
+import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
+import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.junit.Test
 
 open class PatternMatchingPlugin : Meta {
@@ -25,15 +27,20 @@ open class PatternMatchingPlugin : Meta {
 val Meta.patternMatchingPlugin: CliPlugin
   get() =
     "Pattern Matching Plugin" {
+      lateinit var typingService: ExpressionTypingServices
+      lateinit var fileScopeProvider: FileScopeProvider
+
       meta(
         enableIr(),
         suppressDiagnostic { ctx.suppressUnresolvedReference(it) },
         analysis(
           doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+            typingService = componentProvider.get()
+            fileScopeProvider = componentProvider.get()
             null
           },
           analysisCompleted = { project, module, bindingTrace, files ->
-            bindingTrace.resolvePatternExpression { it.wildcards }
+            bindingTrace.resolvePatternExpression { it.wildcards(typingService, fileScopeProvider) }
             null
           }
         ),
@@ -158,9 +165,50 @@ class PatternMatchingTests {
 
     code verify {
       allOf(
-//        "result".source.evalsTo("MattMoore")
-        // TODO value argument types seem to be not patched when we resolve identifier
-        failsWith { it.contains("Value argument in function call is mapped with error") }
+        "result".source.evalsTo("MattMoore")
+      )
+    }
+  }
+
+  @Test
+  fun `with case pattern both captured params can be used in a call`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+         val person = Person("Matt", "Moore")
+
+         val result = when (person) {
+           Person(capturedFirstName, capturedSecondName) -> {
+             listOf(capturedFirstName, capturedSecondName)
+           }
+           else -> listOf("Not matched")
+         }
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo(listOf("Matt", "Moore"))
+      )
+    }
+  }
+
+  @Test
+  fun `with case pattern both captured params inside a function result in value`() {
+    val code =
+      """data class Person(val firstName: String, val lastName: String)
+         val person = Person("Matt", "Moore")
+         
+         fun resolve(person: Person) =
+           when (person) {
+             Person(capturedFirstName, capturedSecondName) -> capturedFirstName + capturedSecondName
+             else -> "Not matched"
+           }
+
+          val result = resolve(person)
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("MattMoore")
       )
     }
   }

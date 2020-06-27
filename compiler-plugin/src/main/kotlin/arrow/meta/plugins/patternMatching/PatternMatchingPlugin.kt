@@ -3,8 +3,6 @@ package arrow.meta.plugins.patternMatching
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.invoke
-import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
-import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 
 val Meta.patternMatching: CliPlugin
@@ -17,7 +15,7 @@ val Meta.patternMatching: CliPlugin
           null
         },
         analysisCompleted = { project, module, bindingTrace, files ->
-          bindingTrace.resolvePatternExpression { it.wildcards }
+//          bindingTrace.resolvePatternExpression { it.wildcards }
           null
         }
       ),
