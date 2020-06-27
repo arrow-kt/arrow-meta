@@ -107,7 +107,7 @@ fun BindingTrace.wildcards(
       }
 
       val parent = expr.getParentOfType<KtWhenEntry>(true)!!
-      val visitor = object  : KtTreeVisitorVoid() {
+      val visitor = object : KtTreeVisitorVoid() {
         override fun visitExpression(expression: KtExpression) {
           if (entries.none { it.key == expression }) {
             trace.clear(BindingContext.PROCESSED, expression)
@@ -225,21 +225,21 @@ private fun BindingTrace.resolveParam(
   val origCall = subject.getCall(bindingContext)!!
   val call = origCall.clone()
   val receiver = ExpressionReceiver.create(
-      subject,
-      subjectDescriptor.returnType!!,
-      bindingContext
+    subject,
+    subjectDescriptor.returnType!!,
+    bindingContext
   )
   val candidateCall = ResolvedCallImpl.create(
-      ResolutionCandidate.create(
-        call,
-        targetPropertyDescriptor,
-        receiver,
-        ExplicitReceiverKind.DISPATCH_RECEIVER,
-        null
-      ),
-      DelegatingBindingTrace(bindingContext, "Synthetic"),
-      TracingStrategy.EMPTY,
-      DataFlowInfoForArgumentsImpl(DataFlowInfo.EMPTY, call)
+    ResolutionCandidate.create(
+      call,
+      targetPropertyDescriptor,
+      receiver,
+      ExplicitReceiverKind.DISPATCH_RECEIVER,
+      null
+    ),
+    DelegatingBindingTrace(bindingContext, "Synthetic"),
+    TracingStrategy.EMPTY,
+    DataFlowInfoForArgumentsImpl(DataFlowInfo.EMPTY, call)
   )
 
   record(BindingContext.EXPRESSION_TYPE_INFO, expr, KotlinTypeInfo(subjectDescriptor.returnType!!, DataFlowInfo.EMPTY))
@@ -257,7 +257,7 @@ private fun Call.clone(): Call =
     callType
   )
 
-private fun <T: CallableDescriptor> ResolvedCallImpl<T>.clone(bindingContext: BindingContext, newCall: Call): ResolvedCall<T> =
+private fun <T : CallableDescriptor> ResolvedCallImpl<T>.clone(bindingContext: BindingContext, newCall: Call): ResolvedCall<T> =
   ResolvedCallImpl.create(
     ResolutionCandidate.create(
       newCall,
