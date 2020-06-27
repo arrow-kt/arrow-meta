@@ -23,3 +23,9 @@ fun CompilerContext.suppressUnresolvedReference(diagnostic: Diagnostic): Boolean
           || bindingTrace[PATTERN_EXPRESSION_BODY_PARAMS, diagnosticWithParameters.psiElement] == true
       }
     } == true
+
+fun CompilerContext.suppressUnderscoreUsageWithoutBackticks(diagnostic: Diagnostic): Boolean =
+  diagnostic.factory == Errors.UNDERSCORE_USAGE_WITHOUT_BACKTICKS
+
+fun CompilerContext.suppressExpressionExpectedPackageFound(diagnostic: Diagnostic): Boolean =
+  diagnostic.factory == Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND
