@@ -2,7 +2,6 @@ package arrow.meta.plugins.patternMatching
 
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
-import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
@@ -10,43 +9,13 @@ import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpression
-import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
-import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
-import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
-import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.junit.Test
 
 open class PatternMatchingPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    patternMatchingPlugin
+    patternMatching
   )
 }
-
-val Meta.patternMatchingPlugin: CliPlugin
-  get() =
-    "Pattern Matching Plugin" {
-      lateinit var typingService: ExpressionTypingServices
-      lateinit var fileScopeProvider: FileScopeProvider
-
-      meta(
-        enableIr(),
-        suppressDiagnostic { ctx.suppressUnresolvedReference(it) },
-        analysis(
-          doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-            typingService = componentProvider.get()
-            fileScopeProvider = componentProvider.get()
-            null
-          },
-          analysisCompleted = { project, module, bindingTrace, files ->
-            bindingTrace.resolvePatternExpression { it.wildcards(typingService, fileScopeProvider) }
-            null
-          }
-        ),
-        irDump()
-      )
-    }
 
 class PatternMatchingTests {
   private infix fun String.verify(assertion: (CompilerTest.Companion) -> Assert) = also {
@@ -97,7 +66,7 @@ class PatternMatchingTests {
   @Test
   fun `with case pattern second param match expression`() {
     val code =
-        """data class Person(val firstName: String, val lastName: String)
+      """data class Person(val firstName: String, val lastName: String)
            val person = Person("Matt", "Moore")
 
            val result = when (person) {
@@ -107,9 +76,9 @@ class PatternMatchingTests {
            """
 
     code verify {
-        allOf(
-            "result".source.evalsTo("Matched")
-        )
+      allOf(
+        "result".source.evalsTo("Matched")
+      )
     }
   }
 
@@ -203,7 +172,7 @@ class PatternMatchingTests {
              else -> "Not matched"
            }
 
-          val result = resolve(person)
+         val result = resolve(person)
          """
 
     code verify {
