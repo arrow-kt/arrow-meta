@@ -18,6 +18,8 @@ class NamedFunctionTest {
 
         private val extensionFunction = """ fun Int.identity() = this """.namedFunction()
 
+        private val descriptorFunction = """ fun descriptorEvaluation(): String = "Hello ΛRROW Meta!" """.namedFunction()
+
         private fun String.namedFunction(): Code.Source {
             return """
       | //metadebug
@@ -49,11 +51,22 @@ class NamedFunctionTest {
         validate(extensionFunction)
     }
 
-    private fun validate(source: Code.Source) {
+    @Test
+    fun `function with descriptor validation`() {
+        validate(
+          descriptorFunction,
+          """ fun descriptorEvaluation(): String {
+            |   println(true)
+            |   return "" 
+            | }""".namedFunction()
+        )
+    }
+
+    private fun validate(source: Code.Source, transformedSource: Code.Source = source) {
         assertThis(CompilerTest(
           config = { listOf(addMetaPlugins(NamedFunctionPlugin())) },
           code = { source },
-          assert = { quoteOutputMatches(source) }
+          assert = { quoteOutputMatches(transformedSource) }
         ))
     }
 }

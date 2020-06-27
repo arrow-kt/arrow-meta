@@ -18,49 +18,19 @@ import java.util.*
 /**
  * ### Typed Quote Templates DSL
  *
- * Arrow Meta offers a high level DSL for compiler tree transformations with a deep type information.
- * This DSL enables a compiler plugin to rewrite the user source code before is considered for compilation.
- * These code transformations take the form of tree transformations.
+ * Arrow Meta offers a high level DSL for compiler tree transformations with deep type information.
+ * This DSL brings what [Quote] already does but rewind its phase with Kotlin compiler descriptors.
  *
- * The Quote DSL accepts a filter function that will intercept any node during tree traversal based on a Boolean predicate.
- * In the following example the Quote system matches all user declared `fun` named `"helloWorld"`.
  * ```kotlin
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { element.name == "helloWorld" }) { (c, descriptor) ->  // <-- namedFunction(...) {...}
  *         ...
  *       }
  *     )
  *   }
  * ```
- * Once we get a hold of the nodes that we want to intercept we can return the kind of [Transform] that we want to apply
- * over the tree.
- *
- * In the example below we are using [replace] to change the intercepted function for a new declaration that when invoked prints `"Hello ΛRROW Meta!"`
- *
- * ```kotlin
- * val Meta.helloWorld: CliPlugin get() =
- *   "Hello World" {
- *     meta(
- *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
- *         Transform.replace(
- *           replacing = c,
- *           newDeclaration = """|fun helloWorld(): Unit =
- *                               |  println("Hello ΛRROW Meta!")
- *                               |""".function.syntheticScope
- *         )
- *       }
- *     )
- *   }
- * ```
- *
- * The Quote system automatically takes care of the internal tree transformations necessary before feeding the new sources
- * to the compiler.
- *
- * The [Quote] system acts as an intermediate layer between PSI Elements and AST Node type checking.
- * More namely, A declaration quasi quote matches tree previous to the analysis and synthetic resolution and gives the
- * compiler plugin the chance to transform the source tree before they are processed by the Kotlin compiler.
  */
 interface TypedQuote<P : KtElement, K : KtElement, D : DeclarationDescriptor, S> : QuoteProcessor<TypedQuoteTemplate<K, D>, K, S> {
 

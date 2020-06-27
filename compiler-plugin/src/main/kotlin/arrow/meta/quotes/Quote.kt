@@ -53,7 +53,7 @@ const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->  // <-- namedFunction(...) {...}
  *         ...
  *       }
  *     )
@@ -68,7 +68,7 @@ const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {
  *     meta(
- *       namedFunction(this, { name == "helloWorld" }) { c ->  // <-- namedFunction(...) {...}
+ *       namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->  // <-- namedFunction(...) {...}
  *         Transform.replace(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
