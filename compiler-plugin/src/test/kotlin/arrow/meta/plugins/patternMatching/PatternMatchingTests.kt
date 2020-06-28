@@ -7,6 +7,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
+import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
@@ -35,7 +36,7 @@ class PatternMatchingTests {
     """
 
   @Test
-  fun `without case pattern match expression`() {
+  fun `match expression with const params`() {
     val code =
       """$prelude
          $person
@@ -54,13 +55,13 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern match expression`() {
+  fun `match expression with placeholder`() {
     val code =
       """$prelude
          $person
 
          val result = when (person) {
-           case(Person(_, "Moore")) -> "Matched"
+           Person(_, "Moore") -> "Matched"
            else -> "Not matched"
          }
          """
@@ -73,13 +74,13 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern second param match expression`() {
+  fun `match expression with second param placeholder`() {
     val code =
       """$prelude
          $person
 
          val result = when (person) {
-           case(Person("Matt", _)) -> "Matched"
+           Person("Matt", _) -> "Matched"
            else -> "Not matched"
          }
          """
@@ -92,13 +93,13 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern captured param results in value`() {
+  fun `captured param results in value`() {
     val code =
       """$prelude
          $person
 
          val result = when (person) {
-           case(Person(capturedFirstName, _)) -> capturedFirstName
+           Person(capturedFirstName, _) -> capturedFirstName
            else -> "Not matched"
          }
          """
@@ -111,7 +112,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern captured second param results in value`() {
+  fun `captured second param results in value`() {
     val code =
       """$prelude
          $person
@@ -130,7 +131,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params result in value`() {
+  fun `both captured params result in value`() {
     val code =
       """$prelude
          $person
@@ -149,7 +150,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params can be used in a call`() {
+  fun `both captured params can be used in a call`() {
     val code =
       """$prelude
          $person
@@ -170,7 +171,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params inside a function result in value`() {
+  fun `both captured params inside a function result in value`() {
     val code =
       """$prelude
          $person
@@ -187,6 +188,50 @@ class PatternMatchingTests {
     code verify {
       allOf(
         "result".source.evalsTo("MattMoore")
+      )
+    }
+  }
+
+  @Test
+  fun `placeholder cannot be used in body`() {
+    val code =
+      """$prelude
+         $person
+
+         fun resolve(person: Person) =
+           when (person) {
+             Person(_, capturedSecondName) -> _
+             else -> "Not matched"
+           }
+
+         val result = resolve(person)
+         """
+
+    code verify {
+      allOf(
+        failsWith { it.contains("Unresolved reference: _") }
+      )
+    }
+  }
+
+  @Test
+  fun `other captured params can be used in body`() {
+    val code =
+      """$prelude
+         $person
+
+         fun resolve(person: Person) =
+           when (person) {
+             Person(_, param123) -> param123
+             else -> "Not matched"
+           }
+
+         val result = resolve(person)
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Moore")
       )
     }
   }

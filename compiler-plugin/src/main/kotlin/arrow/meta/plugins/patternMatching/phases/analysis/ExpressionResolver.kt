@@ -1,5 +1,6 @@
 package arrow.meta.plugins.patternMatching.phases.analysis
 
+import arrow.meta.plugins.patternMatching.CAPTURED_PARAMS
 import org.jetbrains.kotlin.backend.common.descriptors.propertyIfAccessor
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -51,9 +52,8 @@ fun BindingTrace.wildcards(
   typingServices: ExpressionTypingServices,
   fileScopeProvider: FileScopeProvider
 ) {
-  val entries = wildcardTypeInfoEntries
-  entries.forEach { (expr, _) ->
-    expr as KtSimpleNameExpression
+  val params = bindingContext.getKeys(CAPTURED_PARAMS)
+  params.forEach { expr ->
     if (expr.getParentOfType<KtWhenCondition>(false, KtWhenEntry::class.java) != null) {
       // condition
       resolveParamInCondition(expr)
@@ -109,7 +109,7 @@ fun BindingTrace.wildcards(
       val parent = expr.getParentOfType<KtWhenEntry>(true)!!
       val visitor = object : KtTreeVisitorVoid() {
         override fun visitExpression(expression: KtExpression) {
-          if (entries.none { it.key == expression }) {
+          if (expression !in params) {
             trace.clear(BindingContext.PROCESSED, expression)
             trace.clear(BindingContext.CALL, expression)
             trace.clear(BindingContext.EXPRESSION_TYPE_INFO, expression)

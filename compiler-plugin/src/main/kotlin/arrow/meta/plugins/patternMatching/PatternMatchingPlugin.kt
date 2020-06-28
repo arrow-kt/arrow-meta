@@ -7,8 +7,10 @@ import arrow.meta.plugins.patternMatching.phases.analysis.resolvePatternExpressi
 import arrow.meta.plugins.patternMatching.phases.analysis.wildcards
 import arrow.meta.plugins.patternMatching.phases.resolve.diagnostics.suppressUnresolvedReference
 import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.resolve.lazy.FileScopeProvider
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
+import org.jetbrains.kotlin.util.slicedMap.Slices
 
 val Meta.patternMatching: CliPlugin
   get() =
@@ -33,3 +35,5 @@ val Meta.patternMatching: CliPlugin
         irDump()
       )
     }
+
+val CAPTURED_PARAMS = Slices.createCollectiveSetSlice<KtNameReferenceExpression>()
