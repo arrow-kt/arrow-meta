@@ -96,17 +96,22 @@ interface ConfigSyntax {
   fun Meta.typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): ExtensionPhase =
     Composite(storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
-        val defaultTypeChecker = KotlinTypeChecker.DEFAULT
-        val replacement = replace(defaultTypeChecker)
-        if (replacement != defaultTypeChecker) {
-          val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-           setFinalStatic(defaultTypeCheckerField, replacement)
-        }
+        evaluateDependsOn(
+          noRewindablePhase = { evaluateTypeChecker(replace) },
+          rewindablePhase = { wasRewind -> if (wasRewind) evaluateTypeChecker(replace) }
+        )
       },
-      check = { _, _, _ ->
-      }
+      check = { _, _, _ -> }
     ), registerArgumentTypeResolver())
 
+  private fun evaluateTypeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker) {
+    val defaultTypeChecker = KotlinTypeChecker.DEFAULT
+    val replacement = replace(defaultTypeChecker)
+    if (replacement != defaultTypeChecker) {
+      val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
+      setFinalStatic(defaultTypeCheckerField, replacement)
+    }
+  }
 
   private fun Meta.registerArgumentTypeResolver(): ExtensionPhase =
     cli {

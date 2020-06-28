@@ -8,30 +8,15 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
-interface DescriptorMatcher<D : DeclarationDescriptor> {
+fun List<DeclarationDescriptor>.namedFunctionDescriptor(element: KtNamedFunction): FunctionDescriptor? = this.firstOrNull { (it as? FunctionDescriptor)?.let {
+  it.name == element.nameAsSafeName
+  && it.valueParameters.zip(element.valueParameters) { descriptor, element -> descriptor.type.toString() == element.typeReference?.text }.none { !it }
+} == true } as? FunctionDescriptor
 
-  fun asDescriptor(): D?
-}
+fun List<DeclarationDescriptor>.propertyDescriptor(element: KtProperty): PropertyDescriptor? = this.firstOrNull { (it as? PropertyDescriptor)?.let {
+  it.name == element.nameAsName && it.type.toString() == element.typeReference?.text
+} == true  } as? PropertyDescriptor
 
-private fun <D : DeclarationDescriptor> descriptorQuote(transform: () -> D?): DescriptorMatcher<D> = object : DescriptorMatcher<D> {
-  override fun asDescriptor(): D? = transform()
-}
-
-fun List<DeclarationDescriptor>.namedFunctionDescriptor(element: KtNamedFunction): FunctionDescriptor? = descriptorQuote {
-  this.firstOrNull { (it as? FunctionDescriptor)?.let {
-    it.name == element.nameAsSafeName
-    && it.valueParameters.zip(element.valueParameters) { descriptor, element -> descriptor.type.toString() == element.typeReference?.text }.none { !it }
-  } == true } as? FunctionDescriptor
-}.asDescriptor()
-
-fun List<DeclarationDescriptor>.propertyDescriptor(element: KtProperty): PropertyDescriptor? = descriptorQuote {
-  this.firstOrNull { (it as? PropertyDescriptor)?.let {
-    it.name == element.nameAsName && it.type.toString() == element.typeReference?.text
-  } == true  } as? PropertyDescriptor
-}.asDescriptor()
-
-fun List<DeclarationDescriptor>.typeAliasDescriptor(element: KtTypeAlias): TypeAliasDescriptor? = descriptorQuote {
-  this.firstOrNull { (it as? TypeAliasDescriptor)?.let {
-    it.name == element.nameAsName
-  } == true } as? TypeAliasDescriptor
-}.asDescriptor()
+fun List<DeclarationDescriptor>.typeAliasDescriptor(element: KtTypeAlias): TypeAliasDescriptor? = this.firstOrNull { (it as? TypeAliasDescriptor)?.let {
+  it.name == element.nameAsName
+} == true } as? TypeAliasDescriptor
