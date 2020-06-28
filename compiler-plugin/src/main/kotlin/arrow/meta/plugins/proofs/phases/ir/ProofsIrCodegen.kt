@@ -74,7 +74,6 @@ class ProofsIrCodegen(
       val proofs = matchingCandidates.map { proof ->
         substitutedProofCall(proof, superType)
       }
-      ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Am")
       proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
 
