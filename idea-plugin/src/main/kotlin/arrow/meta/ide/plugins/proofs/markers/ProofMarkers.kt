@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
 import arrow.meta.internal.Noop
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -90,9 +91,9 @@ fun ExtensionProof.subtypingMarkerMessage(): String {
         """.trimIndent()
 }
 
-fun KtDeclaration.markerMessage(): String =
+fun KtDeclaration.markerMessage(ctx: CompilerContext): String =
   scope().run {
-    value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof()?.let { proof ->
+    value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof(ctx)?.let { proof ->
       val message = proof.markerMessage()
       """
       <code lang="kotlin">${text}</code> 
@@ -109,7 +110,9 @@ inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon
     },
     composite = KtDeclaration::class.java,
     message = {
-      it.markerMessage()
+      it.ctx()?.let {ctx ->
+        it.markerMessage(ctx)
+      } ?: "TODO"
     }
   )
 
