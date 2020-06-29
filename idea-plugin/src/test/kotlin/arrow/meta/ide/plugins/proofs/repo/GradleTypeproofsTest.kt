@@ -4,11 +4,13 @@ import arrow.meta.ide.gradle.GradleTestSetUp
 import arrow.meta.ide.testing.IdeEnvironment
 import com.intellij.openapi.module.ModuleManager
 import org.assertj.core.api.Assertions.assertThatCode
+import org.junit.Ignore
 import org.junit.Test
 
 class GradleTypeproofsTest : GradleTestSetUp() {
 
   @Test
+  @Ignore
   fun testGradleProject() {
     IdeEnvironment.run {
       val gitResult = gitClone(myProject, "https://github.com/arrow-kt/arrow-typeproofs.git", myProjectRoot)
