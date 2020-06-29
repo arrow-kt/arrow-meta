@@ -10,6 +10,7 @@ import org.junit.Test
 class GradleTypeproofsTest : GradleTestSetUp() {
 
   @Test
+  @Ignore
   fun testGradleProject() {
     IdeEnvironment.run {
       val gitResult = gitClone(myProject, "https://github.com/arrow-kt/arrow-typeproofs.git", myProjectRoot)
