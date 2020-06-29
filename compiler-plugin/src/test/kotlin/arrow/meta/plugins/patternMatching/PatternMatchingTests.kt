@@ -117,7 +117,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person(_, capturedSecondName) -> capturedSecondName
+           case(Person(_, capturedSecondName)) -> capturedSecondName
            else -> "Not matched"
          }
          """
@@ -136,7 +136,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person(capturedFirstName, capturedSecondName) -> capturedFirstName + capturedSecondName
+           case(Person(capturedFirstName, capturedSecondName)) -> capturedFirstName + capturedSecondName
            else -> "Not matched"
          }
          """
@@ -155,7 +155,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person(capturedFirstName, capturedSecondName) -> {
+           case(Person(capturedFirstName, capturedSecondName)) -> {
              listOf(capturedFirstName, capturedSecondName)
            }
            else -> listOf("Not matched")
@@ -177,7 +177,7 @@ class PatternMatchingTests {
 
          fun resolve(person: Person) =
            when (person) {
-             Person(capturedFirstName, capturedSecondName) -> capturedFirstName + capturedSecondName
+             case(Person(capturedFirstName, capturedSecondName)) -> capturedFirstName + capturedSecondName
              else -> "Not matched"
            }
 
