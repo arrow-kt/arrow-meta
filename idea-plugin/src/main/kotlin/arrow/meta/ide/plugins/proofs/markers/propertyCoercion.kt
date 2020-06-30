@@ -19,7 +19,7 @@ val IdeMetaPlugin.implicitCoercionPropertyLineMarker: ExtensionPhase
     },
     message = { ktElement: KtProperty ->
       ktElement.participatingTypes()?.let { (subtype, supertype) ->
-        ktElement.ctx()?.coerceProof(subtype, supertype)?.coercionMessage()
+        ktElement.ctx()?.coerceProof(subtype, supertype)?.description()
       } ?: "Proof not found"
     }
   )

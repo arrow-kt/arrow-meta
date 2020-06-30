@@ -134,6 +134,9 @@ fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType):
   module.proofs.filterIsInstance<ExtensionProof>()
     .matchingCandidates(this, subType, superType)
 
+fun CompilerContext.givenProof(superType: KotlinType): GivenProof? =
+  givenProofs(superType).firstOrNull()
+
 fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
   module.proofs.filterIsInstance<GivenProof>()
     .matchingCandidates(this, superType)
