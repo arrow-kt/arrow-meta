@@ -29,7 +29,7 @@ private fun KotlinType?.isTypeMatching(): Boolean =
 
 private fun KtTypeReference.foldString(): String =
   (firstChild.safeAs<KtNullableType>()?.let {
-    it.foldTypeString() + "|null"
+    "null|${it.foldTypeString()}"
   } ?: foldTypeString())
     .replace(" ", "") // trim not working?
     .split("|")
