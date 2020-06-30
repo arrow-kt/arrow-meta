@@ -3,10 +3,13 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
+import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
+import arrow.meta.ide.plugins.proofs.annotators.givenAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
+import arrow.meta.ide.plugins.proofs.markers.givenCallLineMarker
+import arrow.meta.ide.plugins.proofs.markers.givenParamLineMarker
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.unionTypeLineMarker
@@ -19,6 +22,7 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMi
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
@@ -33,7 +37,8 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       refinementAnnotator(),
       proofsKotlinCache,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      coercionCallSiteLineMarker,
+      givenAnnotator,
+      coercionAnnotator,
       coercionInspections,
       codeFolding,
       unionTypeLineMarker

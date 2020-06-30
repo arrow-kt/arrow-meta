@@ -3,6 +3,7 @@ package arrow.meta.ide.plugins.proofs.resolve
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.proofs
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
@@ -15,18 +16,20 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 
 val IdeMetaPlugin.proofsKotlinCache: ExtensionPhase
-  get() = addProjectService(KotlinCacheService::class.java) { _, service ->
-    service?.let(::proofsKotlinCacheService)
+  get() = addProjectService(KotlinCacheService::class.java) { p, service ->
+    p.getService(CompilerContext::class.java)?.run {
+      service?.let(::proofsKotlinCacheService)
+    }
   }
 
-private fun proofsKotlinCacheService(delegate: KotlinCacheService): KotlinCacheService =
+private fun CompilerContext.proofsKotlinCacheService(delegate: KotlinCacheService): KotlinCacheService =
   object : KotlinCacheService by delegate {
     override fun getResolutionFacade(elements: List<KtElement>): ResolutionFacade =
       Log.Verbose({ "MetaKotlinCacheServiceHelper.getResolutionFacade $elements $this, Proof cache initialized in ide" }) {
         val facade = delegate.getResolutionFacade(elements)
         Log.Verbose({ "Initialized proof cache in IDE: $this" }) {
           if (facade.moduleDescriptor.proofs.isEmpty())
-            facade.moduleDescriptor.initializeProofCache()
+            facade.moduleDescriptor.initializeProofCache(this@proofsKotlinCacheService)
         }
         facade.metaResolutionFacade()
       }

@@ -17,15 +17,17 @@ import org.jetbrains.kotlin.types.KotlinType
 val IdeMetaPlugin.localExplicitCoercionOnKtProperty: ExtensionPhase
   get() = addLocalInspection(
     inspection = explicitCoercionKtProperty,
-    level = HighlightDisplayLevel.WEAK_WARNING,
-    groupPath = ProofPath + arrayOf("Coercion")
+    groupPath = ProofPath + arrayOf("Coercion"),
+    groupDisplayName = "Coercion",
+    level = HighlightDisplayLevel.WEAK_WARNING
   )
 
-const val COERCION_EXPLICIT_PROP = "Coercion_explicit_prop"
+const val COERCION_EXPLICIT_PROP = "CoercionExplicitProp"
 
 val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_PROP,
+    staticDescription = "Make coercion explicit for properties",
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
