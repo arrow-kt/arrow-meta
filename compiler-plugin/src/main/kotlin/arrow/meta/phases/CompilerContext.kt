@@ -2,16 +2,18 @@ package arrow.meta.phases
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.cache.ProofsCache
+import arrow.meta.quotes.QuoteDefinition
+import arrow.meta.quotes.Scope
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmDaemonLocalEvalScriptEngineFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import java.util.concurrent.ConcurrentHashMap
 import arrow.meta.plugins.proofs.phases.proofs as tp
 
 /**
@@ -32,8 +34,11 @@ open class CompilerContext(
 
   var configuration: CompilerConfiguration? = null
 
+  val quotes: MutableList<QuoteDefinition<out KtElement, out KtElement, out Scope<KtElement>>> =
+    mutableListOf()
+
   val ModuleDescriptor?.proofs: List<Proof>
-    get() = this?.tp ?: emptyList()
+    get() = this?.tp(this@CompilerContext) ?: emptyList()
 
   var module: ModuleDescriptor?
     get() = md
@@ -48,4 +53,6 @@ open class CompilerContext(
     }
 
   val ctx: CompilerContext = this
+
+  val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
 }

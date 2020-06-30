@@ -1,14 +1,18 @@
 package arrow.meta.ide.plugins.quotes.system
 
 import arrow.meta.ide.plugins.quotes.cache.QuoteCache
-import arrow.meta.quotes.AnalysisDefinition
+import arrow.meta.quotes.Quote
+import arrow.meta.quotes.Scope
+import arrow.meta.quotes.Transform
 import com.intellij.openapi.progress.DumbProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import java.util.ArrayList
 import java.util.concurrent.ExecutorService
 
 /**
@@ -41,16 +45,17 @@ interface QuoteSystemService {
   val context: Ctx
 
   /**
-   * transforms all [files] with registered [extensions] for a given [project]
-   * @returns a List of transformed files (OldFile, NewFile)
-   * @param extensions registered for quotes
+   * this extension applies the quotes in the Ide for a given [file].
+   * Currently hijacking the QuoteSystemService and overriding this function will solely reflect in
+   * Ide related changes.
    */
-  fun transform(project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>): List<Pair<KtFile, KtFile>>
-
-  /**
-   * transforms and updates [files] and repopulates the [cache] based on the [strategy] and their [extensions].
-   */
-  fun refreshCache(cache: QuoteCache, project: Project, files: List<KtFile>, extensions: List<AnalysisDefinition>, strategy: CacheStrategy): Unit
+  fun <K : KtElement, P : KtElement, S : Scope<K>> processKtFile(
+    file: KtFile,
+    on: Class<K>,
+    quoteFactory: Quote.Factory<P, K, S>,
+    match: K.() -> Boolean,
+    map: S.(K) -> Transform<K>
+  ): Pair<KtFile, List<Transform<K>>>
 
   companion object {
     fun defaultCtx(project: Project): Ctx =

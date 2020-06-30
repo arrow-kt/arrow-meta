@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -13,11 +13,11 @@ open class ReturnExpressionPlugin : Meta {
   )
 }
 
-val Meta.returnExpressionPlugin : CliPlugin
+val Meta.returnExpressionPlugin: CliPlugin
   get() =
     "Return Expression Scope Plugin" {
       meta(
-        returnExpression({ true }) { expression ->
+        returnExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

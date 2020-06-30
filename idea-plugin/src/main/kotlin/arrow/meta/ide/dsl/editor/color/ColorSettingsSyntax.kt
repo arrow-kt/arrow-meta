@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.color
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -43,7 +43,7 @@ interface ColorSettingsSyntax {
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
@@ -51,7 +51,7 @@ interface ColorSettingsSyntax {
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -83,7 +83,7 @@ interface ColorSettingsSyntax {
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
@@ -91,7 +91,7 @@ interface ColorSettingsSyntax {
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -125,7 +125,7 @@ interface ColorSettingsSyntax {
    *
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
@@ -136,7 +136,7 @@ interface ColorSettingsSyntax {
    * val Interface: String = "Interface"
    * val NamedArgument: String = "Named argument"
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -166,7 +166,7 @@ interface ColorSettingsSyntax {
    *
    * ```kotlin:ank:playground
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
@@ -178,7 +178,7 @@ interface ColorSettingsSyntax {
    * val String: String = "String"
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: IdePlugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "Plain ColorSettingsPage" {
    *   meta(
    *    addColorSettingsPage(
@@ -212,7 +212,7 @@ interface ColorSettingsSyntax {
    * @param highlighter an empty default instance is [PlainSyntaxHighlighter]
    * @sample [KotlinColorSettingsPage]
    */
-  fun IdeMetaPlugin.addColorSettingsPage(
+  fun MetaIde.addColorSettingsPage(
     displayName: String,
     priority: DisplayPriority,
     additionalHighlightingTags: MutableMap<String, TextAttributesKey>,

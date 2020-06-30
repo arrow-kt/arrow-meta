@@ -1,7 +1,7 @@
 package arrow.meta.quotes.scope.plugins
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -15,12 +15,12 @@ open class WhenEntryPlugin : Meta {
 
 val Meta.whenEntryPlugin
   get() = "When Entry Scope Plugin" {
-      meta(
-         whenEntry({ true }) { e ->
-            Transform.replace(
-             replacing = e,
-              newDeclaration = identity()
-            )
-         }
-      )
+    meta(
+      whenEntry(this, { true }) { e ->
+        Transform.replace(
+          replacing = e,
+          newDeclaration = identity()
+        )
+      }
+    )
   }

@@ -17,7 +17,7 @@ val Meta.blockExpressionPlugin : CliPlugin
   get() =
     "Block Expression Scope Plugin" {
       meta(
-        blockExpression({ true }) { expression ->
+        blockExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

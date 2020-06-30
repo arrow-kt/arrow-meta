@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.psi.KtProperty
  *    get() =
  *      "Reformat Class Body" {
  *          meta(
- *              classBody({ true }) { element ->
+ *              classBody(this, { true }) { element ->
  *                  Transform.replace(
  *                      replacing = element,
  *                      newDeclaration = """

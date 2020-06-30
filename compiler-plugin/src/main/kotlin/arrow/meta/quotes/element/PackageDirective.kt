@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *  get() =
  *  "ReformatPackage" {
  *   meta(
- *    packageDirective({ true }) { e ->
+ *    packageDirective(this, { true }) { e ->
  *     Transform.replace(
  *      replacing = e,
  *      newDeclaration = """ $`package` """.`package`

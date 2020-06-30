@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.icon
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.structureView.StructureViewSyntax
 import arrow.meta.ide.dsl.utils.isNotNull
 import arrow.meta.internal.Noop
@@ -26,7 +26,7 @@ interface IconProviderSyntax {
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import com.intellij.psi.PsiElement
@@ -35,7 +35,7 @@ interface IconProviderSyntax {
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
+   * val MetaIde.fileAndStructureViewIcons: IdePlugin
    *   get() = "File- and StructureViewIcons" {
    *     meta(
    *       addIcon(KotlinIcons.GRADLE_SCRIPT) { psi: PsiElement, _: Int ->
@@ -52,7 +52,7 @@ interface IconProviderSyntax {
    * The advantage of registering multiple [IconProvider]s than one, which orchestrate all possible Icons, is that it is easier to Debug and Test each `Icon` specifically.
    * The parameter `flag` from [transform] is used to compose more complex [transform] functions considering [Iconable.ICON_FLAG_VISIBILITY], [Iconable.ICON_FLAG_IGNORE_MASK] or [Iconable.ICON_FLAG_READ_STATUS].
    */
-  fun <A : PsiElement> IdeMetaPlugin.addIcon(
+  fun <A : PsiElement> MetaIde.addIcon(
     icon: Icon,
     transform: (psiElement: PsiElement, flag: Int) -> A? = Noop.nullable2()
   ): ExtensionPhase =
@@ -67,7 +67,7 @@ interface IconProviderSyntax {
    * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
    * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
    * ```kotlin:ank:playground
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.idea.KotlinIcons
@@ -75,7 +75,7 @@ interface IconProviderSyntax {
    * import org.jetbrains.kotlin.psi.KtObjectDeclaration
    * import org.jetbrains.kotlin.utils.addToStdlib.safeAs
    *
-   * val IdeMetaPlugin.fileAndStructureViewIcons: IdePlugin
+   * val MetaIde.fileAndStructureViewIcons: IdePlugin
    *   get() = "File- and StructureViewIcons" {
    *     meta(
    *       addIcons(
@@ -92,7 +92,7 @@ interface IconProviderSyntax {
    * @see IconProviderSyntax
    * @see addIcon
    */
-  fun <A : PsiElement> IdeMetaPlugin.addIcons(vararg values: TransformIcon<A>): ExtensionPhase =
+  fun <A : PsiElement> MetaIde.addIcons(vararg values: TransformIcon<A>): ExtensionPhase =
     extensionProvider(
       IconProvider.EXTENSION_POINT_NAME,
       iconProvider { p0, p1 -> values.toList().firstOrNull { isNotNull(it.second(p0, p1)) }?.run { first } },

@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.action
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -34,15 +34,15 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * Registers the [action] with [actionId] as its identifier.
    * The [actionId] is solely used internally.
    * ```kotlin:ank:playground
-   * // import com.intellij.openapi.wm.ToolWindowManager
+   * import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
    * import arrow.meta.ide.invoke
    * import arrow.meta.ide.IdePlugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.MetaIde
    * import com.intellij.openapi.project.Project
    * import com.intellij.openapi.actionSystem.AnActionEvent
    *
-   * val IdeMetaPlugin.exampleAction: IdePlugin
+   * val MetaIde.exampleAction: IdePlugin
    * get() = "Example Action" {
    *   meta(
    *   //sampleStart
@@ -65,7 +65,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations
    */
-  fun IdeMetaPlugin.addAnAction(
+  fun MetaIde.addAnAction(
     actionId: String,
     action: AnAction
   ): ExtensionPhase =
@@ -74,7 +74,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * replaces [AnAction] with [actionId] to a [newAction]
    */
-  fun IdeMetaPlugin.replaceAnAction(
+  fun MetaIde.replaceAnAction(
     actionId: String,
     newAction: AnAction
   ): ExtensionPhase =
@@ -83,7 +83,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * unregisters [AnAction]
    */
-  fun IdeMetaPlugin.unregisterAnAction(
+  fun MetaIde.unregisterAnAction(
     actionId: String
   ): ExtensionPhase =
     AnActionExtensionProvider.UnregisterAction(actionId)
@@ -91,7 +91,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * registers a [TimerListener]
    */
-  fun IdeMetaPlugin.addTimerListener(
+  fun MetaIde.addTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
@@ -101,7 +101,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * registers a transparent [TimerListener]
    */
-  fun IdeMetaPlugin.addTransparentTimerListener(
+  fun MetaIde.addTransparentTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
@@ -111,7 +111,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * removes a transparent [TimerListener]
    */
-  fun IdeMetaPlugin.removeTransparentTimerListener(
+  fun MetaIde.removeTransparentTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
     AnActionExtensionProvider.RemoveTransparentTimerListener(listener)
@@ -119,7 +119,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * removes a [TimerListener]
    */
-  fun IdeMetaPlugin.removeTimerListener(
+  fun MetaIde.removeTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
     AnActionExtensionProvider.RemoveTimerListener(listener)
@@ -289,7 +289,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * registers a [BaseFoldingHandler]
    */
-  fun IdeMetaPlugin.addBaseFoldingHandler(
+  fun MetaIde.addBaseFoldingHandler(
     actionId: String,
     execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
   ): ExtensionPhase =

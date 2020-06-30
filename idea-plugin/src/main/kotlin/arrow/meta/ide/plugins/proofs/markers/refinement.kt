@@ -115,6 +115,10 @@ private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
     targets = {
       it.predicatesFromPsi()
     },
+    message = { ktClass: KtClass, _ ->
+      // TODO("Leave a meaningful message")
+      null
+    },
     popUpTitle = { refinedType, predicates ->
       "${refinedType.name} is a Refined Type constrained by ${predicates.size} Predicates"
     },

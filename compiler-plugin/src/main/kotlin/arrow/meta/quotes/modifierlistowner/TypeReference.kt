@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *    get() =
  *      "ReformatModifier" {
  *        meta(
- *          typeReference({ true }) { modifierListOwner ->
+ *          typeReference(this, { true }) { modifierListOwner ->
  *            Transform.replace(
  *              replacing = modifierListOwner,
  *              newDeclaration = """$`@annotations` $typeElement""".type

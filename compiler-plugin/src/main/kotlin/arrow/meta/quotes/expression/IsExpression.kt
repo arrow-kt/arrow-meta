@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *    get() =
  *      "Reformat Is Expression" {
  *        meta(
- *          isExpression({ true }) { expression ->
+ *          isExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """$left $operation $type""".`is`

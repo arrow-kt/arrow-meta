@@ -3,6 +3,8 @@ package arrow.meta.ide.plugins.proofs.markers
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.ide.plugins.proofs.psi.returnTypeCallableMembers
+import arrow.meta.internal.Noop
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -123,6 +125,31 @@ fun ExtensionProof.subtypingMarkerMessage(): String {
         <code lang="kotlin">$from : $to</code> this becomes a valid global ad-hoc synthetic subtype relationship.
         """.trimIndent()
 }
+
+fun KtDeclaration.markerMessage(ctx: CompilerContext): String =
+  scope().run {
+    value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof(ctx)?.let { proof ->
+      val message = proof.markerMessage()
+      """
+      <code lang="kotlin">${text}</code> 
+      $message
+    """.trimIndent()
+    }.orEmpty()
+  }
+
+inline fun <reified A : KtDeclaration> IdeMetaPlugin.proofLineMarkers(icon: Icon, crossinline filter: A.() -> Boolean): ExtensionPhase =
+  addLineMarkerProvider(
+    icon = icon,
+    transform = {
+      it.safeAs<A>()?.takeIf(filter)
+    },
+    composite = KtDeclaration::class.java,
+    message = {
+      it.ctx()?.let {ctx ->
+        it.markerMessage(ctx)
+      } ?: "TODO"
+    }
+  )
 
 fun CoercionProof.markerMessage(): String =
   """

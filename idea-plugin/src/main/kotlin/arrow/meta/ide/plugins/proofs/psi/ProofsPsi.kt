@@ -1,5 +1,6 @@
 package arrow.meta.ide.plugins.proofs.psi
 
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.isAnnotatedWith
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.proofs
@@ -32,10 +33,8 @@ fun KtAnnotated.isExtensionProof(): Boolean =
 fun KtAnnotated.isRefinementProof(): Boolean =
   isTopLevelKtOrJavaMember() && isAnnotatedWith(refinementAnnotation)
 
-fun DeclarationDescriptor.proof(): Proof? =
-  module.proofs.find {
-    it.through.fqNameSafe == fqNameSafe
-  }
+fun DeclarationDescriptor.proof(ctx: CompilerContext): Proof? =
+  module.proofs(ctx).find { it.through.fqNameSafe == fqNameSafe }
 
 fun FunctionDescriptor.returnTypeCallableMembers(): List<CallableMemberDescriptor> =
   returnType

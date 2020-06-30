@@ -17,7 +17,7 @@ val Meta.breakExpressionPlugin : CliPlugin
   get() =
     "Break Expression Scope Plugin" {
       meta(
-        breakExpression({ true }) { expression ->
+        breakExpression(this,{ true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()

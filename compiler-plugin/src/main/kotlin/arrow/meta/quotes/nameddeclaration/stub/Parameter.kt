@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *  get() =
  *   "ReformatParameter" {
  *    meta(
- *     parameter({ true }) { param ->
+ *     parameter(this, { true }) { param ->
  *      Transform.replace(
  *       replacing = param,
  *       newDeclaration = " $name: $type = EnvironmentRepository()".classParameter
@@ -61,7 +61,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *  get() =
  *   "Make all environment constructor parameters open" {
  *    meta(
- *     parameter({ name == "environmentRepository" }) { param ->
+ *     parameter(this, { name == "environmentRepository" }) { param ->
  *      Transform.replace(
  *       replacing = param,
  *       newDeclaration = " $name: $type = EnvironmentRepository()".classParameter
@@ -92,7 +92,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *  get() =
  *   "RenameLoopParameter" {
  *    meta(
- *     parameter({ name == "i" }) { param ->
+ *     parameter(this, { name == "i" }) { param ->
  *      Transform.replace(
  *       replacing = param,
  *       newDeclaration = "row".loopParameter
@@ -123,7 +123,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *  get() =
  *   "RenameDestructuringParameter" {
  *    meta(
- *      parameter({ typeReference?.name == "func" }) { param ->
+ *      parameter(this, { typeReference?.name == "func" }) { param ->
  *      Transform.replace(
  *       replacing = param,
  *       newDeclaration = "function".destructuringDeclaration
