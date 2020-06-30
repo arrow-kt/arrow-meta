@@ -61,5 +61,5 @@ fun Proof.description(): String =
 
 fun unionMessage(): String =
   """
-    This is an Union
+    Union type
   """.trimIndent()

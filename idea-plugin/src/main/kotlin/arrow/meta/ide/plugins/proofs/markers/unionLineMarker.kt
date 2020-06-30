@@ -10,12 +10,12 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.unionTypeLineMarker: ExtensionPhase
   get() = addLineMarkerProviderM(
-    icon = ArrowIcons.COPRODUCT, // replace with union icon
+    icon = ArrowIcons.UNION,
     composite = KtTypeReference::class.java,
     transform = { psiElement: PsiElement ->
       psiElement.safeAs<KtTypeReference>()?.takeIf { it.unionTypeMatches() }
     },
     message = {
-      unionMessage() // improve message
+      unionMessage()
     }
   )

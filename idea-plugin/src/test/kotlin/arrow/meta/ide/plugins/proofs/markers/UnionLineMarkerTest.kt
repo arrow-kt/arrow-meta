@@ -26,7 +26,7 @@ class UnionLineMarkerTest : IdeTestSetUp() {
         IdeTest(
           code = UnionLineMarkerTestCode.unionCode,
           test = { code: Source, myFixture: CodeInsightTestFixture, _: IdeMetaPlugin ->
-            collectLM(code, myFixture, ArrowIcons.COPRODUCT)
+            collectLM(code, myFixture, ArrowIcons.UNION)
           },
           result = resolvesWhen("UnionLineMarkerTest1 for 3 LM ") { descriptor: LineMarkerDescription ->
             descriptor.lineMarker.size == 3 && descriptor.slowLM.isEmpty()
