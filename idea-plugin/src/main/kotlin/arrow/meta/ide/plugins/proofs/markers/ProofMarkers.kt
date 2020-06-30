@@ -1,21 +1,16 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.internal.Noop
+import arrow.meta.ide.plugins.proofs.psi.proof
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
-import arrow.meta.plugins.proofs.phases.CoercionProof
-import arrow.meta.plugins.proofs.phases.ExtensionProof
-import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.ObjectProof
-import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.quotes.scope
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -41,9 +36,8 @@ fun KtDeclaration.markerMessage(ctx: CompilerContext): String =
     StringUtil.escapeXmlEntities(it.description().trimIndent())
   }.orEmpty()
 
-fun <A> KtDeclaration.proof(ctx: CompilerContext, f: (Proof) -> A): A? = null
-  // FIXME: fix shadows so KtDeclaration.proof(ctx: CompilerContext, f: (Proof) -> ???): ??? can be resolved correctly
-  //scope().value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof(ctx)?.let(f)
+fun <A> KtDeclaration.proof(ctx: CompilerContext, f: (Proof) -> A): A? =
+  scope().value?.resolveToDescriptorIfAny(bodyResolveMode = BodyResolveMode.PARTIAL)?.proof(ctx)?.let(f)
 
 fun Proof.description(): String =
   fold(

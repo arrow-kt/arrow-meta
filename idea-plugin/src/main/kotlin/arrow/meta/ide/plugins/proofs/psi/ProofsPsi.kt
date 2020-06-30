@@ -34,7 +34,9 @@ fun KtAnnotated.isRefinementProof(): Boolean =
   isTopLevelKtOrJavaMember() && isAnnotatedWith(refinementAnnotation)
 
 fun DeclarationDescriptor.proof(ctx: CompilerContext): Proof? =
-  module.proofs(ctx).find { it.through.fqNameSafe == fqNameSafe }
+  module.proofs(ctx).find {
+    it.through.fqNameSafe == fqNameSafe
+  }
 
 fun FunctionDescriptor.returnTypeCallableMembers(): List<CallableMemberDescriptor> =
   returnType
