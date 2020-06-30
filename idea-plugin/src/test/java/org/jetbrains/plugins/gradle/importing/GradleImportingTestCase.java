@@ -27,7 +27,6 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.lang.JavaVersion;
-import external.forks.jb.gradle.AbstractModelBuilderTest;
 import org.gradle.StartParameter;
 import org.gradle.util.GradleVersion;
 import org.gradle.wrapper.GradleWrapperMain;
