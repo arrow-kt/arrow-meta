@@ -1,5 +1,5 @@
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
-index 83b83589..7ea6dedd 100644
+index 83b8358..7ea6ded 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCliProcessor.kt
 @@ -1,7 +1,9 @@
@@ -19,7 +19,7 @@ index 83b83589..7ea6dedd 100644
 +  override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {}
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
-index 908ac851..3ed2efb4 100644
+index 908ac85..3ed2efb 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/MetaCommandLineProcessor.kt
 @@ -1,7 +1,9 @@
@@ -39,7 +39,7 @@ index 908ac851..3ed2efb4 100644
 +  override fun processOption(option: AbstractCliOption, value: String, configuration: CompilerConfiguration) {}
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
-index 8c4fde2a..f52d0342 100644
+index 8c4fde2..f52d034 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
 @@ -4,7 +4,7 @@ import arrow.meta.Meta
@@ -1279,7 +1279,7 @@ index 8c4fde2a..f52d0342 100644
 +  }
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
-index 8f795e8e..2539d650 100644
+index 8f795e8..2539d65 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 @@ -50,7 +50,6 @@ interface ResolveSyntax {
@@ -1299,7 +1299,7 @@ index 8f795e8e..2539d650 100644
          )
      }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index 15cfa85e..331c1f05 100644
+index 15cfa85..331c1f0 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 @@ -23,8 +23,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
@@ -1411,7 +1411,7 @@ index 15cfa85e..331c1f05 100644
 \ No newline at end of file
 +}
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
-index 2867bd7c..0b19295b 100644
+index 2867bd7..0b19295 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IRGeneration.kt
 @@ -2,9 +2,8 @@ package arrow.meta.phases.codegen.ir
@@ -1437,7 +1437,7 @@ index 2867bd7c..0b19295b 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
-index d8c5529d..f10f2819 100644
+index d8c5529..f10f281 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 @@ -1,7 +1,7 @@
@@ -1569,7 +1569,7 @@ index d8c5529d..f10f2819 100644
          valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
          constructorTypeArgumentsCount = declaredTypeParameters.size
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
-index fcbbb97c..7b2596e4 100644
+index fcbbb97..7b2596e 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/DeclarationAttributeAlterer.kt
 @@ -5,7 +5,6 @@ import arrow.meta.phases.ExtensionPhase
@@ -1589,7 +1589,7 @@ index fcbbb97c..7b2596e4 100644
    ): Modality?
  }
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
-index c5247590..651a5aaf 100644
+index c524759..651a5aa 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
 @@ -54,7 +54,7 @@ class ProofsIrCodegen(
@@ -1633,7 +1633,7 @@ index c5247590..651a5aaf 100644
                  if (proofCall2 != null) {
                    proofCall2.extensionReceiver = valueArgument
 diff --git a/gradle.properties b/gradle.properties
-index 266952f7..6e1ca5ec 100644
+index 266952f..6e1ca5e 100644
 --- a/gradle.properties
 +++ b/gradle.properties
 @@ -3,8 +3,8 @@ GROUP=io.arrow-kt

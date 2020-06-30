@@ -13,7 +13,7 @@ val IdeMetaPlugin.codeFolding: ExtensionPhase
     codeFoldingOnUnions,
     codeFoldingOnTuples
     // codeFoldingOnKinds, // temporary disabled to avoid confusion due to issues
-    //foldingCaretListener
+    // foldingCaretListener
   )
 
 internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]
