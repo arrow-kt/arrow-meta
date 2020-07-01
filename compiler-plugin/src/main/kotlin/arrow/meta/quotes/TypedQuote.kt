@@ -113,7 +113,7 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
             it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).values.map { it as DeclarationDescriptor }
           })
           analysisPhaseWasRewind.set(true)
-          AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = listOf(), additionalKotlinRoots = listOf())
+          AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, additionalJavaRoots = emptyList(), additionalKotlinRoots = emptyList())
         } else null
       }
     )

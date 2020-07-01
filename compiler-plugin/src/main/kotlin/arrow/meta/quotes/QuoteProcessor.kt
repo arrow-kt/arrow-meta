@@ -106,7 +106,7 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
           saveTransformation(it.first)
           compilerContext.evaluateDependsOn(
             noRewindablePhase = { newSource.addAll(it.second) },
-            rewindablePhase = { phaseWasRewind -> if (phaseWasRewind) newSource.addAll(it.second) }
+            rewindablePhase = { wasRewind -> if (wasRewind) newSource.addAll(it.second) }
           )
         }
       }
@@ -114,7 +114,7 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
         transform.newSource().let {
           compilerContext.evaluateDependsOn(
             noRewindablePhase = { newSource.addAll(it) },
-            rewindablePhase = { phaseWasRewind -> if (phaseWasRewind) newSource.addAll(it) }
+            rewindablePhase = { wasRewind -> if (wasRewind) newSource.addAll(it) }
           )
         }
       }

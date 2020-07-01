@@ -8,6 +8,10 @@ import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.AnalysisContext.canRewind
+import arrow.meta.phases.analysis.AnalysisContext.popAnalysisPhase
+import arrow.meta.phases.analysis.AnalysisContext.pushAnalysisPhase
+import arrow.meta.phases.analysis.AnalysisContext.willRewind
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
@@ -502,6 +506,7 @@ interface InternalRegistry : ConfigSyntax {
     phase: AnalysisHandler,
     ctx: CompilerContext
   ) {
+    phase.pushAnalysisPhase()
     cli {
       AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {
         override fun analysisCompleted(
@@ -509,7 +514,14 @@ interface InternalRegistry : ConfigSyntax {
           module: ModuleDescriptor,
           bindingTrace: BindingTrace,
           files: Collection<KtFile>
-        ): AnalysisResult? = phase.run { ctx.analysisCompleted(project, module, bindingTrace, files) }
+        ): AnalysisResult? = phase.run {
+          popAnalysisPhase()
+          if (ctx.analysisCompleted(project, module, bindingTrace, files) is AnalysisResult.RetryWithAdditionalRoots) willRewind(true)
+          if (canRewind()) {
+            willRewind(false)
+            AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
+          } else null
+        }
 
         override fun doAnalysis(
           project: Project,
