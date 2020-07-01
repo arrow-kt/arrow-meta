@@ -1,7 +1,7 @@
-package arrow.meta.ide.plugins.proofs.coercions.implicit
+package arrow.meta.ide.plugins.proofs.inspections.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
+import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof

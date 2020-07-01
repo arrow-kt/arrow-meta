@@ -1,8 +1,8 @@
-package arrow.meta.ide.plugins.proofs.coercions.explicit
+package arrow.meta.ide.plugins.proofs.inspections.coercions.explicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.explicit
-import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.ide.plugins.proofs.explicit
+import arrow.meta.ide.plugins.proofs.participatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
