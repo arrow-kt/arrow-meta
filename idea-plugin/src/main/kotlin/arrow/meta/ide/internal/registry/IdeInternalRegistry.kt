@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.event.HyperlinkListener
 
+
 interface IdeInternalRegistry : InternalRegistry {
 
   fun intercept(ctx: IdeContext): List<IdePlugin>
@@ -174,16 +175,18 @@ interface IdeInternalRegistry : InternalRegistry {
          * com.intellij.openapi.project.impl.ProjectImpl.init
          * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
          */
-        app.projectOpened { project: Project ->
-          instance(project, project.getService(service))?.let {
-            project.registerService(service as Class<Any>, it)
-          } ?: Unit
-        }
+        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+          override fun projectOpened(project: Project): Unit =
+            instance(project, project.getService(service))?.let {
+              project.registerService(service as Class<Any>, it)
+            } ?: Unit
+        })
       }
       is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
-        app.projectOpened { project: Project ->
-          project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
-        }
+        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+          override fun projectOpened(project: Project): Unit =
+            project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
+        })
       }
       is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
       is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
