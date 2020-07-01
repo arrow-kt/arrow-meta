@@ -19,3 +19,8 @@ val IdeMetaPlugin.unionTypeLineMarker: ExtensionPhase
       unionMessage()
     }
   )
+
+private fun unionMessage(): String =
+  """
+    Union type
+  """.trimIndent()

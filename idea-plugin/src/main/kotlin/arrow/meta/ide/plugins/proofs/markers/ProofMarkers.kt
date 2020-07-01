@@ -58,8 +58,3 @@ fun Proof.description(): String =
       """$from can be used in place of $to as if $to : $from, all members of $to are available as members of $from"""
     }
   ).orEmpty()
-
-fun unionMessage(): String =
-  """
-    Union type
-  """.trimIndent()
