@@ -14,29 +14,6 @@ import java.awt.event.MouseEvent
 import javax.swing.Icon
 
 /**
- * Similar to [arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax.addLineMarkerProvider], is an extension for
- * PsiElements that are not leafs so it will look for the first Leaf corresponding the targeted psiElement
- */
-@Suppress("UNCHECKED_CAST")
-fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProvider(
-  icon: Icon,
-  transform: (PsiElement) -> A?,
-  composite: Class<A>,
-  message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
-  placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
-  navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
-  clickAction: AnAction? = null
-): ExtensionPhase =
-  addLineMarkerProvider(
-    { PsiTreeUtil.findChildOfType(transform(it), LeafPsiElement::class.java) },
-    {
-      it.onComposite(composite) { psi: A ->
-        lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
-      }
-    }
-  )
-
-/**
  * Similar to [arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax.addLineMarkerProviderM], is an extension for
  * PsiElements that are not leafs so it will look for the first Leaf corresponding the targeted psiElement
  */

@@ -9,12 +9,15 @@ import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.file
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.junit.Ignore
 
 class CoercionTest : IdeTestSetUp(
   CoercionTestCode.prelude.file("arrow/prelude.kt"),
   CoercionTestCode.twitterHandleDeclaration.file("consumer/consumer.kt")
 ) {
 
+  // TODO: Add test for annotations
+  @Ignore // line markers got replaced by annotations so this test isn't valid anymore
   @org.junit.Test
   fun `test coercion line marker`() =
     ideTest(
