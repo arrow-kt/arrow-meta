@@ -343,7 +343,7 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
   if (element != null && element == (context?.ast ?: replacing.ast)) {
     val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
-    println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
+//    println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
     element.dynamic = newContents
     element
   } else element
