@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
+// Not needed for now, with the foldingBuilder its enough
 val IdeMetaPlugin.unionTypeLineMarker: ExtensionPhase
   get() = addLineMarkerProviderM(
     icon = ArrowIcons.UNION,
