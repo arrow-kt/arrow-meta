@@ -24,11 +24,11 @@ import org.jetbrains.kotlin.psi.KtProperty
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
-      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      proofLineMarkers(ArrowIcons.COERCION_ICON, KtNamedFunction::isCoercionProof),
+      proofLineMarkers(ArrowIcons.EXTENSION_ICON, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtFunction::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,

@@ -72,4 +72,13 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.svg")
   val ICON4_PNG: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.png")
+
+  val GIVEN_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-given.svg")
+  val EXTENSION_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-extension.svg")
+  val COERCION_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-coercion.svg")
+  val REFINEMENT_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-refinement.svg")
 }

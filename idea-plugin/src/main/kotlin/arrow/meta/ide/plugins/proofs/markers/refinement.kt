@@ -107,7 +107,7 @@ fun KtValueArgument.isRefinedPredicate(): Boolean =
 
 private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
   addRelatedLineMarkerProvider(
-    icon = ArrowIcons.REFINEMENT,
+    icon = ArrowIcons.REFINEMENT_ICON,
     composite = KtClass::class.java,
     transform = {
       it.safeAs<KtClass>()?.takeIf { it.companionObjects.any { it.isRefined() } }
