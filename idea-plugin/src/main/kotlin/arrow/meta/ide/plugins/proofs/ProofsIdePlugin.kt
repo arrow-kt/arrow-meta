@@ -10,6 +10,7 @@ import arrow.meta.ide.plugins.proofs.inspections.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
+import arrow.meta.ide.plugins.proofs.markers.unionTypeLineMarker
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isGivenProof
@@ -36,6 +37,7 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       givenAnnotator,
       coercionAnnotator,
       coercionInspections,
-      codeFolding
+      codeFolding,
+      unionTypeLineMarker
     )
   }

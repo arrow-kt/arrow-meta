@@ -72,6 +72,8 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.svg")
   val ICON4_PNG: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.png")
+  val UNION: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-union-types.svg")
 
   val GIVEN_ICON: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-given.svg")

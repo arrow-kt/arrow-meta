@@ -12,13 +12,13 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
   get() = addFoldingBuilder(
-    match = ::kindTypeMatches,
+    match = KtTypeReference::kindTypeMatches,
     hint = KtTypeReference::foldString
   )
 
-fun kindTypeMatches(typeReference: KtTypeReference): Boolean =
-  typeReference.getType().isTypeMatching() &&
-    typeReference.strictParents().all { psiElement ->
+fun KtTypeReference.kindTypeMatches(): Boolean =
+  getType().isTypeMatching() &&
+    strictParents().all { psiElement ->
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
