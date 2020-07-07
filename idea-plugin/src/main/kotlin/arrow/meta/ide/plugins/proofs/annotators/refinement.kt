@@ -7,6 +7,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
@@ -41,7 +42,10 @@ fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
               compilerContext.module = module
               val validation = compilerContext.validateConstructorCall(it)
               validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->
-                holder.createErrorAnnotation(element, msg)//.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
+                //.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
+                holder.newAnnotation(HighlightSeverity.ERROR, msg)
+                  .range(element.textRange)
+                  .tooltip(msg)
               }
             }
           }
