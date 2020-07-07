@@ -15,13 +15,13 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnUnions: ExtensionPhase
   get() = addFoldingBuilder(
-    match = ::unionTypeMatches,
+    match = KtTypeReference::unionTypeMatches,
     hint = KtTypeReference::foldString
   )
 
-fun unionTypeMatches(typeReference: KtTypeReference): Boolean =
-  typeReference.getType().isTypeMatching() &&
-    typeReference.strictParents().all { psiElement ->
+fun KtTypeReference.unionTypeMatches(): Boolean =
+  getType().isTypeMatching() &&
+    strictParents().all { psiElement ->
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
