@@ -29,24 +29,24 @@ jobs:
         sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         echo "Latest Kotlin version: $LATEST_KOTLIN_EAP_VERSION"
         ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
-    - name: Test latest Kotlin DEV version
-      run: |
-        git checkout .
-        LATEST_KOTLIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep dev | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
-        LATEST_KOTLIN_PLUGIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kapt/org.jetbrains.kotlin.kapt.gradle.plugin/maven-metadata.xml | grep dev | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
-        echo "Kotlin DEV version = $LATEST_KOTLIN_DEV_VERSION and org.jetbrains.kotlin.kapt.gradle.plugin version = $LATEST_KOTLIN_PLUGIN_DEV_VERSION" > versions
-        LATEST_KOTLIN_DEV_VERSION_NUMBER=$(echo $LATEST_KOTLIN_DEV_VERSION | cut -d- -f1)
-        for patch in $(ls -v .github/workflows/sandbox/*.diff); do
-          PATCH_VERSION_NUMBER=$(basename -s .diff $patch | cut -d- -f1)
-          if [[ "$(echo -e "$LATEST_KOTLIN_DEV_VERSION_NUMBER\n$PATCH_VERSION_NUMBER" | sort -V | tail -1)" == "$LATEST_KOTLIN_DEV_VERSION_NUMBER" ]]; then git apply $patch; fi
-        done
-        git status
-        sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
-        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
-        sed -i "s/org.jetbrains.kotlin.kapt.gradle.plugin.*/org.jetbrains.kotlin.kapt.gradle.plugin:$LATEST_KOTLIN_PLUGIN_DEV_VERSION\"/g" build.gradle
-        echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
-        echo "Latest org.jetbrains.kotlin.kapt.gradle.plugin version: $LATEST_KOTLIN_PLUGIN_DEV_VERSION"
-        ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
+    #- name: Test latest Kotlin DEV version
+    #  run: |
+    #    git checkout .
+    #    LATEST_KOTLIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml | grep dev | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
+    #    LATEST_KOTLIN_PLUGIN_DEV_VERSION=$(curl https://dl.bintray.com/kotlin/kotlin-dev/org/jetbrains/kotlin/kapt/org.jetbrains.kotlin.kapt.gradle.plugin/maven-metadata.xml | grep dev | tail -1 | cut -d'>' -f2 | cut -d'<' -f1)
+    #    echo "Kotlin DEV version = $LATEST_KOTLIN_DEV_VERSION and org.jetbrains.kotlin.kapt.gradle.plugin version = $LATEST_KOTLIN_PLUGIN_DEV_VERSION" > versions
+    #    LATEST_KOTLIN_DEV_VERSION_NUMBER=$(echo $LATEST_KOTLIN_DEV_VERSION | cut -d- -f1)
+    #    for patch in $(ls -v .github/workflows/sandbox/*.diff); do
+    #      PATCH_VERSION_NUMBER=$(basename -s .diff $patch | cut -d- -f1)
+    #      if [[ "$(echo -e "$LATEST_KOTLIN_DEV_VERSION_NUMBER\n$PATCH_VERSION_NUMBER" | sort -V | tail -1)" == "$LATEST_KOTLIN_DEV_VERSION_NUMBER" ]]; then git apply $patch; fi
+    #    done
+    #    git status
+    #    sed -i "s/^KOTLIN_VERSION=.*$/KOTLIN_VERSION=$LATEST_KOTLIN_DEV_VERSION/g" gradle.properties
+    #    sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+    #    sed -i "s/org.jetbrains.kotlin.kapt.gradle.plugin.*/org.jetbrains.kotlin.kapt.gradle.plugin:$LATEST_KOTLIN_PLUGIN_DEV_VERSION\"/g" build.gradle
+    #    echo "Latest Kotlin version: $LATEST_KOTLIN_DEV_VERSION"
+    #    echo "Latest org.jetbrains.kotlin.kapt.gradle.plugin version: $LATEST_KOTLIN_PLUGIN_DEV_VERSION"
+    #    ./gradlew clean :compiler-plugin:jar 2> stderr #TODO: build
     - name: Update versions
       id: update
       run: |
