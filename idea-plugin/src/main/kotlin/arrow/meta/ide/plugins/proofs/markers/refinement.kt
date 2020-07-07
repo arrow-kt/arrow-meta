@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 import org.celtric.kotlin.html.body as htmlBody
@@ -132,8 +133,7 @@ private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
       override fun getIconFlags(): Int = Iconable.ICON_FLAG_VISIBILITY
 
       override fun getElementText(element: KtBinaryExpression): String =
-        element.left?.text ?: "Unspecified Predicate"
-
+        element.left?.children?.ifNotEmpty { firstOrNull() }?.text ?: "Unspecified Predicate"
     }
   )
 
