@@ -98,6 +98,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
     staticDescription: String,
+    groupKey: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -111,7 +113,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     enabledByDefault: Boolean = true
   ): ExtensionPhase =
     addLocalInspection(
-      applicableInspection(defaultFixText, staticDescription, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
+      applicableInspection(defaultFixText, staticDescription, groupKey, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
       groupPath,
       groupDisplayName,
       level
@@ -124,7 +126,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
   ): ExtensionPhase =
     addLocalInspection(inspection, level, inspection.defaultFixText, inspection.staticDescription
-      ?: "No description provided", groupPath, inspection.defaultFixText)
+      ?: "No description provided", groupPath, inspection.groupKey ?: inspection.defaultFixText)
 
   /**
    * registers a GlobalInspection.
@@ -205,7 +207,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(
     defaultFixText: String,
+    groupKey: String?,
     staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -237,6 +241,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
         inspectionHighlightType(element)
 
       override fun getStaticDescription(): String? = staticDescription
+
+      override fun fixText(element: K): String =
+        fixText(element)
+
+      override fun getGroupKey(): String? = groupKey
     }
 
   fun InspectionSyntax.inspectionSuppressor(

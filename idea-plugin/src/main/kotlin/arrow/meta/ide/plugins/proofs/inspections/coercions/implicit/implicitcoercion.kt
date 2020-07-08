@@ -32,7 +32,9 @@ const val IMPLICIT_COERCION_INSPECTION_ID = "CoercionImplicit"
 val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQualifiedExpression>
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
+    groupKey = "Coercion",
     staticDescription = "Make coercion implicit",
+    fixText = { "Make coercion implicit" },
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktCall: KtDotQualifiedExpression ->

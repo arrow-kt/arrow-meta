@@ -27,7 +27,9 @@ const val COERCION_EXPLICIT_PROP = "CoercionExplicitProp"
 val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_PROP,
+    groupKey = "Coercion",
     staticDescription = "Make coercion explicit for properties",
+    fixText = { "Make coercion explicit" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
     kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
