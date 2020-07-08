@@ -250,12 +250,12 @@ public abstract class GradleImportingTestCase extends ExternalSystemImportingTes
   @NotNull
   protected String injectRepo(@NonNls @Language("Groovy") String config) {
     config = "allprojects {\n" +
-             "  repositories {\n" +
-             "    maven {\n" +
-             "        url 'https://repo.labs.intellij.net/repo1'\n" +
-             "    }\n" +
-             "  }" +
-             "}\n" + config;
+            "  repositories {\n" +
+            "    maven {\n" +
+            "        url 'https://repo.labs.intellij.net/repo1'\n" +
+            "    }\n" +
+            "  }" +
+            "}\n" + config;
     return config;
   }
 
@@ -299,7 +299,7 @@ public abstract class GradleImportingTestCase extends ExternalSystemImportingTes
 
     WrapperConfiguration wrapperConfiguration = GradleUtil.getWrapperConfiguration(getProjectPath());
     PathAssembler.LocalDistribution localDistribution = new PathAssembler(
-      StartParameter.DEFAULT_GRADLE_USER_HOME).getDistribution(wrapperConfiguration);
+            StartParameter.DEFAULT_GRADLE_USER_HOME).getDistribution(wrapperConfiguration);
 
     File zip = localDistribution.getZipFile();
     try {

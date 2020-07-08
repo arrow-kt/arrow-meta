@@ -4,7 +4,6 @@ import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.cache.proofCache
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.scopes.discardPlatformBaseObjectFakeOverrides
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -135,6 +134,9 @@ fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType):
   module.proofs.filterIsInstance<ExtensionProof>()
     .matchingCandidates(this, subType, superType)
 
+fun CompilerContext.givenProof(superType: KotlinType): GivenProof? =
+  givenProofs(superType).firstOrNull()
+
 fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
   module.proofs.filterIsInstance<GivenProof>()
     .matchingCandidates(this, superType)
@@ -151,16 +153,15 @@ fun CompilerContext.coerceProofs(subType: KotlinType, superType: KotlinType): Li
 fun CompilerContext?.areTypesCoerced(subType: KotlinType, supertype: KotlinType): Boolean =
   !baseLineTypeChecker.isSubtypeOf(subType, supertype) && this?.coerceProof(subType, supertype) != null
 
-val ModuleDescriptor.proofs: List<Proof>
-  get() =
+fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
     if (this is ModuleDescriptorImpl) {
       try {
-        val cacheValue = proofCache[this]
+        val cacheValue = ctx.proofCache[this]
         when {
           cacheValue != null -> {
             cacheValue.proofs
           }
-          else -> cli { initializeProofCache() } ?: emptyList()
+          else -> cli { initializeProofCache(ctx) } ?: emptyList()
         }
       } catch (e: RuntimeException) {
         println("TODO() Detected exception: ${e.printStackTrace()}")

@@ -177,10 +177,10 @@ index b71d5ea9..7335517c 100644
  }
 \ No newline at end of file
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
-index 3f8927df..a72dbdd9 100644
+index 3f8927df..8fe141c1 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/scopes/ProofsScopeTower.kt
-@@ -6,6 +6,7 @@ import arrow.meta.phases.CompilerContext
+@@ -6,11 +6,13 @@ import arrow.meta.phases.CompilerContext
  import arrow.meta.plugins.proofs.phases.Proof
  import org.jetbrains.kotlin.backend.common.SimpleMemberScope
  import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -188,7 +188,13 @@ index 3f8927df..a72dbdd9 100644
  import org.jetbrains.kotlin.descriptors.ModuleDescriptor
  import org.jetbrains.kotlin.incremental.components.LookupLocation
  import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-@@ -37,21 +38,32 @@ class ProofsScopeTower(
+ import org.jetbrains.kotlin.name.Name
+ import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
++import org.jetbrains.kotlin.resolve.calls.tower.ImplicitsExtensionsResolutionFilter
+ import org.jetbrains.kotlin.resolve.scopes.ImportingScope
+ import org.jetbrains.kotlin.resolve.scopes.LexicalChainedScope
+ import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+@@ -37,21 +39,33 @@ class ProofsScopeTower(
    override val dynamicScope: MemberScope = SimpleMemberScope(proofs.map { it.through })
    override val isDebuggerContext: Boolean = false
    override val isNewInferenceEnabled: Boolean = false
@@ -205,6 +211,7 @@ index 3f8927df..a72dbdd9 100644
    override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
    override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes(null, compilerContext)
    override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
++  override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter = ImplicitsExtensionsResolutionFilter.Default
    override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
  
 -  override fun interceptCandidates(resolutionScope: ResolutionScope, name: Name, initialResults: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
@@ -225,7 +232,7 @@ index 3f8927df..a72dbdd9 100644
        emptyList()
      }
  }
-@@ -61,4 +73,4 @@ class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: Compiler
+@@ -61,4 +75,4 @@ class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: Compiler
      Log.Silent({ "ProofsSyntheticScopes.scopes $this" }) {
        delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(ctx))
      }
