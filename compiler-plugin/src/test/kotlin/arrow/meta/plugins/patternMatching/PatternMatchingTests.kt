@@ -28,12 +28,20 @@ class PatternMatchingTests {
 
   private val prelude = """
     fun case(arg: Any?): Any? = arg
+    val todo: Nothing get() = TODO("should be patched in backend")
     """
 
   private val person = """
     data class Person(val firstName: String, val lastName: String)
     val person = Person("Matt", "Moore")
     """
+
+  private val number = """
+    sealed class Number {
+      data class One(val reallyFirst: Boolean) : Number()
+      data class Other(val value: Int) : Number()
+    }
+  """.trimIndent()
 
   @Test
   fun `match expression with const params`() {
@@ -42,7 +50,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person("Matt", "Moore") -> "Matched"
+           case(Person("Matt", "Moore")) -> "Matched"
            else -> "Not matched"
          }
          """
@@ -61,7 +69,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person(_, "Moore") -> "Matched"
+           case(Person(_, "Moore")) -> "Matched"
            else -> "Not matched"
          }
          """
@@ -80,7 +88,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person("Matt", _) -> "Matched"
+           case(Person("Matt", _)) -> "Matched"
            else -> "Not matched"
          }
          """
@@ -200,7 +208,7 @@ class PatternMatchingTests {
 
          fun resolve(person: Person) =
            when (person) {
-             Person(_, capturedSecondName) -> _
+             case(Person(_, capturedSecondName)) -> _
              else -> "Not matched"
            }
 
@@ -222,7 +230,7 @@ class PatternMatchingTests {
 
          fun resolve(person: Person) =
            when (person) {
-             Person(_, param123) -> param123
+             case(Person(_, param123)) -> param123
              else -> "Not matched"
            }
 
@@ -232,6 +240,30 @@ class PatternMatchingTests {
     code verify {
       allOf(
         "result".source.evalsTo("Moore")
+      )
+    }
+  }
+
+  @Test
+  fun `sealed class is matched`() {
+    val code =
+      """$prelude
+         $number
+
+         fun resolve(number: Number): String {
+           return when (number) {
+             case(Number.One(_)) -> "Matched"
+             case(Number.Other(value)) -> value.toString()
+             else -> "Not matched"
+           }
+         }
+
+         val result = resolve(Number.Other(42))
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("42")
       )
     }
   }
