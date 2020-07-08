@@ -60,7 +60,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *     meta(
    *       addApplicableInspection(
    *         defaultFixText = "Simplified PurityPlugin",
+   *         groupKey = "Purity",
    *         staticDescription = "Purity Inspection",
+   *         fixText = { "Purity" },
    *         inspectionHighlightType = { ProblemHighlightType.ERROR },
    *         kClass = KtNamedFunction::class.java,
    *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
