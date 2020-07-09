@@ -1,5 +1,6 @@
 package arrow.meta.plugins.patternMatching.phases.analysis
 
+import arrow.meta.plugins.patternMatching.phases.analysis.PatternExpression.Param.Captured
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.psi.KtElement
@@ -10,7 +11,6 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtWhenEntry
-import org.jetbrains.kotlin.psi2ir.findFirstFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContext.CALL
 import org.jetbrains.kotlin.resolve.BindingContext.EXPRESSION_TYPE_INFO
@@ -45,7 +45,7 @@ fun PatternResolutionContext.fillCapturedParameters(entry: KtWhenEntry, pattern:
   entryBody.accept(
     object : KtTreeVisitorVoid() {
       override fun visitExpression(expr: KtExpression) {
-        if (expr !is KtNameReferenceExpression || pattern.captured.none { it.expr.getReferencedName() == expr.getReferencedName() }) {
+        if (expr !is KtNameReferenceExpression || pattern.capturedParameterIndex(expr) == -1) {
           trace.clear(PROCESSED, expr)
           trace.clear(CALL, expr)
           trace.clear(EXPRESSION_TYPE_INFO, expr)
@@ -95,20 +95,47 @@ fun PatternResolutionContext.fillCapturedParameters(entry: KtWhenEntry, pattern:
   return filledParams
 }
 
+private fun PatternExpression.capturedParameterIndex(expr: KtSimpleNameExpression): Int {
+  var resultIndex = -1
+
+  // todo: be smarter
+  for (i in parameters.indices) {
+    val argumentExpr = paramExpression(i)
+    val param = parameters[i]
+
+    val condition =
+      param is Captured
+      && !param.isWildcard
+      && argumentExpr is KtSimpleNameExpression
+      && argumentExpr.getReferencedName() == expr.getReferencedName()
+    if (condition) {
+      resultIndex = i
+      break
+    }
+  }
+
+  return resultIndex
+}
+
 fun PatternResolutionContext.resolveBodyParameter(
   paramExpr: KtSimpleNameExpression,
   pattern: PatternExpression
 ): KtSimpleNameExpression? {
-  val capturedParam = pattern.captured.find { it.expr.getReferencedName() == paramExpr.getReferencedName() } ?: return null
-  val paramCall = pattern.classDescriptor.findFirstFunction("component${capturedParam.index + 1}") { true }
-  bindingTrace.record(EXPRESSION_TYPE_INFO, paramExpr, KotlinTypeInfo(paramCall.returnType!!, DataFlowInfo.EMPTY))
+  val paramIndex = pattern.capturedParameterIndex(paramExpr)
+  if (paramIndex == -1) return null
 
-  referPlaceholder(paramExpr)
+  val paramType = pattern.constructor.valueParameters[paramIndex].returnType
+  bindingTrace.record(EXPRESSION_TYPE_INFO, paramExpr, KotlinTypeInfo(paramType, DataFlowInfo.EMPTY))
+
+  referPlaceholder(paramExpr, paramIndex)
 
   return paramExpr
 }
 
-fun PatternResolutionContext.referPlaceholder(expression: KtSimpleNameExpression) {
+fun PatternResolutionContext.referPlaceholder(
+  expression: KtExpression,
+  index: Int
+) {
   val call = CallMaker.makeCall(
     expression,
     null,
@@ -119,7 +146,12 @@ fun PatternResolutionContext.referPlaceholder(expression: KtSimpleNameExpression
   val candidateCall = ResolvedCallImpl.create(
     ResolutionCandidate.create(
       call,
-      paramPlaceholder,
+      PlaceholderPropertyDescriptor(
+        index,
+        expression,
+        bindingTrace,
+        bindingTrace.getType(expression) ?: module.builtIns.nothingType
+      ),
       null,
       ExplicitReceiverKind.DISPATCH_RECEIVER,
       null

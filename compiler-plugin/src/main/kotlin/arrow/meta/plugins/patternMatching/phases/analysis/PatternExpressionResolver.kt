@@ -4,13 +4,12 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.patternMatching.phases.analysis.PatternExpression.Companion.parsePatternExpression
 import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtWhenCondition
@@ -38,22 +37,24 @@ private fun PatternResolutionContext.patternExpression(condition: KtWhenConditio
 
 data class PatternExpression(
   val elementCall: KtCallExpression,
-  val classDescriptor: ClassDescriptor,
-  val wildcards: List<Parameter>,
-  val captured: List<Parameter>,
-  val other: List<KtExpression>
+  val constructor: ConstructorDescriptor,
+  val parameters: List<Param>
 ) {
-  data class Parameter(
-    val expr: KtNameReferenceExpression,
-    val index: Int
-  )
+  fun paramExpression(index: Int) =
+    elementCall.valueArguments[index].getArgumentExpression()
+
+  sealed class Param {
+    data class Captured(val isWildcard: Boolean): Param()
+    object Expression : Param() {
+      override fun toString(): String = "Expression"
+    }
+  }
 
   override fun toString(): String =
     "PatternExpression(" +
       "elementCall=${elementCall.text}, " +
-      "wildcards=$wildcards, " +
-      "captured=${captured.map { it.expr.text }}, " +
-      "other=${other.map { it.text }}" +
+      "constructor=$constructor, " +
+      "wildcards=$parameters, " +
     ")"
 
   companion object {
@@ -66,39 +67,28 @@ data class PatternExpression(
         }
       check(elementCall != null) { "Case should contain a call inside" }
 
-      val wildcards = mutableListOf<Parameter>()
-      val captured = mutableListOf<Parameter>()
-      val other = mutableListOf<KtExpression>()
-
-      elementCall.valueArguments.forEachIndexed { index, valueArgument ->
+      val parameters = elementCall.valueArguments.map { valueArgument ->
         when (val argExpression = valueArgument.getArgumentExpression()) {
           is KtNameReferenceExpression ->
             when {
               bindingTrace.getType(argExpression) == null -> {
-                val param = Parameter(argExpression, index)
-                when (argExpression.getReferencedName()) {
-                  "_" -> wildcards.add(param)
-                  else -> captured.add(param)
-                }
+                val isWildcard = argExpression.getReferencedName() == "_"
+                Param.Captured(isWildcard)
               }
-              else -> other.add(argExpression)
+              else -> Param.Expression
             }
-          null -> {
-            // ignore
-          }
-          else -> other.add(argExpression)
+          else -> Param.Expression
         }
       }
 
-      val classDescriptor = bindingTrace.getType(elementCall)?.constructor?.declarationDescriptor as? ClassDescriptor
-      check(classDescriptor != null) { "Element call should create a class" }
+      val constructor = elementCall.getResolvedCall(bindingTrace.bindingContext)?.candidateDescriptor as? ConstructorDescriptor
+      check(constructor != null) { "Element call should create a class" }
+      check(constructor.constructedClass.isData) { "Only data classes are supported" }
 
       return PatternExpression(
         elementCall = elementCall,
-        classDescriptor = classDescriptor,
-        wildcards = wildcards,
-        captured = captured,
-        other = other
+        constructor = constructor,
+        parameters = parameters
       )
     }
   }
@@ -123,16 +113,6 @@ class PatternResolutionContext(
           && it.valueParameters.first().type == module.builtIns.nullableAnyType
           && it.returnType == module.builtIns.nullableAnyType
       }
-    }.single()
-  }
-
-  val paramPlaceholder by lazy {
-    val pkg = module.getPackage(FqName.ROOT)
-    pkg.fragments.mapNotNull { pkgFragment ->
-      pkgFragment.getMemberScope().getContributedVariables(
-        Name.identifier("todo"),
-        NoLookupLocation.FROM_SYNTHETIC_SCOPE
-      ).firstOrNull()
     }.single()
   }
 }

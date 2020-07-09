@@ -2,10 +2,12 @@ package arrow.meta.plugins.patternMatching.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugins.patternMatching.phases.analysis.PatternResolutionContext
+import arrow.meta.plugins.patternMatching.phases.analysis.PlaceholderPropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -48,13 +50,14 @@ fun IrUtils.patchIrWhen(irWhen: IrWhen): IrExpression {
     )
 
     val transformer = object : IrElementTransformerVoid() {
-      override fun visitCall(expression: IrCall): IrExpression {
-        if (expression.descriptor != patternContext.paramPlaceholder.getter) {
-          return super.visitCall(expression)
+      override fun visitGetField(expression: IrGetField): IrExpression {
+        val descriptor = expression.descriptor
+        if (descriptor !is PlaceholderPropertyDescriptor) {
+          return super.visitGetField(expression)
         }
 
         // todo: support more than one component
-        val componentCall = targetClass.findFirstFunction("component1") { it.valueParameters.isEmpty() }
+        val componentCall = targetClass.findFirstFunction("component${descriptor.parameterIndex + 1}") { it.valueParameters.isEmpty() }
         val irType = typeTranslator.translateType(componentCall.returnType!!)
 
         return IrCallImpl(
@@ -75,6 +78,7 @@ fun IrUtils.patchIrWhen(irWhen: IrWhen): IrExpression {
   return irWhen
 }
 
+// todo: replace with IrVisitor
 fun IrUtils.findPatternCall(patternContext: PatternResolutionContext, expr: IrExpression): Pair<IrExpression, ConstructorDescriptor>? {
   // fixme: based on the template from tests, must be more complex
   if (expr !is IrCall) return null

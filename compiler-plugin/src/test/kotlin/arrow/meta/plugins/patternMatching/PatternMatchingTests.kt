@@ -28,7 +28,6 @@ class PatternMatchingTests {
 
   private val prelude = """
     fun case(arg: Any?): Any? = arg
-    val todo: Nothing get() = TODO("should be patched in backend")
     """
 
   private val person = """
@@ -44,12 +43,32 @@ class PatternMatchingTests {
   """.trimIndent()
 
   @Test
+  fun `without case expression fails with unresolved references for captured params`() {
+    val code =
+       """$prelude
+         $person
+
+         val result = when (person) {
+           Person(_, _) -> "Matched"
+           else -> "Not matched"
+         }
+       """
+
+    code verify {
+      allOf(
+        failsWith { it.contains("Unresolved reference: _") }
+      )
+    }
+  }
+
+  @Test
   fun `match expression with const params`() {
     val code =
       """$prelude
          $person
 
          val result = when (person) {
+           case(Person("Moore", "Matt")) -> "Wrong match"
            case(Person("Matt", "Moore")) -> "Matched"
            else -> "Not matched"
          }
@@ -107,7 +126,7 @@ class PatternMatchingTests {
          $person
 
          val result = when (person) {
-           Person(capturedFirstName, _) -> capturedFirstName
+           case(Person(capturedFirstName, _)) -> capturedFirstName
            else -> "Not matched"
          }
          """
@@ -251,6 +270,7 @@ class PatternMatchingTests {
          $number
 
          fun resolve(number: Number): String {
+           val someField = 1
            return when (number) {
              case(Number.One(_)) -> "Matched"
              case(Number.Other(value)) -> value.toString()
