@@ -2,16 +2,14 @@ package arrow.meta.plugins.proofs.phases.quotes
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.phases.evaluateDependsOn
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 internal fun ObjectDeclaration.objectWithSerializedRefinement(elementScope: ElementScope, ctx: CompilerContext): Transform<KtObjectDeclaration> =
-  ctx.evaluateDependsOn(
-    noRewindablePhase = { evaluatesRefinementExpression(elementScope); },
-    rewindablePhase = { wasRewind -> if (wasRewind) evaluatesRefinementExpression(elementScope) else Transform.empty }
-  )
+  ctx.evaluateDependsOnRewindableAnalysisPhase { evaluatesRefinementExpression(elementScope) } ?: Transform.empty
+
 
 private fun ObjectDeclaration.evaluatesRefinementExpression(elementScope: ElementScope): Transform<KtObjectDeclaration> {
   return elementScope.run {

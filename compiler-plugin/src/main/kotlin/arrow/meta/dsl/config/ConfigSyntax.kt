@@ -7,11 +7,8 @@ import arrow.meta.internal.Noop
 import arrow.meta.internal.registry.setFinalStatic
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.Composite
-import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.*
 import arrow.meta.phases.config.Config
-import arrow.meta.phases.evaluateDependsOn
 import arrow.meta.plugins.proofs.phases.resolve.ProofTypeChecker
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
@@ -96,10 +93,7 @@ interface ConfigSyntax {
   fun Meta.typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): ExtensionPhase =
     Composite(storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
-        evaluateDependsOn(
-          noRewindablePhase = { evaluateTypeChecker(replace) },
-          rewindablePhase = { wasRewind -> if (wasRewind) evaluateTypeChecker(replace) }
-        )
+        evaluateDependsOnRewindableAnalysisPhase { evaluateTypeChecker(replace) }
       },
       check = { _, _, _ -> }
     ), registerArgumentTypeResolver())

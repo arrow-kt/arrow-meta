@@ -10,7 +10,7 @@ import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.traverseFilter
-import arrow.meta.phases.evaluateDependsOn
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 import java.nio.file.Paths
-import java.util.ArrayList
+import java.util.*
 
 /**
  * Quote processor defines how quotes should behave related with its processing phase
@@ -104,18 +104,12 @@ inline fun <reified K : KtElement> KtFile.sourceWithTransformationsAst(
       is Transform.Many -> {
         transform.many(this, compilerContext, match).let {
           saveTransformation(it.first)
-          compilerContext.evaluateDependsOn(
-            noRewindablePhase = { newSource.addAll(it.second) },
-            rewindablePhase = { wasRewind -> if (wasRewind) newSource.addAll(it.second) }
-          )
+          compilerContext.evaluateDependsOnRewindableAnalysisPhase { newSource.addAll(it.second) }
         }
       }
       is Transform.NewSource -> {
         transform.newSource().let {
-          compilerContext.evaluateDependsOn(
-            noRewindablePhase = { newSource.addAll(it) },
-            rewindablePhase = { wasRewind -> if (wasRewind) newSource.addAll(it) }
-          )
+          compilerContext.evaluateDependsOnRewindableAnalysisPhase { newSource.addAll(it) }
         }
       }
       Transform.Empty -> Unit

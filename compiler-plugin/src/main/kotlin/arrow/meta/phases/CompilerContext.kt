@@ -66,9 +66,14 @@ open class CompilerContext(
 }
 
 fun <T> CompilerContext.evaluateDependsOn(
-  noRewindablePhase: () -> T,
-  rewindablePhase: (Boolean) -> T
-): T {
+  noRewindablePhase: () -> T?,
+  rewindablePhase: (Boolean) -> T?
+): T? {
   if (!analysisPhaseCanBeRewind.get()) return noRewindablePhase()
   return rewindablePhase(analysisPhaseWasRewind.get())
 }
+
+fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () -> T?): T? = evaluateDependsOn(
+  noRewindablePhase = evaluation,
+  rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
+)

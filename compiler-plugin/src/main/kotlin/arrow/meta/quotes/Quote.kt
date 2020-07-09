@@ -13,7 +13,6 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
 import arrow.meta.phases.analysis.traverseFilter
-import arrow.meta.phases.evaluateDependsOn
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.google.common.collect.ImmutableMap
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem

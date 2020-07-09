@@ -5,7 +5,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.traverseFilter
-import arrow.meta.phases.evaluateDependsOn
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
@@ -24,10 +24,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 
 fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
   meta.file(this, { this.containsGivenConstrains(ctx) }) {
-    evaluateDependsOn(
-      noRewindablePhase = { givenExtensionsFile(this) },
-      rewindablePhase = { wasRewind -> if (wasRewind) givenExtensionsFile(this) else Transform.empty }
-    )
+    evaluateDependsOnRewindableAnalysisPhase { givenExtensionsFile(this) } ?: Transform.empty
   }
 
 private fun CompilerContext.givenExtensionsFile(file: File): Transform<KtFile> =
@@ -40,10 +37,9 @@ private fun CompilerContext.givenExtensionsFile(file: File): Transform<KtFile> =
 
 private val givenAnnotation: Regex = Regex("@(arrow\\.)?Given")
 
-private fun KtFile.containsGivenConstrains(ctx: CompilerContext): Boolean = ctx.evaluateDependsOn(
-  noRewindablePhase = { givenConstrainedDeclarations().isNotEmpty() },
-  rewindablePhase = { wasRewind -> if (wasRewind) givenConstrainedDeclarations().isNotEmpty() else false }
-)
+private fun KtFile.containsGivenConstrains(ctx: CompilerContext): Boolean = ctx.evaluateDependsOnRewindableAnalysisPhase {
+  givenConstrainedDeclarations().isNotEmpty()
+} ?: false
 
 private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
   value.givenConstrainedDeclarations().map { NamedFunction(it, null) }

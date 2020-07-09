@@ -7,7 +7,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.isAnnotatedWith
-import arrow.meta.phases.evaluateDependsOn
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.orEmpty
 import arrow.meta.quotes.scope
@@ -38,10 +38,7 @@ internal fun Meta.cliValidateRefinedCalls(): AnalysisHandler =
   analysis(
     doAnalysis = Noop.nullable7<AnalysisResult>(),
     analysisCompleted = { project, module, bindingTrace, files ->
-      evaluateDependsOn(
-        noRewindablePhase = { validateRefinedCalls(bindingTrace) },
-        rewindablePhase = { wasRewind -> if (wasRewind) validateRefinedCalls(bindingTrace) }
-      )
+      evaluateDependsOnRewindableAnalysisPhase { validateRefinedCalls(bindingTrace) }
       null
     }
   )
