@@ -39,6 +39,6 @@ val IdeMetaPlugin.foldingCaretListener: ExtensionPhase
 private fun foldingRegionMatchingTypes(editorFoldingInfo: EditorFoldingInfo, foldRegion: FoldRegion): Boolean {
   val psiElement = editorFoldingInfo.getPsiElement(foldRegion)
   return psiElement.safeAs<KtTypeReference>()?.let {
-    unionTypeMatches(it) || tupleTypeMatches(it) || kindTypeMatches(it)
+    it.unionTypeMatches() || it.tupleTypeMatches() || it.kindTypeMatches()
   } ?: false
 }
