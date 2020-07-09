@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetField
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -76,7 +77,8 @@ fun IrUtils.patchIrWhen(irWhen: IrWhen, irBuilder: DeclarationIrBuilder): IrExpr
           booleanType,
           acc,
           irEquals(componentCall(index, startOffset, endOffset), expression),
-          irFalse()
+          irFalse(),
+          origin = IrStatementOrigin.ANDAND
         )
       }
     }
