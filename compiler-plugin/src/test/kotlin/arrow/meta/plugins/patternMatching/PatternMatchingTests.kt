@@ -246,7 +246,6 @@ class PatternMatchingTests {
     val code =
       """$prelude
          $person
-
          fun resolve(person: Person) =
            when (person) {
              case(Person(_, param123)) -> param123
@@ -270,7 +269,6 @@ class PatternMatchingTests {
          $number
 
          fun resolve(number: Number): String {
-           val someField = 1
            return when (number) {
              case(Number.One(_)) -> "Matched"
              case(Number.Other(value)) -> value.toString()
