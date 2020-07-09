@@ -7,6 +7,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.allOf
 import arrow.meta.plugin.testing.CompilerTest.Companion.evalsTo
+import arrow.meta.plugin.testing.CompilerTest.Companion.failsWith
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
@@ -34,14 +35,41 @@ class PatternMatchingTests {
     val person = Person("Matt", "Moore")
     """
 
+  private val number = """
+    sealed class Number {
+      data class One(val reallyFirst: Boolean) : Number()
+      data class Other(val value: Int) : Number()
+    }
+  """.trimIndent()
+
   @Test
-  fun `without case pattern match expression`() {
+  fun `without case expression fails with unresolved references for captured params`() {
+    val code =
+       """$prelude
+         $person
+
+         val result = when (person) {
+           Person(_, _) -> "Matched"
+           else -> "Not matched"
+         }
+       """
+
+    code verify {
+      allOf(
+        failsWith { it.contains("Unresolved reference: _") }
+      )
+    }
+  }
+
+  @Test
+  fun `match expression with const params`() {
     val code =
       """$prelude
          $person
 
          val result = when (person) {
-           Person("Matt", "Moore") -> "Matched"
+           case(Person("Moore", "Matt")) -> "Wrong match"
+           case(Person("Matt", "Moore")) -> "Matched"
            else -> "Not matched"
          }
          """
@@ -54,7 +82,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern match expression`() {
+  fun `match expression with placeholder`() {
     val code =
       """$prelude
          $person
@@ -73,7 +101,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern second param match expression`() {
+  fun `match expression with second param placeholder`() {
     val code =
       """$prelude
          $person
@@ -92,7 +120,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern captured param results in value`() {
+  fun `captured param results in value`() {
     val code =
       """$prelude
          $person
@@ -111,7 +139,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern captured second param results in value`() {
+  fun `captured second param results in value`() {
     val code =
       """$prelude
          $person
@@ -130,7 +158,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params result in value`() {
+  fun `both captured params result in value`() {
     val code =
       """$prelude
          $person
@@ -149,7 +177,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params can be used in a call`() {
+  fun `both captured params can be used in a call`() {
     val code =
       """$prelude
          $person
@@ -170,7 +198,7 @@ class PatternMatchingTests {
   }
 
   @Test
-  fun `with case pattern both captured params inside a function result in value`() {
+  fun `both captured params inside a function result in value`() {
     val code =
       """$prelude
          $person
@@ -187,6 +215,73 @@ class PatternMatchingTests {
     code verify {
       allOf(
         "result".source.evalsTo("MattMoore")
+      )
+    }
+  }
+
+  @Test
+  fun `placeholder cannot be used in body`() {
+    val code =
+      """$prelude
+         $person
+
+         fun resolve(person: Person) =
+           when (person) {
+             case(Person(_, capturedSecondName)) -> _
+             else -> "Not matched"
+           }
+
+         val result = resolve(person)
+         """
+
+    code verify {
+      allOf(
+        failsWith { it.contains("Unresolved reference: _") }
+      )
+    }
+  }
+
+  @Test
+  fun `other captured params can be used in body`() {
+    val code =
+      """$prelude
+         $person
+         fun resolve(person: Person) =
+           when (person) {
+             case(Person(_, param123)) -> param123
+             else -> "Not matched"
+           }
+
+         val result = resolve(person)
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Moore")
+      )
+    }
+  }
+
+  @Test
+  fun `sealed class is matched`() {
+    val code =
+      """$prelude
+         $number
+
+         fun resolve(number: Number): String {
+           return when (number) {
+             case(Number.One(_)) -> "Matched"
+             case(Number.Other(value)) -> value.toString()
+             else -> "Not matched"
+           }
+         }
+
+         val result = resolve(Number.Other(42))
+         """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("42")
       )
     }
   }
