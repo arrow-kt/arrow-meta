@@ -1,6 +1,8 @@
 package arrow.meta.plugins.patternMatching.phases.analysis
 
+import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.patternMatching.phases.analysis.PatternExpression.Companion.parsePatternExpression
 import org.jetbrains.kotlin.container.get
@@ -12,11 +14,48 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtWhenCondition
 import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+
+fun Meta.patternExpressionAnalysis(): AnalysisHandler =
+  analysis(
+    doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+      null
+    },
+    analysisCompleted = { project, module, bindingTrace, files ->
+      val context = PatternResolutionContext(this)
+
+      val patternExpressions = files.flatMap { file ->
+        context.resolvePatternExpression(file) { whenExpr ->
+          patternExpressionResolution(whenExpr).map { (entry, expr) ->
+            expr.parameters.forEachIndexed { index, param ->
+              if (param is PatternExpression.Param.Captured) {
+                val nameExpression = expr.paramExpression(index) as KtSimpleNameExpression
+                bindingTrace.record(PATTERN_EXPRESSION_CAPTURED_PARAMS, nameExpression)
+                referPlaceholder(nameExpression, index)
+              }
+            }
+
+            if (expr.parameters.any { it is PatternExpression.Param.Captured && !it.isWildcard }) {
+              val params = fillCapturedParameters(entry, expr)
+              params.forEach {
+                bindingTrace.record(PATTERN_EXPRESSION_BODY_PARAMS, it)
+              }
+            }
+
+            expr
+          }
+        }
+      }
+      println("Resolved pattern expressions $patternExpressions")
+
+      null
+    }
+  )
 
 fun PatternResolutionContext.resolvePatternExpression(file: KtFile, resolution: PatternResolutionContext.(KtWhenExpression) -> List<PatternExpression>) =
   file.traverseFilter(KtWhenExpression::class.java) { resolution(it) }.flatten()
@@ -44,7 +83,7 @@ data class PatternExpression(
     elementCall.valueArguments[index].getArgumentExpression()
 
   sealed class Param {
-    data class Captured(val isWildcard: Boolean): Param()
+    data class Captured(val isWildcard: Boolean) : Param()
     object Expression : Param() {
       override fun toString(): String = "Expression"
     }
@@ -55,7 +94,7 @@ data class PatternExpression(
       "elementCall=${elementCall.text}, " +
       "constructor=$constructor, " +
       "wildcards=$parameters, " +
-    ")"
+      ")"
 
   companion object {
     fun PatternResolutionContext.parsePatternExpression(caseCallExpr: KtCallExpression): PatternExpression? {

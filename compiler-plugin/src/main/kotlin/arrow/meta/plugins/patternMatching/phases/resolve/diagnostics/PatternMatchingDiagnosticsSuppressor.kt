@@ -3,8 +3,8 @@ package arrow.meta.plugins.patternMatching.phases.resolve.diagnostics
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.patternMatching.PATTERN_EXPRESSION_BODY_PARAMS
-import arrow.meta.plugins.patternMatching.PATTERN_EXPRESSION_CAPTURED_PARAMS
+import arrow.meta.plugins.patternMatching.phases.analysis.PATTERN_EXPRESSION_BODY_PARAMS
+import arrow.meta.plugins.patternMatching.phases.analysis.PATTERN_EXPRESSION_CAPTURED_PARAMS
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticWithParameters1

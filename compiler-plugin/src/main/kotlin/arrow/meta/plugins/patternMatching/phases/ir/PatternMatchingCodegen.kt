@@ -1,14 +1,21 @@
 package arrow.meta.plugins.patternMatching.phases.ir
 
+import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugins.patternMatching.phases.analysis.PatternResolutionContext
 import arrow.meta.plugins.patternMatching.phases.analysis.PlaceholderPropertyDescriptor
+import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.buildStatement
 import org.jetbrains.kotlin.ir.builders.irEquals
 import org.jetbrains.kotlin.ir.builders.irFalse
 import org.jetbrains.kotlin.ir.builders.irIfThenElse
 import org.jetbrains.kotlin.ir.builders.typeOperator
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -21,8 +28,41 @@ import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.getArgumentsWithIr
 import org.jetbrains.kotlin.ir.util.referenceFunction
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.psi2ir.findFirstFunction
+import org.jetbrains.kotlin.resolve.BindingContext
+
+fun irPatternMatching(
+  compilerContext: CompilerContext,
+  file: IrFile,
+  backendContext: BackendContext,
+  bindingContext: BindingContext
+): IrElement? =
+  file.accept(
+    object : IrElementTransformer<IrSymbolOwner?> {
+      private val irUtils = IrUtils(backendContext, compilerContext)
+      override fun visitDeclaration(declaration: IrDeclaration, data: IrSymbolOwner?): IrStatement =
+        if (declaration is IrSymbolOwner) {
+          super.visitDeclaration(declaration, declaration)
+        } else {
+          super.visitDeclaration(declaration, data)
+        }
+
+      override fun visitWhen(expression: IrWhen, data: IrSymbolOwner?): IrExpression {
+        return super.visitWhen(expression, data).also {
+          val builder = DeclarationIrBuilder(
+            backendContext,
+            data!!.symbol,
+            expression.startOffset,
+            expression.endOffset
+          )
+          irUtils.patchIrWhen(expression, builder)
+        }
+      }
+    },
+    null
+  )
 
 fun IrUtils.patchIrWhen(irWhen: IrWhen, irBuilder: DeclarationIrBuilder): IrExpression {
   val patternContext = PatternResolutionContext(compilerContext)
@@ -70,7 +110,7 @@ fun IrUtils.patchIrWhen(irWhen: IrWhen, irBuilder: DeclarationIrBuilder): IrExpr
           targetType
         )
 
-      constructorCall.getArgumentsWithIr().foldIndexed(typeCheck) argLoop@ { index, acc, (param, expression) ->
+      constructorCall.getArgumentsWithIr().foldIndexed(typeCheck) argLoop@{ index, acc, (param, expression) ->
         if (expression is IrGetField && expression.descriptor is PlaceholderPropertyDescriptor) return@argLoop acc
 
         irIfThenElse(
