@@ -25,7 +25,6 @@ const val COERCION_EXPLICIT_ARGS = "CoercionExplicitArgs"
 val IdeMetaPlugin.explicitCoercionKtValArg: AbstractApplicabilityBasedInspection<KtValueArgument>
   get() = applicableInspection(
     defaultFixText = COERCION_EXPLICIT_ARGS,
-    groupKey = "Coercion",
     staticDescription = "Make coercion explicit for arguments",
     fixText = { "Make coercion explicit" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },

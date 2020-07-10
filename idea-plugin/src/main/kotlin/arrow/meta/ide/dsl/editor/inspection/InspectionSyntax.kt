@@ -60,7 +60,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *     meta(
    *       addApplicableInspection(
    *         defaultFixText = "Simplified PurityPlugin",
-   *         groupKey = "Purity",
    *         staticDescription = "Purity Inspection",
    *         fixText = { "Purity" },
    *         inspectionHighlightType = { ProblemHighlightType.ERROR },
@@ -99,8 +98,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
-    staticDescription: String,
-    groupKey: String?,
+    staticDescription: String?,
     fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
@@ -115,7 +113,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     enabledByDefault: Boolean = true
   ): ExtensionPhase =
     addLocalInspection(
-      applicableInspection(defaultFixText, staticDescription, groupKey, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
+      applicableInspection(defaultFixText, staticDescription, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
       groupPath,
       groupDisplayName,
       level
@@ -128,7 +126,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
   ): ExtensionPhase =
     addLocalInspection(inspection, level, inspection.defaultFixText, inspection.staticDescription
-      ?: "No description provided", groupPath, inspection.groupKey ?: inspection.defaultFixText)
+      ?: "No description provided", groupPath, groupDisplayName)
 
   /**
    * registers a GlobalInspection.
@@ -209,7 +207,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(
     defaultFixText: String,
-    groupKey: String?,
     staticDescription: String?,
     fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
@@ -246,8 +243,6 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
       override fun fixText(element: K): String =
         fixText(element)
-
-      override fun getGroupKey(): String? = groupKey
     }
 
   fun InspectionSyntax.inspectionSuppressor(
