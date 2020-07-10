@@ -1,7 +1,7 @@
-package arrow.meta.ide.plugins.proofs.coercions.implicit
+package arrow.meta.ide.plugins.proofs.inspections.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.implicitParticipatingTypes
+import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
@@ -33,6 +33,7 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
   get() = applicableInspection(
     defaultFixText = IMPLICIT_COERCION_INSPECTION_ID,
     staticDescription = "Make coercion implicit",
+    fixText = { "Make coercion implicit" },
     inspectionHighlightType = { ProblemHighlightType.WARNING },
     kClass = KtDotQualifiedExpression::class.java,
     inspectionText = { ktCall: KtDotQualifiedExpression ->

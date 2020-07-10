@@ -1,40 +1,43 @@
-package arrow.meta.ide.plugins.proofs.coercions.explicit
+package arrow.meta.ide.plugins.proofs.inspections.coercions.explicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.explicit
-import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.ide.plugins.proofs.explicit
+import arrow.meta.ide.plugins.proofs.participatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInspection.ProblemHighlightType
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
-import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
 
 /**
- * [localExplicitCoercionOnKtValArg]: adds an explict call for implicit coercions on arguments
+ * [localExplicitCoercionOnKtProperty]: adds an explict call for implicit coercions on properties
  */
-val IdeMetaPlugin.localExplicitCoercionOnKtValArg: ExtensionPhase
+val IdeMetaPlugin.localExplicitCoercionOnKtProperty: ExtensionPhase
   get() = addLocalInspection(
-    inspection = explicitCoercionKtValArg,
+    inspection = explicitCoercionKtProperty,
     groupPath = ProofPath + arrayOf("Coercion"),
     groupDisplayName = "Coercion",
     level = HighlightDisplayLevel.WEAK_WARNING
   )
-const val COERCION_EXPLICIT_ARGS = "CoercionExplicitArgs"
-val IdeMetaPlugin.explicitCoercionKtValArg: AbstractApplicabilityBasedInspection<KtValueArgument>
+
+const val COERCION_EXPLICIT_PROP = "CoercionExplicitProp"
+
+val IdeMetaPlugin.explicitCoercionKtProperty: AbstractApplicabilityBasedInspection<KtProperty>
   get() = applicableInspection(
-    defaultFixText = COERCION_EXPLICIT_ARGS,
-    staticDescription = "Make coercion explicit for arguments",
+    defaultFixText = COERCION_EXPLICIT_PROP,
+    staticDescription = "Make coercion explicit for properties",
+    fixText = { "Make coercion explicit" },
     inspectionHighlightType = { ProblemHighlightType.INFORMATION },
-    kClass = KtValueArgument::class.java,
+    kClass = KtProperty::class.java,
     inspectionText = { "Not used at the moment because the highlight type used is ProblemHighlightType.INFORMATION" },
-    isApplicable = { ktCall: KtValueArgument ->
+    isApplicable = { ktCall: KtProperty ->
       ktCall.participatingTypes()?.let { (subtype: KotlinType, supertype: KotlinType) ->
         ktCall.ctx().areTypesCoerced(subtype, supertype)
       } ?: false
     },
-    applyTo = { ktCall: KtValueArgument, _, _ ->
+    applyTo = { ktCall: KtProperty, _, _ ->
       ktCall.ctx()?.explicit(ktCall)
     }
   )
