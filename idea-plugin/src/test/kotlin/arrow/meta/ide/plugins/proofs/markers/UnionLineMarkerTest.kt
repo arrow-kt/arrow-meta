@@ -8,6 +8,7 @@ import arrow.meta.ide.testing.dsl.lineMarker.LineMarkerDescription
 import arrow.meta.ide.testing.env.IdeTestSetUp
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.junit.Ignore
 
 class UnionLineMarkerTest : IdeTestSetUp() {
 
@@ -16,6 +17,7 @@ class UnionLineMarkerTest : IdeTestSetUp() {
     myFixture.addFileToProject("arrow/unionPrelude.kt", UnionLineMarkerTestCode.unionPrelude)
   }
 
+  @Ignore
   @org.junit.Test
   fun `test coercion line marker`() =
     ideTest(

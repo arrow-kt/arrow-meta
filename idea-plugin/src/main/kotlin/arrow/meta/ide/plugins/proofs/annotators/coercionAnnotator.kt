@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.annotators
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.markers.isCoerced
-import arrow.meta.ide.plugins.proofs.markers.participatingTypes
+import arrow.meta.ide.plugins.proofs.isCoerced
+import arrow.meta.ide.plugins.proofs.participatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
@@ -40,20 +40,19 @@ val IdeMetaPlugin.coercionKtPropertyAnnotator: ExtensionPhase
             ktProperty.participatingTypes()?.let { (subtype, supertype) ->
               ctx.coerceProof(subtype, supertype)?.let { proof ->
                 proof.through.findPsi()?.let { proofPsi ->
-                  val message = html {
+                  val htmlMessage = html {
                     body {
                       text("Implicit coercion applied by") +
                         text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktProperty)
                           .orEmpty())
                     }
                   }.render()
-                  holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
-                    enforcedTextAttributes = implicitProofAnnotatorTextAttributes
-                    registerFix(
-                      GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                      it.textRange
-                    )
-                  }
+                  holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
+                    .range(it.textRange)
+                    .tooltip(htmlMessage)
+                    .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
+                    .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(it.textRange).registerFix()
+                    .create()
                 }
               }
             }
@@ -73,20 +72,19 @@ val IdeMetaPlugin.coercionKtValArgAnnotator: ExtensionPhase
             ktValueArgument.participatingTypes()?.let { (subtype, supertype) ->
               ctx.coerceProof(subtype, supertype)?.let { proof ->
                 proof.through.findPsi()?.let { proofPsi ->
-                  val message = html {
+                  val htmlMessage = html {
                     body {
                       text("Implicit coercion applied by") +
                         text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktValueArgument)
                           .orEmpty())
                     }
                   }.render()
-                  holder.createAnnotation(HighlightSeverity.INFORMATION, it.textRange, null, message).apply {
-                    enforcedTextAttributes = implicitProofAnnotatorTextAttributes
-                    registerFix(
-                      GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                      it.textRange
-                    )
-                  }
+                  holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
+                    .range(it.textRange)
+                    .tooltip(htmlMessage)
+                    .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
+                    .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(it.textRange).registerFix()
+                    .create()
                 }
               }
             }
