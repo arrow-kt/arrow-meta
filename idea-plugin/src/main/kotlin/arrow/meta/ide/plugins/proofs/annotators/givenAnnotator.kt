@@ -19,7 +19,6 @@ import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
@@ -42,19 +41,18 @@ val IdeMetaPlugin.givenParamAnnotator: ExtensionPhase
           ktParameter.typeReference?.getType()?.let { kotlinType ->
             ctx?.givenProof(kotlinType)?.let { proof ->
               proof.through.findPsi()?.let { proofPsi ->
-                val htmlTooltip = html {
+                val htmlMessage = html {
                   body {
                     text("${ktParameter.nameIdentifier?.text} is implicitly injected by given proof unless explicitly passed as argument at the use site") +
                       text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktParameter).orEmpty())
                   }
                 }.render()
-                holder.createAnnotation(HighlightSeverity.INFORMATION, ktParameter.textRange, htmlTooltip, htmlTooltip).apply {
-                  enforcedTextAttributes = implicitProofAnnotatorTextAttributes
-                  registerFix(
-                    GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                    ktParameter.textRange
-                  )
-                }
+                holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
+                  .range(ktParameter.textRange)
+                  .tooltip(htmlMessage)
+                  .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
+                  .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktParameter.textRange).registerFix()
+                  .create()
               }
             }
           }
@@ -72,19 +70,18 @@ val IdeMetaPlugin.givenCallAnnotator: ExtensionPhase
         ktCallExpression.returnType?.let { kotlinType ->
           ctx?.givenProof(kotlinType)?.let { proof ->
             proof.through.findPsi()?.let { proofPsi ->
-              val htmlTooltip = html {
+              val htmlMessage = html {
                 body {
                   text("Implicit injection by given proof") +
                     text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktCallExpression).orEmpty())
                 }
               }.render()
-              holder.createAnnotation(HighlightSeverity.INFORMATION, ktCallExpression.textRange, htmlTooltip, htmlTooltip).apply {
-                enforcedTextAttributes = implicitProofAnnotatorTextAttributes
-                registerFix(
-                  GoToSymbolFix(proofPsi as KtDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}"),
-                  ktCallExpression.textRange
-                )
-              }
+              holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
+                .range(ktCallExpression.textRange)
+                .tooltip(htmlMessage)
+                .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
+                .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktCallExpression.textRange).registerFix()
+                .create()
             }
           }
         }

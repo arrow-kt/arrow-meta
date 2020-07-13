@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="12px" height="12px" viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>arrow-meta-type-proofs-e</title>
+    <g id="arrow-meta-type-proofs-e" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="arrow-meta-coproduct-dark-12" opacity="0.5">
+            <rect id="bound" x="0" y="0" width="12" height="12"></rect>
+        </g>
+        <circle id="Oval" fill-opacity="0.7" fill="#B99BF8" fill-rule="nonzero" cx="6" cy="6" r="6"></circle>
+        <polygon id="E" fill-opacity="0.7" fill="#231F20" fill-rule="nonzero" points="8.32564103 9.55384615 8.32564103 8.34871795 5.35641026 8.34871795 5.35641026 6.53333333 7.81794872 6.53333333 7.81794872 5.35384615 5.35641026 5.35384615 5.35641026 3.64615385 8.15128205 3.64615385 8.32051282 2.44615385 3.67435897 2.44615385 3.67435897 9.55384615"></polygon>
+    </g>
+</svg>

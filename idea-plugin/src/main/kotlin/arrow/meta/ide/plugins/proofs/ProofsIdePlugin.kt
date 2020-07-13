@@ -6,13 +6,10 @@ import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.givenAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.markers.givenCallLineMarker
-import arrow.meta.ide.plugins.proofs.markers.givenParamLineMarker
+import arrow.meta.ide.plugins.proofs.inspections.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
-import arrow.meta.ide.plugins.proofs.markers.unionTypeLineMarker
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
 import arrow.meta.ide.plugins.proofs.psi.isExtensionProof
 import arrow.meta.ide.plugins.proofs.psi.isGivenProof
@@ -22,17 +19,16 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMi
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
-      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      proofLineMarkers(ArrowIcons.COERCION_ICON, KtNamedFunction::isCoercionProof),
+      proofLineMarkers(ArrowIcons.EXTENSION_ICON, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtFunction::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
@@ -40,7 +36,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       givenAnnotator,
       coercionAnnotator,
       coercionInspections,
-      codeFolding,
-      unionTypeLineMarker
+      codeFolding
     )
   }
