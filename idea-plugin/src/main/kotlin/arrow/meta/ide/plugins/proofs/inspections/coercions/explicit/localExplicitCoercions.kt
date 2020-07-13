@@ -6,6 +6,6 @@ import arrow.meta.phases.ExtensionPhase
 
 val IdeMetaPlugin.localExplicitCoercions: ExtensionPhase
   get() = Composite(
-    localExplicitCoercionOnKtValArg,
-    localExplicitCoercionOnKtProperty
+    localExplicitCoercionOnKtProperty,
+    localExplicitCoercionOnKtValArg
   )
