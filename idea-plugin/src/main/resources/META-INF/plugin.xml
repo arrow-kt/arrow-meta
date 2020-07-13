@@ -50,7 +50,7 @@
         />
 
         <localInspection
-                implementationClass="arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.CoercionExplicitProperty"
+                implementationClass="arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.CoercionExplicitProp"
                 displayName="Make coercion explicit for properties"
                 groupPath="Kotlin,Λrrow,Type Proofs"
                 groupName="Coercion"
@@ -61,7 +61,7 @@
         />
 
         <localInspection
-                implementationClass="arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.CoercionExplicitValArgs"
+                implementationClass="arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.CoercionExplicitArgs"
                 displayName="Make coercion explicit for value arguments"
                 groupPath="Kotlin,Λrrow,Type Proofs"
                 groupName="Coercion"

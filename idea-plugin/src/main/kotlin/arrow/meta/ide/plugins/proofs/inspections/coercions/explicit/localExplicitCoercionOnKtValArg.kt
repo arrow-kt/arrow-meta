@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.types.KotlinType
 
-class CoercionExplicitValArgs : AbstractApplicabilityBasedInspection<KtValueArgument>(KtValueArgument::class.java) {
+class CoercionExplicitArgs : AbstractApplicabilityBasedInspection<KtValueArgument>(KtValueArgument::class.java) {
 
   override val defaultFixText: String
     get() = COERCION_EXPLICIT_ARGS

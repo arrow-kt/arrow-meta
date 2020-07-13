@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspectio
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
 
-class CoercionExplicitProperty : AbstractApplicabilityBasedInspection<KtProperty>(KtProperty::class.java) {
+class CoercionExplicitProp : AbstractApplicabilityBasedInspection<KtProperty>(KtProperty::class.java) {
 
   override val defaultFixText: String
     get() = COERCION_EXPLICIT_PROP
