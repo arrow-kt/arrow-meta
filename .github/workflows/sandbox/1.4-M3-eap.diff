@@ -9,7 +9,7 @@ index a1a14a79..f7f74855 100644
 +    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
      testRuntimeOnly project(":prelude")
  }
- 
+
 @@ -76,6 +77,7 @@ test {
      testLogging.showStandardStreams = true
      systemProperty "CURRENT_VERSION", "$VERSION_NAME"
@@ -17,7 +17,7 @@ index a1a14a79..f7f74855 100644
 +    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
      jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
  }
- 
+
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
 index 2539d650..07db641e 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/resolve/ResolveSyntax.kt
@@ -58,35 +58,35 @@ index 2539d650..07db641e 100644
      object : SyntheticScopeProvider {
        override fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
          syntheticConstructor(constructor)
- 
+
 -      override fun CompilerContext.syntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -        syntheticConstructors(scope)
 +      override fun CompilerContext.syntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +        syntheticConstructors(classifierDescriptors)
- 
+
 -      override fun CompilerContext.syntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -        syntheticConstructorsForName(scope, name, location)
 +      override fun CompilerContext.syntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
 +        syntheticConstructorsForName(contributedClassifier, location)
- 
+
        override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
          syntheticExtensionProperties(receiverTypes, location)
 @@ -126,11 +126,11 @@ interface ResolveSyntax {
        override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
          syntheticMemberFunctionsForName(receiverTypes, name, location)
- 
+
 -      override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -        syntheticStaticFunctions(scope)
 +      override fun CompilerContext.syntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +        syntheticStaticFunctions(functionDescriptors)
- 
+
 -      override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -        syntheticStaticFunctionsForName(scope, name, location)
 +      override fun CompilerContext.syntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
 +        syntheticStaticFunctionsForName(contributedFunctions, location)
      }
- 
- 
+
+
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
 index 331c1f05..4e9e89aa 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
@@ -110,28 +110,28 @@ index 331c1f05..4e9e89aa 100644
 @@ -238,11 +238,11 @@ interface InternalRegistry : ConfigSyntax {
                override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
                  phase.run { ctx.syntheticConstructor(constructor) }
- 
+
 -              override fun getSyntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -                phase.run { ctx.syntheticConstructors(scope) }
 +              override fun getSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +                phase.run { ctx.syntheticConstructors(classifierDescriptors) }
- 
+
 -              override fun getSyntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -                phase.run { ctx.syntheticConstructors(scope, name, location) }
 +              override fun getSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
 +                phase.run { ctx.syntheticConstructors(contributedClassifier, location) }
- 
+
                override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
                  phase.run { ctx.syntheticExtensionProperties(receiverTypes, location) }
 @@ -256,11 +256,11 @@ interface InternalRegistry : ConfigSyntax {
                override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
                  phase.run { ctx.syntheticMemberFunctions(receiverTypes, name, location) }
- 
+
 -              override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -                phase.run { ctx.syntheticStaticFunctions(scope) }
 +              override fun getSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +                phase.run { ctx.syntheticStaticFunctions(functionDescriptors) }
- 
+
 -              override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -                phase.run { ctx.syntheticStaticFunctions(scope, name, location) }
 +              override fun getSyntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
@@ -144,7 +144,7 @@ index b71d5ea9..7335517c 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/synthetics/SyntheticScopeProvider.kt
 +++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/resolve/synthetics/SyntheticScopeProvider.kt
 @@ -2,12 +2,13 @@ package arrow.meta.phases.resolve.synthetics
- 
+
  import arrow.meta.phases.CompilerContext
  import arrow.meta.phases.ExtensionPhase
 +import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -156,7 +156,7 @@ index b71d5ea9..7335517c 100644
  import org.jetbrains.kotlin.name.Name
 -import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
  import org.jetbrains.kotlin.types.KotlinType
- 
+
  /**
 @@ -16,12 +17,12 @@ import org.jetbrains.kotlin.types.KotlinType
   */
@@ -213,7 +213,7 @@ index 3f8927df..8fe141c1 100644
    override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
 +  override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter = ImplicitsExtensionsResolutionFilter.Default
    override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
- 
+
 -  override fun interceptCandidates(resolutionScope: ResolutionScope, name: Name, initialResults: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
 -    Log.Verbose({"ProofsScopeTower.interceptCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
 +  override fun interceptFunctionCandidates(resolutionScope: ResolutionScope, name: Name,
@@ -264,32 +264,32 @@ index 3f7250f5..4d3705f1 100644
 @@ -70,13 +71,13 @@ class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
        null
      }
- 
+
 -  override fun getSyntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($scope), result: $this" }) {
 +  override fun getSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($classifierDescriptors), result: $this" }) {
        emptyList()
      }
- 
+
 -  override fun getSyntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructors($scope), $name result: $this" }) {
 +  override fun getSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
 +    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructors($contributedClassifier, $location) result: $this" }) {
        emptyList()
      }
- 
+
 @@ -100,13 +101,13 @@ class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
        ctx.syntheticMemberFunctions(receiverTypes, name)
      }
- 
+
 -  override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
 -    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions($scope)" }) {
 +  override fun getSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
 +    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions($functionDescriptors)" }) {
        emptyList()
      }
- 
+
 -  override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
 -    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions name: $name" }) {
 +  override fun getSyntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
@@ -330,14 +330,14 @@ index 1cbcaac9..5e04d916 100755
 +    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
      testRuntimeOnly project(':prelude')
  }
- 
+
 @@ -41,6 +42,7 @@ test {
      }
      systemProperty "CURRENT_VERSION", "$VERSION_NAME"
      systemProperty "ARROW_VERSION", "$ARROW_VERSION"
 +    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
  }
- 
+
  jar {
 diff --git a/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt b/meta-test/src/main/kotlin/arrow/meta/plugin/testing/Compilation.kt
 index 033600b4..51b7f05b 100644

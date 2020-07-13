@@ -1,13 +1,12 @@
 package arrow.meta.ide.plugins.proofs.inspections
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_ARGS
-import arrow.meta.ide.plugins.proofs.coercions.explicit.COERCION_EXPLICIT_PROP
-import arrow.meta.ide.plugins.proofs.coercions.explicit.explicitCoercionKtProperty
-import arrow.meta.ide.plugins.proofs.coercions.explicit.explicitCoercionKtValArg
-import arrow.meta.ide.plugins.proofs.coercions.implicit.IMPLICIT_COERCION_INSPECTION_ID
-import arrow.meta.ide.plugins.proofs.coercions.implicit.implicitCoercion
-import arrow.meta.ide.plugins.proofs.markers.CoercionTestCode
+import arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.COERCION_EXPLICIT_ARGS
+import arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.COERCION_EXPLICIT_PROP
+import arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.explicitCoercionKtProperty
+import arrow.meta.ide.plugins.proofs.inspections.coercions.explicit.explicitCoercionKtValArg
+import arrow.meta.ide.plugins.proofs.inspections.coercions.implicit.IMPLICIT_COERCION_INSPECTION_ID
+import arrow.meta.ide.plugins.proofs.inspections.coercions.implicit.implicitCoercion
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
@@ -24,8 +23,8 @@ import org.jetbrains.kotlin.psi.KtFile
 
 class CoercionInspectionTest :
   IdeTestSetUp(
-    CoercionTestCode.prelude.file("arrow/preludeCoercion.kt"),
-    CoercionTestCode.twitterHandleDeclaration.file("consumer/consumerCoercion.kt")
+    CoercionInspectionTestCode.prelude.file("arrow/preludeCoercion.kt"),
+    CoercionInspectionTestCode.twitterHandleDeclaration.file("consumer/consumerCoercion.kt")
   ) {
 
   @org.junit.Test

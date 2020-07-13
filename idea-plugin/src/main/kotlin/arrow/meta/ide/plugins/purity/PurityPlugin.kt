@@ -33,6 +33,7 @@ val IdeMetaPlugin.purityInspection: AbstractApplicabilityBasedInspection<KtNamed
   get() = applicableInspection(
     defaultFixText = "Suspend",
     staticDescription = "Purity Inspection",
+    fixText = { "Purity" },
     inspectionHighlightType = { ProblemHighlightType.ERROR },
     kClass = KtNamedFunction::class.java,
     highlightingRange = { f -> f.nameIdentifierTextRangeInThis() },
