@@ -81,21 +81,24 @@ private fun IdeMetaPlugin.addLMForValueArgument(
 fun KtValueArgument.markerMessage(): String =
   ValueArgument(this).run {
     parentOfType<KtClass>()?.let {
-      ClassDeclaration(it).run {
-        doctype("html") + html {
-          head {
-            title("$name") +
-              meta(charset = "utf-8")
-          } +
-            htmlBody {
-              div {
-                p {
-                  code("$name") + " is constrained by " + code("$argumentExpression")
+      argumentExpression?.value.safeAs<KtBinaryExpression>()?.left?.let { ktExpression ->
+        ClassDeclaration(it).run {
+          doctype("html") + html {
+            head {
+              title("$name") +
+                meta(charset = "utf-8")
+            } +
+              htmlBody {
+                div {
+                  p {
+                    code("$name") + " is constrained by: " + code(ktExpression.children.ifNotEmpty { firstOrNull() }?.text
+                      ?: "Unspecified Predicate")
+                  }
                 }
               }
-            }
-        }
-      }.render()
+          }
+        }.render()
+      }
     }.orEmpty()
   }
 
@@ -116,12 +119,12 @@ private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
     targets = {
       it.predicatesFromPsi()
     },
-    message = { ktClass: KtClass, _ ->
-      // TODO("Leave a meaningful message")
-      null
+    message = { refinedType: KtClass, _: List<KtBinaryExpression> ->
+      // TODO: Leave a meaningful message
+      "${refinedType.name} is a Refined Type. Click to see the predicates"
     },
-    popUpTitle = { refinedType, predicates ->
-      "${refinedType.name} is a Refined Type constrained by ${predicates.size} Predicates"
+    popUpTitle = { refinedType: KtClass, predicates: List<KtBinaryExpression> ->
+      "${refinedType.name} is a Refined Type constrained by ${predicates.size} predicates"
     },
     cellRenderer = object : PsiElementListCellRenderer<KtBinaryExpression>() {
       override fun getContainerText(element: KtBinaryExpression, name: String): String =
