@@ -14,7 +14,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "de.undercouch:gradle-download-task:4.0.4"
+    classpath "de.undercouch:gradle-download-task:4.1.0"
   }
 }
 
@@ -23,11 +23,11 @@ apply plugin: "de.undercouch.download"
 task downloadLibraries(type: Download) {
   src(
     mapToDownloadURLs([
-      "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION",
+      //"org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION", // TODO: Include when release!
       "com.jcabi:jcabi-aether:$JCABI_AETHER_VERSION",
       "org.jetbrains.kotlinx:atomicfu:$ATOMICFU_VERSION",
       "org.sonarsource.slang:sonar-kotlin-plugin:$SONAR_KOTLIN_PLUGIN_VERSION",
-      "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION",
+      //"org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION", // TODO: Include when release!
       "org.sonatype.aether:aether-api:$AETHER_API_VERSION",
       "org.sonatype.aether:aether-util:$AETHER_API_VERSION"
       ]

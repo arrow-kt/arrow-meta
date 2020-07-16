@@ -17,8 +17,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.psi.KtElement
@@ -226,7 +226,7 @@ private val messages: MessageCollector = object : MessageCollector {
 
   override fun hasErrors(): Boolean = false
 
-  override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+  override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
     when {
       severity.isError -> LOG.error(message)
       severity.isWarning -> LOG.warn(message)

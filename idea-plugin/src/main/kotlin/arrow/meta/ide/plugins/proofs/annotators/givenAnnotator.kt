@@ -16,7 +16,7 @@ import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.KotlinDocumentationProvider
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -44,7 +44,7 @@ val IdeMetaPlugin.givenParamAnnotator: ExtensionPhase
                 val htmlMessage = html {
                   body {
                     text("${ktParameter.nameIdentifier?.text} is implicitly injected by given proof unless explicitly passed as argument at the use site") +
-                      text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktParameter).orEmpty())
+                      text(KotlinDocumentationProvider().generateDoc(proofPsi, ktParameter).orEmpty())
                   }
                 }.render()
                 holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
@@ -73,7 +73,7 @@ val IdeMetaPlugin.givenCallAnnotator: ExtensionPhase
               val htmlMessage = html {
                 body {
                   text("Implicit injection by given proof") +
-                    text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktCallExpression).orEmpty())
+                    text(KotlinDocumentationProvider().generateDoc(proofPsi, ktCallExpression).orEmpty())
                 }
               }.render()
               holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
