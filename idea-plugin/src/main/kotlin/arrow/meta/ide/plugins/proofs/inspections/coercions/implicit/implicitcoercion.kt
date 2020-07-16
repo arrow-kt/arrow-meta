@@ -10,7 +10,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.KotlinDocumentationProvider
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -43,7 +43,7 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
             html {
               body {
                 text("Apply implicit coercion available by") +
-                  text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktCall).orEmpty())
+                  text(KotlinDocumentationProvider().generateDoc(proofPsi, ktCall).orEmpty())
               }
             }.render()
           }

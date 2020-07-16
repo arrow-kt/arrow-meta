@@ -23,7 +23,7 @@ dependencies {
 
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")
     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+        exclude group: "org.jetbrains.kotlin"
     }
     testRuntimeOnly project(":prelude")
 }
@@ -68,8 +68,14 @@ test {
     testLogging.showStandardStreams = true
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
 
 apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
 apply from: rootProject.file('gradle/upload-shadow.gradle')
+
+repositories {
+    // TODO: A temporary version from a fork of com.github.tschuchortdev:kotlin-compile-testing is needed
+    maven { url "https://jitpack.io" }
+}
