@@ -23,13 +23,6 @@ dependencies {
     testRuntimeOnly project(':compiler-plugin')
 
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION")
-    testCompileOnly "io.arrow-kt:arrow-core-data:$ARROW_VERSION"
-    testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
     }
