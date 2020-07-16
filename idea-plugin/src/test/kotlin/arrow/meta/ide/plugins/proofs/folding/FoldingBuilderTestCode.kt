@@ -9,10 +9,13 @@ object FoldingBuilderTestCode {
     import arrow.Union2
     import arrow.Union3
     import arrow.Union4
+    import arrow.Union7
     
     fun f(): Union2<String, Union2<Int, Double>> = 2
     fun g(): Union3<String, Int, Double> = 2.0
     fun h(): Union4<String, Int, Double, Long> = 2L
+    fun j(): Union3<String, Int, Double>? = 2.0
+    fun k(): Union7<String, Int, Double, Int, Char, Boolean, Long>? = null
     """.trimIndent()
 
   val tupleCode =
