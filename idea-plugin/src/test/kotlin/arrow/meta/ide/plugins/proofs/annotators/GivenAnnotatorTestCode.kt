@@ -16,6 +16,8 @@ object GivenAnnotatorTestCode {
       )
       @MustBeDocumented
       annotation class Given
+      
+      fun <A> given(evidence: @Given A = arrow.given): A = evidence
     """.trimIndent()
 
   val givenProviders =

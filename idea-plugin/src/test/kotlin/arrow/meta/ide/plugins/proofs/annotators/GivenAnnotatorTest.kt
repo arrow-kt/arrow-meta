@@ -9,6 +9,7 @@ import arrow.meta.ide.testing.env.file
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -30,7 +31,16 @@ class GivenAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("GivenAnnotatorTest1 for 2 given injectors") { result: List<HighlightInfo> ->
-            result.size == 2
+            result.size == 2 &&
+              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
+              result[0].severity == HighlightSeverity.INFORMATION &&
+              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.x") &&
+              result[0].description.contains("is implicitly injected by given proof") &&
+
+              result[1].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
+              result[1].severity == HighlightSeverity.INFORMATION &&
+              result[1].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.y") &&
+              result[1].description.contains("is implicitly injected by given proof")
           }
         ),
         IdeTest(
@@ -39,7 +49,16 @@ class GivenAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("GivenAnnotatorTest2 for 4 given injectors") { result: List<HighlightInfo> ->
-            result.size == 4
+            result.size == 4 &&
+              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
+              result[0].severity == HighlightSeverity.INFORMATION &&
+              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.x") &&
+              result[0].description.contains("Implicit injection by given proof") &&
+
+              result[3].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
+              result[3].severity == HighlightSeverity.INFORMATION &&
+              result[3].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.y") &&
+              result[3].description.contains("Implicit injection by given proof")
           }
         ),
         IdeTest(
@@ -48,7 +67,11 @@ class GivenAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("GivenAnnotatorTest3 for 1 given injector") { result: List<HighlightInfo> ->
-            result.size == 1
+            result.size == 1 &&
+              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
+              result[0].severity == HighlightSeverity.INFORMATION &&
+              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.x") &&
+              result[0].description.contains("Implicit injection by given proof")
           }
         ))
     }
