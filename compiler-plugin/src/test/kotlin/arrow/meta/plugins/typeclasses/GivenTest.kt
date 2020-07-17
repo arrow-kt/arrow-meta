@@ -117,15 +117,13 @@ class GivenTest {
   """.trimIndent()
 
   private fun givenTest(source: String, expected: Pair<String, Any?>) {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
        $prelude
        $source
       """
     assertThis(CompilerTest(
       config = {
-        metaDependencies + addDependencies(arrowCoreData)
+        metaDependencies
       },
       code = {
         codeSnippet.source

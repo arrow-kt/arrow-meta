@@ -10,8 +10,6 @@ class TypeClassesTest {
 
     //@Test
     fun `simple case`() {
-        val arrowVersion = System.getProperty("ARROW_VERSION")
-        val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
         val codeSnippet = """
        import arrowx.*
        import arrow.*
@@ -25,7 +23,7 @@ class TypeClassesTest {
 
         assertThis(CompilerTest(
             config = {
-                metaDependencies + addDependencies(arrowCoreData)
+                metaDependencies
             },
             code = {
                 codeSnippet.source
@@ -38,8 +36,6 @@ class TypeClassesTest {
 
   @Test
   fun `polymorphic constrain`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
        import arrow.*
        import arrowx.*
@@ -55,7 +51,7 @@ class TypeClassesTest {
       """
     assertThis(CompilerTest(
       config = {
-        metaDependencies + addDependencies(arrowCoreData)
+        metaDependencies
       },
       code = {
         codeSnippet.source
