@@ -1,4 +1,4 @@
-package arrow.meta.ide.plugins.proofs.coercions.explicit
+package arrow.meta.ide.plugins.proofs.inspections.coercions.explicit
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.Composite

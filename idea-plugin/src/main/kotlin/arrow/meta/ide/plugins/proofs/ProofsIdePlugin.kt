@@ -3,11 +3,11 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
-import arrow.meta.ide.plugins.proofs.annotators.proofAnnotator
+import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
+import arrow.meta.ide.plugins.proofs.annotators.givenAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
-import arrow.meta.ide.plugins.proofs.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.markers.coercionCallSiteLineMarker
+import arrow.meta.ide.plugins.proofs.inspections.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -24,17 +24,18 @@ import org.jetbrains.kotlin.psi.KtProperty
 val IdeMetaPlugin.typeProofsIde: IdePlugin
   get() = "Type Proofs IDE" {
     meta(
-      proofLineMarkers(ArrowIcons.SUBTYPING, KtNamedFunction::isCoercionProof),
-      proofLineMarkers(ArrowIcons.INTERSECTION, KtNamedFunction::isExtensionProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtClassOrObject::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtProperty::isGivenProof),
-      proofLineMarkers(ArrowIcons.ICON1, KtFunction::isGivenProof),
+      proofLineMarkers(ArrowIcons.COERCION_ICON, KtNamedFunction::isCoercionProof),
+      proofLineMarkers(ArrowIcons.EXTENSION_ICON, KtNamedFunction::isExtensionProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtClassOrObject::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtProperty::isGivenProof),
+      proofLineMarkers(ArrowIcons.GIVEN_ICON, KtFunction::isGivenProof),
       refinementLineMarkers(),
       refinementAnnotator(),
       proofsKotlinCache,
       proofAnnotator,
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
-      coercionCallSiteLineMarker,
+      givenAnnotator,
+      coercionAnnotator,
       coercionInspections,
       codeFolding
     )

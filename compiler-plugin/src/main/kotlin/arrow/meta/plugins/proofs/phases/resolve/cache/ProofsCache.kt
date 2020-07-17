@@ -2,37 +2,36 @@ package arrow.meta.plugins.proofs.phases.resolve.cache
 
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
+import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.asProof
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.KotlinType
-import java.util.concurrent.ConcurrentHashMap
 
 data class ProofsCache(
   val proofs: List<Proof>
 )
 
-val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
-
-fun disposeProofCache(): Unit =
+fun CompilerContext.disposeProofCache(): Unit =
   proofCache.clear()
 
-fun cachedModule(name: Name): ModuleDescriptor? =
+fun CompilerContext.cachedModule(name: Name): ModuleDescriptor? =
   proofCache.keys.firstOrNull { it.name == name }
 
-fun ModuleDescriptor.initializeProofCache(): List<Proof> =
+fun ModuleDescriptor.initializeProofCache(ctx: CompilerContext): List<Proof> =
   try {
     val moduleProofs: List<Proof> = computeModuleProofs(emptySequence(), listOf(FqName.ROOT)).toList()
-    if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
-      cachedModule(name)?.let { proofCache.remove(it) }
-      proofCache[this] = ProofsCache(moduleProofs)
+    ctx.run {
+      if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
+        cachedModule(name)?.let { proofCache.remove(it) }
+        proofCache[this@initializeProofCache] = ProofsCache(moduleProofs)
+      }
     }
     Log.Verbose({ "initializeProofCache proofs: ${moduleProofs.size}" }) {}
     moduleProofs
@@ -40,7 +39,6 @@ fun ModuleDescriptor.initializeProofCache(): List<Proof> =
     Log.Verbose({ "initializeProofCache found error $e" }) {}
     emptyList()
   }
-
 
 
 private tailrec fun ModuleDescriptor.computeModuleProofs(

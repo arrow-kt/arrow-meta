@@ -42,10 +42,10 @@ fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
               compilerContext.module = module
               val validation = compilerContext.validateConstructorCall(it)
               validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->
+                //.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
                 holder.newAnnotation(HighlightSeverity.ERROR, msg)
-                  .range(element)
-                  .needsUpdateOnTyping()
-                  .create()
+                  .range(element.textRange)
+                  .tooltip(msg)
               }
             }
           }
