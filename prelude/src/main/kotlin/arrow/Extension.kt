@@ -1,6 +1,8 @@
 package arrow
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
+@Target(
+  AnnotationTarget.FUNCTION
+)
 @MustBeDocumented
 annotation class Extension
