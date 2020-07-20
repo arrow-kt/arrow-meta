@@ -20,10 +20,6 @@ dependencies {
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
     testRuntimeOnly project(':prelude')
-    testRuntimeOnly("io.arrow-kt:arrow-annotations:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-    }
-    testRuntimeOnly project(':prelude')
 }
 
 compileKotlin {
@@ -40,7 +36,6 @@ test {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
 }
 
 jar {
