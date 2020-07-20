@@ -24,8 +24,6 @@ class KindsTest {
 
   @Test
   fun `Platform types can be kinded ad-hoc by proof`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
       $prelude
         object `List(_)`
@@ -53,7 +51,7 @@ class KindsTest {
       """
     assertThis(CompilerTest(
       config = {
-        metaDependencies + addDependencies(arrowCoreData)
+        metaDependencies
       },
       code = {
         codeSnippet.source
