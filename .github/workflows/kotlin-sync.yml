@@ -1,8 +1,8 @@
 name: Kotlin sync
 
-on: push
-#  schedule:
-#    - cron: '0 9 * * *'
+on:
+  schedule:
+    - cron: '0 9 * * *'
 
 jobs:
   build:
