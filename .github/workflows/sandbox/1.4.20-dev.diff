@@ -1,0 +1,668 @@
+diff --git a/build.gradle b/build.gradle
+index 503b12b5..9fda9fdf 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -1,7 +1,7 @@
+ buildscript {
+   repositories {
+     mavenCentral()
+-    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
++    maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
+   }
+   dependencies {
+     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
+@@ -39,7 +39,7 @@ allprojects {
+     }
+     mavenCentral()
+     jcenter()
+-    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
++    maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
+     // TODO: A temporary version from a fork of com.github.tschuchortdev:kotlin-compile-testing is needed
+     maven { url "https://jitpack.io" }
+   }
+diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
+index 28e35168..f52ddeb1 100644
+--- a/compiler-plugin/build.gradle
++++ b/compiler-plugin/build.gradle
+@@ -31,7 +31,7 @@ dependencies {
+ 
+ compileKotlin {
+     kotlinOptions {
+-        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
++        freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xjvm-default=compatibility"]
+         jvmTarget = "1.8"
+     }
+ }
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
+index c786c07c..19858952 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/dsl/codegen/ir/IrSyntax.kt
+@@ -112,137 +112,137 @@ interface IrSyntax {
+   fun irElement(f: IrUtils.(IrElement) -> IrElement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitElement(expression: IrElement, data: Unit): IrElement =
+-          f(IrUtils(pluginContext, compilerContext), expression)?.let { super.visitElement(it, data) }
+-            ?: super.visitElement(expression, data)
++        override fun visitElement(element: IrElement, data: Unit): IrElement =
++          f(IrUtils(pluginContext, compilerContext), element)?.let { super.visitElement(it, data) }
++            ?: super.visitElement(element, data)
+       }, Unit)
+     }
+ 
+   fun irModuleFragment(f: IrUtils.(IrModuleFragment) -> IrModuleFragment?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitModuleFragment(expression: IrModuleFragment, data: Unit): IrModuleFragment =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitModuleFragment(expression, data)
++        override fun visitModuleFragment(declaration: IrModuleFragment, data: Unit): IrModuleFragment =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitModuleFragment(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irFile(f: IrUtils.(IrFile) -> IrFile?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitFile(expression: IrFile, data: Unit): IrFile =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitFile(expression, data)
++        override fun visitFile(declaration: IrFile, data: Unit): IrFile =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitFile(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irExternalPackageFragment(f: IrUtils.(IrExternalPackageFragment) -> IrExternalPackageFragment?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitExternalPackageFragment(expression: IrExternalPackageFragment, data: Unit): IrExternalPackageFragment =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitExternalPackageFragment(expression, data)
++        override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: Unit): IrExternalPackageFragment =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitExternalPackageFragment(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irDeclaration(f: IrUtils.(IrDeclaration) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitDeclaration(expression: IrDeclaration, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitDeclaration(expression, data)
++        override fun visitDeclaration(declaration: IrDeclaration, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitDeclaration(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irClass(f: IrUtils.(IrClass) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitClass(expression: IrClass, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitClass(expression, data)
++        override fun visitClass(declaration: IrClass, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitClass(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irFunction(f: IrUtils.(IrFunction) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitFunction(expression: IrFunction, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitFunction(expression, data)
++        override fun visitFunction(declaration: IrFunction, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitFunction(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irSimpleFunction(f: IrUtils.(IrSimpleFunction) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitSimpleFunction(expression: IrSimpleFunction, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitSimpleFunction(expression, data)
++        override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitSimpleFunction(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irConstructor(f: IrUtils.(IrConstructor) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitConstructor(expression: IrConstructor, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitConstructor(expression, data)
++        override fun visitConstructor(declaration: IrConstructor, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitConstructor(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irProperty(f: IrUtils.(IrProperty) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitProperty(expression: IrProperty, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitProperty(expression, data)
++        override fun visitProperty(declaration: IrProperty, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitProperty(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irField(f: IrUtils.(IrField) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitField(expression: IrField, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitField(expression, data)
++        override fun visitField(declaration: IrField, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitField(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irLocalDelegatedProperty(f: IrUtils.(IrLocalDelegatedProperty) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitLocalDelegatedProperty(expression: IrLocalDelegatedProperty, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitLocalDelegatedProperty(expression, data)
++        override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitLocalDelegatedProperty(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irEnumEntry(f: IrUtils.(IrEnumEntry) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitEnumEntry(expression: IrEnumEntry, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitEnumEntry(expression, data)
++        override fun visitEnumEntry(declaration: IrEnumEntry, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitEnumEntry(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irAnonymousInitializer(f: IrUtils.(IrAnonymousInitializer) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitAnonymousInitializer(expression: IrAnonymousInitializer, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitAnonymousInitializer(expression, data)
++        override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitAnonymousInitializer(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irVariable(f: IrUtils.(IrVariable) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitVariable(expression: IrVariable, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitVariable(expression, data)
++        override fun visitVariable(declaration: IrVariable, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitVariable(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irTypeParameter(f: IrUtils.(IrTypeParameter) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitTypeParameter(expression: IrTypeParameter, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitTypeParameter(expression, data)
++        override fun visitTypeParameter(declaration: IrTypeParameter, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitTypeParameter(declaration, data)
+       }, Unit)
+     }
+ 
+   fun irValueParameter(f: IrUtils.(IrValueParameter) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitValueParameter(expression: IrValueParameter, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitValueParameter(expression, data)
++        override fun visitValueParameter(declaration: IrValueParameter, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitValueParameter(declaration, data)
+       }, Unit)
+     }
+ 
+@@ -257,24 +257,24 @@ interface IrSyntax {
+   fun irExpressionBody(f: IrUtils.(IrExpressionBody) -> IrBody?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitExpressionBody(expression: IrExpressionBody, data: Unit): IrBody =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitExpressionBody(expression, data)
++        override fun visitExpressionBody(body: IrExpressionBody, data: Unit): IrBody =
++          f(IrUtils(pluginContext, compilerContext), body) ?: super.visitExpressionBody(body, data)
+       }, Unit)
+     }
+ 
+   fun irBlockBody(f: IrUtils.(IrBlockBody) -> IrBody?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitBlockBody(expression: IrBlockBody, data: Unit): IrBody =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitBlockBody(expression, data)
++        override fun visitBlockBody(body: IrBlockBody, data: Unit): IrBody =
++          f(IrUtils(pluginContext, compilerContext), body) ?: super.visitBlockBody(body, data)
+       }, Unit)
+     }
+ 
+   fun irSyntheticBody(f: IrUtils.(IrSyntheticBody) -> IrBody?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitSyntheticBody(expression: IrSyntheticBody, data: Unit): IrBody =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitSyntheticBody(expression, data)
++        override fun visitSyntheticBody(body: IrSyntheticBody, data: Unit): IrBody =
++          f(IrUtils(pluginContext, compilerContext), body) ?: super.visitSyntheticBody(body, data)
+       }, Unit)
+     }
+ 
+@@ -321,8 +321,8 @@ interface IrSyntax {
+   fun irSpreadElement(f: IrUtils.(IrSpreadElement) -> IrSpreadElement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitSpreadElement(expression: IrSpreadElement, data: Unit): IrSpreadElement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitSpreadElement(expression, data)
++        override fun visitSpreadElement(spread: IrSpreadElement, data: Unit): IrSpreadElement =
++          f(IrUtils(pluginContext, compilerContext), spread) ?: super.visitSpreadElement(spread, data)
+       }, Unit)
+     }
+ 
+@@ -438,10 +438,10 @@ interface IrSyntax {
+       }, Unit)
+     }
+ 
+-  fun irMemberAccess(f: IrUtils.(IrMemberAccessExpression) -> IrElement?): IRGeneration =
++  fun irMemberAccess(f: IrUtils.(IrMemberAccessExpression<*>) -> IrElement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitMemberAccess(expression: IrMemberAccessExpression, data: Unit): IrElement =
++        override fun visitMemberAccess(expression: IrMemberAccessExpression<*>, data: Unit): IrElement =
+           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitMemberAccess(expression, data)
+       }, Unit)
+     }
+@@ -495,10 +495,10 @@ interface IrSyntax {
+       }, Unit)
+     }
+ 
+-  fun irCallableReference(f: IrUtils.(IrCallableReference) -> IrElement?): IRGeneration =
++  fun irCallableReference(f: IrUtils.(IrCallableReference<*>) -> IrElement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitCallableReference(expression: IrCallableReference, data: Unit): IrElement =
++        override fun visitCallableReference(expression: IrCallableReference<*>, data: Unit): IrElement =
+           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitCallableReference(expression, data)
+       }, Unit)
+     }
+@@ -563,80 +563,80 @@ interface IrSyntax {
+   fun irBranch(f: IrUtils.(IrBranch) -> IrBranch?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitBranch(expression: IrBranch, data: Unit): IrBranch =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitBranch(expression, data)
++        override fun visitBranch(branch: IrBranch, data: Unit): IrBranch =
++          f(IrUtils(pluginContext, compilerContext), branch) ?: super.visitBranch(branch, data)
+       }, Unit)
+     }
+ 
+   fun irElseBranch(f: IrUtils.(IrElseBranch) -> IrElseBranch?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitElseBranch(expression: IrElseBranch, data: Unit): IrElseBranch =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitElseBranch(expression, data)
++        override fun visitElseBranch(branch: IrElseBranch, data: Unit): IrElseBranch =
++          f(IrUtils(pluginContext, compilerContext), branch) ?: super.visitElseBranch(branch, data)
+       }, Unit)
+     }
+ 
+   fun irLoop(f: IrUtils.(IrLoop) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitLoop(expression: IrLoop, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitLoop(expression, data)
++        override fun visitLoop(loop: IrLoop, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), loop) ?: super.visitLoop(loop, data)
+       }, Unit)
+     }
+ 
+   fun irWhileLoop(f: IrUtils.(IrWhileLoop) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitWhileLoop(expression: IrWhileLoop, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitWhileLoop(expression, data)
++        override fun visitWhileLoop(loop: IrWhileLoop, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), loop) ?: super.visitWhileLoop(loop, data)
+       }, Unit)
+     }
+ 
+   fun irDoWhileLoop(f: IrUtils.(IrDoWhileLoop) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitDoWhileLoop(expression: IrDoWhileLoop, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitDoWhileLoop(expression, data)
++        override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), loop) ?: super.visitDoWhileLoop(loop, data)
+       }, Unit)
+     }
+ 
+   fun irTry(f: IrUtils.(IrTry) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitTry(expression: IrTry, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitTry(expression, data)
++        override fun visitTry(aTry: IrTry, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), aTry) ?: super.visitTry(aTry, data)
+       }, Unit)
+     }
+ 
+   fun irCatch(f: IrUtils.(IrCatch) -> IrCatch?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitCatch(expression: IrCatch, data: Unit): IrCatch =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitCatch(expression, data)
++        override fun visitCatch(aCatch: IrCatch, data: Unit): IrCatch =
++          f(IrUtils(pluginContext, compilerContext), aCatch) ?: super.visitCatch(aCatch, data)
+       }, Unit)
+     }
+ 
+   fun irBreakContinue(f: IrUtils.(IrBreakContinue) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitBreakContinue(expression: IrBreakContinue, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitBreakContinue(expression, data)
++        override fun visitBreakContinue(jump: IrBreakContinue, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), jump) ?: super.visitBreakContinue(jump, data)
+       }, Unit)
+     }
+ 
+   fun irBreak(f: IrUtils.(IrBreak) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitBreak(expression: IrBreak, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitBreak(expression, data)
++        override fun visitBreak(jump: IrBreak, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), jump) ?: super.visitBreak(jump, data)
+       }, Unit)
+     }
+ 
+   fun irContinue(f: IrUtils.(IrContinue) -> IrExpression?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitContinue(expression: IrContinue, data: Unit): IrExpression =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitContinue(expression, data)
++        override fun visitContinue(jump: IrContinue, data: Unit): IrExpression =
++          f(IrUtils(pluginContext, compilerContext), jump) ?: super.visitContinue(jump, data)
+       }, Unit)
+     }
+ 
+@@ -684,8 +684,8 @@ interface IrSyntax {
+   fun irErrorDeclaration(f: IrUtils.(IrErrorDeclaration) -> IrStatement?): IRGeneration =
+     IrGeneration { compilerContext, file, pluginContext ->
+       file.transformChildren(object : IrElementTransformer<Unit> {
+-        override fun visitErrorDeclaration(expression: IrErrorDeclaration, data: Unit): IrStatement =
+-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitErrorDeclaration(expression, data)
++        override fun visitErrorDeclaration(declaration: IrErrorDeclaration, data: Unit): IrStatement =
++          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitErrorDeclaration(declaration, data)
+       }, Unit)
+     }
+ 
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
+index cb9eba3b..9d7e096a 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
+@@ -595,4 +595,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
+   modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+ 
+   field.set(null, newValue)
+-}
+\ No newline at end of file
++}
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
+index 2f1505c2..2b88be42 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
+@@ -36,11 +36,11 @@ class IrUtils(
+     TypeTranslator(
+       symbolTable = pluginContext.symbols.externalSymbolTable,
+       languageVersionSettings = pluginContext.languageVersionSettings,
+-      builtIns = pluginContext.builtIns
++      builtIns = pluginContext.irBuiltIns.builtIns
+     ).apply translator@{
+       constantValueGenerator =
+         ConstantValueGenerator(
+-          moduleDescriptor = pluginContext.builtIns.builtInsModule.module,
++          moduleDescriptor = pluginContext.irBuiltIns.builtIns.builtInsModule.module,
+           symbolTable = pluginContext.symbols.externalSymbolTable
+         ).apply {
+           this.typeTranslator = this@translator
+@@ -57,8 +57,8 @@ class IrUtils(
+             endOffset = UNDEFINED_OFFSET,
+             type = irSimpleFunctionSymbol.owner.returnType,
+             symbol = irSimpleFunctionSymbol,
+-            typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
+-            valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
++            typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
++            valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
+           )
+         } ?: TODO("Unsupported irCall for $this")
+       }
+@@ -69,9 +69,9 @@ class IrUtils(
+           endOffset = UNDEFINED_OFFSET,
+           type = irSymbol.owner.returnType,
+           symbol = irSymbol,
+-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
+-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size,
+-          constructorTypeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size
++          typeArgumentsCount = irSymbol.owner.typeParameters.size,
++          valueArgumentsCount = irSymbol.owner.valueParameters.size,
++          constructorTypeArgumentsCount = irSymbol.owner.typeParameters.size
+         )
+       }
+       is FunctionDescriptor -> {
+@@ -81,8 +81,8 @@ class IrUtils(
+           endOffset = UNDEFINED_OFFSET,
+           type = irSymbol.owner.returnType,
+           symbol = irSymbol,
+-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
+-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size
++          typeArgumentsCount = irSymbol.owner.typeParameters.size,
++          valueArgumentsCount = irSymbol.owner.valueParameters.size
+         )
+       }
+       is FakeCallableDescriptorForObject -> {
+@@ -107,8 +107,8 @@ class IrUtils(
+         endOffset = UNDEFINED_OFFSET,
+         type = irSimpleFunctionSymbol.owner.returnType,
+         symbol = irSimpleFunctionSymbol,
+-        typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
+-        valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
++        typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
++        valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
+       )
+     }
+   }
+@@ -121,8 +121,8 @@ class IrUtils(
+         endOffset = UNDEFINED_OFFSET,
+         type = irConstructorSymbol.owner.returnType,
+         symbol = irConstructorSymbol,
+-        typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
+-        valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
++        typeArgumentsCount = irConstructorSymbol.owner.typeParameters.size,
++        valueArgumentsCount = irConstructorSymbol.owner.valueParameters.size,
+         constructorTypeArgumentsCount = declaredTypeParameters.size
+       )
+     }
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
+index c49b12a8..eaf03cf6 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/ir/ProofsIrCodegen.kt
+@@ -51,7 +51,7 @@ class ProofsIrCodegen(
+   ): IrExpression {
+     val irTypes = fn.substitutedIrTypes(typeSubstitutor).filterNotNull()
+     return fn.irCall().apply {
+-      if (this is IrMemberAccessExpression) {
++      if (this is IrMemberAccessExpression<*>) {
+         fn.typeParameters.forEachIndexed { n, descriptor ->
+           //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
+           putTypeArgument(n, irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType })
+@@ -137,7 +137,7 @@ class ProofsIrCodegen(
+     return if (targetType != null && valueType != null) {
+       it.apply {
+         val proofCall = extensionProofCall(valueType, targetType)
+-        if (proofCall is IrMemberAccessExpression) {
++        if (proofCall is IrMemberAccessExpression<*>) {
+           proofCall.extensionReceiver = initializer
+         }
+         proofCall?.also {
+@@ -156,7 +156,7 @@ class ProofsIrCodegen(
+ 
+   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
+     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
+-      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner.descriptor)
++      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner)
+       val upperBound = givenTypeParamUpperBound.givenUpperBound
+       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
+       else insertExtensionSyntaxCall(expression)
+@@ -164,17 +164,17 @@ class ProofsIrCodegen(
+     }
+ 
+   private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) {
+-    val valueType = expression.dispatchReceiver?.type?.toKotlinType()
+-      ?: expression.extensionReceiver?.type?.toKotlinType()
+-      ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
++    val valueType = expression.dispatchReceiver?.type?.originalKotlinType
++      ?: expression.extensionReceiver?.type?.originalKotlinType
++      ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.originalKotlinType else null)
+     val targetType =
+-      (expression.symbol.owner.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+-        ?: expression.symbol.owner.descriptor.extensionReceiverParameter?.type
+-        ?: expression.symbol.owner.descriptor.valueParameters.firstOrNull()?.type
++      (expression.symbol.owner.dispatchReceiverParameter?.parent as? FunctionDescriptor)?.dispatchReceiverParameter?.type
++        ?: expression.symbol.owner.extensionReceiverParameter?.type?.originalKotlinType
++        ?: expression.symbol.owner.valueParameters.firstOrNull()?.type?.originalKotlinType
+     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
+       expression.apply {
+         val proofCall = extensionProofCall(valueType, targetType)
+-        if (proofCall is IrMemberAccessExpression) {
++        if (proofCall is IrMemberAccessExpression<*>) {
+           when {
+             this.dispatchReceiver != null -> {
+               proofCall.extensionReceiver = this.dispatchReceiver
+@@ -193,11 +193,11 @@ class ProofsIrCodegen(
+             (valueType != targetType && expression.valueArgumentsCount > 0) -> {
+               dispatchReceiver = null
+ 
+-              expression.mapValueParametersIndexed { n: Int, v: ValueParameterDescriptor ->
+-                val valueArgument = expression.getValueArgument(n)
+-                val valueType2 = valueArgument?.type?.toKotlinType()!!
+-                val targetType2 = expression.symbol.owner.descriptor.valueParameters[n].type
+-                val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
++              expression.symbol.owner.valueParameters.forEach {
++                val valueArgument = expression.getValueArgument(it.index)
++                val valueType2 = valueArgument?.type?.originalKotlinType!!
++                val targetType2 = expression.symbol.owner.valueParameters[it.index].type.originalKotlinType!!
++                val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression<*>
+                 if (proofCall2 != null) {
+                   proofCall2.extensionReceiver = valueArgument
+                   if (proofCall2.typeArgumentsCount > 0) {
+@@ -222,10 +222,10 @@ class ProofsIrCodegen(
+     val upperBound = givenUpperBound.givenUpperBound
+     if (upperBound != null) {
+       givenUpperBound.givenValueParameters.forEach { valueParameterDescriptor ->
+-        val superType = valueParameterDescriptor.type
++        val superType = valueParameterDescriptor.type.originalKotlinType!!
+         givenProofCall(superType)?.apply {
+-          if (expression.getValueArgument(valueParameterDescriptor) == null)
+-            expression.putValueArgument(valueParameterDescriptor, this)
++          if (expression.getValueArgument(valueParameterDescriptor.index) == null)
++            expression.putValueArgument(valueParameterDescriptor.index, this)
+         }
+       }
+     }
+@@ -238,7 +238,7 @@ class ProofsIrCodegen(
+       it.backingField?.let { field ->
+         val replacement = field.initializer?.expression?.let {
+           extensionProofCall(valueType, targetType)?.apply {
+-            if (this is IrMemberAccessExpression)
++            if (this is IrMemberAccessExpression<*>)
+               extensionReceiver = it
+           }
+         }
+@@ -253,7 +253,7 @@ class ProofsIrCodegen(
+     val valueType = it.value.type.originalKotlinType
+     return if (targetType != null && valueType != null && targetType != valueType) {
+       extensionProofCall(valueType, targetType)?.let { call ->
+-        if (call is IrMemberAccessExpression)
++        if (call is IrMemberAccessExpression<*>)
+           call.extensionReceiver = it.value
+ 
+         IrReturnImpl(
+@@ -268,11 +268,11 @@ class ProofsIrCodegen(
+   }
+ 
+   fun CompilerContext.proveTypeOperator(it: IrTypeOperatorCall): IrExpression? {
+-    val targetType = it.type.toKotlinType()
+-    val valueType = it.argument.type.toKotlinType()
++    val targetType = it.type.originalKotlinType!!
++    val valueType = it.argument.type.originalKotlinType!!
+     return if (targetType != valueType) {
+       extensionProofCall(valueType, targetType)?.let { call ->
+-        if (call is IrMemberAccessExpression)
++        if (call is IrMemberAccessExpression<*>)
+           call.extensionReceiver = it.argument
+         call
+       }
+diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/GivenUpperBound.kt b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/GivenUpperBound.kt
+index d68e9052..06358a27 100644
+--- a/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/GivenUpperBound.kt
++++ b/compiler-plugin/src/main/kotlin/arrow/meta/plugins/proofs/phases/resolve/GivenUpperBound.kt
+@@ -1,15 +1,17 @@
+ package arrow.meta.plugins.proofs.phases.resolve
+ 
+ import arrow.meta.phases.resolve.intersection
+-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
++import org.jetbrains.kotlin.ir.declarations.IrFunction
++import org.jetbrains.kotlin.ir.declarations.IrValueParameter
++import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
++import org.jetbrains.kotlin.ir.util.findAnnotation
++import org.jetbrains.kotlin.js.resolve.JsPlatformAnalyzerServices.builtIns
+ import org.jetbrains.kotlin.name.FqName
+-import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+ import org.jetbrains.kotlin.types.KotlinType
+ import org.jetbrains.kotlin.types.typeUtil.isNothing
+ 
+ data class GivenUpperBound(
+-  val givenValueParameters: List<ValueParameterDescriptor>,
++  val givenValueParameters: List<IrValueParameter>,
+   val givenUpperBound: KotlinType?
+ ) {
+   companion object {
+@@ -22,7 +24,7 @@ data class GivenUpperBound(
+         givenUpperBound = null
+       )
+ 
+-    operator fun invoke(callableMemberDescriptor: CallableMemberDescriptor): GivenUpperBound {
++    operator fun invoke(callableMemberDescriptor: IrFunction): GivenUpperBound {
+       val givenValueParameters = callableMemberDescriptor.valueParameters
+         .mapNotNull {
+           if (it.type.annotations.findAnnotation(givenAnnotationName) != null)
+@@ -31,9 +33,9 @@ data class GivenUpperBound(
+         }
+       return if (givenValueParameters.isEmpty()) Empty
+       else {
+-        val intersection = givenValueParameters.fold(callableMemberDescriptor.builtIns.nothingType as KotlinType) { a, b ->
+-          if (a.isNothing()) b.type
+-          else a.intersection(b.type)
++        val intersection = givenValueParameters.fold(builtIns.nothingType as KotlinType) { a, b ->
++          if (a.isNothing()) b.type.originalKotlinType!!
++          else a.intersection(b.type.originalKotlinType!!)
+         }
+         GivenUpperBound(givenValueParameters, intersection)
+       }
+diff --git a/gradle.properties b/gradle.properties
+index 2e680f99..dcf95325 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -3,7 +3,7 @@ GROUP=io.arrow-kt
+ VERSION_NAME=1.4-M3-SNAPSHOT
+ # Dependencies versions
+ ARROW_VERSION=0.10.5
+-KOTLIN_VERSION=1.4-M3
++KOTLIN_VERSION=1.4.20-dev-2495
+ KOTLIN_IDEA_VERSION=1.4-M3-release-IJ2020.1-1@EAP-NEXT
+ INTELLIJ_IDEA_VERSION=2020.1.2
+ JVM_TARGET_VERSION=1.8
+@@ -13,7 +13,7 @@ IDEA_APACHE_ANT_VERSION=1.10.5
+ DOKKA_VERSION=0.10.0
+ CLASS_GRAPH_VERSION=4.8.47
+ JUNIT_VINTAGE_VERSION=5.4.0
+-KOTLIN_COMPILE_TESTING=1.2.8.1
++KOTLIN_COMPILE_TESTING=1.4.20-dev-2495
+ SHADOW_JAR_VERSION=5.0.0
+ BINTRAY_VERSION=1.8.4
+ GRADLE_VERSION=5.6.4
