@@ -1,19 +1,17 @@
 package arrow.meta.ide.plugins.proofs.annotators.coercion
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.annotators.addLocalQuickFix
+import arrow.meta.ide.plugins.proofs.annotators.addProblemDescriptor
 import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.coerceProof
 import com.intellij.codeInsight.daemon.impl.quickfix.GoToSymbolFix
-import com.intellij.codeInspection.LocalQuickFixBase
-import com.intellij.codeInspection.ProblemDescriptor
-import com.intellij.codeInspection.ProblemDescriptorBase
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
@@ -40,8 +38,20 @@ val IdeMetaPlugin.coercionAnnotatorImplicit: ExtensionPhase
                       text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktDotQualifiedExpression).orEmpty())
                   }
                 }.render()
-                val makeCoercionImplicitFix = ktDotQualifiedExpression.localQuickFixBase()
-                val problemDescriptor = ktDotQualifiedExpression.problemDescriptorBase(makeCoercionImplicitFix)
+                val makeCoercionImplicitFix = addLocalQuickFix(
+                  name = "Make coercion implicit",
+                  familyName = "Coercion",
+                  applyFix = { _, _ ->
+                    ktDotQualifiedExpression.replace(ktDotQualifiedExpression.receiverExpression)
+                  }
+                )
+                val problemDescriptor = addProblemDescriptor(
+                  startElement = ktDotQualifiedExpression,
+                  endElement = ktDotQualifiedExpression,
+                  descriptionTemplate = "Make coercion implicit",
+                  localQuickFixes = arrayOf(makeCoercionImplicitFix),
+                  highlightType = ProblemHighlightType.WARNING
+                )
                 holder.newAnnotation(HighlightSeverity.WARNING, htmlMessage)
                   .range(ktDotQualifiedExpression.textRange)
                   .tooltip(htmlMessage)
@@ -53,24 +63,4 @@ val IdeMetaPlugin.coercionAnnotatorImplicit: ExtensionPhase
           }
         }
     }
-  )
-
-private fun KtDotQualifiedExpression.localQuickFixBase() =
-  object : LocalQuickFixBase("Make coercion implicit", "Coercion") {
-    override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-      replace(receiverExpression)
-    }
-  }
-
-private fun KtDotQualifiedExpression.problemDescriptorBase(makeCoercionImplicitFix: LocalQuickFixBase) =
-  ProblemDescriptorBase(
-    this,
-    this,
-    "Make coercion implicit",
-    arrayOf(makeCoercionImplicitFix),
-    ProblemHighlightType.WARNING,
-    false,
-    null,
-    false,
-    true // ?
   )
