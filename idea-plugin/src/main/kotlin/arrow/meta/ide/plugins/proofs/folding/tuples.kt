@@ -4,6 +4,7 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.strictParents
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
@@ -24,8 +25,10 @@ fun KtTypeReference.tupleTypeMatches(): Boolean =
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
+private val tuplesFqName = FqName("arrow.tuples")
+
 private fun KotlinType?.isTypeMatching() =
-  this?.constructor?.declarationDescriptor?.fqNameSafe?.asString()?.startsWith("arrow.tuples.Tuple") ?: false
+  this?.constructor?.declarationDescriptor?.fqNameSafe?.parent() == tuplesFqName
 
 private fun KtTypeReference.foldString(): String =
   firstChild.safeAs<KtUserType>()?.typeArgumentList?.let { ktTypeArgList: KtTypeArgumentList ->
