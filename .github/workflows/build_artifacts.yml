@@ -17,7 +17,7 @@ jobs:
     - name: Check next version
       run: |
         echo "Is there an upcoming version to check?"
-        # sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
+        sed -i "s/mavenCentral()/mavenCentral()\\nmaven { url \"https:\/\/dl.bintray.com\/kotlin\/kotlin-dev\/\" }/g" build.gradle
         for patch in $(ls -v .github/workflows/sandbox/*.diff); do
           echo "Checking $patch ..."
           PATCH_VERSION=$(basename -s .diff $patch)

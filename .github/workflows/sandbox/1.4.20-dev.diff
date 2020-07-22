@@ -1,25 +1,3 @@
-diff --git a/build.gradle b/build.gradle
-index 503b12b5..9fda9fdf 100644
---- a/build.gradle
-+++ b/build.gradle
-@@ -1,7 +1,7 @@
- buildscript {
-   repositories {
-     mavenCentral()
--    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
-+    maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
-   }
-   dependencies {
-     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
-@@ -39,7 +39,7 @@ allprojects {
-     }
-     mavenCentral()
-     jcenter()
--    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
-+    maven { url "https://dl.bintray.com/kotlin/kotlin-dev/" }
-     // TODO: A temporary version from a fork of com.github.tschuchortdev:kotlin-compile-testing is needed
-     maven { url "https://jitpack.io" }
-   }
 diff --git a/compiler-plugin/build.gradle b/compiler-plugin/build.gradle
 index 28e35168..f52ddeb1 100644
 --- a/compiler-plugin/build.gradle

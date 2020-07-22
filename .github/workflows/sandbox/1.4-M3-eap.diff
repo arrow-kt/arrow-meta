@@ -29,23 +29,13 @@ index dc0c668e..8fb2de7b 100644
          SINCE_BUILD=$(cat plugin.xml | grep -o -e 'since-build="[^"]\+"' | cut -d= -f2)
          UNTIL_BUILD=$(cat plugin.xml | grep -o -e 'until-build="[^"]\+"' | cut -d= -f2)
 diff --git a/build.gradle b/build.gradle
-index 1cab7b6a..503b12b5 100644
+index 1cab7b6a..a11ab746 100644
 --- a/build.gradle
 +++ b/build.gradle
-@@ -1,6 +1,7 @@
- buildscript {
-   repositories {
-     mavenCentral()
-+    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
-   }
-   dependencies {
-     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
-@@ -38,7 +39,9 @@ allprojects {
-     }
+@@ -39,6 +39,8 @@ allprojects {
      mavenCentral()
      jcenter()
--    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-+    maven { url "https://dl.bintray.com/kotlin/kotlin-eap/" }
+     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
 +    // TODO: A temporary version from a fork of com.github.tschuchortdev:kotlin-compile-testing is needed
 +    maven { url "https://jitpack.io" }
    }
