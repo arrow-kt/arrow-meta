@@ -22,10 +22,10 @@ object FoldingBuilderTestCode {
     """
     package prelude
     
-    import arrow.core.Tuple2
-    import arrow.core.Tuple3
-    import arrow.core.Tuple4
-    import arrow.core.tupleOf
+    import arrow.tuples.Tuple2
+    import arrow.tuples.Tuple3
+    import arrow.tuples.Tuple4
+    import arrow.tuples.tupleOf
     
     val tuple2: Tuple2<Int, Int> = tupleOf(2, 2)
     val tuple3: Tuple3<Int, Int, String> = tupleOf(2, 2, "47Degrees")
@@ -62,7 +62,7 @@ object FoldingBuilderTestCode {
 
   val tuplePrelude =
     """
-    package arrow.core
+    package arrow.tuples
 
     interface TupleN {
       val value: Array<Any?>
