@@ -33,10 +33,12 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest1 for 1 implicit coercion property") { result: List<HighlightInfo> ->
             result.size == 1 &&
-              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
-              result[0].severity == HighlightSeverity.INFORMATION &&
-              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.twitterHandle") &&
-              result[0].description.contains("Implicit coercion applied by")
+              result.getOrNull(0)?.assertAnnotation(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.twitterHandle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ),
         IdeTest(
@@ -46,10 +48,12 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest2 for 1 implicit coercion property") { result: List<HighlightInfo> ->
             result.size == 1 &&
-              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
-              result[0].severity == HighlightSeverity.INFORMATION &&
-              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.handle") &&
-              result[0].description.contains("Implicit coercion applied by")
+              result.getOrNull(0)?.assertAnnotation(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.handle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ),
         IdeTest(
@@ -59,16 +63,18 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest3 for 2 implicit coercion valueArgs") { result: List<HighlightInfo> ->
             result.size == 2 &&
-
-              result[0].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
-              result[0].severity == HighlightSeverity.INFORMATION &&
-              result[0].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.handle") &&
-              result[0].description.contains("Implicit coercion applied by") &&
-
-              result[1].forcedTextAttributes == implicitProofAnnotatorTextAttributes &&
-              result[1].severity == HighlightSeverity.INFORMATION &&
-              result[1].quickFixActionRanges[0].first.action.text.contains("Go to proof: consumer.twitterHandle") &&
-              result[1].description.contains("Implicit coercion applied by")
+              result.getOrNull(0)?.assertAnnotation(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.handle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true &&
+              result.getOrNull(1)?.assertAnnotation(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.twitterHandle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ))
     }

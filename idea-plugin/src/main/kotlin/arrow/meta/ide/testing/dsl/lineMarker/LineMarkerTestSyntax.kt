@@ -37,11 +37,7 @@ interface LineMarkerTestSyntax {
    */
   fun List<PsiElement>.collectLM(icon: Icon): List<LineMarkerInfo<PsiElement>> =
     LineMarkerProviders.getInstance().allForLanguage(KotlinLanguage.INSTANCE)
-      .mapNotNull { lineMarkerProvider: LineMarkerProvider ->
-        mapNotNull { p: PsiElement ->
-          lineMarkerProvider.getLineMarkerInfo(p)
-        }
-      }.flatten()
+      .mapNotNull { mapNotNull { p: PsiElement -> it.getLineMarkerInfo(p) } }.flatten()
       .filter { it.icon == icon }
 
   /**
