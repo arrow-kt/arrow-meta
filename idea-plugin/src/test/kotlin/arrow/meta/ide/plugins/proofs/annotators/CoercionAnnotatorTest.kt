@@ -33,7 +33,7 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest1 for 1 implicit coercion property") { result: List<HighlightInfo> ->
             result.size == 1 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.twitterHandle",
@@ -48,7 +48,7 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest2 for 1 implicit coercion property") { result: List<HighlightInfo> ->
             result.size == 1 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.handle",
@@ -63,13 +63,13 @@ class CoercionAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("CoercionAnnotatorTest3 for 2 implicit coercion valueArgs") { result: List<HighlightInfo> ->
             result.size == 2 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.handle",
                 containsDescription = "Implicit coercion applied by"
               ) == true &&
-              result.getOrNull(1)?.assertAnnotation(
+              result.getOrNull(1)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.twitterHandle",

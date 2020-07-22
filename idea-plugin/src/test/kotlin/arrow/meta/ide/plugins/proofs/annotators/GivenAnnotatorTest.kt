@@ -33,13 +33,13 @@ class GivenAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("GivenAnnotatorTest1 for 2 given injectors") { result: List<HighlightInfo> ->
             result.size == 2 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.x",
                 containsDescription = "is implicitly injected by given proof"
               ) == true &&
-              result.getOrNull(1)?.assertAnnotation(
+              result.getOrNull(1)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.y",
@@ -54,13 +54,13 @@ class GivenAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("GivenAnnotatorTest2 for 4 given injectors") { result: List<HighlightInfo> ->
             result.size == 4 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.x",
                 containsDescription = "Implicit injection by given proof"
               ) == true &&
-              result.getOrNull(3)?.assertAnnotation(
+              result.getOrNull(3)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.y",
@@ -75,7 +75,7 @@ class GivenAnnotatorTest : IdeTestSetUp(
           },
           result = resolvesWhen("GivenAnnotatorTest3 for 1 given injector") { result: List<HighlightInfo> ->
             result.size == 1 &&
-              result.getOrNull(0)?.assertAnnotation(
+              result.getOrNull(0)?.matches(
                 textAttributes = implicitProofAnnotatorTextAttributes,
                 highlightSeverity = HighlightSeverity.INFORMATION,
                 containsActionText = "Go to proof: consumer.x",
@@ -104,12 +104,14 @@ class GivenAnnotatorTest : IdeTestSetUp(
     get() = listOf(Pass.LINE_MARKERS, Pass.EXTERNAL_TOOLS, Pass.POPUP_HINTS, Pass.UPDATE_FOLDING, Pass.WOLF)
 }
 
-fun HighlightInfo.assertAnnotation(
+internal fun HighlightInfo?.matches(
   textAttributes: TextAttributes,
   highlightSeverity: HighlightSeverity,
   containsActionText: String,
   containsDescription: String
-) = forcedTextAttributes == textAttributes &&
-  severity == highlightSeverity &&
-  quickFixActionRanges.getOrNull(0)?.first?.action?.text.orEmpty().contains(containsActionText) &&
-  description.contains(containsDescription)
+): Boolean = this?.let {
+  forcedTextAttributes == textAttributes &&
+    severity == highlightSeverity &&
+    quickFixActionRanges.getOrNull(0)?.first?.action?.text.orEmpty().contains(containsActionText) &&
+    description.contains(containsDescription)
+} ?: false
