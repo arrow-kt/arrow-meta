@@ -31,7 +31,7 @@ val IdeMetaPlugin.coercionAnnotatorImplicit: ExtensionPhase
         ?.let { ktDotQualifiedExpression: KtDotQualifiedExpression ->
           ktDotQualifiedExpression.implicitParticipatingTypes()?.let { (subtype, supertype) ->
             ctx.coerceProof(subtype, supertype)?.let { proof ->
-              proof.through.findPsi()?.let { proofPsi ->
+              proof.through.findPsi().safeAs<KtNamedDeclaration>()?.let { proofPsi ->
                 val htmlMessage = html {
                   body {
                     text("Apply implicit coercion available by") +
@@ -55,7 +55,7 @@ val IdeMetaPlugin.coercionAnnotatorImplicit: ExtensionPhase
                 holder.newAnnotation(HighlightSeverity.WARNING, htmlMessage)
                   .range(ktDotQualifiedExpression.textRange)
                   .tooltip(htmlMessage)
-                  .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktDotQualifiedExpression.textRange).registerFix()
+                  .newFix(GoToSymbolFix(proofPsi, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktDotQualifiedExpression.textRange).registerFix()
                   .newLocalQuickFix(makeCoercionImplicitFix, problemDescriptor).range(ktDotQualifiedExpression.textRange).registerFix()
                   .create()
               }
