@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val IdeMetaPlugin.coercionAnnotatorExplicitProperty: ExtensionPhase
+val IdeMetaPlugin.explicitPropertyCoercion: ExtensionPhase
   get() = addAnnotator(
     annotator = Annotator { element: PsiElement, holder: AnnotationHolder ->
       val ctx = element.project.getService(CompilerContext::class.java)

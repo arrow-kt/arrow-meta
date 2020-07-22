@@ -6,7 +6,7 @@ import arrow.meta.phases.ExtensionPhase
 
 val IdeMetaPlugin.coercionAnnotator: ExtensionPhase
   get() = Composite(
-    coercionAnnotatorImplicit,
-    coercionAnnotatorExplicitProperty,
-    coercionAnnotatorExplicitValArgument
+    implicitCoercion,
+    explicitPropertyCoercion,
+    explicitValArgumentCoercion
   )
