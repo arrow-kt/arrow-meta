@@ -368,17 +368,6 @@ index c786c07c..19858952 100644
        }, Unit)
      }
  
-diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-index cb9eba3b..9d7e096a 100644
---- a/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-+++ b/compiler-plugin/src/main/kotlin/arrow/meta/internal/registry/InternalRegistry.kt
-@@ -595,4 +595,4 @@ internal fun setFinalStatic(field: Field, newValue: Any) {
-   modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
- 
-   field.set(null, newValue)
--}
-\ No newline at end of file
-+}
 diff --git a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt b/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
 index 2f1505c2..2b88be42 100644
 --- a/compiler-plugin/src/main/kotlin/arrow/meta/phases/codegen/ir/IrUtils.kt
