@@ -648,15 +648,6 @@ diff --git a/gradle.properties b/gradle.properties
 index 2e680f99..dcf95325 100644
 --- a/gradle.properties
 +++ b/gradle.properties
-@@ -3,7 +3,7 @@ GROUP=io.arrow-kt
- VERSION_NAME=1.4-M3-SNAPSHOT
- # Dependencies versions
- ARROW_VERSION=0.10.5
--KOTLIN_VERSION=1.4-M3
-+KOTLIN_VERSION=1.4.20-dev-2495
- KOTLIN_IDEA_VERSION=1.4-M3-release-IJ2020.1-1@EAP-NEXT
- INTELLIJ_IDEA_VERSION=2020.1.2
- JVM_TARGET_VERSION=1.8
 @@ -13,7 +13,7 @@ IDEA_APACHE_ANT_VERSION=1.10.5
  DOKKA_VERSION=0.10.0
  CLASS_GRAPH_VERSION=4.8.47
