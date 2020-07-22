@@ -94,42 +94,42 @@ jobs:
     #    branch: "sync/kotlin-${{ steps.prepare-pr.outputs.last-commit-hash }}"
     #    commit-message: "Sync versions for Kotlin, Kotlin IDEA plugin and Intellij IDEA"
     #    author: "raulraja <raulraja@users.noreply.github.com>"
-    - name: Prepare environment to create the issue (Node)
-      if: failure()
-      uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    - name: Prepare environment to create the issue (new package)
-      if: failure()
-      run: |
-        echo -e "I've found this error:\n\n" > issue.log
-        echo -e "* **VERSIONS**: $(cat versions)\n" >> issue.log
-        echo -e "* **NOTE**: If you want to reproduce the error in a local environment, replace the versions in \`gradle.properties\` file and add \`https://dl.bintray.com/kotlin/kotlin-dev/\` repository in \`build.gradle\`.\n" >> issue.log
-        echo -e "* **ERROR LOG**: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks\n" >> issue.log
-        echo -e "* **ERROR**:\n\n$(cat stderr)\n" >> issue.log
-        rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
-        cd /home/runner/work/_actions/actions/github-script/0.3.0/
-        npm install
-        npm install xmlhttprequest
-    - name: Create the issue
-      if: failure()
-      uses: actions/github-script@0.3.0
-      with:
-        github-token: ${{github.token}}
-        script: |
-          var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-          function readFile(file) {
-            var content;
-            var rawFile = new XMLHttpRequest();
-            rawFile.open("GET", file, false);
-            rawFile.onreadystatechange = function () {
-                content = rawFile.responseText;
-            }
-            rawFile.send();
-            return content;
-          }
-          await github.issues.create({...context.repo, 
-            title: 'Sync: ' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/versions"), 
-            body: readFile("file:///home/runner/work/arrow-meta/arrow-meta/issue.log"),
-            assignees: ['raulraja', 'i-walker', 'rachelcarmena'],
-            labels: ['critical', 'Kotlin version upgrade']});
+    #- name: Prepare environment to create the issue (Node)
+    #  if: failure()
+    #  uses: actions/setup-node@v1
+    #  with:
+    #    node-version: '10.x'
+    #- name: Prepare environment to create the issue (new package)
+    #  if: failure()
+    #  run: |
+    #    echo -e "I've found this error:\n\n" > issue.log
+    #    echo -e "* **VERSIONS**: $(cat versions)\n" >> issue.log
+    #    echo -e "* **NOTE**: If you want to reproduce the error in a local environment, replace the versions in \`gradle.properties\` file and add \`https://dl.bintray.com/kotlin/kotlin-dev/\` repository in \`build.gradle\`.\n" >> issue.log
+    #    echo -e "* **ERROR LOG**: https://github.com/arrow-kt/arrow-meta/commit/$GITHUB_SHA/checks\n" >> issue.log
+    #    echo -e "* **ERROR**:\n\n$(cat stderr)\n" >> issue.log
+    #    rm -rf /home/runner/work/_actions/actions/github-script/0.3.0/node_modules
+    #    cd /home/runner/work/_actions/actions/github-script/0.3.0/
+    #    npm install
+    #    npm install xmlhttprequest
+    #- name: Create the issue
+    #  if: failure()
+    #  uses: actions/github-script@0.3.0
+    #  with:
+    #    github-token: ${{github.token}}
+    #    script: |
+    #      var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+    #      function readFile(file) {
+    #        var content;
+    #        var rawFile = new XMLHttpRequest();
+    #        rawFile.open("GET", file, false);
+    #        rawFile.onreadystatechange = function () {
+    #            content = rawFile.responseText;
+    #        }
+    #        rawFile.send();
+    #        return content;
+    #      }
+    #      await github.issues.create({...context.repo, 
+    #        title: 'Sync: ' + readFile("file:///home/runner/work/arrow-meta/arrow-meta/versions"), 
+    #        body: readFile("file:///home/runner/work/arrow-meta/arrow-meta/issue.log"),
+    #        assignees: ['raulraja', 'i-walker', 'rachelcarmena'],
+    #        labels: ['critical', 'Kotlin version upgrade']});
