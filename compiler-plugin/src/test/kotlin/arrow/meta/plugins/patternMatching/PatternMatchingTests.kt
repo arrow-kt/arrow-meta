@@ -45,7 +45,7 @@ class PatternMatchingTests {
   @Test
   fun `without case expression fails with unresolved references for captured params`() {
     val code =
-       """$prelude
+      """$prelude
          $person
 
          val result = when (person) {
@@ -57,6 +57,25 @@ class PatternMatchingTests {
     code verify {
       allOf(
         failsWith { it.contains("Unresolved reference: _") }
+      )
+    }
+  }
+
+  @Test
+  fun `with case expression and all wildcards`() {
+    val code =
+      """$prelude
+         $person
+
+         val result = when (person) {
+           case(Person(_, _)) -> "Matched"
+           else -> "Not matched"
+         }
+       """
+
+    code verify {
+      allOf(
+        "result".source.evalsTo("Matched")
       )
     }
   }
