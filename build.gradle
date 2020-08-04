@@ -36,6 +36,7 @@ subprojects { project ->
 
   apply plugin: 'kotlin'
   apply plugin: 'maven-publish'
+  apply plugin: 'org.jetbrains.dokka'
 
   publishing {
       publications {
