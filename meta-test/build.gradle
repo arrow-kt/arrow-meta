@@ -1,5 +1,3 @@
-apply plugin: 'kotlin'
-
 dependencies {
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
