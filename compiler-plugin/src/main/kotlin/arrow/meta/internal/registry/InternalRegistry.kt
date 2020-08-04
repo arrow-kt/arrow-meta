@@ -233,8 +233,6 @@ interface InternalRegistry : ConfigSyntax {
   }
 
   fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
-    if (!project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName))
-      SyntheticScopeProviderExtension.registerExtensionPoint(project)
     SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
       override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
         phase.run {
