@@ -34,8 +34,8 @@ subprojects { project ->
   version = VERSION_NAME
 
   apply plugin: 'kotlin'
-  apply plugin: 'maven-publish'
   apply plugin: 'org.jetbrains.dokka'
+  apply plugin: 'maven-publish'
 
   publishing {
       publications {
