@@ -13,7 +13,6 @@ plugins {
 }
 
 apply plugin: 'ank-gradle-plugin'
-apply plugin: 'kotlin-kapt'
 
 dependencies {
     compile project(':idea-plugin')
