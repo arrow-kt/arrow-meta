@@ -1,6 +1,5 @@
 plugins {
   id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
-  id 'org.jetbrains.kotlin.kapt' version "$KOTLIN_VERSION"
   id "org.jetbrains.dokka" version "$DOKKA_VERSION"
   id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
   id 'maven-publish'
