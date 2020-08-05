@@ -41,7 +41,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.dsl.utils.intersectFunction

@@ -25,7 +25,7 @@ interface IconProviderSyntax {
   /**
    * registers an [IconProvider].
    * One minimal example from [KotlinIconProvider], may look like this:
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -66,7 +66,7 @@ interface IconProviderSyntax {
    * registers an [IconProvider]
    * `TransformIcon<A>` is an alias for `Pair<Icon, (psiElement: PsiElement, flag: Int) -> A?>`
    * If only one [IconProvider] is desired, we may use [addIcons] and create those `Pairs` with [icon].
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke

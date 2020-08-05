@@ -40,14 +40,14 @@ interface ApplicationSyntax {
    * even though the service can be retrieved multiple times with [ServiceManager.getService] or [com.intellij.openapi.project.Project.getService] for project-level services.
    * It is impeccable that there is only one [instance] implementation for a given [service] to fulfill coherence in the ide.
    * The ide will throw an exception, if that premise is not met.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * interface MyService {
    *   fun printLn(f: KtNamedFunction): Unit
    * }
    * ```
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -119,7 +119,7 @@ interface ApplicationSyntax {
   /**
    * replaces an application [service] with [instance].
    * In this example this [Annotator] needs a different [instance] for `MyService` than what is currently provided - see our example in [addAppService].
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -185,7 +185,7 @@ interface ApplicationSyntax {
    * @param instance hijacks the existing instance [A] from the IDE and registers the new instance [A]. The hijacked instance is preserved, when [instance] returns null.
    * There are several use-cases like [org.jetbrains.kotlin.caches.resolve.KotlinCacheService] for project-level services.
    * The following example registers a logger for the KotlinCacheService by hijacking it's standard implementation from the kotlin plugin.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
