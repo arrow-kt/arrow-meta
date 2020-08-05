@@ -132,7 +132,7 @@ interface LineMarkerSyntax {
    * [addLineMarkerProvider] is a convenience extension, which registers the Leaf element of a composite PsiElement [A] e.g.: `KtClass`
    * and circumvents effort's to find the right PsiElement.
    * In addition, plugin developer's can compose sophisticated messages, as the whole scope of [A] can be exploited.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons

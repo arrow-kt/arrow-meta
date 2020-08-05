@@ -34,7 +34,7 @@ interface ToolWindowSyntax {
    * registers an Action with the title [toolId] and [actionId].
    * When the user executes the latter a tool window with displayName [toolId] is activated or registered by absence.
    * The following example enables the internal `Fir Explorer`, whenever the current document is a kotlin file.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
@@ -122,7 +122,7 @@ interface ToolWindowSyntax {
 
   /**
    * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
@@ -230,7 +230,7 @@ interface ToolWindowSyntax {
   /**
    * constructs a [JPanel] with an [Editor] inside.
    *
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
