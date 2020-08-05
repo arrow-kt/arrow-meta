@@ -16,6 +16,11 @@ class GradleTypeproofsTest : GradleTestSetUp() {
 
       val arrowProjectDir = myProjectRoot.findChild("arrow-typeproofs")
       myProjectRoot = arrowProjectDir
+
+      // TODO: remove after merging https://github.com/arrow-kt/arrow-typeproofs/pull/10
+      val checkoutResult = gitCheckout(myProject, "1.4.0-rc", myProjectRoot)
+      assertTrue(checkoutResult.success())
+
       importProject()
       assertNotNull(ModuleManager.getInstance(myProject).findModuleByName("arrow-typeproofs"))
       assertNotNull(ModuleManager.getInstance(myProject).findModuleByName("arrow-typeproofs.main"))
