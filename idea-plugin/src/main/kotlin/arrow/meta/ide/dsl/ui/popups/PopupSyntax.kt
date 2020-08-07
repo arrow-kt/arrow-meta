@@ -28,7 +28,7 @@ import javax.swing.event.HyperlinkEvent
  */
 interface PopupSyntax {
   /**
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.dsl.ui.popups.IdeListPopupItem
