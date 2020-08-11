@@ -16,54 +16,54 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import com.intellij.openapi.project.Project
 
-interface IDESyntheticResolver : ExtensionPhase {
+interface IdeSyntheticResolver : ExtensionPhase {
   fun syntheticResolver(project: Project): SyntheticResolver?
 }
 
-interface IDEPackageProvider : ExtensionPhase {
+interface IdePackageProvider : ExtensionPhase {
   fun packageFragmentProvider(project: Project): PackageProvider?
 }
 
-interface IDESyntheticScopeProvider : ExtensionPhase {
+interface IdeSyntheticScopeProvider : ExtensionPhase {
   fun syntheticScopeProvider(project: Project): SyntheticScopeProvider?
 }
 
-interface IDEIRGeneration : ExtensionPhase {
+interface IdeIRGeneration : ExtensionPhase {
   fun irGeneration(project: Project): IRGeneration?
 }
 
-interface IDEDeclarationAttributeAlterer : ExtensionPhase {
+interface IdeDeclarationAttributeAlterer : ExtensionPhase {
   fun declarationAttributeAlterer(project: Project): DeclarationAttributeAlterer?
 }
 
-interface IDECodegen : ExtensionPhase {
+interface IdeCodegen : ExtensionPhase {
   fun codegen(project: Project): Codegen?
 }
 
-interface IDEClassBuilder : ExtensionPhase {
+interface IdeClassBuilder : ExtensionPhase {
   fun classBuilder(project: Project): ClassBuilder?
 }
 
-interface IDEAnalysisHandler : ExtensionPhase {
+interface IdeAnalysisHandler : ExtensionPhase {
   fun analysisHandler(project: Project): AnalysisHandler?
 }
 
-interface IDEStorageComponentContainer : ExtensionPhase {
+interface IdeStorageComponentContainer : ExtensionPhase {
   fun storageComponentContainer(project: Project): StorageComponentContainer?
 }
 
-interface IDEPreprocessedVirtualFileFactory : ExtensionPhase {
+interface IdePreprocessedVirtualFileFactory : ExtensionPhase {
   fun preprocessedVirtualFileFactory(project: Project): PreprocessedVirtualFileFactory?
 }
 
-interface IDEExtraImports : ExtensionPhase {
+interface IdeExtraImports : ExtensionPhase {
   fun extraImports(project: Project): ExtraImports?
 }
 
-interface IDEConfig : ExtensionPhase {
+interface IdeConfig : ExtensionPhase {
   fun config(project: Project): Config?
 }
 
-interface IDECollectAdditionalSources : ExtensionPhase {
+interface IdeCollectAdditionalSources : ExtensionPhase {
   fun collectAdditionalSources(project: Project): CollectAdditionalSources?
 }

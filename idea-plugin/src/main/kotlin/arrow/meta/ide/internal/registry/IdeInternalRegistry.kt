@@ -94,48 +94,47 @@ interface IdeInternalRegistry : InternalRegistry {
             is SyntheticResolver -> ctx.app.registerCliExtension { ctx -> registerSyntheticResolver(this, phase, ctx) }
 
             // cli-ide integration extensions
-            is IDESyntheticResolver -> ctx.app.registerCliExtension { ctx ->
+            is IdeSyntheticResolver -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticResolver(this)?.let { phase -> registerSyntheticResolver(this, phase, ctx) }
             }
-            is IDEPackageProvider -> ctx.app.registerCliExtension { ctx ->
+            is IdePackageProvider -> ctx.app.registerCliExtension { ctx ->
               phase.packageFragmentProvider(this)?.let { phase -> packageFragmentProvider(this, phase, ctx) }
             }
-            is IDESyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
+            is IdeSyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticScopeProvider(this)?.let { phase -> registerSyntheticScopeProvider(this, phase, ctx) }
             }
-            is IDEIRGeneration -> ctx.app.registerCliExtension { ctx ->
+            is IdeIRGeneration -> ctx.app.registerCliExtension { ctx ->
               phase.irGeneration(this)?.let { phase -> registerIRGeneration(this, phase, ctx) }
             }
-            is IDEDeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
+            is IdeDeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
               phase.declarationAttributeAlterer(this)?.let { phase -> registerDeclarationAttributeAlterer(this, phase, ctx) }
             }
-            is IDECodegen -> ctx.app.registerCliExtension { ctx ->
+            is IdeCodegen -> ctx.app.registerCliExtension { ctx ->
               phase.codegen(this)?.let { phase -> registerCodegen(this, phase, ctx) }
             }
-            is IDEClassBuilder -> ctx.app.registerCliExtension { ctx ->
+            is IdeClassBuilder -> ctx.app.registerCliExtension { ctx ->
               phase.classBuilder(this)?.let { phase -> registerClassBuilder(this, phase, ctx) }
             }
-            is IDEAnalysisHandler -> ctx.app.registerCliExtension { ctx ->
+            is IdeAnalysisHandler -> ctx.app.registerCliExtension { ctx ->
               phase.analysisHandler(this)?.let { phase -> registerAnalysisHandler(this, phase, ctx) }
             }
-            is IDEStorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
+            is IdeStorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
               phase.storageComponentContainer(this)?.let { phase -> registerStorageComponentContainer(this, phase, ctx) }
             }
-            is IDEPreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
+            is IdePreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
               phase.preprocessedVirtualFileFactory(this)?.let { phase -> registerPreprocessedVirtualFileFactory(this, phase, ctx) }
             }
-            is IDEExtraImports -> ctx.app.registerCliExtension { ctx ->
+            is IdeExtraImports -> ctx.app.registerCliExtension { ctx ->
               phase.extraImports(this)?.let { phase -> registerExtraImports(this, phase, ctx) }
             }
-            is IDEConfig -> ctx.app.registerCliExtension { ctx ->
+            is IdeConfig -> ctx.app.registerCliExtension { ctx ->
               phase.config(this)?.let { phase -> registerCompilerConfiguration(this, phase, ctx) }
             }
-            is IDECollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
+            is IdeCollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
               phase.collectAdditionalSources(this)?.let { phase -> registerCollectAdditionalSources(this, phase, ctx) }
             }
             is KotlinIndicesHelper -> ctx.app.registerCliExtension { ctx -> kotlinIndicesHelper(phase, ctx) }
 
-            // TODO: add more integrations
             // ide related extensions
             is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
             is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)

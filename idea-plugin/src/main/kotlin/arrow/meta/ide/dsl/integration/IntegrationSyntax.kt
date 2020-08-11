@@ -32,91 +32,91 @@ interface IntegrationSyntax {
   fun MetaIde.syntheticResolver(
     f: (Project) -> SyntheticResolver?
   ): ExtensionPhase =
-    object : IDESyntheticResolver {
+    object : IdeSyntheticResolver {
       override fun syntheticResolver(project: Project): SyntheticResolver? = f(project)
     }
 
   fun MetaIde.packageFragmentProvider(
     f: (Project) -> PackageProvider?
   ): ExtensionPhase =
-    object : IDEPackageProvider {
+    object : IdePackageProvider {
       override fun packageFragmentProvider(project: Project): PackageProvider? = f(project)
     }
 
   fun MetaIde.syntheticScopeProvider(
     f: (Project) -> SyntheticScopeProvider?
   ): ExtensionPhase =
-    object : IDESyntheticScopeProvider {
+    object : IdeSyntheticScopeProvider {
       override fun syntheticScopeProvider(project: Project): SyntheticScopeProvider? = f(project)
     }
 
   fun MetaIde.irGeneration(
     f: (Project) -> IRGeneration?
   ): ExtensionPhase =
-    object : IDEIRGeneration {
+    object : IdeIRGeneration {
       override fun irGeneration(project: Project): IRGeneration? = f(project)
     }
 
   fun MetaIde.declarationAttributeAlterer(
     f: (Project) -> DeclarationAttributeAlterer?
   ): ExtensionPhase =
-    object : IDEDeclarationAttributeAlterer {
+    object : IdeDeclarationAttributeAlterer {
       override fun declarationAttributeAlterer(project: Project): DeclarationAttributeAlterer? = f(project)
     }
 
   fun MetaIde.codegen(
     f: (Project) -> Codegen?
   ): ExtensionPhase =
-    object : IDECodegen {
+    object : IdeCodegen {
       override fun codegen(project: Project): Codegen? = f(project)
     }
 
   fun MetaIde.classBuilder(
     f: (Project) -> ClassBuilder?
   ): ExtensionPhase =
-    object : IDEClassBuilder {
+    object : IdeClassBuilder {
       override fun classBuilder(project: Project): ClassBuilder? = f(project)
     }
 
   fun MetaIde.analysisHandler(
     f: (Project) -> AnalysisHandler?
   ): ExtensionPhase =
-    object : IDEAnalysisHandler {
+    object : IdeAnalysisHandler {
       override fun analysisHandler(project: Project): AnalysisHandler? = f(project)
     }
 
   fun MetaIde.storageComponentContainer(
     f: (Project) -> StorageComponentContainer?
   ): ExtensionPhase =
-    object : IDEStorageComponentContainer {
+    object : IdeStorageComponentContainer {
       override fun storageComponentContainer(project: Project): StorageComponentContainer? = f(project)
     }
 
   fun MetaIde.preprocessedVirtualFileFactory(
     f: (Project) -> PreprocessedVirtualFileFactory?
   ): ExtensionPhase =
-    object : IDEPreprocessedVirtualFileFactory {
+    object : IdePreprocessedVirtualFileFactory {
       override fun preprocessedVirtualFileFactory(project: Project): PreprocessedVirtualFileFactory? = f(project)
     }
 
   fun MetaIde.extraImports(
     f: (Project) -> ExtraImports?
   ): ExtensionPhase =
-    object : IDEExtraImports {
+    object : IdeExtraImports {
       override fun extraImports(project: Project): ExtraImports? = f(project)
     }
 
   fun MetaIde.config(
     f: (Project) -> Config?
   ): ExtensionPhase =
-    object : IDEConfig {
+    object : IdeConfig {
       override fun config(project: Project): Config? = f(project)
     }
 
   fun MetaIde.collectAdditionalSources(
     f: (Project) -> CollectAdditionalSources?
   ): ExtensionPhase =
-    object : IDECollectAdditionalSources {
+    object : IdeCollectAdditionalSources {
       override fun collectAdditionalSources(project: Project): CollectAdditionalSources? = f(project)
     }
 
