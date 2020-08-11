@@ -56,7 +56,7 @@ fun <F : IdeSyntax, A> interpreter(ideTest: IdeTest<F, A>, ctx: F, fixture: Code
  * class MyIdePlugin : IdeSyntax
  * ```
  * a general schema looks like this:
- * ```kotlin:ank:playground
+ * ```kotlin:ank
  * import arrow.meta.ide.dsl.IdeSyntax
  * import arrow.meta.ide.testing.IdeTest
  * import arrow.meta.ide.testing.Source

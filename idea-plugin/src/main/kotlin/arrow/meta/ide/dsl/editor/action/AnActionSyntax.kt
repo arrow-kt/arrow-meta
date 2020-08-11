@@ -33,7 +33,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * Registers the [action] with [actionId] as its identifier.
    * The [actionId] is solely used internally.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
    * import arrow.meta.ide.invoke
