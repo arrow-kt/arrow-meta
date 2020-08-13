@@ -10,6 +10,7 @@ import arrow.meta.ide.testing.env.file
 import arrow.meta.ide.testing.env.ideTest
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -31,7 +32,13 @@ class CoercionAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("CoercionAnnotatorTest1 for 1 implicit coercion property") { result: List<HighlightInfo> ->
-            result.size == 1
+            result.size == 1 &&
+              result.getOrNull(0)?.matches(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.twitterHandle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ),
         IdeTest(
@@ -40,7 +47,13 @@ class CoercionAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("CoercionAnnotatorTest2 for 1 implicit coercion property") { result: List<HighlightInfo> ->
-            result.size == 1
+            result.size == 1 &&
+              result.getOrNull(0)?.matches(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.handle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ),
         IdeTest(
@@ -49,7 +62,19 @@ class CoercionAnnotatorTest : IdeTestSetUp(
             collectAnnotations(code, myFixture)
           },
           result = resolvesWhen("CoercionAnnotatorTest3 for 2 implicit coercion valueArgs") { result: List<HighlightInfo> ->
-            result.size == 2
+            result.size == 2 &&
+              result.getOrNull(0)?.matches(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.handle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true &&
+              result.getOrNull(1)?.matches(
+                textAttributes = implicitProofAnnotatorTextAttributes,
+                highlightSeverity = HighlightSeverity.INFORMATION,
+                containsActionText = "Go to proof: consumer.twitterHandle",
+                containsDescription = "Implicit coercion applied by"
+              ) == true
           }
         ))
     }
