@@ -1,7 +1,6 @@
 package arrow.meta.ide.dsl.integration
 
 import arrow.meta.ide.MetaIde
-import arrow.meta.ide.phases.integration.*
 import arrow.meta.ide.phases.integration.indices.KotlinIndicesHelper
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -32,91 +31,91 @@ interface IntegrationSyntax {
   fun MetaIde.syntheticResolver(
     f: (Project) -> SyntheticResolver?
   ): ExtensionPhase =
-    object : IdeSyntheticResolver {
+    object : arrow.meta.ide.phases.integration.SyntheticResolver {
       override fun syntheticResolver(project: Project): SyntheticResolver? = f(project)
     }
 
   fun MetaIde.packageFragmentProvider(
     f: (Project) -> PackageProvider?
   ): ExtensionPhase =
-    object : IdePackageProvider {
+    object : arrow.meta.ide.phases.integration.PackageProvider {
       override fun packageFragmentProvider(project: Project): PackageProvider? = f(project)
     }
 
   fun MetaIde.syntheticScopeProvider(
     f: (Project) -> SyntheticScopeProvider?
   ): ExtensionPhase =
-    object : IdeSyntheticScopeProvider {
+    object : arrow.meta.ide.phases.integration.SyntheticScopeProvider {
       override fun syntheticScopeProvider(project: Project): SyntheticScopeProvider? = f(project)
     }
 
   fun MetaIde.irGeneration(
     f: (Project) -> IRGeneration?
   ): ExtensionPhase =
-    object : IdeIRGeneration {
+    object : arrow.meta.ide.phases.integration.IRGeneration {
       override fun irGeneration(project: Project): IRGeneration? = f(project)
     }
 
   fun MetaIde.declarationAttributeAlterer(
     f: (Project) -> DeclarationAttributeAlterer?
   ): ExtensionPhase =
-    object : IdeDeclarationAttributeAlterer {
+    object : arrow.meta.ide.phases.integration.DeclarationAttributeAlterer {
       override fun declarationAttributeAlterer(project: Project): DeclarationAttributeAlterer? = f(project)
     }
 
   fun MetaIde.codegen(
     f: (Project) -> Codegen?
   ): ExtensionPhase =
-    object : IdeCodegen {
+    object : arrow.meta.ide.phases.integration.Codegen {
       override fun codegen(project: Project): Codegen? = f(project)
     }
 
   fun MetaIde.classBuilder(
     f: (Project) -> ClassBuilder?
   ): ExtensionPhase =
-    object : IdeClassBuilder {
+    object : arrow.meta.ide.phases.integration.ClassBuilder {
       override fun classBuilder(project: Project): ClassBuilder? = f(project)
     }
 
   fun MetaIde.analysisHandler(
     f: (Project) -> AnalysisHandler?
   ): ExtensionPhase =
-    object : IdeAnalysisHandler {
+    object : arrow.meta.ide.phases.integration.AnalysisHandler {
       override fun analysisHandler(project: Project): AnalysisHandler? = f(project)
     }
 
   fun MetaIde.storageComponentContainer(
     f: (Project) -> StorageComponentContainer?
   ): ExtensionPhase =
-    object : IdeStorageComponentContainer {
+    object : arrow.meta.ide.phases.integration.StorageComponentContainer {
       override fun storageComponentContainer(project: Project): StorageComponentContainer? = f(project)
     }
 
   fun MetaIde.preprocessedVirtualFileFactory(
     f: (Project) -> PreprocessedVirtualFileFactory?
   ): ExtensionPhase =
-    object : IdePreprocessedVirtualFileFactory {
+    object : arrow.meta.ide.phases.integration.PreprocessedVirtualFileFactory {
       override fun preprocessedVirtualFileFactory(project: Project): PreprocessedVirtualFileFactory? = f(project)
     }
 
   fun MetaIde.extraImports(
     f: (Project) -> ExtraImports?
   ): ExtensionPhase =
-    object : IdeExtraImports {
+    object : arrow.meta.ide.phases.integration.ExtraImports {
       override fun extraImports(project: Project): ExtraImports? = f(project)
     }
 
   fun MetaIde.config(
     f: (Project) -> Config?
   ): ExtensionPhase =
-    object : IdeConfig {
+    object : arrow.meta.ide.phases.integration.Config {
       override fun config(project: Project): Config? = f(project)
     }
 
   fun MetaIde.collectAdditionalSources(
     f: (Project) -> CollectAdditionalSources?
   ): ExtensionPhase =
-    object : IdeCollectAdditionalSources {
+    object : arrow.meta.ide.phases.integration.CollectAdditionalSources {
       override fun collectAdditionalSources(project: Project): CollectAdditionalSources? = f(project)
     }
 

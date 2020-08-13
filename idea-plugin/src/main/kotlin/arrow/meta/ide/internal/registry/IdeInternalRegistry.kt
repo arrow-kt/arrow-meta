@@ -10,7 +10,6 @@ import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.ide.phases.editor.syntaxHighlighter.SyntaxHighlighterExtensionProvider
 import arrow.meta.ide.phases.additional.AdditionalIdePhase
 import arrow.meta.ide.phases.additional.AdditionalRegistry
-import arrow.meta.ide.phases.integration.*
 import arrow.meta.ide.phases.integration.indices.KotlinIndicesHelper
 import arrow.meta.ide.phases.resolve.LOG
 import arrow.meta.ide.phases.ui.ToolwindowProvider
@@ -94,43 +93,43 @@ interface IdeInternalRegistry : InternalRegistry {
             is SyntheticResolver -> ctx.app.registerCliExtension { ctx -> registerSyntheticResolver(this, phase, ctx) }
 
             // cli-ide integration extensions
-            is IdeSyntheticResolver -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.SyntheticResolver -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticResolver(this)?.let { phase -> registerSyntheticResolver(this, phase, ctx) }
             }
-            is IdePackageProvider -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.PackageProvider -> ctx.app.registerCliExtension { ctx ->
               phase.packageFragmentProvider(this)?.let { phase -> packageFragmentProvider(this, phase, ctx) }
             }
-            is IdeSyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.SyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticScopeProvider(this)?.let { phase -> registerSyntheticScopeProvider(this, phase, ctx) }
             }
-            is IdeIRGeneration -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.IRGeneration -> ctx.app.registerCliExtension { ctx ->
               phase.irGeneration(this)?.let { phase -> registerIRGeneration(this, phase, ctx) }
             }
-            is IdeDeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.DeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
               phase.declarationAttributeAlterer(this)?.let { phase -> registerDeclarationAttributeAlterer(this, phase, ctx) }
             }
-            is IdeCodegen -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.Codegen -> ctx.app.registerCliExtension { ctx ->
               phase.codegen(this)?.let { phase -> registerCodegen(this, phase, ctx) }
             }
-            is IdeClassBuilder -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.ClassBuilder -> ctx.app.registerCliExtension { ctx ->
               phase.classBuilder(this)?.let { phase -> registerClassBuilder(this, phase, ctx) }
             }
-            is IdeAnalysisHandler -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.AnalysisHandler -> ctx.app.registerCliExtension { ctx ->
               phase.analysisHandler(this)?.let { phase -> registerAnalysisHandler(this, phase, ctx) }
             }
-            is IdeStorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.StorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
               phase.storageComponentContainer(this)?.let { phase -> registerStorageComponentContainer(this, phase, ctx) }
             }
-            is IdePreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.PreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
               phase.preprocessedVirtualFileFactory(this)?.let { phase -> registerPreprocessedVirtualFileFactory(this, phase, ctx) }
             }
-            is IdeExtraImports -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.ExtraImports -> ctx.app.registerCliExtension { ctx ->
               phase.extraImports(this)?.let { phase -> registerExtraImports(this, phase, ctx) }
             }
-            is IdeConfig -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.Config -> ctx.app.registerCliExtension { ctx ->
               phase.config(this)?.let { phase -> registerCompilerConfiguration(this, phase, ctx) }
             }
-            is IdeCollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
+            is arrow.meta.ide.phases.integration.CollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
               phase.collectAdditionalSources(this)?.let { phase -> registerCollectAdditionalSources(this, phase, ctx) }
             }
             is KotlinIndicesHelper -> ctx.app.registerCliExtension { ctx -> kotlinIndicesHelper(phase, ctx) }
