@@ -35,7 +35,7 @@ internal fun Meta.proofResolutionRules(): AnalysisHandler =
 internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collection<KtFile>): Unit {
   extensionProofs().run {
     reportDisallowedUserDefinedAmbiguities(trace)
-
+    reportSkippedProofsDueToAmbiguities(trace)
   }
   files.forEach { file: KtFile ->
     reportProhibitedPublishedInternalOrphans(trace, file)
@@ -104,4 +104,12 @@ fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedAmbiguitie
         }
       }
     }
+  }
+
+private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportSkippedProofsDueToAmbiguities(trace: BindingTrace): Unit =
+  disallowedAmbiguitiesFromDependencies().toMap().forEach {
+    (proof, ambeguitiees) ->
+    println(proof)
+    println(ambeguitiees)
+
   }

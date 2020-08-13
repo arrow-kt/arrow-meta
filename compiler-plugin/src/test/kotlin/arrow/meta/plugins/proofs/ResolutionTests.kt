@@ -19,13 +19,13 @@ class ResolutionTests {
       fun String.toInt10(): Int? =
         toIntOrNull(10)
       
-      @Coercion
-      internal fun String.toInt16(): Int? =
-        toIntOrNull(16)
+      //@Coercion
+      //internal fun String.toInt16(): Int? =
+      //  toIntOrNull(16)
         
       val x: Int? = "30"
       """) {
-      compiles
+        "x".source.evalsTo(39)
       // TODO: should fail due to ownership rule, but still WIP
     }
   }

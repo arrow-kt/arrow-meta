@@ -5,6 +5,7 @@ import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
 import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.givenAnnotator
+import arrow.meta.ide.plugins.proofs.annotators.proofAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
 import arrow.meta.ide.plugins.proofs.inspections.coercions.coercionInspections
