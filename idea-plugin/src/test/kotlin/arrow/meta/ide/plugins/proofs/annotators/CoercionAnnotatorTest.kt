@@ -11,6 +11,7 @@ import arrow.meta.ide.testing.env.types.LightTestSyntax.toKtFile
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.psi.KtFile
