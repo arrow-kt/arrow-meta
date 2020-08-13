@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.annotators.coercion
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.annotators.addLocalQuickFix
-import arrow.meta.ide.plugins.proofs.annotators.addProblemDescriptor
+import arrow.meta.ide.dsl.utils.descriptor
+import arrow.meta.ide.dsl.utils.localQuickFix
 import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -38,18 +38,15 @@ val IdeMetaPlugin.implicitCoercion: ExtensionPhase
                       text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktDotQualifiedExpression).orEmpty())
                   }
                 }.render()
-                val makeCoercionImplicitFix = addLocalQuickFix(
+                val makeCoercionImplicitFix = localQuickFix(
                   name = "Make coercion implicit",
                   familyName = "Coercion",
-                  applyFix = { _, _ ->
-                    ktDotQualifiedExpression.replace(ktDotQualifiedExpression.receiverExpression)
-                  }
+                  f = { ktDotQualifiedExpression.replace(ktDotQualifiedExpression.receiverExpression) }
                 )
-                val problemDescriptor = addProblemDescriptor(
-                  startElement = ktDotQualifiedExpression,
-                  endElement = ktDotQualifiedExpression,
-                  descriptionTemplate = "Make coercion implicit",
-                  localQuickFixes = arrayOf(makeCoercionImplicitFix),
+                val problemDescriptor = descriptor(
+                  element = ktDotQualifiedExpression,
+                  message = "Make coercion explicit",
+                  fix = makeCoercionImplicitFix,
                   highlightType = ProblemHighlightType.WARNING
                 )
                 holder.newAnnotation(HighlightSeverity.WARNING, htmlMessage)

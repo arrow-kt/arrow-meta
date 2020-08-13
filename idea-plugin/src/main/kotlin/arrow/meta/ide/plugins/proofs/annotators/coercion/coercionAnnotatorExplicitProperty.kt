@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.annotators.coercion
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.annotators.addLocalQuickFix
-import arrow.meta.ide.plugins.proofs.annotators.addProblemDescriptor
+import arrow.meta.ide.dsl.utils.descriptor
+import arrow.meta.ide.dsl.utils.localQuickFix
 import arrow.meta.ide.plugins.proofs.annotators.implicitProofAnnotatorTextAttributes
 import arrow.meta.ide.plugins.proofs.explicit
 import arrow.meta.ide.plugins.proofs.isCoerced
@@ -43,18 +43,15 @@ val IdeMetaPlugin.explicitPropertyCoercion: ExtensionPhase
                           .orEmpty())
                     }
                   }.render()
-                  val makeCoercionExplicitFix = addLocalQuickFix(
+                  val makeCoercionExplicitFix = localQuickFix(
                     name = "Make coercion explicit",
                     familyName = "Coercion",
-                    applyFix = { _, _ ->
-                      ctx.explicit(ktProperty)
-                    }
+                    f = { ctx.explicit(ktProperty) }
                   )
-                  val problemDescriptor = addProblemDescriptor(
-                    startElement = ktProperty,
-                    endElement = ktProperty,
-                    descriptionTemplate = "Make coercion explicit",
-                    localQuickFixes = arrayOf(makeCoercionExplicitFix)
+                  val problemDescriptor = descriptor(
+                    element = ktProperty,
+                    message = "Make coercion explicit",
+                    fix = makeCoercionExplicitFix
                   )
                   holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
                     .range(it.textRange)
