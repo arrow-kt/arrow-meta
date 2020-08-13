@@ -5,20 +5,17 @@ buildscript {
   dependencies {
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
-    classpath "org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:$KOTLIN_VERSION"
   }
 }
 
 plugins {
   // Replace plugin DSL by legacy plugin application to use EAP versions by Kotlin
   // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
-  // id 'org.jetbrains.kotlin.kapt' version "$KOTLIN_VERSION"
   id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
   id 'maven-publish'
 }
 
 apply plugin: "org.jetbrains.kotlin.jvm"
-apply plugin: "org.jetbrains.kotlin.kapt"
 
 def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 

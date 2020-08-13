@@ -16,24 +16,29 @@ class RefinementTests {
 
   private fun twitterHandle(): String =
     """
-    @Refinement class TwitterHandle(val handle: String)  {
-      companion object : Refined<String, TwitterHandle> {
-        override val target: (String) -> TwitterHandle = ::TwitterHandle
-        override val validate: String.() -> Map<String, Boolean> = {
-          mapOf(
-            "Should start with '@'" to startsWith("@"),
-            "Should have length <= 16" to (length <= 16),
-            "Should not contain the word 'twitter'" to !contains("twitter"),
-            "Should not contain the word 'admin'" to !contains("admin")
-          )
-        }
+      @Refinement
+      inline class TwitterHandle(val handle: String) {
+          companion object : Refined<String, TwitterHandle> {
+              override val target = ::TwitterHandle
+              override val validate: String.() -> Map<String, Boolean> = {
+                  mapOf(
+                      "Should start with '@'" to startsWith("@"),
+                      "Should have length <= 16" to (length <= 16),
+                      "Should have length > 2" to (length > 2),
+                      "Should not contain the word 'twitter'" to !contains("twitter"),
+                      "Should not contain the word 'admin'" to !contains("admin")
+                  )
+              }
+          }
       }
-    }
-    
-    @Coercion
-    fun String.twitterHandle(): TwitterHandle? =
-      TwitterHandle.from(this)
       
+      @arrow.Coercion
+      fun String.twitterHandle(): TwitterHandle? =
+          TwitterHandle.from(this)
+      
+      @arrow.Coercion
+      fun TwitterHandle.handle(): String =
+          handle
     """
 
   private fun positiveInt(): String =
@@ -137,7 +142,6 @@ class RefinementTests {
     ))
   }
 
-  @Ignore
   @Test
   fun `Runtime validation for nullable types coerces to null if invalid`() {
     assertThis(CompilerTest(
@@ -154,7 +158,6 @@ class RefinementTests {
     ))
   }
 
-  @Ignore
   @Test
   fun `Runtime validation for nullable types accepts if valid`() {
     assertThis(CompilerTest(
