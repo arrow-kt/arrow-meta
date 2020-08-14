@@ -26,6 +26,8 @@ Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-ex
 
 ## Build and run in your local environment
 
+Pre-requirements: JDK 8
+
 **Build and run tests**
 
 ```
