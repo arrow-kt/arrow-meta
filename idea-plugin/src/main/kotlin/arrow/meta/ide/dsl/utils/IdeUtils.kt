@@ -200,23 +200,11 @@ fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
   newLocalQuickFix(fix, psi.inspectionManager()
     .createProblemDescriptor(psi, message, arrayOf(fix), highlightType, onThefly, afterBorderLine))
 
-fun <P : PsiElement> descriptor(
-  element: P,
-  message: String,
-  fix: LocalQuickFix? = null,
-  highlightType: ProblemHighlightType = ProblemHighlightType.INFORMATION,
-  onThefly: Boolean = true
-): ProblemDescriptor =
-  element.inspectionManager().createProblemDescriptor(element, message, fix, highlightType, onThefly)
-
 fun PsiElement.inspectionManager(): InspectionManager =
   InspectionManager.getInstance(project)
 
-fun localQuickFix(name: String, familyName: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
+fun localQuickFix(familyName: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
   object : LocalQuickFix {
-    override fun getName(): String =
-      name
-
     override fun getFamilyName(): String =
       familyName
 

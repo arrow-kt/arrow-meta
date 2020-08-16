@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.annotators.coercion
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.descriptor
 import arrow.meta.ide.dsl.utils.localQuickFix
+import arrow.meta.ide.dsl.utils.registerLocalFix
 import arrow.meta.ide.plugins.proofs.annotators.implicitProofAnnotatorTextAttributes
 import arrow.meta.ide.plugins.proofs.explicit
 import arrow.meta.ide.plugins.proofs.isCoerced
@@ -44,21 +44,15 @@ val IdeMetaPlugin.explicitValArgumentCoercion: ExtensionPhase
                     }
                   }.render()
                   val makeCoercionExplicitFix = localQuickFix(
-                    name = "Make coercion explicit",
-                    familyName = "Coercion",
+                    familyName = "Make coercion explicit",
                     f = { ctx.explicit(ktValueArgument) }
-                  )
-                  val problemDescriptor = descriptor(
-                    element = ktValueArgument,
-                    message = "Make coercion explicit",
-                    fix = makeCoercionExplicitFix
                   )
                   holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
                     .range(it.textRange)
                     .tooltip(htmlMessage)
                     .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
                     .newFix(GoToSymbolFix(proofPsi, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(it.textRange).registerFix()
-                    .newLocalQuickFix(makeCoercionExplicitFix, problemDescriptor).range(it.textRange).registerFix()
+                    .registerLocalFix(makeCoercionExplicitFix, ktValueArgument, htmlMessage).registerFix()
                     .create()
                 }
               }

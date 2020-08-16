@@ -1,8 +1,8 @@
 package arrow.meta.ide.plugins.proofs.annotators.coercion
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.descriptor
 import arrow.meta.ide.dsl.utils.localQuickFix
+import arrow.meta.ide.dsl.utils.registerLocalFix
 import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -39,21 +39,14 @@ val IdeMetaPlugin.implicitCoercion: ExtensionPhase
                   }
                 }.render()
                 val makeCoercionImplicitFix = localQuickFix(
-                  name = "Make coercion implicit",
-                  familyName = "Coercion",
+                  familyName = "Make coercion implicit",
                   f = { ktDotQualifiedExpression.replace(ktDotQualifiedExpression.receiverExpression) }
-                )
-                val problemDescriptor = descriptor(
-                  element = ktDotQualifiedExpression,
-                  message = "Make coercion explicit",
-                  fix = makeCoercionImplicitFix,
-                  highlightType = ProblemHighlightType.WARNING
                 )
                 holder.newAnnotation(HighlightSeverity.WARNING, htmlMessage)
                   .range(ktDotQualifiedExpression.textRange)
                   .tooltip(htmlMessage)
                   .newFix(GoToSymbolFix(proofPsi, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktDotQualifiedExpression.textRange).registerFix()
-                  .newLocalQuickFix(makeCoercionImplicitFix, problemDescriptor).range(ktDotQualifiedExpression.textRange).registerFix()
+                  .registerLocalFix(makeCoercionImplicitFix, ktDotQualifiedExpression, htmlMessage, ProblemHighlightType.WARNING).registerFix()
                   .create()
               }
             }
