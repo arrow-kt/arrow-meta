@@ -39,7 +39,7 @@ val IdeMetaPlugin.implicitCoercion: ExtensionPhase
                   }
                 }.render()
                 val makeCoercionImplicitFix = localQuickFix(
-                  familyName = "Make coercion implicit",
+                  message = "Make coercion implicit",
                   f = { ktDotQualifiedExpression.replace(ktDotQualifiedExpression.receiverExpression) }
                 )
                 holder.newAnnotation(HighlightSeverity.WARNING, htmlMessage)

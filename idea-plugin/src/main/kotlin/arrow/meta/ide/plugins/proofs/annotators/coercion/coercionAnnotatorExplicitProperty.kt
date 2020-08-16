@@ -44,7 +44,7 @@ val IdeMetaPlugin.explicitPropertyCoercion: ExtensionPhase
                     }
                   }.render()
                   val makeCoercionExplicitFix = localQuickFix(
-                    familyName = "Make coercion explicit",
+                    message = "Make coercion explicit",
                     f = { ctx.explicit(ktProperty) }
                   )
                   holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)

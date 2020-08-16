@@ -203,10 +203,10 @@ fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
 fun PsiElement.inspectionManager(): InspectionManager =
   InspectionManager.getInstance(project)
 
-fun localQuickFix(familyName: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
+fun localQuickFix(message: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
   object : LocalQuickFix {
     override fun getFamilyName(): String =
-      familyName
+      message
 
     override fun applyFix(project: Project, descriptor: ProblemDescriptor): Unit =
       f(project, descriptor)

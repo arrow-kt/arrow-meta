@@ -44,7 +44,7 @@ val IdeMetaPlugin.explicitValArgumentCoercion: ExtensionPhase
                     }
                   }.render()
                   val makeCoercionExplicitFix = localQuickFix(
-                    familyName = "Make coercion explicit",
+                    message = "Make coercion explicit",
                     f = { ctx.explicit(ktValueArgument) }
                   )
                   holder.newAnnotation(HighlightSeverity.INFORMATION, htmlMessage)
