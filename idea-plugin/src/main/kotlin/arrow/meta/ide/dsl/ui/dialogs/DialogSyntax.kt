@@ -26,7 +26,7 @@ import javax.swing.Icon
  */
 interface DialogSyntax {
   /**
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke

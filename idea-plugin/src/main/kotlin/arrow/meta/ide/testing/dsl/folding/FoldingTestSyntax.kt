@@ -41,8 +41,12 @@ interface FoldingTestSyntax {
       .filterNotNull()
       .flatMap { foldingBuilder: FoldingBuilder ->
         mapNotNull { element: PsiElement ->
-          element.safeAs<KtTypeReference>()?.takeIf(match)?.let {
-            foldingBuilder.buildFoldRegions(it.node, document).filterNotNull()
+          element.safeAs<KtTypeReference>()?.takeIf(match)?.let { ktTypeReference: KtTypeReference ->
+            foldingBuilder.buildFoldRegions(ktTypeReference.node, document).filterNotNull().also { foldRegions: List<FoldingDescriptor> ->
+              foldRegions.map {
+                it.placeholderText = foldingBuilder.getPlaceholderText(ktTypeReference.node)
+              }
+            }
           }
         }
       }

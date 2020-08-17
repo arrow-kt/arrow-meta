@@ -16,6 +16,11 @@ object GivenAnnotatorTestCode {
       )
       @MustBeDocumented
       annotation class Given
+      
+      val given: Nothing
+        get() = TODO("Should have been replaced by Arrow Meta Compiler Plugin provided by [plugins { id 'io.arrow-kt.arrow' version 'x.x.x' }")
+      
+      fun <A> given(evidence: @Given A = arrow.given): A = evidence
     """.trimIndent()
 
   val givenProviders =
