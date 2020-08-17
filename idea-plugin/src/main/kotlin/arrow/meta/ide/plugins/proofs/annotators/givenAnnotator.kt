@@ -40,7 +40,7 @@ val IdeMetaPlugin.givenParamAnnotator: ExtensionPhase
         ?.let { ktParameter: KtParameter ->
           ktParameter.typeReference?.getType()?.let { kotlinType ->
             ctx?.givenProof(kotlinType)?.let { proof ->
-              proof.through.findPsi()?.let { proofPsi ->
+              proof.through.findPsi().safeAs<KtNamedDeclaration>()?.let { proofPsi ->
                 val htmlMessage = html {
                   body {
                     text("${ktParameter.nameIdentifier?.text} is implicitly injected by given proof unless explicitly passed as argument at the use site") +
@@ -51,7 +51,7 @@ val IdeMetaPlugin.givenParamAnnotator: ExtensionPhase
                   .range(ktParameter.textRange)
                   .tooltip(htmlMessage)
                   .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
-                  .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktParameter.textRange).registerFix()
+                  .newFix(GoToSymbolFix(proofPsi, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktParameter.textRange).registerFix()
                   .create()
               }
             }
@@ -64,12 +64,12 @@ val IdeMetaPlugin.givenCallAnnotator: ExtensionPhase
   get() = addAnnotator(
     annotator = Annotator { element: PsiElement, holder: AnnotationHolder ->
       val ctx = element.project.getService(CompilerContext::class.java)
-      element.safeAs<KtCallExpression>()?.takeIf { element: KtCallExpression ->
-        element.referenceExpression()?.text == "given"
+      element.safeAs<KtCallExpression>()?.takeIf {
+        it.referenceExpression()?.text == "given"
       }?.let { ktCallExpression: KtCallExpression ->
         ktCallExpression.returnType?.let { kotlinType ->
           ctx?.givenProof(kotlinType)?.let { proof ->
-            proof.through.findPsi()?.let { proofPsi ->
+            proof.through.findPsi().safeAs<KtNamedDeclaration>()?.let { proofPsi ->
               val htmlMessage = html {
                 body {
                   text("Implicit injection by given proof") +
@@ -80,7 +80,7 @@ val IdeMetaPlugin.givenCallAnnotator: ExtensionPhase
                 .range(ktCallExpression.textRange)
                 .tooltip(htmlMessage)
                 .enforcedTextAttributes(implicitProofAnnotatorTextAttributes)
-                .newFix(GoToSymbolFix(proofPsi as KtNamedDeclaration, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktCallExpression.textRange).registerFix()
+                .newFix(GoToSymbolFix(proofPsi, "Go to proof: ${proof.through.fqNameSafe.asString()}")).range(ktCallExpression.textRange).registerFix()
                 .create()
             }
           }
