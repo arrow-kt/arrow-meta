@@ -83,9 +83,9 @@ fun KtDeclaration.isViolatingOwnershipRule(trace: BindingTrace, ctx: CompilerCon
     it.through == trace.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
   }?.takeIf {
     when (it) {
-      is ExtensionProof -> it.from.isUserOwned() || it.to.isUserOwned()
-      is GivenProof -> it.to.isUserOwned()
-      is RefinementProof -> it.from.isUserOwned() || it.to.isUserOwned()
+      is ExtensionProof -> !it.from.isUserOwned() || !it.to.isUserOwned()
+      is GivenProof -> !it.to.isUserOwned()
+      is RefinementProof -> !it.from.isUserOwned() || !it.to.isUserOwned()
     }
   }?.let {
     this to it
@@ -94,8 +94,8 @@ fun KtDeclaration.isViolatingOwnershipRule(trace: BindingTrace, ctx: CompilerCon
 
 /**
  * A type is user-owned, when at least one position of the type signature is a user type in the sources.
- * e.g.: `Semigroup<A, F>` materialises into `A -> F -> Semigroup<A, F>`
- * Thereby the user needs to own either `F` or `A` to publish
+ * e.g.: `org.core.Semigroup<A, F>` materialises into `A -> F -> org.core.Semigroup<A, F>`
+ * Thereby the user needs to own either `F`, `A` or `org.core.Semigroup` to publish a proof.
  */
 fun KotlinType.isUserOwned(): Boolean =
   hasSource() || arguments.any { it.type.hasSource() }
@@ -167,6 +167,6 @@ private fun CompilerContext.reportOwnershipViolations(trace: BindingTrace, file:
   }
 
 private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportSkippedProofsDueToAmbiguities(
-  f: (proof: ExtensionProof, ambeguities: List<ExtensionProof>) -> Unit
+  f: (proof: ExtensionProof, ambiguities: List<ExtensionProof>) -> Unit
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)
