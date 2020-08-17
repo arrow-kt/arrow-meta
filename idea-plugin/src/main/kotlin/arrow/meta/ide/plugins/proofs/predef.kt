@@ -31,11 +31,6 @@ import org.jetbrains.kotlin.types.KotlinType
 internal fun KtDotQualifiedExpression.implicitParticipatingTypes(): Pair<KotlinType, KotlinType>? =
   receiverExpression.resolveKotlinType().pairOrNull(selectorExpression?.resolveKotlinType())
 
-internal fun CompilerContext.coercionProofMessage(ktDotQualifiedExpression: KtDotQualifiedExpression): String =
-  ktDotQualifiedExpression.implicitParticipatingTypes()?.let { (subtype, supertype) ->
-    coerceProof(subtype, supertype)?.description()
-  } ?: "Proof not found"
-
 internal fun KotlinType?.pairOrNull(b: KotlinType?): Pair<KotlinType, KotlinType>? =
   if (this != null && b != null) Pair(this, b)
   else null

@@ -201,7 +201,7 @@ fun Project.ctx(): CompilerContext? =
 fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
   fix: LocalQuickFix,
   psi: P,
-  message: String = "BLALAABAB",
+  message: String,
   highlightType: ProblemHighlightType = ProblemHighlightType.INFORMATION,
   onThefly: Boolean = true,
   afterBorderLine: Boolean = true

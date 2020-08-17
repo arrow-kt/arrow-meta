@@ -3,12 +3,11 @@ package arrow.meta.ide.plugins.proofs
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.IdePlugin
 import arrow.meta.ide.invoke
-import arrow.meta.ide.plugins.proofs.annotators.coercionAnnotator
+import arrow.meta.ide.plugins.proofs.annotators.coercion.coercionAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.givenAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.proofAnnotator
 import arrow.meta.ide.plugins.proofs.annotators.refinementAnnotator
 import arrow.meta.ide.plugins.proofs.folding.codeFolding
-import arrow.meta.ide.plugins.proofs.inspections.coercions.coercionInspections
 import arrow.meta.ide.plugins.proofs.markers.proofLineMarkers
 import arrow.meta.ide.plugins.proofs.markers.refinementLineMarkers
 import arrow.meta.ide.plugins.proofs.psi.isCoercionProof
@@ -37,7 +36,6 @@ val IdeMetaPlugin.typeProofsIde: IdePlugin
       addDiagnosticSuppressorWithCtx { suppressProvenTypeMismatch(it) },
       givenAnnotator,
       coercionAnnotator,
-      coercionInspections,
       codeFolding
     )
   }
