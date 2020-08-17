@@ -1,11 +1,12 @@
 package arrow.meta.diagnostic;
 
+import arrow.meta.plugins.proofs.phases.Proof;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages;
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap;
+import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer;
 
-import static arrow.meta.diagnostic.MetaErrors.AmbiguousExtensionProof;
-import static arrow.meta.diagnostic.MetaErrors.PublishedInternalOrphan;
+import static arrow.meta.diagnostic.MetaErrors.*;
 
 public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension {
     @NotNull
@@ -24,6 +25,8 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
                 "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation."
         );
         MAP.put(AmbiguousExtensionProof,
-                "TODO", null, null);
+                "AmbigousExtensionProof", null, null);
+        MAP.put(OwnershipViolatedProof,
+                "OwnershipViolatedProof", (DiagnosticParameterRenderer<? super Proof>) null);
     }
 }
