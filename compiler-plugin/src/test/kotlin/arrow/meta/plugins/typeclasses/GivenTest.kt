@@ -11,7 +11,7 @@ class GivenTest {
   fun `coherent polymorphic identity`() {
     givenTest(
       source = """
-        @Given val x = "yes!"
+        @Given internal val x = "yes!"
         val result = given<String>()
       """,
       expected = "result" to "yes!"
@@ -22,7 +22,7 @@ class GivenTest {
   fun `coherent polymorphic identity inference`() {
     givenTest(
       source = """
-        @Given val x = "yes!"
+        @Given internal val x = "yes!"
         val result: String = given()
       """,
       expected = "result" to "yes!"
@@ -33,7 +33,7 @@ class GivenTest {
   fun `coherent concrete identity`() {
     givenTest(
       source = """
-        @Given val x = "yes!"
+        @Given internal val x = "yes!"
         fun id(evidence: String = given()): String =
           evidence
         val result = id()
@@ -46,7 +46,7 @@ class GivenTest {
   fun `user explicit local override`() {
     givenTest(
       source = """
-        @Given val x = "yes!"
+        @Given internal val x = "yes!"
         fun id(evidence: String = given()): String =
           evidence
         val result = id("nope!")

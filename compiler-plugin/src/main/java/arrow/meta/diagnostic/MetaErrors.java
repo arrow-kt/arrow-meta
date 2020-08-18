@@ -21,7 +21,7 @@ public interface MetaErrors {
 
     DiagnosticFactory2<KtNamedFunction, ExtensionProof, Collection<ExtensionProof>> AmbiguousExtensionProof = DiagnosticFactory2.create(ERROR);
 
-    DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR, onNavigationElement);
+    DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR);
 
     /**
      * needed to prevent NPE in
