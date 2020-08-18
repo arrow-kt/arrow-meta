@@ -31,14 +31,12 @@ dependencies {
 
 compileKotlin {
     kotlinOptions {
-        useIR = true
         freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xjvm-default=enable"]
         jvmTarget = "1.8"
     }
 }
 compileTestKotlin {
     kotlinOptions {
-        useIR = true
         freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
         jvmTarget = "1.8"
     }
