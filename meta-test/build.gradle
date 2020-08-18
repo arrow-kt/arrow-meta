@@ -22,10 +22,16 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
+    kotlinOptions {
+        useIR = true
+        jvmTarget = "$JVM_TARGET_VERSION"
+    }
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
+    kotlinOptions {
+        useIR = true
+        jvmTarget = "$JVM_TARGET_VERSION"
+    }
 }
 
 test {
