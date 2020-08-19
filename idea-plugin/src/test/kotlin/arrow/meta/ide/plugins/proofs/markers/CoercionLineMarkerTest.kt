@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.inspections.CoercionInspectionTestCode
+import arrow.meta.ide.plugins.proofs.annotators.CoercionAnnotatorTestCode
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
@@ -13,7 +13,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 class CoercionLineMarkerTest :
   IdeTestSetUp(
-    CoercionInspectionTestCode.prelude.file("arrow/preludeCoercion.kt"),
+    CoercionAnnotatorTestCode.prelude.file("arrow/preludeCoercion.kt"),
     CoercionLineMarkerTestCode.twitterHandleDeclaration.file("consumer/consumerCoercion.kt")
   ) {
 

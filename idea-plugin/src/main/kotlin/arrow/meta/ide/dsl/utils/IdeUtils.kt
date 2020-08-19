@@ -1,10 +1,14 @@
 package arrow.meta.ide.dsl.utils
 
-import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.MetaIde
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
+import com.intellij.codeInspection.InspectionManager
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.codeInspection.ProblemDescriptor
+import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.lang.annotation.AnnotationBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -184,6 +188,29 @@ fun PsiElement.ctx(): CompilerContext? =
 
 fun Project.ctx(): CompilerContext? =
   getService(CompilerContext::class.java)
+
+fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
+  fix: LocalQuickFix,
+  psi: P,
+  message: String,
+  highlightType: ProblemHighlightType = ProblemHighlightType.INFORMATION,
+  onThefly: Boolean = true,
+  afterBorderLine: Boolean = true
+): AnnotationBuilder.FixBuilder =
+  newLocalQuickFix(fix, psi.inspectionManager()
+    .createProblemDescriptor(psi, message, arrayOf(fix), highlightType, onThefly, afterBorderLine))
+
+fun PsiElement.inspectionManager(): InspectionManager =
+  InspectionManager.getInstance(project)
+
+fun localQuickFix(message: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
+  object : LocalQuickFix {
+    override fun getFamilyName(): String =
+      message
+
+    override fun applyFix(project: Project, descriptor: ProblemDescriptor): Unit =
+      f(project, descriptor)
+  }
 
 fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 

@@ -76,6 +76,7 @@ interface IdeInternalRegistry : InternalRegistry {
         fun rec(phase: ExtensionPhase): Unit =
           when (phase) {
             is ExtensionPhase.Empty -> Unit
+
             // cli related extensions
             is CollectAdditionalSources -> ctx.app.registerCliExtension { ctx -> registerCollectAdditionalSources(this, phase, ctx) }
             is Config -> ctx.app.registerCliExtension { ctx -> registerCompilerConfiguration(this, phase, ctx) }
@@ -90,6 +91,7 @@ interface IdeInternalRegistry : InternalRegistry {
             is IRGeneration -> ctx.app.registerCliExtension { ctx -> registerIRGeneration(this, phase, ctx) }
             is SyntheticScopeProvider -> ctx.app.registerCliExtension { ctx -> registerSyntheticScopeProvider(this, phase, ctx) }
             is SyntheticResolver -> ctx.app.registerCliExtension { ctx -> registerSyntheticResolver(this, phase, ctx) }
+
             // cli-ide integration extensions
             is arrow.meta.ide.phases.integration.SyntheticResolver -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticResolver(this)?.let { phase -> registerSyntheticResolver(this, phase, ctx) }
@@ -97,8 +99,41 @@ interface IdeInternalRegistry : InternalRegistry {
             is arrow.meta.ide.phases.integration.PackageProvider -> ctx.app.registerCliExtension { ctx ->
               phase.packageFragmentProvider(this)?.let { phase -> packageFragmentProvider(this, phase, ctx) }
             }
+            is arrow.meta.ide.phases.integration.SyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
+              phase.syntheticScopeProvider(this)?.let { phase -> registerSyntheticScopeProvider(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.IRGeneration -> ctx.app.registerCliExtension { ctx ->
+              phase.irGeneration(this)?.let { phase -> registerIRGeneration(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.DeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
+              phase.declarationAttributeAlterer(this)?.let { phase -> registerDeclarationAttributeAlterer(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.Codegen -> ctx.app.registerCliExtension { ctx ->
+              phase.codegen(this)?.let { phase -> registerCodegen(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.ClassBuilder -> ctx.app.registerCliExtension { ctx ->
+              phase.classBuilder(this)?.let { phase -> registerClassBuilder(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.AnalysisHandler -> ctx.app.registerCliExtension { ctx ->
+              phase.analysisHandler(this)?.let { phase -> registerAnalysisHandler(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.StorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
+              phase.storageComponentContainer(this)?.let { phase -> registerStorageComponentContainer(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.PreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
+              phase.preprocessedVirtualFileFactory(this)?.let { phase -> registerPreprocessedVirtualFileFactory(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.ExtraImports -> ctx.app.registerCliExtension { ctx ->
+              phase.extraImports(this)?.let { phase -> registerExtraImports(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.Config -> ctx.app.registerCliExtension { ctx ->
+              phase.config(this)?.let { phase -> registerCompilerConfiguration(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.CollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
+              phase.collectAdditionalSources(this)?.let { phase -> registerCollectAdditionalSources(this, phase, ctx) }
+            }
             is KotlinIndicesHelper -> ctx.app.registerCliExtension { ctx -> kotlinIndicesHelper(phase, ctx) }
-            // TODO: add more integrations
+
             // ide related extensions
             is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
             is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)
