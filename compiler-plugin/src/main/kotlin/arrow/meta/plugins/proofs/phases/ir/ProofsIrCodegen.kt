@@ -163,7 +163,6 @@ class ProofsIrCodegen(
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
-      println("After:\n${ir2string(expression)}")
       expression
     }
 
