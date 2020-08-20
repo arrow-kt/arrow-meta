@@ -15,6 +15,7 @@ import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
+import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -132,9 +133,10 @@ class ProofsIrCodegen(
 
 
   fun CompilerContext.proveVariable(it: IrVariable): IrVariable? {
+    println("Before - IRVARIABLE:\n${ir2string(it)}")
     val targetType = it.type.originalKotlinType
     val valueType = it.initializer?.type?.originalKotlinType
-    return if (targetType != null && valueType != null) {
+    return (if (targetType != null && valueType != null) {
       it.apply {
         val proofCall = extensionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
@@ -144,12 +146,13 @@ class ProofsIrCodegen(
           initializer = it
         }
       }
-    } else it
+    } else it).also { println("After - IRVARIABLE:\n${ir2string(it)}") }
   }
 
   fun CompilerContext.proveNestedCalls(expression: IrCall): IrCall? =
     expression.apply {
       dfsCalls().forEach {
+        println("Before:\n${ir2string(it)}")
         proveCall(it)
       }
     }
@@ -160,6 +163,7 @@ class ProofsIrCodegen(
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
+      println("After:\n${ir2string(expression)}")
       expression
     }
 
@@ -232,9 +236,10 @@ class ProofsIrCodegen(
   }
 
   fun CompilerContext.proveProperty(it: IrProperty): IrProperty? {
+    //println("Before - IrProperty:\n${ir2string(it)}")
     val targetType = it.getter?.returnType?.originalKotlinType
     val valueType = it.backingField?.initializer?.expression?.type?.originalKotlinType
-    return if (targetType != null && valueType != null && targetType != valueType) {
+    return (if (targetType != null && valueType != null && targetType != valueType) {
       it.backingField?.let { field ->
         val replacement = field.initializer?.expression?.let {
           extensionProofCall(valueType, targetType)?.apply {
@@ -245,13 +250,14 @@ class ProofsIrCodegen(
         replacement?.let { field.initializer?.expression = it }
         it
       }
-    } else it
+    } else it)//.also { println("After - IrProperty:\n${ir2string(it)}") }
   }
 
   fun CompilerContext.proveReturn(it: IrReturn): IrReturn? {
+    println("Before - IrReturn:\n${ir2string(it)}")
     val targetType = it.returnTarget.returnType
     val valueType = it.value.type.originalKotlinType
-    return if (targetType != null && valueType != null && targetType != valueType) {
+    return (if (targetType != null && valueType != null && targetType != valueType) {
       extensionProofCall(valueType, targetType)?.let { call ->
         if (call is IrMemberAccessExpression)
           call.extensionReceiver = it.value
@@ -264,7 +270,7 @@ class ProofsIrCodegen(
           call
         )
       } ?: it
-    } else it
+    } else it).also {println("After- IrReturn:\n${ir2string(it)}")  }
   }
 
   fun CompilerContext.proveTypeOperator(it: IrTypeOperatorCall): IrExpression? {
