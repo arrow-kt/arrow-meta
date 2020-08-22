@@ -5,6 +5,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
+import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
@@ -31,10 +32,12 @@ import org.jetbrains.kotlin.ir.expressions.getValueArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.mapValueParametersIndexed
 import org.jetbrains.kotlin.ir.expressions.putValueArgument
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.jetbrains.kotlin.resolve.calls.inference.substitute
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
@@ -159,7 +162,7 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner.descriptor)
+      val givenTypeParamUpperBound = GivenUpperBound(expression.unsubstitutedDescriptor, expression)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
@@ -224,11 +227,10 @@ class ProofsIrCodegen(
   ): Unit {
     val upperBound = givenUpperBound.givenUpperBound
     if (upperBound != null) {
-      givenUpperBound.givenValueParameters.forEach { valueParameterDescriptor ->
-        val superType = valueParameterDescriptor.type
+      givenUpperBound.givenValueParameters.forEach { (descriptor, superType) ->
         givenProofCall(superType)?.apply {
-          if (expression.getValueArgument(valueParameterDescriptor) == null)
-            expression.putValueArgument(valueParameterDescriptor, this)
+          if (expression.getValueArgument(descriptor) == null)
+            expression.putValueArgument(descriptor, this)
         }
       }
     }
@@ -269,7 +271,7 @@ class ProofsIrCodegen(
           call
         )
       } ?: it
-    } else it).also {println("After- IrReturn:\n${ir2string(it)}")  }
+    } else it).also { println("After- IrReturn:\n${ir2string(it)}") }
   }
 
   fun CompilerContext.proveTypeOperator(it: IrTypeOperatorCall): IrExpression? {
