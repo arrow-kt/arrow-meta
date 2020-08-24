@@ -27,10 +27,6 @@ internal fun compile(data: CompilationData): Result =
     }
   }.compile()
 
-private fun rewriteAndPrintOutput(lines: List<String>) {
-  println(lines.joinToString(System.lineSeparator()) { it.replace(Regex("^e:"), "error found:") })
-}
-
 private fun classpathOf(dependency: String): File {
   val regex = Regex(".*${dependency.replace(':', '-')}.*")
   val file = ClassGraph().classpathFiles.firstOrNull { classpath -> classpath.name.matches(regex) }
