@@ -5,6 +5,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
+import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
@@ -156,7 +157,7 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.proveCall(expression: IrCall): IrCall =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
-      val givenTypeParamUpperBound = GivenUpperBound(expression.symbol.owner.descriptor)
+      val givenTypeParamUpperBound = GivenUpperBound(expression.unsubstitutedDescriptor, expression)
       val upperBound = givenTypeParamUpperBound.givenUpperBound
       if (upperBound != null) insertGivenCall(givenTypeParamUpperBound, expression)
       else insertExtensionSyntaxCall(expression)
@@ -221,11 +222,10 @@ class ProofsIrCodegen(
   ): Unit {
     val upperBound = givenUpperBound.givenUpperBound
     if (upperBound != null) {
-      givenUpperBound.givenValueParameters.forEach { valueParameterDescriptor ->
-        val superType = valueParameterDescriptor.type
+      givenUpperBound.givenValueParameters.forEach { (descriptor, superType) ->
         givenProofCall(superType)?.apply {
-          if (expression.getValueArgument(valueParameterDescriptor) == null)
-            expression.putValueArgument(valueParameterDescriptor, this)
+          if (expression.getValueArgument(descriptor) == null)
+            expression.putValueArgument(descriptor, this)
         }
       }
     }

@@ -3,10 +3,12 @@ package arrow.meta.phases.codegen.ir
 import arrow.meta.phases.CompilerContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -16,6 +18,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
@@ -26,6 +29,9 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.asSimpleType
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
 class IrUtils(
   val pluginContext: IrPluginContext,
@@ -152,3 +158,45 @@ fun IrCall.dfsCalls(): List<IrCall> {
   return calls
 }
 
+/**
+ * returns the index and the value argument
+ */
+val IrCall.valueArguments: List<Pair<Int, IrExpression?>>
+  get() {
+    val args = arrayListOf<Pair<Int, IrExpression?>>()
+    for (i in 0 until valueArgumentsCount) {
+      args.add(i to getValueArgument(i))
+    }
+    return args.toList()
+  }
+
+/**
+ * returns the index and the type argument
+ */
+val IrCall.typeArguments: List<Pair<Int, IrType?>>
+  get() {
+    val args = arrayListOf<Pair<Int, IrType?>>()
+    for (i in 0 until typeArgumentsCount) {
+      args.add(i to getTypeArgument(i))
+    }
+    return args.toList()
+  }
+
+val IrCall.unsubstitutedDescriptor: FunctionDescriptor
+  get() = symbol.owner.descriptor
+
+/**
+ * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
+ */
+fun CallableMemberDescriptor.substitutedValueParameters(call: IrCall): List<Pair<ValueParameterDescriptor, KotlinType>> =
+  valueParameters.filterNotNull()
+    .map {
+      val type = it.type
+      it to (type.takeIf { t -> !t.isTypeParameter() }
+        ?: typeParameters.filterNotNull()
+          .firstOrNull { typeParam -> typeParam.defaultType == type.asSimpleType() }
+          ?.let { typeParam ->
+            call.getTypeArgument(typeParam.index)?.originalKotlinType
+          } ?: type // Could not resolve the substituted KotlinType
+        )
+    }
