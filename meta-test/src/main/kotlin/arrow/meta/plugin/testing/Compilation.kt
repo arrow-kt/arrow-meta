@@ -9,13 +9,22 @@ import java.io.File
 
 internal const val DEFAULT_FILENAME = "Source.kt"
 
-internal fun compile(data: CompilationData): Result =
-  KotlinCompilation().apply {
+internal fun compile(data: CompilationData): Result {
+  val outputFile = File.createTempFile("tmp", "log")
+  val compilationResult = KotlinCompilation().apply {
     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
     compilerPlugins = data.metaPlugins
+    messageOutputStream = outputFile.outputStream()
   }.compile()
+  rewriteAndPrintOutput(outputFile.readLines())
+  return compilationResult
+}
+
+private fun rewriteAndPrintOutput(lines: List<String>) {
+  println(lines.joinToString(System.lineSeparator()) { it.replace(Regex("^e:"), "error found:") })
+}
 
 private fun classpathOf(dependency: String): File {
   val regex = Regex(".*${dependency.replace(':', '-')}.*")
