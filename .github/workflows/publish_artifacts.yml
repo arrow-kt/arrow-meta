@@ -31,10 +31,6 @@ jobs:
       run: |
         ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
         if [[ "$ACTUAL_VERSION" == *-SNAPSHOT ]]; then echo "::set-output name=is-snapshot::true"; else echo "::set-output name=is-snapshot::false"; fi
-    - name: Updates when snapshot
-      if: steps.properties.outputs.is-snapshot == 'true'
-      run: |
-        echo "apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'" >> gradle-plugin/build.gradle 
     - name: Publish artifacts
       env:
         BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
