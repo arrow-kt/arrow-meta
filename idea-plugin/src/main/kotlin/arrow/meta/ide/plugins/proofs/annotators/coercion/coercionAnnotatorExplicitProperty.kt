@@ -18,7 +18,7 @@ import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.KotlinDocumentationProvider
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
@@ -39,7 +39,7 @@ val IdeMetaPlugin.explicitPropertyCoercion: ExtensionPhase
                   val htmlMessage = html {
                     body {
                       text("Implicit coercion applied by") +
-                        text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktProperty)
+                        text(KotlinDocumentationProvider().generateDoc(proofPsi, ktProperty)
                           .orEmpty())
                     }
                   }.render()

@@ -16,7 +16,7 @@ import com.intellij.psi.PsiElement
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.KotlinDocumentationProvider
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -35,7 +35,7 @@ val IdeMetaPlugin.implicitCoercion: ExtensionPhase
                 val htmlMessage = html {
                   body {
                     text("Apply implicit coercion available by") +
-                      text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktDotQualifiedExpression).orEmpty())
+                      text(KotlinDocumentationProvider().generateDoc(proofPsi, ktDotQualifiedExpression).orEmpty())
                   }
                 }.render()
                 val makeCoercionImplicitFix = localQuickFix(
