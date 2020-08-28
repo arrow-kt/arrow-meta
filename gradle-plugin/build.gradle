@@ -13,8 +13,6 @@ repositories {
 
 apply plugin: 'kotlin'
 
-group = 'io.arrow-kt'
-version = VERSION_NAME
 def pluginId = 'io.arrow-kt.arrow'
 
 processResources {
@@ -32,7 +30,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   implementation "xerces:xercesImpl:$XERCES_VERSION"
-  runtime "io.arrow-kt:compiler-plugin:$VERSION_NAME"
+  runtimeOnly "io.arrow-kt:compiler-plugin:$VERSION_NAME"
 }
 
 compileKotlin {
@@ -76,4 +74,8 @@ pluginBundle {
       displayName = "Arrow Meta Gradle Plugin"
     }
   }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.matches('.*Plugin.*MavenPublication.*')) { task.enabled = false }
 }
