@@ -71,12 +71,11 @@ test {
   systemProperties['idea.is.internal'] = "false"
 }
 
-apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
 apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
 apply from: file("${rootProject.rootDir}/gradle/build-idea-plugin.gradle")
 
 runPluginVerifier {
     pluginFileName = "Arrow Meta-$VERSION_NAME"
     ides = ["IC-$INTELLIJ_IDEA_VERSION_UNDER_TEST"]
-    verifierVersion = "1.241"
+    verifierVersion = "$INTELLIJ_PLUGIN_VERIFIER"
 }

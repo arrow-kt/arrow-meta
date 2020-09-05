@@ -71,5 +71,4 @@ test {
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
 
-apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
 apply from: rootProject.file('gradle/upload-shadow.gradle')
