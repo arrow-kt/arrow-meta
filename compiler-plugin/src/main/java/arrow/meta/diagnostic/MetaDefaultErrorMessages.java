@@ -24,7 +24,7 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(PublishedInternalOrphan,
                 "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation."
         );
-        MAP.put(AmbiguousExtensionProof,
+        MAP.put(AmbiguousProof,
                 "AmbigousExtensionProof", null, null);
         MAP.put(OwnershipViolatedProof,
                 "OwnershipViolatedProof", (DiagnosticParameterRenderer<? super Proof>) null);

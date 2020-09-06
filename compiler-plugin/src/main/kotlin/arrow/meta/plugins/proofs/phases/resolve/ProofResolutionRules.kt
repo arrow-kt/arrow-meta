@@ -2,7 +2,7 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.Meta
 import arrow.meta.diagnostic.MetaErrors
-import arrow.meta.diagnostic.MetaErrors.AmbiguousExtensionProof
+import arrow.meta.diagnostic.MetaErrors.AmbiguousProof
 import arrow.meta.diagnostic.MetaErrors.OwnershipViolatedProof
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
@@ -19,6 +19,7 @@ import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
@@ -114,19 +115,20 @@ fun KotlinType.isUserOwned(): Boolean =
 fun KotlinType.hasSource(): Boolean =
   constructor.declarationDescriptor?.source != SourceElement.NO_SOURCE
 
-fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedAmbiguities(): List<Pair<ExtensionProof, List<ExtensionProof>>> =
+fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>>> =
   mapNotNull { (_, proofs) ->
     proofs.exists { p1, p2 ->
-      (p1.through.visibility == Visibilities.PUBLIC && p2.through.visibility == Visibilities.PUBLIC
-        )
-        || (p1.through.visibility == Visibilities.INTERNAL && p2.through.visibility == Visibilities.INTERNAL)
+      val a = p1.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
+      val b = p2.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
+      a == Visibilities.PUBLIC && b == Visibilities.PUBLIC
+        || (a == Visibilities.INTERNAL && b == Visibilities.INTERNAL)
       // TODO: Loosen the rule to allow package scoped proofs when they have the same package-info
     }.filter { (_, v) -> v.isNotEmpty() } // filter out proofs with conflicts
   }.flatten()
 
-fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedUserDefinedAmbiguities(): List<Pair<Pair<ExtensionProof, KtNamedFunction>, List<ExtensionProof>>> =
+fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair<Pair<A, KtDeclaration>, List<A>>> =
   disallowedAmbiguities().mapNotNull { (proof, others) -> // collect those with a SourceElement, which the User is responsible of
-    proof.through.findPsi().safeAs<KtNamedFunction>()?.let {
+    proof.through.findPsi().safeAs<KtDeclaration>()?.let {
       (proof to it) to others
     }
   }
@@ -135,14 +137,14 @@ fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.disallowedUserDefine
  * additionally to the Docs in [reportDisallowedUserDefinedAmbiguities].
  * The following extensions sends warnings, which proofs are being skipped and a prompt to the user to define an internal orphan to resolve coherence.
  */
-fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.skippedProofsDueToAmbiguities() =
+fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.skippedProofsDueToAmbiguities() =
   disallowedAmbiguities().filter { (proof, others) -> // collect those without a SourceElement, which the user is needs to override
-    with(proof.through) {
-      findPsi().safeAs<KtNamedFunction>() == null &&
+    with(proof.through as DeclarationDescriptorWithVisibility) {
+      findPsi() == null &&
         (visibility == Visibilities.INTERNAL // case: instrumented dependencies that publish internal proofs
           || visibility == Visibilities.PUBLIC) && others.any {// case: local project publishes public proof over non-owned types
         with(it.through) {
-          visibility == Visibilities.PUBLIC && it.through.findPsi().safeAs<KtNamedFunction>() == null
+          visibility == Visibilities.PUBLIC && findPsi() == null
         }
       }
     }
@@ -152,10 +154,10 @@ fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.skippedProofsDueToAm
  * the strategy that follows is that authors are responsible for a coherent resolution of the project.
  * Either by disambiguating proofs through a proper scope or disambiguating dependency proofs that lead to undefined behavior of proof resolution for the project or 3rd parties depending on coherence.
  */
-private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportDisallowedUserDefinedAmbiguities(trace: BindingTrace): Unit =
+private fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.reportDisallowedUserDefinedAmbiguities(trace: BindingTrace): Unit =
   disallowedUserDefinedAmbiguities().toMap()
     .forEach { (proof, f), conflicts ->
-      trace.report(AmbiguousExtensionProof.on(f, proof, conflicts))
+      trace.report(AmbiguousProof.on(f, proof, conflicts))
       //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
     }
 
@@ -177,7 +179,7 @@ private fun CompilerContext.reportOwnershipViolations(trace: BindingTrace, file:
     trace.report(OwnershipViolatedProof.on(declaration, proof))
   }
 
-private fun Map<Pair<KotlinType, KotlinType>, List<ExtensionProof>>.reportSkippedProofsDueToAmbiguities(
-  f: (proof: ExtensionProof, ambiguities: List<ExtensionProof>) -> Unit
+private fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.reportSkippedProofsDueToAmbiguities(
+  f: (proof: A, ambiguities: List<A>) -> Unit
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)

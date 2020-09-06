@@ -19,7 +19,7 @@ public interface MetaErrors {
     // type proofs
     DiagnosticFactory0<KtDeclaration> PublishedInternalOrphan = DiagnosticFactory0.create(ERROR, onPublishedInternalOrphan);
 
-    DiagnosticFactory2<KtNamedFunction, ExtensionProof, Collection<ExtensionProof>> AmbiguousExtensionProof = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<KtDeclaration, Proof, Collection<? extends Proof>> AmbiguousProof = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR);
 
