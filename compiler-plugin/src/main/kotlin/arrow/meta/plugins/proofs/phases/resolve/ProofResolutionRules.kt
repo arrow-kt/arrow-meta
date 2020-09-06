@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.isPublic
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.types.KotlinType
@@ -86,9 +85,17 @@ fun KtDeclaration.isViolatingOwnershipRule(trace: BindingTrace, ctx: CompilerCon
     }?.takeIf {
       !hasModifier(KtTokens.INTERNAL_KEYWORD) &&
         (when (it) {
-          is ExtensionProof -> !it.from.isUserOwned() || !it.to.isUserOwned()
+          is ExtensionProof ->
+            when (it.from.isUserOwned() xor it.to.isUserOwned()) {
+              true -> false // Proof is not violating ownership
+              false -> !it.from.isUserOwned() && !it.to.isUserOwned() // Proofs over user-owned Types don't break ownership
+            }
           is GivenProof -> !it.to.isUserOwned()
-          is RefinementProof -> !it.from.isUserOwned() || !it.to.isUserOwned()
+          is RefinementProof ->
+            when (it.from.isUserOwned() xor it.to.isUserOwned()) {
+              true -> false // Proof is not violating ownership
+              false -> !it.from.isUserOwned() && !it.to.isUserOwned() // Proofs over user-owned Types don't break ownership
+            }
         })
     }?.let {
       this to it
