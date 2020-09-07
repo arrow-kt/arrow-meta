@@ -38,7 +38,7 @@ jobs:
       run: |
         echo "NOTE: docs has its own publication workflows"
         echo "Uploading artifacts..."
-        ./gradlew uploadArchives
+        ./gradlew publish
         echo "$(cat gradle.properties | grep VERSION_NAME | cut -d'=' -f2) deployed!"
     - name: Create the private IDEA plugin repository (preparation)
       run: |
