@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import io.github.classgraph.ClassGraph
+import org.gradle.api.InvalidUserDataException
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import java.util.Properties
 
@@ -27,7 +28,9 @@ class ArrowGradlePlugin : Plugin<Project> {
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
-    val kotlinVersion = project.getKotlinPluginVersion()
+    val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
+    if (kotlinVersion != project.getKotlinPluginVersion())
+       throw InvalidUserDataException("Use Kotlin $kotlinVersion for Arrow Meta Gradle Plugin")
     project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
       // Dependencies that aren't provided by compiler-plugin
