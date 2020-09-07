@@ -5,7 +5,7 @@ import arrow.meta.plugin.testing.assertThis
 import org.junit.Test
 import org.junit.Ignore
 
-class RefinementTests {
+class RefinementTests { // fail in CI but not locally
 
   val prelude = """
     package test

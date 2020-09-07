@@ -9,14 +9,20 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
+import arrow.meta.plugins.proofs.phases.ArrowGivenProof
+import arrow.meta.plugins.proofs.phases.CallableMemberProof
+import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
+import arrow.meta.plugins.proofs.phases.allGivenProofs
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
+import arrow.meta.plugins.proofs.phases.refinementProofs
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
@@ -26,7 +32,6 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.types.KotlinType
@@ -50,16 +55,29 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   // Rule-set for ExtensionProofs
   extensionProofs().run {
     reportDisallowedUserDefinedAmbiguities(trace)
-    reportSkippedProofsDueToAmbiguities { proof, ambeguities ->
+    reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
-        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambeguities")
+        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
     }
   }
   // Rule-set for GivenProofs
   // TODO: Semi-inductive resolution rules e.g.: missing given()
-  // TODO: Ambiguities
+  allGivenProofs().run {
+    unresolvedGivenProofs()
+    reportDisallowedUserDefinedAmbiguities(trace)
+    reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
+      messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
+        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
+    }
+  }
   // Rule-set for RefinementProofs
-  // TODO: Ambiguities
+  refinementProofs().run {
+    reportDisallowedUserDefinedAmbiguities(trace)
+    reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
+      messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
+        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
+    }
+  }
 }
 
 fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
@@ -115,7 +133,7 @@ fun KotlinType.isUserOwned(): Boolean =
 fun KotlinType.hasSource(): Boolean =
   constructor.declarationDescriptor?.source != SourceElement.NO_SOURCE
 
-fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>>> =
+fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>>> =
   mapNotNull { (_, proofs) ->
     proofs.exists { p1, p2 ->
       val a = p1.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
@@ -126,7 +144,7 @@ fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedAmbiguities
     }.filter { (_, v) -> v.isNotEmpty() } // filter out proofs with conflicts
   }.flatten()
 
-fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair<Pair<A, KtDeclaration>, List<A>>> =
+fun <K, A : Proof> Map<K, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair<Pair<A, KtDeclaration>, List<A>>> =
   disallowedAmbiguities().mapNotNull { (proof, others) -> // collect those with a SourceElement, which the User is responsible of
     proof.through.findPsi().safeAs<KtDeclaration>()?.let {
       (proof to it) to others
@@ -137,7 +155,7 @@ fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.disallowedUserDefined
  * additionally to the Docs in [reportDisallowedUserDefinedAmbiguities].
  * The following extensions sends warnings, which proofs are being skipped and a prompt to the user to define an internal orphan to resolve coherence.
  */
-fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.skippedProofsDueToAmbiguities() =
+fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities() =
   disallowedAmbiguities().filter { (proof, others) -> // collect those without a SourceElement, which the user is needs to override
     with(proof.through as DeclarationDescriptorWithVisibility) {
       findPsi() == null &&
@@ -151,10 +169,57 @@ fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.skippedProofsDueToAmb
   }
 
 /**
+ * `unresolved` that is a GivenProof that has Parameters e.g.: [ClassProof], [CallableMemberProof] and
+ * those don't have default values or are not being semi-inductively resolved by other GivenProof's.
+ */
+fun Map<KotlinType, List<GivenProof>>.unresolvedGivenProofs(): Map<KotlinType, List<GivenProof>> =
+  mapValues { (type, proofs) ->
+    proofs.filter { !it.isResolved(this) }
+  }.filter { (_, unresolved) ->
+    unresolved.isNotEmpty()
+  }
+
+fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
+  when (this) {
+    is ObjectProof -> true // object proofs are resolved automatically, as they do not have constructors
+    is ClassProof -> isResolved(others)
+    is CallableMemberProof -> isResolved(others)
+  }
+
+/**
+ * which constructor is chosen in IR?
+ * TODO: Check if the defaultValue is resolved
+ */
+fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
+  through.constructors.all { f ->
+    f.valueParameters.all { param ->
+      param.declaresDefaultValue() ||
+        param.type.annotations.hasAnnotation(ArrowGivenProof) &&
+        others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+    }
+  }
+
+/**
+ * TODO: Check if the defaultValue is resolved
+ */
+fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
+  through.valueParameters.all { param ->
+    param.declaresDefaultValue() ||
+      param.type.annotations.hasAnnotation(ArrowGivenProof) &&
+      others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+  }
+
+fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(): Unit =
+  unresolvedGivenProofs().forEach { (type, proofs) ->
+
+  }
+
+
+/**
  * the strategy that follows is that authors are responsible for a coherent resolution of the project.
  * Either by disambiguating proofs through a proper scope or disambiguating dependency proofs that lead to undefined behavior of proof resolution for the project or 3rd parties depending on coherence.
  */
-private fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.reportDisallowedUserDefinedAmbiguities(trace: BindingTrace): Unit =
+private fun <K, A : Proof> Map<K, List<A>>.reportDisallowedUserDefinedAmbiguities(trace: BindingTrace): Unit =
   disallowedUserDefinedAmbiguities().toMap()
     .forEach { (proof, f), conflicts ->
       trace.report(AmbiguousProof.on(f, proof, conflicts))
@@ -179,7 +244,7 @@ private fun CompilerContext.reportOwnershipViolations(trace: BindingTrace, file:
     trace.report(OwnershipViolatedProof.on(declaration, proof))
   }
 
-private fun <A : Proof> Map<Pair<KotlinType, KotlinType>, List<A>>.reportSkippedProofsDueToAmbiguities(
+private fun <K, A : Proof> Map<K, List<A>>.reportSkippedProofsDueToAmbiguities(
   f: (proof: A, ambiguities: List<A>) -> Unit
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)

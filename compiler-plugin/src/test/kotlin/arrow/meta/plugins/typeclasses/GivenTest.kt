@@ -105,7 +105,7 @@ class GivenTest {
     )
   }
 
-  private val prelude = """
+  val prelude = """
     package test
     import arrow.*
     import arrowx.*

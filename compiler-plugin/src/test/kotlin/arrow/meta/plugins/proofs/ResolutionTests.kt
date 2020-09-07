@@ -4,6 +4,8 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugins.typeclasses.GivenTest
+
 import org.junit.Test
 
 // build ide peace with annotator
@@ -116,6 +118,97 @@ class ResolutionTests {
       }
     }
   }
+
+  @Test
+  // Fails, because constructor is not being filled with a proof
+  fun `unresolved class provider due to non Semi-inductive implementation`() {
+    givenResolutionTest(
+      source = """
+        @Given class X(val value: @Given String)
+        val result = given<X>().value
+      """) {
+      fails
+    }
+  }
+
+  @Test
+  // Fails, because constructor is not being filled with a proof
+  fun `unresolved class provider due to missing Proof for construction`() {
+    givenResolutionTest(
+      source = """
+        @Given class X(val value: @Given String = given())
+        val result = given<X>().value
+      """) {
+      fails
+    }
+  }
+
+  @Test
+  fun `resolved class provider due to Semi-inductive implementation`() {
+    givenResolutionTest(
+      source = """
+        @Given class X(val value: @Given String = given())
+        @Given
+        internal val x: String = "yes!"
+        val result = given<X>().value
+      """) {
+      "result".source.evalsTo("yes!")
+    }
+  }
+
+  @Test
+  fun `resolved callableMember provider due to Semi-inductive implementation`() {
+    givenResolutionTest(
+      source = """
+      @Given
+      fun <A : @Given Semigroup<A>> collapse(
+        initial: A,
+        list: List<A>,
+        f: @Given() (A) -> A = given()
+      ): A = 
+        list.fold(initial) { acc, a ->
+          acc.combine(f(a))
+        }
+      
+      @Given
+      internal fun <A> id(a: A): A = a
+      
+      val result = collapse(String.empty(), listOf("Hello ", "is it me", "your looking for"))
+      """) {
+      "result".source.evalsTo("Hello is it me, your looking for")
+    }
+  }
+
+
+  @Test
+  fun `resolved callable Member`() {
+    givenResolutionTest(
+      source = """
+        @Given
+        internal val x: (Int) -> String = { i -> i.toString() }
+        val result = given<(Int) -> String>().invoke(5)
+      """) {
+      "result".source.evalsTo("5")
+    }
+  }
+
+  private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
+    val arrowVersion = System.getProperty("ARROW_VERSION")
+    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
+    assertThis(CompilerTest(
+      config = {
+        metaDependencies + addDependencies(arrowCoreData)
+      },
+      code = {
+        """
+          |${GivenTest().prelude}
+          |$source
+        """.trimMargin().source
+      },
+      assert = assert
+    ))
+  }
+
 
   private fun resolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")

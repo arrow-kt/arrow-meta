@@ -178,6 +178,39 @@ fun CompilerContext.extensionProofs(): Map<Pair<KotlinType, KotlinType>, List<Ex
       }
     }.toMap()
 
+/**
+ * returns a Map, where the keys represent refinements from [KotlinType] -> to [KotlinType] and the values are the corresponding Proofs
+ */
+fun CompilerContext.refinementProofs(): Map<Pair<KotlinType, KotlinType>, List<RefinementProof>> =
+  proof<RefinementProof>()
+    .fold(mutableMapOf<Pair<KotlinType, KotlinType>, List<RefinementProof>>()) { acc, proof ->
+      val key = proof.from to proof.to
+      acc.apply {
+        if (acc.containsKey(key)) acc[key] = acc[key].orEmpty() + proof
+        else acc[key] = listOf(proof)
+      }
+    }.toMap()
+
+/**
+ * returns a Map, where the keys are [KotlinType] and the values are
+ * all corresponding proofs without refining the list as it is done in [givenProofs].
+ */
+fun CompilerContext.allGivenProofs(): Map<KotlinType, List<GivenProof>> =
+  proof<GivenProof>()
+    .fold(mutableMapOf<KotlinType, List<GivenProof>>()) { acc, proof ->
+      val key = proof.to
+      acc.apply {
+        if (acc.containsKey(key)) acc[key] = acc[key].orEmpty() + proof
+        else acc[key] = listOf(proof)
+      }
+    }.toMap()
+
+/**
+ * contrary to [allGivenProofs] it refines the List as it is done in [givenProofs]
+ */
+fun CompilerContext.givenProofs(): Map<KotlinType, List<GivenProof>> =
+  allGivenProofs().mapValues { (type, proofs) -> proofs.matchingCandidates(this, type) }
+
 fun CompilerContext.coerceProof(subType: KotlinType, superType: KotlinType): CoercionProof? =
   coerceProofs(subType, superType).firstOrNull()
 
@@ -188,17 +221,17 @@ fun CompilerContext?.areTypesCoerced(subType: KotlinType, supertype: KotlinType)
   !baseLineTypeChecker.isSubtypeOf(subType, supertype) && this?.coerceProof(subType, supertype) != null
 
 fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
-    if (this is ModuleDescriptorImpl) {
-      try {
-        val cacheValue = ctx.proofCache[this]
-        when {
-          cacheValue != null -> {
-            cacheValue.proofs
-          }
-          else -> cli { initializeProofCache(ctx) } ?: emptyList()
+  if (this is ModuleDescriptorImpl) {
+    try {
+      val cacheValue = ctx.proofCache[this]
+      when {
+        cacheValue != null -> {
+          cacheValue.proofs
         }
-      } catch (e: RuntimeException) {
-        println("TODO() Detected exception: ${e.printStackTrace()}")
-        emptyList<Proof>()
+        else -> cli { initializeProofCache(ctx) } ?: emptyList()
       }
-    } else emptyList()
+    } catch (e: RuntimeException) {
+      println("TODO() Detected exception: ${e.printStackTrace()}")
+      emptyList<Proof>()
+    }
+  } else emptyList()
