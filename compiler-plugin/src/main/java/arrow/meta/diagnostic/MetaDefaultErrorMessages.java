@@ -28,5 +28,6 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
                 "AmbigousExtensionProof", null, null);
         MAP.put(OwnershipViolatedProof,
                 "OwnershipViolatedProof", (DiagnosticParameterRenderer<? super Proof>) null);
+        MAP.put(UnresolvedGivenProofs, "UnresolvedGivenProofs", null, null);
     }
 }

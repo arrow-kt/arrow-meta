@@ -1,6 +1,7 @@
 package arrow.meta.diagnostic;
 
 import arrow.meta.plugins.proofs.phases.ExtensionProof;
+import arrow.meta.plugins.proofs.phases.GivenProof;
 import arrow.meta.plugins.proofs.phases.Proof;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
@@ -8,6 +9,7 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
+import org.jetbrains.kotlin.types.KotlinType;
 
 import java.util.Collection;
 
@@ -22,6 +24,8 @@ public interface MetaErrors {
     DiagnosticFactory2<KtDeclaration, Proof, Collection<? extends Proof>> AmbiguousProof = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR);
+
+    DiagnosticFactory2<KtDeclaration, KotlinType, Collection<? extends GivenProof>> UnresolvedGivenProofs = DiagnosticFactory2.create(ERROR);
 
     /**
      * needed to prevent NPE in
