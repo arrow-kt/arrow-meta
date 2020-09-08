@@ -5,7 +5,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.typeclasses.GivenTest
-
+import org.junit.Ignore
 import org.junit.Test
 
 // build ide peace with annotator
@@ -156,24 +156,23 @@ class ResolutionTests {
     }
   }
 
+  @Ignore // Currently Given injections with type params need to be reviewed #741 among other things
   @Test
-  fun `resolved callableMember provider due to Semi-inductive implementation`() {
+  fun `resolved function due to Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
-      @Given
-      fun <A : @Given Semigroup<A>> collapse(
+      fun <A : @Given Semigroup<A>> List<A>.collapse(
         initial: A,
-        list: List<A>,
         f: @Given() (A) -> A = given()
-      ): A = 
-        list.fold(initial) { acc, a ->
+      ): A =
+        fold(initial) { acc: A, a: A ->
           acc.combine(f(a))
         }
       
       @Given
       internal fun <A> id(a: A): A = a
       
-      val result = collapse(String.empty(), listOf("Hello ", "is it me", "your looking for"))
+      val result = listOf("Hello ", "is it me", "your looking for").collapse(String.empty())
       """) {
       "result".source.evalsTo("Hello is it me, your looking for")
     }

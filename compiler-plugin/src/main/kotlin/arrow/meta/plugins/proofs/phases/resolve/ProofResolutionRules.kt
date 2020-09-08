@@ -204,9 +204,10 @@ fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.valueParameters.all { param ->
-    param.declaresDefaultValue() ||
-      param.type.annotations.hasAnnotation(ArrowGivenProof) &&
+    if (param.type.annotations.hasAnnotation(ArrowGivenProof))
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+    else
+      true
   }
 
 fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(): Unit =
