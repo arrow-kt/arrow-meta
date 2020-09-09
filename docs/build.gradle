@@ -15,8 +15,9 @@ plugins {
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-    implementation project(':idea-plugin')
-    implementation "junit:junit:4.13"
+    runtimeOnly project(':idea-plugin')
+    runtimeOnly project(path: ':compiler-plugin', configuration: 'shadow')
+    runtimeOnly "junit:junit:4.13"
     runtimeOnly "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION"
     runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler:$KOTLIN_VERSION"
     runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-impl:$KOTLIN_VERSION"
