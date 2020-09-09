@@ -25,6 +25,7 @@ dependencies {
   compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
   testCompileOnly "org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION" // for the JetBrains Gradle test framework
+  testImplementation project(path: ':compiler-plugin', configuration: 'shadow')
 }
 
 compileKotlin {
