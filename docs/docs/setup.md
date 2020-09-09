@@ -62,8 +62,8 @@ It will be necessary to restart the IDE to finish the installation.
 
 There are two custom plugin repositories according to the correspondent version:
 
-* For the latest SNAPSHOT version: `https://meta.arrow-kt.io/idea-plugin/latest-snapshot/updatePlugins.xml`
-* For the latest RELEASE version: `https://meta.arrow-kt.io/idea-plugin/latest-release/updatePlugins.xml`
+* For the latest SNAPSHOT version: `https://meta.arrow-kt.io/plugins-repository/idea-plugin/latest-snapshot/updatePlugins.xml`
+* For the latest RELEASE version: `https://meta.arrow-kt.io/plugins-repository/idea-plugin/latest-release/updatePlugins.xml`
 
 Follow the steps about the use of [Custom plugin repositories](https://www.jetbrains.com/help/idea/managing-plugins.html#install_plugin_from_repo) to install the Arrow Meta IDE Plugin.
 
@@ -79,11 +79,19 @@ If you are interested in extending the Arrow Meta IDE Plugin or developing from 
 
 ```
 dependencies {
-    implementation "io.arrow-kt:idea-plugin:<version>"
+    compileOnly "io.arrow-kt:idea-plugin:<version>"
+    compileOnly "io.arrow-kt:compiler-plugin:<version>:all"
 }
 
 repositories {
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+}
+
+
+intellij {
+    ...
+    plugins = ["io.arrow-kt.arrow:${ARROW_META_VERSION}"]
+    pluginsRepo = "https://meta.arrow-kt.io/plugins-repository/idea-plugin/snapshot" 
 }
 ```
 
