@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer;
 
 import static arrow.meta.diagnostic.MetaErrors.*;
+import static arrow.meta.phases.analysis.diagnostic.RenderersKt.RenderTypeWithFqName;
 
 public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension {
     @NotNull
@@ -25,9 +26,11 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
                 "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation."
         );
         MAP.put(AmbiguousProof,
-                "AmbigousExtensionProof", null, null);
+                "AmbiguousExtensionProof", null, null);
         MAP.put(OwnershipViolatedProof,
                 "OwnershipViolatedProof", (DiagnosticParameterRenderer<? super Proof>) null);
-        MAP.put(UnresolvedGivenProofs, "UnresolvedGivenProofs", null, null);
+        MAP.put(UnresolvedGivenProof, "This GivenProof on the type {0} can't be semi-inductively resolved. TODO:Help message", RenderTypeWithFqName);
+        MAP.put(RefinementValidationError,
+                "Predicate failed: {0}", (DiagnosticParameterRenderer<String>) null);
     }
 }

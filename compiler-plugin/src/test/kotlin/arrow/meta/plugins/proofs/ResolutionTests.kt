@@ -4,6 +4,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugins.refinement.RefinementTests
 import arrow.meta.plugins.typeclasses.GivenTest
 import org.junit.Ignore
 import org.junit.Test
@@ -28,7 +29,7 @@ class ResolutionTests {
   }
 
   @Test
-  fun `internal orphan override`() {
+  fun `@Extension internal orphan override`() {
     resolutionTest(
       """
       @Coercion
@@ -38,6 +39,27 @@ class ResolutionTests {
       val x: Int? = "30"
       """) {
       "x".source.evalsTo(48)
+    }
+  }
+
+  @Test
+  fun `@Given internal orphan override`() {
+    givenResolutionTest(
+      source = """
+        @Given
+        val p1 = Person("Peter Parker", 22)
+        
+        @Given
+        internal val p2 = Person("Harry Potter", 14)
+        
+        val result = given<Person>()
+        val name = result.name
+        val age = result.age
+      """) {
+      allOf(
+        "name".source.evalsTo("Harry Potter"),
+        "age".source.evalsTo(14)
+      )
     }
   }
 
@@ -120,7 +142,7 @@ class ResolutionTests {
   }
 
   @Test
-  // Fails, because constructor is not being filled with a proof
+// Fails, because constructor is not being filled with a proof
   fun `unresolved class provider due to non Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
@@ -132,7 +154,7 @@ class ResolutionTests {
   }
 
   @Test
-  // Fails, because constructor is not being filled with a proof
+// Fails, because constructor is not being filled with a proof
   fun `unresolved class provider due to missing Proof for construction`() {
     givenResolutionTest(
       source = """
@@ -147,12 +169,28 @@ class ResolutionTests {
   fun `resolved class provider due to Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String = given())
+        @Given class X(val value: @Given String = given(), val p: @Given Person = given())
+        
         @Given
         internal val x: String = "yes!"
-        val result = given<X>().value
+        
+        @Given
+        val publicP = Person("Peter Parker", 22)
+        
+        @Given
+        internal val internalP = Person("Harry Potter", 14)
+        
+        val result = given<X>()
+        val value = result.value
+        val name = result.p.name
+        val age = result.p.age
       """) {
-      "result".source.evalsTo("yes!")
+      allOf(
+        "value".source.evalsTo("yes!"),
+        "name".source.evalsTo("Harry Potter"),
+        "age".source.evalsTo(14)
+      )
+
     }
   }
 
@@ -191,6 +229,16 @@ class ResolutionTests {
     }
   }
 
+  private fun refinementResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
+    RefinementTests().refinementTest(
+      """
+          |data class Person(val name: String, val age: Int)
+          |$source
+        """,
+      assert = assert
+    )
+  }
+
   private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
@@ -201,6 +249,7 @@ class ResolutionTests {
       code = {
         """
           |${GivenTest().prelude}
+          |data class Person(val name: String, val age: Int)
           |$source
         """.trimMargin().source
       },

@@ -1,6 +1,5 @@
 package arrow.meta.diagnostic;
 
-import arrow.meta.plugins.proofs.phases.ExtensionProof;
 import arrow.meta.plugins.proofs.phases.GivenProof;
 import arrow.meta.plugins.proofs.phases.Proof;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
@@ -8,12 +7,11 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.psi.KtDeclaration;
-import org.jetbrains.kotlin.psi.KtNamedFunction;
+import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.types.KotlinType;
 
 import java.util.Collection;
 
-import static arrow.meta.phases.analysis.diagnostic.PositionStrategiesKt.onNavigationElement;
 import static arrow.meta.phases.analysis.diagnostic.PositionStrategiesKt.onPublishedInternalOrphan;
 import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
 
@@ -25,7 +23,9 @@ public interface MetaErrors {
 
     DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR);
 
-    DiagnosticFactory2<KtDeclaration, KotlinType, Collection<? extends GivenProof>> UnresolvedGivenProofs = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<KtDeclaration, KotlinType> UnresolvedGivenProof = DiagnosticFactory1.create(ERROR);
+
+    DiagnosticFactory1<KtElement, String> RefinementValidationError = DiagnosticFactory1.create(ERROR);
 
     /**
      * needed to prevent NPE in

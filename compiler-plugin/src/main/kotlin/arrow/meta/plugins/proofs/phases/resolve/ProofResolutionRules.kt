@@ -25,6 +25,7 @@ import arrow.meta.plugins.proofs.phases.proof
 import arrow.meta.plugins.proofs.phases.refinementProofs
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -32,8 +33,10 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -63,7 +66,7 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   // Rule-set for GivenProofs
   // TODO: Semi-inductive resolution rules e.g.: missing given()
   allGivenProofs().run {
-    unresolvedGivenProofs()
+    reportUnresolvedGivenProofs(trace, messageCollector)
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
@@ -193,9 +196,9 @@ fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
 fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.constructors.all { f ->
     f.valueParameters.all { param ->
-      param.declaresDefaultValue() ||
-        param.type.annotations.hasAnnotation(ArrowGivenProof) &&
+      if (param.type.annotations.hasAnnotation(ArrowGivenProof))
         others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+      else param.declaresDefaultValue()
     }
   }
 
@@ -210,9 +213,14 @@ fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): B
       true
   }
 
-fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(): Unit =
+fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: BindingTrace, msg: MessageCollector?): Unit =
   unresolvedGivenProofs().forEach { (type, proofs) ->
-
+    proofs.forEach { proof ->
+      proof.through.findPsi()?.safeAs<KtDeclaration>()?.let { element ->
+        trace.report(MetaErrors.UnresolvedGivenProof.on(element, type))
+      } ?: msg?.report(CompilerMessageSeverity.WARNING,
+        "The GivenProof ${proof.through.fqNameSafe.asString()} on the type ${DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type)} can't be semi-inductively resolved and won't be considered in resolution.")
+    }
   }
 
 
