@@ -11,8 +11,6 @@ import org.junit.Test
 
 // build ide peace with annotator
 class ResolutionTests {
-  // the first tests define their proofs in the same package
-  // adds ownership rules on types
   // skipped internal instances for public and internal proofs
   @Test
   fun `prohibited public proof of non user types`() {
@@ -24,7 +22,7 @@ class ResolutionTests {
         
       val x: Int? = "30"
       """) {
-      fails
+      failsWith { it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int violates ownership rules") }
     }
   }
 
@@ -75,13 +73,14 @@ class ResolutionTests {
       internal fun String.toInt8(): Int? = // "30" -> 24
         toIntOrNull(8)
       """) {
-      fails
+      failsWith {
+        it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int has following conflicting proof/s: ExtensionProof test.toInt8: kotlin.String -> kotlin.Int")
+          && it.contains("This ExtensionProof test.toInt8: kotlin.String -> kotlin.Int has following conflicting proof/s: ExtensionProof test.toInt16: kotlin.String -> kotlin.Int.\n" +
+          "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or removing ubiquitous proofs from the project.")
+      }
     }
   }
 
-  /**
-   * some context to the following proofs.
-   */
   @Test
   fun `ambiguous public coercion proofs`() {
     resolutionTest(
@@ -142,20 +141,20 @@ class ResolutionTests {
   }
 
   @Test
-// Fails, because constructor is not being filled with a proof
-  fun `unresolved class provider due to non Semi-inductive implementation`() {
+  fun `unresolved class provider due to non injected given as default value and missing GivenProof on String`() {
     givenResolutionTest(
       source = """
         @Given class X(val value: @Given String)
         val result = given<X>().value
       """) {
-      fails
+      failsWith{
+        it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.")
+      }
     }
   }
 
   @Test
-// Fails, because constructor is not being filled with a proof
-  fun `unresolved class provider due to missing Proof for construction`() {
+  fun `unresolved class provider due to missing GivenProof on String`() {
     givenResolutionTest(
       source = """
         @Given class X(val value: @Given String = given())
@@ -166,7 +165,7 @@ class ResolutionTests {
   }
 
   @Test
-  fun `resolved class provider due to Semi-inductive implementation`() {
+  fun `resolved class provider due to coherent Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
         @Given class X(val value: @Given String = given(), val p: @Given Person = given())
@@ -175,10 +174,10 @@ class ResolutionTests {
         internal val x: String = "yes!"
         
         @Given
-        val publicP = Person("Peter Parker", 22)
+        val publicPerson = Person("Peter Schmitz", 22)
         
         @Given
-        internal val internalP = Person("Harry Potter", 14)
+        internal val orphan = Person("Micheal Müller", 16)
         
         val result = given<X>()
         val value = result.value
@@ -187,8 +186,8 @@ class ResolutionTests {
       """) {
       allOf(
         "value".source.evalsTo("yes!"),
-        "name".source.evalsTo("Harry Potter"),
-        "age".source.evalsTo(14)
+        "name".source.evalsTo("Micheal Müller"),
+        "age".source.evalsTo(16)
       )
 
     }
@@ -229,14 +228,51 @@ class ResolutionTests {
     }
   }
 
-  private fun refinementResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
-    RefinementTests().refinementTest(
-      """
-          |data class Person(val name: String, val age: Int)
-          |$source
-        """,
-      assert = assert
+  @Test
+  fun `incorrect refinement proof`() { //  it.safeAs<ClassDescriptor>()?.companionObjectDescriptor?.unsubstitutedMemberScope?.getContributedDescriptors { true }?.first { it.name.identifier == "from"}
+    refinementResolutionTest(
+      source = {
+        """
+      $positiveInt
+      @Refinement
+      inline class StrictPositiveInt(val value: Int)  {
+        companion object : Refined<Int, PositiveInt> {
+          override val target : (Int) -> PositiveInt = ::PositiveInt
+          override val validate: Int.() -> Map<String, Boolean> = {
+            mapOf(
+              "Should be > 0" to (this > 0)
+            )
+          }
+        }
+      }
+      
+      @Coercion
+      fun Int.strictPositive(): StrictPositiveInt? =
+        StrictPositiveInt.from(this)
+      
+      @Coercion
+      fun PositiveInt.strict(): StrictPositiveInt? =
+        StrictPositiveInt.from(value)
+    """
+      },
+      assert = {
+        fails
+      }
     )
+  }
+
+
+
+  private fun refinementResolutionTest(source: RefinementTests.() -> String, assert: CompilerTest.Companion.() -> Assert) {
+    RefinementTests().run {
+      refinementTest(
+        """
+          |data class Person(val name: String, val age: Int)
+          |${source(this)}
+        """,
+        assert = assert
+      )
+    }
   }
 
   private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {

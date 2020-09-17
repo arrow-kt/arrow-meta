@@ -2,6 +2,7 @@ package arrow.meta.plugins.proofs.phases
 
 import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.analysis.fqNameOrShortName
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
@@ -21,18 +22,21 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 
 val ArrowExtensionProof: FqName = FqName("arrow.Extension")
 val ArrowGivenProof: FqName = FqName("arrow.Given")
 val ArrowCoercionProof: FqName = FqName("arrow.Coercion")
 val ArrowRefinementProof: FqName = FqName("arrow.Refinement")
+val ArrowRefinedBy: FqName = FqName("arrow.RefinedBy")
 
 val ArrowProofSet: Set<FqName> = setOf(
   ArrowExtensionProof,
   ArrowGivenProof,
   ArrowCoercionProof,
-  ArrowRefinementProof
+  ArrowRefinementProof,
+  ArrowRefinedBy
 )
 
 sealed class Proof(
@@ -235,3 +239,10 @@ fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
       emptyList<Proof>()
     }
   } else emptyList()
+
+fun Proof.asString(): String =
+  when (this) {
+    is GivenProof -> "GivenProof ${through.fqNameSafe.asString()} on the type ${to.fqNameOrShortName()}"
+    is ExtensionProof -> "ExtensionProof ${through.fqNameSafe.asString()}: ${from.fqNameOrShortName()} -> ${to.fqNameOrShortName()}"
+    is RefinementProof -> "RefinementProof ${through.fqNameSafe.asString()}: ${from.fqNameOrShortName()} -> ${to.fqNameOrShortName()}"
+  }

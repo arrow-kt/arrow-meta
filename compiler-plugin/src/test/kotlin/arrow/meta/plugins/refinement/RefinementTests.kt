@@ -158,25 +158,6 @@ class RefinementTests {
         PositiveInt.from(this)
     """
 
-  val strictPositiveInt: String =
-    """
-      inline class PositiveInt(val value: Int)  {
-        companion object : Refined<Int, PositiveInt> {
-          override val target : (Int) -> PositiveInt = ::PositiveInt
-          override val validate: Int.() -> Map<String, Boolean> = {
-            mapOf(
-              "Should be > 0" to (this > 0)
-            )
-          }
-        }
-      }
-      
-      @Coercion
-      fun Int.positive(): PositiveInt? =
-        PositiveInt.from(this)
-    """
-
-
   val nonEmptyArray: String =
     """
     @Refinement 

@@ -60,11 +60,10 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
-        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
+        ?: println("TODO for skipped Proof:$proof with ambiguities:$ambiguities")
     }
   }
   // Rule-set for GivenProofs
-  // TODO: Semi-inductive resolution rules e.g.: missing given()
   allGivenProofs().run {
     reportUnresolvedGivenProofs(trace, messageCollector)
     reportDisallowedUserDefinedAmbiguities(trace)
@@ -75,6 +74,8 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   }
   // Rule-set for RefinementProofs
   refinementProofs().run {
+    // TODO: correct refinement proofs
+
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
@@ -219,7 +220,7 @@ fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: Binding
       proof.through.findPsi()?.safeAs<KtDeclaration>()?.let { element ->
         trace.report(MetaErrors.UnresolvedGivenProof.on(element, type))
       } ?: msg?.report(CompilerMessageSeverity.WARNING,
-        "The GivenProof ${proof.through.fqNameSafe.asString()} on the type ${DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type)} can't be semi-inductively resolved and won't be considered in resolution.")
+        "The GivenProof ${proof.through.fqNameSafe.asString()} from the project dependencies on the type ${DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type)} can't be semi-inductively resolved and won't be considered in resolution.")
     }
   }
 
@@ -232,7 +233,6 @@ private fun <K, A : Proof> Map<K, List<A>>.reportDisallowedUserDefinedAmbiguitie
   disallowedUserDefinedAmbiguities().toMap()
     .forEach { (proof, f), conflicts ->
       trace.report(AmbiguousProof.on(f, proof, conflicts))
-      //println("Proof:$proof in ${f.name} is ambiguous in respect to ${conflicts.joinToString(separator = "\n") { "Proof: ${it.through.name.asString()}" }}")
     }
 
 /**

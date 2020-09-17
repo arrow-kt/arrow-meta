@@ -15,7 +15,9 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.astReplace
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
@@ -186,3 +188,7 @@ val returnTypeEq: Eq<KotlinType>
 
 fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }
+
+fun KotlinType.fqNameOrShortName(): String =
+  constructor.declarationDescriptor?.fqNameOrNull()?.asString()
+    ?: DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(this)
