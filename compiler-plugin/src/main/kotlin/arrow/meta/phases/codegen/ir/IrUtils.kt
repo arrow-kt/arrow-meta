@@ -185,6 +185,9 @@ val IrCall.typeArguments: List<Pair<Int, IrType?>>
 val IrCall.unsubstitutedDescriptor: FunctionDescriptor
   get() = symbol.owner.descriptor
 
+val IrCall.substitutedValueParameters: List<Pair<ValueParameterDescriptor, KotlinType>>
+  get() = unsubstitutedDescriptor.substitutedValueParameters(this)
+
 /**
  * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
  */

@@ -1,9 +1,9 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.codegen.ir.substitutedValueParameters
+import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
@@ -21,12 +21,12 @@ data class GivenUpperBound(
         givenUpperBound = null
       )
 
-    operator fun invoke(f: CallableMemberDescriptor, call: IrCall): GivenUpperBound =
-      f.substitutedValueParameters(call)
+    operator fun invoke(call: IrCall): GivenUpperBound =
+      call.substitutedValueParameters
         .filter { it.first.type.annotations.hasAnnotation(ArrowGivenProof) }
         .takeIf { it.isNotEmpty() }
         ?.run {
-          GivenUpperBound(this, fold(f.builtIns.nothingType as KotlinType) { a, (_, b) ->
+          GivenUpperBound(this, fold(call.unsubstitutedDescriptor.builtIns.nothingType as KotlinType) { a, (_, b) ->
             if (a.isNothing()) b
             else a.intersection(b)
           })

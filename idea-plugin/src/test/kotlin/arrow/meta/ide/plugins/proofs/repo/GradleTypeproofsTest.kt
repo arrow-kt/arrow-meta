@@ -4,10 +4,11 @@ import arrow.meta.ide.gradle.GradleTestSetUp
 import arrow.meta.ide.testing.IdeEnvironment
 import com.intellij.openapi.module.ModuleManager
 import org.assertj.core.api.Assertions.assertThatCode
+import org.junit.Ignore
 import org.junit.Test
 
 class GradleTypeproofsTest : GradleTestSetUp() {
-
+  @Ignore
   @Test
   fun testGradleProject() {
     IdeEnvironment.run {
