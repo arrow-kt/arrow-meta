@@ -4,6 +4,7 @@ import arrow.meta.ide.gradle.GradleTestSetUp
 import arrow.meta.ide.testing.IdeEnvironment
 import com.intellij.openapi.module.ModuleManager
 import org.assertj.core.api.Assertions.assertThatCode
+import org.junit.Ignore
 import org.junit.Test
 
 class GradleTypeproofsTest : GradleTestSetUp() {
@@ -18,7 +19,7 @@ class GradleTypeproofsTest : GradleTestSetUp() {
       myProjectRoot = arrowProjectDir
 
       // TODO: remove after merging https://github.com/arrow-kt/arrow-typeproofs/pull/10
-      val checkoutResult = gitCheckout(myProject, "1.4.0-rc", myProjectRoot)
+      val checkoutResult = gitCheckout(myProject, "1.4.10", myProjectRoot)
       assertTrue(checkoutResult.success())
 
       importProject()
