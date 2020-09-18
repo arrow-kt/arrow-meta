@@ -240,7 +240,7 @@ fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
     }
   } else emptyList()
 
-fun Proof.asString(): String =
+internal fun Proof.asString(): String =
   when (this) {
     is GivenProof -> "GivenProof ${through.fqNameSafe.asString()} on the type ${to.fqNameOrShortName()}"
     is ExtensionProof -> "ExtensionProof ${through.fqNameSafe.asString()}: ${from.fqNameOrShortName()} -> ${to.fqNameOrShortName()}"

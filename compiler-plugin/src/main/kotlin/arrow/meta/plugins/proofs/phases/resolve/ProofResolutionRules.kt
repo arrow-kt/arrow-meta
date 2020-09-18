@@ -73,15 +73,14 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
     }
   }
   // Rule-set for RefinementProofs
+  /* Currently disabled, because refinements aren't collected during proof-initialization. Only there corresponding ExtensionProofs.
   refinementProofs().run {
-    // TODO: correct refinement proofs
-
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
         ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
     }
-  }
+  }*/
 }
 
 fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
