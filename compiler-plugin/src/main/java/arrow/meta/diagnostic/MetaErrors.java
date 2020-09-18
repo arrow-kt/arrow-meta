@@ -1,11 +1,11 @@
 package arrow.meta.diagnostic;
 
-import arrow.meta.plugins.proofs.phases.GivenProof;
 import arrow.meta.plugins.proofs.phases.Proof;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.psi.KtClass;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.types.KotlinType;
@@ -27,6 +27,7 @@ public interface MetaErrors {
 
     DiagnosticFactory1<KtElement, String> RefinementValidationError = DiagnosticFactory1.create(ERROR);
 
+    DiagnosticFactory1<KtClass, KotlinType> IncorrectRefinement = DiagnosticFactory1.create(ERROR);
     /**
      * needed to prevent NPE in
      * org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages#getRendererForDiagnostic(org.jetbrains.kotlin.diagnostics.Diagnostic)

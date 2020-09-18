@@ -30,6 +30,7 @@ val ArrowGivenProof: FqName = FqName("arrow.Given")
 val ArrowCoercionProof: FqName = FqName("arrow.Coercion")
 val ArrowRefinementProof: FqName = FqName("arrow.Refinement")
 val ArrowRefinedBy: FqName = FqName("arrow.RefinedBy")
+val ArrowRefined: FqName = FqName("arrow.Refined")
 
 val ArrowProofSet: Set<FqName> = setOf(
   ArrowExtensionProof,

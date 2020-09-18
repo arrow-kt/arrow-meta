@@ -3,13 +3,17 @@ package arrow.meta.plugins.proofs.phases.resolve
 import arrow.meta.Meta
 import arrow.meta.diagnostic.MetaErrors
 import arrow.meta.diagnostic.MetaErrors.AmbiguousProof
+import arrow.meta.diagnostic.MetaErrors.IncorrectRefinement
 import arrow.meta.diagnostic.MetaErrors.OwnershipViolatedProof
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.exists
+import arrow.meta.phases.analysis.fqNameOrShortName
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
+import arrow.meta.plugins.proofs.phases.ArrowRefined
+import arrow.meta.plugins.proofs.phases.ArrowRefinedBy
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
@@ -22,7 +26,7 @@ import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
-import arrow.meta.plugins.proofs.phases.refinementProofs
+import org.jetbrains.kotlin.backend.common.atMostOne
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -31,11 +35,14 @@ import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.bindingContextUtil.getAbbreviatedTypeOrType
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -54,6 +61,7 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   files.forEach { file: KtFile ->
     reportProhibitedPublishedInternalOrphans(trace, file)
     reportOwnershipViolations(trace, file)
+    reportIncorrectRefinements(trace, file)
   }
   // Rule-set for ExtensionProofs
   extensionProofs().run {
@@ -213,6 +221,24 @@ fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): B
       true
   }
 
+fun incorrectRefinements(trace: BindingTrace, file: KtFile) =
+  file.traverseFilter(KtClass::class.java) { c ->
+    c.takeIf {
+      it.hasModifier(KtTokens.INLINE_KEYWORD) &&
+        it.companionObjects.atMostOne { obj ->
+          obj.hasAnnotation(trace, ArrowRefinedBy) &&
+            (obj.superTypeListEntries.mapNotNull { s ->
+              s.typeReference?.typeElement?.getAbbreviatedTypeOrType(trace.bindingContext)
+                ?.takeIf { t -> t.constructor.declarationDescriptor?.fqNameOrNull() == ArrowRefined }?.arguments
+            }.flatten().last().type.constructor.declarationDescriptor?.findPsi() != it)
+        } != null
+    }?.let {
+      it to it.expectedRefinementType(trace)
+    }
+  }
+
+fun KtClass.expectedRefinementType(trace: BindingTrace): KotlinType =
+
 fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: BindingTrace, msg: MessageCollector?): Unit =
   unresolvedGivenProofs().forEach { (type, proofs) ->
     proofs.forEach { proof ->
@@ -256,3 +282,8 @@ private fun <K, A : Proof> Map<K, List<A>>.reportSkippedProofsDueToAmbiguities(
   f: (proof: A, ambiguities: List<A>) -> Unit
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)
+
+private fun reportIncorrectRefinements(trace: BindingTrace, file: KtFile): Unit =
+  incorrectRefinements(trace, file).forEach { (element, expectedRefinement) ->
+    trace.report(IncorrectRefinement.on(element, expectedRefinement))
+  }
