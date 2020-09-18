@@ -298,7 +298,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
   protected void assertModuleLibDepScope(String moduleName, String depName, DependencyScope... scopes) {
     List<LibraryOrderEntry> deps = getModuleLibDeps(moduleName, depName);
-    assertUnorderedElementsAreEqual(ContainerUtil.map2Array(deps, entry -> entry.getScope()), scopes);
+    assertUnorderedElementsAreEqual((DependencyScope[]) ContainerUtil.map2Array(deps, entry -> entry.getScope()), scopes);
   }
 
   protected List<LibraryOrderEntry> getModuleLibDeps(String moduleName, String depName) {
@@ -353,7 +353,7 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
   protected void assertModuleModuleDepScope(String moduleName, String depName, DependencyScope... scopes) {
     List<ModuleOrderEntry> deps = getModuleModuleDeps(moduleName, depName);
-    assertUnorderedElementsAreEqual(ContainerUtil.map2Array(deps, entry -> entry.getScope()), scopes);
+    assertUnorderedElementsAreEqual((DependencyScope[]) ContainerUtil.map2Array(deps, entry -> entry.getScope()), scopes);
   }
 
   @NotNull

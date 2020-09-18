@@ -1,6 +1,5 @@
-plugins {
-  id 'com.github.johnrengelman.shadow'
-}
+apply plugin: 'kotlin'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     // WARNING: don't change the configuration name because it's used by shadowJar
@@ -74,8 +73,3 @@ test {
 }
 
 apply from: rootProject.file('gradle/upload-shadow.gradle')
-
-repositories {
-    // TODO: A temporary version from a fork of com.github.tschuchortdev:kotlin-compile-testing is needed
-    maven { url "https://jitpack.io" }
-}
