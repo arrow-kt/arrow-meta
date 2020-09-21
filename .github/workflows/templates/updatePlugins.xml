@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugins>
-    <plugin id="io.arrow-kt.arrow" url="https://meta.arrow-kt.io/idea-plugin/%MAIN_VERSION%/Arrow%20Meta-%MAIN_VERSION%.zip" version="%MAIN_VERSION%">
+    <plugin id="io.arrow-kt.arrow" url="https://meta.arrow-kt.io/idea-plugin/%REPOSITORY_TYPE%/%ARTIFACT_ID%/%ARTIFACT_VERSION%/%ARTIFACT_ID%-%ARTIFACT_VERSION%.zip" version="%ARTIFACT_VERSION%">
         <name>Arrow Meta</name>
         <idea-version since-build=%SINCE_BUILD% until-build=%UNTIL_BUILD% />
     </plugin>
