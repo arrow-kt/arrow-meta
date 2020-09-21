@@ -24,12 +24,3 @@ tasks.withType(AbstractArchiveTask) {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
-
-// Avoid local publication with module name (or project name)
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifactId = POM_ARTIFACT_ID
-        }
-    }
-}
