@@ -37,7 +37,14 @@ task downloadLibraries(type: Download) {
   overwrite false
 }
 
-buildPlugin.dependsOn downloadLibraries
+task copyLibraries(type: Copy) {
+  from "${rootDir}/compiler-plugin/build/libs/compiler-plugin-${VERSION_NAME}-all.jar"
+  into "${buildDir}/libs4Plugin"
+}
+
+copyLibraries.dependsOn ":compiler-plugin:shadowJar"
+
+buildPlugin.dependsOn copyLibraries, downloadLibraries
 
 prepareSandbox {
   from("${buildDir}/libs4Plugin") {

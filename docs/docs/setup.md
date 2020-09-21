@@ -79,11 +79,19 @@ If you are interested in extending the Arrow Meta IDE Plugin or developing from 
 
 ```
 dependencies {
-    implementation "io.arrow-kt:idea-plugin:<version>"
+    compileOnly "io.arrow-kt:idea-plugin:<version>"
+    compileOnly "io.arrow-kt:compiler-plugin:<version>:all"
 }
 
 repositories {
     maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+}
+
+
+intellij {
+    ...
+    plugins = ["io.arrow-kt.arrow:${ARROW_META_VERSION}"]
+    pluginsRepo { custom("https://meta.arrow-kt.io/idea-plugin/latest-snapshot/updatePlugins.xml") }
 }
 ```
 

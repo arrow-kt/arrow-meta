@@ -18,9 +18,10 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
   implementation "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
-  api project(path: ':compiler-plugin', configuration: 'shadow')
+  compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
-  testCompile("org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION") // for the JetBrains Gradle test framework
+  testCompileOnly "org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION" // for the JetBrains Gradle test framework
+  testImplementation project(path: ':compiler-plugin', configuration: 'shadow')
 }
 
 compileKotlin {

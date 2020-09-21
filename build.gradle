@@ -57,7 +57,7 @@ subprojects { project ->
 configure(subprojects
         - project("docs")
 ) {
-  apply from: rootProject.file('gradle/publication.gradle')
+  apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/publication.gradle"
 }
 
 // To run tests for Arrow Meta IDEA Plugin
@@ -134,8 +134,3 @@ task buildMetaDoc {
 
 configureValidation.mustRunAfter generateDoc
 runValidation.mustRunAfter configureValidation
-
-wrapper {
-  distributionType = Wrapper.DistributionType.ALL
-  gradleVersion = "$GRADLE_VERSION"
-}
