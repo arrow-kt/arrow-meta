@@ -8,6 +8,8 @@ plugins {
   id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
 }
 
+apply plugin: 'kotlin'
+
 repositories {
   maven {
     url "https://www.jetbrains.com/intellij-repository/snapshots"
