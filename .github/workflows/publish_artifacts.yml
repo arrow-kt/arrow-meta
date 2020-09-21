@@ -2,20 +2,19 @@ name: Publish Artifacts
 
 # Private repository for Arrow Meta IDE Plugin
 #
-# plugins-repository/
-# └── idea-plugin
-#     ├── latest-release           |
-#     │   └── updatePlugins.xml    | -> To install the plugin
-#     ├── latest-snapshot          |
-#     │   └── updatePlugins.xml    |
-#     ├── release                                        |
-#     │   └── io.arrow-kt.arrow                          |
-#     │       └── <version>                              | -> For development: pluginsRepo
-#     │           └── io.arrow-kt.arrow-<version>.zip    |    Source: https://github.com/JetBrains/gradle-intellij-plugin
-#     └── snapshot                                       |
-#         └── io.arrow-kt.arrow                          |
-#             └── <version>                              |
-#                 └── io.arrow-kt.arrow-<version>.zip    |
+#  idea-plugin
+#  ├── latest-release           |
+#  │   └── updatePlugins.xml    | -> To install the plugin and for development: pluginsRepo
+#  ├── latest-snapshot          |    Source: https://github.com/JetBrains/gradle-intellij-plugin
+#  │   └── updatePlugins.xml    |
+#  ├── release
+#  │   └── io.arrow-kt.arrow
+#  │       └── <version>
+#  │           └── io.arrow-kt.arrow-<version>.zip
+#  └── snapshot
+#      └── io.arrow-kt.arrow
+#          └── <version>
+#              └── io.arrow-kt.arrow-<version>.zip
 
 on:
   push:
@@ -65,25 +64,25 @@ jobs:
         ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
         ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
         REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
-        PLUGIN_DIRECTORY="plugins-repository/idea-plugin/${REPOSITORY_TYPE}/${ARTIFACT_ID}/${ARTIFACT_VERSION}"
+        PLUGIN_DIRECTORY="idea-plugin/${REPOSITORY_TYPE}/${ARTIFACT_ID}/${ARTIFACT_VERSION}"
         mkdir -p $PLUGIN_DIRECTORY
         cp idea-plugin/build/distributions/*.zip $PLUGIN_DIRECTORY/${ARTIFACT_ID}-${ARTIFACT_VERSION}.zip
     - name: Create the private IDEA plugin repository (use)
       run: |
         ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
         REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
-        mkdir -p plugins-repository/idea-plugin/latest-${REPOSITORY_TYPE}
+        mkdir -p idea-plugin/latest-${REPOSITORY_TYPE}
         sed -i "s/%ARTIFACT_ID%/${ARTIFACT_ID}/g" .github/workflows/templates/updatePlugins.xml
         sed -i "s/%ARTIFACT_VERSION%/${ARTIFACT_VERSION}/g" .github/workflows/templates/updatePlugins.xml
         sed -i "s/%REPOSITORY_TYPE%/${REPOSITORY_TYPE}/g" .github/workflows/templates/updatePlugins.xml
-        cp .github/workflows/templates/updatePlugins.xml plugins-repository/idea-plugin/latest-${REPOSITORY_TYPE}/
+        cp .github/workflows/templates/updatePlugins.xml idea-plugin/latest-${REPOSITORY_TYPE}/
     - name: Publish IDEA plugin into private repository
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         S3_BUCKET: ${{ secrets.S3_BUCKET }}
       run: |
-        aws s3 cp plugins-repository s3://$S3_BUCKET/plugins-repository --recursive > aws_sync_jekyll.log
+        aws s3 cp idea-plugin s3://$S3_BUCKET/idea-plugin --recursive > aws_sync_jekyll.log
     - name: Publish IDEA plugin into Jetbrains repository
       if: steps.properties.outputs.repository-type == 'release'
       env:
