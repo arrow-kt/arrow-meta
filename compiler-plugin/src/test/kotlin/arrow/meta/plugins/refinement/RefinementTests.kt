@@ -24,7 +24,7 @@ class RefinementTests {
   fun `Construction is validated with predicates 1`() {
     refinementTest(
       """
-           |$twitterHandle
+           |${twitterHandle()}
            |val x: TwitterHandle = TwitterHandle("@admin")
            |""",
       assert = {
@@ -63,7 +63,7 @@ class RefinementTests {
   fun `Runtime validation for nullable types coerces to null if invalid`() {
     refinementTest(
       """
-           |$twitterHandle
+           |${twitterHandle()}
            |val x: TwitterHandle? = "@admin"
            |""",
       assert = {
@@ -76,7 +76,7 @@ class RefinementTests {
   fun `Runtime validation for nullable types accepts if valid`() {
     refinementTest(
       """
-           |$twitterHandle
+           |${twitterHandle()}
            |fun x(): TwitterHandle? = "@whatever"
            |val result = x()?.handle
            |""",
@@ -104,7 +104,7 @@ class RefinementTests {
     ))
   }
 
-  val twitterHandle: String =
+  fun twitterHandle(): String =
     """
       @Refinement
       inline class TwitterHandle(val handle: String) {
@@ -139,15 +139,6 @@ class RefinementTests {
           override val validate: Int.() -> Map<String, Boolean> = {
             mapOf(
               "Should be >= 0" to (this >= 0)
-            )
-          }
-        }
-        
-        object Override : Refined<Int, PositiveInt> {
-          override val target : (Int) -> PositiveInt = ::PositiveInt
-          override val validate: Int.() -> Map<String, Boolean> = {
-            mapOf(
-              "Should be > 0" to (this > 0)
             )
           }
         }

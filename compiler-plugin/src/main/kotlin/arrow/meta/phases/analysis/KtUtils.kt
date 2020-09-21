@@ -190,5 +190,5 @@ fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }
 
 fun KotlinType.fqNameOrShortName(): String =
-  constructor.declarationDescriptor?.fqNameOrNull()?.asString()
+  constructor.declarationDescriptor?.fqNameOrNull()?.asString() + arguments.joinToString(prefix = "<", postfix = ">", separator = ", ") { it.type.toString() }
     ?: DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(this)

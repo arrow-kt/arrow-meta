@@ -9,9 +9,8 @@ import arrow.meta.plugins.typeclasses.GivenTest
 import org.junit.Ignore
 import org.junit.Test
 
-// build ide peace with annotator
+// TODO: build ide peace with annotator
 class ResolutionTests {
-  // skipped internal instances for public and internal proofs
   @Test
   fun `prohibited public proof of non user types`() {
     resolutionTest(
@@ -22,7 +21,9 @@ class ResolutionTests {
         
       val x: Int? = "30"
       """) {
-      failsWith { it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int violates ownership rules") }
+      failsWith {
+        it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int? violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+      }
     }
   }
 
@@ -73,11 +74,15 @@ class ResolutionTests {
       internal fun String.toInt8(): Int? = // "30" -> 24
         toIntOrNull(8)
       """) {
-      failsWith {
-        it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int has following conflicting proof/s: ExtensionProof test.toInt8: kotlin.String -> kotlin.Int")
-          && it.contains("This ExtensionProof test.toInt8: kotlin.String -> kotlin.Int has following conflicting proof/s: ExtensionProof test.toInt16: kotlin.String -> kotlin.Int.\n" +
-          "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or removing ubiquitous proofs from the project.")
-      }
+      allOf(
+        failsWith {
+          it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int? has following conflicting proof/s: ExtensionProof test.toInt8: kotlin.String -> kotlin.Int?.")
+        },
+        failsWith {
+          it.contains("This ExtensionProof test.toInt8: kotlin.String -> kotlin.Int? has following conflicting proof/s: ExtensionProof test.toInt16: kotlin.String -> kotlin.Int?.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        }
+      )
     }
   }
 
@@ -97,7 +102,16 @@ class ResolutionTests {
       internal fun Pair<String, Int>.toPersonMod355(): Person =
         Person(first, second % 355)
       """) {
-      fails
+      allOf(
+        failsWith {
+          it.contains("This ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        },
+        failsWith {
+          it.contains("This ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        }
+      )
     }
   }
 
@@ -122,7 +136,24 @@ class ResolutionTests {
       internal fun Pair<String, Int>.toPersonMod355(): Person =
         Person(first, second % 355)
       """) {
-      fails
+      allOf(
+        failsWith {
+          it.contains("This ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson365: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        },
+        failsWith {
+          it.contains("This ExtensionProof test.toPerson365: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        },
+        failsWith {
+          it.contains("This ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonMod355: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        },
+        failsWith {
+          it.contains("This ExtensionProof test.toPersonMod355: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
+            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+        }
+      )
     }
   }
 
@@ -140,16 +171,17 @@ class ResolutionTests {
     }
   }
 
-  @Test
+  @Test // TODO: Add compiler warning that nothing will be injected without arrow.given as a default value
   fun `unresolved class provider due to non injected given as default value and missing GivenProof on String`() {
     givenResolutionTest(
       source = """
         @Given class X(val value: @Given String)
         val result = given<X>().value
       """) {
-      failsWith{
-        it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.")
-      }
+      allOf(
+        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
+        failsWith { it.contains("There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") }
+      )
     }
   }
 
@@ -160,7 +192,11 @@ class ResolutionTests {
         @Given class X(val value: @Given String = given())
         val result = given<X>().value
       """) {
-      fails
+      allOf(
+        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
+        failsWith { it.contains("There is no Proof for this type kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") },
+        failsWith { it.contains("There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") }
+      )
     }
   }
 
@@ -215,6 +251,17 @@ class ResolutionTests {
     }
   }
 
+  @Test
+  fun `unresolved callable Member`() {
+    givenResolutionTest(
+      source = """
+        val result = given<(Int) -> String>().invoke(5)
+      """) {
+      failsWith {
+        it.contains("There is no Proof for this type (kotlin.Int) -> kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
+      }
+    }
+  }
 
   @Test
   fun `resolved callable Member`() {
@@ -228,15 +275,39 @@ class ResolutionTests {
     }
   }
 
+  @Ignore // TODO: Add compiler Error after fixing resolution
   @Test
-  fun `incorrect refinement proof`() { //  it.safeAs<ClassDescriptor>()?.companionObjectDescriptor?.unsubstitutedMemberScope?.getContributedDescriptors { true }?.first { it.name.identifier == "from"}
+  fun `unresolved polymorphic constraint`() {
+    givenResolutionTest(
+      """
+        fun <A> A.mappend(b: A, ctx: @Given Semigroup<A> = given()): A =
+          ctx.run { this@mappend.combine(b) }
+          
+        val result = 1.mappend(1)
+      """.trimIndent()
+    ) {
+      failsWith {
+        it.contains("There is no Proof for this type Semigroup<Int> to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
+      }
+    }
+  }
+
+  @Test
+  fun `incorrect refinement proof, because of too many refinements`() {
     refinementResolutionTest(
       source = {
         """
-      $positiveInt
-      @Refinement
-      inline class StrictPositiveInt(val value: Int)  {
+      inline class PositiveInt(val value: Int)  {
         companion object : Refined<Int, PositiveInt> {
+          override val target : (Int) -> PositiveInt = ::PositiveInt
+          override val validate: Int.() -> Map<String, Boolean> = {
+            mapOf(
+              "Should be >= 0" to (this >= 0)
+            )
+          }
+        }
+        
+        object Override : Refined<Int, PositiveInt> {
           override val target : (Int) -> PositiveInt = ::PositiveInt
           override val validate: Int.() -> Map<String, Boolean> = {
             mapOf(
@@ -245,14 +316,29 @@ class ResolutionTests {
           }
         }
       }
-      
-      @Coercion
-      fun Int.strictPositive(): StrictPositiveInt? =
-        StrictPositiveInt.from(this)
-      
-      @Coercion
-      fun PositiveInt.strict(): StrictPositiveInt? =
-        StrictPositiveInt.from(value)
+    """
+      },
+      assert = {
+        failsWith {
+          it.contains("Refinements can only be defined over one companion object, which implements arrow.Refined<kotlin.Int,test.PositiveInt>. Please remove this object or remove the superType Refined.")
+        }
+      }
+    )
+  }
+
+  @Test
+  fun `incorrect refinement proof, because of wrong "to"`() {
+    refinementResolutionTest(
+      source = {
+        """
+      $positiveInt    
+      inline class StrictPositiveInt(val value: Int)  {
+        companion object : Refined<String, PositiveInt> {
+          override val target : (String) -> PositiveInt = TODO()
+          override val validate: String.() -> Map<String, Boolean> = 
+            TODO()
+        }
+      }
     """
       },
       assert = {
@@ -262,16 +348,9 @@ class ResolutionTests {
   }
 
 
-
   private fun refinementResolutionTest(source: RefinementTests.() -> String, assert: CompilerTest.Companion.() -> Assert) {
     RefinementTests().run {
-      refinementTest(
-        """
-          |data class Person(val name: String, val age: Int)
-          |${source(this)}
-        """,
-        assert = assert
-      )
+      refinementTest(source(this), assert = assert)
     }
   }
 

@@ -33,6 +33,7 @@ import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JdkVersionDetector;
@@ -64,7 +65,7 @@ import static org.junit.Assume.assumeThat;
 @RunWith(value = Parameterized.class)
 public abstract class GradleImportingTestCase extends ExternalSystemImportingTestCase {
   // patched for Arrow Meta:
-  public static final String BASE_GRADLE_VERSION = "5.6.2";
+  public static final String BASE_GRADLE_VERSION = "5.6.4";
   protected static final String GRADLE_JDK_NAME = "Gradle JDK";
   private static final int GRADLE_DAEMON_TTL_MS = 10000;
 
@@ -193,7 +194,7 @@ public abstract class GradleImportingTestCase extends ExternalSystemImportingTes
     return name.getMethodName() == null ? super.getName() : FileUtil.sanitizeFileName(name.getMethodName());
   }
 
-  @Parameterized.Parameters(name = "{index}: with Gradle-{0}")
+  @Parameterized.Parameters(name = "Test run {index}: with Gradle version {0}")
   public static Collection<Object[]> data() {
     // patched for Arrow Meta
     return Collections.singletonList(new Object[]{BASE_GRADLE_VERSION});

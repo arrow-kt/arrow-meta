@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.diagnostics.hasSyntaxErrors
 import org.jetbrains.kotlin.diagnostics.markElement
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 /**
  * Each [element] that is a witness of this strategy has an attribute that allows internal orphans to be published publicly.
@@ -34,6 +35,15 @@ val onNavigationElement: PositioningStrategy<KtDeclaration> =
     }
   )
 
+@JvmField
+val onIdentifyingElement: PositioningStrategy<KtObjectDeclaration> =
+  position(
+    mark = {
+      listOf(
+        it.identifyingElement?.textRange ?: it.textRange
+      )
+    }
+  )
 /**
  * matching on the shortName is valid, as the diagnostic is only applied, if the FqName correlates.
  */

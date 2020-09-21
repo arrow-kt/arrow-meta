@@ -13,7 +13,11 @@ import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.allGivenProofs
+import arrow.meta.plugins.proofs.phases.extensionProof
+import arrow.meta.plugins.proofs.phases.extensionProofCandidate
 import arrow.meta.plugins.proofs.phases.extensionProofs
+import arrow.meta.plugins.proofs.phases.givenProof
+import arrow.meta.plugins.proofs.phases.givenProofCandidate
 import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
 import arrow.meta.plugins.proofs.phases.resolve.isResolved
@@ -73,15 +77,11 @@ class ProofsIrCodegen(
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val candidate = givenProofCandidate(givenProofs(superType))
+      val candidate = givenProof(superType)
       candidate?.let{ proof ->
         substitutedProofCall( proof, superType)
       }
     }
-
-  fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>):  GivenProof? =
-    candidates.filter { it.isResolved(allGivenProofs()) }.minBy { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != Visibilities.INTERNAL }
-
 
   private fun IrUtils.substitutedProofCall(proof: GivenProof, superType: KotlinType): IrExpression? =
     matchedCandidateProofCall(
@@ -97,7 +97,7 @@ class ProofsIrCodegen(
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val candidate = extensionProofCandidate(extensionProofs(subType, superType))
+      val candidate = extensionProof(subType, superType)
       candidate?.let {
         matchedCandidateProofCall(
           fn = it.through,
@@ -106,10 +106,7 @@ class ProofsIrCodegen(
       }
     }
 
-  //TODO handle ambiguity and orphan selection by package
-  fun CompilerContext.extensionProofCandidate(candidates: List<ExtensionProof>): ExtensionProof? =
-    // internal orphans take precedence
-    candidates.minBy { it.through.visibility != Visibilities.INTERNAL }
+
 
   fun Proof.substitutor(
     superType: KotlinType

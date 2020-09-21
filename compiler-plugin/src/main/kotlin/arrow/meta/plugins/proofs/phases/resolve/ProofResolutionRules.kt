@@ -5,11 +5,14 @@ import arrow.meta.diagnostic.MetaErrors
 import arrow.meta.diagnostic.MetaErrors.AmbiguousProof
 import arrow.meta.diagnostic.MetaErrors.IncorrectRefinement
 import arrow.meta.diagnostic.MetaErrors.OwnershipViolatedProof
+import arrow.meta.diagnostic.MetaErrors.TooManyRefinements
+import arrow.meta.diagnostic.MetaErrors.UnresolvedGivenCallSite
+import arrow.meta.diagnostic.MetaErrors.UnresolvedGivenProof
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.AnalysisHandler
+import arrow.meta.phases.Composite
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.exists
-import arrow.meta.phases.analysis.fqNameOrShortName
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.ArrowRefined
@@ -23,36 +26,55 @@ import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.allGivenProofs
 import arrow.meta.plugins.proofs.phases.extensionProofs
+import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
-import org.jetbrains.kotlin.backend.common.atMostOne
+import arrow.meta.plugins.proofs.phases.refinementProofs
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getAbbreviatedTypeOrType
+import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
+import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-internal fun Meta.proofResolutionRules(): AnalysisHandler =
-  analysis(
-    doAnalysis = Noop.nullable7(),
-    analysisCompleted = { _, _, bindingTrace, files ->
-      resolutionRules(bindingTrace, files)
-      null
+internal fun Meta.proofResolutionRules(): ExtensionPhase =
+  Composite(
+    analysis(
+      doAnalysis = Noop.nullable7(),
+      analysisCompleted = { _, _, bindingTrace, files ->
+        resolutionRules(bindingTrace, files)
+        null
+      }
+    ),
+    declarationChecker { declaration, descriptor, context ->
+      declaration.reportIncorrectRefinement(descriptor, context.trace)
+    },
+    callChecker { resolvedCall, reportOn, context ->
+      callSiteResolution(resolvedCall, reportOn, context)
     }
   )
 
@@ -61,7 +83,6 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   files.forEach { file: KtFile ->
     reportProhibitedPublishedInternalOrphans(trace, file)
     reportOwnershipViolations(trace, file)
-    reportIncorrectRefinements(trace, file)
   }
   // Rule-set for ExtensionProofs
   extensionProofs().run {
@@ -81,15 +102,45 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
     }
   }
   // Rule-set for RefinementProofs
-  /* Currently disabled, because refinements aren't collected during proof-initialization. Only there corresponding ExtensionProofs.
   refinementProofs().run {
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
         ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
     }
-  }*/
+  }
 }
+
+internal fun CompilerContext.callSiteResolution(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext): Unit =
+  reportOn.parent.safeAs<KtExpression>()?.let {
+    reportUnresolvedGivenCallSite(resolvedCall, it, context.trace)
+  } ?: Unit
+
+fun KtClass.refinedTypeOfRefinement(trace: BindingTrace): Pair<KtObjectDeclaration, KotlinType>? =
+  takeIf { it.hasModifier(KtTokens.INLINE_KEYWORD) }
+    ?.companionObjects
+    ?.singleOrNull { it.hasAnnotation(trace, ArrowRefinedBy) }
+    ?.let { ktObj ->
+      ktObj.implementsRefined(trace.bindingContext)?.let {
+        ktObj to it
+      }
+    }
+
+fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): Pair<List<ValueParameterDescriptor>, List<TypeParameterDescriptor>> =
+  call.resultingDescriptor
+    .valueParameters.filter { v ->
+      v.type.annotations.hasAnnotation(ArrowGivenProof) && givenProof(v.type) == null
+        && call.valueArguments[v] == DefaultValueArgument.DEFAULT
+    }.filterNotNull() to
+    call.resultingDescriptor
+      .typeParameters.filter { t ->
+        t.annotations.hasAnnotation(ArrowGivenProof) && givenProof(t.defaultType) == null
+      }.filterNotNull()
+
+fun KtObjectDeclaration.implementsRefined(ctx: BindingContext): KotlinType? =
+  superTypeListEntries
+    .mapNotNull { it.typeReference?.typeElement?.getAbbreviatedTypeOrType(ctx) }
+    .singleOrNull { it.constructor.declarationDescriptor?.fqNameOrNull() == ArrowRefined }
 
 fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
@@ -166,7 +217,7 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair
  * additionally to the Docs in [reportDisallowedUserDefinedAmbiguities].
  * The following extensions sends warnings, which proofs are being skipped and a prompt to the user to define an internal orphan to resolve coherence.
  */
-fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities() =
+fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities(): List<Pair<A, List<A>>> =
   disallowedAmbiguities().filter { (proof, others) -> // collect those without a SourceElement, which the user is needs to override
     with(proof.through as DeclarationDescriptorWithVisibility) {
       findPsi() == null &&
@@ -184,7 +235,7 @@ fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities() =
  * those don't have default values or are not being semi-inductively resolved by other GivenProof's.
  */
 fun Map<KotlinType, List<GivenProof>>.unresolvedGivenProofs(): Map<KotlinType, List<GivenProof>> =
-  mapValues { (type, proofs) ->
+  mapValues { (_, proofs) ->
     proofs.filter { !it.isResolved(this) }
   }.filter { (_, unresolved) ->
     unresolved.isNotEmpty()
@@ -221,29 +272,11 @@ fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): B
       true
   }
 
-fun incorrectRefinements(trace: BindingTrace, file: KtFile) =
-  file.traverseFilter(KtClass::class.java) { c ->
-    c.takeIf {
-      it.hasModifier(KtTokens.INLINE_KEYWORD) &&
-        it.companionObjects.atMostOne { obj ->
-          obj.hasAnnotation(trace, ArrowRefinedBy) &&
-            (obj.superTypeListEntries.mapNotNull { s ->
-              s.typeReference?.typeElement?.getAbbreviatedTypeOrType(trace.bindingContext)
-                ?.takeIf { t -> t.constructor.declarationDescriptor?.fqNameOrNull() == ArrowRefined }?.arguments
-            }.flatten().last().type.constructor.declarationDescriptor?.findPsi() != it)
-        } != null
-    }?.let {
-      it to it.expectedRefinementType(trace)
-    }
-  }
-
-fun KtClass.expectedRefinementType(trace: BindingTrace): KotlinType =
-
 fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: BindingTrace, msg: MessageCollector?): Unit =
   unresolvedGivenProofs().forEach { (type, proofs) ->
     proofs.forEach { proof ->
       proof.through.findPsi()?.safeAs<KtDeclaration>()?.let { element ->
-        trace.report(MetaErrors.UnresolvedGivenProof.on(element, type))
+        trace.report(UnresolvedGivenProof.on(element, type))
       } ?: msg?.report(CompilerMessageSeverity.WARNING,
         "The GivenProof ${proof.through.fqNameSafe.asString()} from the project dependencies on the type ${DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type)} can't be semi-inductively resolved and won't be considered in resolution.")
     }
@@ -283,7 +316,37 @@ private fun <K, A : Proof> Map<K, List<A>>.reportSkippedProofsDueToAmbiguities(
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)
 
-private fun reportIncorrectRefinements(trace: BindingTrace, file: KtFile): Unit =
-  incorrectRefinements(trace, file).forEach { (element, expectedRefinement) ->
-    trace.report(IncorrectRefinement.on(element, expectedRefinement))
+private fun KtDeclaration.reportIncorrectRefinement(descriptor: DeclarationDescriptor, trace: BindingTrace): Unit =
+  safeAs<KtClass>()?.takeIf { it.hasModifier(KtTokens.INLINE_KEYWORD) }
+    ?.let { ktclass ->
+      descriptor.safeAs<ClassDescriptor>()?.let { clazz ->
+        clazz.unsubstitutedPrimaryConstructor?.valueParameters?.first()?.type?.let { inlinedType ->
+          ktclass.refinedTypeOfRefinement(trace)?.let { (ktObj, refinedType) ->
+            val args = refinedType.arguments
+            if (args.size == 2) {
+              val (from, to) = args
+              if (to.type.constructor.declarationDescriptor != clazz ||
+                inlinedType != from.type)
+                trace.report(IncorrectRefinement.on(ktObj, inlinedType, clazz.defaultType))
+            }
+          }
+          ktclass.declarations
+            .filterIsInstance<KtObjectDeclaration>()
+            .mapNotNull { obj ->
+              obj.implementsRefined(trace.bindingContext)?.takeIf { !obj.isCompanion() }?.let { obj to it }
+            }.forEach { (obj, _) ->
+              trace.report(TooManyRefinements.on(obj, inlinedType, clazz.defaultType))
+            }
+        }
+      }
+    } ?: Unit
+
+private fun CompilerContext.reportUnresolvedGivenCallSite(call: ResolvedCall<*>, element: KtExpression, trace: BindingTrace): Unit =
+  unresolvedGivenCallSite(call).let { (values, types) ->
+    values.forEach {
+      trace.report(UnresolvedGivenCallSite.on(element, call, it.type))
+    }
+    types.forEach {
+      trace.report(UnresolvedGivenCallSite.on(element, call, it.defaultType))
+    }
   }
