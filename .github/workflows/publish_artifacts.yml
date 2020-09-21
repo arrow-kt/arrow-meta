@@ -59,7 +59,7 @@ jobs:
         echo "${{ steps.properties.outputs.actual-version }} deployed!"
     - name: Build Arrow Meta IDE Plugin
       run: ./gradlew :idea-plugin:buildPlugin
-    - name: Prepare Arrow Meta IDE Plugin for the private repository (dev)
+    - name: Prepare Arrow Meta IDE Plugin for the private repository
       run: |
         ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
         ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
@@ -67,8 +67,9 @@ jobs:
         PLUGIN_DIRECTORY="idea-plugin/${REPOSITORY_TYPE}/${ARTIFACT_ID}/${ARTIFACT_VERSION}"
         mkdir -p $PLUGIN_DIRECTORY
         cp idea-plugin/build/distributions/*.zip $PLUGIN_DIRECTORY/${ARTIFACT_ID}-${ARTIFACT_VERSION}.zip
-    - name: Create the private IDEA plugin repository (use)
+    - name: Create the private IDEA plugin repository
       run: |
+        ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
         ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
         REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
         mkdir -p idea-plugin/latest-${REPOSITORY_TYPE}
