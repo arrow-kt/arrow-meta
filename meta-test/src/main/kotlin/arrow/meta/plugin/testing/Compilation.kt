@@ -10,12 +10,10 @@ import java.io.PrintStream
 
 internal const val DEFAULT_FILENAME = "Source.kt"
 
-internal fun compile(data: CompilationData): Result {
-  val kotlinVersion = System.getProperty("KOTLIN_VERSION")
-
-  return KotlinCompilation().apply {
+internal fun compile(data: CompilationData): Result =
+  KotlinCompilation().apply {
     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
-    classpaths = data.dependencies.map { classpathOf(it) } + listOf(classpathOf("kotlin-stdlib:$kotlinVersion"))
+    classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
     compilerPlugins = data.metaPlugins
     messageOutputStream = object : PrintStream(System.out) {
@@ -31,7 +29,6 @@ internal fun compile(data: CompilationData): Result {
       }
     }
   }.compile()
-}
 
 private fun classpathOf(dependency: String): File {
   val regex = Regex(".*${dependency.replace(':', '-')}.*")

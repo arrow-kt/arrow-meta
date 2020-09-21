@@ -18,7 +18,6 @@ dependencies {
 
     testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
-    testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     testRuntimeOnly project(':prelude')
 }
 
@@ -36,7 +35,6 @@ test {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-    systemProperty "KOTLIN_VERSION", "$KOTLIN_VERSION"
 }
 
 jar {
