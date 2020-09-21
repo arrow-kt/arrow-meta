@@ -19,9 +19,8 @@ def pluginId = 'io.arrow-kt.arrow'
 
 processResources {
   filesMatching('**/plugin.properties') {
-    filter {
-      it.replace('%COMPILER_PLUGIN_VERSION%', VERSION_NAME)
-    }
+    filter { it.replace('%COMPILER_PLUGIN_VERSION%', VERSION_NAME) }
+    filter { it.replace('%KOTLIN_VERSION%', KOTLIN_VERSION) }
   }
 }
 
@@ -32,7 +31,8 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   implementation "xerces:xercesImpl:$XERCES_VERSION"
-  runtime "io.arrow-kt:compiler-plugin:$VERSION_NAME"
+  // Necessary during plugin execution to be found and added for compilation
+  runtimeOnly "io.arrow-kt:compiler-plugin:$VERSION_NAME"
 }
 
 compileKotlin {
@@ -76,4 +76,8 @@ pluginBundle {
       displayName = "Arrow Meta Gradle Plugin"
     }
   }
+}
+
+tasks.whenTaskAdded { task ->
+  if (task.name.matches('.*Plugin.*MavenPublication.*')) { task.enabled = false }
 }
