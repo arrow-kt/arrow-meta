@@ -41,7 +41,7 @@ interface ToolWindowSyntax {
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.CommonDataKeys
    * import org.jetbrains.kotlin.idea.KotlinFileType
-   * import org.jetbrains.kotlin.idea.actions.internal.FirExplorerToolWindow
+   * import org.jetbrains.kotlin.idea.internal.KotlinBytecodeToolWindow
    *
    * val MetaIde.exampleToolWindow: IdePlugin
    *   get() = "ShowFirInTheIde" {
@@ -51,7 +51,7 @@ interface ToolWindowSyntax {
    *         actionId = "Unique",
    *         icon = ArrowIcons.ICON4,
    *         content = { project, toolWindow ->
-   *           FirExplorerToolWindow(project, toolWindow)
+   *           KotlinBytecodeToolWindow(project, toolWindow)
    *         },
    *         update = { e ->
    *           e.presentation.isEnabled = e.project != null && e.getData(CommonDataKeys.PSI_FILE)?.fileType == KotlinFileType.INSTANCE
