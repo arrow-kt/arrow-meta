@@ -78,9 +78,7 @@ task buildMeta {
   group = "Arrow Meta"
   description = "Assembles and tests"
   dependsOn ':compiler-plugin:build'
-  // 'build' task is not executed for :gradle-plugin because it depends on the publication of compiler-plugin 
-  // and it could fail when changing version
-  dependsOn ':gradle-plugin:jar'
+  dependsOn ':gradle-plugin:build'
   dependsOn ':publishIdeTestingDependencies'
   dependsOn ':idea-plugin:build'
   dependsOn ':meta-test:build'
