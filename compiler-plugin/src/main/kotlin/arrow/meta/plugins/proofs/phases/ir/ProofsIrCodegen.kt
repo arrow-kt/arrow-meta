@@ -68,7 +68,6 @@ class ProofsIrCodegen(
       }
     }
   }
-  //TODO handle ambiguity and orphan selection
   fun CompilerContext.givenProofCall(
     superType: KotlinType
   ): IrExpression? =
