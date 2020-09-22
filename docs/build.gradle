@@ -81,6 +81,7 @@ task getLocalPaths {
             "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
             "arrow-core-data-$ARROW_VERSION",
             "arrow-fx-$ARROW_VERSION",
+            "arrow-fx-coroutines-$ARROW_VERSION",
             "arrow-annotations-$ARROW_VERSION",
             "arrow-core-$ARROW_VERSION"
         ]

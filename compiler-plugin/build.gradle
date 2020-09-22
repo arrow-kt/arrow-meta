@@ -71,6 +71,5 @@ shadowJar {
 test {
     testLogging.showStandardStreams = true
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
