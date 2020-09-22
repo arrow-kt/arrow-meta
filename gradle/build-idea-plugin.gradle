@@ -45,7 +45,9 @@ task copyLibraries(type: Copy) {
 
 copyLibraries.dependsOn ":compiler-plugin:shadowJar"
 
-buildPlugin.dependsOn copyLibraries, downloadLibraries
+// TODO: The libraries that are added to fix the errors raised by the Intellij Plugin Verifier
+//       impact on Arrow Meta IDE Plugin (errors about incompatibilities and missing classes)
+buildPlugin.dependsOn copyLibraries // , downloadLibraries
 
 prepareSandbox {
   from("${buildDir}/libs4Plugin") {
