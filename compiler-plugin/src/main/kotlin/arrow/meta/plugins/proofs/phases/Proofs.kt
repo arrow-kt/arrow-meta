@@ -3,7 +3,6 @@ package arrow.meta.plugins.proofs.phases
 import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.diagnostic.ProofRenderer
-import arrow.meta.phases.analysis.fqNameOrShortName
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
 import arrow.meta.plugins.proofs.phases.resolve.isResolved

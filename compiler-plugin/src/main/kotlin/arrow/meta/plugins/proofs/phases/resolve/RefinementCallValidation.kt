@@ -1,7 +1,5 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
-//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
-//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
 import arrow.meta.Meta
 import arrow.meta.diagnostic.MetaErrors.RefinementValidationError
 import arrow.meta.internal.Noop

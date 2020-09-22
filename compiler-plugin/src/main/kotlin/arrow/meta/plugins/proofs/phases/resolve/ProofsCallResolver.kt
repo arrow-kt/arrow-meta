@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.resolve.calls.components.InferenceSession
 import org.jetbrains.kotlin.resolve.calls.components.KotlinCallCompleter
 import org.jetbrains.kotlin.resolve.calls.components.KotlinResolutionCallbacks
 import org.jetbrains.kotlin.resolve.calls.components.NewOverloadingConflictResolver
+import org.jetbrains.kotlin.resolve.calls.context.CheckArgumentTypesMode
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallComponents
@@ -118,17 +119,11 @@ class ProofsCallResolver(
       }
     }
 
-    val maximallySpecificCandidates =
-      towerResolver.runWithEmptyTowerData(
-        KnownResultProcessor(refinedCandidates),
-        TowerResolver.AllCandidatesCollector(),
-        useOrder = false
-      )
-    /*overloadingConflictResolver.chooseMaximallySpecificCandidates(
+    val maximallySpecificCandidates = overloadingConflictResolver.chooseMaximallySpecificCandidates(
       refinedCandidates,
       CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
       discriminateGenerics = true
-    )*/
+    )
 
     return kotlinCallCompleter.runCompletion(candidateFactory, maximallySpecificCandidates, expectedType, resolutionCallbacks)
   }

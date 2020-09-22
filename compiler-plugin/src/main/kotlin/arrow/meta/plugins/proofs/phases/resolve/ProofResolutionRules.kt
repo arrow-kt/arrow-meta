@@ -58,7 +58,9 @@ import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal fun Meta.proofResolutionRules(): ExtensionPhase =
@@ -188,12 +190,13 @@ fun KtDeclaration.isViolatingOwnershipRule(trace: BindingTrace, ctx: CompilerCon
  * A type is user-owned, when at least one position of the type signature is a user type in the sources.
  * e.g.: `org.core.Semigroup<A, F>` materialises into `A -> F -> org.core.Semigroup<A, F>`
  * Thereby the user needs to own either `F`, `A` or `org.core.Semigroup` to publish a proof.
+ * `F` or `A` can't be type parameters to be user-owned.
  */
 fun KotlinType.isUserOwned(): Boolean =
-  hasSource() || arguments.any { it.type.hasSource() }
+  (hasUserSource() && !isTypeParameter()) || arguments.any { it.type.hasUserSource() && !it.type.isTypeParameter() }
 
-fun KotlinType.hasSource(): Boolean =
-  constructor.declarationDescriptor?.source != SourceElement.NO_SOURCE
+fun KotlinType.hasUserSource(): Boolean =
+  constructor.declarationDescriptor?.run{ source !is DeserializedContainerSource && source != SourceElement.NO_SOURCE } ?: false
 
 fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>>> =
   mapNotNull { (_, proofs) ->
@@ -249,17 +252,15 @@ fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   }
 
 /**
- * which constructor is chosen in IR?
+ * in IR the primaryConstructor is chosen see [arrow.meta.plugins.proofs.phases.resolve.asGivenProof]
  * TODO: Check if the defaultValue is resolved
  */
 fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
-  through.constructors.all { f ->
-    f.valueParameters.all { param ->
-      if (param.type.annotations.hasAnnotation(ArrowGivenProof))
-        others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
-      else param.declaresDefaultValue()
-    }
-  }
+  through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
+    if (param.type.annotations.hasAnnotation(ArrowGivenProof))
+      others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+    else param.declaresDefaultValue()
+  } ?: false
 
 /**
  * TODO: Check if the defaultValue is resolved

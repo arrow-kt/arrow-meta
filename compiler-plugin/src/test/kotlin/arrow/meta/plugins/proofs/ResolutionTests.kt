@@ -28,6 +28,27 @@ class ResolutionTests {
   }
 
   @Test
+  fun `prohibited public proof over polymorphic type parameter`() {
+    resolutionTest(
+      """
+      @Coercion
+      fun <A> A.eq(): Eq<A> =
+          object : Eq<A> {
+              override fun A.eqv(b: A): Boolean =
+                  this != b
+          }
+      """) {
+      failsWith {
+        it.contains("This ExtensionProof test.eq: A -> arrow.typeclasses.Eq<A> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+      }
+    }
+  }
+
+  val  d = """
+    
+  """.trimIndent()
+
+  @Test
   fun `@Extension internal orphan override`() {
     resolutionTest(
       """
@@ -342,7 +363,9 @@ class ResolutionTests {
     """
       },
       assert = {
-        fails
+        failsWith{
+          it.contains("This Refinement can only be defined over one companion object, which implements arrow.Refined<kotlin.Int,test.StrictPositiveInt>.")
+        }
       }
     )
   }
@@ -383,6 +406,7 @@ class ResolutionTests {
       code = {
         """
           |package test
+          |import arrow.typeclasses.*
           |import arrow.*
           |import arrowx.*
           |
