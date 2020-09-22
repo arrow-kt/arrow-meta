@@ -14,18 +14,12 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
 
     testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
-    testImplementation("io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION") {
-        exclude group: "io.arrow-kt", module: "arrow-core-data"
-        exclude group: "io.arrow-kt", module: "arrow-core-extensions"
-    }
+    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':compiler-plugin')
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin"
-    }
     testRuntimeOnly project(":prelude")
 }
 
