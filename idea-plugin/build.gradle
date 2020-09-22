@@ -70,9 +70,11 @@ test {
   systemProperties['idea.is.internal'] = "false"
 }
 
-apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
+// Configuration to prepare libraries for the plugin
 apply from: file("${rootProject.rootDir}/gradle/build-idea-plugin.gradle")
 
+// Intellij Plugin Verifier
+apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
 runPluginVerifier {
     pluginFileName = "Arrow Meta-$VERSION_NAME"
     ides = ["IC-$INTELLIJ_IDEA_VERSION_UNDER_TEST"]

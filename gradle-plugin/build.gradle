@@ -32,7 +32,7 @@ dependencies {
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   implementation "xerces:xercesImpl:$XERCES_VERSION"
   // Necessary during plugin execution to be found and added for compilation
-  runtimeOnly "io.arrow-kt:compiler-plugin:$VERSION_NAME"
+  runtimeOnly project(':compiler-plugin')
 }
 
 compileKotlin {
