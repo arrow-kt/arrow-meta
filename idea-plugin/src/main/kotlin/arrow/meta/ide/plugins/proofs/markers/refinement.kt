@@ -4,7 +4,6 @@ import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.traverseFilter
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.internal.Noop
-import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.quotes.isRefined
 import arrow.meta.quotes.classorobject.ClassDeclaration
@@ -50,13 +49,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.Icon
 import org.celtric.kotlin.html.body as htmlBody
 
-fun IdeMetaPlugin.refinementLineMarkers(): ExtensionPhase =
-  Composite(
-    refinedClassLineMarker(),
-    predicateLineMarker()
-  )
-
-private fun IdeMetaPlugin.predicateLineMarker(): ExtensionPhase =
+internal fun IdeMetaPlugin.predicateLineMarker(): ExtensionPhase =
   addLMForValueArgument(
     icon = AllIcons.Actions.Checked,
     transform = {
@@ -109,7 +102,7 @@ fun KtValueArgument.isRefinedPredicate(): Boolean =
     parent.parent.text.startsWith("mapOf")
 
 
-private fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
+internal fun IdeMetaPlugin.refinedClassLineMarker(): ExtensionPhase =
   addRelatedLineMarkerProvider(
     icon = ArrowIcons.REFINEMENT_ICON,
     composite = KtClass::class.java,
@@ -163,12 +156,12 @@ fun KtClass.markerMessage(): String =
                     acc + tr {
                       td(
                         a(
-                          href = DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + JavaDocUtil.getReferenceText(project, predicate.left?.value).orEmpty(),
+                          href = DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + JavaDocUtil.getReferenceText(project, predicate.left?.value.safeAs<PsiElement>()).orEmpty(),
                           target = "_blank"
                         ) { "${predicate.left}" }
                       ) + td(
                         a(
-                          href = DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + JavaDocUtil.getReferenceText(project, predicate.right?.value).orEmpty(),
+                          href = DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + JavaDocUtil.getReferenceText(project, predicate.right?.value.safeAs<PsiElement>()).orEmpty(),
                           target = "_blank"
                         ) { "${predicate.right}" }
                       )

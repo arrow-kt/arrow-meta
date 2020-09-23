@@ -1,15 +1,19 @@
-package arrow.meta.ide.plugins.proofs.markers
+package arrow.meta.ide.plugins.proofs.utils
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import java.awt.Color
+import java.awt.Font
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 
@@ -36,3 +40,6 @@ internal fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderM(
       }
     }
   )
+
+internal val implicitProofAnnotatorTextAttributes =
+  TextAttributes(null, null, Color(192, 192, 192), EffectType.WAVE_UNDERSCORE, Font.PLAIN)

@@ -93,7 +93,7 @@ data class QuoteConfigs(
 fun Project.quoteConfigs(): QuoteConfigs? =
   getService(QuoteSystemService::class.java)?.let { quoteSystem ->
     getService(QuoteCache::class.java)?.let { cache ->
-      ctx()?.let {
+      getService(CompilerContext::class.java)?.let {
         QuoteConfigs(quoteSystem, cache, it)
       }
     }

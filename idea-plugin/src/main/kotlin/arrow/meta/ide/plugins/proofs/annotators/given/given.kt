@@ -2,8 +2,8 @@ package arrow.meta.ide.plugins.proofs.annotators.given
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.returnType
-import arrow.meta.ide.plugins.proofs.annotators.implicitProofAnnotatorTextAttributes
-import arrow.meta.ide.plugins.proofs.folding.getType
+import arrow.meta.ide.dsl.utils.getType
+import arrow.meta.ide.plugins.proofs.utils.implicitProofAnnotatorTextAttributes
 import arrow.meta.ide.plugins.proofs.psi.isGivenProof
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.givenProof

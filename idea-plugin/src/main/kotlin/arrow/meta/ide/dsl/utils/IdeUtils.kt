@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.MetaIde
+import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
@@ -12,7 +13,6 @@ import com.intellij.lang.annotation.Annotation
 import com.intellij.lang.annotation.AnnotationBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.impl.jar.CoreJarVirtualFile
@@ -36,12 +36,14 @@ import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
 import org.jetbrains.kotlin.idea.fir.getOrBuildFir
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -54,6 +56,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -136,6 +139,21 @@ fun <F : CallableDescriptor> F.intersectProperty(
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
 
+fun <A> KtCallElement.traverseCalls(f: BindingContext.(call: Call, resolvedCall: ResolvedCall<*>) -> A): List<A> =
+  analyze(bodyResolveMode = BodyResolveMode.FULL).run {
+    getSliceContents(BindingContext.RESOLVED_CALL).mapNotNull { (call, resolvedCall) ->
+      call?.takeIf { it.callElement == this@traverseCalls }?.let { c ->
+        resolvedCall?.let { r ->
+          f(this, c, r)
+        }
+      }
+    }
+  }
+
+fun KtCallElement.sequenceCalls(f: BindingContext.(call: Call, resolvedCall: ResolvedCall<*>) -> Unit): Unit {
+  traverseCalls(f)
+}
+
 // fixme use ViewProvider's files instead?
 @Suppress("UNCHECKED_CAST")
 fun <F : PsiFile> List<VirtualFile>.files(project: Project): List<F> =
@@ -192,12 +210,6 @@ fun KtCallableDeclaration.toFir(phase: FirResolvePhase = FirResolvePhase.BODY_RE
 val Project.ktPsiFactory: KtPsiFactory
   get() = KtPsiFactory(this)
 
-fun PsiElement.ctx(): CompilerContext? =
-  project.ctx()
-
-fun Project.ctx(): CompilerContext? =
-  getService(CompilerContext::class.java)
-
 fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
   fix: LocalQuickFix,
   psi: P,
@@ -227,8 +239,6 @@ fun localQuickFix(message: String, f: Project.(ProblemDescriptor) -> Unit): Loca
       f(project, descriptor)
   }
 
-fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
-
 val <K : KtElement> arrow.meta.quotes.Scope<K>.path: CompilerMessageLocation?
   get() = value?.run {
     containingFile?.let {
@@ -256,3 +266,5 @@ fun <A> kotlin(a: A): InlineElement = code(other = mapOf("lang" to "kotlin")) { 
 fun kotlin(a: String): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t${text(a).content}\n" }
 fun <A> h1(a: A): BlockElement = org.celtric.kotlin.html.h1("$a")
 fun <A> code(a: A): InlineElement = code("\n\t$a\n")
+
+internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]

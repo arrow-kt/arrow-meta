@@ -5,6 +5,7 @@ import arrow.meta.ide.dsl.utils.bindingCtx
 import arrow.meta.ide.dsl.utils.localQuickFix
 import arrow.meta.ide.dsl.utils.registerLocalFix
 import arrow.meta.ide.dsl.utils.removeElement
+import arrow.meta.ide.dsl.utils.sequenceCalls
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.diagnostic.ProofRenderer
 import arrow.meta.phases.analysis.diagnostic.onPublishedApi
@@ -19,6 +20,7 @@ import arrow.meta.plugins.proofs.phases.resolve.incorrectRefinement
 import arrow.meta.plugins.proofs.phases.resolve.isPublishedInternalOrphan
 import arrow.meta.plugins.proofs.phases.resolve.isViolatingOwnershipRule
 import arrow.meta.plugins.proofs.phases.resolve.tooManyRefinements
+import arrow.meta.plugins.proofs.phases.resolve.unresolvedGivenCallSite
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -27,6 +29,7 @@ import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
@@ -96,6 +99,17 @@ internal val IdeMetaPlugin.incorrectAndTooManyRefinements: Annotator
           }
         }
       }
+  }
+
+internal val IdeMetaPlugin.unresolvedGivenCallSite: Annotator
+  get() = Annotator { element, holder ->
+    element.project.getService(CompilerContext::class.java)?.let {ctx ->
+      element.safeAs<KtCallElement>()?.sequenceCalls {call, resolvedCall ->
+        ctx.unresolvedGivenCallSite(resolvedCall).let {
+            println(it)
+        }
+      }
+    }
   }
 
 

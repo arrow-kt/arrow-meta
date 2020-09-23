@@ -11,6 +11,7 @@ import arrow.meta.ide.plugins.proofs.annotators.resolution.incorrectAndTooManyRe
 import arrow.meta.ide.plugins.proofs.annotators.resolution.ownershipViolations
 import arrow.meta.ide.plugins.proofs.annotators.resolution.proofAmbiguities
 import arrow.meta.ide.plugins.proofs.annotators.resolution.publishedInternalProofs
+import arrow.meta.ide.plugins.proofs.annotators.resolution.unresolvedGivenCallSite
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 
@@ -23,6 +24,7 @@ val IdeMetaPlugin.proofAnnotators: ExtensionPhase
     addAnnotator(annotator = proofAmbiguities),
     addAnnotator(annotator = incorrectAndTooManyRefinements),
     addAnnotator(annotator = refinementCallSite),
+    addAnnotator(annotator = unresolvedGivenCallSite),
     // given
     addAnnotator(annotator = givenParameter),
     addAnnotator(annotator = givenCallSite),

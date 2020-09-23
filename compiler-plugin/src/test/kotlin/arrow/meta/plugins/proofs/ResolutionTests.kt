@@ -6,8 +6,8 @@ import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.refinement.RefinementTests
 import arrow.meta.plugins.typeclasses.GivenTest
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 // TODO: build ide peace with annotator
 class ResolutionTests {
@@ -43,10 +43,6 @@ class ResolutionTests {
       }
     }
   }
-
-  val  d = """
-    
-  """.trimIndent()
 
   @Test
   fun `@Extension internal orphan override`() {
@@ -250,7 +246,7 @@ class ResolutionTests {
     }
   }
 
-  @Ignore // Currently Given injections with type params need to be reviewed #741 among other things
+  @Disabled // Currently Given injections with type params need to be reviewed #741 among other things
   @Test
   fun `resolved function due to Semi-inductive implementation`() {
     givenResolutionTest(
@@ -296,7 +292,7 @@ class ResolutionTests {
     }
   }
 
-  @Ignore // TODO: Add compiler Error after fixing resolution
+  @Disabled // TODO: Add compiler Error after fixing resolution
   @Test
   fun `unresolved polymorphic constraint`() {
     givenResolutionTest(

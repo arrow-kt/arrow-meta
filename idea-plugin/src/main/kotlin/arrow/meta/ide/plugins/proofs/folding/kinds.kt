@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.getType
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.util.strictParents
 import org.jetbrains.kotlin.psi.KtTypeProjection

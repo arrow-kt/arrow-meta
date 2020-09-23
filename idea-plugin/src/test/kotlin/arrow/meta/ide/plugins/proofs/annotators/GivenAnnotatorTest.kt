@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.annotators
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.plugins.proofs.utils.implicitProofAnnotatorTextAttributes
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.Source
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
