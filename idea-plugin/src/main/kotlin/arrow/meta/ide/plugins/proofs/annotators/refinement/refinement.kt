@@ -1,62 +1,46 @@
-package arrow.meta.ide.plugins.proofs.annotators
+package arrow.meta.ide.plugins.proofs.annotators.refinement
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.sequenceCalls
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.resolve.validateConstructorCall
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.psi.KtCallElement
-import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.Callable
 import javax.script.ScriptEngine
 
-fun IdeMetaPlugin.refinementAnnotator(): ExtensionPhase =
-  addAnnotator(
-    annotator = Annotator { element, holder -> // in some situations there are 2 or more error annotations
-      element.safeAs<KtCallElement>()?.let { ktCall ->
-        val ctx = ktCall.analyze(bodyResolveMode = BodyResolveMode.FULL)
-        val calls = ctx.getSliceContents(BindingContext.RESOLVED_CALL)
-        calls.forEach { (call, resolvedCall) ->
-          resolvedCall?.let {
-            if (call.callElement == element) {
-              val module = resolvedCall.resultingDescriptor.module
-              val compilerContext = CompilerContext(project = element.project, eval = { source ->
-                emptyMap<String, Boolean>()
-                try {
-                  scriptEngine?.eval(source) ?: emptyMap<String, Boolean>()
-                } catch (t: Error) { //this happens the first time this is called
-                  Log.Verbose({ "Detected $t initializing KotlinJsr223StandardScriptEngineFactory4Idea: for `$it`" }) {
-                    emptyMap<String, Boolean>()
-                  }
-                }
-              })
-              compilerContext.module = module
-              val validation = compilerContext.validateConstructorCall(it)
-              validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->
-                //.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
-                holder.newAnnotation(HighlightSeverity.ERROR, msg)
-                  .range(element.textRange)
-                  .tooltip(msg)
-              }
-            }
+internal val IdeMetaPlugin.refinementCallSite: Annotator
+  get() = Annotator { element, holder ->
+    element.parent.safeAs<KtExpression>()?.sequenceCalls { _, resolvedCall, _ ->
+      val module = resolvedCall.resultingDescriptor.module
+      val compilerContext = CompilerContext(project = element.project, eval = { source ->
+        emptyMap<String, Boolean>()
+        try {
+          scriptEngine?.eval(source) ?: emptyMap<String, Boolean>()
+        } catch (t: Error) { //this happens the first time this is called
+          Log.Verbose({ "Detected $t initializing KotlinJsr223StandardScriptEngineFactory4Idea: for `$resolvedCall`" }) {
+            emptyMap<String, Boolean>()
           }
         }
-
-//            holder.createErrorAnnotation(f, "This is a call element")?.let { error ->
-//             // error.registerUniversalFix(AddModifierFix(f, KtTokens.SUSPEND_KEYWORD), f.identifyingElement?.textRange, null)
-//            }
+      })
+      compilerContext.module = module
+      val validation = compilerContext.validateConstructorCall(resolvedCall)
+      validation.filterNot { entry -> entry.value }.forEach { (msg, _) ->
+        holder.newAnnotation(HighlightSeverity.ERROR, msg)
+          .range(element.textRange)
+          .tooltip(msg)
       }
     }
-  )
+  }
+
 
 /**
  * Please, set the following property in `build.gradle` as true, to view/enable the errors thrown by the engine in the ide.

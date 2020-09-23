@@ -27,9 +27,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
         val result = diagnostic.suppressMetaDiagnostics()
         diagnostic.logSuppression(result)
         result
-      },
-      registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
-        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
+      }
     )
   }
 

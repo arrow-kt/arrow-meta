@@ -1,13 +1,14 @@
 package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.MetaIde
-import arrow.meta.phases.CompilerContext
+import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.lang.annotation.Annotation
 import com.intellij.lang.annotation.AnnotationBuilder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -25,6 +26,7 @@ import org.celtric.kotlin.html.InlineElement
 import org.celtric.kotlin.html.code
 import org.celtric.kotlin.html.text
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -33,12 +35,14 @@ import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.fir.firResolveState
 import org.jetbrains.kotlin.idea.fir.getOrBuildFir
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.search.projectScope
+import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -51,6 +55,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.RenderingFormat
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -87,6 +92,12 @@ val KtElement.typeProjections: List<KtTypeProjection>
 
 val KtCallElement.returnType: KotlinType?
   get() = resolveToCall()?.resultingDescriptor?.returnType
+
+fun KtElement.cacheService(): KotlinCacheService? =
+  project.getService(KotlinCacheService::class.java)
+
+fun KtElement.bindingCtx(mode: BodyResolveMode = BodyResolveMode.FULL): BindingContext? =
+  cacheService()?.getResolutionFacade(listOf(this.containingKtFile))?.analyze(this, mode)
 
 /**
  * returns all return types of each call-site starting from the receiver
@@ -126,6 +137,21 @@ fun <F : CallableDescriptor> F.intersectProperty(
  */
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
+
+fun <K : KtElement, A> K.traverseCalls(f: K.(call: Call, resolvedCall: ResolvedCall<*>, ctx: BindingContext) -> A): List<A> =
+  analyze(bodyResolveMode = BodyResolveMode.FULL).run {
+    getSliceContents(BindingContext.RESOLVED_CALL).mapNotNull { (call, resolvedCall) ->
+      call?.takeIf { it.callElement == this@traverseCalls }?.let { c ->
+        resolvedCall?.let { r ->
+          f(this@traverseCalls, c, r, this)
+        }
+      }
+    }
+  }
+
+fun <K : KtElement> K.sequenceCalls(f: K.(call: Call, resolvedCall: ResolvedCall<*>, ctx: BindingContext) -> Unit): Unit {
+  traverseCalls(f)
+}
 
 // fixme use ViewProvider's files instead?
 @Suppress("UNCHECKED_CAST")
@@ -183,16 +209,10 @@ fun KtCallableDeclaration.toFir(phase: FirResolvePhase = FirResolvePhase.BODY_RE
 val Project.ktPsiFactory: KtPsiFactory
   get() = KtPsiFactory(this)
 
-fun PsiElement.ctx(): CompilerContext? =
-  project.ctx()
-
-fun Project.ctx(): CompilerContext? =
-  getService(CompilerContext::class.java)
-
 fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
   fix: LocalQuickFix,
   psi: P,
-  message: String,
+  message: String = "",
   highlightType: ProblemHighlightType = ProblemHighlightType.INFORMATION,
   onThefly: Boolean = true,
   afterBorderLine: Boolean = true
@@ -200,8 +220,14 @@ fun <P : PsiElement> AnnotationBuilder.registerLocalFix(
   newLocalQuickFix(fix, psi.inspectionManager()
     .createProblemDescriptor(psi, message, arrayOf(fix), highlightType, onThefly, afterBorderLine))
 
+fun <P : PsiElement> Annotation.descriptor(element: P, fix: LocalQuickFix? = null, onThefly: Boolean = true): ProblemDescriptor =
+  element.inspectionManager().createProblemDescriptor(element, message, fix, highlightType, onThefly)
+
 fun PsiElement.inspectionManager(): InspectionManager =
   InspectionManager.getInstance(project)
+
+fun <P : PsiElement> removeElement(message: String, element: P): LocalQuickFix =
+  localQuickFix(message) { element.delete() }
 
 fun localQuickFix(message: String, f: Project.(ProblemDescriptor) -> Unit): LocalQuickFix =
   object : LocalQuickFix {
@@ -211,8 +237,6 @@ fun localQuickFix(message: String, f: Project.(ProblemDescriptor) -> Unit): Loca
     override fun applyFix(project: Project, descriptor: ProblemDescriptor): Unit =
       f(project, descriptor)
   }
-
-fun <A> List<A?>.toNotNullable(): List<A> = fold(emptyList()) { acc: List<A>, r: A? -> if (r != null) acc + r else acc }
 
 val <K : KtElement> arrow.meta.quotes.Scope<K>.path: CompilerMessageLocation?
   get() = value?.run {
@@ -241,3 +265,5 @@ fun <A> kotlin(a: A): InlineElement = code(other = mapOf("lang" to "kotlin")) { 
 fun kotlin(a: String): InlineElement = code(other = mapOf("lang" to "kotlin")) { "\t${text(a).content}\n" }
 fun <A> h1(a: A): BlockElement = org.celtric.kotlin.html.h1("$a")
 fun <A> code(a: A): InlineElement = code("\n\t$a\n")
+
+internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]

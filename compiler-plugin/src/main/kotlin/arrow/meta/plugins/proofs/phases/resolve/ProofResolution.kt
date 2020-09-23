@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -52,7 +51,6 @@ import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 inline fun <reified A : ExtensionProof> List<A>.matchingCandidates(
   compilerContext: CompilerContext,
@@ -222,7 +220,7 @@ fun ClassDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
     when (it.fqName) {
       ArrowGivenProof -> asGivenProof()
-      ArrowRefinementProof -> asGivenProof()
+      ArrowRefinementProof -> asRefinementProof()
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
   }
@@ -245,6 +243,12 @@ fun FunctionDescriptor.asProof(): Sequence<Proof> =
     }
   }
 
+private fun ClassDescriptor.asRefinementProof(): RefinementProof? =
+  unsubstitutedPrimaryConstructor?.let {
+    val from = constructors.first().valueParameters.first().type
+    val to = this.defaultType
+    RefinementProof(from, to, it)
+  }
 
 private fun ClassDescriptor.asGivenProof(): GivenProof? =
   if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this)

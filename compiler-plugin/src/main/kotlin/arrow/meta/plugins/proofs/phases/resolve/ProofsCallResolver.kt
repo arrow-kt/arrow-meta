@@ -1,7 +1,6 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
-import arrow.meta.plugins.proofs.phases.ClassProof
-import arrow.meta.plugins.proofs.phases.CoercionProof
+import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
@@ -15,12 +14,12 @@ import org.jetbrains.kotlin.resolve.calls.components.KotlinResolutionCallbacks
 import org.jetbrains.kotlin.resolve.calls.components.NewOverloadingConflictResolver
 import org.jetbrains.kotlin.resolve.calls.context.CheckArgumentTypesMode
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
-import org.jetbrains.kotlin.resolve.calls.model.GivenCandidate
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallComponents
 import org.jetbrains.kotlin.resolve.calls.model.KotlinResolutionCandidate
 import org.jetbrains.kotlin.resolve.calls.model.SimpleCandidateFactory
 import org.jetbrains.kotlin.resolve.calls.model.checkCallInvariants
+import org.jetbrains.kotlin.resolve.calls.model.freshReturnType
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tower.CandidateWithBoundDispatchReceiver
 import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
@@ -106,7 +105,13 @@ class ProofsCallResolver(
     expectedType: UnwrappedType?,
     candidates: Collection<KotlinResolutionCandidate>
   ): CallResolutionResult {
-    var refinedCandidates = candidates
+    var refinedCandidates = candidates.filter {
+      it.resolvedCall.freshReturnType?.let { a ->
+        expectedType?.let { b ->
+          baseLineTypeChecker.isSubtypeOf(a, b)
+        }
+      } ?: false
+    }
     if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
       val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
       if (nonSynthesized.isNotEmpty()) {

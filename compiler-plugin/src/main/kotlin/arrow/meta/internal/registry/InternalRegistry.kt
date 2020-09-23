@@ -464,7 +464,7 @@ interface InternalRegistry : ConfigSyntax {
   ) {
     StorageComponentContainerContributor.registerExtension(
       project,
-      DelegatingContributorChecker(phase, ctx)
+      DelegatingContributor(phase, ctx)
     )
   }
 
@@ -559,14 +559,14 @@ interface InternalRegistry : ConfigSyntax {
       })
   }
 
-  class DelegatingContributorChecker(val phase: StorageComponentContainer, val ctx: CompilerContext) : StorageComponentContainerContributor, DeclarationChecker {
+  class DelegatingContributor(val phase: StorageComponentContainer, val ctx: CompilerContext) : StorageComponentContainerContributor {
 
     override fun registerModuleComponents(container: org.jetbrains.kotlin.container.StorageComponentContainer, platform: TargetPlatform, moduleDescriptor: ModuleDescriptor) {
       phase.run { ctx.registerModuleComponents(container, moduleDescriptor) }
-    }
-
-    override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
-      phase.run { ctx.check(declaration, descriptor, context) }
+      container.useInstance(object : DeclarationChecker {
+        override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext): Unit =
+          phase.run { ctx.check(declaration, descriptor, context) }
+      })
     }
   }
 

@@ -12,12 +12,20 @@ import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
+import arrow.meta.plugins.proofs.phases.allGivenProofs
+import arrow.meta.plugins.proofs.phases.extensionProof
+import arrow.meta.plugins.proofs.phases.extensionProofCandidate
 import arrow.meta.plugins.proofs.phases.extensionProofs
+import arrow.meta.plugins.proofs.phases.givenProof
+import arrow.meta.plugins.proofs.phases.givenProofCandidate
 import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
+import arrow.meta.plugins.proofs.phases.resolve.isResolved
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -39,6 +47,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
@@ -59,16 +68,14 @@ class ProofsIrCodegen(
       }
     }
   }
-
   fun CompilerContext.givenProofCall(
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val matchingCandidates = givenProofs(superType)
-      val proofs = matchingCandidates.map { proof ->
-        substitutedProofCall(proof, superType)
+      val candidate = givenProof(superType)
+      candidate?.let{ proof ->
+        substitutedProofCall( proof, superType)
       }
-      proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
 
   private fun IrUtils.substitutedProofCall(proof: GivenProof, superType: KotlinType): IrExpression? =
@@ -77,21 +84,24 @@ class ProofsIrCodegen(
       typeSubstitutor = proof.substitutor(superType)
     )
 
-
+  /**
+   * applicable for both  [@Extension] and [@Coercion]
+   */
   fun CompilerContext.extensionProofCall(
     subType: KotlinType,
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val matchingCandidates = extensionProofs(subType, superType)
-      val proofs = matchingCandidates.map {
+      val candidate = extensionProof(subType, superType)
+      candidate?.let {
         matchedCandidateProofCall(
           fn = it.through,
           typeSubstitutor = it.substitutor(subType)
         )
       }
-      proofs.firstOrNull() //TODO handle ambiguity and orphan selection
     }
+
+
 
   fun Proof.substitutor(
     superType: KotlinType

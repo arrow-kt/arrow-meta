@@ -20,6 +20,9 @@ dependencies {
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin"
+    }
     testRuntimeOnly project(":prelude")
 }
 
@@ -72,5 +75,6 @@ test {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }

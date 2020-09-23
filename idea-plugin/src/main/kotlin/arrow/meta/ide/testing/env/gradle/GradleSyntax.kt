@@ -7,6 +7,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
+import org.assertj.core.api.AbstractThrowableAssert
 import org.assertj.core.api.Assertions.assertThatCode
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -37,7 +38,7 @@ interface GradleSyntax {
     )
 
   /**
-   * returns the logs
+   * returns the logs with the each taskOutput
    */
   fun GradleSyntax.gradle(
     project: Project,
@@ -46,22 +47,46 @@ interface GradleSyntax {
       executionSettingsProvider.`fun`(Pair.create(project, rootPath))
     },
     jvmSetupParams: String? = null,
-    tasks: List<String>
+    tasks: List<String>,
+    logs: MutableList<String>
   ): List<String> {
-    val logs: MutableList<String> = mutableListOf()
-    val listener = listener { _, text, _ ->
-      logs.add(text.trim('\r', '\n', ' '))
-    }
+    val listener = listener(
+      taskOutput = { _, text, _ ->
+        logs.add(text.trim('\r', '\n', ' '))
+      },
+      failure = { _, e ->
+        logs.addAll(e.stackTrace.map { it.toString() }.toList())
+      })
     gradle(project, rootPath, settings, jvmSetupParams, listener, tasks)
     return logs.toList()
   }
 
+  fun GradleSyntax.assertGradle(
+    project: Project,
+    rootPath: String,
+    settings: GradleManager.() -> GradleExecutionSettings? = {
+      executionSettingsProvider.`fun`(Pair.create(project, rootPath))
+    },
+    jvmSetupParams: String? = null,
+    tasks: List<String>
+  ): kotlin.Pair<AbstractThrowableAssert<*, out Throwable>, List<String>> {
+    val logs = mutableListOf<String>()
+    val taskAssert = assertThatCode {
+      gradle(project, rootPath, settings, jvmSetupParams, tasks, logs)
+    }
+    return taskAssert to logs.toList()
+  }
+
+
   fun GradleSyntax.listener(
-    taskOutput: (id: ExternalSystemTaskId, text: String, stdOut: Boolean) -> Unit = Noop.effect3
+    taskOutput: (id: ExternalSystemTaskId, text: String, stdOut: Boolean) -> Unit = Noop.effect3,
+    failure: (id: ExternalSystemTaskId, e: Exception) -> Unit = Noop.effect2
   ): ExternalSystemTaskNotificationListenerAdapter =
     object : ExternalSystemTaskNotificationListenerAdapter() {
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean): Unit =
         taskOutput(id, text, stdOut)
 
+      override fun onFailure(id: ExternalSystemTaskId, e: Exception): Unit =
+        failure(id, e)
     }
 }

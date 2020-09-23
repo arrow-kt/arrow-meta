@@ -66,6 +66,7 @@ fun Id.Companion.applicative(): Applicative.Companion<Id.Companion> =
 fun <A> Id<A>.applicative(): Applicative<Id.Companion, A> =
   IdApplicative(kind())
 
+@Suppress("UNCHECKED_CAST")
 fun <A> Kind<Id.Companion, A>.fix(): Id<A> =
   (this as Kinded).value as Id<A>
 

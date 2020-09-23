@@ -30,6 +30,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
 import com.intellij.openapi.startup.StartupActivity
@@ -92,7 +93,7 @@ data class QuoteConfigs(
 fun Project.quoteConfigs(): QuoteConfigs? =
   getService(QuoteSystemService::class.java)?.let { quoteSystem ->
     getService(QuoteCache::class.java)?.let { cache ->
-      ctx()?.let {
+      getService(CompilerContext::class.java)?.let {
         QuoteConfigs(quoteSystem, cache, it)
       }
     }
@@ -104,30 +105,31 @@ internal fun quoteProjectOpened(project: Project): Unit =
   project.quoteConfigs()?.let { (quoteSystem: QuoteSystemService, cache: QuoteCache, ctx: CompilerContext) ->
     // add a startup activity to populate the cache with a transformation of all project files
     //StartupManager.getInstance(project).runWhenProjectIsInitialized {
-    //runBackgroundableTask("Arrow Meta", project, cancellable = false) {
-    try {
-      LOG.info("Initializing quote system cache...")
-      val files: List<KtFile> = runReadAction {
-        project.quoteRelevantFiles().also {
-          LOG.info("collected ${it.size} quote relevant files for Project:${project.name}")
-        }
-      }
-      quoteSystem.refreshCache(cache, project, files, ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy())
-    } finally {
+    runBackgroundableTask("Arrow Quote Initialization", project, cancellable = false) {
       try {
-        quoteSystem.context.run {
-          editorQueue.flush()
-          docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
-          cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+        LOG.info("Initializing quote system cache...")
+        val files: List<KtFile> = runReadAction {
+          project.quoteRelevantFiles().also {
+            LOG.info("collected ${it.size} quote relevant files for Project:${project.name}")
+          }
         }
-      } catch (e: Exception) {
+        quoteSystem.refreshCache(cache, project, files, ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy())
+      } finally {
+        try {
+          quoteSystem.context.run {
+            editorQueue.flush()
+            docExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+            cacheExec.safeAs<BoundedTaskExecutor>()?.waitAllTasksExecuted(5, TimeUnit.SECONDS)
+          }
+        } catch (e: Exception) {
+        }
+        project.getService(QuoteHighlightingCache::class.java)?.run {
+          map {
+            it.copy(initialized = true)
+          }
+          value.extract().latch.countDown()
+        } ?: unavailableServices(QuoteHighlightingCache::class.java)
       }
-      project.getService(QuoteHighlightingCache::class.java)?.run {
-        map {
-          it.copy(initialized = true)
-        }
-        value.extract().latch.countDown()
-      } ?: unavailableServices(QuoteHighlightingCache::class.java)
     }
   } ?: Unit
 
