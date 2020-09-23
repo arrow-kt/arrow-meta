@@ -2,8 +2,8 @@ package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 const val prelude = """
 package test
@@ -23,7 +23,7 @@ interface Functor<F> {
 class KindsTest {
 
   @Test
-  @Ignore
+  @Disabled
   fun `Platform types can be kinded ad-hoc by proof`() {
     val codeSnippet = """
       $prelude

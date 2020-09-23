@@ -2,8 +2,8 @@ package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 class TypeClassesTest {
 
@@ -34,7 +34,7 @@ class TypeClassesTest {
     }
 
   @Test
-  @Ignore
+  @Disabled
   fun `polymorphic constrain`() {
     val codeSnippet = """
        import arrow.*

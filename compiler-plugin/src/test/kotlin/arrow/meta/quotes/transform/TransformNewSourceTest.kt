@@ -3,9 +3,9 @@ package arrow.meta.quotes.transform
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.jupiter.api.Test
 
-class TransformNewSourceTest : AnnotationSpec() {
+class TransformNewSourceTest {
   
   @Test
   fun `validate single extra file is created`() {

@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.LambdaExpressionsPlugin
 import arrow.meta.quotes.scope.templates.LambdaExpressionTest.Companion.lambdaExpression
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class LambdaExpressionTest  {
 
