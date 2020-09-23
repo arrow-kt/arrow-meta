@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.diagnostics.markElement
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
+import org.jetbrains.kotlin.resolve.BindingContext
 
 /**
  * Each [element] that is a witness of this strategy has an attribute that allows internal orphans to be published publicly.
@@ -44,13 +46,19 @@ val onIdentifyingElement: PositioningStrategy<KtObjectDeclaration> =
       )
     }
   )
+
 /**
  * matching on the shortName is valid, as the diagnostic is only applied, if the FqName correlates.
+ * Which is checked prior to the Diagnostic being applied.
  */
 fun KtDeclaration.publishedApiAnnotation(): KtAnnotationEntry? =
   annotationEntries.firstOrNull {
     it.shortName == KotlinBuiltIns.FQ_NAMES.publishedApi.shortName()
   }
+
+fun KtDeclaration.onPublishedApi(ctx: BindingContext): Pair<KtAnnotationEntry, TextRange>? =
+  annotationEntries.firstOrNull { ctx.get(BindingContext.ANNOTATION, it)?.fqName == KotlinBuiltIns.FQ_NAMES.publishedApi }
+    ?.let { it to it.textRangeWithoutComments }
 
 fun <A : PsiElement> position(
   mark: (A) -> List<TextRange> = { markElement(it) },

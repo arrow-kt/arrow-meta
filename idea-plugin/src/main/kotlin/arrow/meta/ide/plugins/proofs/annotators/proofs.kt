@@ -7,38 +7,40 @@ import arrow.meta.ide.dsl.utils.removeElement
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.plugins.proofs.phases.ExtensionProof
+import arrow.meta.phases.analysis.diagnostic.onPublishedApi
+import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.allGivenProofs
+import arrow.meta.plugins.proofs.phases.asString
 import arrow.meta.plugins.proofs.phases.extensionProofs
-import arrow.meta.plugins.proofs.phases.hasAnnotation
-import arrow.meta.plugins.proofs.phases.isProof
+import arrow.meta.plugins.proofs.phases.refinementProofs
 import arrow.meta.plugins.proofs.phases.resolve.disallowedUserDefinedAmbiguities
+import arrow.meta.plugins.proofs.phases.resolve.isPublishedInternalOrphan
+import arrow.meta.plugins.proofs.phases.resolve.isViolatingOwnershipRule
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.proofAnnotator: ExtensionPhase
   get() = Composite(
     addAnnotator(
       annotator = Annotator { element, holder ->
-        // prohibited published internal Proofs
+
         element.safeAs<KtDeclaration>()?.let { declaration ->
-          declaration.bindingCtx()?.let { ctx ->
-            declaration.isPublishedInternalOrphan(ctx)?.let { prohibitedProof ->
-              prohibitedProof.onPublishedApi(ctx)?.let { publishedApi ->
-                holder.registerProhibitedProof(publishedApi)
+          declaration.bindingCtx()?.let { bindingContext ->
+            declaration.project.getService(CompilerContext::class.java)?.let { ctx ->
+              declaration.isPublishedInternalOrphan(bindingContext)
+                ?.onPublishedApi(bindingContext)
+                ?.safeAs<Pair<KtAnnotationEntry, TextRange>>()?.let {
+                  holder.registerProhibitedProof(it)
+                }
+
+              declaration.isViolatingOwnershipRule(bindingContext, ctx)?.let {
+                holder.registerOwnershipViolation(it)
               }
             }
           }
@@ -49,9 +51,10 @@ val IdeMetaPlugin.proofAnnotator: ExtensionPhase
       annotator = Annotator { element, holder ->
         // proof resolution ambiguities
         element.project.getService(CompilerContext::class.java)?.let { ctx: CompilerContext ->
-          val map = ctx.extensionProofs()
-            .disallowedUserDefinedAmbiguities()
-          element.safeAs<KtNamedFunction>()
+          val map = ctx.run { extensionProofs() + allGivenProofs() + refinementProofs() }
+            .disallowedUserDefinedAmbiguities().toMap()
+
+          /*element.safeAs<KtDeclaration>()
             ?.let {
               it.resolveToDescriptorIfAny()?.let { f ->
                 map.firstOrNull { (ff, _) ->
@@ -61,7 +64,7 @@ val IdeMetaPlugin.proofAnnotator: ExtensionPhase
             }?.let { (f, ambiguities) ->
               val (proof, conflicts) = ambiguities
               holder.registerAmbiguousProofs(proof.first, f.textRangeWithoutComments, conflicts)
-            }
+            }*/
         }
       }
     )
@@ -80,30 +83,28 @@ private fun AnnotationHolder.registerProhibitedProof(publishedApi: Pair<KtAnnota
     .registerFix()
     .create()
 
+private fun AnnotationHolder.registerOwnershipViolation(publishedApi: Pair<KtDeclaration, Proof>): Unit =
+  newAnnotation(HighlightSeverity.ERROR, "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem.")
+    .needsUpdateOnTyping()
+    .range(publishedApi.second)
+    .registerLocalFix(
+      removeElement("Remove the @PublishedApi annotation", publishedApi.first),
+      publishedApi.first,
+      highlightType = ProblemHighlightType.ERROR
+    )
+    .universal()
+    .registerFix()
+    .create()
 
-private fun AnnotationHolder.registerAmbiguousProofs(proof: ExtensionProof, range: TextRange, conflicts: List<ExtensionProof>): Unit =
+
+private fun <A : Proof> AnnotationHolder.registerAmbiguousProofs(proof: A, range: TextRange, conflicts: List<A>): Unit =
   newAnnotation(HighlightSeverity.ERROR,
-    DescriptorRenderer.COMPACT_WITH_SHORT_TYPES.run {
-      """
-      The proof
-      ${"\n"}${render(proof.through)}
-      ${"\n"}is in Conflict with the following proof/s:
-      ${"\n"}${conflicts.joinToString(separator = "\n") { render(it.through) }}
-      ${"\n"}Please take following measures to disambiguate proof resolution: TODO!
+    """
+      This ${proof.asString()}
+      ${"\n"}has following conflicting proof/s:
+      ${"\n"}${conflicts.joinToString(separator = ",\n") { it.asString() }}
+      ${"\n"}Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.
         """".trimIndent()
-    }
   ).needsUpdateOnTyping()
     .range(range)
     .create()
-
-internal fun KtDeclaration.isPublishedInternalOrphan(ctx: BindingContext): KtDeclaration? =
-  takeIf {
-    it.isProof(ctx) &&
-      it.hasAnnotation(ctx, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
-      it.hasModifier(KtTokens.INTERNAL_KEYWORD)
-  }
-
-internal fun KtDeclaration.onPublishedApi(ctx: BindingContext): Pair<KtAnnotationEntry, TextRange>? =
-  annotationEntries.firstOrNull { ctx.get(BindingContext.ANNOTATION, it)?.fqName == KotlinBuiltIns.FQ_NAMES.publishedApi }
-    ?.let { it to it.textRangeWithoutComments }
-

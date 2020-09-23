@@ -144,27 +144,27 @@ fun KtObjectDeclaration.implementsRefined(ctx: BindingContext): KotlinType? =
     .mapNotNull { it.typeReference?.typeElement?.getAbbreviatedTypeOrType(ctx) }
     .singleOrNull { it.constructor.declarationDescriptor?.fqNameOrNull() == ArrowRefined }
 
-fun prohibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): List<KtDeclaration> =
+fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
-    declaration.isPublishedInternalOrphan(trace)
+    declaration.isPublishedInternalOrphan(bindingContext)
   }
 
-fun KtDeclaration.isPublishedInternalOrphan(trace: BindingTrace): KtDeclaration? =
+fun KtDeclaration.isPublishedInternalOrphan(bindingContext: BindingContext): KtDeclaration? =
   takeIf {
-    it.isProof(trace) &&
-      it.hasAnnotation(trace, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
+    it.isProof(bindingContext) &&
+      it.hasAnnotation(bindingContext, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
       it.hasModifier(KtTokens.INTERNAL_KEYWORD)
   }
 
-fun CompilerContext.ownershipViolations(trace: BindingTrace, file: KtFile): List<Pair<KtDeclaration, Proof>> =
+fun CompilerContext.ownershipViolations(trace: BindingContext, file: KtFile): List<Pair<KtDeclaration, Proof>> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
     declaration.isViolatingOwnershipRule(trace, this)
   }
 
-fun KtDeclaration.isViolatingOwnershipRule(trace: BindingTrace, ctx: CompilerContext): Pair<KtDeclaration, Proof>? =
-  takeIf { it.isProof(trace) }?.let {
+fun KtDeclaration.isViolatingOwnershipRule(bindingContext: BindingContext, ctx: CompilerContext): Pair<KtDeclaration, Proof>? =
+  takeIf { it.isProof(bindingContext) }?.let {
     ctx.proof<Proof>().firstOrNull {
-      it.through == trace.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
+      it.through == bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     }?.takeIf {
       !hasModifier(KtTokens.INTERNAL_KEYWORD) &&
         (when (it) {
@@ -298,7 +298,7 @@ private fun <K, A : Proof> Map<K, List<A>>.reportDisallowedUserDefinedAmbiguitie
  * Internal proofs are not permitted to be published, due to coherence reasons leading to ambiguities.
  */
 private fun reportProhibitedPublishedInternalOrphans(trace: BindingTrace, file: KtFile): Unit =
-  prohibitedPublishedInternalOrphans(trace, file).forEach {
+  prohibitedPublishedInternalOrphans(trace.bindingContext, file).forEach {
     trace.report(MetaErrors.PublishedInternalOrphan.on(it))
   }
 
@@ -308,7 +308,7 @@ private fun reportProhibitedPublishedInternalOrphans(trace: BindingTrace, file: 
  * @see isUserOwned
  */
 private fun CompilerContext.reportOwnershipViolations(trace: BindingTrace, file: KtFile): Unit =
-  ownershipViolations(trace, file).forEach { (declaration, proof) ->
+  ownershipViolations(trace.bindingContext, file).forEach { (declaration, proof) ->
     trace.report(OwnershipViolatedProof.on(declaration, proof))
   }
 

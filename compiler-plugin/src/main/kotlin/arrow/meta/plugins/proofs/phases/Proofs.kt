@@ -264,7 +264,7 @@ fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
     }
   } else emptyList()
 
-internal fun Proof.asString(): String =
+fun Proof.asString(): String =
   when (this) {
     is GivenProof -> "GivenProof ${through.fqNameSafe.asString()} on the type ${ProofRenderer.renderType(to)}"
     is ExtensionProof -> "ExtensionProof ${through.fqNameSafe.asString()}: ${ProofRenderer.renderType(from)} -> ${ProofRenderer.renderType(to)}"
