@@ -3,7 +3,6 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath "org.jetbrains.dokka:dokka-gradle-plugin:$DOKKA_VERSION"
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   }
 }
@@ -11,6 +10,7 @@ buildscript {
 plugins {
   // Replace plugin DSL by legacy plugin application to use EAP versions by Kotlin
   // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
+  id "org.jetbrains.dokka" version "$DOKKA_VERSION"
   id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
 }
 

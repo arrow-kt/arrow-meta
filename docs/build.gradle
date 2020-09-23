@@ -81,15 +81,21 @@ task getLocalPaths {
             "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
             "arrow-core-data-$ARROW_VERSION",
             "arrow-fx-$ARROW_VERSION",
+            "arrow-fx-coroutines-$ARROW_VERSION",
             "arrow-annotations-$ARROW_VERSION",
             "arrow-core-$ARROW_VERSION"
         ]
         def librariesFromCompilation = [
+            // From Kotlin IDEA Plugin:
             'kotlin-plugin.jar',
+            // From Intellij IDEA:
             'platform-api.jar',
             'platform-impl.jar',
             'idea.jar',
-            'testFramework.jar'
+            'testFramework.jar',
+            'ide-common.jar',
+            'util.jar',
+            'platform-core-ui.jar'
         ]
         def localPaths = librariesFromRuntime.collect{ library -> sourceSets.main.runtimeClasspath.find{ path -> path.name.contains("$library") } }
         localPaths.addAll(librariesFromCompilation.collect{ library -> sourceSets.main.compileClasspath.find{ path -> (path.name == "$library") } })

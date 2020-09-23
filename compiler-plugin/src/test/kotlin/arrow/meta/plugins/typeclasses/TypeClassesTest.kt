@@ -1,7 +1,6 @@
 package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import org.junit.Ignore
 import org.junit.Test
@@ -35,6 +34,7 @@ class TypeClassesTest {
     }
 
   @Test
+  @Ignore
   fun `polymorphic constrain`() {
     val codeSnippet = """
        import arrow.*
