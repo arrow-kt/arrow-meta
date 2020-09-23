@@ -20,7 +20,7 @@ dependencies {
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    testRuntimeOnly("io.arrow-kt:arrow-core:$ARROW_VERSION") {
+    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
     testRuntimeOnly project(":prelude")
