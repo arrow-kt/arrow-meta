@@ -84,17 +84,7 @@ private fun AnnotationHolder.registerProhibitedProof(publishedApi: Pair<KtAnnota
     .create()
 
 private fun AnnotationHolder.registerOwnershipViolation(publishedApi: Pair<KtDeclaration, Proof>): Unit =
-  newAnnotation(HighlightSeverity.ERROR, "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem.")
-    .needsUpdateOnTyping()
-    .range(publishedApi.second)
-    .registerLocalFix(
-      removeElement("Remove the @PublishedApi annotation", publishedApi.first),
-      publishedApi.first,
-      highlightType = ProblemHighlightType.ERROR
-    )
-    .universal()
-    .registerFix()
-    .create()
+  TODO()
 
 
 private fun <A : Proof> AnnotationHolder.registerAmbiguousProofs(proof: A, range: TextRange, conflicts: List<A>): Unit =
