@@ -29,11 +29,12 @@ import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -103,10 +104,15 @@ internal val IdeMetaPlugin.incorrectAndTooManyRefinements: Annotator
 
 internal val IdeMetaPlugin.unresolvedGivenCallSite: Annotator
   get() = Annotator { element, holder ->
-    element.project.getService(CompilerContext::class.java)?.let {ctx ->
-      element.safeAs<KtCallElement>()?.sequenceCalls {call, resolvedCall ->
-        ctx.unresolvedGivenCallSite(resolvedCall).let {
-            println(it)
+    element.project.getService(CompilerContext::class.java)?.let { ctx ->
+      element.safeAs<KtExpression>()?.sequenceCalls { _, resolvedCall, _ ->
+        ctx.unresolvedGivenCallSite(resolvedCall).let { (values, types) ->
+          values.forEach {
+            holder.registerUnresolvedGivenCall(this, resolvedCall, it.type)
+          }
+          types.forEach {
+            holder.registerUnresolvedGivenCall(this, resolvedCall, it.defaultType)
+          }
         }
       }
     }
@@ -152,14 +158,12 @@ private fun <A : Proof> AnnotationHolder.registerAmbiguousProofs(proof: A, range
       ${"\n"}${conflicts.joinToString(separator = ",\n") { it.asString() }}
       ${"\n"}Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.
         """".trimIndent()
-  ).needsUpdateOnTyping()
-    .range(range)
+  ).range(range)
     .create()
 
 // TODO: Add another LocalFix to remove the SuperType Refined from [on]
 private fun AnnotationHolder.registerTooManyRefinements(on: KtObjectDeclaration, expectedFrom: KotlinType, expectedTo: KotlinType): Unit =
   newAnnotation(HighlightSeverity.ERROR, "Refinements can only be defined over one companion object, which implements ${ArrowRefined.asString()}<${ProofRenderer.renderType(expectedFrom)},${ProofRenderer.renderType(expectedTo)}>.\nPlease remove this object or remove the superType Refined.")
-    .needsUpdateOnTyping()
     .range(on.textRangeWithoutComments)
     .registerLocalFix(
       removeElement("Remove this Refinement", on),
@@ -173,6 +177,10 @@ private fun AnnotationHolder.registerTooManyRefinements(on: KtObjectDeclaration,
 // TODO: Add LocalFix to substitute the Type Arguments
 private fun AnnotationHolder.registerIncorrectRefinement(on: KtObjectDeclaration, expectedFrom: KotlinType, expectedTo: KotlinType): Unit =
   newAnnotation(HighlightSeverity.ERROR, "This Refinement can only be defined over one companion object, which implements ${ArrowRefined.asString()}<${ProofRenderer.renderType(expectedFrom)},${ProofRenderer.renderType(expectedTo)}>")
-    .needsUpdateOnTyping()
+    .range(on.textRangeWithoutComments)
+    .create()
+
+private fun AnnotationHolder.registerUnresolvedGivenCall(on: KtExpression, call: ResolvedCall<*>, type: KotlinType): Unit =
+  newAnnotation(HighlightSeverity.ERROR, "There is no Proof for this type ${ProofRenderer.renderType(type)} to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
     .range(on.textRangeWithoutComments)
     .create()

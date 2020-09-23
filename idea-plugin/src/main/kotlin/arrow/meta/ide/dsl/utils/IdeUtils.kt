@@ -2,7 +2,6 @@ package arrow.meta.ide.dsl.utils
 
 import arrow.meta.ide.MetaIde
 import arrow.meta.internal.mapNotNull
-import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.Eq
 import arrow.meta.phases.analysis.intersect
 import com.intellij.codeInspection.InspectionManager
@@ -139,18 +138,18 @@ fun <F : CallableDescriptor> F.intersectProperty(
 inline fun <reified K : PsiElement> K.replaceK(to: K): K? =
   replace(to).safeAs()
 
-fun <A> KtCallElement.traverseCalls(f: BindingContext.(call: Call, resolvedCall: ResolvedCall<*>) -> A): List<A> =
+fun <K : KtElement, A> K.traverseCalls(f: K.(call: Call, resolvedCall: ResolvedCall<*>, ctx: BindingContext) -> A): List<A> =
   analyze(bodyResolveMode = BodyResolveMode.FULL).run {
     getSliceContents(BindingContext.RESOLVED_CALL).mapNotNull { (call, resolvedCall) ->
       call?.takeIf { it.callElement == this@traverseCalls }?.let { c ->
         resolvedCall?.let { r ->
-          f(this, c, r)
+          f(this@traverseCalls, c, r, this)
         }
       }
     }
   }
 
-fun KtCallElement.sequenceCalls(f: BindingContext.(call: Call, resolvedCall: ResolvedCall<*>) -> Unit): Unit {
+fun <K : KtElement> K.sequenceCalls(f: K.(call: Call, resolvedCall: ResolvedCall<*>, ctx: BindingContext) -> Unit): Unit {
   traverseCalls(f)
 }
 

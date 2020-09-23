@@ -9,9 +9,11 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.astReplace
@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun KtFunction.body(): KtExpression? =
   bodyExpression ?: bodyBlockExpression
@@ -188,3 +191,6 @@ val returnTypeEq: Eq<KotlinType>
 
 fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }
+
+val KtClass.companionObject: KtObjectDeclaration?
+  get() = declarations.singleOrNull{ it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }.safeAs<KtObjectDeclaration>()

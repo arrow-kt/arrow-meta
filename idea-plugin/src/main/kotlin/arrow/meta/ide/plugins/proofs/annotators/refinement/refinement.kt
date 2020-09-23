@@ -11,6 +11,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.kotlin.jsr223.KotlinJsr223StandardScriptEngineFactory4Idea
 import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.concurrent.Callable
@@ -18,7 +19,7 @@ import javax.script.ScriptEngine
 
 internal val IdeMetaPlugin.refinementCallSite: Annotator
   get() = Annotator { element, holder ->
-    element.safeAs<KtCallElement>()?.sequenceCalls { call, resolvedCall ->
+    element.parent.safeAs<KtExpression>()?.sequenceCalls { _, resolvedCall, _ ->
       val module = resolvedCall.resultingDescriptor.module
       val compilerContext = CompilerContext(project = element.project, eval = { source ->
         emptyMap<String, Boolean>()

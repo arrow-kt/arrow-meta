@@ -12,6 +12,7 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.companionObject
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
@@ -120,8 +121,7 @@ internal fun CompilerContext.callSiteResolution(resolvedCall: ResolvedCall<*>, r
 
 fun KtClass.refinedTypeOfRefinement(ctx: BindingContext): Pair<KtObjectDeclaration, KotlinType>? =
   takeIf { it.hasModifier(KtTokens.INLINE_KEYWORD) }
-    ?.companionObjects
-    ?.singleOrNull { it.hasAnnotation(ctx, ArrowRefinedBy) }
+    ?.companionObject
     ?.let { ktObj ->
       ktObj.implementsRefined(ctx)?.let {
         ktObj to it
