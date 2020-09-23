@@ -4,8 +4,8 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.FinallySectionPlugin
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 // TODO implement convertFinally in Converter to support FINALLY in AST
 
@@ -24,7 +24,7 @@ class FinallySectionTest  {
                          |  }
                          | """.source
 
-  @Ignore
+  @Disabled
   @Test
   fun `Validate finally section scope properties`() {
     assertThis(CompilerTest(
