@@ -118,26 +118,53 @@ internal fun CompilerContext.callSiteResolution(resolvedCall: ResolvedCall<*>, r
     reportUnresolvedGivenCallSite(resolvedCall, it, context.trace)
   } ?: Unit
 
-fun KtClass.refinedTypeOfRefinement(trace: BindingTrace): Pair<KtObjectDeclaration, KotlinType>? =
+fun KtClass.refinedTypeOfRefinement(ctx: BindingContext): Pair<KtObjectDeclaration, KotlinType>? =
   takeIf { it.hasModifier(KtTokens.INLINE_KEYWORD) }
     ?.companionObjects
-    ?.singleOrNull { it.hasAnnotation(trace, ArrowRefinedBy) }
+    ?.singleOrNull { it.hasAnnotation(ctx, ArrowRefinedBy) }
     ?.let { ktObj ->
-      ktObj.implementsRefined(trace.bindingContext)?.let {
+      ktObj.implementsRefined(ctx)?.let {
         ktObj to it
       }
     }
 
+val ClassDescriptor.inlinedType: KotlinType?
+  get() = takeIf { it.isInline }?.run {
+    unsubstitutedPrimaryConstructor?.valueParameters?.first()?.type
+  }
+
+fun KtClass.incorrectRefinement(descriptor: ClassDescriptor, ctx: BindingContext, f: KtObjectDeclaration.(expectedFrom: KotlinType, expectedTo: KotlinType) -> Unit): Unit =
+  descriptor.inlinedType?.let { inlinedType ->
+    refinedTypeOfRefinement(ctx)?.let { (ktObj, refinedType) ->
+      val args = refinedType.arguments
+      if (args.size == 2) {
+        val (from, to) = args
+        if (to.type.constructor.declarationDescriptor != descriptor ||
+          inlinedType != from.type)
+          f(ktObj, inlinedType, descriptor.defaultType)
+      }
+    }
+  } ?: Unit
+
+fun KtClass.tooManyRefinements(descriptor: ClassDescriptor, ctx: BindingContext, f: KtObjectDeclaration.(expectedFrom: KotlinType, expectedTo: KotlinType) -> Unit): Unit =
+  descriptor.inlinedType?.let { inlinedType ->
+    traverseFilter(KtObjectDeclaration::class.java) { obj ->
+      obj.implementsRefined(ctx)?.takeIf { !obj.isCompanion() }?.let { obj to it }
+    }.forEach { (obj, _) ->
+      f(obj, inlinedType, descriptor.defaultType)
+    }
+  } ?: Unit
+
 fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): Pair<List<ValueParameterDescriptor>, List<TypeParameterDescriptor>> =
   call.resultingDescriptor
     .valueParameters.filter { v ->
-      v.type.annotations.hasAnnotation(ArrowGivenProof) && givenProof(v.type) == null
-        && call.valueArguments[v] == DefaultValueArgument.DEFAULT
-    }.filterNotNull() to
+    v.type.annotations.hasAnnotation(ArrowGivenProof) && givenProof(v.type) == null
+      && call.valueArguments[v] == DefaultValueArgument.DEFAULT
+  }.filterNotNull() to
     call.resultingDescriptor
       .typeParameters.filter { t ->
-        t.annotations.hasAnnotation(ArrowGivenProof) && givenProof(t.defaultType) == null
-      }.filterNotNull()
+      t.annotations.hasAnnotation(ArrowGivenProof) && givenProof(t.defaultType) == null
+    }.filterNotNull()
 
 fun KtObjectDeclaration.implementsRefined(ctx: BindingContext): KotlinType? =
   superTypeListEntries
@@ -196,7 +223,8 @@ fun KotlinType.isUserOwned(): Boolean =
   (hasUserSource() && !isTypeParameter()) || arguments.any { it.type.hasUserSource() && !it.type.isTypeParameter() }
 
 fun KotlinType.hasUserSource(): Boolean =
-  constructor.declarationDescriptor?.run{ source !is DeserializedContainerSource && source != SourceElement.NO_SOURCE } ?: false
+  constructor.declarationDescriptor?.run { source !is DeserializedContainerSource && source != SourceElement.NO_SOURCE }
+    ?: false
 
 fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>>> =
   mapNotNull { (_, proofs) ->
@@ -210,7 +238,8 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>
   }.flatten()
 
 fun <K, A : Proof> Map<K, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair<Pair<A, KtDeclaration>, List<A>>> =
-  disallowedAmbiguities().mapNotNull { (proof, others) -> // collect those with a SourceElement, which the User is responsible of
+  disallowedAmbiguities().mapNotNull { (proof, others) ->
+    // collect those with a SourceElement, which the User is responsible of
     proof.through.findPsi().safeAs<KtDeclaration>()?.let {
       (proof to it) to others
     }
@@ -221,11 +250,13 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedUserDefinedAmbiguities(): List<Pair
  * The following extensions sends warnings, which proofs are being skipped and a prompt to the user to define an internal orphan to resolve coherence.
  */
 fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities(): List<Pair<A, List<A>>> =
-  disallowedAmbiguities().filter { (proof, others) -> // collect those without a SourceElement, which the user is needs to override
+  disallowedAmbiguities().filter { (proof, others) ->
+    // collect those without a SourceElement, which the user is needs to override
     with(proof.through as DeclarationDescriptorWithVisibility) {
       findPsi() == null &&
         (visibility == Visibilities.INTERNAL // case: instrumented dependencies that publish internal proofs
-          || visibility == Visibilities.PUBLIC) && others.any {// case: local project publishes public proof over non-owned types
+          || visibility == Visibilities.PUBLIC) && others.any {
+        // case: local project publishes public proof over non-owned types
         with(it.through) {
           visibility == Visibilities.PUBLIC && findPsi() == null
         }
@@ -319,25 +350,13 @@ private fun <K, A : Proof> Map<K, List<A>>.reportSkippedProofsDueToAmbiguities(
 
 private fun KtDeclaration.reportIncorrectRefinement(descriptor: DeclarationDescriptor, trace: BindingTrace): Unit =
   safeAs<KtClass>()?.takeIf { it.hasModifier(KtTokens.INLINE_KEYWORD) }
-    ?.let { ktclass ->
+    ?.run {
       descriptor.safeAs<ClassDescriptor>()?.let { clazz ->
-        clazz.unsubstitutedPrimaryConstructor?.valueParameters?.first()?.type?.let { inlinedType ->
-          ktclass.refinedTypeOfRefinement(trace)?.let { (ktObj, refinedType) ->
-            val args = refinedType.arguments
-            if (args.size == 2) {
-              val (from, to) = args
-              if (to.type.constructor.declarationDescriptor != clazz ||
-                inlinedType != from.type)
-                trace.report(IncorrectRefinement.on(ktObj, inlinedType, clazz.defaultType))
-            }
-          }
-          ktclass.declarations
-            .filterIsInstance<KtObjectDeclaration>()
-            .mapNotNull { obj ->
-              obj.implementsRefined(trace.bindingContext)?.takeIf { !obj.isCompanion() }?.let { obj to it }
-            }.forEach { (obj, _) ->
-              trace.report(TooManyRefinements.on(obj, inlinedType, clazz.defaultType))
-            }
+        incorrectRefinement(clazz, trace.bindingContext) { expectedFrom, expectedTo ->
+          trace.report(IncorrectRefinement.on(this, expectedFrom, expectedTo))
+        }
+        tooManyRefinements(clazz, trace.bindingContext) { expectedFrom, expectedTo ->
+          trace.report(TooManyRefinements.on(this, expectedFrom, expectedTo))
         }
       }
     } ?: Unit
