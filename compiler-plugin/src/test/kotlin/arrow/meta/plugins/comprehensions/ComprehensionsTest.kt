@@ -2,10 +2,10 @@ package arrow.meta.plugins.comprehensions
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
-@Ignore
+@Disabled
 class ComprehensionsTest {
 
   companion object {

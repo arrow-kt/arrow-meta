@@ -2,8 +2,7 @@ package arrow.meta.plugins.refinement
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
-import org.junit.Ignore
+import org.junit.jupiter.api.Test
 
 class RefinementTests {
 

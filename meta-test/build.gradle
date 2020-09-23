@@ -3,7 +3,7 @@ apply plugin: 'kotlin'
 dependencies {
 
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-    compileOnly "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
+    implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
 
     implementation "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
     implementation "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable:$KOTLIN_VERSION"
@@ -16,8 +16,7 @@ dependencies {
     implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
     implementation project(':compiler-plugin')
 
-    testImplementation "io.kotlintest:kotlintest-runner-junit4:$KOTLIN_TEST_VERSION"
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$JUNIT_VINTAGE_VERSION"
+    testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testRuntimeOnly project(':prelude')
 }
 
