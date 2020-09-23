@@ -266,7 +266,8 @@ interface ApplicationSyntax {
     ApplicationProvider.StopServicePreloading
 
   fun MetaIde.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
-    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
+   TODO()
+    // extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
 
   /**
    * registers an activity, which is executed eagerly in the background on startup.

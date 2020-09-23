@@ -26,7 +26,7 @@ internal fun <A : PsiElement> IdeMetaPlugin.addLineMarkerProviderM(
   transform: (PsiElement) -> A?,
   composite: Class<A>,
   message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
-  commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
+  commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<*>>) -> Icon = { icon },
   mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
   navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
   placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
