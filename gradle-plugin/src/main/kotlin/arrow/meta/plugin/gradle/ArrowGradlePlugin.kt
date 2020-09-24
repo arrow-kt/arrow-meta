@@ -42,17 +42,21 @@ class ArrowGradlePlugin : Plugin<Project> {
         it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
       }
     }
-    val installIdeaPluginTask = project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java)
-    installIdeaPluginTask.configure { task ->
-      task.group = "Arrow Meta"
-      task.description = "Installs the correspondent Arrow Meta IDE Plugin if it's not already installed."
+    project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java) {
+      it.group = "Arrow Meta"
+      it.description = "Installs the correspondent Arrow Meta IDE Plugin if it's not already installed."
     }
     when {
-      inIdea() && pluginsDirExists() && !ideaPluginExists() -> {
-        println("Arrow Meta IDE Plugin is not installed!")
-        println("Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it.")
-      }
+      inIdea() && pluginsDirExists() && !ideaPluginExists() -> { printMessageForInstallation(compilerPluginVersion) }
     }
+  }
+
+  private fun printMessageForInstallation(compilerPluginVersion: String): Unit {
+    val versionType = when { compilerPluginVersion.endsWith("SNAPSHOT") -> "snapshot" else -> "release" }
+    println("Arrow Meta IDE Plugin is not installed!")
+    println("Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it (choose just one project when multi-project)")
+    println("Receive update notifications when adding this custom repository: https://meta.arrow-kt.io/idea-plugin/latest-$versionType/updatePlugins.xml")
+    println("Guideline: https://www.jetbrains.com/help/idea/managing-plugins.html#repos")
   }
 
   private fun classpathOf(dependency: String): File {

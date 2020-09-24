@@ -72,11 +72,12 @@ jobs:
       run: |
         ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
         ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
+        ARTIFACT_VERSION_EXT=$(if [[ "$ARTIFACT_VERSION" == *-SNAPSHOT ]]; then echo "-"$(date +%s); else echo ""; fi)
         REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
         mkdir -p idea-plugin/latest-${REPOSITORY_TYPE}
         mkdir idea-plugin/${ARTIFACT_VERSION}
         sed -i "s/%ARTIFACT_ID%/${ARTIFACT_ID}/g" .github/workflows/templates/updatePlugins.xml
-        sed -i "s/%ARTIFACT_VERSION%/${ARTIFACT_VERSION}/g" .github/workflows/templates/updatePlugins.xml
+        sed -i "s/%ARTIFACT_VERSION%/${ARTIFACT_VERSION}${ARTIFACT_VERSION_EXT}/g" .github/workflows/templates/updatePlugins.xml
         sed -i "s/%REPOSITORY_TYPE%/${REPOSITORY_TYPE}/g" .github/workflows/templates/updatePlugins.xml
         cp .github/workflows/templates/updatePlugins.xml idea-plugin/latest-${REPOSITORY_TYPE}/
         cp .github/workflows/templates/updatePlugins.xml idea-plugin/${ARTIFACT_VERSION}/
