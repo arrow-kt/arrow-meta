@@ -3,10 +3,10 @@ package arrow.meta.ide.plugins.proofs.annotators.coercion
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.localQuickFix
 import arrow.meta.ide.dsl.utils.registerLocalFix
-import arrow.meta.ide.plugins.proofs.explicit
-import arrow.meta.ide.plugins.proofs.isCoerced
+import arrow.meta.ide.plugins.proofs.utils.explicit
+import arrow.meta.ide.plugins.proofs.utils.isCoerced
 import arrow.meta.ide.plugins.proofs.utils.implicitProofAnnotatorTextAttributes
-import arrow.meta.ide.plugins.proofs.participatingTypes
+import arrow.meta.ide.plugins.proofs.utils.participatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.coerceProof
 import com.intellij.codeInsight.daemon.impl.quickfix.GoToSymbolFix
