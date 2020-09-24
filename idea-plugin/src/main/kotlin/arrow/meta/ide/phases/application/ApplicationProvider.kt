@@ -69,9 +69,9 @@ sealed class ApplicationProvider : ExtensionPhase {
    * @see ApplicationSyntax
    */
   object StopServicePreloading : ApplicationProvider()
-
-  /**
+  /* TODO: temporary disabled
+  *//**
    * TODO: create an extension for Meta API
-   */
-  data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()
+   *//*
+  data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()*/
 }

@@ -265,16 +265,17 @@ interface ApplicationSyntax {
   fun MetaIde.stopServicePreloading(): ExtensionPhase =
     ApplicationProvider.StopServicePreloading
 
+  /* TODO: temporary Disabled
   fun MetaIde.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
-   TODO()
-    // extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
-
+    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)*/
+  /* TODO: temporary Disabled
+  */
   /**
    * registers an activity, which is executed eagerly in the background on startup.
    * @see PreloadingActivity
-   */
+   *//*
   fun MetaIde.addPreloadingActivity(preload: (ProgressIndicator) -> Unit): ExtensionPhase =
-    addPreloadingActivity(preloadingActivity(preload))
+    addPreloadingActivity(preloadingActivity(preload))*/
 
   fun MetaIde.addAppLifecycleListener(listener: AppLifecycleListener): ExtensionPhase =
     ApplicationProvider.AppListener(listener)
