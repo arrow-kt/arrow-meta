@@ -45,12 +45,12 @@ This message will appear with every Gradle task execution if Arrow Meta IDE Plug
 ```
 > Configure project :
 Arrow Meta IDE Plugin is not installed!
-Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it (choose just one project when multi-project)
+Run 'install-idea-plugin' Gradle task to install it (under 'Tasks -> arrow meta' in Gradle tool window; choose just one project when multi-project)
 Receive update notifications when adding this custom repository: https://meta.arrow-kt.io/idea-plugin/latest-<version-type>/updatePlugins.xml
 Guideline: https://www.jetbrains.com/help/idea/managing-plugins.html#repos
 ```
 
-Go to `Arrow Meta` group for Gradle tasks (choose just one project when multi-project) and run `install-idea-plugin`:
+Go to 'Tasks -> arrow meta' in Gradle tool window (choose just one project when multi-project) and run `install-idea-plugin`:
 
 ```
 > Task :install-idea-plugin

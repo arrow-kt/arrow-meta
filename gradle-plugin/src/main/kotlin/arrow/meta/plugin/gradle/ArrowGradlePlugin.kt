@@ -54,7 +54,7 @@ class ArrowGradlePlugin : Plugin<Project> {
   private fun printMessageForInstallation(compilerPluginVersion: String): Unit {
     val versionType = when { compilerPluginVersion.endsWith("SNAPSHOT") -> "snapshot" else -> "release" }
     println("Arrow Meta IDE Plugin is not installed!")
-    println("Run 'install-idea-plugin' Gradle task under 'Arrow Meta' group to install it (choose just one project when multi-project)")
+    println("Run 'install-idea-plugin' Gradle task to install it (under 'Tasks -> arrow meta' in Gradle tool window; choose just one project when multi-project)")
     println("Receive update notifications when adding this custom repository: https://meta.arrow-kt.io/idea-plugin/latest-$versionType/updatePlugins.xml")
     println("Guideline: https://www.jetbrains.com/help/idea/managing-plugins.html#repos")
   }
