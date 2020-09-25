@@ -6,7 +6,6 @@ jobs:
   intellij_plugin_verification:
 
     env:
-      INTELLIJ_PLUGIN_VERIFIER: 1.241
       JAVA_OPTS: -Xms512m -Xmx1024m
 
     runs-on: ubuntu-latest
