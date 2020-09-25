@@ -6,7 +6,6 @@ jobs:
   intellij_plugin_verification:
 
     env:
-      INTELLIJ_PLUGIN_VERIFIER: 1.249
       JAVA_OPTS: -Xms512m -Xmx1024m
 
     runs-on: ubuntu-latest
@@ -41,17 +40,20 @@ jobs:
     - name: Verify configuration
       run: ./gradlew :idea-plugin:verifyPlugin
     - name: Verify 'since' version
+      if: ${{ steps.versions.outputs.since != '' }}
       run: |
         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.since }}\")/g" idea-plugin/build.gradle 
         ./gradlew :idea-plugin:runPluginVerifier
         mkdir reports
         cp -r idea-plugin/build/pluginVerifier/reports/* reports/
     - name: Verify 'until' version
+      if: ${{ steps.versions.outputs.until != '' }}
       run: |
         sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.until }}\")/g" idea-plugin/build.gradle
         ./gradlew :idea-plugin:runPluginVerifier
         cp -r idea-plugin/build/pluginVerifier/reports/* reports/ 
     - uses: actions/upload-artifact@v1
+      if: ${{ steps.versions.outputs.since != '' || steps.versions.outputs.until != '' }}
       with:
         name: reports
         path: reports
