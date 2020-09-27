@@ -51,11 +51,6 @@ sealed class ApplicationProvider : ExtensionPhase {
 
   /**
    * @see ApplicationSyntax
-   */
-  data class ProjectListener(val listener: ProjectLifecycleListener) : ApplicationProvider()
-
-  /**
-   * @see ApplicationSyntax
    * PM reads ProjectManager
    */
   data class PMListener(val listener: ProjectManagerListener) : ApplicationProvider()

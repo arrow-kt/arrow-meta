@@ -8,7 +8,6 @@ import arrow.meta.ide.testing.unavailable
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.name.FqName
-import org.junit.Ignore
 import org.junit.Test
 
 class QuoteSystemTest : IdeTestSetUp() {

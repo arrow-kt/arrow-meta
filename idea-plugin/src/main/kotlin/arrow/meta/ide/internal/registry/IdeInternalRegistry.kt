@@ -226,7 +226,6 @@ interface IdeInternalRegistry : InternalRegistry {
       is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
       is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
       is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
-      is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
       // TODO("temporarily disabled") is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
       ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
