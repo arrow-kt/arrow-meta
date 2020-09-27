@@ -35,7 +35,7 @@ class ResolutionTests {
       fun <A> A.eq(): Eq<A> =
           object : Eq<A> {
               override fun A.eqv(b: A): Boolean =
-                  this != b
+                  this == b
           }
       """) {
       failsWith {
