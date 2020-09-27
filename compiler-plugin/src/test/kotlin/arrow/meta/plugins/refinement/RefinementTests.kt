@@ -3,6 +3,7 @@ package arrow.meta.plugins.refinement
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class RefinementTests {
@@ -72,6 +73,7 @@ class RefinementTests {
     )
   }
 
+  @Disabled
   @Test
   fun `Runtime validation for nullable types accepts if valid`() {
     refinementTest(
