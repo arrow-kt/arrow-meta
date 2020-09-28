@@ -3,7 +3,7 @@ package arrow.meta.ide.plugins.proofs.annotators.coercion
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.dsl.utils.localQuickFix
 import arrow.meta.ide.dsl.utils.registerLocalFix
-import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
+import arrow.meta.ide.plugins.proofs.utils.implicitParticipatingTypes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.coerceProof
 import com.intellij.codeInsight.daemon.impl.quickfix.GoToSymbolFix

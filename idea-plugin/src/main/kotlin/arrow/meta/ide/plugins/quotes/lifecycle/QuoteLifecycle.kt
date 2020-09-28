@@ -57,9 +57,9 @@ import java.util.concurrent.TimeUnit
  */
 val IdeMetaPlugin.quoteLifecycle: ExtensionPhase
   get() = Composite(
-    addProjectLifecycle(
+    addPMListener(
       // the usual registration should be in `beforeProjectOpened`, but this is only possible when #446 is unlocked
-      initialize = { project: Project ->
+      opened = { project: Project ->
         project.quoteConfigs()?.let { (system, cache, ctx) ->
           initializeQuotes(project, system, cache, ctx)
         }

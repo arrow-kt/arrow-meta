@@ -220,7 +220,7 @@ fun KtDeclaration.isViolatingOwnershipRule(bindingContext: BindingContext, ctx: 
  * `F` or `A` can't be type parameters to be user-owned.
  */
 fun KotlinType.isUserOwned(): Boolean =
-  (hasUserSource() && !isTypeParameter()) || arguments.any { it.type.hasUserSource() && !it.type.isTypeParameter() }
+  (hasUserSource() && !isTypeParameter()) || arguments.any { it.type.isUserOwned() }
 
 fun KotlinType.hasUserSource(): Boolean =
   constructor.declarationDescriptor?.run { source !is DeserializedContainerSource && source != SourceElement.NO_SOURCE }

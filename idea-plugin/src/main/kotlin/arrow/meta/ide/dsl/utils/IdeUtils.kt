@@ -14,7 +14,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.impl.jar.CoreJarVirtualFile
 import com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -256,7 +255,7 @@ fun psiFileToMessageLocation(
 }
 
 fun virtualFileToPath(virtualFile: VirtualFile): String =
-  if (virtualFile is CoreLocalVirtualFile || virtualFile is CoreJarVirtualFile) {
+  if (virtualFile is CoreLocalVirtualFile) { // TODO: Look for alternatives for CoreJarVirtualFile
     FileUtil.toSystemDependentName(virtualFile.path)
   } else virtualFile.path
 

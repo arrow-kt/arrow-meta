@@ -157,7 +157,7 @@ interface InternalRegistry : ConfigSyntax {
       listOf(compilerContextService())
     })
     (initialPhases + intercept(ctx)).forEach { plugin ->
-      println("Registering plugin: $plugin extensions: ${plugin.meta}")
+      println("Registering Cli plugin: $plugin extensions: ${plugin.meta}")
       plugin.meta.invoke(ctx).forEach { currentPhase ->
         fun ExtensionPhase.registerPhase(): Unit {
           when (this) {

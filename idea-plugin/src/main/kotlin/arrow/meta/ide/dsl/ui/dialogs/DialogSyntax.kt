@@ -77,8 +77,8 @@ interface DialogSyntax {
       override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String? =
         directory?.let { d -> templateName?.let { t -> actionName(d, newName, t) } }
 
-      override fun buildDialog(project: Project?, directory: PsiDirectory?, builder: CreateFileFromTemplateDialog.Builder?): Unit =
-        project?.let { p -> directory?.let { d -> builder?.let { b -> buildDialog(b, p, d) } } } ?: Unit
+      override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder): Unit =
+        buildDialog(builder, project, directory)
 
       override fun startInWriteAction(): Boolean = startInWriteAction
 
@@ -96,8 +96,8 @@ interface DialogSyntax {
             false
         } ?: false
 
-      override fun postProcess(createdElement: PsiFile?, templateName: String?, customProperties: MutableMap<String, String>?): Unit =
-        createdElement?.let { el -> templateName?.let { name -> customProperties?.let { prop -> postProcess(el, name, prop) } } }
+      override fun postProcess(createdElement: PsiFile, templateName: String?, customProperties: MutableMap<String, String>?): Unit =
+        templateName?.let { name -> customProperties?.let { prop -> postProcess(createdElement, name, prop) } }
           ?: Unit
 
       override fun createFileFromTemplate(name: String?, template: FileTemplate?, dir: PsiDirectory?): PsiFile? =

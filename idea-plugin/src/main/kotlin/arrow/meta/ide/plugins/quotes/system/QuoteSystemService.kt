@@ -64,8 +64,8 @@ interface QuoteSystemService {
          * This single thread pool avoids concurrent updates to the cache. // <- put this in the implementation
          * This pool has to be shutdown, when the project closes.
          */
-        override val cacheExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow worker", 1)
-        override val docExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("arrow doc worker", 1)
+        override val cacheExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Arrow worker", 1)
+        override val docExec: ExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Arrow doc worker", 1)
         override val editorQueue: MergingUpdateQueue =
           MergingUpdateQueue("arrow doc events", 500, true, null, project, null, Alarm.ThreadToUse.POOLED_THREAD)
       }
