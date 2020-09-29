@@ -131,26 +131,9 @@ interface IrSyntax {
 
   fun irFile(f: IrUtils.(IrFile) -> IrFile?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
-      moduleFragment.transform(object : IrElementTransformer<Unit> {
+      moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFile(declaration: IrFile, data: Unit): IrFile =
           f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitFile(declaration, data)
-      }, Unit)
-    }
-
-  fun irPackageFragment(f: IrUtils.(IrPackageFragment) -> IrPackageFragment?): IRGeneration =
-    IrGeneration { compilerContext, moduleFragment, pluginContext ->
-      moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitPackageFragment(declaration: IrPackageFragment, data: Unit): IrPackageFragment =
-          f(IrUtils(pluginContext, compilerContext), declaration)
-            ?: declaration.also { it.transformChildren(this, data) }
-      }, Unit)
-    }
-
-  fun irExternalPackageFragment(f: IrUtils.(IrExternalPackageFragment) -> IrExternalPackageFragment?): IRGeneration =
-    IrGeneration { compilerContext, moduleFragment, pluginContext ->
-      moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitExternalPackageFragment(expression: IrExternalPackageFragment, data: Unit): IrExternalPackageFragment =
-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitExternalPackageFragment(expression, data)
       }, Unit)
     }
 
@@ -159,14 +142,6 @@ interface IrSyntax {
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDeclaration(expression: IrDeclaration, data: Unit): IrStatement =
           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitDeclaration(expression, data)
-      }, Unit)
-    }
-
-  fun irScript(f: IrUtils.(IrScript) -> IrScript?): IRGeneration =
-    IrGeneration { compilerContext, moduleFragment, pluginContext ->
-      moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitScript(declaration: IrScript, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext), declaration) ?: super.visitScript(declaration, data)
       }, Unit)
     }
 
