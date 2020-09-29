@@ -3,7 +3,7 @@ package arrow.meta.phases.codegen.ir
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 /**
  * @see [ExtensionPhase]
@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 interface IRGeneration : ExtensionPhase {
 
   fun CompilerContext.generate(
-    file: IrFile,
+    moduleFragment: IrModuleFragment,
     pluginContext: IrPluginContext
   )
 
