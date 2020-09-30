@@ -1,5 +1,6 @@
 package arrow.meta.ir.syntax
 
+import arrow.meta.Meta
 import arrow.meta.ir.plugin.IrSyntaxPlugin
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugin.testing.CompilerTest

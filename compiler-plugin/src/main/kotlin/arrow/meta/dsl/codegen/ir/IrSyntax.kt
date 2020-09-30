@@ -13,15 +13,12 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrErrorDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrExternalPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrScript
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
@@ -102,7 +99,7 @@ interface IrSyntax {
    * targeting any platform.
    * [IR Example]
    */
-  fun IrGeneration(generate: (compilerContext: CompilerContext, moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) -> Unit): IRGeneration =
+  fun IrSyntax.IrGeneration(generate: (compilerContext: CompilerContext, moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) -> Unit): IRGeneration =
     object : IRGeneration {
       override fun CompilerContext.generate(
         moduleFragment: IrModuleFragment,
@@ -112,16 +109,7 @@ interface IrSyntax {
       }
     }
 
-  fun irElement(f: IrUtils.(IrElement) -> IrElement?): IRGeneration =
-    IrGeneration { compilerContext, moduleFragment, pluginContext ->
-      moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitElement(expression: IrElement, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext), expression)?.let { super.visitElement(it, data) }
-            ?: super.visitElement(expression, data)
-      }, Unit)
-    }
-
-  fun irModuleFragment(f: IrUtils.(IrModuleFragment) -> IrModuleFragment?): IRGeneration =
+  fun Meta.irModuleFragment(f: IrUtils.(IrModuleFragment) -> IrModuleFragment?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transform(object : IrElementTransformer<Unit> {
         override fun visitModuleFragment(declaration: IrModuleFragment, data: Unit): IrModuleFragment =
@@ -129,7 +117,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irFile(f: IrUtils.(IrFile) -> IrFile?): IRGeneration =
+  fun Meta.irFile(f: IrUtils.(IrFile) -> IrFile?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFile(declaration: IrFile, data: Unit): IrFile =
@@ -137,7 +125,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDeclaration(f: IrUtils.(IrDeclaration) -> IrStatement?): IRGeneration =
+  fun Meta.irDeclaration(f: IrUtils.(IrDeclaration) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDeclaration(expression: IrDeclaration, data: Unit): IrStatement =
@@ -145,7 +133,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irClass(f: IrUtils.(IrClass) -> IrStatement?): IRGeneration =
+  fun Meta.irClass(f: IrUtils.(IrClass) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitClass(expression: IrClass, data: Unit): IrStatement =
@@ -153,7 +141,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irFunction(f: IrUtils.(IrFunction) -> IrStatement?): IRGeneration =
+  fun Meta.irFunction(f: IrUtils.(IrFunction) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunction(expression: IrFunction, data: Unit): IrStatement =
@@ -161,7 +149,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSimpleFunction(f: IrUtils.(IrSimpleFunction) -> IrStatement?): IRGeneration =
+  fun Meta.irSimpleFunction(f: IrUtils.(IrSimpleFunction) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSimpleFunction(expression: IrSimpleFunction, data: Unit): IrStatement =
@@ -169,7 +157,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irConstructor(f: IrUtils.(IrConstructor) -> IrStatement?): IRGeneration =
+  fun Meta.irConstructor(f: IrUtils.(IrConstructor) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitConstructor(expression: IrConstructor, data: Unit): IrStatement =
@@ -177,7 +165,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irProperty(f: IrUtils.(IrProperty) -> IrStatement?): IRGeneration =
+  fun Meta.irProperty(f: IrUtils.(IrProperty) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitProperty(expression: IrProperty, data: Unit): IrStatement =
@@ -185,7 +173,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irField(f: IrUtils.(IrField) -> IrStatement?): IRGeneration =
+  fun Meta.irField(f: IrUtils.(IrField) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitField(expression: IrField, data: Unit): IrStatement =
@@ -193,7 +181,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irLocalDelegatedProperty(f: IrUtils.(IrLocalDelegatedProperty) -> IrStatement?): IRGeneration =
+  fun Meta.irLocalDelegatedProperty(f: IrUtils.(IrLocalDelegatedProperty) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitLocalDelegatedProperty(expression: IrLocalDelegatedProperty, data: Unit): IrStatement =
@@ -201,7 +189,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irEnumEntry(f: IrUtils.(IrEnumEntry) -> IrStatement?): IRGeneration =
+  fun Meta.irEnumEntry(f: IrUtils.(IrEnumEntry) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitEnumEntry(expression: IrEnumEntry, data: Unit): IrStatement =
@@ -209,7 +197,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irAnonymousInitializer(f: IrUtils.(IrAnonymousInitializer) -> IrStatement?): IRGeneration =
+  fun Meta.irAnonymousInitializer(f: IrUtils.(IrAnonymousInitializer) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitAnonymousInitializer(expression: IrAnonymousInitializer, data: Unit): IrStatement =
@@ -217,7 +205,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irVariable(f: IrUtils.(IrVariable) -> IrStatement?): IRGeneration =
+  fun Meta.irVariable(f: IrUtils.(IrVariable) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitVariable(expression: IrVariable, data: Unit): IrStatement =
@@ -225,7 +213,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irTypeParameter(f: IrUtils.(IrTypeParameter) -> IrStatement?): IRGeneration =
+  fun Meta.irTypeParameter(f: IrUtils.(IrTypeParameter) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeParameter(expression: IrTypeParameter, data: Unit): IrStatement =
@@ -234,8 +222,7 @@ interface IrSyntax {
     }
 
 
-
-  fun irValueParameter(f: IrUtils.(IrValueParameter) -> IrStatement?): IRGeneration =
+  fun Meta.irValueParameter(f: IrUtils.(IrValueParameter) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitValueParameter(expression: IrValueParameter, data: Unit): IrStatement =
@@ -243,7 +230,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irTypeAlias(f: IrUtils.(IrTypeAlias) -> IrTypeAlias?): IRGeneration =
+  fun Meta.irTypeAlias(f: IrUtils.(IrTypeAlias) -> IrTypeAlias?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeAlias(declaration: IrTypeAlias, data: Unit): IrStatement =
@@ -251,7 +238,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBody(f: IrUtils.(IrBody) -> IrBody?): IRGeneration =
+  fun Meta.irBody(f: IrUtils.(IrBody) -> IrBody?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBody(body: IrBody, data: Unit): IrBody =
@@ -259,7 +246,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irExpressionBody(f: IrUtils.(IrExpressionBody) -> IrBody?): IRGeneration =
+  fun Meta.irExpressionBody(f: IrUtils.(IrExpressionBody) -> IrBody?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitExpressionBody(expression: IrExpressionBody, data: Unit): IrBody =
@@ -267,7 +254,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBlockBody(f: IrUtils.(IrBlockBody) -> IrBody?): IRGeneration =
+  fun Meta.irBlockBody(f: IrUtils.(IrBlockBody) -> IrBody?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBlockBody(expression: IrBlockBody, data: Unit): IrBody =
@@ -275,7 +262,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSyntheticBody(f: IrUtils.(IrSyntheticBody) -> IrBody?): IRGeneration =
+  fun Meta.irSyntheticBody(f: IrUtils.(IrSyntheticBody) -> IrBody?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSyntheticBody(expression: IrSyntheticBody, data: Unit): IrBody =
@@ -283,7 +270,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSuspendableExpression(f: IrUtils.(IrSuspendableExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irSuspendableExpression(f: IrUtils.(IrSuspendableExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSuspendableExpression(expression: IrSuspendableExpression, data: Unit): IrExpression =
@@ -291,7 +278,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSuspensionPoint(f: IrUtils.(IrSuspensionPoint) -> IrExpression?): IRGeneration =
+  fun Meta.irSuspensionPoint(f: IrUtils.(IrSuspensionPoint) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: Unit): IrExpression =
@@ -299,7 +286,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irExpression(f: IrUtils.(IrExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irExpression(f: IrUtils.(IrExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitExpression(expression: IrExpression, data: Unit): IrExpression =
@@ -307,15 +294,15 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun <A> Meta.irConst(f: IrUtils.(IrConst<A>) -> IrExpression?): IRGeneration =
+  fun Meta.irConst(f: IrUtils.(IrConst<*>) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun <T> visitConst(expression: IrConst<T>, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext), expression as IrConst<A>) ?: super.visitConst(expression, data)
+          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitConst(expression, data)
       }, Unit)
     }
 
-  fun irVararg(f: IrUtils.(IrVararg) -> IrExpression?): IRGeneration =
+  fun Meta.irVararg(f: IrUtils.(IrVararg) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitVararg(expression: IrVararg, data: Unit): IrExpression =
@@ -323,7 +310,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSpreadElement(f: IrUtils.(IrSpreadElement) -> IrSpreadElement?): IRGeneration =
+  fun Meta.irSpreadElement(f: IrUtils.(IrSpreadElement) -> IrSpreadElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSpreadElement(expression: IrSpreadElement, data: Unit): IrSpreadElement =
@@ -331,7 +318,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irContainerExpression(f: IrUtils.(IrContainerExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irContainerExpression(f: IrUtils.(IrContainerExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitContainerExpression(expression: IrContainerExpression, data: Unit): IrExpression =
@@ -339,7 +326,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBlock(f: IrUtils.(IrBlock) -> IrExpression?): IRGeneration =
+  fun Meta.irBlock(f: IrUtils.(IrBlock) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBlock(expression: IrBlock, data: Unit): IrExpression =
@@ -347,7 +334,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irComposite(f: IrUtils.(IrComposite) -> IrExpression?): IRGeneration =
+  fun Meta.irComposite(f: IrUtils.(IrComposite) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitComposite(expression: IrComposite, data: Unit): IrExpression =
@@ -355,7 +342,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irStringConcatenation(f: IrUtils.(IrStringConcatenation) -> IrExpression?): IRGeneration =
+  fun Meta.irStringConcatenation(f: IrUtils.(IrStringConcatenation) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitStringConcatenation(expression: IrStringConcatenation, data: Unit): IrExpression =
@@ -363,7 +350,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDeclarationReference(f: IrUtils.(IrDeclarationReference) -> IrExpression?): IRGeneration =
+  fun Meta.irDeclarationReference(f: IrUtils.(IrDeclarationReference) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDeclarationReference(expression: IrDeclarationReference, data: Unit): IrExpression =
@@ -371,7 +358,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSingletonReference(f: IrUtils.(IrGetSingletonValue) -> IrExpression?): IRGeneration =
+  fun Meta.irSingletonReference(f: IrUtils.(IrGetSingletonValue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSingletonReference(expression: IrGetSingletonValue, data: Unit): IrExpression =
@@ -379,7 +366,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irGetObjectValue(f: IrUtils.(IrGetObjectValue) -> IrExpression?): IRGeneration =
+  fun Meta.irGetObjectValue(f: IrUtils.(IrGetObjectValue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetObjectValue(expression: IrGetObjectValue, data: Unit): IrExpression =
@@ -387,7 +374,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irGetEnumValue(f: IrUtils.(IrGetEnumValue) -> IrExpression?): IRGeneration =
+  fun Meta.irGetEnumValue(f: IrUtils.(IrGetEnumValue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetEnumValue(expression: IrGetEnumValue, data: Unit): IrExpression =
@@ -395,7 +382,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irValueAccess(f: IrUtils.(IrValueAccessExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irValueAccess(f: IrUtils.(IrValueAccessExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitValueAccess(expression: IrValueAccessExpression, data: Unit): IrExpression =
@@ -403,7 +390,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irGetValue(f: IrUtils.(IrGetValue) -> IrExpression?): IRGeneration =
+  fun Meta.irGetValue(f: IrUtils.(IrGetValue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetValue(expression: IrGetValue, data: Unit): IrExpression =
@@ -411,7 +398,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSetVariable(f: IrUtils.(IrSetVariable) -> IrExpression?): IRGeneration =
+  fun Meta.irSetVariable(f: IrUtils.(IrSetVariable) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSetVariable(expression: IrSetVariable, data: Unit): IrExpression =
@@ -419,7 +406,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irFieldAccess(f: IrUtils.(IrFieldAccessExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irFieldAccess(f: IrUtils.(IrFieldAccessExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFieldAccess(expression: IrFieldAccessExpression, data: Unit): IrExpression =
@@ -427,7 +414,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irGetField(f: IrUtils.(IrGetField) -> IrExpression?): IRGeneration =
+  fun Meta.irGetField(f: IrUtils.(IrGetField) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetField(expression: IrGetField, data: Unit): IrExpression =
@@ -435,7 +422,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irSetField(f: IrUtils.(IrSetField) -> IrExpression?): IRGeneration =
+  fun Meta.irSetField(f: IrUtils.(IrSetField) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSetField(expression: IrSetField, data: Unit): IrExpression =
@@ -443,7 +430,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irMemberAccess(f: IrUtils.(IrMemberAccessExpression) -> IrElement?): IRGeneration =
+  fun Meta.irMemberAccess(f: IrUtils.(IrMemberAccessExpression) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitMemberAccess(expression: IrMemberAccessExpression, data: Unit): IrElement =
@@ -451,7 +438,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irFunctionAccess(f: IrUtils.(IrFunctionAccessExpression) -> IrElement?): IRGeneration =
+  fun Meta.irFunctionAccess(f: IrUtils.(IrFunctionAccessExpression) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunctionAccess(expression: IrFunctionAccessExpression, data: Unit): IrElement =
@@ -459,7 +446,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irCall(f: IrUtils.(IrCall) -> IrElement?): IRGeneration =
+  fun Meta.irCall(f: IrUtils.(IrCall) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitCall(expression: IrCall, data: Unit): IrElement =
@@ -467,7 +454,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irConstructorCall(f: IrUtils.(IrConstructorCall) -> IrElement?): IRGeneration =
+  fun Meta.irConstructorCall(f: IrUtils.(IrConstructorCall) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitConstructorCall(expression: IrConstructorCall, data: Unit): IrElement =
@@ -475,7 +462,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDelegatingConstructorCall(f: IrUtils.(IrDelegatingConstructorCall) -> IrElement?): IRGeneration =
+  fun Meta.irDelegatingConstructorCall(f: IrUtils.(IrDelegatingConstructorCall) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: Unit): IrElement =
@@ -484,7 +471,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irEnumConstructorCall(f: IrUtils.(IrEnumConstructorCall) -> IrElement?): IRGeneration =
+  fun Meta.irEnumConstructorCall(f: IrUtils.(IrEnumConstructorCall) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Unit): IrElement =
@@ -492,7 +479,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irGetClass(f: IrUtils.(IrGetClass) -> IrExpression?): IRGeneration =
+  fun Meta.irGetClass(f: IrUtils.(IrGetClass) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetClass(expression: IrGetClass, data: Unit): IrExpression =
@@ -500,7 +487,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irCallableReference(f: IrUtils.(IrCallableReference) -> IrElement?): IRGeneration =
+  fun Meta.irCallableReference(f: IrUtils.(IrCallableReference) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitCallableReference(expression: IrCallableReference, data: Unit): IrElement =
@@ -508,7 +495,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irFunctionReference(f: IrUtils.(IrFunctionReference) -> IrElement?): IRGeneration =
+  fun Meta.irFunctionReference(f: IrUtils.(IrFunctionReference) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunctionReference(expression: IrFunctionReference, data: Unit): IrElement =
@@ -516,7 +503,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irPropertyReference(f: IrUtils.(IrPropertyReference) -> IrElement?): IRGeneration =
+  fun Meta.irPropertyReference(f: IrUtils.(IrPropertyReference) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitPropertyReference(expression: IrPropertyReference, data: Unit): IrElement =
@@ -524,7 +511,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irLocalDelegatedPropertyReference(f: IrUtils.(IrLocalDelegatedPropertyReference) -> IrElement?): IRGeneration =
+  fun Meta.irLocalDelegatedPropertyReference(f: IrUtils.(IrLocalDelegatedPropertyReference) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference, data: Unit): IrElement =
@@ -533,7 +520,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irClassReference(f: IrUtils.(IrClassReference) -> IrExpression?): IRGeneration =
+  fun Meta.irClassReference(f: IrUtils.(IrClassReference) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitClassReference(expression: IrClassReference, data: Unit): IrExpression =
@@ -541,7 +528,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irInstanceInitializerCall(f: IrUtils.(IrInstanceInitializerCall) -> IrExpression?): IRGeneration =
+  fun Meta.irInstanceInitializerCall(f: IrUtils.(IrInstanceInitializerCall) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: Unit): IrExpression =
@@ -549,7 +536,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irTypeOperator(f: IrUtils.(IrTypeOperatorCall) -> IrExpression?): IRGeneration =
+  fun Meta.irTypeOperator(f: IrUtils.(IrTypeOperatorCall) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Unit): IrExpression =
@@ -557,7 +544,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irWhen(f: IrUtils.(IrWhen) -> IrExpression?): IRGeneration =
+  fun Meta.irWhen(f: IrUtils.(IrWhen) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitWhen(expression: IrWhen, data: Unit): IrExpression =
@@ -565,7 +552,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBranch(f: IrUtils.(IrBranch) -> IrBranch?): IRGeneration =
+  fun Meta.irBranch(f: IrUtils.(IrBranch) -> IrBranch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBranch(expression: IrBranch, data: Unit): IrBranch =
@@ -573,7 +560,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irElseBranch(f: IrUtils.(IrElseBranch) -> IrElseBranch?): IRGeneration =
+  fun Meta.irElseBranch(f: IrUtils.(IrElseBranch) -> IrElseBranch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitElseBranch(expression: IrElseBranch, data: Unit): IrElseBranch =
@@ -581,7 +568,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irLoop(f: IrUtils.(IrLoop) -> IrExpression?): IRGeneration =
+  fun Meta.irLoop(f: IrUtils.(IrLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitLoop(expression: IrLoop, data: Unit): IrExpression =
@@ -589,7 +576,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irWhileLoop(f: IrUtils.(IrWhileLoop) -> IrExpression?): IRGeneration =
+  fun Meta.irWhileLoop(f: IrUtils.(IrWhileLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitWhileLoop(expression: IrWhileLoop, data: Unit): IrExpression =
@@ -597,7 +584,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDoWhileLoop(f: IrUtils.(IrDoWhileLoop) -> IrExpression?): IRGeneration =
+  fun Meta.irDoWhileLoop(f: IrUtils.(IrDoWhileLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDoWhileLoop(expression: IrDoWhileLoop, data: Unit): IrExpression =
@@ -605,7 +592,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irTry(f: IrUtils.(IrTry) -> IrExpression?): IRGeneration =
+  fun Meta.irTry(f: IrUtils.(IrTry) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTry(expression: IrTry, data: Unit): IrExpression =
@@ -613,7 +600,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irCatch(f: IrUtils.(IrCatch) -> IrCatch?): IRGeneration =
+  fun Meta.irCatch(f: IrUtils.(IrCatch) -> IrCatch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitCatch(expression: IrCatch, data: Unit): IrCatch =
@@ -621,7 +608,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBreakContinue(f: IrUtils.(IrBreakContinue) -> IrExpression?): IRGeneration =
+  fun Meta.irBreakContinue(f: IrUtils.(IrBreakContinue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBreakContinue(expression: IrBreakContinue, data: Unit): IrExpression =
@@ -629,7 +616,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irBreak(f: IrUtils.(IrBreak) -> IrExpression?): IRGeneration =
+  fun Meta.irBreak(f: IrUtils.(IrBreak) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBreak(expression: IrBreak, data: Unit): IrExpression =
@@ -637,7 +624,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irContinue(f: IrUtils.(IrContinue) -> IrExpression?): IRGeneration =
+  fun Meta.irContinue(f: IrUtils.(IrContinue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitContinue(expression: IrContinue, data: Unit): IrExpression =
@@ -645,7 +632,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irReturn(f: IrUtils.(IrReturn) -> IrExpression?): IRGeneration =
+  fun Meta.irReturn(f: IrUtils.(IrReturn) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitReturn(expression: IrReturn, data: Unit): IrExpression =
@@ -653,7 +640,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irThrow(f: IrUtils.(IrThrow) -> IrExpression?): IRGeneration =
+  fun Meta.irThrow(f: IrUtils.(IrThrow) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitThrow(expression: IrThrow, data: Unit): IrExpression =
@@ -661,7 +648,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDynamicExpression(f: IrUtils.(IrDynamicExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irDynamicExpression(f: IrUtils.(IrDynamicExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicExpression(expression: IrDynamicExpression, data: Unit): IrExpression =
@@ -669,7 +656,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDynamicOperatorExpression(f: IrUtils.(IrDynamicOperatorExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irDynamicOperatorExpression(f: IrUtils.(IrDynamicOperatorExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression, data: Unit): IrExpression =
@@ -678,7 +665,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDynamicMemberExpression(f: IrUtils.(IrDynamicMemberExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irDynamicMemberExpression(f: IrUtils.(IrDynamicMemberExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression, data: Unit): IrExpression =
@@ -686,7 +673,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irErrorDeclaration(f: IrUtils.(IrErrorDeclaration) -> IrStatement?): IRGeneration =
+  fun Meta.irErrorDeclaration(f: IrUtils.(IrErrorDeclaration) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorDeclaration(expression: IrErrorDeclaration, data: Unit): IrStatement =
@@ -694,7 +681,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irErrorExpression(f: IrUtils.(IrErrorExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irErrorExpression(f: IrUtils.(IrErrorExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorExpression(expression: IrErrorExpression, data: Unit): IrExpression =
@@ -702,7 +689,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irErrorCallExpression(f: IrUtils.(IrErrorCallExpression) -> IrExpression?): IRGeneration =
+  fun Meta.irErrorCallExpression(f: IrUtils.(IrErrorCallExpression) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorCallExpression(expression: IrErrorCallExpression, data: Unit): IrExpression =
@@ -710,7 +697,7 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun irDump(): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
+  fun Meta.irDump(): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
     println(moduleFragment.dump())
   }
 }
