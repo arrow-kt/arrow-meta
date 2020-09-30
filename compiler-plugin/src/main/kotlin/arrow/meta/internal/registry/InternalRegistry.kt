@@ -274,7 +274,7 @@ interface InternalRegistry : ConfigSyntax {
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext
       ) {
-        phase.run { moduleFragment.files.forEach { compilerContext.generate(it, pluginContext) }}
+        phase.run { compilerContext.generate(moduleFragment, pluginContext) }
       }
     })
   }
