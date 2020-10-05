@@ -165,21 +165,6 @@ class IrUtils(
         return super.visitFunction(declaration, data)
       }
     }, data)
-
-  fun IrLazyFunctionBase.dispatchReceiver(
-    f: FunctionDescriptor,
-
-    ): IrValueParameter {
-
-    val receiver: WrappedReceiverParameterDescriptor = WrappedReceiverParameterDescriptor(f.annotations, f.source)
-
-    typeTranslator.buildWithScope(this) {
-      receiver
-    }
-
-    TODO()
-  }
-
 }
 
 fun IrCall.dfsCalls(): List<IrCall> { // search for parent function

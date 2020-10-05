@@ -137,6 +137,7 @@ class IrSyntaxTest {
     testIrVisit(IrEnumEntry::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irAnonymousInitializer`() {
     testIrVisit(IrAnonymousInitializer::class.java)
@@ -262,6 +263,7 @@ class IrSyntaxTest {
     testIrVisit(IrGetObjectValue::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irGetEnumValue`() {
     testIrVisit(IrGetEnumValue::class.java)
@@ -277,6 +279,7 @@ class IrSyntaxTest {
     testIrVisit(IrGetValue::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irSetVariable`() {
     testIrVisit(IrSetVariable::class.java)
@@ -293,6 +296,7 @@ class IrSyntaxTest {
     testIrVisit(IrGetField::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irSetField`() {
     testIrVisit(IrSetField::class.java)
@@ -329,6 +333,7 @@ class IrSyntaxTest {
     testIrVisit(IrEnumConstructorCall::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irGetClass`() {
     testIrVisit(IrGetClass::class.java)
@@ -350,11 +355,13 @@ class IrSyntaxTest {
     testIrVisit(IrPropertyReference::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irLocalDelegatedPropertyReference`() {
     testIrVisit(IrLocalDelegatedPropertyReference::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irClassReference`() {
     testIrVisit(IrClassReference::class.java)
@@ -445,16 +452,19 @@ class IrSyntaxTest {
     testIrVisit(IrDynamicExpression::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irDynamicOperatorExpression`() {
     testIrVisit(IrDynamicOperatorExpression::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irDynamicMemberExpression`() {
     testIrVisit(IrDynamicMemberExpression::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irErrorDeclaration`() {
     testIrVisit(IrErrorDeclaration::class.java)
