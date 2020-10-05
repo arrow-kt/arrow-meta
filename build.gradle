@@ -125,10 +125,10 @@ task runValidation(type:Exec) {
 task buildMetaDoc {
     group = "Arrow Meta"
     description = "Generates API Doc and validates all the documentation"
-    dependsOn 'generateDoc'
     dependsOn 'configureValidation'
+    dependsOn 'generateDoc'
     dependsOn 'runValidation'
 }
 
-configureValidation.mustRunAfter generateDoc
-runValidation.mustRunAfter configureValidation
+generateDoc.mustRunAfter configureValidation
+runValidation.mustRunAfter generateDoc
