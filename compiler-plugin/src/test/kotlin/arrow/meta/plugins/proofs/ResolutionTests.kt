@@ -44,7 +44,6 @@ class ResolutionTests {
     }
   }
 
-  @Disabled
   @Test
   fun `@Extension internal orphan override`() {
     resolutionTest(
