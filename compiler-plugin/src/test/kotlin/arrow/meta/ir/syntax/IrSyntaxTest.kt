@@ -94,6 +94,7 @@ class IrSyntaxTest {
     testIrVisit(IrDeclaration::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irClass`() {
     testIrVisit(IrClass::class.java)
@@ -119,6 +120,7 @@ class IrSyntaxTest {
     testIrVisit(IrProperty::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irField`() {
     testIrVisit(IrField::class.java)
@@ -144,6 +146,7 @@ class IrSyntaxTest {
     testIrVisit(IrVariable::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irTypeParameter`() {
     testIrVisit(IrTypeParameter::class.java)
@@ -185,6 +188,7 @@ class IrSyntaxTest {
     testIrVisit(IrSyntheticBody::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irSuspendableExpression`() {
     testIrVisit(IrSuspendableExpression::class.java)
@@ -201,6 +205,7 @@ class IrSyntaxTest {
     testIrVisit(IrExpression::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irConst`() {
     testIrVisit(IrConst::class.java)
@@ -223,6 +228,7 @@ class IrSyntaxTest {
     testIrVisit(IrContainerExpression::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irBlock`() {
     testIrVisit(IrBlock::class.java)
@@ -290,6 +296,7 @@ class IrSyntaxTest {
     testIrVisit(IrSetField::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irMemberAccess`() {
     testIrVisit(IrMemberAccessExpression::class.java)
@@ -395,6 +402,7 @@ class IrSyntaxTest {
     testIrVisit(IrTry::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irCatch`() {
     testIrVisit(IrCatch::class.java)
@@ -405,6 +413,7 @@ class IrSyntaxTest {
     testIrVisit(IrBreakContinue::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irBreak`() {
     testIrVisit(IrBreak::class.java)
@@ -420,6 +429,7 @@ class IrSyntaxTest {
     testIrVisit(IrReturn::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irThrow`() {
     testIrVisit(IrThrow::class.java)
