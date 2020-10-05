@@ -3,8 +3,11 @@ package arrow.meta.ir.plugin
 import arrow.meta.CliPlugin
 import arrow.meta.Meta
 import arrow.meta.invoke
-import arrow.meta.ir.syntax.irVisit
+import arrow.meta.ir.syntax.visits
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.codegen.ir.IrUtils
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
@@ -159,4 +162,9 @@ open class IrSyntaxPlugin : Meta {
       )
     }
   )
+}
+
+internal fun <A : IrElement> irVisit(element: Class<A>): IrUtils.(A) -> A? = { _ ->
+  this.compilerContext.messageCollector?.report(CompilerMessageSeverity.ERROR, visits(element))
+  null
 }

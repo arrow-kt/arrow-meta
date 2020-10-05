@@ -254,7 +254,10 @@ interface AssertSyntax {
    * Allows to provide several [Assert.SingleAssert].
    */
   fun allOf(vararg elements: Assert.SingleAssert): Assert =
-    if (elements.isNotEmpty()) Assert.Many(elements.asList()) else Assert.Many(emptyList())
+    if (elements.isNotEmpty()) allOf(elements.asList()) else Assert.Many(emptyList())
+
+  fun allOf(elements: List<Assert.SingleAssert>): Assert =
+    Assert.Many(elements)
 }
 
 /**

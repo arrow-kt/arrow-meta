@@ -1,15 +1,16 @@
 package arrow.meta.ir.syntax
 
-import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
+import arrow.meta.ir.plugin.IrSyntaxPlugin
+import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.assertThis
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
-import org.jetbrains.kotlin.ir.declarations.IrErrorDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -26,459 +27,200 @@ import org.jetbrains.kotlin.ir.expressions.IrBreakContinue
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrCallableReference
 import org.jetbrains.kotlin.ir.expressions.IrCatch
-import org.jetbrains.kotlin.ir.expressions.IrClassReference
-import org.jetbrains.kotlin.ir.expressions.IrComposite
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
 import org.jetbrains.kotlin.ir.expressions.IrContinue
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrDoWhileLoop
-import org.jetbrains.kotlin.ir.expressions.IrDynamicExpression
-import org.jetbrains.kotlin.ir.expressions.IrDynamicMemberExpression
-import org.jetbrains.kotlin.ir.expressions.IrDynamicOperatorExpression
 import org.jetbrains.kotlin.ir.expressions.IrElseBranch
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrErrorCallExpression
-import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrFieldAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
-import org.jetbrains.kotlin.ir.expressions.IrGetClass
-import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
 import org.jetbrains.kotlin.ir.expressions.IrGetSingletonValue
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrInstanceInitializerCall
-import org.jetbrains.kotlin.ir.expressions.IrLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrLoop
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrReturn
-import org.jetbrains.kotlin.ir.expressions.IrSetField
-import org.jetbrains.kotlin.ir.expressions.IrSetVariable
-import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
-import org.jetbrains.kotlin.ir.expressions.IrSuspendableExpression
-import org.jetbrains.kotlin.ir.expressions.IrSuspensionPoint
 import org.jetbrains.kotlin.ir.expressions.IrSyntheticBody
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrTry
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 
 class IrSyntaxTest {
 
   @Test
-  fun `Visits irModuleFragment`() {
-    testIrVisit(IrModuleFragment::class.java)
-  }
-
-  @Test
-  fun `Visits irFile`() {
-    testIrVisit(IrFile::class.java)
-  }
-
-  @Test
-  fun `Visits irDeclaration`() {
-    testIrVisit(IrDeclaration::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irClass`() {
-    testIrVisit(IrClass::class.java)
-  }
-
-  @Test
-  fun `Visits irFunction`() {
-    testIrVisit(IrFunction::class.java)
-  }
-
-  @Test
-  fun `Visits irSimpleFunction`() {
-    testIrVisit(IrSimpleFunction::class.java)
-  }
-
-  @Test
-  fun `Visits irConstructor`() {
-    testIrVisit(IrConstructor::class.java)
-  }
-
-  @Test
-  fun `Visits irProperty`() {
-    testIrVisit(IrProperty::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irField`() {
-    testIrVisit(IrField::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irLocalDelegatedProperty`() {
-    testIrVisit(IrLocalDelegatedProperty::class.java)
-  }
-
-  @Test
-  fun `Visits irEnumEntry`() {
-    testIrVisit(IrEnumEntry::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irAnonymousInitializer`() {
-    testIrVisit(IrAnonymousInitializer::class.java)
-  }
-
-  @Test
-  fun `Visits irVariable`() {
-    testIrVisit(IrVariable::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irTypeParameter`() {
-    testIrVisit(IrTypeParameter::class.java)
-  }
-
-  @Test
-  fun `Visits irValueParameter`() {
-    testIrVisit(IrValueParameter::class.java, """
-      fun <A: @Given Semigroup<A>> A.mappend(b: A): A =
+  fun `Test Syntax`() {
+    testIrVisit(
+      listOf(
+        IrModuleFragment::class.java,
+        IrFile::class.java,
+        IrDeclaration::class.java,
+        IrClass::class.java,
+        IrFunction::class.java,
+        IrSimpleFunction::class.java,
+        IrConstructor::class.java,
+        IrProperty::class.java,
+        IrField::class.java,
+        // TODO: IrLocalDelegatedProperty::class.java
+        IrEnumEntry::class.java,
+        // TODO: IrAnonymousInitializer::class.java
+        IrVariable::class.java,
+        IrTypeParameter::class.java,
+        IrValueParameter::class.java,
+        IrTypeAlias::class.java,
+        IrBody::class.java,
+        IrExpressionBody::class.java,
+        IrBlockBody::class.java,
+        IrSyntheticBody::class.java,
+        // TODO: IrSuspendableExpression::class.java
+        // TODO: IrSuspensionPoint::class.java
+        IrExpression::class.java,
+        IrConst::class.java,
+        // TODO: IrVararg::class.java,
+        // TODO: IrSpreadElement::class.java,
+        IrContainerExpression::class.java,
+        IrBlock::class.java,
+        // TODO: IrComposite::class.java
+        IrStringConcatenation::class.java,
+        IrDeclarationReference::class.java,
+        IrGetSingletonValue::class.java,
+        IrGetObjectValue::class.java,
+        // TODO: IrGetEnumValue::class.java
+        IrValueAccessExpression::class.java,
+        IrGetValue::class.java,
+        // TODO: IrSetVariable::class.java
+        IrFieldAccessExpression::class.java,
+        IrGetField::class.java,
+        // TODO: IrSetField::class.java
+        IrMemberAccessExpression::class.java,
+        IrFunctionAccessExpression::class.java,
+        IrCall::class.java,
+        IrConstructorCall::class.java,
+        IrDelegatingConstructorCall::class.java,
+        IrEnumConstructorCall::class.java,
+        // TODO: IrGetClass::class.java
+        IrCallableReference::class.java,
+        IrFunctionReference::class.java,
+        // TODO: IrPropertyReference::class.java
+        // TODO: IrLocalDelegatedPropertyReference::class.java
+        // TODO: IrClassReference::class.java
+        IrInstanceInitializerCall::class.java,
+        IrTypeOperatorCall::class.java,
+        IrWhen::class.java,
+        IrBranch::class.java,
+        IrElseBranch::class.java,
+        IrLoop::class.java,
+        IrWhileLoop::class.java,
+        // TODO: IrDoWhileLoop::class.java,
+        IrTry::class.java,
+        IrCatch::class.java,
+        IrBreakContinue::class.java,
+        IrBreak::class.java,
+        IrContinue::class.java,
+        IrReturn::class.java,
+        IrThrow::class.java,
+        // TODO: IrDynamicExpression::class.java,
+        // TODO: IrDynamicOperatorExpression::class.java,
+        // TODO: IrDynamicMemberExpression::class.java,
+        // TODO: IrErrorDeclaration::class.java,
+        // TODO: IrErrorExpression::class.java,
+        // TODO: IrErrorCallExpression::class.java
+      ),
+      """
+        package test
+        import arrow.*
+        import arrowx.*
+        
+        fun <A: @Given Semigroup<A>> A.mappend(b: A): A =
           this@mappend.combine(b)
 
         val result1 = String.empty()
         val result2 = "1".combine("1")
+        
+        val zero = 0
+        
+        sealed class ABC<A> {
+          data class A(val a: Int) : ABC<Int>()
+          data class B(val b: String = "" + "Hello") : ABC<String>()
+          data class C(val c: Long = 44L.and(3L)) : ABC<Long>()
+          object D : ABC<Nothing>()
+        }
+
+        enum class Position {
+          FIRST, SECOND, THIRD
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        class Box<A>(val a: Int, val b : A, val box: ABC<A> = ABC.D as ABC<A>)
+
+        typealias A<B> = Box<B>
+
+        var h: Int
+          get() = 0
+          set(value) {
+            value * 3
+          }
+
+        suspend fun hello(): Unit =
+          println("Hello")
+          
+        fun <A> provider(evidence: @Given A = arrow.given): A =
+            evidence
+
+        suspend fun foo(vararg a: Int) {
+          hello()
+          val f = { a: Int -> 9 - a }
+          val boo = try {
+            var j = 0
+            while (j < 1000) {
+              fun s(): Int = 8
+              if (j < 9) {
+                ::s
+                break
+              }
+              continue
+            }
+            val d = if (3 > f(2)) 0 else 33
+          } catch (e: Exception) {
+            println()
+            throw e
+          } finally {
+            9 - 6
+          }
+        }
     """.trimIndent())
   }
-
-  @Test
-  fun `Visits irTypeAlias`() {
-    testIrVisit(IrTypeAlias::class.java)
-  }
-
-  @Test
-  fun `Visits irBody`() {
-    testIrVisit(IrBody::class.java)
-  }
-
-  @Test
-  fun `Visits irExpressionBody`() {
-    testIrVisit(IrExpressionBody::class.java)
-  }
-
-  @Test
-  fun `Visits irBlockBody`() {
-    testIrVisit(IrBlockBody::class.java)
-  }
-
-  @Test
-  fun `Visits irSyntheticBody`() {
-    testIrVisit(IrSyntheticBody::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irSuspendableExpression`() {
-    testIrVisit(IrSuspendableExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irSuspensionPoint`() {
-    testIrVisit(IrSuspensionPoint::class.java)
-  }
-
-  @Test
-  fun `Visits irExpression`() {
-    testIrVisit(IrExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irConst`() {
-    testIrVisit(IrConst::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irVararg`() {
-    testIrVisit(IrVararg::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irSpreadElement`() {
-    testIrVisit(IrSpreadElement::class.java)
-  }
-
-  @Test
-  fun `Visits irContainerExpression`() {
-    testIrVisit(IrContainerExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irBlock`() {
-    testIrVisit(IrBlock::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irComposite`() {
-    testIrVisit(IrComposite::class.java)
-  }
-
-  @Test
-  fun `Visits irStringConcatenation`() {
-    testIrVisit(IrStringConcatenation::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irDeclarationReference`() {
-    testIrVisit(IrDeclarationReference::class.java)
-  }
-
-  @Test
-  fun `Visits irSingletonReference`() {
-    testIrVisit(IrGetSingletonValue::class.java)
-  }
-
-  @Test
-  fun `Visits irGetObjectValue`() {
-    testIrVisit(IrGetObjectValue::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irGetEnumValue`() {
-    testIrVisit(IrGetEnumValue::class.java)
-  }
-
-  @Test
-  fun `Visits irValueAccess`() {
-    testIrVisit(IrValueAccessExpression::class.java)
-  }
-
-  @Test
-  fun `Visits irGetValue`() {
-    testIrVisit(IrGetValue::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irSetVariable`() {
-    testIrVisit(IrSetVariable::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irFieldAccess`() {
-    testIrVisit(IrFieldAccessExpression::class.java)
-  }
-
-  @Test
-  fun `Visits irGetField`() {
-    testIrVisit(IrGetField::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irSetField`() {
-    testIrVisit(IrSetField::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irMemberAccess`() {
-    testIrVisit(IrMemberAccessExpression::class.java)
-  }
-
-  @Test
-  fun `Visits irFunctionAccess`() {
-    testIrVisit(IrFunctionAccessExpression::class.java)
-  }
-
-  @Test
-  fun `Visits irCall`() {
-    testIrVisit(IrCall::class.java)
-  }
-
-  @Test
-  fun `Visits irConstructorCall`() {
-    testIrVisit(IrConstructorCall::class.java)
-  }
-
-  @Test
-  fun `Visits irDelegatingConstructorCall`() {
-    testIrVisit(IrDelegatingConstructorCall::class.java)
-  }
-
-  @Test
-  fun `Visits irEnumConstructorCall`() {
-    testIrVisit(IrEnumConstructorCall::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irGetClass`() {
-    testIrVisit(IrGetClass::class.java)
-  }
-
-  @Test
-  fun `Visits irCallableReference`() {
-    testIrVisit(IrCallableReference::class.java)
-  }
-
-  @Test
-  fun `Visits irFunctionReference`() {
-    testIrVisit(IrFunctionReference::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irPropertyReference`() {
-    testIrVisit(IrPropertyReference::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irLocalDelegatedPropertyReference`() {
-    testIrVisit(IrLocalDelegatedPropertyReference::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irClassReference`() {
-    testIrVisit(IrClassReference::class.java)
-  }
-
-  @Test
-  fun `Visits irInstanceInitializerCall`() {
-    testIrVisit(IrInstanceInitializerCall::class.java)
-  }
-
-  @Test
-  fun `Visits irTypeOperator`() {
-    testIrVisit(IrTypeOperatorCall::class.java)
-  }
-
-  @Test
-  fun `Visits irWhen`() {
-    testIrVisit(IrWhen::class.java)
-  }
-
-  @Test
-  fun `Visits irBranch`() {
-    testIrVisit(IrBranch::class.java)
-  }
-
-  @Test
-  fun `Visits irElseBranch`() {
-    testIrVisit(IrElseBranch::class.java)
-  }
-
-  @Test
-  fun `Visits irLoop`() {
-    testIrVisit(IrLoop::class.java)
-  }
-
-  @Test
-  fun `Visits irWhileLoop`() {
-    testIrVisit(IrWhileLoop::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irDoWhileLoop`() {
-    testIrVisit(IrDoWhileLoop::class.java)
-  }
-
-  @Test
-  fun `Visits irTry`() {
-    testIrVisit(IrTry::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irCatch`() {
-    testIrVisit(IrCatch::class.java)
-  }
-
-  @Test
-  fun `Visits irBreakContinue`() {
-    testIrVisit(IrBreakContinue::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irBreak`() {
-    testIrVisit(IrBreak::class.java)
-  }
-
-  @Test
-  fun `Visits irContinue`() {
-    testIrVisit(IrContinue::class.java)
-  }
-
-  @Test
-  fun `Visits irReturn`() {
-    testIrVisit(IrReturn::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irThrow`() {
-    testIrVisit(IrThrow::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irDynamicExpression`() {
-    testIrVisit(IrDynamicExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irDynamicOperatorExpression`() {
-    testIrVisit(IrDynamicOperatorExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irDynamicMemberExpression`() {
-    testIrVisit(IrDynamicMemberExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irErrorDeclaration`() {
-    testIrVisit(IrErrorDeclaration::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irErrorExpression`() {
-    testIrVisit(IrErrorExpression::class.java)
-  }
-
-  @Disabled
-  @Test
-  fun `Visits irErrorCallExpression`() {
-    testIrVisit(IrErrorCallExpression::class.java)
-  }
 }
+
+internal fun <A : IrElement> visits(element: Class<A>): String =
+  "${element.name} is visited"
+
+private fun <A : IrElement> testIrVisit(elements: List<Class<out A>>, src: String = ""): Unit =
+  assertThis(
+    CompilerTest(
+      config = { metaDependencies + addMetaPlugins(IrSyntaxPlugin()) },
+      code = { src.source },
+      assert = {
+        allOf(
+          elements.map { element ->
+            failsWith {
+              it.contains(visits(element))
+            }
+          }
+        )
+      }
+    )
+  )
