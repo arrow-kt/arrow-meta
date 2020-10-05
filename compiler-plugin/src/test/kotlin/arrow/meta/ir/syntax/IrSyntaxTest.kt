@@ -126,6 +126,7 @@ class IrSyntaxTest {
     testIrVisit(IrField::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irLocalDelegatedProperty`() {
     testIrVisit(IrLocalDelegatedProperty::class.java)
@@ -245,6 +246,7 @@ class IrSyntaxTest {
     testIrVisit(IrStringConcatenation::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irDeclarationReference`() {
     testIrVisit(IrDeclarationReference::class.java)
@@ -342,6 +344,7 @@ class IrSyntaxTest {
     testIrVisit(IrFunctionReference::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irPropertyReference`() {
     testIrVisit(IrPropertyReference::class.java)
@@ -392,6 +395,7 @@ class IrSyntaxTest {
     testIrVisit(IrWhileLoop::class.java)
   }
 
+  @Disabled
   @Test
   fun `Visits irDoWhileLoop`() {
     testIrVisit(IrDoWhileLoop::class.java)
