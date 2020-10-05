@@ -43,7 +43,6 @@ class ResolutionTests {
       }
     }
   }
-
   @Disabled
   @Test
   fun `@Extension internal orphan override`() {
@@ -360,7 +359,7 @@ class ResolutionTests {
     """
       },
       assert = {
-        failsWith{
+        failsWith {
           it.contains("This Refinement can only be defined over one companion object, which implements arrow.Refined<kotlin.Int,test.StrictPositiveInt>.")
         }
       }

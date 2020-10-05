@@ -5,6 +5,8 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
+import arrow.meta.phases.codegen.ir.substitutedValueParameters
+import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
@@ -12,23 +14,20 @@ import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.RefinementProof
-import arrow.meta.plugins.proofs.phases.allGivenProofs
 import arrow.meta.plugins.proofs.phases.extensionProof
-import arrow.meta.plugins.proofs.phases.extensionProofCandidate
-import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.givenProof
-import arrow.meta.plugins.proofs.phases.givenProofCandidate
-import arrow.meta.plugins.proofs.phases.givenProofs
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
-import arrow.meta.plugins.proofs.phases.resolve.isResolved
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
+import org.jetbrains.kotlin.ir.descriptors.WrappedReceiverParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
@@ -47,7 +46,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
@@ -68,13 +66,14 @@ class ProofsIrCodegen(
       }
     }
   }
+
   fun CompilerContext.givenProofCall(
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
       val candidate = givenProof(superType)
-      candidate?.let{ proof ->
-        substitutedProofCall( proof, superType)
+      candidate?.let { proof ->
+        substitutedProofCall(proof, superType)
       }
     }
 
@@ -100,7 +99,6 @@ class ProofsIrCodegen(
         )
       }
     }
-
 
 
   fun Proof.substitutor(
@@ -173,45 +171,40 @@ class ProofsIrCodegen(
       expression
     }
 
-  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) {
+  private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) = irUtils.run {
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
     val targetType =
-      (expression.symbol.owner.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
-        ?: expression.symbol.owner.descriptor.extensionReceiverParameter?.type
-        ?: expression.symbol.owner.descriptor.valueParameters.firstOrNull()?.type
+      (expression.unsubstitutedDescriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
+        ?: expression.unsubstitutedDescriptor.extensionReceiverParameter?.type
+        ?: expression.substitutedValueParameters.firstOrNull()?.second
     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
       expression.apply {
         val proofCall = extensionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
           when {
-            this.dispatchReceiver != null -> {
-              proofCall.extensionReceiver = this.dispatchReceiver
-              proofCall.also {
-                dispatchReceiver = it
-                extensionReceiver = null
-              }
+            dispatchReceiver != null -> {
+              proofCall.extensionReceiver = dispatchReceiver
+              dispatchReceiver = proofCall
             }
-            this.extensionReceiver != null -> {
-              proofCall.extensionReceiver = this.extensionReceiver
-              proofCall.also {
-                dispatchReceiver = null
-                extensionReceiver = it
-              }
+            extensionReceiver != null -> {
+              proofCall.extensionReceiver = extensionReceiver
+              dispatchReceiver = null
+              extensionReceiver = proofCall
             }
             (valueType != targetType && expression.valueArgumentsCount > 0) -> {
               dispatchReceiver = null
 
-              expression.mapValueParametersIndexed { n: Int, v: ValueParameterDescriptor ->
+              expression.mapValueParametersIndexed { n: Int, _ ->
                 val valueArgument = expression.getValueArgument(n)
                 val valueType2 = valueArgument?.type?.toKotlinType()!!
-                val targetType2 = expression.symbol.owner.descriptor.valueParameters[n].type
+                val targetType2 = expression.substitutedValueParameters[n].second
                 val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression
                 if (proofCall2 != null) {
                   proofCall2.extensionReceiver = valueArgument
                   if (proofCall2.typeArgumentsCount > 0) {
-                    proofCall2.putTypeArgument(0, irUtils.typeTranslator.translateType(valueType))
+                    proofCall2.putTypeArgument(0, valueType.toIrType())
                   }
                   proofCall2
                 } else {
@@ -220,10 +213,35 @@ class ProofsIrCodegen(
               }
             }
           }
+          symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
         }
       }
     }
   }
+
+  fun IrFunction.wrapDispatcherAndExtensionReceiver(utils: IrUtils): IrStatement =
+    utils.run {
+      transform(descriptor) { f ->
+        dispatchReceiverParameter = typeTranslator.buildWithScope(this) {
+          f.dispatchReceiverParameter?.wrap(utils, this)
+        }
+        extensionReceiverParameter = typeTranslator.buildWithScope(this) {
+          f.extensionReceiverParameter?.wrap(utils, this)
+        }
+      }
+    }
+
+  fun ReceiverParameterDescriptor.wrap(utils: IrUtils, parent: IrFunction): IrValueParameter? =
+    utils.run {
+      val descriptor = WrappedReceiverParameterDescriptor(annotations, source)
+      IrValueParameterImpl(
+        UNDEFINED_OFFSET, UNDEFINED_OFFSET, parent.origin, descriptor,
+        type.toIrType(), null, name
+      ).also {
+        descriptor.bind(it)
+        it.parent = parent
+      }
+    }
 
   private fun CompilerContext.insertGivenCall(
     givenUpperBound: GivenUpperBound,
@@ -257,24 +275,25 @@ class ProofsIrCodegen(
     } else it
   }
 
-  fun CompilerContext.proveReturn(it: IrReturn): IrReturn? {
-    val targetType = it.returnTarget.returnType
-    val valueType = it.value.type.originalKotlinType
-    return if (targetType != null && valueType != null && targetType != valueType) {
-      extensionProofCall(valueType, targetType)?.let { call ->
-        if (call is IrMemberAccessExpression)
-          call.extensionReceiver = it.value
+  fun CompilerContext.proveReturn(it: IrReturn): IrReturn? =
+    irUtils.run {
+      val targetType = it.returnTarget.returnType
+      val valueType = it.value.type.originalKotlinType
+      return if (targetType != null && valueType != null && targetType != valueType) {
+        extensionProofCall(valueType, targetType)?.let { call ->
+          if (call is IrMemberAccessExpression)
+            call.extensionReceiver = it.value
 
-        IrReturnImpl(
-          UNDEFINED_OFFSET,
-          UNDEFINED_OFFSET,
-          irUtils.typeTranslator.translateType(targetType),
-          it.returnTargetSymbol,
-          call
-        )
-      } ?: it
-    } else it
-  }
+          IrReturnImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            targetType.toIrType(),
+            it.returnTargetSymbol,
+            call
+          )
+        } ?: it
+      } else it
+    }
 
   fun CompilerContext.proveTypeOperator(it: IrTypeOperatorCall): IrExpression? {
     val targetType = it.type.toKotlinType()

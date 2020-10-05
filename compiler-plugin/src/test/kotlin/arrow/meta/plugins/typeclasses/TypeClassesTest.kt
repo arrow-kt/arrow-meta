@@ -34,7 +34,6 @@ class TypeClassesTest {
     }
 
   @Test
-  @Disabled
   fun `polymorphic constrain`() {
     val codeSnippet = """
        import arrow.*
@@ -57,7 +56,12 @@ class TypeClassesTest {
         codeSnippet.source
       },
       assert = {
-        allOf("result".source.evalsTo("1122"))
+        allOf(
+          "result1".source.evalsTo(""),
+          "result2".source.evalsTo("11"),
+          "result3".source.evalsTo("22"),
+          "result".source.evalsTo("1122")
+        )
       }
     ))
   }

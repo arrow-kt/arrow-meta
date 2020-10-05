@@ -73,7 +73,6 @@ class RefinementTests {
     )
   }
 
-  @Disabled
   @Test
   fun `Runtime validation for nullable types accepts if valid`() {
     refinementTest(
@@ -87,6 +86,7 @@ class RefinementTests {
       }
     )
   }
+
 
   fun refinementTest(src: String, assert: CompilerTest.Companion.() -> Assert): Unit {
     assertThis(CompilerTest(
@@ -170,3 +170,4 @@ class RefinementTests {
       NonEmptyArray.from(this)
     """
 }
+
