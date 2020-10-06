@@ -41,7 +41,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.dsl.utils.intersectFunction
@@ -60,6 +60,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *     meta(
    *       addApplicableInspection(
    *         defaultFixText = "Simplified PurityPlugin",
+   *         staticDescription = "Purity Inspection",
+   *         fixText = { "Purity" },
    *         inspectionHighlightType = { ProblemHighlightType.ERROR },
    *         kClass = KtNamedFunction::class.java,
    *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
@@ -79,7 +81,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *             } == true
    *         },
    *         level = HighlightDisplayLevel.ERROR,
-   *         groupPath = arrayOf("Meta", "SimplePlugin")
+   *         groupPath = arrayOf("Meta", "SimplePlugin"),
+   *         groupDisplayName = "PurityPlugin"
    *       )
    *     )
    *   }
@@ -95,29 +98,35 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
+    staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
     applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     groupPath: Array<String>,
+    groupDisplayName: String,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
       { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING,
     enabledByDefault: Boolean = true
   ): ExtensionPhase =
     addLocalInspection(
-      applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
+      applicableInspection(defaultFixText, staticDescription, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
       groupPath,
+      groupDisplayName,
       level
     )
 
   fun <K : KtElement> MetaIde.addLocalInspection(
     inspection: AbstractApplicabilityBasedInspection<K>,
     groupPath: Array<String>,
+    groupDisplayName: String,
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
   ): ExtensionPhase =
-    addLocalInspection(inspection, level, inspection.defaultFixText, inspection.defaultFixText, groupPath, inspection.defaultFixText)
+    addLocalInspection(inspection, level, inspection.defaultFixText, inspection.staticDescription
+      ?: "No description provided", groupPath, groupDisplayName)
 
   /**
    * registers a GlobalInspection.
@@ -189,9 +198,17 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       override fun isSuppressAll(): Boolean = isSuppressAll
     }
 
+  /**
+   * [defaultFixText] is being reused for the `shortName` and it should be matching the pattern '[a-zA-Z_0-9.-]+'
+   * and not so long
+   * [staticDescription] refers to little description of the inspection
+   * For the inspection tool dialog description, the name of the html file should match the [defaultFixText]/shortName
+   */
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(
     defaultFixText: String,
+    staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -221,6 +238,11 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
       override fun inspectionHighlightType(element: K): ProblemHighlightType =
         inspectionHighlightType(element)
+
+      override fun getStaticDescription(): String? = staticDescription
+
+      override fun fixText(element: K): String =
+        fixText(element)
     }
 
   fun InspectionSyntax.inspectionSuppressor(

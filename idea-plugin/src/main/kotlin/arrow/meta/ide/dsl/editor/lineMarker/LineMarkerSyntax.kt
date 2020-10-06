@@ -11,7 +11,6 @@ import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
-import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -38,15 +37,15 @@ interface LineMarkerSyntax {
 
   fun <A : PsiElement> MetaIde.addLineMarkerProvider(
     transform: (PsiElement) -> A?,
-    lineMarkerInfo: (a: A) -> LineMarkerInfo<PsiElement>?,
-    slowLineMarker: (a: A) -> LineMarkerInfo<PsiElement>? = Noop.nullable1()
+    lineMarkerInfo: (a: A) -> LineMarkerInfo<*>?,
+    slowLineMarker: (a: A) -> LineMarkerInfo<*>? = Noop.nullable1()
   ): ExtensionPhase =
     registerLineMarker(
       object : LineMarkerProvider {
-        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<PsiElement>? =
+        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? =
           transform(element)?.let(lineMarkerInfo)
 
-        override fun collectSlowLineMarkers(elements: MutableList<PsiElement>, result: MutableCollection<LineMarkerInfo<PsiElement>>) {
+        override fun collectSlowLineMarkers(elements: MutableList<out PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
           for (element: A in elements.mapNotNull { transform(it) }) {
             ProgressManager.checkCanceled()
             slowLineMarker(element)?.let { result.add(it) }
@@ -82,22 +81,22 @@ interface LineMarkerSyntax {
     transform: (PsiElement) -> A?,
     targets: (A) -> List<B>,
     message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
-    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
     popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     relatedLineMarkerProvider(
       transform,
-      { element: A ->
-        val list: List<B> = targets(element)
-        navigationGutter(icon, element, targets) { element: A ->
-          setCellRenderer(cellRenderer)
-          setTarget(element)
-          popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
-          message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
-          setAlignment(placed)
-          createLineMarkerInfo(element)
-        }
+      { a: A ->
+        navigateGutter(
+          icon,
+          a,
+          targets,
+          { a: A, list: List<B> -> message(DescriptorRenderer.Companion, a, list) },
+          cellRenderer,
+          { a: A, list: List<B> -> popUpTitle(DescriptorRenderer.Companion, a, list) },
+          placed
+        ).invoke(a)
       }
     )
 
@@ -111,7 +110,7 @@ interface LineMarkerSyntax {
     icon: Icon,
     transform: (PsiElement) -> A?,
     message: (element: A) -> String = Noop.string1(),
-    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
+    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<*>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
@@ -133,7 +132,7 @@ interface LineMarkerSyntax {
    * [addLineMarkerProvider] is a convenience extension, which registers the Leaf element of a composite PsiElement [A] e.g.: `KtClass`
    * and circumvents effort's to find the right PsiElement.
    * In addition, plugin developer's can compose sophisticated messages, as the whole scope of [A] can be exploited.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
@@ -178,7 +177,7 @@ interface LineMarkerSyntax {
     clickAction: AnAction? = null
   ): ExtensionPhase =
     addLineMarkerProvider(
-      { transform(it)?.identifyingElement },
+      { transform(it)?.nameIdentifier },
       {
         it.onComposite(composite) { psi: A ->
           lineMarkerInfo(icon, it, { message(DescriptorRenderer.Companion, psi) }, placed, navigate, clickAction)
@@ -197,23 +196,23 @@ interface LineMarkerSyntax {
     composite: Class<A>,
     targets: (A) -> List<B>,
     message: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.nullable3(),
-    cellRenderer: PsiElementListCellRenderer<B> = DefaultPsiElementCellRenderer() as PsiElementListCellRenderer<B>,
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
     popUpTitle: DescriptorRenderer.Companion.(A, targets: List<B>) -> String? = Noop.string3(),
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
   ): ExtensionPhase =
     relatedLineMarkerProvider(
       { transform(it)?.identifyingElement },
       {
-        it.onComposite(composite) { psi: A ->
-          val list: List<B> = targets(psi)
-          navigationGutter(icon, psi, targets) { element: A ->
-            setCellRenderer(cellRenderer)
-            setTarget(element)
-            popUpTitle(DescriptorRenderer.Companion, element, list)?.let(::setPopupTitle)
-            message(DescriptorRenderer.Companion, element, list)?.let(::setTooltipText)
-            setAlignment(placed)
-            createLineMarkerInfo(it)
-          }
+        it.onComposite(composite) { a: A ->
+          navigateGutter(
+            icon,
+            a,
+            targets,
+            { a: A, list: List<B> -> message(DescriptorRenderer.Companion, a, list) },
+            cellRenderer,
+            { a: A, list: List<B> -> popUpTitle(DescriptorRenderer.Companion, a, list) },
+            placed
+          ).invoke(it)
         }
       }
     )
@@ -229,7 +228,7 @@ interface LineMarkerSyntax {
     transform: (PsiElement) -> A?,
     composite: Class<A>,
     message: DescriptorRenderer.Companion.(A) -> String = Noop.string2(),
-    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
+    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<*>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT,
@@ -281,6 +280,28 @@ interface LineMarkerSyntax {
   ): R =
     NavigationGutterIconBuilder.create(icon, targets).config(element)
 
+  @Suppress("UNCHECKED_CAST")
+  fun <A : PsiElement, B : PsiElement> LineMarkerSyntax.navigateGutter(
+    icon: Icon,
+    psi: A,
+    targets: (A) -> List<B>,
+    message: (A, targets: List<B>) -> String? = Noop.nullable2(),
+    cellRenderer: PsiElementListCellRenderer<B> = DefaultListCellRenderer.default(),
+    popUpTitle: (A, targets: List<B>) -> String? = Noop.string2(),
+    placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.RIGHT
+  ): (PsiElement) -> RelatedItemLineMarkerInfo<PsiElement> =
+    {
+      val list: List<B> = targets(psi)
+      navigationGutter(icon, psi, targets) { element: A ->
+        setCellRenderer(cellRenderer)
+        setTarget(element)
+        popUpTitle(element, list)?.let(::setPopupTitle)
+        message(element, list)?.let(::setTooltipText)
+        setAlignment(placed)
+        createLineMarkerInfo(it)
+      }
+    }
+
   /**
    * `MergeableLineMarkerInfo` can merge multiple LineMarkerInfo's into one, if [mergeWith] is true.
    * @param commonIcon defines the common Icon after the merge
@@ -290,7 +311,7 @@ interface LineMarkerSyntax {
     icon: Icon,
     element: PsiElement,
     message: (PsiElement) -> String,
-    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<PsiElement>>) -> Icon = { icon },
+    commonIcon: MergeableLineMarkerInfo<PsiElement>.(others: List<MergeableLineMarkerInfo<*>>) -> Icon = { icon },
     mergeWith: MergeableLineMarkerInfo<PsiElement>.(other: MergeableLineMarkerInfo<*>) -> Boolean = { this.icon == it.icon },
     placed: GutterIconRenderer.Alignment = GutterIconRenderer.Alignment.LEFT,
     navigate: (event: MouseEvent, element: PsiElement) -> Unit = Noop.effect2,
@@ -300,13 +321,16 @@ interface LineMarkerSyntax {
       override fun canMergeWith(info: MergeableLineMarkerInfo<*>): Boolean =
         mergeWith(info)
 
-      override fun getCommonIcon(infos: MutableList<MergeableLineMarkerInfo<PsiElement>>): Icon =
+      override fun getCommonIcon(infos: MutableList<out MergeableLineMarkerInfo<*>>): Icon =
         commonIcon(infos.toList())
 
       override fun createGutterRenderer(): GutterIconRenderer =
         object : LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement>(this) {
           override fun getClickAction(): AnAction? = clickAction
         }
+
+      override fun getElementPresentation(element: PsiElement): String =
+        message(element)
     }
 
   /**

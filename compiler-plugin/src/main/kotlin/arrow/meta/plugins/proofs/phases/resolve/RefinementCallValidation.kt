@@ -1,6 +1,7 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.Meta
+import arrow.meta.diagnostic.MetaErrors.RefinementValidationError
 import arrow.meta.internal.Noop
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
@@ -11,8 +12,6 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.orEmpty
 import arrow.meta.quotes.scope
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
@@ -25,10 +24,7 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplInterpreter
-//import org.jetbrains.kotlin.scripting.compiler.plugin.repl.configuration.ConsoleReplConfiguration
 import org.jetbrains.kotlin.types.KotlinType
-import javax.script.ScriptEngineManager
 import javax.script.ScriptException
 
 typealias Validation = Map<String, Boolean>
@@ -49,7 +45,7 @@ internal fun CompilerContext.validateRefinedCalls(bindingTrace: BindingTrace) {
       val resolvedCall = call.getResolvedCall(bindingTrace.bindingContext)
       val validation = resolvedCall?.let(::validateConstructorCall).orEmpty()
       resolvedCall?.let {
-        reportValidationErrors(validation, element)
+        reportValidationErrors(validation, element, bindingTrace)
       }
     }
 }
@@ -149,14 +145,10 @@ private fun CompilerContext.evalConstantExpression(constantChecker: String, argu
     }
   }
 
-internal fun CompilerContext.reportValidationErrors(validation: Map<String, Boolean>, element: KtElement) {
+internal fun reportValidationErrors(validation: Map<String, Boolean>, element: KtElement, trace: BindingTrace) {
   validation.forEach { (msg, valid) ->
     if (!valid) {
-      messageCollector?.report(
-        CompilerMessageSeverity.ERROR,
-        "Predicate for ${element.text} failed: \n$msg",
-        MessageUtil.psiElementToMessageLocation(element)
-      )
+      trace.report(RefinementValidationError.on(element, msg))
     }
   }
 }

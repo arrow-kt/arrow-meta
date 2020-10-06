@@ -9,17 +9,22 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.astReplace
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun KtFunction.body(): KtExpression? =
   bodyExpression ?: bodyBlockExpression
@@ -59,6 +64,19 @@ fun KtElement.dfs(f: (KtElement) -> Boolean): List<KtElement> {
   })
   return found
 }
+
+/**
+ * collects all distinct witnesses of [f] from the receiver,
+ * where the return type contains pairs of [A] and a list of other corresponding elements that full fill f
+ */
+fun <A> List<A>.exists(f: (A, A) -> Boolean): List<Pair<A, List<A>>> =
+  fold(emptyList()) { acc: List<Pair<A, List<A>>>, a: A ->
+    acc +
+      (a to
+        filter { b: A ->
+          if (a != b) f(a, b) else false
+        })
+  }
 
 /**
  * traverse and filters starting from the root node [receiver] down to all it's children and applying [f]
@@ -173,3 +191,6 @@ val returnTypeEq: Eq<KotlinType>
 
 fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }
+
+val KtClass.companionObject: KtObjectDeclaration?
+  get() = declarations.singleOrNull{ it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }.safeAs<KtObjectDeclaration>()

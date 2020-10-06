@@ -64,6 +64,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.event.HyperlinkListener
 
+
 interface IdeInternalRegistry : InternalRegistry {
 
   fun intercept(ctx: IdeContext): List<IdePlugin>
@@ -78,6 +79,7 @@ interface IdeInternalRegistry : InternalRegistry {
         fun rec(phase: ExtensionPhase): Unit =
           when (phase) {
             is ExtensionPhase.Empty -> Unit
+
             // cli related extensions
             is CollectAdditionalSources -> ctx.app.registerCliExtension { ctx -> registerCollectAdditionalSources(this, phase, ctx) }
             is Config -> ctx.app.registerCliExtension { ctx -> registerCompilerConfiguration(this, phase, ctx) }
@@ -92,6 +94,7 @@ interface IdeInternalRegistry : InternalRegistry {
             is IRGeneration -> ctx.app.registerCliExtension { ctx -> registerIRGeneration(this, phase, ctx) }
             is SyntheticScopeProvider -> ctx.app.registerCliExtension { ctx -> registerSyntheticScopeProvider(this, phase, ctx) }
             is SyntheticResolver -> ctx.app.registerCliExtension { ctx -> registerSyntheticResolver(this, phase, ctx) }
+
             // cli-ide integration extensions
             is arrow.meta.ide.phases.integration.SyntheticResolver -> ctx.app.registerCliExtension { ctx ->
               phase.syntheticResolver(this)?.let { phase -> registerSyntheticResolver(this, phase, ctx) }
@@ -99,8 +102,41 @@ interface IdeInternalRegistry : InternalRegistry {
             is arrow.meta.ide.phases.integration.PackageProvider -> ctx.app.registerCliExtension { ctx ->
               phase.packageFragmentProvider(this)?.let { phase -> packageFragmentProvider(this, phase, ctx) }
             }
+            is arrow.meta.ide.phases.integration.SyntheticScopeProvider -> ctx.app.registerCliExtension { ctx ->
+              phase.syntheticScopeProvider(this)?.let { phase -> registerSyntheticScopeProvider(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.IRGeneration -> ctx.app.registerCliExtension { ctx ->
+              phase.irGeneration(this)?.let { phase -> registerIRGeneration(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.DeclarationAttributeAlterer -> ctx.app.registerCliExtension { ctx ->
+              phase.declarationAttributeAlterer(this)?.let { phase -> registerDeclarationAttributeAlterer(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.Codegen -> ctx.app.registerCliExtension { ctx ->
+              phase.codegen(this)?.let { phase -> registerCodegen(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.ClassBuilder -> ctx.app.registerCliExtension { ctx ->
+              phase.classBuilder(this)?.let { phase -> registerClassBuilder(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.AnalysisHandler -> ctx.app.registerCliExtension { ctx ->
+              phase.analysisHandler(this)?.let { phase -> registerAnalysisHandler(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.StorageComponentContainer -> ctx.app.registerCliExtension { ctx ->
+              phase.storageComponentContainer(this)?.let { phase -> registerStorageComponentContainer(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.PreprocessedVirtualFileFactory -> ctx.app.registerCliExtension { ctx ->
+              phase.preprocessedVirtualFileFactory(this)?.let { phase -> registerPreprocessedVirtualFileFactory(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.ExtraImports -> ctx.app.registerCliExtension { ctx ->
+              phase.extraImports(this)?.let { phase -> registerExtraImports(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.Config -> ctx.app.registerCliExtension { ctx ->
+              phase.config(this)?.let { phase -> registerCompilerConfiguration(this, phase, ctx) }
+            }
+            is arrow.meta.ide.phases.integration.CollectAdditionalSources -> ctx.app.registerCliExtension { ctx ->
+              phase.collectAdditionalSources(this)?.let { phase -> registerCollectAdditionalSources(this, phase, ctx) }
+            }
             is KotlinIndicesHelper -> ctx.app.registerCliExtension { ctx -> kotlinIndicesHelper(phase, ctx) }
-            // TODO: add more integrations
+
             // ide related extensions
             is ExtensionProvider<*> -> registerExtensionProvider(phase, ctx.app)
             is AnActionExtensionProvider -> registerAnActionExtensionProvider(phase)
@@ -187,22 +223,23 @@ interface IdeInternalRegistry : InternalRegistry {
          * com.intellij.openapi.project.impl.ProjectImpl.init
          * com/intellij/idea/ApplicationLoader.kt:261: preloadServices
          */
-        app.projectOpened { project: Project ->
-          instance(project, project.getService(service))?.let {
-            project.registerService(service as Class<Any>, it)
-          } ?: Unit
-        }
+        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+          override fun projectOpened(project: Project): Unit =
+            instance(project, project.getService(service))?.let {
+              project.registerService(service as Class<Any>, it)
+            } ?: Unit
+        })
       }
       is ApplicationProvider.ReplaceProjectService<*> -> phase.run {
-        app.projectOpened { project: Project ->
-          project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
-        }
+        app.registerTopic(ProjectManager.TOPIC, object : ProjectManagerListener {
+          override fun projectOpened(project: Project): Unit =
+            project.replaceService(service as Class<Any>, instance(project, project.getService(service)))
+        })
       }
       is ApplicationProvider.AppListener -> app.messageBus.connect(app).subscribe(AppLifecycleListener.TOPIC, phase.listener)
       is ApplicationProvider.OverrideService -> phase.run { app.overrideService(from, to, override) }
       is ApplicationProvider.Listener -> app.addApplicationListener(phase.listener, app)
-      is ApplicationProvider.ProjectListener -> app.registerTopic(ProjectLifecycleListener.TOPIC, phase.listener) // Alternative use ProjectManagerListener.TOPIC
-      is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
+      // TODO("temporarily disabled") is ApplicationProvider.UnloadServices -> app.safeAs<ComponentManagerImpl>()?.unloadServices(phase.container)?.forEach { LOG.info("Meta Unloaded Service:$it") }
       ApplicationProvider.StopServicePreloading -> app.safeAs<ComponentManagerImpl>()?.stopServicePreloading()
       is ApplicationProvider.MetaModuleListener -> phase.run { app.messageBus.connect(app).subscribe(ProjectTopics.MODULES, listener) }
       is ApplicationProvider.PMListener -> app.registerTopic(ProjectManager.TOPIC, phase.listener)

@@ -1,6 +1,7 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.getType
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.util.strictParents
 import org.jetbrains.kotlin.psi.KtTypeProjection
@@ -12,13 +13,13 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val IdeMetaPlugin.codeFoldingOnKinds: ExtensionPhase
   get() = addFoldingBuilder(
-    match = ::kindTypeMatches,
+    match = KtTypeReference::kindTypeMatches,
     hint = KtTypeReference::foldString
   )
 
-fun kindTypeMatches(typeReference: KtTypeReference): Boolean =
-  typeReference.getType().isTypeMatching() &&
-    typeReference.strictParents().all { psiElement ->
+fun KtTypeReference.kindTypeMatches(): Boolean =
+  getType().isTypeMatching() &&
+    strictParents().all { psiElement ->
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 

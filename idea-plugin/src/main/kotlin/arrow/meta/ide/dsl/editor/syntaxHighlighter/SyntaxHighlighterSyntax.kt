@@ -26,7 +26,7 @@ interface SyntaxHighlighterSyntax {
   /**
    * @param tokenHighlights specifies the generated tokens from the lexer that need to be highlighted
    * The following example registers a sample amount of the generated Tokens from the KotlinLexer.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke

@@ -3,7 +3,7 @@ package arrow.meta.quotes.transform
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TransformManyTest {
     

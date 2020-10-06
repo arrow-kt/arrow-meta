@@ -41,7 +41,7 @@ interface ColorSettingsSyntax {
   /**
    * This extension registers a [ColorSettingsPage].
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
@@ -81,7 +81,7 @@ interface ColorSettingsSyntax {
    * ---
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
@@ -123,7 +123,7 @@ interface ColorSettingsSyntax {
    * [ColorSettingsPage] does not register tagged Tokens in [demoText] to the Language, for that we need other `Extensions`.
    * Nonetheless, we can register tokens to be highlighted, assuming we already provide an ide extension instance with these added tokens - mainly with a `Parser` and [Annotator].
    *
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
@@ -164,7 +164,7 @@ interface ColorSettingsSyntax {
    *
    * We can achieve a similar visual representation with an empty instance [PlainSyntaxHighlighter] - which is the default for [highlighter].
    *
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke

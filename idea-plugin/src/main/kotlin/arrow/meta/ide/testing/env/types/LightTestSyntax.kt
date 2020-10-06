@@ -1,7 +1,7 @@
 package arrow.meta.ide.testing.env.types
 
-import arrow.meta.ide.dsl.utils.toNotNullable
 import arrow.meta.ide.testing.Source
+import arrow.meta.internal.filterNotNull
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.psi.PsiElement
@@ -40,7 +40,7 @@ object LightTestSyntax {
     StringBuilder(this).run {
       val psiFile: PsiFile? = myFixture.configureByText(KotlinFileType.INSTANCE, toString())
       filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i })
-        .map { psiFile?.findElementAt(it)?.let(f) }.toNotNullable()
+        .map { psiFile?.findElementAt(it)?.let(f) }.filterNotNull()
     }
 
   /**

@@ -146,7 +146,7 @@ interface ExtensionProviderSyntax {
    * //sampleEnd
    * ```
    * Registering [MetaProvider] in `Meta` may look like this:
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
