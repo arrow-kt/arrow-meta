@@ -1,105 +1,70 @@
 package arrow.meta.plugins.typeclasses
 
-import arrow.core.Some
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 class TypeClassesTest {
 
-  @Test
-  fun `simple case`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
-    val codeSnippet =
-      """
-      | import arrow.Kind
-      | import arrow.given
-      | import arrow.core.Some
-      | import arrow.core.Option
-      | import arrow.extension
-      | import arrow.core.ForOption
-      | import arrow.core.fix
-      | import arrow.core.None
-      |
-      | //metadebug
-      |
-      | @extension
-      | object OptionMappable : Mappable<ForOption> {
-      |   override fun <A, B> Kind<ForOption, A>.map(f: (A) -> B): Kind<ForOption, B> =
-      |     when (val o: Option<A> = this.fix()) {
-      |       is Some -> Some(f(o.t))
-      |       None -> None
-      |     }
-      | } 
-      | 
-      | interface Mappable<F> {
-      |   fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
-      | }
-      |
-      | object Test {
-      |   fun <F> Kind<F, Int>.addOne(M: Mappable<F> = given): Kind<F, Int> =
-      |     map { it + 1 }
-      | }
-      |
-      | fun foo(): Option<Int> {
-      |   Test.run {
-      |     return Some(1).addOne()
-      |   }
-      | }
+    //@Test
+    fun `simple case`() {
+        val codeSnippet = """
+       import arrowx.*
+       import arrow.*
+      
+       //metadebug
+        val aaaa = "1".monoidExt().mcombine("2").monoidExt().mcombine("3").monoidExt().mcombine("4")
+        val b = "1".mcombine("2").mcombine("3").mcombine("4").mcombine("5")
+        val c = String.mempty()
+        val d = c.mcombine(b)
       """
 
+        assertThis(CompilerTest(
+            config = {
+                metaDependencies
+            },
+            code = {
+                codeSnippet.source
+            },
+            assert = {
+                allOf("d".source.evalsTo("12345"))
+            }
+        ))
+    }
+
+  @Test
+  fun `polymorphic constrain`() {
+    val codeSnippet = """
+       import arrow.*
+       import arrowx.*
+       
+       fun <A: @Given Semigroup<A>> A.mappend(b: A): A =
+          this@mappend.combine(b)
+
+       //metadebug
+        val result1 = String.empty()
+        val result2 = "1".combine("1")
+        val result3 = "2".mappend("2")
+        val result = result1.combine(result2).combine(result3)
+      """
     assertThis(CompilerTest(
       config = {
-        metaDependencies + addDependencies(arrowCoreData)
+        metaDependencies
       },
       code = {
         codeSnippet.source
       },
       assert = {
         allOf(
-          quoteOutputMatches(
-            """
-            | import arrow.Kind
-            | import arrow.given
-            | import arrow.core.Some
-            | import arrow.core.Option
-            | import arrow.extension
-            | import arrow.core.ForOption
-            | import arrow.core.fix
-            | import arrow.core.None
-            | 
-            | //meta: <date>
-            | 
-            | @extension
-            | object OptionMappable : Mappable<ForOption> {
-            |   override fun <A, B> Kind<ForOption, A>.map(f: (A) -> B): Kind<ForOption, B> =
-            |     when(val o: Option<A> = this.fix()) {
-            |       is Some -> Some(f(o.t))
-            |       None -> None
-            |     }
-            | }
-            | 
-            | interface Mappable<F> {
-            |   fun <A, B> Kind<F, A>.map(f: (A) -> B): Kind<F, B>
-            | }
-            | 
-            | object Test {
-            |   fun <F> Kind<F, Int>.addOne(M: Mappable<F> = given): Kind<F, Int> =
-            |     M.run { map { it + 1 } }
-            | }
-            | 
-            | fun foo(): Option<Int> {
-            |   Test.run {
-            |     return Some(1).addOne()
-            |   }
-            | }
-            """.source
-          ),
-          "foo()".source.evalsTo(Some(2))
+          "result1".source.evalsTo(""),
+          "result2".source.evalsTo("11"),
+          "result3".source.evalsTo("22"),
+          "result".source.evalsTo("1122")
         )
       }
     ))
   }
+
 }
+

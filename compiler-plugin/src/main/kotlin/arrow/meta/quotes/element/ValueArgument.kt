@@ -13,16 +13,16 @@ import org.jetbrains.kotlin.psi.KtValueArgumentName
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.valueArgument
  *
- * val Meta.reformatValueArg: Plugin
+ * val Meta.reformatValueArg: CliPlugin
  *  get() =
  *   "ReformatValueArg" {
  *    meta(
- *     valueArgument({ true }) { e ->
+ *     valueArgument(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = (if (!argumentName.toString().isNullOrEmpty()) """$argumentName = $argumentExpression""" else  """$argumentExpression""").argument

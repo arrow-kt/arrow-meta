@@ -1,6 +1,5 @@
 package arrow.meta.dsl.resolve
 
-import arrow.meta.dsl.platform.ide
 import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
@@ -10,7 +9,9 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -29,7 +30,6 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
-import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import java.util.*
@@ -50,7 +50,6 @@ interface ResolveSyntax {
         declaration: DeclarationDescriptor?,
         containingDeclaration: DeclarationDescriptor?,
         currentModality: Modality,
-        bindingContext: BindingContext,
         isImplicitModality: Boolean
       ): Modality? =
         refineDeclarationModality(
@@ -58,7 +57,6 @@ interface ResolveSyntax {
           declaration,
           containingDeclaration,
           currentModality,
-          bindingContext,
           isImplicitModality
         )
     }
@@ -97,45 +95,44 @@ interface ResolveSyntax {
    */
   fun syntheticScopes(
     syntheticConstructor: CompilerContext.(constructor: ConstructorDescriptor) -> ConstructorDescriptor? = Noop.nullable2(),
-    syntheticConstructors: CompilerContext.(scope: ResolutionScope) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
-    syntheticConstructorsForName: CompilerContext.(scope: ResolutionScope, name: Name, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection4(),
+    syntheticConstructors: CompilerContext.(classifierDescriptors: Collection<DeclarationDescriptor>) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
+    syntheticConstructorsForName: CompilerContext.(contributedClassifier: ClassifierDescriptor, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection3(),
     syntheticExtensionProperties: CompilerContext.(receiverTypes: Collection<KotlinType>, location: LookupLocation) -> Collection<PropertyDescriptor> = Noop.emptyCollection3(),
     syntheticExtensionPropertiesForName: CompilerContext.(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation) -> Collection<PropertyDescriptor> = Noop.emptyCollection4(),
     syntheticMemberFunctions: CompilerContext.(receiverTypes: Collection<KotlinType>) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
     syntheticMemberFunctionsForName: CompilerContext.(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection4(),
-    syntheticStaticFunctions: CompilerContext.(scope: ResolutionScope) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
-    syntheticStaticFunctionsForName: CompilerContext.(scope: ResolutionScope, name: Name, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection4()
+    syntheticStaticFunctions: CompilerContext.(functionDescriptors: Collection<DeclarationDescriptor>) -> Collection<FunctionDescriptor> = Noop.emptyCollection2(),
+    syntheticStaticFunctionsForName: CompilerContext.(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation) -> Collection<FunctionDescriptor> = Noop.emptyCollection3()
   ): ExtensionPhase =
-    ide {
-      object : SyntheticScopeProvider {
-        override fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
-          syntheticConstructor(constructor)
+    object : SyntheticScopeProvider {
+      override fun CompilerContext.syntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
+        syntheticConstructor(constructor)
 
-        override fun CompilerContext.syntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
-          syntheticConstructors(scope)
+      override fun CompilerContext.syntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+        syntheticConstructors(classifierDescriptors)
 
-        override fun CompilerContext.syntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-          syntheticConstructorsForName(scope, name, location)
+      override fun CompilerContext.syntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
+        syntheticConstructorsForName(contributedClassifier, location)
 
-        override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
-          syntheticExtensionProperties(receiverTypes, location)
+      override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
+        syntheticExtensionProperties(receiverTypes, location)
 
-        override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-          syntheticExtensionPropertiesForName(receiverTypes, name, location)
+      override fun CompilerContext.syntheticExtensionProperties(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+        syntheticExtensionPropertiesForName(receiverTypes, name, location)
 
-        override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
-          syntheticMemberFunctions(receiverTypes)
+      override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
+        syntheticMemberFunctions(receiverTypes)
 
-        override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-          syntheticMemberFunctionsForName(receiverTypes, name, location)
+      override fun CompilerContext.syntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
+        syntheticMemberFunctionsForName(receiverTypes, name, location)
 
-        override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
-          syntheticStaticFunctions(scope)
+      override fun CompilerContext.syntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+        syntheticStaticFunctions(functionDescriptors)
 
-        override fun CompilerContext.syntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-          syntheticStaticFunctionsForName(scope, name, location)
-      }
-    } ?: ExtensionPhase.Empty
+      override fun CompilerContext.syntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
+        syntheticStaticFunctionsForName(contributedFunctions, location)
+    }
+
 
   /**
    * The [syntheticResolver] extension allows the user to change the top level class and nested class descriptors
@@ -157,6 +154,7 @@ interface ResolveSyntax {
     generateSyntheticClasses: CompilerContext.(thisDescriptor: ClassDescriptor, name: Name, ctx: LazyClassContext, declarationProvider: ClassMemberDeclarationProvider, result: MutableSet<ClassDescriptor>) -> Unit = Noop.effect6,
     generateSyntheticMethods: CompilerContext.(thisDescriptor: ClassDescriptor, name: Name, bindingContext: BindingContext, fromSupertypes: List<SimpleFunctionDescriptor>, result: MutableCollection<SimpleFunctionDescriptor>) -> Unit = Noop.effect6,
     generateSyntheticProperties: CompilerContext.(thisDescriptor: ClassDescriptor, name: Name, bindingContext: BindingContext, fromSupertypes: ArrayList<PropertyDescriptor>, result: MutableSet<PropertyDescriptor>) -> Unit = Noop.effect6,
+    generateSyntheticSecondaryConstructors: CompilerContext.(thisDescriptor: ClassDescriptor, bindingContext: BindingContext, result: MutableCollection<ClassConstructorDescriptor>) -> Unit = Noop.effect4,
     getSyntheticCompanionObjectNameIfNeeded: CompilerContext.(thisDescriptor: ClassDescriptor) -> Name? = Noop.nullable2(),
     getSyntheticFunctionNames: CompilerContext.(thisDescriptor: ClassDescriptor) -> List<Name>? = Noop.nullable2(),
     getSyntheticNestedClassNames: CompilerContext.(thisDescriptor: ClassDescriptor) -> List<Name>? = Noop.nullable2()
@@ -217,6 +215,9 @@ interface ResolveSyntax {
 
       override fun CompilerContext.getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> =
         getSyntheticNestedClassNames(thisDescriptor) ?: emptyList()
+
+      override fun CompilerContext.generateSyntheticSecondaryConstructors(thisDescriptor: ClassDescriptor, bindingContext: BindingContext, result: MutableCollection<ClassConstructorDescriptor>): Unit =
+        generateSyntheticSecondaryConstructors(thisDescriptor, bindingContext, result)
     }
 
 

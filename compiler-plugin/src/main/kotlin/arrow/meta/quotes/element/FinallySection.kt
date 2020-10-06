@@ -12,16 +12,16 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.finallySection
  *
- * val Meta.reformatFinallySection: Plugin
+ * val Meta.reformatFinallySection: CliPlugin
  *  get() =
  *   "ReformatFinallySection" {
  *    meta(
- *     finallySection({ true }) { s ->
+ *     finallySection(this, { true }) { s ->
  *      Transform.replace(
  *       replacing = s,
  *       newDeclaration = """finally { $finallyExpression }""".finally

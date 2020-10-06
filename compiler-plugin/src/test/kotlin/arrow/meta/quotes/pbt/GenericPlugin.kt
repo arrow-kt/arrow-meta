@@ -1,7 +1,7 @@
 package arrow.meta.quotes.pbt
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Scope
@@ -67,10 +67,11 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
 
 open class GenericPlugin : Meta {
 
-  override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
     "Generic Plugin" {
       meta(
         quote(
+          this,
           { implemented(this) },
           { element: KtElement ->
             Transform.replace(

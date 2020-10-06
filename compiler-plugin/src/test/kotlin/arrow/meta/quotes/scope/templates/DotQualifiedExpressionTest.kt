@@ -5,14 +5,15 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.DotQualifiedExpressionPlugin
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class DotQualifiedExpressionTest  {
 
   companion object {
     private val dotQualifiedExpression =  """
       | val list = listOf("12", "33", "65")
-      |     list.flatMap { it.toList() }""".dotQualifiedExpression()
+      |     list.flatMap { it.toList() }
+      |""".dotQualifiedExpression()
 
     private val mutableDotQualifiedExpression = """"Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
 

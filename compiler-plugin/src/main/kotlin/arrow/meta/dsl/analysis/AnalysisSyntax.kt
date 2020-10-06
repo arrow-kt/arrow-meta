@@ -1,13 +1,13 @@
 package arrow.meta.dsl.analysis
 
 import arrow.meta.dsl.platform.cli
+import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
-import arrow.meta.internal.Noop
-import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
-import java.util.ArrayList
+import java.util.*
 
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly.
@@ -52,7 +52,7 @@ interface AnalysisSyntax {
    */
   fun analysis(
     doAnalysis: CompilerContext.(project: Project, module: ModuleDescriptor, projectContext: ProjectContext, files: Collection<KtFile>, bindingTrace: BindingTrace, componentProvider: ComponentProvider) -> AnalysisResult?,
-    analysisCompleted: CompilerContext.(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>) -> AnalysisResult?
+    analysisCompleted: CompilerContext.(project: Project, module: ModuleDescriptor, bindingTrace: BindingTrace, files: Collection<KtFile>) -> AnalysisResult? = Noop.nullable5()
   ): AnalysisHandler =
     object : AnalysisHandler {
       override fun CompilerContext.doAnalysis(
@@ -63,9 +63,6 @@ interface AnalysisSyntax {
         bindingTrace: BindingTrace,
         componentProvider: ComponentProvider
       ): AnalysisResult? {
-        ctx.module = module
-        ctx.files = files
-        ctx.componentProvider = componentProvider
         return doAnalysis(project, module, projectContext, files, bindingTrace, componentProvider)
       }
 
@@ -119,11 +116,32 @@ interface AnalysisSyntax {
         },
         analysisCompleted = { project, module, bindingTrace, files ->
           val diagnostics: MutableDiagnosticsWithSuppression =
-          BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
+            BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf(f)
           null
         }
       )
     } ?: ExtensionPhase.Empty
+
+  /**
+   * @see [suppressDiagnostic] including access to the [BindingTrace]
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun suppressDiagnosticWithTrace(f: BindingTrace.(Diagnostic) -> Boolean): ExtensionPhase =
+    cli {
+      analysis(
+        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          null
+        },
+        analysisCompleted = { project, module, bindingTrace, files ->
+          val diagnostics: MutableDiagnosticsWithSuppression =
+            BindingTraceContext::class.java.getDeclaredField("mutableDiagnostics").also { it.isAccessible = true }.get(bindingTrace) as MutableDiagnosticsWithSuppression
+          val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
+          mutableDiagnostics.removeIf { f(bindingTrace, it) }
+          null
+        }
+      )
+    } ?: ExtensionPhase.Empty
+
 }

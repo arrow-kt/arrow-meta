@@ -12,16 +12,16 @@ import org.jetbrains.kotlin.psi.KtThrowExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.throwExpression
  *
- * val Meta.reformatThrow: Plugin
+ * val Meta.reformatThrow: CliPlugin
  *    get() =
  *      "Reformat Throw Expression" {
  *        meta(
- *          throwExpression({ true }) { expression ->
+ *          throwExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """throw $thrownExpression""".`throw`

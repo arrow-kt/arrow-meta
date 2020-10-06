@@ -1,14 +1,14 @@
 package arrow.meta.quotes.scope.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.objectDeclaration
 
 open class ObjectDeclarationPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<Plugin> = listOf(
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
     objectDeclarationPlugin
   )
 }
@@ -16,7 +16,7 @@ open class ObjectDeclarationPlugin : Meta {
 val Meta.objectDeclarationPlugin
   get() = "Object Declaration Scope Plugin" {
     meta(
-      objectDeclaration({ name == "Test" }) { declaration ->
+      objectDeclaration(this, { name == "Test" }) { declaration ->
         Transform.replace(
           replacing = declaration,
           newDeclaration = identity()

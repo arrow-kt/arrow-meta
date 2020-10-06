@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.psi.KtExpression
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.annotatedExpression
  *
- * val Meta.reformatAnnotated: Plugin
+ * val Meta.reformatAnnotated: CliPlugin
  *    get() =
  *      "Reformat Annotated Expression" {
  *        meta(

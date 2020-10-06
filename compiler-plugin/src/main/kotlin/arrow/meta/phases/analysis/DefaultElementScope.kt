@@ -175,7 +175,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() = ObjectDeclaration(delegate.createCompanionObject())
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
-  
+
   override val <A : KtDeclaration> Scope<A>.syntheticScope: Scope<A>
     get() {
       val synth = "@arrow.synthetic"
@@ -194,7 +194,7 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() {
       val synth = "@arrow.synthetic"
       return when(this) {
-         is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}")) as A
+        is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}")) as A
         else -> this
       }
     }
@@ -283,7 +283,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val emptyClassBody: ClassBody
     get() = ClassBody(delegate.createEmptyClassBody())
 
-  override val String.classParameter: Parameter
+  override val String.parameter: Parameter
     get() = Parameter(delegate.createParameter(trimMargin()))
 
   override val String.loopParameter: Parameter
@@ -402,7 +402,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.`try`: TryExpression
     get() = TryExpression(expression.value as KtTryExpression)
-  
+
   override val String.catch: CatchClause
     get() = CatchClause(
       """
@@ -443,12 +443,14 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
-  
+
   override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
+
+  override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
-  
+
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }

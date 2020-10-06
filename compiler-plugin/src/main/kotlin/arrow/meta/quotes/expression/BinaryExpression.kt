@@ -13,16 +13,16 @@ import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.binaryExpression
  *
- * val Meta.reformatBinary: Plugin
+ * val Meta.reformatBinary: CliPlugin
  *    get() =
  *      "Reformat Binary Expression" {
  *        meta(
- *          binaryExpression({ true }) { expression ->
+ *          binaryExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """$left $operationReference $right""".binaryExpression

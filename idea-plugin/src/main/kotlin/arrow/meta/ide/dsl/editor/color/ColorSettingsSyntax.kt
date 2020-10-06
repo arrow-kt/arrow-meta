@@ -1,12 +1,14 @@
 package arrow.meta.ide.dsl.editor.color
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.syntaxHighlighter.SyntaxHighlighterSyntax
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import com.intellij.application.options.colors.FontEditorPreview
 import com.intellij.application.options.colors.InspectionColorSettingsPage
 import com.intellij.lang.Language
+import com.intellij.lang.annotation.Annotator
+import com.intellij.openapi.application.ApplicationNamesInfo
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileTypes.PlainSyntaxHighlighter
@@ -21,9 +23,7 @@ import com.intellij.ui.EditorCustomization
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.highlighter.KotlinColorSettingsPage
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import javax.swing.Icon
-import com.intellij.lang.annotation.Annotator
 
 /**
  * [ColorSettingsPage] goes hand in hand with [SyntaxHighlighter]'s.
@@ -41,17 +41,17 @@ interface ColorSettingsSyntax {
   /**
    * This extension registers a [ColorSettingsPage].
    * Let's register `MetaColorSettings` with the [KotlinHighlighter] and an empty [additionalHighlightingTags].
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -81,17 +81,17 @@ interface ColorSettingsSyntax {
    * ---
    * Adding `KeyWords`, `Interface` and `Named Arguments` as tags to [demoText] is not enough.
    * They have to be added to [additionalHighlightingTags] in order to be indexed, by the ide.
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
    * import org.jetbrains.kotlin.idea.KotlinLanguage
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -123,10 +123,10 @@ interface ColorSettingsSyntax {
    * [ColorSettingsPage] does not register tagged Tokens in [demoText] to the Language, for that we need other `Extensions`.
    * Nonetheless, we can register tokens to be highlighted, assuming we already provide an ide extension instance with these added tokens - mainly with a `Parser` and [Annotator].
    *
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlighter
@@ -136,7 +136,7 @@ interface ColorSettingsSyntax {
    * val Interface: String = "Interface"
    * val NamedArgument: String = "Named argument"
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "ColorSettingsPage for MetaSyntaxHighlighter" {
    *   meta(
    *    addColorSettingsPage(
@@ -164,10 +164,10 @@ interface ColorSettingsSyntax {
    *
    * We can achieve a similar visual representation with an empty instance [PlainSyntaxHighlighter] - which is the default for [highlighter].
    *
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * import com.intellij.psi.codeStyle.DisplayPriority
    * import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
    *
@@ -178,7 +178,7 @@ interface ColorSettingsSyntax {
    * val String: String = "String"
    *
    * //sampleStart
-   * val IdeMetaPlugin.syntaxHighlighter: Plugin
+   * val MetaIde.syntaxHighlighter: IdePlugin
    *  get() = "Plain ColorSettingsPage" {
    *   meta(
    *    addColorSettingsPage(
@@ -212,13 +212,13 @@ interface ColorSettingsSyntax {
    * @param highlighter an empty default instance is [PlainSyntaxHighlighter]
    * @sample [KotlinColorSettingsPage]
    */
-  fun IdeMetaPlugin.addColorSettingsPage(
+  fun MetaIde.addColorSettingsPage(
     displayName: String,
     priority: DisplayPriority,
     additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
     attributesDescriptor: Array<AttributesDescriptor> =
       additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
-    demoText: String = FontEditorPreview.getIDEDemoText(),
+    demoText: String = this.demoText,
     highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
@@ -247,7 +247,7 @@ interface ColorSettingsSyntax {
     additionalHighlightingTags: MutableMap<String, TextAttributesKey>,
     attributesDescriptor: Array<AttributesDescriptor> =
       additionalHighlightingTags.map { (k, v) -> k toA v }.toTypedArray(),
-    demoText: String = FontEditorPreview.getIDEDemoText(),
+    demoText: String = this.demoText,
     highlighter: SyntaxHighlighter = PlainSyntaxHighlighter(),
     icon: Icon? = null,
     colorDescriptor: Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY,
@@ -284,4 +284,13 @@ interface ColorSettingsSyntax {
    */
   val TextAttributesKey.descriptor: AttributesDescriptor
     get() = externalName toA this
+
+  val ColorSettingsSyntax.demoText: String
+    get() = """${ApplicationNamesInfo.getInstance().fullProductName} is a full-featured IDE
+            with a high level of usability and outstanding
+            advanced code editing and refactoring support.
+            abcdefghijklmnopqrstuvwxyz 0123456789 (){}[]
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ +-*/= .,;:!? #&$%@|^
+            <!-- -- != := === >= >- >=> |-> -> <$> </> #[ |||> |= ~@
+            """
 }

@@ -3,9 +3,9 @@ package arrow.meta.quotes.transform
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
-import io.kotlintest.specs.AnnotationSpec
+import org.junit.jupiter.api.Test
 
-class TransformNewSourceTest : AnnotationSpec() {
+class TransformNewSourceTest {
   
   @Test
   fun `validate single extra file is created`() {
@@ -53,7 +53,7 @@ class TransformNewSourceTest : AnnotationSpec() {
         )
       }
     ))
-    }
+  }
   
   @Test
   fun `Check if the file is modified and another file is created`() {
@@ -80,6 +80,51 @@ class TransformNewSourceTest : AnnotationSpec() {
                  fun say(name: String) = println(name)
                }
             """.source
+          )
+        )
+      }
+    ))
+  }
+
+  @Test
+  fun `validate single extra file is created with custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """ class NewSourceWithCustomPath {} """.source
+      },
+      assert = { quoteFileMatches( filename = "NewSourceWithCustomPath_Generated.kt",
+        source = """
+          package arrow
+          class NewSourceWithCustomPath_Generated
+        """.source,
+        sourcePath = "build/generated/source/kapt/test/files"
+      )}
+    ))
+  }
+
+  @Test
+  fun `validate multiple extra files are created with custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
+      code = {
+        """ class NewMultipleSourceWithCustomPath {} """.source
+      },
+      assert = {
+        allOf(
+          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithCustomPath_Generated
+            """.source,
+            sourcePath = "build/generated/source/kapt/test/files"
+          ),
+          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithCustomPath_Generated_2
+            """.source,
+            sourcePath = "build/generated/source/kapt/test/files/source"
           )
         )
       }

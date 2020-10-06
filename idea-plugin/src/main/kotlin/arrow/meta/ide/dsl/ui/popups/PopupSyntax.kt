@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.ui.popups
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.editor.action.AnActionSyntax
 import arrow.meta.ide.dsl.editor.inspection.InspectionSyntax
 import arrow.meta.internal.Noop
@@ -28,15 +28,15 @@ import javax.swing.event.HyperlinkEvent
  */
 interface PopupSyntax {
   /**
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.dsl.ui.popups.IdeListPopupItem
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.PlatformDataKeys
    *
-   * val IdeMetaPlugin.showListPlugin: Plugin
+   * val MetaIde.showListPlugin: IdePlugin
    *  get() = "Action to create ListPopUp" {
    *    meta(
    *      addAnAction(
@@ -69,7 +69,7 @@ interface PopupSyntax {
    * @param sameIcon can be specified to unify all ListPopUp items
    * @see IdeListPopupItem
    */
-  fun <A> IdeMetaPlugin.listPopUp(
+  fun <A> MetaIde.listPopUp(
     popUps: List<IdeListPopupItem<A>>,
     title: String? = null,
     sameIcon: Icon? = null,
@@ -105,30 +105,30 @@ interface PopupSyntax {
       }
     }
 
-  fun <A> IdeMetaPlugin.treePopUp(root: TreePopupStep<A>, tree: JBPopupFactory.(root: TreePopupStep<A>) -> TreePopup = { createTree(root) }): TreePopup =
+  fun <A> MetaIde.treePopUp(root: TreePopupStep<A>, tree: JBPopupFactory.(root: TreePopupStep<A>) -> TreePopup = { createTree(root) }): TreePopup =
     popUp { tree(this, root) }
 
-  fun IdeMetaPlugin.message(text: String): JBPopup =
+  fun MetaIde.message(text: String): JBPopup =
     popUp { createMessage(text) }
 
-  fun IdeMetaPlugin.componentPopUp(content: JComponent, focus: JComponent, transform: ComponentPopupBuilder.() -> ComponentPopupBuilder): ComponentPopupBuilder =
+  fun MetaIde.componentPopUp(content: JComponent, focus: JComponent, transform: ComponentPopupBuilder.() -> ComponentPopupBuilder): ComponentPopupBuilder =
     componentPopUp { transform(createComponentPopupBuilder(content, focus)) }
 
-  fun IdeMetaPlugin.balloonBuilder(content: JComponent, transform: BalloonBuilder.() -> BalloonBuilder): BalloonBuilder =
+  fun MetaIde.balloonBuilder(content: JComponent, transform: BalloonBuilder.() -> BalloonBuilder): BalloonBuilder =
     balloon { transform(createBalloonBuilder(content)) }
 
-  fun IdeMetaPlugin.balloonBuilder(content: JComponent, title: String, transform: BalloonBuilder.() -> BalloonBuilder): BalloonBuilder =
+  fun MetaIde.balloonBuilder(content: JComponent, title: String, transform: BalloonBuilder.() -> BalloonBuilder): BalloonBuilder =
     balloon { transform(createDialogBalloonBuilder(content, title)) }
 
-  fun IdeMetaPlugin.balloonBuilder(html: String, fillColor: Color, transform: BalloonBuilder.() -> BalloonBuilder, icon: Icon? = null, textColor: Color? = null, link: (HyperlinkEvent) -> Unit = Noop.effect1): BalloonBuilder =
+  fun MetaIde.balloonBuilder(html: String, fillColor: Color, transform: BalloonBuilder.() -> BalloonBuilder, icon: Icon? = null, textColor: Color? = null, link: (HyperlinkEvent) -> Unit = Noop.effect1): BalloonBuilder =
     balloon { transform(createHtmlTextBalloonBuilder(html, icon, textColor, fillColor, link)) }
 
-  fun IdeMetaPlugin.balloonBuilder(html: String, messageType: MessageType, transform: BalloonBuilder.() -> BalloonBuilder, link: (HyperlinkEvent) -> Unit = Noop.effect1): BalloonBuilder =
+  fun MetaIde.balloonBuilder(html: String, messageType: MessageType, transform: BalloonBuilder.() -> BalloonBuilder, link: (HyperlinkEvent) -> Unit = Noop.effect1): BalloonBuilder =
     balloon { transform(createHtmlTextBalloonBuilder(html, messageType, link)) }
 
-  fun <P : JBPopup> IdeMetaPlugin.popUp(f: JBPopupFactory.() -> P): P = f(JBPopupFactory.getInstance())
-  fun IdeMetaPlugin.balloon(f: JBPopupFactory.() -> BalloonBuilder): BalloonBuilder = f(JBPopupFactory.getInstance())
-  fun IdeMetaPlugin.componentPopUp(f: JBPopupFactory.() -> ComponentPopupBuilder): ComponentPopupBuilder = f(JBPopupFactory.getInstance())
+  fun <P : JBPopup> MetaIde.popUp(f: JBPopupFactory.() -> P): P = f(JBPopupFactory.getInstance())
+  fun MetaIde.balloon(f: JBPopupFactory.() -> BalloonBuilder): BalloonBuilder = f(JBPopupFactory.getInstance())
+  fun MetaIde.componentPopUp(f: JBPopupFactory.() -> ComponentPopupBuilder): ComponentPopupBuilder = f(JBPopupFactory.getInstance())
 
 }
 

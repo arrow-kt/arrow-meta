@@ -2,10 +2,9 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.comprehensions.comprehensions
-import arrow.meta.plugins.higherkind.higherKindedTypes
+import arrow.meta.plugins.higherkind.higherKindedTypes2
 import arrow.meta.plugins.optics.lenses
-import arrow.meta.plugins.typeclasses.typeClasses
-import arrow.meta.plugins.union.unionTypes
+import arrow.meta.plugins.proofs.typeProofs
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -16,12 +15,14 @@ import kotlin.contracts.ExperimentalContracts
  */
 open class MetaPlugin : Meta {
   @ExperimentalContracts
-  override fun intercept(ctx: CompilerContext): List<Plugin> =
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
-      unionTypes,
-      higherKindedTypes,
-      typeClasses,
-      comprehensions,
-      lenses
+      higherKindedTypes2,
+      //typeClasses,
+      // comprehensions,
+      //lenses,
+      typeProofs
     )
 }
+
+

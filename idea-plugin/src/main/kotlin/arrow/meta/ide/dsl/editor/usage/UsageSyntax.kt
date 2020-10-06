@@ -1,8 +1,8 @@
 package arrow.meta.ide.dsl.editor.usage
 
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.find.findUsages.AbstractFindUsagesDialog
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandlerFactory
@@ -23,7 +23,7 @@ interface UsageSyntax {
   /**
    * A filtering rule that allows you to exclude imports from actions such as "find usages"
    */
-  fun IdeMetaPlugin.addImportFilteringRule(
+  fun MetaIde.addImportFilteringRule(
     isVisible: (usage: Usage, targets: Array<out UsageTarget>) -> Boolean
   ): ExtensionPhase =
     extensionProvider(
@@ -41,7 +41,7 @@ interface UsageSyntax {
       }
     )
 
-  fun IdeMetaPlugin.addUsageTypeProvider(
+  fun MetaIde.addUsageTypeProvider(
     f: (psiElement: PsiElement) -> UsageType?
   ): ExtensionPhase =
     extensionProvider(
@@ -49,7 +49,7 @@ interface UsageSyntax {
       UsageTypeProvider { if (it != null) f(it) else null }
     )
 
-  fun IdeMetaPlugin.addFindUsagesHandlerFactory(
+  fun MetaIde.addFindUsagesHandlerFactory(
     findUsagesHandler: (element: PsiElement, forHighlightUsages: Boolean) -> FindUsagesHandler?,
     canFindUsages: (element: PsiElement) -> Boolean
   ): ExtensionPhase =

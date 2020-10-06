@@ -1,0 +1,2 @@
+# Note that this file is also present in compiler-plugin/src/main/resources/META-INF/services
+# arrow.meta.diagnostic.MetaDefaultErrorMessages # currently disabled

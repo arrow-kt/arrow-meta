@@ -12,16 +12,16 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.whileExpression
  *
- * val Meta.reformatWhile: Plugin
+ * val Meta.reformatWhile: CliPlugin
  *    get() =
  *      "Reformat While Expression" {
  *        meta(
- *          whileExpression({ true }) { loopExpression ->
+ *          whileExpression(this, { true }) { loopExpression ->
  *            Transform.replace(
  *              replacing = loopExpression,
  *              newDeclaration = """"while ($condition) $body""".`while`

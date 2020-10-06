@@ -12,16 +12,16 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.ifExpression
  *
- * val Meta.reformatIf: Plugin
+ * val Meta.reformatIf: CliPlugin
  *    get() =
  *      "Reformat If Expression" {
  *        meta(
- *          ifExpression({ true }) { expression ->
+ *          ifExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = when {

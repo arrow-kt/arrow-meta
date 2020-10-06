@@ -1,7 +1,7 @@
 package arrow.meta.plugins.optics
 
+import arrow.meta.CliPlugin
 import arrow.meta.Meta
-import arrow.meta.Plugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.ElementScope
@@ -20,11 +20,11 @@ import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.resolve.source.toSourceElement
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val Meta.lenses: Plugin
+val Meta.lenses: CliPlugin
   get() =
     "lenses" {
       meta(
-        classDeclaration(::isProductType) { c: KtClass ->
+        classDeclaration(this, ::isProductType) { c: KtClass ->
 
           val location = c.toSourceElement().safeAs<KotlinSourceElement>()?.psi?.textRange
 
@@ -54,7 +54,7 @@ val Meta.lenses: Plugin
 
 private fun CompilerContext.validateMaxArityAllowed(classScope: ClassDeclaration) {
   if (classScope.`(params)`.value.size > 10)
-    // Question: error message file location
+  // Question: error message file location
     messageCollector?.report(
       CompilerMessageSeverity.WARNING,
       "Iso cannot be generated for product type with ${classScope.`(params)`.value.size}. Maximum support is $maxArity"

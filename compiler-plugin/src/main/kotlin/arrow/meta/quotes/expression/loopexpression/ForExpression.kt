@@ -14,16 +14,16 @@ import org.jetbrains.kotlin.psi.KtForExpression
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.forExpression
  *
- * val Meta.reformatFor: Plugin
+ * val Meta.reformatFor: CliPlugin
  *    get() =
  *    "Reformat For Expression" {
  *      meta(
- *        forExpression({ true }) { loopExpression ->
+ *        forExpression(this, { true }) { loopExpression ->
  *          Transform.replace(
  *            replacing = loopExpression,
  *            newDeclaration = if (destructuringDeclaration.entries.isEmpty()) {

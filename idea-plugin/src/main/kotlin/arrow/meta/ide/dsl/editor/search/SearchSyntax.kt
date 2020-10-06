@@ -1,7 +1,7 @@
 package arrow.meta.ide.dsl.editor.search
 
+import arrow.meta.ide.MetaIde
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.ide.IdeMetaPlugin
 import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.EmptyFindUsagesProvider
 import com.intellij.lang.findUsages.FindUsagesProvider
@@ -9,7 +9,7 @@ import com.intellij.lang.findUsages.LanguageFindUsages
 import com.intellij.psi.PsiElement
 
 interface SearchSyntax {
-  fun IdeMetaPlugin.addFindUsageProvider(
+  fun MetaIde.addFindUsageProvider(
     wordScanner: WordsScanner? =
       EmptyFindUsagesProvider().wordsScanner,
     nodeText: (element: PsiElement, useFullName: Boolean) -> String =

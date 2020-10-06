@@ -20,22 +20,38 @@ alt="Lambda World 2019 - Arrow Meta - Enabling Functional Programming in the Kot
 
 ## Λrrow Meta examples
 
-![Hello World Compiler Plugin Demo](docs/img/demos/hello-world-compiler-plugin.gif)
+![Hello World Compiler Plugin Demo](docs/docs/img/demos/hello-world-compiler-plugin.gif)
 
 Take a look at [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for getting more details.
 
 ## Build and run in your local environment
 
+Pre-requirements: JDK 8
+
 **Build and run tests**
 
 ```
-./gradlew buildMeta -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
+./gradlew buildMeta
 ```
 
 **Build and run test + IDE plugin**
 
 ```
-./gradlew publishAndRunIde -Dorg.gradle.debug=true -Dkotlin.compiler.execution.strategy="in-process"
+./gradlew publishAndRunIde
+```
+
+**Generate API Doc and validate it**
+
+```
+./gradlew buildMetaDoc
+```
+
+**Run the docs in your local server**
+
+```
+./gradlew buildMetaDoc
+bundle install --gemfile docs/Gemfile --path vendor/bundle
+BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll serve -s docs/build/site/
 ```
 
 ## Testing

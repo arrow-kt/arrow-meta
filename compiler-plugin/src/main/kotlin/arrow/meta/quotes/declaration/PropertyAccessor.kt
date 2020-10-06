@@ -19,17 +19,17 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *
  * ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.phases.CompilerContext
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.propertyAccessor
  *
- * val Meta.reformatPropertySetter: Plugin
+ * val Meta.reformatPropertySetter: CliPlugin
  *  get() =
  *   "Reformat Property Setter" {
  *    meta(
- *     property({ true }) { e ->
+ *     property(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = if (value != null && value.isGetter) {

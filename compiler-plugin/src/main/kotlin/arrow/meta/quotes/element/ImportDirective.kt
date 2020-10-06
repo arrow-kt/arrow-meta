@@ -14,17 +14,17 @@ import org.jetbrains.kotlin.resolve.ImportPath
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.importDirective
  * import org.jetbrains.kotlin.resolve.ImportPath
  *
- * val Meta.reformatImportDirective: Plugin
+ * val Meta.reformatImportDirective: CliPlugin
  *  get() =
  *   "ReformatImportDirective" {
  *    meta(
- *     importDirective({ true }) { e ->
+ *     importDirective(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = importDirective(ImportPath(importedFqName, isAllUnder, alias))

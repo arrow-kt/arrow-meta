@@ -44,6 +44,10 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.svg")
   val NEGATION_PNG: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-negation.png")
+  val REFINEMENT: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.svg")
+  val REFINEMENT_PNG: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-refinement.png")
   val SUBTYPING: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-subtyping.svg")
   val SUBTYPING_PNG: Icon
@@ -68,4 +72,15 @@ object ArrowIcons {
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.svg")
   val ICON4_PNG: Icon
     get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-icon4.png")
+  val UNION: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-union-types.svg")
+
+  val GIVEN_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-given.svg")
+  val EXTENSION_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-extension.svg")
+  val COERCION_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-coercion.svg")
+  val REFINEMENT_ICON: Icon
+    get() = IconLoader.getIcon("/arrow/meta/plugin/idea/icons/arrow-meta-proofs-refinement.svg")
 }

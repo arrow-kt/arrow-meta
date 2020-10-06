@@ -1,11 +1,14 @@
 package arrow.meta.ide.testing.env.types
 
-import arrow.meta.ide.dsl.utils.toNotNullable
 import arrow.meta.ide.testing.Source
+import arrow.meta.internal.filterNotNull
+import com.intellij.codeHighlighting.Pass
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
@@ -14,6 +17,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 /**
  * [LightTestSyntax] utilises common patterns in test environments for headless ide instances.
  */
+//TODO: add algebra for com.intellij.openapi.actionSystem.IdeActions
 object LightTestSyntax {
   /**
    * traverses the Source code and deconstructs the KtFile into a List, based on [traversal], which has several forms, such as
@@ -36,7 +40,7 @@ object LightTestSyntax {
     StringBuilder(this).run {
       val psiFile: PsiFile? = myFixture.configureByText(KotlinFileType.INSTANCE, toString())
       filterFold(emptyList(), match, { acc: List<Int>, i: Int -> acc + i })
-        .map { psiFile?.findElementAt(it)?.let(f) }.toNotNullable()
+        .map { psiFile?.findElementAt(it)?.let(f) }.filterNotNull()
     }
 
   /**
@@ -49,4 +53,12 @@ object LightTestSyntax {
       val i: Int = indexOf(str)
       delete(i, i + str.length).filterFold(f(acc, i), str, f)
     }
+
+  /**
+   * instantiates the KtFile and returns highlighting information, filtering out [toIgnore].
+   * @param toIgnore specifies which information can be ignored. Please refer to [Pass] for instances.
+   * @param changes specifies if a file changes its highlighting
+   */
+  fun KtFile.highlighting(myFixture: CodeInsightTestFixture, toIgnore: List<Int>, changes: (KtFile) -> Boolean = { it.isScript() }): List<HighlightInfo> =
+    CodeInsightTestFixtureImpl.instantiateAndRun(this, myFixture.editor, toIgnore.toIntArray(), changes(this)).filterNotNull()
 }

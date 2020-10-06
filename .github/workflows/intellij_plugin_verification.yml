@@ -1,0 +1,59 @@
+name: Intellij Plugin Verification
+
+on: pull_request
+
+jobs:
+  intellij_plugin_verification:
+
+    env:
+      JAVA_OPTS: -Xms512m -Xmx1024m
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Calculate compatibility IDEA builds
+      id: builds
+      run: |
+        KOTLIN_VERSION=$(grep KOTLIN_VERSION gradle.properties | cut -d= -f2)
+        BRANCH_NUMBER=$(grep INTELLIJ_IDEA_VERSION gradle.properties | cut -d= -f2 | cut -b 3-4,6)
+        curl -o plugin.xml https://raw.githubusercontent.com/JetBrains/kotlin/v$KOTLIN_VERSION/idea/resources/META-INF/plugin.xml.$BRANCH_NUMBER
+        SINCE_BUILD=$(cat plugin.xml | grep -o -e 'since-build="[^"]\+"' | cut -d= -f2)
+        UNTIL_BUILD=$(cat plugin.xml | grep -o -e 'until-build="[^"]\+"' | cut -d= -f2)
+        sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
+        echo "::set-output name=since::$SINCE_BUILD"
+        echo "::set-output name=until::$UNTIL_BUILD"
+    - name: Calculate compatibility IDEA versions for compatibility IDEA builds
+      id: versions
+      run: |
+        sudo apt-get install html2text
+        curl -o intellij-idea-releases.html https://www.jetbrains.com/intellij-repository/releases/
+        html2text -style pretty -o intellij-idea-releases.txt intellij-idea-releases.html
+        SINCE_BUILD=${{ steps.builds.outputs.since }}
+        UNTIL_BUILD=${{ steps.builds.outputs.until }}
+        PART_OF_SINCE_VERSION=20${SINCE_BUILD:0:2}.${SINCE_BUILD:2:1}
+        PART_OF_UNTIL_VERSION=20${UNTIL_BUILD:0:2}.${UNTIL_BUILD:2:1}
+        SINCE_VERSION=$(grep -A 500 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\{4\}\.[0-9]\+\.\?[0-9]*' | grep $PART_OF_SINCE_VERSION | sort | tail -1)
+        UNTIL_VERSION=$(grep -A 500 'com.jetbrains.intellij.idea' intellij-idea-releases.txt | grep -o -e '^[0-9]\{4\}\.[0-9]\+\.\?[0-9]*' | grep $PART_OF_UNTIL_VERSION | sort | tail -1)
+        echo "::set-output name=since::$SINCE_VERSION"
+        echo "::set-output name=until::$UNTIL_VERSION"
+    - name: Verify configuration
+      run: ./gradlew :idea-plugin:verifyPlugin
+    - name: Verify 'since' version
+      if: ${{ steps.versions.outputs.since != '' }}
+      run: |
+        sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.since }}\")/g" idea-plugin/build.gradle 
+        ./gradlew :idea-plugin:runPluginVerifier
+        mkdir reports
+        cp -r idea-plugin/build/pluginVerifier/reports/* reports/
+    - name: Verify 'until' version
+      if: ${{ steps.versions.outputs.until != '' }}
+      run: |
+        sed -i "s/set('INTELLIJ_IDEA_VERSION_UNDER_TEST.*/set('INTELLIJ_IDEA_VERSION_UNDER_TEST', \"${{ steps.versions.outputs.until }}\")/g" idea-plugin/build.gradle
+        ./gradlew :idea-plugin:runPluginVerifier
+        cp -r idea-plugin/build/pluginVerifier/reports/* reports/ 
+    - uses: actions/upload-artifact@v1
+      if: ${{ steps.versions.outputs.since != '' || steps.versions.outputs.until != '' }}
+      with:
+        name: reports
+        path: reports

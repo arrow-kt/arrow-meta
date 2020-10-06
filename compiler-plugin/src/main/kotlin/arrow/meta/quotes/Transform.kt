@@ -15,16 +15,16 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.namedFunction
    *
-   * val Meta.replacePlugin: Plugin
+   * val Meta.replacePlugin: CliPlugin
    *  get() =
    *   "Replace Transform" {
    *     meta(
-   *      namedFunction({ name == "helloWorld" }) { c ->
+   *      namedFunction(this, { name == "helloWorld" }) { c ->
    *        Transform.replace(
    *          replacing = c,
    *          newDeclaration =
@@ -51,16 +51,16 @@ sealed class Transform<out K : KtElement> {
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.namedFunction
    *
-   * val Meta.replacePlugin: Plugin
+   * val Meta.replacePlugin: CliPlugin
    *  get() =
    *   "Remove Transform" {
    *     meta(
-   *      namedFunction({ name == "helloWorld" }) { c ->
+   *      namedFunction(this, { name == "helloWorld" }) { c ->
    *        Transform.remove(
    *          removeIn = c,
    *          declaration = """ println("") """.expressionIn(c)
@@ -77,13 +77,13 @@ sealed class Transform<out K : KtElement> {
     val removing: PsiElement,
     val declarations: List<Scope<KtExpressionCodeFragment>> = listOf()
   ) : Transform<K>()
-  
+
   /**
    * A Transform that allows transformations combining. See below:
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.phases.CompilerContext
    * import arrow.meta.quotes.classorobject.ClassDeclaration
@@ -92,10 +92,10 @@ sealed class Transform<out K : KtElement> {
    * import arrow.meta.quotes.plus
    * import org.jetbrains.kotlin.psi.KtClass
    *
-   * val Meta.transformManySimpleCase: Plugin
+   * val Meta.transformManySimpleCase: CliPlugin
    *  get() = "Transform Many" {
    *   meta(
-   *      classDeclaration({ name == "ManySimpleCase" }) { c ->
+   *      classDeclaration(this, { name == "ManySimpleCase" }) { c ->
    *       changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
    *     }
    *    )
@@ -120,21 +120,21 @@ sealed class Transform<out K : KtElement> {
   data class Many<K : KtElement>(
     val transforms: ArrayList<Transform<K>>
   ) : Transform<K>()
-  
+
   /**
    * A Transform that allows code generation. See below:
    *
    * ```kotlin:ank:silent
    * import arrow.meta.Meta
-   * import arrow.meta.Plugin
+   * import arrow.meta.CliPlugin
    * import arrow.meta.invoke
    * import arrow.meta.quotes.Transform
    * import arrow.meta.quotes.classDeclaration
    *
-   * val Meta.transformNewSource: Plugin
+   * val Meta.transformNewSource: CliPlugin
    *  get() = "Transform New Source" {
    *   meta(
-   *    classDeclaration({ name == "NewSource" }) {
+   *    classDeclaration(this, { name == "NewSource" }) {
    *     Transform.newSources(
    *      """
    *      package arrow
@@ -181,7 +181,7 @@ sealed class Transform<out K : KtElement> {
       removeIn: PsiElement,
       declarations: List<Scope<KtExpressionCodeFragment>>
     ): Transform<K> = Remove(removeIn, declarations)
-    
+
     fun <K : KtElement> newSources(
       vararg files: File
     ): Transform<K> = NewSource(files.toList())

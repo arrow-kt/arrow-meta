@@ -15,16 +15,16 @@ import org.jetbrains.kotlin.psi.KtTypeReference
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.isExpression
  *
- * val Meta.reformatIs: Plugin
+ * val Meta.reformatIs: CliPlugin
  *    get() =
  *      "Reformat Is Expression" {
  *        meta(
- *          isExpression({ true }) { expression ->
+ *          isExpression(this, { true }) { expression ->
  *            Transform.replace(
  *              replacing = expression,
  *              newDeclaration = """$left $operation $type""".`is`

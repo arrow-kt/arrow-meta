@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.intention
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.ide.phases.editor.intention.IntentionExtensionProvider
 import arrow.meta.internal.Noop
@@ -8,16 +8,17 @@ import arrow.meta.phases.ExtensionPhase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.impl.config.IntentionActionMetaData
+import com.intellij.lang.annotation.Annotator
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.editor.Editor
+import com.intellij.psi.PsiElementFactory
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.quickfix.KotlinIntentionActionsFactory
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
+import org.jetbrains.kotlin.idea.quickfix.QuickFixActionBase
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import com.intellij.psi.PsiElementFactory
 
 /**
  * The IDE analysis user code and provides [IntentionAction]'s to either signal error's to user's or resolve them if triggered.
@@ -27,7 +28,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * registers [intention]
    */
-  fun IdeMetaPlugin.addIntention(
+  fun MetaIde.addIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.RegisterIntention(intention)
@@ -35,7 +36,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * unregisters [intention] from the editor
    */
-  fun IdeMetaPlugin.unregisterIntention(
+  fun MetaIde.unregisterIntention(
     intention: IntentionAction
   ): ExtensionPhase =
     IntentionExtensionProvider.UnregisterIntention(intention)
@@ -43,15 +44,16 @@ interface IntentionSyntax : IntentionUtilitySyntax {
   /**
    * This extension registers an [SelfTargetingIntention].
    * The following example renames a `helloWorld` function to `renamed`, whenever the user decides to trigger that Intention.
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * // import com.intellij.codeInsight.intention.PriorityAction
    * import org.jetbrains.kotlin.psi.KtNamedFunction
+   * import com.intellij.openapi.editor.Editor
    *
    * //sampleStart
-   * val IdeMetaPlugin.example: Plugin
+   * val MetaIde.example: IdePlugin
    *  get() = "SampleIntention"{
    *   meta(
    *    addIntention(
@@ -60,7 +62,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    *       f.name == "helloWorld"
    *     },
    *     kClass = KtNamedFunction::class.java,
-   *     applyTo = { f, editor ->
+   *     applyTo = { f: KtNamedFunction, editor: Editor ->
    *       f.setName("renamed")
    *     }
    *    )
@@ -72,7 +74,7 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * @see ktIntention has more information about the parameters.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <K : KtElement> IdeMetaPlugin.addIntention(
+  fun <K : KtElement> MetaIde.addIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
     isApplicableTo: (element: K, caretOffset: Int) -> Boolean = Noop.boolean2False,
@@ -85,23 +87,23 @@ interface IntentionSyntax : IntentionUtilitySyntax {
    * Intentions can be enabled and disabled before at application start.
    * @param enabled true set's [intention] available false otherwise
    */
-  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
+  fun MetaIde.setIntentionAsEnabled(intention: IntentionAction, enabled: Boolean): ExtensionPhase =
     IntentionExtensionProvider.SetAvailability(intention, enabled)
 
   /**
    * This function is similar to [setIntentionAsEnabled] for [IntentionActionMetaData]
    */
-  fun IdeMetaPlugin.setIntentionAsEnabled(intention: IntentionActionMetaData, enabled: Boolean): ExtensionPhase =
+  fun MetaIde.setIntentionAsEnabled(intention: IntentionActionMetaData, enabled: Boolean): ExtensionPhase =
     IntentionExtensionProvider.SetAvailabilityOnActionMetaData(intention, enabled)
 
   /**
-   * [ktIntention] constructs [SelfTargetingIntention].
+   * [ktIntention] constructs [SelfTargetingIntention]. SelfTargetingIntentions can be used with [Annotator].
    * @param applyTo allows to resolve the errors on this `element` with [KtPsiFactory], display refined errors through the `editor` and has many other use-cases. For instance Java utilizes [PsiElementFactory]
    * @param text is the displayed text in the ide. In addition, [text] needs to be the same as `familyName` in order to create MetaData for an Intention.
    * @param isApplicableTo defines when this intention is available.
    * @param priority defines the position of this Intention - [PriorityAction.Priority.TOP] being the highest.
    */
-  @Suppress("UNCHECKED_CAST") // TODO: This extension can be composed with [addQuickFixContributor]
+  @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> IntentionSyntax.ktIntention(
     text: String = "",
     kClass: Class<K> = KtElement::class.java as Class<K>,
@@ -121,24 +123,24 @@ interface IntentionSyntax : IntentionUtilitySyntax {
     }
 
   /**
-   * The function [kotlinIntention] is mainly used for [QuickFixContributor].
    * The default values are derived from [KotlinIntentionActionsFactory].
+   * @see KotlinSingleIntentionActionFactory and all its Subtypes for examples
+   * @see QuickFixActionBase and all its Subtypes for [action] or [actionsForAll]
+   * @param actionsForAll provide for all errors a list of generalized Fixes
    */
-  fun IntentionSyntax.kotlinIntention(
-    createAction: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
+  fun IntentionSyntax.ktIntention(
+    action: (diagnostic: Diagnostic) -> IntentionAction? = Noop.nullable1(),
     isApplicableForCodeFragment: Boolean = false,
-    doCreateActionsForAllProblems: (sameTypeDiagnostics: Collection<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
+    actionsForAll: (diagnostics: List<Diagnostic>) -> List<IntentionAction> = Noop.emptyList1()
   ): KotlinSingleIntentionActionFactory =
     object : KotlinSingleIntentionActionFactory() {
       override fun createAction(diagnostic: Diagnostic): IntentionAction? =
-        createAction(diagnostic)
+        action(diagnostic)
 
       override fun doCreateActionsForAllProblems(sameTypeDiagnostics: Collection<Diagnostic>): List<IntentionAction> =
-        doCreateActionsForAllProblems(sameTypeDiagnostics)
+        actionsForAll(sameTypeDiagnostics.toList())
 
       override fun isApplicableForCodeFragment(): Boolean =
         isApplicableForCodeFragment
     }
 }
-
-

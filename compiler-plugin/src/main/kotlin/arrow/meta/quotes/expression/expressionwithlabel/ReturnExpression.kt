@@ -13,16 +13,16 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *
  *  ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.returnExpression
  *
- * val Meta.reformatReturn: Plugin
+ * val Meta.reformatReturn: CliPlugin
  *    get() =
  *      "Reformat Return Expression" {
  *        meta(
- *          returnExpression({ true }) { expressionWithLabel ->
+ *          returnExpression(this, { true }) { expressionWithLabel ->
  *            Transform.replace(
  *              replacing = expressionWithLabel,
  *              newDeclaration = when {

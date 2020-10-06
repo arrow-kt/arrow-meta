@@ -1,13 +1,19 @@
 package arrow.meta.ide.dsl.editor.action
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.phases.editor.action.AnActionExtensionProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
+import com.intellij.codeInsight.folding.impl.actions.BaseFoldingHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.TimerListener
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.editor.Caret
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.actionSystem.EditorAction
+import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import javax.swing.Icon
 
 /**
@@ -27,16 +33,16 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * Registers the [action] with [actionId] as its identifier.
    * The [actionId] is solely used internally.
-   * ```kotlin:ank:playground
-   * // import com.intellij.openapi.wm.ToolWindowManager
+   * ```kotlin:ank
+   * import com.intellij.openapi.wm.ToolWindowManager
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * import arrow.meta.ide.invoke
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
    * import com.intellij.openapi.project.Project
    * import com.intellij.openapi.actionSystem.AnActionEvent
    *
-   * val IdeMetaPlugin.exampleAction: Plugin
+   * val MetaIde.exampleAction: IdePlugin
    * get() = "Example Action" {
    *   meta(
    *   //sampleStart
@@ -59,7 +65,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
    * @param actionId needs to be unique
    * @param action can be composed with various [anAction] implementations
    */
-  fun IdeMetaPlugin.addAnAction(
+  fun MetaIde.addAnAction(
     actionId: String,
     action: AnAction
   ): ExtensionPhase =
@@ -68,7 +74,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * replaces [AnAction] with [actionId] to a [newAction]
    */
-  fun IdeMetaPlugin.replaceAnAction(
+  fun MetaIde.replaceAnAction(
     actionId: String,
     newAction: AnAction
   ): ExtensionPhase =
@@ -77,7 +83,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * unregisters [AnAction]
    */
-  fun IdeMetaPlugin.unregisterAnAction(
+  fun MetaIde.unregisterAnAction(
     actionId: String
   ): ExtensionPhase =
     AnActionExtensionProvider.UnregisterAction(actionId)
@@ -85,7 +91,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * registers a [TimerListener]
    */
-  fun IdeMetaPlugin.addTimerListener(
+  fun MetaIde.addTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
@@ -95,7 +101,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * registers a transparent [TimerListener]
    */
-  fun IdeMetaPlugin.addTransparentTimerListener(
+  fun MetaIde.addTransparentTimerListener(
     delay: Int,
     modalityState: ModalityState,
     run: () -> Unit
@@ -105,7 +111,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * removes a transparent [TimerListener]
    */
-  fun IdeMetaPlugin.removeTransparentTimerListener(
+  fun MetaIde.removeTransparentTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
     AnActionExtensionProvider.RemoveTransparentTimerListener(listener)
@@ -113,7 +119,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
   /**
    * removes a [TimerListener]
    */
-  fun IdeMetaPlugin.removeTimerListener(
+  fun MetaIde.removeTimerListener(
     listener: TimerListener
   ): ExtensionPhase =
     AnActionExtensionProvider.RemoveTimerListener(listener)
@@ -266,4 +272,26 @@ interface AnActionSyntax : AnActionUtilitySyntax {
       override fun run(): Unit = run()
       override fun getModalityState(): ModalityState = modalityState
     }
+
+  fun AnActionSyntax.editorAction(
+    handler: EditorActionHandler
+  ): EditorAction =
+    object : EditorAction(handler) {}
+
+  fun AnActionSyntax.baseFoldingHandler(
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): BaseFoldingHandler =
+    object : BaseFoldingHandler() {
+      override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?): Unit =
+        execute(editor, caret, dataContext)
+    }
+
+  /**
+   * registers a [BaseFoldingHandler]
+   */
+  fun MetaIde.addBaseFoldingHandler(
+    actionId: String,
+    execute: (editor: Editor, caret: Caret?, ctx: DataContext?) -> Unit
+  ): ExtensionPhase =
+    addAnAction(actionId, editorAction(baseFoldingHandler(execute)))
 }

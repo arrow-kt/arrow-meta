@@ -5,7 +5,7 @@
     <vendor email="hello@47deg.com" url="https://arrow-kt.io/">Arrow</vendor>
 
     <description><![CDATA[
-    The Arrow Meta Intellij IDEA plugin.
+    The Arrow Meta Intellij IDEA plugin, a functional companion to Kotlin's Compiler & IDE.
     ]]></description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
@@ -14,23 +14,29 @@
     <depends>com.intellij.modules.lang</depends>
     -->
 
+    <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.gradle</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
     <depends>org.intellij.plugins.markdown</depends>
 
-    <project-components>
-        <component>
-            <implementation-class>arrow.meta.ide.MetaPluginRegistrarComponent</implementation-class>
-        </component>
-        <component>
-            <implementation-class>arrow.meta.ide.phases.resolve.QuoteSystemCache</implementation-class>
-        </component>
-    </project-components>
-
-    <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <packageFragmentProviderExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticPackageFragmentProvider"/>
-        <syntheticResolveExtension implementation="arrow.meta.ide.phases.resolve.MetaSyntheticResolveExtension" />
+    <!--For a consistent Ide experience one may not unregister the entry point of Meta - applicationInitializedListener,
+        and the various project and applicationService registration, as those abilities haven't been made available through the Meta Ide internals, yet.
+        However if one wishes to disable, remove or manipulate a feature set of Ide extensions, one may choose to do so by utilising the Meta APIs instead of the plugin.xml-->
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationInitializedListener implementation="arrow.meta.ide.internal.IdeRegistrar"/>
+        <applicationService serviceInterface="arrow.meta.ide.MetaIde"
+                            serviceImplementation="arrow.meta.ide.IdeMetaPlugin"/>
+        <applicationService serviceImplementation="arrow.meta.ide.phases.additional.AdditionalRegistry$Companion"
+                            serviceInterface="arrow.meta.ide.phases.additional.AdditionalRegistry"/>
+        <!--quote services-->
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.cache.QuoteCacheService"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.cache.QuoteCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.highlighting.QuoteHighlightingCache"/>
+        <projectService serviceImplementation="arrow.meta.ide.plugins.quotes.system.QuoteSystem"
+                        serviceInterface="arrow.meta.ide.plugins.quotes.system.QuoteSystemService"/>
+        <!--cli service-->
+        <projectService serviceImplementation="arrow.meta.ide.plugins.initial.CompilerContextService"
+                        serviceInterface="arrow.meta.phases.CompilerContext"/>
     </extensions>
-
 </idea-plugin>

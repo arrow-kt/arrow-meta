@@ -4,7 +4,7 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ObjectDeclarationPlugin
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ObjectDeclarationTest  {
   
@@ -12,9 +12,9 @@ class ObjectDeclarationTest  {
     val objectDeclarationExpression = """
                          | //metadebug
                          | 
-                         | @Deprecated("Test") object Test {
-                         |   fun test() { println("Test") }
-                         |   fun test2() { println("Test2") }
+                         | @Deprecated("Test") object X {
+                         |   fun x() { println("Test") }
+                         |   fun x2() { println("Test2") }
                          | }""".source
   }
   

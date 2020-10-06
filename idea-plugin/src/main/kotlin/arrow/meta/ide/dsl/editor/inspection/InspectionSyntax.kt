@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.editor.inspection
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.ide.dsl.utils.ktPsiFactory
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -36,16 +36,17 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  */
 interface InspectionSyntax : InspectionUtilitySyntax {
   // TODO: Add more General `Inspection's` can be build with [org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection] e.g.: [org.jetbrains.kotlin.idea.inspections.RedundantSuspendModifierInspection]
+  // TODO: for more inspiration LocalQuickFixOnPsiElement
 
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.phases.analysis.resolveFunctionType
-   * import arrow.meta.phases.analysis.returns
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.dsl.utils.intersectFunction
+   * import arrow.meta.ide.invoke
+   * import arrow.meta.phases.analysis.returnTypeEq
    * import com.intellij.codeHighlighting.HighlightDisplayLevel
    * import com.intellij.codeInspection.ProblemHighlightType
    * import org.jetbrains.kotlin.codegen.coroutines.isSuspendLambdaOrLocalFunction
@@ -54,31 +55,37 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * //sampleStart
-   * val IdeMetaPlugin.simplyPure: Plugin
-   *  get() = "Draft PurityPlugin" {
-   *   meta(
-   *    addApplicableInspection(
-   *     defaultFixText = "Simplified PurityPlugin",
-   *     inspectionHighlightType = { ProblemHighlightType.ERROR },
-   *     kClass = KtNamedFunction::class.java,
-   *     inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
-   *     applyTo = { f, project, editor ->
-   *      f.addModifier(KtTokens.SUSPEND_KEYWORD)
-   *     },
-   *     isApplicable = { f: KtNamedFunction ->
-   *      !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
-   *      f.resolveToDescriptorIfAny()?.run {
-   *       !isSuspend && !isSuspendLambdaOrLocalFunction() &&
-   *        returns(resolveFunctionType, { listOf(unitType) })
-   *       // `returns` evaluates the returnType of the functionDescriptor of [f] and returns true if the list with `KotlinTypes` contains any collected returnType from the former computation.
-   *       // `resolveFunctionType` map's FunctionTypes like `(A, B) -> Int` to their returnType, here `Int`
-   *      } == true
-   *     },
-   *     level = HighlightDisplayLevel.ERROR,
-   *     groupPath = arrayOf("Meta", "SimplePlugin")
-   *    )
-   *   )
-   *  }
+   * val MetaIde.simplyPure: IdePlugin
+   *   get() = "Draft PurityPlugin" {
+   *     meta(
+   *       addApplicableInspection(
+   *         defaultFixText = "Simplified PurityPlugin",
+   *         staticDescription = "Purity Inspection",
+   *         fixText = { "Purity" },
+   *         inspectionHighlightType = { ProblemHighlightType.ERROR },
+   *         kClass = KtNamedFunction::class.java,
+   *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
+   *         applyTo = { f, project, editor ->
+   *           f.addModifier(KtTokens.SUSPEND_KEYWORD)
+   *         },
+   *         isApplicable = { f: KtNamedFunction ->
+   *           !f.hasModifier(KtTokens.SUSPEND_KEYWORD) &&
+   *             f.resolveToDescriptorIfAny()?.run {
+   *               !isSuspend && !isSuspendLambdaOrLocalFunction() &&
+   *                 intersectFunction(returnTypeEq, f) {
+   *                   listOf(unitType)
+   *                 }.isNotEmpty()
+   *               // `intersectFunction` evaluates the return type of the FunctionDescriptor of [f] and all return types of call-sites in the function body,
+   *               // returning a list of `KotlinTypes` that intersect with the specified list here `listOf(unitType)`.
+   *               // `returnTypeEq` defines type equality where function types are reduced to their return type.
+   *             } == true
+   *         },
+   *         level = HighlightDisplayLevel.ERROR,
+   *         groupPath = arrayOf("Meta", "SimplePlugin"),
+   *         groupDisplayName = "PurityPlugin"
+   *       )
+   *     )
+   *   }
    * //sampleEnd
    * ```
    * Needless to say, the latter implementation is not sufficient enough as a purityPlugin, as the function body of the underlying Call's may have impure Call's.
@@ -89,27 +96,37 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @sample arrow.meta.ide.plugins.purity.purity
    */
   @Suppress("UNCHECKED_CAST")
-  fun <K : KtElement> IdeMetaPlugin.addApplicableInspection(
+  fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
+    staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
     applyTo: KtPsiFactory.(element: K, project: Project, editor: Editor?) -> Unit,
     isApplicable: (element: K) -> Boolean,
     groupPath: Array<String>,
+    groupDisplayName: String,
     inspectionHighlightType: (element: K) -> ProblemHighlightType =
       { _ -> ProblemHighlightType.GENERIC_ERROR_OR_WARNING },
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING,
     enabledByDefault: Boolean = true
   ): ExtensionPhase =
     addLocalInspection(
-      applicableInspection(defaultFixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
-      level,
-      defaultFixText,
-      defaultFixText,
+      applicableInspection(defaultFixText, staticDescription, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
       groupPath,
-      defaultFixText
+      groupDisplayName,
+      level
     )
+
+  fun <K : KtElement> MetaIde.addLocalInspection(
+    inspection: AbstractApplicabilityBasedInspection<K>,
+    groupPath: Array<String>,
+    groupDisplayName: String,
+    level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
+  ): ExtensionPhase =
+    addLocalInspection(inspection, level, inspection.defaultFixText, inspection.staticDescription
+      ?: "No description provided", groupPath, groupDisplayName)
 
   /**
    * registers a GlobalInspection.
@@ -117,7 +134,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @see addLocalInspection
    * TODO: Add easy first issue for contributor's
    */
-  fun IdeMetaPlugin.addGlobalInspection(
+  fun MetaIde.addGlobalInspection(
     inspectionTool: GlobalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
@@ -133,12 +150,12 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
   /**
    * registers a LocalInspection.
-   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is unsurprisingly a SubType of both [GlobalInspectionTool] and [LocalInspectionTool].
+   * [LocalInspectionEP] is solely a wrapper over the generic [InspectionProfileEntry], which is a Subtype of both [GlobalInspectionTool] and [LocalInspectionTool].
    * @param groupDisplayName The displayed groupName in the user settings for Inspections.
    * @param groupPath The specified path where your Inspection is located. Use Strings without spacing.
    * @param shortName The displayed text, whenever [inspectionTool] is applicable.
    */
-  fun IdeMetaPlugin.addLocalInspection(
+  fun MetaIde.addLocalInspection(
     inspectionTool: LocalInspectionTool,
     level: HighlightDisplayLevel,
     shortName: String,
@@ -157,16 +174,16 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    * @sample [org.jetbrains.kotlin.idea.inspections.KotlinInspectionSuppressor]
    * TODO: Add a representation of [KotlinSuppressIntentionAction] with Meta
    */
-  fun IdeMetaPlugin.addInspectionSuppressor(
+  fun MetaIde.addInspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): ExtensionPhase =
     extensionProvider(
       LanguageInspectionSuppressors.INSTANCE,
       inspectionSuppressor(suppressFor, suppressAction)
     )
 
-  fun InspectionSyntax.supressQuickFix(
+  fun InspectionSyntax.suppressQuickFix(
     name: String,
     familyName: String,
     applyFix: (project: Project, descriptor: ProblemDescriptor) -> Unit,
@@ -181,9 +198,17 @@ interface InspectionSyntax : InspectionUtilitySyntax {
       override fun isSuppressAll(): Boolean = isSuppressAll
     }
 
+  /**
+   * [defaultFixText] is being reused for the `shortName` and it should be matching the pattern '[a-zA-Z_0-9.-]+'
+   * and not so long
+   * [staticDescription] refers to little description of the inspection
+   * For the inspection tool dialog description, the name of the html file should match the [defaultFixText]/shortName
+   */
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> InspectionSyntax.applicableInspection(
     defaultFixText: String,
+    staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -213,15 +238,20 @@ interface InspectionSyntax : InspectionUtilitySyntax {
 
       override fun inspectionHighlightType(element: K): ProblemHighlightType =
         inspectionHighlightType(element)
+
+      override fun getStaticDescription(): String? = staticDescription
+
+      override fun fixText(element: K): String =
+        fixText(element)
     }
 
   fun InspectionSyntax.inspectionSuppressor(
     suppressFor: (element: PsiElement, toolId: String) -> Boolean,
-    suppressAction: (element: PsiElement?, toolId: String) -> Array<SuppressQuickFix>
+    suppressAction: (element: PsiElement?, toolId: String) -> List<SuppressQuickFix>
   ): InspectionSuppressor =
     object : InspectionSuppressor {
       override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> =
-        suppressAction(element, toolId)
+        suppressAction(element, toolId).toTypedArray()
 
       override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean =
         suppressFor(element, toolId)

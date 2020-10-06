@@ -1,7 +1,7 @@
 package arrow.meta.quotes.transform.plugins
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
@@ -10,13 +10,13 @@ import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
-val Meta.transformNewSource: List<Plugin>
-  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration)
+val Meta.transformNewSource: List<CliPlugin>
+  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration, transformNewSourceSingleGenerationWithCustomPath, transformNewSourceMultipleGenerationWithCustomPath)
 
-private val Meta.transformNewSourceSingleGeneration: Plugin
+private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration({ name == "NewSource" }) {
+      classDeclaration(this, { name == "NewSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -30,10 +30,10 @@ private val Meta.transformNewSourceSingleGeneration: Plugin
     )
   }
 
-private val Meta.transformNewSourceMultipleGeneration: Plugin
+private val Meta.transformNewSourceMultipleGeneration: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration({ name == "NewMultipleSource" }) {
+      classDeclaration(this, { name == "NewMultipleSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -54,10 +54,10 @@ private val Meta.transformNewSourceMultipleGeneration: Plugin
     )
   }
 
-private val Meta.transformNewSourceWithManyTransformation: Plugin
+private val Meta.transformNewSourceWithManyTransformation: CliPlugin
   get() = "Transform New Source With Many Transformation" {
     meta(
-      classDeclaration({ name == "NewSourceMany" }) { c ->
+      classDeclaration(this, { name == "NewSourceMany" }) { c ->
         (
           changeClassVisibility("NewSourceMany", c, this)
           + removeFooPrint(c, this)
@@ -96,3 +96,38 @@ private fun CompilerContext.generateSupplierClass(declaration: ClassDeclaration)
     }
   """.file("${name}_Generated")
 )}
+
+private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration(this, { name == "NewSourceWithCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt", "build/generated/source/kapt/test/files")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration(this, { name == "NewMultipleSourceWithCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated", "build/generated/source/kapt/test/files"),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2", "build/generated/source/kapt/test/files/source")
+        )
+      }
+    )
+  }

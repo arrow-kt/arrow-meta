@@ -1,6 +1,6 @@
 package arrow.meta.ide.dsl.ui.dialogs
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.ide.IdeView
@@ -26,13 +26,13 @@ import javax.swing.Icon
  */
 interface DialogSyntax {
   /**
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
-   * import arrow.meta.invoke
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
+   * import arrow.meta.ide.invoke
    * import org.jetbrains.kotlin.idea.KotlinFileType
    *
-   * val IdeMetaPlugin.createFilePlugin: Plugin
+   * val MetaIde.createFilePlugin: IdePlugin
    *  get() = "Create File Dialog" {
    *   meta(
    *     addFileAction("ExampleAction", "New File", "Creates a new File",
@@ -46,7 +46,7 @@ interface DialogSyntax {
    * ```
    * @param actionId has to be unique
    */
-  fun IdeMetaPlugin.addFileAction(
+  fun MetaIde.addFileAction(
     actionId: String,
     createText: String,
     actionDescription: String,
@@ -77,8 +77,8 @@ interface DialogSyntax {
       override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String? =
         directory?.let { d -> templateName?.let { t -> actionName(d, newName, t) } }
 
-      override fun buildDialog(project: Project?, directory: PsiDirectory?, builder: CreateFileFromTemplateDialog.Builder?): Unit =
-        project?.let { p -> directory?.let { d -> builder?.let { b -> buildDialog(b, p, d) } } } ?: Unit
+      override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder): Unit =
+        buildDialog(builder, project, directory)
 
       override fun startInWriteAction(): Boolean = startInWriteAction
 
@@ -96,8 +96,8 @@ interface DialogSyntax {
             false
         } ?: false
 
-      override fun postProcess(createdElement: PsiFile?, templateName: String?, customProperties: MutableMap<String, String>?): Unit =
-        createdElement?.let { el -> templateName?.let { name -> customProperties?.let { prop -> postProcess(el, name, prop) } } }
+      override fun postProcess(createdElement: PsiFile, templateName: String?, customProperties: MutableMap<String, String>?): Unit =
+        templateName?.let { name -> customProperties?.let { prop -> postProcess(createdElement, name, prop) } }
           ?: Unit
 
       override fun createFileFromTemplate(name: String?, template: FileTemplate?, dir: PsiDirectory?): PsiFile? =

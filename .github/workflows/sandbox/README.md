@@ -20,14 +20,14 @@ $> git diff > <latest-version>.diff
 ```
 2. Add that patch file into `.github/workflows/sandbox/` directory. For instance:
 ```
-.github/workflows/sandbox/1.4.0-dev-180.diff
+.github/workflows/sandbox/1.4.0-dev.diff
 ```
 
 ### What if a patch file for a related version already exists?
 
-For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev-180.diff` already exists (both of them are related to `1.4.0` version).
+For instance, there are additional changes for `1.4.0-dev-325` and `1.4.0-dev.diff` already exists (both of them are related to `1.4.0` version).
 
-Create a new `.github/workflows/sandbox/1.4.0-dev-325.diff` with the new required changes.
+Update `.github/workflows/sandbox/1.4.0-dev.diff` with the new required changes.
 
 ## What will it be done with those patch files automatically?
 

@@ -1,7 +1,7 @@
 package arrow.meta.plugins.comprehensions
 
 import arrow.meta.Meta
-import arrow.meta.Plugin
+import arrow.meta.CliPlugin
 import arrow.meta.invoke
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
@@ -23,11 +23,11 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 @ExperimentalContracts
-val Meta.comprehensions: Plugin
+val Meta.comprehensions: CliPlugin
   get() =
     "comprehensions" {
       meta(
-        quote(KtDotQualifiedExpression::containsFxBlock) { fxExpression: KtDotQualifiedExpression ->
+        quote(this, KtDotQualifiedExpression::containsFxBlock) { fxExpression: KtDotQualifiedExpression ->
           println("fxBlock: ${fxExpression.text}")
           Transform.replace(
             replacing = fxExpression,

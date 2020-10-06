@@ -12,16 +12,16 @@ import org.jetbrains.kotlin.psi.KtThisExpression
  *
  *  ```
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.thisExpression
  *
- * val Meta.reformatThisExpression: Plugin
+ * val Meta.reformatThisExpression: CliPlugin
  *  get() =
  *   "ReformatThis" {
  *     meta(
- *       thisExpression({ true }) { instanceExpressionWithLabel ->
+ *       thisExpression(this, { true }) { instanceExpressionWithLabel ->
  *         Transform.replace(
  *           replacing = instanceExpressionWithLabel,
  *           newDeclaration = when {

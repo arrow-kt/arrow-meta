@@ -219,7 +219,7 @@ interface ElementScope {
   
   val emptyClassBody: ClassBody
   
-  val String.classParameter: Parameter
+  val String.parameter: Parameter
   
   val String.loopParameter: Parameter
 
@@ -325,6 +325,8 @@ interface ElementScope {
   
   fun String.file(fileName: String): File
 
+  fun String.file(fileName: String, filePath: String): File
+
   val String.functionLiteral: FunctionLiteral
   
   val String.classBody: ClassBody
@@ -348,3 +350,6 @@ interface ElementScope {
       DefaultElementScope(project)
   }
 }
+
+fun <A> PsiElement.scoped(f: ElementScope.() -> A): A =
+  f(ElementScope.default(project))

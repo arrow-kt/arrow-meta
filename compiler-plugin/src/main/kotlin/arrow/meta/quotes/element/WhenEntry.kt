@@ -14,16 +14,16 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.whenEntry
  *
- * val Meta.reformatWhenEntry: Plugin
+ * val Meta.reformatWhenEntry: CliPlugin
  *  get() =
  *   "ReformatWhenEntry" {
  *    meta(
- *     whenEntry({ true }) { e ->
+ *     whenEntry(this, { true }) { e ->
  *      Transform.replace(
  *       replacing = e,
  *       newDeclaration = (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry

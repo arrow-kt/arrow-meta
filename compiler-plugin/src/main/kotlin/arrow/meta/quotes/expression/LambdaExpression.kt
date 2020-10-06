@@ -14,16 +14,16 @@ import org.jetbrains.kotlin.psi.KtParameter
  *
  * ```kotlin:ank:silent
  * import arrow.meta.Meta
- * import arrow.meta.Plugin
+ * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
  * import arrow.meta.quotes.Transform
  * import arrow.meta.quotes.lambdaExpression
  *
- * val Meta.reformatFor: Plugin
+ * val Meta.reformatFor: CliPlugin
  *   get() =
  *     "ReformatLambda" {
  *       meta(
- *        lambdaExpression({ true }) { e ->
+ *        lambdaExpression(this, { true }) { e ->
  *          Transform.replace(
  *            replacing = e,
  *            newDeclaration = lambdaExpression("""$`(params)`""", """$bodyExpression""")

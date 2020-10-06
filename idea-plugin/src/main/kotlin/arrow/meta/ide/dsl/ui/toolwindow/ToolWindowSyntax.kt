@@ -1,6 +1,7 @@
 package arrow.meta.ide.dsl.ui.toolwindow
 
-import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.MetaIde
+import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 import arrow.meta.ide.phases.ui.ToolwindowProvider
 import arrow.meta.internal.Noop
 import arrow.meta.phases.ExtensionPhase
@@ -21,7 +22,6 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
-import arrow.meta.ide.dsl.editor.lineMarker.LineMarkerSyntax
 
 /**
  * Tool windows have several use-cases, though there used in two different scenario. Either, to display content resulting from an computation, which [ToolWindowSyntax] materializes with
@@ -34,16 +34,16 @@ interface ToolWindowSyntax {
    * registers an Action with the title [toolId] and [actionId].
    * When the user executes the latter a tool window with displayName [toolId] is activated or registered by absence.
    * The following example enables the internal `Fir Explorer`, whenever the current document is a kotlin file.
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.CommonDataKeys
    * import org.jetbrains.kotlin.idea.KotlinFileType
-   * import org.jetbrains.kotlin.idea.actions.internal.FirExplorerToolWindow
+   * import org.jetbrains.kotlin.idea.internal.KotlinBytecodeToolWindow
    *
-   * val IdeMetaPlugin.exampleToolWindow: Plugin
+   * val MetaIde.exampleToolWindow: IdePlugin
    *   get() = "ShowFirInTheIde" {
    *     meta(
    *       addToolWindowFromAction(
@@ -51,7 +51,7 @@ interface ToolWindowSyntax {
    *         actionId = "Unique",
    *         icon = ArrowIcons.ICON4,
    *         content = { project, toolWindow ->
-   *           FirExplorerToolWindow(project, toolWindow)
+   *           KotlinBytecodeToolWindow(project, toolWindow)
    *         },
    *         update = { e ->
    *           e.presentation.isEnabled = e.project != null && e.getData(CommonDataKeys.PSI_FILE)?.fileType == KotlinFileType.INSTANCE
@@ -65,7 +65,7 @@ interface ToolWindowSyntax {
    * @param actionId needs to be unique
    * @see toolWindowAction Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
-  fun IdeMetaPlugin.addToolWindowFromAction(
+  fun MetaIde.addToolWindowFromAction(
     toolId: String,
     actionId: String,
     icon: Icon,
@@ -77,7 +77,7 @@ interface ToolWindowSyntax {
   ): ExtensionPhase =
     addAnAction(actionId, toolWindowAction(toolId, icon, content, canCloseContent, anchor, isLockable, update))
 
-  fun IdeMetaPlugin.toolWindowAction(
+  fun MetaIde.toolWindowAction(
     toolId: String,
     icon: Icon,
     content: (Project, ToolWindow) -> JComponent,
@@ -103,7 +103,7 @@ interface ToolWindowSyntax {
    * @param anchor sets where the tool window is initially located
    * @see addToolWindowFromAction
    */
-  fun IdeMetaPlugin.registerToolWindow(
+  fun MetaIde.registerToolWindow(
     toolId: String,
     icon: Icon,
     content: (Project, ToolWindow) -> JComponent,
@@ -117,20 +117,20 @@ interface ToolWindowSyntax {
   /**
    * unregisters a tool window with its [toolId]
    */
-  fun IdeMetaPlugin.unregisterToolWindow(toolId: String, project: Project): ExtensionPhase =
+  fun MetaIde.unregisterToolWindow(toolId: String, project: Project): ExtensionPhase =
     ToolwindowProvider.UnRegisterToolWindow(toolId, project)
 
   /**
    * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.ui.MessageType
    * import com.intellij.openapi.wm.ToolWindowId
    *
-   * val IdeMetaPlugin.toolWindowBalloons: Plugin
+   * val MetaIde.toolWindowBalloons: IdePlugin
    *   get() = "ToolWindowBalloon" {
    *     meta(
    *       addToolWindowNotification(
@@ -145,7 +145,7 @@ interface ToolWindowSyntax {
    * ```
    * @see toolWindowNotification Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
-  fun IdeMetaPlugin.addToolWindowNotification(
+  fun MetaIde.addToolWindowNotification(
     toolId: String,
     actionId: String,
     type: MessageType,
@@ -156,7 +156,7 @@ interface ToolWindowSyntax {
   ): ExtensionPhase =
     addAnAction(actionId, toolWindowNotification(toolId, type, html, icon, listener, update))
 
-  fun IdeMetaPlugin.toolWindowNotification(
+  fun MetaIde.toolWindowNotification(
     toolId: String,
     type: MessageType,
     html: String,
@@ -178,7 +178,7 @@ interface ToolWindowSyntax {
    * this extension is a composition of [addToolWindowFromAction] and [toolWindowNotification]
    * @see toolWindowWithNotification Tool windows can be composed with LineMarkers in `clickAction` [LineMarkerSyntax.addLineMarkerProvider]
    */
-  fun IdeMetaPlugin.addToolWindowWithNotification(
+  fun MetaIde.addToolWindowWithNotification(
     toolId: String,
     actionId: String,
     icon: Icon,
@@ -193,7 +193,7 @@ interface ToolWindowSyntax {
   ): ExtensionPhase =
     addAnAction(actionId, toolWindowWithNotification(toolId, icon, type, html, content, canCloseContent, anchor, isLockable, listener, update))
 
-  fun IdeMetaPlugin.toolWindowWithNotification(
+  fun MetaIde.toolWindowWithNotification(
     toolId: String,
     icon: Icon,
     type: MessageType,
@@ -217,7 +217,7 @@ interface ToolWindowSyntax {
       update = update
     )
 
-  fun IdeMetaPlugin.toolWindowNotification(
+  fun MetaIde.toolWindowNotification(
     toolId: String,
     type: MessageType,
     html: String,
@@ -230,20 +230,20 @@ interface ToolWindowSyntax {
   /**
    * constructs a [JPanel] with an [Editor] inside.
    *
-   * ```kotlin:ank:playground
-   * import arrow.meta.Plugin
-   * import arrow.meta.ide.IdeMetaPlugin
+   * ```kotlin:ank
+   * import arrow.meta.ide.IdePlugin
+   * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
-   * import arrow.meta.invoke
+   * import arrow.meta.ide.invoke
    * import com.intellij.openapi.application.ApplicationManager
    * import com.intellij.openapi.editor.Editor
    * import com.intellij.openapi.wm.ToolWindowAnchor
    * import org.jetbrains.kotlin.idea.KotlinFileType
 
-   * val IdeMetaPlugin.editorToolwindow: Plugin
+   * val MetaIde.editorToolwindow: IdePlugin
    *   get() = "TestEditor in Toolwindow" {
    *     meta(
-   *       addToolWindowWithAction(
+   *       addToolWindowFromAction(
    *         "TestEditor",
    *         "Unique",
    *         ArrowIcons.ICON4,
