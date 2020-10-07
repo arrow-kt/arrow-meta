@@ -189,4 +189,21 @@ class ExampleTest {
       }
     ))
   }
+
+  @Test
+  fun `allows to pass compilation arguments`() {
+    assertThis(CompilerTest(
+      config = { listOf(addArguments("-Xallow-jvm-ir-dependencies")) },
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        compiles
+      }
+    ))
+  }
 }
