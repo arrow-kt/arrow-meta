@@ -87,6 +87,12 @@ interface ConfigSyntax {
     Config.Many(listOf(Config.AddDependencies(element.toList())))
 
   /**
+   * Adds the necessary arguments to run the compilation.
+   */
+  fun addArguments(vararg element: String): Config =
+    Config.Many(listOf(Config.AddArguments(element.toList())))
+
+  /**
    * Allows to combine [Config].
    */
   operator fun Config.plus(other: Config): List<Config> =
@@ -114,6 +120,7 @@ sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
   internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
+  internal data class AddArguments(val arguments: List<String>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
 
