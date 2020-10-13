@@ -43,7 +43,7 @@ class ResolutionTests {
       }
     }
   }
-  @Disabled
+
   @Test
   fun `@Extension internal orphan override`() {
     resolutionTest(
@@ -51,8 +51,9 @@ class ResolutionTests {
       @Coercion
       internal fun String.toInt16(): Int? =
         toIntOrNull(16)
-        
-      val x: Int? = "30"
+  
+      val s = "30"
+      val x: Int? = s
       """) {
       "x".source.evalsTo(48)
     }
