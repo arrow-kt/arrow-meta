@@ -10,14 +10,16 @@ internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
   val metaPlugins: List<ComponentRegistrar> = emptyList(),
   val dependencies: List<String> = emptyList(),
-  val sources: List<Code.Source> = emptyList()
+  val sources: List<Code.Source> = emptyList(),
+  val arguments: List<String> = emptyList()
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
     copy(
       compilerPlugins = compilerPlugins + other.compilerPlugins,
       dependencies = dependencies + other.dependencies,
-      sources = sources + other.sources
+      sources = sources + other.sources,
+      arguments = arguments + other.arguments
     )
 
   companion object {

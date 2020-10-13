@@ -71,6 +71,7 @@ private val interpreter: (CompilerTest) -> Unit = {
           is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
           is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
           is Config.AddMetaPlugins -> remaining.compilationData(acc.addMetaPlugins(config))
+          is Config.AddArguments -> remaining.compilationData(acc.addArguments(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
         }
@@ -121,6 +122,9 @@ private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins
 
 private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
   copy(metaPlugins = metaPlugins + config.plugins)
+
+private fun CompilationData.addArguments(config: Config.AddArguments) =
+  copy(arguments = arguments + config.arguments)
 
 private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
   assertCompiles(compilationResult)
