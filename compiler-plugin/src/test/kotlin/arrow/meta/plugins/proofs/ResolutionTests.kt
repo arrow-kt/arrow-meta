@@ -53,7 +53,7 @@ class ResolutionTests {
       internal fun String.toInt16(): Int? =
         toIntOrNull(16)
   
-      val s = "30"
+      val x = "30"
       """) {
       "x".source.evalsTo(48)
     }
