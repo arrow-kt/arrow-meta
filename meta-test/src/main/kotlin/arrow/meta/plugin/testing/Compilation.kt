@@ -28,6 +28,7 @@ internal fun compile(data: CompilationData): Result =
         super.write(newLine, off, newLine.size)
       }
     }
+    kotlincArguments = data.arguments
   }.compile()
 
 private fun classpathOf(dependency: String): File {
