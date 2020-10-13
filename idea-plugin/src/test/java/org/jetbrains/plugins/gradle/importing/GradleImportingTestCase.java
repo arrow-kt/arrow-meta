@@ -71,7 +71,7 @@ import static org.junit.Assume.assumeThat;
 @RunWith(value = Parameterized.class)
 public abstract class GradleImportingTestCase extends ExternalSystemImportingTestCase {
     // patched for Arrow Meta:
-    public static final String BASE_GRADLE_VERSION = "5.6.4";
+    public static final String BASE_GRADLE_VERSION = "6.0.1";
     protected static final String GRADLE_JDK_NAME = "Gradle JDK";
     private static final int GRADLE_DAEMON_TTL_MS = 10000;
 
