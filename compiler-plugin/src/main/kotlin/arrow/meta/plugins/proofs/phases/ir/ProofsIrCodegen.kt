@@ -6,7 +6,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
 import arrow.meta.phases.codegen.ir.substitutedValueParameters
-import arrow.meta.phases.codegen.ir.typeArguments
 import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
@@ -21,17 +20,10 @@ import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
-import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
-import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
@@ -45,7 +37,6 @@ import org.jetbrains.kotlin.ir.expressions.getValueArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.expressions.mapValueParametersIndexed
 import org.jetbrains.kotlin.ir.expressions.putValueArgument
-import org.jetbrains.kotlin.ir.types.IrTypeSubstitutor
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.dump
@@ -180,36 +171,7 @@ class ProofsIrCodegen(
       expression
     }
 
-
-
-  fun extractTypeParameters(klass: IrDeclarationParent): List<IrTypeParameter> {
-    val result = mutableListOf<IrTypeParameter>()
-    var current: IrDeclarationParent? = klass
-    while (current != null) {
-//        result += current.typeParameters
-      (current as? IrTypeParametersContainer)?.let { result += it.typeParameters }
-      current =
-        when (current) {
-          is IrField -> current.parent
-          is IrClass -> when {
-            current.isInner -> current.parent as IrClass
-            current.visibility == Visibilities.LOCAL -> current.parent
-            else -> null
-          }
-          is IrConstructor -> current.parent as IrClass
-          is IrFunction -> if (current.visibility == Visibilities.LOCAL || current.dispatchReceiverParameter != null) {
-            current.parent
-          } else null
-          else -> null
-        }
-    }
-    return result
-  }
-
-
   private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) = irUtils.run {
-    //val sub = IrTypeSubstitutor(expression.type)
-    val typesPara = extractTypeParameters(expression.symbol.owner)
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
