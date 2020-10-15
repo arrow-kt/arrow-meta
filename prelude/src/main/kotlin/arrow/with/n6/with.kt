@@ -1,5 +1,6 @@
 package arrow.with.n6
 
+@Retention(AnnotationRetention.RUNTIME)
 @Target(
     AnnotationTarget.TYPE,
     AnnotationTarget.TYPE_PARAMETER
