@@ -41,6 +41,9 @@ class TypeClassesTest {
        
        fun <A: @Given Semigroup<A>> A.mappend(b: A): A =
           this@mappend.combine(b)
+          
+       fun <A> @with<Semigroup<A>> A.mappend(b: A): A =
+          this.combine(b)
 
        //metadebug
         val result1 = String.empty()
