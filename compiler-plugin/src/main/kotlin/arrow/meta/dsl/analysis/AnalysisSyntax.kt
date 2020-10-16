@@ -17,10 +17,13 @@ import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.context.ProjectContext
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
+import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
 import java.util.*
 
@@ -99,6 +102,24 @@ interface AnalysisSyntax {
       override fun CompilerContext.extraImports(ktFile: KtFile): Collection<KtImportInfo> =
         extraImports(ktFile)
     }
+
+  fun importInfo(path: ImportPath): KtImportInfo =
+    object : KtImportInfo {
+      override val aliasName: String?
+        get() = path.alias?.asString()
+      override val importContent: KtImportInfo.ImportContent?
+        get() = KtImportInfo.ImportContent.FqNameBased(path.fqName)
+      override val importedFqName: FqName?
+        get() = path.fqName
+      override val isAllUnder: Boolean
+        get() = path.isAllUnder
+    }
+
+  /**
+   * @param isAllUnder is whether a wildcard is being used or not
+   */
+  fun importInfo(fqName: FqName, isAllUnder: Boolean = false, alias: Name? = null): KtImportInfo =
+    importInfo(ImportPath(fqName, isAllUnder, alias))
 
   /**
    * The [suppressDiagnostic] function allows selectively determining whether a diagnostic emitted by the compiler affects compilation.

@@ -86,9 +86,6 @@ class WithTests {
        package test
        import arrow.*
        import arrowx.*
-
-       fun <A> with(evidence: @with<A> A = With): A = 
-          evidence
           
        @Given
        internal val IntMonoid: Monoid<Int>

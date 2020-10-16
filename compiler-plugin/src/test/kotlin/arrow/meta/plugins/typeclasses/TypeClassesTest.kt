@@ -2,14 +2,13 @@ package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class TypeClassesTest {
 
-    //@Test
-    fun `simple case`() {
-        val codeSnippet = """
+  //@Test
+  fun `simple case`() {
+    val codeSnippet = """
        import arrowx.*
        import arrow.*
       
@@ -20,18 +19,18 @@ class TypeClassesTest {
         val d = c.mcombine(b)
       """
 
-        assertThis(CompilerTest(
-            config = {
-                metaDependencies
-            },
-            code = {
-                codeSnippet.source
-            },
-            assert = {
-                allOf("d".source.evalsTo("12345"))
-            }
-        ))
-    }
+    assertThis(CompilerTest(
+      config = {
+        metaDependencies
+      },
+      code = {
+        codeSnippet.source
+      },
+      assert = {
+        allOf("d".source.evalsTo("12345"))
+      }
+    ))
+  }
 
   @Test
   fun `polymorphic constrain`() {

@@ -1,7 +1,6 @@
 package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import org.junit.jupiter.api.Test
 
@@ -109,9 +108,6 @@ class GivenTest {
     package test
     import arrow.*
     import arrowx.*
-    
-    fun <A> given(evidence: @Given A = arrow.given): A =
-      evidence
       
     //metadebug
   """.trimIndent()
