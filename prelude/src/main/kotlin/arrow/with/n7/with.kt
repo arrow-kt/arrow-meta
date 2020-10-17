@@ -5,4 +5,4 @@ package arrow.with.n7
     AnnotationTarget.TYPE,
     AnnotationTarget.TYPE_PARAMETER
 )
-annotation class with<out A, out B, out C, out D, out E, out F, out G>
+annotation class with7<out A, out B, out C, out D, out E, out F, out G>

@@ -5,4 +5,4 @@ package arrow.with.n3
     AnnotationTarget.TYPE,
     AnnotationTarget.TYPE_PARAMETER
 )
-annotation class with<out A, out B, out C>
+annotation class with3<out A, out B, out C>

@@ -1,5 +1,7 @@
 package arrow.meta.plugins.typeclasses
 
+import arrow.meta.internal.Noop
+import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import org.junit.jupiter.api.Test
@@ -41,6 +43,26 @@ class WithTests {
     )
   }
 
+  @Test
+  fun `single receiver with polymorphic type parameter`() {
+    withTest(
+      """
+        
+        fun List<String>.hello() = 
+          map { it.run { combine(empty()) } }
+        
+        //fun <A> @with<Monoid<A>> List<A>.addEmpty(): List<A> =
+        //    map { it.combine(empty()) }
+            
+        // val result = listOf("3").combineEmpty() 
+      """
+      //, "result" to listOf("3")
+    ) {
+      listOf(
+        compiles
+      )
+    }
+  }
 
   @Test
   fun `multiple receiver`() {
@@ -65,7 +87,7 @@ class WithTests {
         
       val result = listOf("Hello" to 0).addEmpty()
     """.trimIndent(),
-    expected = "result" to listOf("Hello" to 0)
+      expected = "result" to listOf("Hello" to 0)
     )
   }
 
@@ -81,10 +103,9 @@ class WithTests {
     )
   }
 
-  private fun withTest(source: String, expected: Pair<String, Any?>) {
+  private fun withTest(source: String, expected: Pair<String, Any?>? = null, asserts: CompilerTest.Companion.() -> List<Assert.SingleAssert> = Noop.emptyList1()) {
     val codeSnippet = """
        package test
-       import arrow.*
        import arrowx.*
           
        @Given
@@ -106,7 +127,10 @@ class WithTests {
         codeSnippet.source
       },
       assert = {
-        allOf(expected.first.source.evalsTo(expected.second))
+        allOf(
+          asserts(this) +
+            listOfNotNull(expected?.run { first.source.evalsTo(second) })
+        )
       }
     ))
   }
