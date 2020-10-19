@@ -42,7 +42,7 @@ import java.util.*
  */
 interface ResolveSyntax {
   fun declarationAttributeAlterer(
-    refineDeclarationModality: CompilerContext.(modifierListOwner: KtModifierListOwner, declaration: DeclarationDescriptor?, containingDeclaration: DeclarationDescriptor?, currentModality: Modality, bindingContext: BindingContext, isImplicitModality: Boolean) -> Modality?
+    refineDeclarationModality: CompilerContext.(modifierListOwner: KtModifierListOwner, declaration: DeclarationDescriptor?, containingDeclaration: DeclarationDescriptor?, currentModality: Modality, isImplicitModality: Boolean) -> Modality?
   ): DeclarationAttributeAlterer =
     object : DeclarationAttributeAlterer {
       override fun CompilerContext.refineDeclarationModality(

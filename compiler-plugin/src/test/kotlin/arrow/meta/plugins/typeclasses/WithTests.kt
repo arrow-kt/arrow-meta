@@ -21,6 +21,30 @@ class WithTests {
   }
 
   @Test
+  fun `synthetic member access`() {
+    withTest(
+      source = """
+    interface Container<F, A> {
+      fun first(): A?
+    }
+    
+    interface Ability<F> {
+      fun <A> Container<F, A>.add(a: A): Container<F, A>
+    }
+    
+    fun <F, A> @with<Ability<F>>
+    Container<F, A>.addFirstOrElse(
+      alternative: () -> Container<F, A> = { this }
+    ): Container<F, A> =
+      first()?.let { add(it) } ?: or()
+    """
+    ) {
+      listOf(compiles)
+    }
+  }
+
+
+  @Test
   fun `single receiver`() {
     withTest(
       source = """

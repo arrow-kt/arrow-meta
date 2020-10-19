@@ -12,6 +12,16 @@ import org.junit.jupiter.api.Test
 // TODO: build ide peace with annotator
 class ResolutionTests {
   @Test
+  fun `combine`() {
+    resolutionTest(
+      """
+      val x = "30".combine("s")
+      """) {
+      compiles
+    }
+  }
+
+  @Test
   fun `prohibited public proof of non user types`() {
     resolutionTest(
       """
