@@ -100,7 +100,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.QuoteOutputWithCustomPathMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source, singleAssert.sourcePath)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
       is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
-      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get("", *singleAssert.sourcePath.split("/").toTypedArray()))
+      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get(singleAssert.sourcePath))
       else -> TODO()
     }
 

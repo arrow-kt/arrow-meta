@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Paths
-import java.util.*
+import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"
@@ -388,7 +388,7 @@ fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFi
   var virtualFile = rootFile.virtualFile
   if (file.name != DEFAULT_META_FILE_NAME) {
     val path = sourcePath ?: System.getProperty("arrow.meta.generated.source.output", DEFAULT_SOURCE_PATH)
-    val directory = Paths.get("", *path.split("/").toTypedArray()).toFile()
+    val directory = Paths.get(path).toFile()
     directory.mkdirs()
     virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)
