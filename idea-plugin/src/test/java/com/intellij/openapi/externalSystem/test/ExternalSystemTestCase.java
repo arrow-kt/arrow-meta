@@ -49,7 +49,7 @@ import org.jetbrains.concurrency.Promise;
 import org.junit.After;
 import org.junit.Before;
 
-import java.awt.HeadlessException;
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,15 +57,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -406,7 +399,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
         }
     }
 
-    private void build(Object [] buildableElements) {
+    private void build(Object[] buildableElements) {
         Promise<ProjectTaskManager.Result> promise;
         if (buildableElements instanceof Module[]) {
             promise = ProjectTaskManager.getInstance(myProject).build((Module[]) buildableElements);
