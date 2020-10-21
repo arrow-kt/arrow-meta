@@ -471,6 +471,7 @@ public abstract class UsefulTestCase extends TestCase {
     if (!shouldRunTest()) {
       return;
     }
+    // FIXME: runTest() has protected access in TestCase
     runBare(super::runTest);
   }
 
