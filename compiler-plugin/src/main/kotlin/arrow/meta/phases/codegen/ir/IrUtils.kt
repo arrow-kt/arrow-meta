@@ -212,20 +212,19 @@ val IrCall.unsubstitutedDescriptor: FunctionDescriptor
 val IrCall.substitutedValueParameters: List<Pair<ValueParameterDescriptor, KotlinType>>
   get() = unsubstitutedDescriptor.substitutedValueParameters(this)
 
-
-val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
-  get() = if (this is IrConstructor)
-    parentAsClass.typeParameters + typeParameters
-  else
-    typeParameters
-
-fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
-  container.allTypeParameters.withIndex().associate {
-    it.value to getTypeArgument(it.index)!!
-  }
-
-val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
-  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
+//val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
+//  get() = if (this is IrConstructor)
+//    parentAsClass.typeParameters + typeParameters
+//  else
+//    typeParameters
+//
+//fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
+//  container.allTypeParameters.withIndex().associate {
+//    it.value to getTypeArgument(it.index)!!
+//  }
+//
+//val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
+//  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
 /**
  * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
