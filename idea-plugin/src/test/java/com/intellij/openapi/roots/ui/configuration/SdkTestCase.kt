@@ -115,9 +115,9 @@ abstract class SdkTestCase : LightPlatformTestCase() {
 
   object DependentTestSdkType : DependentSdkType("dependent-test-type"), TestSdkType {
     private fun getParentPath(sdk: Sdk, relativePath: String) =
-      (sdk as? DependentTestSdk)
-        ?.parent?.homePath
-        ?.let { File(it, relativePath).path }
+        (sdk as? DependentTestSdk)
+            ?.parent?.homePath
+            ?.let { File(it, relativePath).path }
 
     override fun getPresentableName(): String = name
     override fun isValidSdkHome(path: String?): Boolean = true
@@ -138,7 +138,7 @@ abstract class SdkTestCase : LightPlatformTestCase() {
     : MockSdk(name, homePath, versionString, MultiMap(), sdkType) {
 
     constructor(name: String, homePath: String, versionString: String)
-      : this(name, homePath, versionString, TestSdkType)
+        : this(name, homePath, versionString, TestSdkType)
 
     override fun getHomePath(): String = super.getHomePath()!!
   }
@@ -150,11 +150,11 @@ abstract class SdkTestCase : LightPlatformTestCase() {
     override fun supportsDownload(sdkTypeId: SdkTypeId) = sdkTypeId == TestSdkType
 
     override fun showDownloadUI(
-      sdkTypeId: SdkTypeId,
-      sdkModel: SdkModel,
-      parentComponent: JComponent,
-      selectedSdk: Sdk?,
-      sdkCreatedCallback: Consumer<SdkDownloadTask>
+        sdkTypeId: SdkTypeId,
+        sdkModel: SdkModel,
+        parentComponent: JComponent,
+        selectedSdk: Sdk?,
+        sdkCreatedCallback: Consumer<SdkDownloadTask>
     ) {
       val sdk = TestSdkGenerator.createNextSdk()
       sdkCreatedCallback.accept(object : SdkDownloadTask {
@@ -174,7 +174,7 @@ abstract class SdkTestCase : LightPlatformTestCase() {
 
     fun findTestSdk(sdk: Sdk): TestSdk? = findTestSdk(sdk.homePath!!)
 
-    fun findTestSdk(homePath: String): TestSdk? = createdSdks[homePath]
+    fun findTestSdk(homePath: String): TestSdk? = createdSdks[FileUtil.toSystemDependentName(homePath)]
 
     fun getCurrentSdk() = createdSdks.values.last()
 
@@ -186,7 +186,7 @@ abstract class SdkTestCase : LightPlatformTestCase() {
 
     fun createTestSdk(sdkInfo: SdkInfo): TestSdk {
       val sdk = TestSdk(sdkInfo.name, sdkInfo.homePath, sdkInfo.versionString)
-      createdSdks[sdkInfo.homePath] = sdk
+      createdSdks[FileUtil.toSystemDependentName(sdkInfo.homePath)] = sdk
       return sdk
     }
 

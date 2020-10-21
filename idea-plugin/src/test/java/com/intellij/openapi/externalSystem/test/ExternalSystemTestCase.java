@@ -210,7 +210,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
     }
 
     @Override
-    protected void runTest() throws Throwable {
+    public void runTest() throws Throwable {
         try {
             if (runInWriteAction()) {
                 try {
@@ -234,7 +234,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
         }
     }
 
-    @Override
+//    @Override
     protected void invokeTestRunnable(@NotNull Runnable runnable) {
         runnable.run();
     }
