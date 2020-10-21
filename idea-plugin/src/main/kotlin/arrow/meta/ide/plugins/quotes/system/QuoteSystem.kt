@@ -129,8 +129,7 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> QuoteSystemServi
       transform(project, files, extensions)
     } finally {
       val duration = System.currentTimeMillis() - start
-//      LOG.info("kt file transformation: %d files, duration %d ms".format(files.size, duration))
-      LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
+      LOG.info("kt file transformation: %d files, duration %d ms".format(files.size, duration))
     }
   }
     .expireWith(project)
@@ -147,11 +146,8 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> QuoteSystemServi
       //    best would be partial transformation results for the valid parts of a file (Quote system changes needed)
 
       // IllegalStateExceptions are usually caused by syntax errors in the source files, thrown by quote system
-//      if (e !is CancellationException) {
-//        if (LOG.isDebugEnabled) LOG.debug("error transforming files $files", e) else LOG.warn("Syntax Error while transforming files $files", e)
-//      }
-      if (e !is CancellationException && LOG.isDebugEnabled) {
-        LOG.debug("error transforming files $files", e)
+      if (e !is CancellationException) {
+        if (LOG.isDebugEnabled) LOG.debug("error transforming files $files", e) else LOG.warn("Syntax Error while transforming files $files", e)
       }
     }
 }

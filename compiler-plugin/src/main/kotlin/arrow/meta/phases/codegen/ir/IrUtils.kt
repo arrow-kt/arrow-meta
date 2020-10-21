@@ -13,10 +13,14 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
@@ -29,6 +33,7 @@ import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
@@ -38,6 +43,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.asSimpleType
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrUtils(
   val pluginContext: IrPluginContext,
@@ -206,19 +212,19 @@ val IrCall.unsubstitutedDescriptor: FunctionDescriptor
 val IrCall.substitutedValueParameters: List<Pair<ValueParameterDescriptor, KotlinType>>
   get() = unsubstitutedDescriptor.substitutedValueParameters(this)
 
-//val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
-//  get() = if (this is IrConstructor)
-//    parentAsClass.typeParameters + typeParameters
-//  else
-//    typeParameters
-//
-//fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
-//  container.allTypeParameters.withIndex().associate {
-//    it.value to getTypeArgument(it.index)!!
-//  }
-//
-//val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
-//  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
+val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
+  get() = if (this is IrConstructor)
+    parentAsClass.typeParameters + typeParameters
+  else
+    typeParameters
+
+fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
+  container.allTypeParameters.withIndex().associate {
+    it.value to getTypeArgument(it.index)!!
+  }
+
+val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
+  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
 /**
  * returns a Pair of the descriptor and it's substituted KotlinType at the call-site

@@ -17,8 +17,8 @@ class GradleTypeproofsTest : GradleTestSetUp() {
       val arrowProjectDir = myProjectRoot.findChild("arrow-typeproofs")
       myProjectRoot = arrowProjectDir
 
-       val checkoutResult = gitCheckout(myProject, "is-fix-ide-errors", myProjectRoot)
-       assertTrue(checkoutResult.success())
+//       val checkoutResult = gitCheckout(myProject, "<other-branch>", myProjectRoot)
+//       assertTrue(checkoutResult.success())
 
       importProject()
       assertNotNull(ModuleManager.getInstance(myProject).findModuleByName("arrow-typeproofs"))
