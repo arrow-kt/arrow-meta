@@ -8,7 +8,7 @@ jobs:
     env:
       JAVA_OPTS: -Xms512m -Xmx1024m
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
     - uses: actions/checkout@v1
