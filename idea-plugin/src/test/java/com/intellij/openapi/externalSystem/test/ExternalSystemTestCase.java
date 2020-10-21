@@ -35,10 +35,7 @@ import com.intellij.task.ProjectTaskManager;
 import com.intellij.testFramework.*;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.ExceptionUtil;
-import com.intellij.util.PathUtil;
-import com.intellij.util.SmartList;
+import com.intellij.util.*;
 import com.intellij.util.containers.CollectionFactory;
 import com.intellij.util.io.PathKt;
 import com.intellij.util.io.TestFileSystemItem;
@@ -54,16 +51,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import javax.swing.Timer;
 
 /**
  * @author Vladislav.Soroka
@@ -168,6 +171,7 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
                         PathKt.delete(ProjectUtil.getExternalConfigurationDir(myProject));
                     }
                 },
+                () -> checkJavaSwingTimersAreDisposed(),
                 () -> EdtTestUtil.runInEdtAndWait(() -> tearDownFixtures()),
                 () -> myProject = null,
                 () -> PathKt.delete(myTestDir.toPath()),
@@ -175,6 +179,37 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
                 () -> super.tearDown(),
                 () -> resetClassFields(getClass())
         ).run();
+    }
+
+    void checkJavaSwingTimersAreDisposed() {
+        // NOTE: added this otherwise plugin tests fail due to swing timers not being disposed which have nothing to do with the plugin test
+        try {
+            Class<?> timerQueueClass = Class.forName("javax.swing.TimerQueue");
+            Method sharedInstance = timerQueueClass.getMethod("sharedInstance");
+            sharedInstance.setAccessible(true);
+            Object timerQueue = sharedInstance.invoke(null);
+            DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
+            while (true) {
+                Delayed timer = delayQueue.peek();
+
+                if (timer == null) {
+                    return;
+                }
+
+                int delay = Math.toIntExact(timer.getDelay(TimeUnit.MILLISECONDS));
+                String text = "(delayed for " + delay + "ms)";
+                Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
+                Timer swingTimer = (Timer) getTimer.invoke(timer);
+                text = "Timer (listeners: " + Arrays.toString(swingTimer.getActionListeners()) + ") " + text;
+                try {
+                    System.out.println("Not disposed javax.swing.Timer: " + text + "; queue:" + timerQueue);
+                } finally {
+                    swingTimer.stop();
+                }
+            }
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void tearDownFixtures() {
