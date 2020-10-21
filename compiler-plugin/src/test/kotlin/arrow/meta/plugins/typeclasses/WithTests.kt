@@ -36,7 +36,7 @@ class WithTests {
     Container<F, A>.addFirstOrElse(
       alternative: () -> Container<F, A> = { this }
     ): Container<F, A> =
-      first()?.let { add(it) } ?: or()
+      first()?.let { add(it) } ?: alternative()
     """
     ) {
       listOf(compiles)

@@ -21,8 +21,13 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ReceiverParameterDescriptorImpl
+import org.jetbrains.kotlin.incremental.KotlinLookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.resolve.calls.inference.substitute
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
@@ -123,7 +128,10 @@ fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableM
 
 fun Meta.provenSyntheticScope(): ExtensionPhase =
   syntheticScopes(
-    syntheticMemberFunctionsForName = { types, name, _ ->
+    syntheticMemberFunctionsForName = { types, name, lookup ->
+      val position = lookup.safeAs<KotlinLookupLocation>()?.element.safeAs<KtExpression>()
+      val f = position?.getParentOfType<KtNamedFunction>(false)
+
       Log.Silent({ "syntheticScopes.syntheticMemberFunctionsForName $types $name $this" }) {
         syntheticMemberFunctions(types, name)
       }

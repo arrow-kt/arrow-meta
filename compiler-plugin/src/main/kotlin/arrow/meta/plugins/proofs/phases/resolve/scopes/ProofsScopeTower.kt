@@ -49,7 +49,11 @@ class ProofsScopeTower(
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes(null, compilerContext)
   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
-  override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
+  override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? {
+    scope
+    return null
+  }
+
   override fun interceptFunctionCandidates(
     resolutionScope: ResolutionScope,
     name: Name,
@@ -57,10 +61,12 @@ class ProofsScopeTower(
     location: LookupLocation,
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
-  ): Collection<FunctionDescriptor> =
-    Log.Verbose({"ProofsScopeTower.interceptFunctionCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
+  ): Collection<FunctionDescriptor> {
+    val results = initialResults
+    return Log.Verbose({ "ProofsScopeTower.interceptFunctionCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location" }) {
       emptyList()
     }
+  }
 
   override fun interceptVariableCandidates(
     resolutionScope: ResolutionScope,
