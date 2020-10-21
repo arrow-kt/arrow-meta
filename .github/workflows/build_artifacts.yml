@@ -16,8 +16,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build with Gradle
         run: |
-        JAVA_HOME=$JAVA_HOME_8_X64
-        ./gradlew buildMeta
+          JAVA_HOME=$JAVA_HOME_8_X64
+          ./gradlew buildMeta
     #- name: Check next version
     #  run: |
     #    echo "Is there an upcoming version to check?"
