@@ -7,16 +7,17 @@ jobs:
 
     env:
       JAVA_OPTS: -Xms512m -Xmx1024m
-      JAVA_HOME: $JAVA_HOME_8_X64
 
     # Please do not use ubuntu-latest for now (some tests do not pass)
     # Use instead: ubuntu-16.04 or ubuntu-20.04
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Build with Gradle
-      run: ./gradlew buildMeta
+      - uses: actions/checkout@v1
+      - name: Build with Gradle
+        run: |
+        JAVA_HOME=$JAVA_HOME_8_X64
+        ./gradlew buildMeta
     #- name: Check next version
     #  run: |
     #    echo "Is there an upcoming version to check?"
