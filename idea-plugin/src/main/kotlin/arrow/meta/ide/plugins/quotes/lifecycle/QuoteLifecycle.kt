@@ -1,7 +1,6 @@
 package arrow.meta.ide.plugins.quotes.lifecycle
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.dsl.utils.ctx
 import arrow.meta.ide.dsl.utils.files
 import arrow.meta.ide.dsl.utils.quoteRelevantFile
 import arrow.meta.ide.dsl.utils.quoteRelevantFiles
@@ -114,6 +113,8 @@ internal fun quoteProjectOpened(project: Project): Unit =
           }
         }
         quoteSystem.refreshCache(cache, project, files, ctx.quotes as List<QuoteDefinition<KtElement, KtElement, Scope<KtElement>>>, cacheStrategy())
+      } catch (e: Exception) {
+        LOG.warn("something happend", e)
       } finally {
         try {
           quoteSystem.context.run {
