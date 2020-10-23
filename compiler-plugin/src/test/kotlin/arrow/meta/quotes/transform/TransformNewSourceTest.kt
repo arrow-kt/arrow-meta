@@ -98,7 +98,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithCustomPath_Generated
         """.source,
-        sourcePath = "build/generated/source/kapt/test/files"
+        sourcePath = "generated/source/kapt/test/files"
       )}
     ))
   }
@@ -117,14 +117,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
-            sourcePath = "build/generated/source/kapt/test/files"
+            sourcePath = "generated/source/kapt/test/files"
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
             """.source,
-            sourcePath = "build/generated/source/kapt/test/files/source"
+            sourcePath = "generated/source/kapt/test/files/source"
           )
         )
       }

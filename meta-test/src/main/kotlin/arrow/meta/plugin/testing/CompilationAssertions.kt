@@ -12,7 +12,7 @@ import java.nio.file.Paths
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
-private const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
+private const val DEFAULT_SOURCE_PATH = "generated/source/kapt/main"
 
 /**
  * Allows checking if a compiler plugin is working as expected.
@@ -100,7 +100,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.QuoteOutputWithCustomPathMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source, singleAssert.sourcePath)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
       is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
-      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get(singleAssert.sourcePath))
+      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get("build", singleAssert.sourcePath))
       else -> TODO()
     }
 
@@ -171,7 +171,7 @@ private fun assertQuoteFileMatches(
   compilationResult: Result,
   actualFileName: String,
   expectedSource: Code.Source,
-  actualFileDirectoryPath: Path = Paths.get("", *(System.getProperty("arrow.meta.generated.source.output") ?: DEFAULT_SOURCE_PATH).split("/").toTypedArray())
+  actualFileDirectoryPath: Path = Paths.get("build", DEFAULT_SOURCE_PATH) // TODO: test with plugin options
 ): Unit {
   assertCompiles(compilationResult)
   val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()

@@ -29,6 +29,7 @@ internal fun compile(data: CompilationData): Result =
       }
     }
     kotlincArguments = data.arguments
+    // pluginOptions = TODO
   }.compile()
 
 private fun classpathOf(dependency: String): File {

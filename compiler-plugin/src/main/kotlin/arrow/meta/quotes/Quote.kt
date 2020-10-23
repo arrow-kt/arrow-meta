@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
@@ -35,7 +36,7 @@ import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"
 const val DEFAULT_META_FILE_NAME = "Source.kt"
-const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
+const val DEFAULT_SOURCE_PATH = "generated/source/kapt/main"
 
 /**
  * ### Quote Templates DSL
@@ -386,9 +387,13 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = rootFile.virtualFile
-  if (file.name != DEFAULT_META_FILE_NAME) {
-    val path = sourcePath ?: System.getProperty("arrow.meta.generated.source.output", DEFAULT_SOURCE_PATH)
-    val directory = Paths.get(path).toFile()
+  if (file.name != DEFAULT_META_FILE_NAME) { // TODO: just valid for testing - what about HelloWorld.kt?
+    val path = when {
+      sourcePath == null -> Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), DEFAULT_SOURCE_PATH)
+      sourcePath.startsWith(File.separator) -> Paths.get(sourcePath)
+      else -> Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), sourcePath)
+    }
+    val directory = path.toFile()
     directory.mkdirs()
     virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)

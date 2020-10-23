@@ -106,7 +106,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", "build/generated/source/kapt/test/files")
+          """.file("${name}_Generated.kt", "generated/source/kapt/test/files")
         )
       }
     )
@@ -121,12 +121,12 @@ private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", "build/generated/source/kapt/test/files"),
+          """.file("${name}_Generated", "generated/source/kapt/test/files"),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", "build/generated/source/kapt/test/files/source")
+          """.file("${name}_Generated_2", "generated/source/kapt/test/files/source")
         )
       }
     )
