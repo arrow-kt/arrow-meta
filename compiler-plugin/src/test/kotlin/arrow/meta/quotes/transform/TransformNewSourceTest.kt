@@ -95,8 +95,7 @@ class TransformNewSourceTest {
   @Test
   fun `validate single extra file is created with custom path`() {
     assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin())
-      },
+      config = { metaDependencies + addMetaPlugins(TransformMetaPlugin()) },
       code = {
         """ class NewSourceWithCustomPath {} """.source
       },
