@@ -231,7 +231,7 @@ class ExampleTest {
   }
 
   @Test
-  fun `allows to pass plugin options and fails without the corresponding command line processor`() {
+  fun `fails when providing plugin options without the corresponding command line processor`() {
     assertThis(CompilerTest(
       config = { listOf(
         addPluginOptions(PluginOption("plugin.id", "key", "value"))
@@ -250,7 +250,7 @@ class ExampleTest {
   }
 
   @Test
-  fun `allows to pass plugin options and fails with a wrong command line processor`() {
+  fun `fails when providing a wrong plugin option for a command line processor`() {
     assertThis(CompilerTest(
       config = { listOf(
         addCommandLineProcessors(ExampleCommandLineProcessor()),
