@@ -2,6 +2,7 @@ package arrow.meta.plugin.testing
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.KotlinCompilation.Result
+import com.tschuchort.compiletesting.PluginOption
 import com.tschuchort.compiletesting.SourceFile
 import io.github.classgraph.ClassGraph
 import org.assertj.core.api.Assertions.assertThat
@@ -29,7 +30,8 @@ internal fun compile(data: CompilationData): Result =
       }
     }
     kotlincArguments = data.arguments
-    // pluginOptions = TODO
+    commandLineProcessors = data.commandLineProcessors
+    pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
   }.compile()
 
 private fun classpathOf(dependency: String): File {

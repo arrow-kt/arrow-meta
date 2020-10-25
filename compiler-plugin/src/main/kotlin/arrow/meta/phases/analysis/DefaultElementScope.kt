@@ -444,7 +444,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
 
-  override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
+  override fun String.file(fileName: String): File = file(fileName, "generated/source/kapt/main")
 
   override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
 

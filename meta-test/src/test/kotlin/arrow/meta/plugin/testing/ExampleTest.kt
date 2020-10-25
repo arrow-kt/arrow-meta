@@ -206,4 +206,78 @@ class ExampleTest {
       }
     ))
   }
+
+  @Test
+  fun `allows to pass plugin options and fails without the corresponding command line processor`() {
+    assertThis(CompilerTest(
+      config = { listOf(
+        addPluginOptions(
+          PluginOption(
+            "plugin.id",
+            "key",
+            "value"
+          ))
+      )},
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        failsWith { it.contains("Unsupported plugin option") && it.contains("plugin.id:key=value") }
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to pass plugin options and fails with a wrong command line processor`() {
+    assertThis(CompilerTest(
+      config = { listOf(
+        addCommandLineProcessors(ExampleCommandLineProcessor()),
+        addPluginOptions(
+          PluginOption(
+            ExampleCommandLineProcessor().pluginId,
+            "wrongKey",
+            "value"
+          ))
+      )},
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        failsWith { it.contains("Unsupported plugin option") && it.contains("${ExampleCommandLineProcessor().pluginId}:wrongKey=value")}
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to pass command line processors and plugin options`() {
+    assertThis(CompilerTest(
+      config = { listOf(
+        addCommandLineProcessors(ExampleCommandLineProcessor()),
+        addPluginOptions(
+          PluginOption(
+            ExampleCommandLineProcessor().pluginId,
+            ExampleCommandLineProcessor.CLI_OPTION.optionName,
+            "value"
+          ))
+      )},
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        compiles
+      }
+    ))
+  }
 }

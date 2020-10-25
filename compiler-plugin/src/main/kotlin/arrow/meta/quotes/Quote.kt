@@ -31,12 +31,11 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"
-const val DEFAULT_META_FILE_NAME = "Source.kt"
-const val DEFAULT_SOURCE_PATH = "generated/source/kapt/main"
 
 /**
  * ### Quote Templates DSL
@@ -387,12 +386,8 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = rootFile.virtualFile
-  if (file.name != DEFAULT_META_FILE_NAME) { // TODO: just valid for testing - what about HelloWorld.kt?
-    val path = when {
-      sourcePath == null -> Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), DEFAULT_SOURCE_PATH)
-      sourcePath.startsWith(File.separator) -> Paths.get(sourcePath)
-      else -> Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), sourcePath)
-    }
+  if (sourcePath != null) {
+    val path = Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), sourcePath)
     val directory = path.toFile()
     directory.mkdirs()
     virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {

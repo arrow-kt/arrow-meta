@@ -1,6 +1,7 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
+import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 
 /**
  * Represents a dependency from `<artifact-id>:<version>` string.
@@ -60,6 +61,12 @@ data class CompilerTest(
   }
 }
 
+data class PluginOption(
+  val pluginId: String,
+  val key: String,
+  val value: String
+)
+
 /**
  * Allows to indicate the necessary configuration to run a compilation.
  *
@@ -93,6 +100,18 @@ interface ConfigSyntax {
     Config.Many(listOf(Config.AddArguments(element.toList())))
 
   /**
+   * Adds command line processors for the compiler plugins.
+   */
+  fun addCommandLineProcessors(vararg element: CommandLineProcessor): Config =
+    Config.Many(listOf(Config.AddCommandLineProcessors(element.toList())))
+
+  /**
+   * Adds options for the compiler plugins.
+   */
+  fun addPluginOptions(vararg element: PluginOption): Config =
+    Config.Many(listOf(Config.AddPluginOptions(element.toList())))
+
+  /**
    * Allows to combine [Config].
    */
   operator fun Config.plus(other: Config): List<Config> =
@@ -102,14 +121,14 @@ interface ConfigSyntax {
     Dependency("prelude:$currentVersion")
 
   /**
-   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Arrow Annotations as
+   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as
    * a dependency.
    */
   val metaDependencies: List<Config>
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
       val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion")))
-      return CompilerTest.addCompilerPlugins(compilerPlugin) + CompilerTest.addDependencies(prelude(currentVersion))
+      return addCompilerPlugins(compilerPlugin) + addDependencies(prelude(currentVersion))
     }
 }
 
@@ -121,6 +140,8 @@ sealed class Config {
   internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
   internal data class AddArguments(val arguments: List<String>) : Config()
+  internal data class AddCommandLineProcessors(val commandLineProcessors: List<CommandLineProcessor>) : Config()
+  internal data class AddPluginOptions(val pluginOptions: List<PluginOption>): Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
 
@@ -211,14 +232,6 @@ interface AssertSyntax {
    * @param source Code snippet with the expected quote output.
    */
   fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert = Assert.QuoteOutputMatches(source)
-
-  /**
-   * Checks that quote output during the compilation matches with the code snippet provided.
-   *
-   * @param source Code snippet with the expected quote output.
-   * @param sourcePath Source path of the expected file.
-   */
-  fun quoteOutputMatches(source: Code.Source, sourcePath: String): Assert.SingleAssert = Assert.QuoteOutputWithCustomPathMatches(source, sourcePath)
 
   /**
    * Checks that quote output during the compilation matches with the code snippet provided for a specific file.

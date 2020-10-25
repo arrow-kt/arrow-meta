@@ -11,7 +11,17 @@ import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
 val Meta.transformNewSource: List<CliPlugin>
-  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration, transformNewSourceSingleGenerationWithCustomPath, transformNewSourceMultipleGenerationWithCustomPath)
+  get() = listOf(
+    transformNewSourceSingleGeneration,
+    transformNewSourceWithManyTransformation,
+    transformNewSourceMultipleGeneration,
+    transformNewSourceSingleGenerationWithBaseDir,
+    transformNewSourceSingleGenerationWithCustomPath,
+    transformNewSourceSingleGenerationWithBaseDirAndCustomPath,
+    transformNewSourceMultipleGenerationWithBaseDir,
+    transformNewSourceMultipleGenerationWithCustomPath,
+    transformNewSourceMultipleGenerationWithBaseDirAndCustomPath
+  )
 
 private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
@@ -112,10 +122,80 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
     )
   }
 
+private val Meta.transformNewSourceSingleGenerationWithBaseDir: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration(this, { name == "NewSourceWithBaseDir" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration(this, { name == "NewSourceWithBaseDirAndCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt", "generated/source/kapt/test/files")
+        )
+      }
+    )
+  }
+
 private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
       classDeclaration(this, { name == "NewMultipleSourceWithCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated", "generated/source/kapt/test/files"),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2", "generated/source/kapt/test/files/source")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithBaseDir: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration(this, { name == "NewMultipleSourceWithBaseDir" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated"),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithBaseDirAndCustomPath: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration(this, { name == "NewMultipleSourceWithBaseDirAndCustomPath" }) {
         Transform.newSources(
           """
             package arrow

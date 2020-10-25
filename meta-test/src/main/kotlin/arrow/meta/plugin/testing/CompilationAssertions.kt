@@ -12,7 +12,6 @@ import java.nio.file.Paths
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
 private const val VARIABLE = "[^(]+"
-private const val DEFAULT_SOURCE_PATH = "generated/source/kapt/main"
 
 /**
  * Allows checking if a compiler plugin is working as expected.
@@ -72,6 +71,8 @@ private val interpreter: (CompilerTest) -> Unit = {
           is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
           is Config.AddMetaPlugins -> remaining.compilationData(acc.addMetaPlugins(config))
           is Config.AddArguments -> remaining.compilationData(acc.addArguments(config))
+          is Config.AddCommandLineProcessors -> remaining.compilationData(acc.addCommandLineProcessors(config))
+          is Config.AddPluginOptions -> remaining.compilationData(acc.addPluginOptions(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
         }
@@ -97,18 +98,18 @@ private val interpreter: (CompilerTest) -> Unit = {
       Assert.CompilationResult.Fails -> assertFails(compilationResult)
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
-      is Assert.QuoteOutputWithCustomPathMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source, singleAssert.sourcePath)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
-      is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
-      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get("build", singleAssert.sourcePath))
+      is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
+        Paths.get("build","generated","source", "kapt", "main"))
+      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
+        Paths.get(singleAssert.sourcePath))
       else -> TODO()
     }
 
   val initialCompilationData = it.code(CompilerTest).compilationData()
   val compilationData = it.config(CompilerTest).compilationData(initialCompilationData)
   val compilationResult = compile(compilationData)
-  val assert = it.assert(CompilerTest)
-  when (assert) {
+  when (val assert = it.assert(CompilerTest)) {
     is Assert.SingleAssert -> runAssert(assert, compilationResult)
     is Assert.Many -> assert.asserts.map { singleAssert -> runAssert(singleAssert, compilationResult) }
   }
@@ -125,6 +126,12 @@ private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
 
 private fun CompilationData.addArguments(config: Config.AddArguments) =
   copy(arguments = arguments + config.arguments)
+
+private fun CompilationData.addCommandLineProcessors(config: Config.AddCommandLineProcessors) =
+  copy(commandLineProcessors = commandLineProcessors + config.commandLineProcessors)
+
+private fun CompilationData.addPluginOptions(config: Config.AddPluginOptions) =
+  copy(pluginOptions = pluginOptions + config.pluginOptions)
 
 private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
   assertCompiles(compilationResult)
@@ -150,7 +157,7 @@ private fun assertFails(compilationResult: Result): Unit {
 
 private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean): Unit {
   assertFails(compilationResult)
-  assertThat(check(compilationResult.messages)).isTrue()
+  assertThat(check(compilationResult.messages)).isTrue
 }
 
 private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit = assertQuoteFileMatches(
@@ -160,18 +167,11 @@ private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: 
   actualFileDirectoryPath = Paths.get(compilationResult.outputDirectory.parent, "sources")
 )
 
-private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source, expectedSourcePath: String): Unit = assertQuoteFileMatches(
-  compilationResult = compilationResult,
-  expectedSource = expectedSource,
-  actualFileName = "$DEFAULT_FILENAME.meta",
-  actualFileDirectoryPath = Paths.get(expectedSourcePath, "sources")
-)
-
 private fun assertQuoteFileMatches(
   compilationResult: Result,
   actualFileName: String,
   expectedSource: Code.Source,
-  actualFileDirectoryPath: Path = Paths.get("build", DEFAULT_SOURCE_PATH) // TODO: test with plugin options
+  actualFileDirectoryPath: Path
 ): Unit {
   assertCompiles(compilationResult)
   val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
