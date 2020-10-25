@@ -27,9 +27,7 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
         val result = diagnostic.suppressMetaDiagnostics()
         diagnostic.logSuppression(result)
         result
-      },
-      registerExtensionPoint(KotlinIndicesHelperExtension.Companion.extensionPointName,
-        KotlinIndicesHelperExtension::class.java, ExtensionPoint.Kind.INTERFACE)
+      }
     )
   }
 
@@ -37,17 +35,14 @@ val IdeMetaPlugin.initialIdeSetUp: IdePlugin
  * This extension registers a MetaPlugin for a given project.
  */
 private val IdeMetaPlugin.metaPluginRegistrar: ExtensionPhase
-  get() = addProjectLifecycle(
-    initialize = { project ->
+  get() = addPMListener (
+    opened = { project ->
       val LOG = Logger.getInstance("#arrow.metaProjectRegistrarForProject:${project.name}")
-      LOG.info("beforeProjectLoaded:${project.name}")
+      LOG.info("${project.name} opened")
       val start = System.currentTimeMillis()
       val configuration = CompilerConfiguration()
       registerMetaComponents(project, configuration, project.ctx())
-      LOG.info("beforeProjectLoaded:${project.name} took ${System.currentTimeMillis() - start}ms")
-    },
-    dispose = {
-      // TODO: make sure that all registered extensions are disposed
+      LOG.info("Registering Meta CLI plugins for Project:${project.name} took ${System.currentTimeMillis() - start}ms")
     }
   )
 

@@ -8,12 +8,18 @@ jobs:
     env:
       JAVA_OPTS: -Xms512m -Xmx1024m
 
-    runs-on: ubuntu-latest
+    # Please do not use ubuntu-latest for now (some tests do not pass)
+    # Use instead: ubuntu-16.04 or ubuntu-20.04
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Build with Gradle
-      run: ./gradlew buildMeta
+      - uses: actions/checkout@v1
+      - name: Build with Gradle
+        # if using ubuntu-20.04, Java 8 is not the default version and its needed to be set explicitly
+        # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
+        run: |
+          JAVA_HOME=$JAVA_HOME_8_X64
+          ./gradlew buildMeta
     #- name: Check next version
     #  run: |
     #    echo "Is there an upcoming version to check?"

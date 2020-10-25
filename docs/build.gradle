@@ -15,8 +15,9 @@ plugins {
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-    compile project(':idea-plugin')
-    compile "junit:junit:4.13"
+    implementation project(':idea-plugin')
+    implementation project(path: ':compiler-plugin', configuration: 'shadow')
+    runtimeOnly "junit:junit:4.13"
     runtimeOnly "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION"
     runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler:$KOTLIN_VERSION"
     runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-impl:$KOTLIN_VERSION"
@@ -45,12 +46,13 @@ ext {
     set("LOCAL_PATHS_FILE", "${projectDir}/localPaths.log")
     // Reason: required by ank; file must exist during Gradle configuration check
     if ( !file("$LOCAL_PATHS_FILE").exists() )  file("$LOCAL_PATHS_FILE").createNewFile()
+    set("LOCAL_PATHS_COLLECTION" , layout.files(file("$LOCAL_PATHS_FILE").readLines()))
 }
 
 ank {
     source = file("${projectDir}/docs")
     target = file("${projectDir}/build/site")
-    classpath = layout.files(file("$LOCAL_PATHS_FILE").readLines())
+    classpath = LOCAL_PATHS_COLLECTION
 }
 
 task getLocalPaths {
@@ -80,15 +82,21 @@ task getLocalPaths {
             "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
             "arrow-core-data-$ARROW_VERSION",
             "arrow-fx-$ARROW_VERSION",
+            "arrow-fx-coroutines-$ARROW_VERSION",
             "arrow-annotations-$ARROW_VERSION",
             "arrow-core-$ARROW_VERSION"
         ]
         def librariesFromCompilation = [
+            // From Kotlin IDEA Plugin:
             'kotlin-plugin.jar',
+            // From Intellij IDEA:
             'platform-api.jar',
             'platform-impl.jar',
             'idea.jar',
-            'testFramework.jar'
+            'testFramework.jar',
+            'ide-common.jar',
+            'util.jar',
+            'platform-core-ui.jar'
         ]
         def localPaths = librariesFromRuntime.collect{ library -> sourceSets.main.runtimeClasspath.find{ path -> path.name.contains("$library") } }
         localPaths.addAll(librariesFromCompilation.collect{ library -> sourceSets.main.compileClasspath.find{ path -> (path.name == "$library") } })

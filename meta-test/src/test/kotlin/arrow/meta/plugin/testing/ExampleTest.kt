@@ -2,7 +2,7 @@ package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
 import arrow.meta.plugin.testing.plugins.MetaPlugin
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ExampleTest {
 
@@ -186,6 +186,23 @@ class ExampleTest {
       },
       assert = {
         "helloWorld()".source.evalsTo("Hello ΛRROW Meta!")
+      }
+    ))
+  }
+
+  @Test
+  fun `allows to pass compilation arguments`() {
+    assertThis(CompilerTest(
+      config = { listOf(addArguments("-Xallow-jvm-ir-dependencies")) },
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        compiles
       }
     ))
   }

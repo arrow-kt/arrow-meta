@@ -1,7 +1,7 @@
 package arrow.meta.ide.plugins.proofs.inspections.coercions.implicit
 
 import arrow.meta.ide.IdeMetaPlugin
-import arrow.meta.ide.plugins.proofs.implicitParticipatingTypes
+import arrow.meta.ide.plugins.proofs.utils.implicitParticipatingTypes
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.areTypesCoerced
 import arrow.meta.plugins.proofs.phases.coerceProof
@@ -10,7 +10,7 @@ import com.intellij.codeInspection.ProblemHighlightType
 import org.celtric.kotlin.html.body
 import org.celtric.kotlin.html.html
 import org.celtric.kotlin.html.text
-import org.jetbrains.kotlin.idea.KotlinQuickDocumentationProvider
+import org.jetbrains.kotlin.idea.KotlinDocumentationProvider
 import org.jetbrains.kotlin.idea.inspections.AbstractApplicabilityBasedInspection
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -43,7 +43,7 @@ val IdeMetaPlugin.implicitCoercion: AbstractApplicabilityBasedInspection<KtDotQu
             html {
               body {
                 text("Apply implicit coercion available by") +
-                  text(KotlinQuickDocumentationProvider().generateDoc(proofPsi, ktCall).orEmpty())
+                  text(KotlinDocumentationProvider().generateDoc(proofPsi, ktCall).orEmpty())
               }
             }.render()
           }

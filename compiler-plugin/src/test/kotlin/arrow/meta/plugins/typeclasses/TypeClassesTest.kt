@@ -1,10 +1,9 @@
 package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 class TypeClassesTest {
 
@@ -57,7 +56,12 @@ class TypeClassesTest {
         codeSnippet.source
       },
       assert = {
-        allOf("result".source.evalsTo("1122"))
+        allOf(
+          "result1".source.evalsTo(""),
+          "result2".source.evalsTo("11"),
+          "result3".source.evalsTo("22"),
+          "result".source.evalsTo("1122")
+        )
       }
     ))
   }

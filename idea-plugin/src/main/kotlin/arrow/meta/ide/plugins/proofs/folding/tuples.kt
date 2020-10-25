@@ -1,9 +1,10 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.getType
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.strictParents
+import com.intellij.psi.util.parents
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeProjection
@@ -21,14 +22,14 @@ val IdeMetaPlugin.codeFoldingOnTuples: ExtensionPhase
 
 fun KtTypeReference.tupleTypeMatches(): Boolean =
   getType().isTypeMatching() &&
-    strictParents().all { psiElement ->
+    parents.all { psiElement ->
       !psiElement.safeAs<KtTypeReference>()?.getType().isTypeMatching()
     }
 
 private val tuplesFqName = FqName("arrow.tuples")
 
 private fun KotlinType?.isTypeMatching() =
-  this?.constructor?.declarationDescriptor?.fqNameSafe?.parent() == tuplesFqName
+  this?.constructor?.declarationDescriptor?.fqNameSafe?.takeIf { !it.isRoot }?.parent() == tuplesFqName
 
 private fun KtTypeReference.foldString(): String =
   firstChild.safeAs<KtUserType>()?.typeArgumentList?.let { ktTypeArgList: KtTypeArgumentList ->

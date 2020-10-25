@@ -17,10 +17,14 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver
+import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
+import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
@@ -72,6 +76,11 @@ interface ConfigSyntax {
       }
     }
 
+  fun declarationChecker(
+    check: CompilerContext.(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) -> Unit
+  ): arrow.meta.phases.config.StorageComponentContainer =
+    storageComponent(Noop.effect3, check)
+
   /**
    * The [enableIr] function enables the Intermediate Representation Backend.
    * The IR Backend is a part of the code generation phase and emits code in the IR format.
@@ -99,13 +108,26 @@ interface ConfigSyntax {
         val replacement = replace(defaultTypeChecker)
         if (replacement != defaultTypeChecker) {
           val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-           setFinalStatic(defaultTypeCheckerField, replacement)
+          setFinalStatic(defaultTypeCheckerField, replacement)
         }
       },
-      check = { _, _, _ ->
-      }
+      check = Noop.effect4
     ), registerArgumentTypeResolver())
 
+  fun callChecker(
+    check: CompilerContext.(resolvedCall: ResolvedCall<*>, reportOn: org.jetbrains.kotlin.com.intellij.psi.PsiElement, context: CallCheckerContext) -> Unit
+  ): arrow.meta.phases.config.StorageComponentContainer =
+    storageComponent(
+      registerModuleComponents = { container, _ ->
+        val ctx = this
+        container.useInstance(
+          object : CallChecker {
+            override fun check(resolvedCall: ResolvedCall<*>, reportOn: org.jetbrains.kotlin.com.intellij.psi.PsiElement, context: CallCheckerContext): Unit =
+              ctx.check(resolvedCall, reportOn, context)
+          }
+        )
+      }
+    )
 
   private fun Meta.registerArgumentTypeResolver(): ExtensionPhase =
     cli {

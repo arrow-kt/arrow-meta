@@ -51,11 +51,6 @@ sealed class ApplicationProvider : ExtensionPhase {
 
   /**
    * @see ApplicationSyntax
-   */
-  data class ProjectListener(val listener: ProjectLifecycleListener) : ApplicationProvider()
-
-  /**
-   * @see ApplicationSyntax
    * PM reads ProjectManager
    */
   data class PMListener(val listener: ProjectManagerListener) : ApplicationProvider()
@@ -69,9 +64,9 @@ sealed class ApplicationProvider : ExtensionPhase {
    * @see ApplicationSyntax
    */
   object StopServicePreloading : ApplicationProvider()
-
-  /**
+  /* TODO: temporary disabled
+  *//**
    * TODO: create an extension for Meta API
-   */
-  data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()
+   *//*
+  data class UnloadServices(val container: ContainerDescriptor) : ApplicationProvider()*/
 }

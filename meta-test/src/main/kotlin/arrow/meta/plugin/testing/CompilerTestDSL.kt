@@ -87,6 +87,12 @@ interface ConfigSyntax {
     Config.Many(listOf(Config.AddDependencies(element.toList())))
 
   /**
+   * Adds the necessary arguments to run the compilation.
+   */
+  fun addArguments(vararg element: String): Config =
+    Config.Many(listOf(Config.AddArguments(element.toList())))
+
+  /**
    * Allows to combine [Config].
    */
   operator fun Config.plus(other: Config): List<Config> =
@@ -114,6 +120,7 @@ sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
   internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
+  internal data class AddArguments(val arguments: List<String>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
 
@@ -131,7 +138,10 @@ interface CodeSyntax {
    * @see [CompilerTest]
    */
   fun sources(vararg sources: Code.Source): Code =
-    Code.Sources(sources.toList())
+    sources(sources.toList())
+
+  fun sources(sources: List<Code.Source>): Code =
+    Code.Sources(sources)
 }
 
 /**
@@ -151,12 +161,12 @@ sealed class Code {
      * Content of code snippet.
      */
     val text: String
-  ): Code()
+  ) : Code()
 
   /**
    * It's possible to provide one or several sources to be compiled
    */
-  internal data class Sources(val sources: List<Source>): Code()
+  internal data class Sources(val sources: List<Source>) : Code()
 
   internal companion object : CodeSyntax {
     override val emptyCode: Code = Code.emptyCode
@@ -209,7 +219,7 @@ interface AssertSyntax {
    * @param sourcePath Source path of the expected file.
    */
   fun quoteOutputMatches(source: Code.Source, sourcePath: String): Assert.SingleAssert = Assert.QuoteOutputWithCustomPathMatches(source, sourcePath)
-  
+
   /**
    * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
    *
@@ -251,7 +261,10 @@ interface AssertSyntax {
    * Allows to provide several [Assert.SingleAssert].
    */
   fun allOf(vararg elements: Assert.SingleAssert): Assert =
-    if (elements.isNotEmpty()) Assert.Many(elements.asList()) else Assert.Many(emptyList())
+    if (elements.isNotEmpty()) allOf(elements.asList()) else Assert.Many(emptyList())
+
+  fun allOf(elements: List<Assert.SingleAssert>): Assert =
+    Assert.Many(elements)
 }
 
 /**
@@ -259,7 +272,7 @@ interface AssertSyntax {
  */
 sealed class Assert {
 
-  abstract class SingleAssert: Assert()
+  abstract class SingleAssert : Assert()
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
   internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
@@ -272,6 +285,7 @@ sealed class Assert {
     object Compiles : CompilationResult()
     object Fails : CompilationResult()
   }
+
   internal object Empty : SingleAssert()
 
   internal companion object : AssertSyntax {

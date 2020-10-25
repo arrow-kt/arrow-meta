@@ -2,6 +2,7 @@ package arrow.meta.ide.plugins.proofs.markers
 
 import arrow.meta.ide.IdeMetaPlugin
 import arrow.meta.ide.plugins.proofs.folding.unionTypeMatches
+import arrow.meta.ide.plugins.proofs.utils.addLineMarkerProviderM
 import arrow.meta.ide.resources.ArrowIcons
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.PsiElement

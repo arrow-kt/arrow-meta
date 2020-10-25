@@ -71,6 +71,7 @@ private val interpreter: (CompilerTest) -> Unit = {
           is Config.AddCompilerPlugins -> remaining.compilationData(acc.addCompilerPlugins(config))
           is Config.AddDependencies -> remaining.compilationData(acc.addDependencies(config))
           is Config.AddMetaPlugins -> remaining.compilationData(acc.addMetaPlugins(config))
+          is Config.AddArguments -> remaining.compilationData(acc.addArguments(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
         }
@@ -99,7 +100,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.QuoteOutputWithCustomPathMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source, singleAssert.sourcePath)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
       is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source)
-      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get("", *singleAssert.sourcePath.split("/").toTypedArray()))
+      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, actualFileDirectoryPath = Paths.get(singleAssert.sourcePath))
       else -> TODO()
     }
 
@@ -121,6 +122,9 @@ private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins
 
 private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
   copy(metaPlugins = metaPlugins + config.plugins)
+
+private fun CompilationData.addArguments(config: Config.AddArguments) =
+  copy(arguments = arguments + config.arguments)
 
 private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
   assertCompiles(compilationResult)

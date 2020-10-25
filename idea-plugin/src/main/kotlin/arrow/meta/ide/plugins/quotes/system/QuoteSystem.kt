@@ -17,8 +17,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.psi.KtElement
@@ -129,7 +129,7 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> QuoteSystemServi
       transform(project, files, extensions)
     } finally {
       val duration = System.currentTimeMillis() - start
-      LOG.warn("kt file transformation: %d files, duration %d ms".format(files.size, duration))
+      LOG.info("kt file transformation: %d files, duration %d ms".format(files.size, duration))
     }
   }
     .expireWith(project)
@@ -146,8 +146,8 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> QuoteSystemServi
       //    best would be partial transformation results for the valid parts of a file (Quote system changes needed)
 
       // IllegalStateExceptions are usually caused by syntax errors in the source files, thrown by quote system
-      if (e !is CancellationException && LOG.isDebugEnabled) {
-        LOG.debug("error transforming files $files", e)
+      if (e !is CancellationException) {
+        if (LOG.isDebugEnabled) LOG.debug("error transforming files $files", e) else LOG.warn("Syntax Error while transforming files $files", e)
       }
     }
 }
@@ -226,7 +226,7 @@ private val messages: MessageCollector = object : MessageCollector {
 
   override fun hasErrors(): Boolean = false
 
-  override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+  override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
     when {
       severity.isError -> LOG.error(message)
       severity.isWarning -> LOG.warn(message)

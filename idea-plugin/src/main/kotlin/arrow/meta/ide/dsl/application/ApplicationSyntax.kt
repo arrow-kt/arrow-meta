@@ -265,15 +265,17 @@ interface ApplicationSyntax {
   fun MetaIde.stopServicePreloading(): ExtensionPhase =
     ApplicationProvider.StopServicePreloading
 
+  /* TODO: temporary Disabled
   fun MetaIde.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
-    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
-
+    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)*/
+  /* TODO: temporary Disabled
+  */
   /**
    * registers an activity, which is executed eagerly in the background on startup.
    * @see PreloadingActivity
-   */
+   *//*
   fun MetaIde.addPreloadingActivity(preload: (ProgressIndicator) -> Unit): ExtensionPhase =
-    addPreloadingActivity(preloadingActivity(preload))
+    addPreloadingActivity(preloadingActivity(preload))*/
 
   fun MetaIde.addAppLifecycleListener(listener: AppLifecycleListener): ExtensionPhase =
     ApplicationProvider.AppListener(listener)
@@ -332,65 +334,6 @@ interface ApplicationSyntax {
       override fun appWillBeClosed(restarted: Boolean): Unit = appWillBeClosed(restarted)
     }
 
-  /**
-   * registers a [ProjectLifecycle]
-   */
-  fun MetaIde.addProjectLifecycle(
-    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
-  ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed, dispose))
-
-  /**
-   * Order: [beforeProjectLoaded] then [initialize] then [afterProjectClosed]
-   */
-  fun ApplicationSyntax.projectLifecycleListener(
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
-  ): ProjectLifecycle =
-    object : ProjectLifecycle {
-      override fun projectComponentsInitialized(project: Project): Unit =
-        initialize(this, project)
-
-      override fun beforeProjectLoaded(project: Project): Unit =
-        beforeProjectLoaded(this, project)
-
-      override fun afterProjectClosed(project: Project): Unit =
-        afterProjectClosed(this, project)
-
-      override fun dispose(): Unit = dispose(this)
-    }
-
-  /**
-   * registers a [ProjectLifecycleListener]
-   */
-  fun ApplicationSyntax.addProjectLifecycleListener(
-    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-    initialize: (Project) -> Unit = Noop.effect1,
-    afterProjectClosed: (Project) -> Unit = Noop.effect1
-  ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed))
-
-  fun ApplicationSyntax.projectLifecycleListener(
-    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-    initialize: (Project) -> Unit = Noop.effect1,
-    afterProjectClosed: (Project) -> Unit = Noop.effect1
-  ): ProjectLifecycleListener =
-    object : ProjectLifecycleListener {
-      override fun projectComponentsInitialized(project: Project): Unit =
-        initialize(project)
-
-      override fun beforeProjectLoaded(project: Project): Unit =
-        beforeProjectLoaded(project)
-
-      override fun afterProjectClosed(project: Project): Unit =
-        afterProjectClosed(project)
-    }
-
   fun MetaIde.addPMListener(
     closing: (Project) -> Unit = Noop.effect1,
     closed: (Project) -> Unit = Noop.effect1,
@@ -424,13 +367,11 @@ interface ApplicationSyntax {
    */
   fun MetaIde.registerMetaPlugin(
     conf: CompilerConfiguration = CompilerConfiguration(),
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addProjectLifecycle(
-      initialize = { project: Project ->
+    addPMListener (
+      opened = { project: Project ->
         registerMetaComponents(project, conf, project.ctx())
-      },
-      dispose = dispose
+      }
     )
 
   /**
