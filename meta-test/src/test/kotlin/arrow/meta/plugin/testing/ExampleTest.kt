@@ -208,15 +208,33 @@ class ExampleTest {
   }
 
   @Test
+  fun `allows to pass command line processors and plugin options`() {
+    assertThis(CompilerTest(
+      config = { listOf(
+        addCommandLineProcessors(ExampleCommandLineProcessor()),
+        addPluginOptions(
+          PluginOption(
+            ExampleCommandLineProcessor().pluginId, ExampleCommandLineProcessor.CLI_OPTION.optionName, "value"
+          ))
+      )},
+      code = {
+        """
+          | 
+          | fun helloWorld(): String = "Hello World!"
+          | 
+          """.source
+      },
+      assert = {
+        compiles
+      }
+    ))
+  }
+
+  @Test
   fun `allows to pass plugin options and fails without the corresponding command line processor`() {
     assertThis(CompilerTest(
       config = { listOf(
-        addPluginOptions(
-          PluginOption(
-            "plugin.id",
-            "key",
-            "value"
-          ))
+        addPluginOptions(PluginOption("plugin.id", "key", "value"))
       )},
       code = {
         """
@@ -236,12 +254,7 @@ class ExampleTest {
     assertThis(CompilerTest(
       config = { listOf(
         addCommandLineProcessors(ExampleCommandLineProcessor()),
-        addPluginOptions(
-          PluginOption(
-            ExampleCommandLineProcessor().pluginId,
-            "wrongKey",
-            "value"
-          ))
+        addPluginOptions(PluginOption(ExampleCommandLineProcessor().pluginId,"wrongKey", "value"))
       )},
       code = {
         """
@@ -251,32 +264,10 @@ class ExampleTest {
           """.source
       },
       assert = {
-        failsWith { it.contains("Unsupported plugin option") && it.contains("${ExampleCommandLineProcessor().pluginId}:wrongKey=value")}
-      }
-    ))
-  }
-
-  @Test
-  fun `allows to pass command line processors and plugin options`() {
-    assertThis(CompilerTest(
-      config = { listOf(
-        addCommandLineProcessors(ExampleCommandLineProcessor()),
-        addPluginOptions(
-          PluginOption(
-            ExampleCommandLineProcessor().pluginId,
-            ExampleCommandLineProcessor.CLI_OPTION.optionName,
-            "value"
-          ))
-      )},
-      code = {
-        """
-          | 
-          | fun helloWorld(): String = "Hello World!"
-          | 
-          """.source
-      },
-      assert = {
-        compiles
+        failsWith {
+          it.contains("Unsupported plugin option") &&
+          it.contains("${ExampleCommandLineProcessor().pluginId}:wrongKey=value")
+        }
       }
     ))
   }
