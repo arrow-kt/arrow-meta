@@ -99,10 +99,11 @@ private val interpreter: (CompilerTest) -> Unit = {
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
-      is Assert.QuoteFileMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
-        Paths.get("build","generated","source", "kapt", "main"))
-      is Assert.QuoteFileWithCustomPathMatches -> assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
-        Paths.get(singleAssert.sourcePath))
+      is Assert.QuoteFileMatches ->
+        assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
+          Paths.get("build", "generated", "source", "kapt", "main"))
+      is Assert.QuoteFileWithCustomPathMatches ->
+        assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source, singleAssert.sourcePath)
       else -> TODO()
     }
 

@@ -111,7 +111,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithCustomPath_Generated
         """.source,
-        sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
+        sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
       )}
     ))
   }
@@ -133,7 +133,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithBaseDir_Generated
         """.source,
-        sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
+        sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
       )}
     ))
   }
@@ -155,7 +155,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithBaseDirAndCustomPath_Generated
         """.source,
-        sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
+        sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
       )}
     ))
   }
@@ -174,14 +174,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
-            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
             """.source,
-            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2).toString()
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2)
           )
         )
       }
@@ -207,14 +207,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithBaseDir_Generated
             """.source,
-            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDir_Generated_2
             """.source,
-            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
           )
         )
       }
@@ -240,14 +240,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated
             """.source,
-            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated_2
             """.source,
-            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2).toString()
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2)
           )
         )
       }

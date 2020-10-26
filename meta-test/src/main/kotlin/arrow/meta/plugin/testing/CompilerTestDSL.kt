@@ -2,6 +2,7 @@ package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import java.nio.file.Path
 
 /**
  * Represents a dependency from `<artifact-id>:<version>` string.
@@ -248,7 +249,7 @@ interface AssertSyntax {
    * @param source Code snippet with the expected quote output.
    * @param sourcePath Source path of the expected file.
    */
-  fun quoteFileMatches(filename: String, source: Code.Source, sourcePath: String): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
+  fun quoteFileMatches(filename: String, source: Code.Source, sourcePath: Path): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
 
 
   /**
@@ -289,9 +290,8 @@ sealed class Assert {
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
   internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
-  internal data class QuoteOutputWithCustomPathMatches(val source: Code.Source, val sourcePath: String) : SingleAssert()
   internal data class QuoteFileMatches(val filename: String, val source: Code.Source) : SingleAssert()
-  internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: String) : SingleAssert()
+  internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: Path) : SingleAssert()
   internal data class EvalsTo(val source: Code.Source, val output: Any?) : SingleAssert()
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
   internal sealed class CompilationResult : SingleAssert() {
