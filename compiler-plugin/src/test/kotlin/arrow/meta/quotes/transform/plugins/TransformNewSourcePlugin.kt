@@ -10,6 +10,9 @@ import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
 import org.jetbrains.kotlin.psi.KtClass
 
+const val CUSTOM_GENERATED_SRC_PATH_1 = "generated/source/kapt/test/files"
+const val CUSTOM_GENERATED_SRC_PATH_2 = "generated/source/kapt/test/files/source"
+
 val Meta.transformNewSource: List<CliPlugin>
   get() = listOf(
     transformNewSourceSingleGeneration,
@@ -116,7 +119,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", "generated/source/kapt/test/files")
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1)
         )
       }
     )
@@ -146,7 +149,7 @@ private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: Cli
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", "generated/source/kapt/test/files")
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1)
         )
       }
     )
@@ -161,12 +164,12 @@ private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", "generated/source/kapt/test/files"),
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", "generated/source/kapt/test/files/source")
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2)
         )
       }
     )
@@ -201,12 +204,12 @@ private val Meta.transformNewSourceMultipleGenerationWithBaseDirAndCustomPath: C
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", "generated/source/kapt/test/files"),
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", "generated/source/kapt/test/files/source")
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2)
         )
       }
     )
