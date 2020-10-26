@@ -4,17 +4,20 @@ import arrow.meta.MetaCliProcessor
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.PluginOption
 import arrow.meta.plugin.testing.assertThis
-import arrow.meta.quotes.transform.plugins.CUSTOM_GENERATED_SRC_PATH_1
-import arrow.meta.quotes.transform.plugins.CUSTOM_GENERATED_SRC_PATH_2
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.jupiter.api.Test
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class TransformNewSourceTest {
 
   companion object {
-    const val DEFAULT_BASE_DIR = "build"
-    const val CUSTOM_BASE_DIR = "build/test"
-    const val DEFAULT_GENERATED_SRC_PATH="generated/source/kapt/main"
+    val DEFAULT_BASE_DIR: Path = Paths.get("build")
+    val CUSTOM_BASE_DIR: Path = Paths.get("build", "test")
+
+    val DEFAULT_GENERATED_SRC_PATH: Path = Paths.get("generated", "source", "kapt", "main")
+    val CUSTOM_GENERATED_SRC_PATH_1: Path = Paths.get("generated", "source", "kapt", "test", "files")
+    val CUSTOM_GENERATED_SRC_PATH_2: Path = Paths.get("generated", "source", "kapt", "test", "files", "source")
   }
 
   @Test
@@ -108,7 +111,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithCustomPath_Generated
         """.source,
-        sourcePath = "$DEFAULT_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_1"
+        sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
       )}
     ))
   }
@@ -119,7 +122,8 @@ class TransformNewSourceTest {
       config = { metaDependencies +
         addMetaPlugins(TransformMetaPlugin()) +
         addCommandLineProcessors(MetaCliProcessor()) +
-        addPluginOptions(PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR))
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
       },
       code = {
         """ class NewSourceWithBaseDir {} """.source
@@ -129,7 +133,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithBaseDir_Generated
         """.source,
-        sourcePath = "$CUSTOM_BASE_DIR/$DEFAULT_GENERATED_SRC_PATH"
+        sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
       )}
     ))
   }
@@ -140,7 +144,8 @@ class TransformNewSourceTest {
       config = { metaDependencies +
         addMetaPlugins(TransformMetaPlugin()) +
         addCommandLineProcessors(MetaCliProcessor()) +
-        addPluginOptions(PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR))
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
       },
       code = {
         """ class NewSourceWithBaseDirAndCustomPath {} """.source
@@ -150,7 +155,7 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithBaseDirAndCustomPath_Generated
         """.source,
-        sourcePath = "$CUSTOM_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_1"
+        sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
       )}
     ))
   }
@@ -169,14 +174,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
-            sourcePath = "$DEFAULT_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_1"
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
             """.source,
-            sourcePath = "$DEFAULT_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_2"
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2).toString()
           )
         )
       }
@@ -189,7 +194,8 @@ class TransformNewSourceTest {
       config = { metaDependencies +
         addMetaPlugins(TransformMetaPlugin()) +
         addCommandLineProcessors(MetaCliProcessor()) +
-        addPluginOptions(PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR))
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
       },
       code = {
         """ class NewMultipleSourceWithBaseDir {} """.source
@@ -201,14 +207,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithBaseDir_Generated
             """.source,
-            sourcePath = "$CUSTOM_BASE_DIR/$DEFAULT_GENERATED_SRC_PATH"
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDir_Generated_2
             """.source,
-            sourcePath = "$CUSTOM_BASE_DIR/$DEFAULT_GENERATED_SRC_PATH"
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH).toString()
           )
         )
       }
@@ -221,7 +227,8 @@ class TransformNewSourceTest {
       config = { metaDependencies +
         addMetaPlugins(TransformMetaPlugin()) +
         addCommandLineProcessors(MetaCliProcessor()) +
-        addPluginOptions(PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR))
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
       },
       code = {
         """ class NewMultipleSourceWithBaseDirAndCustomPath {} """.source
@@ -233,14 +240,14 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated
             """.source,
-            sourcePath = "$CUSTOM_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_1"
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1).toString()
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated_2
             """.source,
-            sourcePath = "$CUSTOM_BASE_DIR/$CUSTOM_GENERATED_SRC_PATH_2"
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2).toString()
           )
         )
       }

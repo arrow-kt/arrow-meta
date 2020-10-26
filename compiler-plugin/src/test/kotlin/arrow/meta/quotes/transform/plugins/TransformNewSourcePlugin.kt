@@ -8,10 +8,9 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
+import arrow.meta.quotes.transform.TransformNewSourceTest.Companion.CUSTOM_GENERATED_SRC_PATH_1
+import arrow.meta.quotes.transform.TransformNewSourceTest.Companion.CUSTOM_GENERATED_SRC_PATH_2
 import org.jetbrains.kotlin.psi.KtClass
-
-const val CUSTOM_GENERATED_SRC_PATH_1 = "generated/source/kapt/test/files"
-const val CUSTOM_GENERATED_SRC_PATH_2 = "generated/source/kapt/test/files/source"
 
 val Meta.transformNewSource: List<CliPlugin>
   get() = listOf(
@@ -119,7 +118,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1)
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1.toString())
         )
       }
     )
@@ -149,7 +148,7 @@ private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: Cli
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1)
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1.toString())
         )
       }
     )
@@ -164,12 +163,12 @@ private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1),
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1.toString()),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2)
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2.toString())
         )
       }
     )
@@ -204,12 +203,12 @@ private val Meta.transformNewSourceMultipleGenerationWithBaseDirAndCustomPath: C
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1),
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1.toString()),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2)
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2.toString())
         )
       }
     )
