@@ -5,6 +5,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
+import arrow.meta.phases.codegen.ir.resolveTypeParameters
 import arrow.meta.phases.codegen.ir.substitutedValueParameters
 import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.baseLineTypeChecker
@@ -46,6 +47,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
@@ -172,6 +174,8 @@ class ProofsIrCodegen(
     }
 
   private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) = irUtils.run {
+    expression.symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
+    val t = expression.resolveTypeParameters
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
@@ -213,7 +217,6 @@ class ProofsIrCodegen(
               }
             }
           }
-          symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
         }
       }
     }

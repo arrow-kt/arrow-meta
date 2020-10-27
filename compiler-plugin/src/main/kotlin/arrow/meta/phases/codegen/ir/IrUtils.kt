@@ -10,10 +10,14 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
@@ -24,9 +28,15 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.IrTypeAbbreviation
+import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
+import org.jetbrains.kotlin.ir.types.impl.IrTypeBase
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
@@ -41,6 +51,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.asSimpleType
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -218,13 +229,44 @@ val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
   else
     typeParameters
 
-fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
-  container.allTypeParameters.withIndex().associate {
-    it.value to getTypeArgument(it.index)!!
-  }
+fun IrTypeParametersContainer.getTypeSubstitutionMap(expression: IrMemberAccessExpression): Map<IrTypeParameter, Either<KotlinType?, TypeProjection?>> =
+  typeParameters
+    .associateWith {
+      // TODO: room for improvement regarding type association
+      if (expression.typeArgumentsCount > it.index &&
+        expression.ownersTypeParameters.any { p ->
+          p.index == it.index && p == it
+        })
+        Either.Left(expression.getTypeArgument(it.index).safeAs<IrTypeBase>()?.kotlinType)
+      else if (it.index > 0 && expression.type is IrSimpleType && it.index < (expression.type as IrSimpleType).arguments.size) {
+        Either.Right(expression.type.safeAs<IrTypeBase>()?.kotlinType?.arguments?.get(it.index))
+      } else {
+        Either.Left(expression.type.safeAs<IrTypeBase>()?.kotlinType)
+      }
+    }
 
-val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
-  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
+/**
+ * expression.unsubstitutedDescriptor.substitute(
+TypeSubstitutor.create(object : TypeSubstitution() {
+override fun get(key: KotlinType): TypeProjection? {
+types.flatMap { (_, m) -> m.toList() }
+.firstOrNull { (typeParameter, o) ->
+when(o){
+is Or.First -> o.a == key
+is Or.Second -> o.b == key.constructor
+is Or.Third -> key.arguments.contains(o.c)
+}
+}
+}
+})
+ */
+sealed class Either<out A, out B> {
+  data class Left<out A>(val a: A) : Either<A, Nothing>()
+  data class Right<out B>(val b: B) : Either<Nothing, B>()
+}
+
+val IrMemberAccessExpression.ownersTypeParameters: List<IrTypeParameter>
+  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.typeParameters ?: emptyList()
 
 /**
  * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
@@ -242,3 +284,104 @@ fun CallableMemberDescriptor.substitutedValueParameters(call: IrCall): List<Pair
         )
     }
 
+fun IrDeclarationParent.extractTypeParameters(): List<IrTypeParameter> =
+  collectSelfAndParents().mapNotNull { it.safeAs<IrTypeParametersContainer>()?.typeParameters }.flatten()
+
+val IrMemberAccessExpression.dispatchersAndParents: Map<IrExpression?, IrDeclarationParent>
+  get() = (this to symbol.owner.safeAs<IrDeclarationParent>()).collectDispatcherAndParents().toMap()
+
+val IrMemberAccessExpression.selfAndParents: List<IrDeclarationParent>
+  get() = symbol.owner.safeAs<IrDeclarationParent>().collectSelfAndParents()
+
+val IrMemberAccessExpression.hasParent: Boolean
+  get() = symbol.owner.safeAs<IrDeclarationParent>()?.parent != null
+
+val IrMemberAccessExpression.resolveTypeParameters: Map<IrTypeParameter, Either<KotlinType?, TypeProjection?>>
+  get() {
+    val result: MutableMap<IrTypeParameter, Either<KotlinType?, TypeProjection?>> = mutableMapOf()
+    selfAndParents.forEach { p ->
+      result.putAll(p.safeAs<IrTypeParametersContainer>()?.getTypeSubstitutionMap(this) ?: emptyMap())
+    }
+    return result.toMap()
+  }
+
+// TODO: look for alternative to resolve more in the tree if Dispatcher is unreachable
+tailrec fun Pair<IrExpression?, IrDeclarationParent?>.collectDispatcherAndParents(
+  acc: List<Pair<IrExpression?, IrDeclarationParent>> = emptyList()
+): List<Pair<IrExpression?, IrDeclarationParent>> =
+  if (second != null) {
+    val b = second as IrDeclarationParent
+    (first.safeAs<IrMemberAccessExpression>()?.dispatchReceiver to b.parent)
+      .collectDispatcherAndParents(acc.plus(first to b))
+  } else acc
+
+tailrec fun IrDeclarationParent?.collectSelfAndParents(
+  acc: List<IrDeclarationParent> = emptyList()
+): List<IrDeclarationParent> =
+  if (this != null) {
+    parent.collectSelfAndParents(acc + this)
+  } else {
+    acc
+  }
+
+val IrDeclarationParent.parent: IrDeclarationParent?
+  get() = when (this) {
+    is IrField -> parent
+    is IrClass -> when {
+      isInner -> parent as IrClass
+      visibility == Visibilities.LOCAL -> parent
+      else -> null
+    }
+    is IrConstructor -> parent as IrClass
+    is IrFunction -> if (visibility == Visibilities.LOCAL || dispatchReceiverParameter != null) {
+      parent
+    } else null
+    else -> null
+  }
+
+/*
+fun IrSimpleType.replace(
+  constructor: (IrClassifierSymbol?) -> IrClassifierSymbol? = Noop.id(),
+  questionMark: Boolean = hasQuestionMark,
+  args: (List<IrTypeArgument>) -> List<IrTypeArgument>? = Noop.nullable1(),
+  annotation: (IrConstructorCall) -> IrConstructorCall? = Noop.id(),
+  abbreviation: (IrTypeAbbreviation?) -> IrTypeAbbreviation? = Noop.id(),
+): IrSimpleType? =
+  when (val owner = classifier.owner) {
+    is IrTypeParameter -> {
+      IrSimpleTypeImpl(
+        constructor(classifier) ?: classifier,
+        questionMark,
+        arguments.map { arg(it) ?: it },
+        annotations.map { annotation(it) ?: it },
+        abbreviation(this.abbreviation)
+      )
+    }
+    is IrClass -> TODO()
+    else -> this
+  }
+*/
+
+
+/*fun IrSimpleType.replace(
+  classi: (Either<IrTypeParameter, IrClass>) -> Either<IrTypeParameter, IrClass>? = Noop.id(),
+  questionMark: Boolean = hasQuestionMark,
+  arg: (IrTypeArgument) -> IrTypeArgument? = Noop.id(),
+  annotation: (IrConstructorCall) -> IrConstructorCall? = Noop.id(),
+  abbreviation: (IrTypeAbbreviation?) -> IrTypeAbbreviation? = Noop.id()
+): IrSimpleType? =
+  when (val owner = classifier.owner) {
+    is IrTypeParameter -> {
+      classi(owner).safeAs<Either.Left<IrTypeParameter>>()
+      if()
+      IrSimpleTypeImpl(
+        (parameter(Either.Left(owner)) ?: owner).symbol,
+        questionMark,
+        arguments.map { arg(it) ?: it },
+        annotations.map { annotation(it) ?: it },
+        abbreviation(this.abbreviation)
+      )
+    }
+    is IrClass -> TODO()
+    else -> this
+  }*/

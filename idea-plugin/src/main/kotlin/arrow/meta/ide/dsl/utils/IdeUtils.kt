@@ -72,7 +72,7 @@ fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> 
  * it applies [traverseFilter] with the identity function
  */
 fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
-  traverseFilter(on) { it }
+  traverseFilter(on) Noop.id()
 
 /**
  * collects all call-sites

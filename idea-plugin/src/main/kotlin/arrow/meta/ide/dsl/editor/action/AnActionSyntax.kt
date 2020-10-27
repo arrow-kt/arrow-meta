@@ -132,7 +132,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
     displayTextInToolbar: Boolean = false,
-    setInjectedContext: (worksInInjected: Boolean) -> Boolean = { it },
+    setInjectedContext: (worksInInjected: Boolean) -> Boolean = Noop.id(),
     useSmallerFontForTextInToolbar: Boolean = false,
     startInTransaction: Boolean = false,
     getTemplateText: String? = null
@@ -166,7 +166,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
     displayTextInToolbar: Boolean = false,
-    setInjectedContext: (worksInInjected: Boolean) -> Boolean = { it },
+    setInjectedContext: (worksInInjected: Boolean) -> Boolean = Noop.id(),
     useSmallerFontForTextInToolbar: Boolean = false,
     startInTransaction: Boolean = false,
     getTemplateText: String? = null
@@ -200,7 +200,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
     displayTextInToolbar: Boolean = false,
-    setInjectedContext: (worksInInjected: Boolean) -> Boolean = { it },
+    setInjectedContext: (worksInInjected: Boolean) -> Boolean = Noop.id(),
     useSmallerFontForTextInToolbar: Boolean = false,
     startInTransaction: Boolean = false,
     getTemplateText: String? = null
@@ -236,7 +236,7 @@ interface AnActionSyntax : AnActionUtilitySyntax {
     beforeActionPerformedUpdate: (e: AnActionEvent) -> Unit = Noop.effect1,
     update: (e: AnActionEvent) -> Unit = Noop.effect1,
     displayTextInToolbar: Boolean = false,
-    setInjectedContext: (worksInInjected: Boolean) -> Boolean = { it },
+    setInjectedContext: (worksInInjected: Boolean) -> Boolean = Noop.id(),
     useSmallerFontForTextInToolbar: Boolean = false,
     startInTransaction: Boolean = false,
     getTemplateText: String? = null

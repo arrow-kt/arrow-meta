@@ -8,6 +8,7 @@ object Noop {
   val effect4: (Any?, Any?, Any?, Any?) -> Unit = { _, _, _, _ -> Unit }
   val effect5: (Any?, Any?, Any?, Any?, Any?) -> Unit = { _, _, _, _, _ -> Unit }
   val effect6: (Any?, Any?, Any?, Any?, Any?, Any?) -> Unit = { _, _, _, _, _, _ -> Unit }
+  fun <A> id(): (A) -> A = { it }
   fun <A> nullable1(): (Any?) -> A? = { null }
   fun <A> nullable2(): (Any?, Any?) -> A? = { _, _ -> null }
   fun <A> nullable3(): (Any?, Any?, Any?) -> A? = { _, _, _ -> null }

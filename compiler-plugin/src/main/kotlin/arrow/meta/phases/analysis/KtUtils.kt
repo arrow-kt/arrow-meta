@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.internal.Noop
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
@@ -7,6 +8,8 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.SyntaxTraverser
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -17,11 +20,12 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.astReplace
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.FlexibleType
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.KotlinTypeFactory
+import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -89,7 +93,7 @@ fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> 
  * it applies [traverseFilter] with the identity function
  */
 fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> =
-  traverseFilter(on) { it }
+  traverseFilter(on, Noop.id())
 
 interface Eq<A> { // from arrow
   fun A.eqv(other: A): Boolean
@@ -193,4 +197,44 @@ fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
   annotationEntries.any { it.text.matches(regex) }
 
 val KtClass.companionObject: KtObjectDeclaration?
-  get() = declarations.singleOrNull{ it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }.safeAs<KtObjectDeclaration>()
+  get() = declarations.singleOrNull { it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }.safeAs<KtObjectDeclaration>()
+
+fun KotlinType.replace(
+  f: (AnnotationDescriptor) -> AnnotationDescriptor? = Noop.id(),
+  g: (TypeProjection) -> TypeProjection? = Noop.id(),
+  h: (TypeConstructor) -> TypeConstructor? = Noop.id()
+): KotlinType =
+  when (val unwrapped = unwrap()) {
+    is FlexibleType ->
+      KotlinTypeFactory.flexibleType(
+        unwrapped.lowerBound.replace(f, g, h),
+        unwrapped.upperBound.replace(f, g, h)
+      )
+    is SimpleType -> unwrapped.replace(f, g, h)
+  }
+
+fun SimpleType.replace(
+  f: (AnnotationDescriptor) -> AnnotationDescriptor? = Noop.id(),
+  g: (TypeProjection) -> TypeProjection? = Noop.id(),
+  h: (TypeConstructor) -> TypeConstructor? = Noop.id(),
+  nullable: Boolean = isMarkedNullable
+): SimpleType =
+  replace(
+    Annotations.create(annotations.map { f(it) ?: it }),
+    h(constructor) ?: constructor,
+    arguments.map { g(it) ?: it },
+    nullable
+  )
+
+fun SimpleType.replace(
+  annotations: Annotations = this.annotations,
+  constructor: TypeConstructor = this.constructor,
+  arguments: List<TypeProjection> = this.arguments,
+  nullable: Boolean = isMarkedNullable
+): SimpleType =
+  KotlinTypeFactory.simpleType(
+    annotations,
+    constructor,
+    arguments,
+    nullable
+  )
