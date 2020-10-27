@@ -174,8 +174,6 @@ class ProofsIrCodegen(
     }
 
   private fun CompilerContext.insertExtensionSyntaxCall(expression: IrCall) = irUtils.run {
-    expression.symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
-    val t = expression.resolveTypeParameters
     val valueType = expression.dispatchReceiver?.type?.toKotlinType()
       ?: expression.extensionReceiver?.type?.toKotlinType()
       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.toKotlinType() else null)
@@ -185,6 +183,8 @@ class ProofsIrCodegen(
         ?: expression.substitutedValueParameters.firstOrNull()?.second
     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
       expression.apply {
+        symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
+        val t = expression.resolveTypeParameters
         val proofCall = extensionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
           when {
