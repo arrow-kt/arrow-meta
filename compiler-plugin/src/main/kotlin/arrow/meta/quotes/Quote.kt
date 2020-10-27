@@ -11,6 +11,7 @@ import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_BASE_DIR
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
 import arrow.meta.phases.analysis.traverseFilter
@@ -387,7 +388,8 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = rootFile.virtualFile
   if (sourcePath != null) {
-    val path = Paths.get(configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf("build"))?.get(0), sourcePath)
+    val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DEFAULT_BASE_DIR.toString()))?.get(0)
+    val path = Paths.get(baseDir, sourcePath)
     val directory = path.toFile()
     directory.mkdirs()
     virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {

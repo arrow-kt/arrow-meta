@@ -1,6 +1,8 @@
 package arrow.meta.quotes.transform
 
 import arrow.meta.MetaCliProcessor
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_BASE_DIR
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_GENERATED_SRC_PATH
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.PluginOption
 import arrow.meta.plugin.testing.assertThis
@@ -12,10 +14,8 @@ import java.nio.file.Paths
 class TransformNewSourceTest {
 
   companion object {
-    val DEFAULT_BASE_DIR: Path = Paths.get("build")
     val CUSTOM_BASE_DIR: Path = Paths.get("build", "test")
 
-    val DEFAULT_GENERATED_SRC_PATH: Path = Paths.get("generated", "source", "kapt", "main")
     val CUSTOM_GENERATED_SRC_PATH_1: Path = Paths.get("generated", "source", "kapt", "test", "files")
     val CUSTOM_GENERATED_SRC_PATH_2: Path = Paths.get("generated", "source", "kapt", "test", "files", "source")
   }
