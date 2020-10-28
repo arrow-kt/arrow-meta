@@ -34,9 +34,11 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeAbbreviation
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
+import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.IrTypeBase
+import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
@@ -52,6 +54,7 @@ import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeProjection
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.asSimpleType
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -296,6 +299,10 @@ val IrMemberAccessExpression.selfAndParents: List<IrDeclarationParent>
 val IrMemberAccessExpression.hasParent: Boolean
   get() = symbol.owner.safeAs<IrDeclarationParent>()?.parent != null
 
+/**
+ * Note: can only be used if the Ir subtree is correct.
+ * If not it fails with the Ir tree error, before it resolves the type information
+ */
 val IrMemberAccessExpression.resolveTypeParameters: Map<IrTypeParameter, Either<KotlinType?, TypeProjection?>>
   get() {
     val result: MutableMap<IrTypeParameter, Either<KotlinType?, TypeProjection?>> = mutableMapOf()
@@ -339,49 +346,41 @@ val IrDeclarationParent.parent: IrDeclarationParent?
     else -> null
   }
 
-/*
+/**
+ * @param constructor the owner is either [IrClass] or [IrTypeParameter]
+ */
 fun IrSimpleType.replace(
   constructor: (IrClassifierSymbol?) -> IrClassifierSymbol? = Noop.id(),
   questionMark: Boolean = hasQuestionMark,
   args: (List<IrTypeArgument>) -> List<IrTypeArgument>? = Noop.nullable1(),
+  annotation: (List<IrConstructorCall>) -> List<IrConstructorCall>? = Noop.id(),
+  abbreviation: (IrTypeAbbreviation?) -> IrTypeAbbreviation? = Noop.id(),
+): IrSimpleType =
+  IrSimpleTypeImpl(
+    constructor(classifier) ?: classifier,
+    questionMark,
+    args(arguments) ?: arguments,
+    annotation(this.annotations) ?: annotations,
+    abbreviation(this.abbreviation)
+  )
+
+/**
+ * @param constructor the owner is either [IrClass] or [IrTypeParameter]
+ */
+fun IrSimpleType.replaceWith(
+  constructor: (IrClassifierSymbol?) -> IrClassifierSymbol? = Noop.id(),
+  questionMark: Boolean = hasQuestionMark,
+  args: (IrTypeArgument) -> IrTypeArgument? = Noop.nullable1(),
   annotation: (IrConstructorCall) -> IrConstructorCall? = Noop.id(),
   abbreviation: (IrTypeAbbreviation?) -> IrTypeAbbreviation? = Noop.id(),
-): IrSimpleType? =
-  when (val owner = classifier.owner) {
-    is IrTypeParameter -> {
-      IrSimpleTypeImpl(
-        constructor(classifier) ?: classifier,
-        questionMark,
-        arguments.map { arg(it) ?: it },
-        annotations.map { annotation(it) ?: it },
-        abbreviation(this.abbreviation)
-      )
-    }
-    is IrClass -> TODO()
-    else -> this
-  }
-*/
+): IrSimpleType =
+  replace(
+    constructor = constructor,
+    questionMark = questionMark,
+    args = { it.map { arg -> args(arg) ?: arg } },
+    annotation = { it.map { c -> annotation(c) ?: c } },
+    abbreviation
+  )
 
-
-/*fun IrSimpleType.replace(
-  classi: (Either<IrTypeParameter, IrClass>) -> Either<IrTypeParameter, IrClass>? = Noop.id(),
-  questionMark: Boolean = hasQuestionMark,
-  arg: (IrTypeArgument) -> IrTypeArgument? = Noop.id(),
-  annotation: (IrConstructorCall) -> IrConstructorCall? = Noop.id(),
-  abbreviation: (IrTypeAbbreviation?) -> IrTypeAbbreviation? = Noop.id()
-): IrSimpleType? =
-  when (val owner = classifier.owner) {
-    is IrTypeParameter -> {
-      classi(owner).safeAs<Either.Left<IrTypeParameter>>()
-      if()
-      IrSimpleTypeImpl(
-        (parameter(Either.Left(owner)) ?: owner).symbol,
-        questionMark,
-        arguments.map { arg(it) ?: it },
-        annotations.map { annotation(it) ?: it },
-        abbreviation(this.abbreviation)
-      )
-    }
-    is IrClass -> TODO()
-    else -> this
-  }*/
+fun IrType.projection(variance: Variance = Variance.INVARIANT): IrTypeProjection =
+  makeTypeProjection(this, variance)

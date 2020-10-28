@@ -28,6 +28,9 @@ import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
+import org.jetbrains.kotlin.types.TypeProjectionImpl
+import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun KtFunction.body(): KtExpression? =
@@ -238,3 +241,14 @@ fun SimpleType.replace(
     arguments,
     nullable
   )
+
+/**
+ * here are more utils kotlin/core/descriptors/src/org/jetbrains/kotlin/types/TypeUtils.kt
+ */
+fun KotlinType.projection(variance: Variance = Variance.INVARIANT): TypeProjection =
+  TypeProjectionImpl(variance, this)
+
+val TypeProjection.isTypeParameter: Boolean
+  get() = type.isTypeParameter()
+
+//tailrec fun KotlinType.typeParameters(acc: ): List<Either<KotlinType, TypeProjection>> =

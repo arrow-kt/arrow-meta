@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @Suppress("RedundantUnitReturnType")
 class ProofsIrCodegen(
@@ -184,7 +183,7 @@ class ProofsIrCodegen(
     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
       expression.apply {
         symbol.owner.wrapDispatcherAndExtensionReceiver(this@run)
-        val t = expression.resolveTypeParameters
+        val resolvedTypeParameters = expression.resolveTypeParameters // TODO: use to apply type information
         val proofCall = extensionProofCall(valueType, targetType)
         if (proofCall is IrMemberAccessExpression) {
           when {
