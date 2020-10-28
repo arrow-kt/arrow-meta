@@ -8,10 +8,22 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.plus
+import arrow.meta.quotes.transform.TransformNewSourceTest.Companion.CUSTOM_GENERATED_SRC_PATH_1
+import arrow.meta.quotes.transform.TransformNewSourceTest.Companion.CUSTOM_GENERATED_SRC_PATH_2
 import org.jetbrains.kotlin.psi.KtClass
 
 val Meta.transformNewSource: List<CliPlugin>
-  get() = listOf(transformNewSourceSingleGeneration, transformNewSourceWithManyTransformation, transformNewSourceMultipleGeneration, transformNewSourceSingleGenerationWithCustomPath, transformNewSourceMultipleGenerationWithCustomPath)
+  get() = listOf(
+    transformNewSourceSingleGeneration,
+    transformNewSourceWithManyTransformation,
+    transformNewSourceMultipleGeneration,
+    transformNewSourceSingleGenerationWithBaseDir,
+    transformNewSourceSingleGenerationWithCustomPath,
+    transformNewSourceSingleGenerationWithBaseDirAndCustomPath,
+    transformNewSourceMultipleGenerationWithBaseDir,
+    transformNewSourceMultipleGenerationWithCustomPath,
+    transformNewSourceMultipleGenerationWithBaseDirAndCustomPath
+  )
 
 private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
@@ -106,7 +118,37 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated
-          """.file("${name}_Generated.kt", "build/generated/source/kapt/test/files")
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1.toString())
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceSingleGenerationWithBaseDir: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration(this, { name == "NewSourceWithBaseDir" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: CliPlugin
+  get() = "Transform New Source" {
+    meta(
+      classDeclaration(this, { name == "NewSourceWithBaseDirAndCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated
+          """.file("${name}_Generated.kt", CUSTOM_GENERATED_SRC_PATH_1.toString())
         )
       }
     )
@@ -121,12 +163,52 @@ private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
             package arrow
             
             class ${name}_Generated 
-          """.file("${name}_Generated", "build/generated/source/kapt/test/files"),
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1.toString()),
           """
             package arrow
             
             class ${name}_Generated_2
-          """.file("${name}_Generated_2", "build/generated/source/kapt/test/files/source")
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2.toString())
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithBaseDir: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration(this, { name == "NewMultipleSourceWithBaseDir" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated"),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2")
+        )
+      }
+    )
+  }
+
+private val Meta.transformNewSourceMultipleGenerationWithBaseDirAndCustomPath: CliPlugin
+  get() = "Transform New Multiple Source" {
+    meta(
+      classDeclaration(this, { name == "NewMultipleSourceWithBaseDirAndCustomPath" }) {
+        Transform.newSources(
+          """
+            package arrow
+            
+            class ${name}_Generated 
+          """.file("${name}_Generated", CUSTOM_GENERATED_SRC_PATH_1.toString()),
+          """
+            package arrow
+            
+            class ${name}_Generated_2
+          """.file("${name}_Generated_2", CUSTOM_GENERATED_SRC_PATH_2.toString())
         )
       }
     )

@@ -1,5 +1,6 @@
 package arrow.meta.plugin.testing
 
+import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
 /**
@@ -11,15 +12,20 @@ internal data class CompilationData(
   val metaPlugins: List<ComponentRegistrar> = emptyList(),
   val dependencies: List<String> = emptyList(),
   val sources: List<Code.Source> = emptyList(),
-  val arguments: List<String> = emptyList()
+  val arguments: List<String> = emptyList(),
+  val commandLineProcessors: List<CommandLineProcessor> = emptyList(),
+  val pluginOptions: List<PluginOption> = emptyList()
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
     copy(
       compilerPlugins = compilerPlugins + other.compilerPlugins,
+      metaPlugins = metaPlugins + other.metaPlugins,
       dependencies = dependencies + other.dependencies,
       sources = sources + other.sources,
-      arguments = arguments + other.arguments
+      arguments = arguments + other.arguments,
+      commandLineProcessors = commandLineProcessors + other.commandLineProcessors,
+      pluginOptions = pluginOptions + other.pluginOptions
     )
 
   companion object {

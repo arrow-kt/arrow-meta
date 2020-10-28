@@ -10,18 +10,13 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import java.util.Properties
 
 /**
- * The project-level Gradle plugin behavior that is used specifying the plugin's configuration through the
- * [ArrowExtension] class.
+ * The project-level Gradle plugin behavior.
  * revisit [org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension] and [MultiplatformPlugin] from Spek to move forward for Mpp
  */
 class ArrowGradlePlugin : Plugin<Project> {
 
   companion object {
     fun isEnabled(project: Project): Boolean = project.plugins.findPlugin(ArrowGradlePlugin::class.java) != null
-
-    fun getArrowExtension(project: Project): ArrowExtension {
-      return project.extensions.getByType(ArrowExtension::class.java)
-    }
   }
 
   override fun apply(project: Project): Unit {
@@ -31,7 +26,6 @@ class ArrowGradlePlugin : Plugin<Project> {
     val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
     if (kotlinVersion != project.getKotlinPluginVersion())
        throw InvalidUserDataException("Use Kotlin $kotlinVersion for Arrow Meta Gradle Plugin")
-    project.extensions.create("arrow", ArrowExtension::class.java)
     project.afterEvaluate { p ->
       // Dependencies that aren't provided by compiler-plugin
       p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-script-util:$kotlinVersion")
@@ -39,7 +33,11 @@ class ArrowGradlePlugin : Plugin<Project> {
       p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
+        it.kotlinOptions.freeCompilerArgs += listOf(
+          "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
+          , "-P"
+          , "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
+        )
       }
     }
     project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java) {
