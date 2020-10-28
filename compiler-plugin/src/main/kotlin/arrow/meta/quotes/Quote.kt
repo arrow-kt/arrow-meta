@@ -386,16 +386,15 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 }
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
-  var virtualFile = rootFile.virtualFile
-  sourcePath?.let {
+  var virtualFile = sourcePath?.let {
     val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DEFAULT_BASE_DIR.toString()))?.get(0)
     val path = Paths.get(baseDir ?: DEFAULT_BASE_DIR.toString(), it)
     val directory = path.toFile()
     directory.mkdirs()
-    virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
+    CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)
     })
-  }
+  } ?: rootFile.virtualFile
 
   return cli {
     KtFile(
