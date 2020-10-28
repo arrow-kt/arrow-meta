@@ -248,21 +248,6 @@ fun IrTypeParametersContainer.getTypeSubstitutionMap(expression: IrMemberAccessE
       }
     }
 
-/**
- * expression.unsubstitutedDescriptor.substitute(
-TypeSubstitutor.create(object : TypeSubstitution() {
-override fun get(key: KotlinType): TypeProjection? {
-types.flatMap { (_, m) -> m.toList() }
-.firstOrNull { (typeParameter, o) ->
-when(o){
-is Or.First -> o.a == key
-is Or.Second -> o.b == key.constructor
-is Or.Third -> key.arguments.contains(o.c)
-}
-}
-}
-})
- */
 sealed class Either<out A, out B> {
   data class Left<out A>(val a: A) : Either<A, Nothing>()
   data class Right<out B>(val b: B) : Either<Nothing, B>()
