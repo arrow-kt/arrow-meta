@@ -1,12 +1,25 @@
 package arrow.meta.quotes.transform
 
+import arrow.meta.MetaCliProcessor
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_BASE_DIR
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_GENERATED_SRC_PATH
 import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.PluginOption
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.jupiter.api.Test
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class TransformNewSourceTest {
-  
+
+  companion object {
+    val CUSTOM_BASE_DIR: Path = Paths.get("build", "test")
+
+    val CUSTOM_GENERATED_SRC_PATH_1: Path = Paths.get("generated", "source", "kapt", "test", "files")
+    val CUSTOM_GENERATED_SRC_PATH_2: Path = Paths.get("generated", "source", "kapt", "test", "files", "source")
+  }
+
   @Test
   fun `validate single extra file is created`() {
     assertThis(CompilerTest(
@@ -98,7 +111,51 @@ class TransformNewSourceTest {
           package arrow
           class NewSourceWithCustomPath_Generated
         """.source,
-        sourcePath = "build/generated/source/kapt/test/files"
+        sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
+      )}
+    ))
+  }
+
+  @Test
+  fun `validate single extra file is created with base directory`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies +
+        addMetaPlugins(TransformMetaPlugin()) +
+        addCommandLineProcessors(MetaCliProcessor()) +
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
+      },
+      code = {
+        """ class NewSourceWithBaseDir {} """.source
+      },
+      assert = { quoteFileMatches( filename = "NewSourceWithBaseDir_Generated.kt",
+        source = """
+          package arrow
+          class NewSourceWithBaseDir_Generated
+        """.source,
+        sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
+      )}
+    ))
+  }
+
+  @Test
+  fun `validate single extra file is created with base directory and custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies +
+        addMetaPlugins(TransformMetaPlugin()) +
+        addCommandLineProcessors(MetaCliProcessor()) +
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
+      },
+      code = {
+        """ class NewSourceWithBaseDirAndCustomPath {} """.source
+      },
+      assert = { quoteFileMatches( filename = "NewSourceWithBaseDirAndCustomPath_Generated.kt",
+        source = """
+          package arrow
+          class NewSourceWithBaseDirAndCustomPath_Generated
+        """.source,
+        sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
       )}
     ))
   }
@@ -117,14 +174,80 @@ class TransformNewSourceTest {
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
-            sourcePath = "build/generated/source/kapt/test/files"
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
           ),
           quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
             """.source,
-            sourcePath = "build/generated/source/kapt/test/files/source"
+            sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2)
+          )
+        )
+      }
+    ))
+  }
+
+  @Test
+  fun `validate multiple extra files are created with base directory`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies +
+        addMetaPlugins(TransformMetaPlugin()) +
+        addCommandLineProcessors(MetaCliProcessor()) +
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
+      },
+      code = {
+        """ class NewMultipleSourceWithBaseDir {} """.source
+      },
+      assert = {
+        allOf(
+          quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithBaseDir_Generated
+            """.source,
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
+          ),
+          quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated_2.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithBaseDir_Generated_2
+            """.source,
+            sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
+          )
+        )
+      }
+    ))
+  }
+
+  @Test
+  fun `validate multiple extra files are created with base directory and custom path`() {
+    assertThis(CompilerTest(
+      config = { metaDependencies +
+        addMetaPlugins(TransformMetaPlugin()) +
+        addCommandLineProcessors(MetaCliProcessor()) +
+        addPluginOptions(
+          PluginOption(MetaCliProcessor().pluginId, MetaCliProcessor.ARROW_META_GENERATED_SRC_OUTPUT_DIR.optionName, CUSTOM_BASE_DIR.toString()))
+      },
+      code = {
+        """ class NewMultipleSourceWithBaseDirAndCustomPath {} """.source
+      },
+      assert = {
+        allOf(
+          quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithBaseDirAndCustomPath_Generated
+            """.source,
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
+          ),
+          quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated_2.kt",
+            source = """
+             package arrow
+             class NewMultipleSourceWithBaseDirAndCustomPath_Generated_2
+            """.source,
+            sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_2)
           )
         )
       }
