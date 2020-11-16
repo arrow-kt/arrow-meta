@@ -43,7 +43,7 @@ internal fun CompilerContext.evalAnnotatedPrismElement(element: KtClass): List<F
       element.sealedSubclassFqNameList()
         .map { Focus(it, it.substringAfterLast(".").decapitalize()) }
     else -> {
-      knownError(element.prismErrorMessage, element)
+      knownError(element.nameAsSafeName.asString().prismErrorMessage, element)
       emptyList()
     }
   }
@@ -70,11 +70,11 @@ internal fun CompilerContext.evalAnnotatedIsoElement(element: KtClass): List<Foc
   when (element.classType) {
     ClassType.DATA_CLASS -> element.getConstructorTypesNames().zip(element.getConstructorParamNames(), Focus.Companion::invoke)
       .takeIf { it.size <= 22 } ?: run {
-      knownError(element.isoTooBigErrorMessage, element)
+      knownError(element.nameAsSafeName.asString().isoTooBigErrorMessage, element)
       emptyList()
     }
     else -> {
-      knownError(element.isoErrorMessage, element)
+      knownError(element.nameAsSafeName.asString().isoErrorMessage, element)
       emptyList()
     }
   }

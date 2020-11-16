@@ -17,6 +17,7 @@ import arrow.meta.plugins.optics.internals.evalAnnotatedIsoElement
 import arrow.meta.plugins.optics.internals.evalAnnotatedPrismElement
 import arrow.meta.plugins.optics.internals.knownError
 import arrow.meta.plugins.optics.internals.lensErrorMessage
+import arrow.meta.plugins.optics.internals.noCompanion
 import arrow.meta.plugins.optics.internals.optionalErrorMessage
 import arrow.meta.plugins.optics.internals.process
 import arrow.meta.plugins.optics.internals.targets
@@ -30,7 +31,7 @@ val Meta.optics: CliPlugin
       meta(
         classDeclaration(this, ::isProductType) { c: KtClass ->
           if (c.companionObjects.isEmpty())
-            knownError("@optics annotated class $c needs to declare companion object.", c)
+            knownError(c.nameAsSafeName.asString().noCompanion, c)
           val files = ctx.process(listOf(adt(c)))
           Transform.newSources(*files.toTypedArray())
         }
@@ -40,8 +41,8 @@ val Meta.optics: CliPlugin
 private fun CompilerContext.adt(c: KtClass): ADT =
   ADT(c.containingKtFile.packageFqName, c, c.targets().map { target ->
     when (target) {
-      OpticsTarget.LENS -> ctx.evalAnnotatedDataClass(c, c.lensErrorMessage).let(::LensTarget)
-      OpticsTarget.OPTIONAL -> evalAnnotatedDataClass(c, c.optionalErrorMessage).let(::OptionalTarget)
+      OpticsTarget.LENS -> ctx.evalAnnotatedDataClass(c, c.name!!.lensErrorMessage).let(::LensTarget)
+      OpticsTarget.OPTIONAL -> evalAnnotatedDataClass(c, c.name!!.optionalErrorMessage).let(::OptionalTarget)
       OpticsTarget.ISO -> evalAnnotatedIsoElement(c).let(::IsoTarget)
       OpticsTarget.PRISM -> evalAnnotatedPrismElement(c).let(::PrismTarget)
       OpticsTarget.DSL -> evalAnnotatedDslElement(c)
