@@ -1,44 +1,44 @@
 package arrow.meta.plugins.optics
 
-import arrow.meta.plugin.testing.Assert
-import arrow.meta.plugin.testing.AssertSyntax
-import arrow.meta.plugin.testing.Code
-import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
-import arrow.meta.plugin.testing.assertThis
-import arrow.meta.plugins.optics.internals.isoErrorMessage
 import arrow.meta.plugins.optics.internals.isoTooBigErrorMessage
 import arrow.meta.plugins.optics.internals.noCompanion
 import org.junit.jupiter.api.Test
 
-class OpticsTests {
+class IsoTests {
 
-  companion object {
-    const val model =
-      """
-      import arrow.Optics
-      //metadebug
-      """
+  @Test
+  fun `Isos will be generated for data class`() {
+    """
+      |$imports
+      |@Optics
+      |data class IsoData(
+      |  val field1: String
+      |) { companion object }
+      |
+      |val i: Iso<IsoData, String> = IsoData.iso
+      |val r = i != null
+      """ { "r".source.evalsTo(true) }
+  }
 
-    private fun dslModel() =
-      """@Optics data class Street(val number: Int, val name: String) {
-            companion object
-          }
-          @Optics data class Address(val city: String, val street: Street) {
-            companion object
-          }
-          @Optics data class Company(val name: String, val address: Address) {
-            companion object
-          }
-          @Optics data class Employee(val name: String, val company: Company?) {
-            companion object
-          }"""
+  @Test
+  fun `Isos will be generated for data class with secondary constructors`() {
+    """
+      |$imports
+      |@Optics
+      |data class IsoSecondaryConstructor(val fieldNumber: Int, val fieldString: String) {
+      |  constructor(number: Int) : this(number, number.toString())
+      |  companion object
+      |}
+      |
+      |val i: Iso<IsoSecondaryConstructor, Tuple2<Int, String>> = IsoSecondaryConstructor.iso
+      |val r = i != null
+      """ { "r".source.evalsTo(true) }
   }
 
   @Test
   fun `Iso generation requires companion object declaration`() {
     """
-      |$model
+      |$imports
       |@Optics
       |data class IsoNoCompanion(
       |  val field1: String
@@ -49,7 +49,7 @@ class OpticsTests {
   @Test
   fun `Isos cannot be generated for huge classes`() {
     """
-      |$model
+      |$imports
       |@Optics
       |data class IsoXXL(
       |  val field1: String,
@@ -80,16 +80,4 @@ class OpticsTests {
       |}
       """ { failsWith { it.contains("IsoXXL".isoTooBigErrorMessage) } }
   }
-}
-
-private operator fun String.invoke(assert: AssertSyntax.() -> Assert) {
-  val arrowVersion = System.getProperty("ARROW_VERSION")
-  val arrowAnnotations = Dependency("arrow-annotations:$arrowVersion")
-  val arrowCore = Dependency("arrow-core-data:$arrowVersion")
-  val arrowOptics = Dependency("arrow-optics:$arrowVersion")
-  assertThis(CompilerTest(
-    config = { metaDependencies + addDependencies(arrowAnnotations, arrowCore, arrowOptics) },
-    code = { this@invoke.source },
-    assert = { assert() }
-  ))
 }
