@@ -47,12 +47,11 @@ ext {
     // Reason: required by ank; file must exist during Gradle configuration check
     if ( !file("$LOCAL_PATHS_FILE").exists() )  file("$LOCAL_PATHS_FILE").createNewFile()
     set("LOCAL_PATHS_COLLECTION" , project.files(file("$LOCAL_PATHS_FILE").readLines()))
-}
-
-ank {
-    source = file("${projectDir}/docs")
-    target = file("${projectDir}/build/site")
-    classpath = LOCAL_PATHS_COLLECTION
+    ank.source = file("${projectDir}/docs")
+    ank.target = file("${projectDir}/build/site")
+    ank.classpath = LOCAL_PATHS_COLLECTION
+    println ">> ank.classpath:"
+    ank.classpath.each { println it }
 }
 
 task getLocalPaths {
@@ -81,7 +80,6 @@ task getLocalPaths {
             "compiler-plugin-$VERSION_NAME-all",
             "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
             "arrow-core-data-$ARROW_VERSION",
-            "arrow-fx-$ARROW_VERSION",
             "arrow-fx-coroutines-$ARROW_VERSION",
             "arrow-annotations-$ARROW_VERSION",
             "arrow-core-$ARROW_VERSION"
