@@ -23,6 +23,9 @@ dependencies {
     testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
+    testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin"
+    }
     testRuntimeOnly project(":prelude")
 }
 
