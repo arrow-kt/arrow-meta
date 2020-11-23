@@ -4,7 +4,7 @@ import arrow.meta.plugin.testing.Code
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.NamedFunctionPlugin
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import arrow.meta.plugin.testing.CompilerTest.Companion.source
 
 class NamedFunctionTest {

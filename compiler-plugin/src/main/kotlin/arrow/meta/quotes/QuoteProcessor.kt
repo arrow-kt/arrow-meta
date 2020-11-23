@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
 import arrow.meta.internal.kastree.ast.MutableVisitor
@@ -8,6 +9,7 @@ import arrow.meta.internal.kastree.ast.Writer
 import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
@@ -189,15 +191,16 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 }
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
-  var virtualFile = rootFile.virtualFile
-  if (file.name != DEFAULT_META_FILE_NAME) {
-    val path = sourcePath ?: System.getProperty("arrow.meta.generated.source.output", DEFAULT_SOURCE_PATH)
-    val directory = Paths.get("", *path.split("/").toTypedArray()).toFile()
+  var virtualFile = sourcePath?.let {
+    val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DefaultElementScope.DEFAULT_BASE_DIR.toString()))?.get(0)
+    val path = Paths.get(baseDir ?: DefaultElementScope.DEFAULT_BASE_DIR.toString(), it)
+    val directory = path.toFile()
     directory.mkdirs()
-    virtualFile = CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
+    CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)
     })
-  }
+  } ?: rootFile.virtualFile
+
   return cli {
     KtFile(
       viewProvider = MetaFileViewProvider(file.manager, virtualFile) {

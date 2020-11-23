@@ -40,14 +40,14 @@ interface ApplicationSyntax {
    * even though the service can be retrieved multiple times with [ServiceManager.getService] or [com.intellij.openapi.project.Project.getService] for project-level services.
    * It is impeccable that there is only one [instance] implementation for a given [service] to fulfill coherence in the ide.
    * The ide will throw an exception, if that premise is not met.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import org.jetbrains.kotlin.psi.KtNamedFunction
    *
    * interface MyService {
    *   fun printLn(f: KtNamedFunction): Unit
    * }
    * ```
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -119,7 +119,7 @@ interface ApplicationSyntax {
   /**
    * replaces an application [service] with [instance].
    * In this example this [Annotator] needs a different [instance] for `MyService` than what is currently provided - see our example in [addAppService].
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -185,7 +185,7 @@ interface ApplicationSyntax {
    * @param instance hijacks the existing instance [A] from the IDE and registers the new instance [A]. The hijacked instance is preserved, when [instance] returns null.
    * There are several use-cases like [org.jetbrains.kotlin.caches.resolve.KotlinCacheService] for project-level services.
    * The following example registers a logger for the KotlinCacheService by hijacking it's standard implementation from the kotlin plugin.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.invoke
@@ -265,15 +265,17 @@ interface ApplicationSyntax {
   fun MetaIde.stopServicePreloading(): ExtensionPhase =
     ApplicationProvider.StopServicePreloading
 
+  /* TODO: temporary Disabled
   fun MetaIde.addPreloadingActivity(activity: PreloadingActivity): ExtensionPhase =
-    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)
-
+    extensionProvider(PreloadingActivity.EP_NAME, activity, LoadingOrder.FIRST)*/
+  /* TODO: temporary Disabled
+  */
   /**
    * registers an activity, which is executed eagerly in the background on startup.
    * @see PreloadingActivity
-   */
+   *//*
   fun MetaIde.addPreloadingActivity(preload: (ProgressIndicator) -> Unit): ExtensionPhase =
-    addPreloadingActivity(preloadingActivity(preload))
+    addPreloadingActivity(preloadingActivity(preload))*/
 
   fun MetaIde.addAppLifecycleListener(listener: AppLifecycleListener): ExtensionPhase =
     ApplicationProvider.AppListener(listener)
@@ -332,65 +334,6 @@ interface ApplicationSyntax {
       override fun appWillBeClosed(restarted: Boolean): Unit = appWillBeClosed(restarted)
     }
 
-  /**
-   * registers a [ProjectLifecycle]
-   */
-  fun MetaIde.addProjectLifecycle(
-    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1,
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2
-  ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed, dispose))
-
-  /**
-   * Order: [beforeProjectLoaded] then [initialize] then [afterProjectClosed]
-   */
-  fun ApplicationSyntax.projectLifecycleListener(
-    beforeProjectLoaded: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    initialize: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    afterProjectClosed: ProjectLifecycle.(Project) -> Unit = Noop.effect2,
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
-  ): ProjectLifecycle =
-    object : ProjectLifecycle {
-      override fun projectComponentsInitialized(project: Project): Unit =
-        initialize(this, project)
-
-      override fun beforeProjectLoaded(project: Project): Unit =
-        beforeProjectLoaded(this, project)
-
-      override fun afterProjectClosed(project: Project): Unit =
-        afterProjectClosed(this, project)
-
-      override fun dispose(): Unit = dispose(this)
-    }
-
-  /**
-   * registers a [ProjectLifecycleListener]
-   */
-  fun ApplicationSyntax.addProjectLifecycleListener(
-    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-    initialize: (Project) -> Unit = Noop.effect1,
-    afterProjectClosed: (Project) -> Unit = Noop.effect1
-  ): ExtensionPhase =
-    ApplicationProvider.ProjectListener(projectLifecycleListener(beforeProjectLoaded, initialize, afterProjectClosed))
-
-  fun ApplicationSyntax.projectLifecycleListener(
-    beforeProjectLoaded: (Project) -> Unit = Noop.effect1,
-    initialize: (Project) -> Unit = Noop.effect1,
-    afterProjectClosed: (Project) -> Unit = Noop.effect1
-  ): ProjectLifecycleListener =
-    object : ProjectLifecycleListener {
-      override fun projectComponentsInitialized(project: Project): Unit =
-        initialize(project)
-
-      override fun beforeProjectLoaded(project: Project): Unit =
-        beforeProjectLoaded(project)
-
-      override fun afterProjectClosed(project: Project): Unit =
-        afterProjectClosed(project)
-    }
-
   fun MetaIde.addPMListener(
     closing: (Project) -> Unit = Noop.effect1,
     closed: (Project) -> Unit = Noop.effect1,
@@ -424,13 +367,11 @@ interface ApplicationSyntax {
    */
   fun MetaIde.registerMetaPlugin(
     conf: CompilerConfiguration = CompilerConfiguration(),
-    dispose: ProjectLifecycle.() -> Unit = Noop.effect1
   ): ExtensionPhase =
-    addProjectLifecycle(
-      initialize = { project: Project ->
+    addPMListener (
+      opened = { project: Project ->
         registerMetaComponents(project, conf, project.ctx())
-      },
-      dispose = dispose
+      }
     )
 
   /**

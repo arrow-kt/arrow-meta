@@ -27,8 +27,8 @@ import arrow.meta.phases.resolve.synthetics.SyntheticResolver
 import arrow.meta.phases.resolve.synthetics.SyntheticScopeProvider
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -38,9 +38,6 @@ import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
-import org.jetbrains.kotlin.com.intellij.openapi.extensions.Extensions
-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionPointImpl
-import org.jetbrains.kotlin.com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
@@ -49,6 +46,7 @@ import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.context.ProjectContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -66,7 +64,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -85,7 +83,6 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtens
 import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
-import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
@@ -136,11 +133,9 @@ interface InternalRegistry : ConfigSyntax {
     configuration: CompilerConfiguration,
     context: CompilerContext? = null
   ) {
-    val extensionPoints = (Extensions.getArea(project) as ExtensionsAreaImpl).extensionPoints.toList()
-    //println("Project allowed extensions: ${(project.extensionArea as ExtensionsAreaImpl).extensionPoints.toList().joinToString("\n")}")
     cli {
       println("it's the CLI plugin")
-      registerSyntheticScopeProviderIfNeeded(extensionPoints, project)
+      registerSyntheticScopeProviderIfNeeded(project)
     }
     ide {
       println("it's the IDEA plugin")
@@ -166,7 +161,7 @@ interface InternalRegistry : ConfigSyntax {
       listOf(compilerContextService())
     })
     (initialPhases + intercept(ctx)).forEach { plugin ->
-      println("Registering plugin: $plugin extensions: ${plugin.meta}")
+      println("Registering Cli plugin: $plugin extensions: ${plugin.meta}")
       plugin.meta.invoke(ctx).forEach { currentPhase ->
         fun ExtensionPhase.registerPhase(): Unit {
           when (this) {
@@ -198,8 +193,8 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun registerSyntheticScopeProviderIfNeeded(extensionPoints: List<ExtensionPointImpl<Any>>, project: Project) {
-    if (!extensionPoints.any { it.name == SyntheticScopeProviderExtension.extensionPointName.name }) {
+  fun registerSyntheticScopeProviderIfNeeded(project: Project) {
+    if (!project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)) {
       SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }
   }
@@ -244,11 +239,11 @@ interface InternalRegistry : ConfigSyntax {
               override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
                 phase.run { ctx.syntheticConstructor(constructor) }
 
-              override fun getSyntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticConstructors(scope) }
+              override fun getSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+                phase.run { ctx.syntheticConstructors(classifierDescriptors) }
 
-              override fun getSyntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticConstructors(scope, name, location) }
+              override fun getSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
+                phase.run { ctx.syntheticConstructors(contributedClassifier, location) }
 
               override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
                 phase.run { ctx.syntheticExtensionProperties(receiverTypes, location) }
@@ -262,11 +257,11 @@ interface InternalRegistry : ConfigSyntax {
               override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
                 phase.run { ctx.syntheticMemberFunctions(receiverTypes, name, location) }
 
-              override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticStaticFunctions(scope) }
+              override fun getSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+                phase.run { ctx.syntheticStaticFunctions(functionDescriptors) }
 
-              override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticStaticFunctions(scope, name, location) }
+              override fun getSyntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
+                phase.run { ctx.syntheticStaticFunctions(contributedFunctions, location) }
             }
           )
         }
@@ -280,11 +275,10 @@ interface InternalRegistry : ConfigSyntax {
   ) {
     IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
       override fun generate(
-        file: IrFile,
-        backendContext: BackendContext,
-        bindingContext: BindingContext
+        moduleFragment: IrModuleFragment,
+        pluginContext: IrPluginContext
       ) {
-        phase.run { compilerContext.generate(file, backendContext, bindingContext) }
+        phase.run { compilerContext.generate(moduleFragment, pluginContext) }
       }
     })
   }
@@ -428,7 +422,6 @@ interface InternalRegistry : ConfigSyntax {
           declaration: DeclarationDescriptor?,
           containingDeclaration: DeclarationDescriptor?,
           currentModality: Modality,
-          bindingContext: BindingContext,
           isImplicitModality: Boolean
         ): Modality? {
           return phase.run {
@@ -437,7 +430,6 @@ interface InternalRegistry : ConfigSyntax {
               declaration,
               containingDeclaration,
               currentModality,
-              bindingContext,
               isImplicitModality
             )
           }
@@ -476,7 +468,7 @@ interface InternalRegistry : ConfigSyntax {
   ) {
     StorageComponentContainerContributor.registerExtension(
       project,
-      DelegatingContributorChecker(phase, ctx)
+      DelegatingContributor(phase, ctx)
     )
   }
 
@@ -579,14 +571,14 @@ interface InternalRegistry : ConfigSyntax {
       })
   }
 
-  class DelegatingContributorChecker(val phase: StorageComponentContainer, val ctx: CompilerContext) : StorageComponentContainerContributor, DeclarationChecker {
+  class DelegatingContributor(val phase: StorageComponentContainer, val ctx: CompilerContext) : StorageComponentContainerContributor {
 
     override fun registerModuleComponents(container: org.jetbrains.kotlin.container.StorageComponentContainer, platform: TargetPlatform, moduleDescriptor: ModuleDescriptor) {
       phase.run { ctx.registerModuleComponents(container, moduleDescriptor) }
-    }
-
-    override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
-      phase.run { ctx.check(declaration, descriptor, context) }
+      container.useInstance(object : DeclarationChecker {
+        override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext): Unit =
+          phase.run { ctx.check(declaration, descriptor, context) }
+      })
     }
   }
 

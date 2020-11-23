@@ -1,17 +1,14 @@
 package arrow.meta.plugins.typeclasses
 
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 class TypeClassesTest {
 
     //@Test
     fun `simple case`() {
-        val arrowVersion = System.getProperty("ARROW_VERSION")
-        val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
         val codeSnippet = """
        import arrowx.*
        import arrow.*
@@ -25,7 +22,7 @@ class TypeClassesTest {
 
         assertThis(CompilerTest(
             config = {
-                metaDependencies + addDependencies(arrowCoreData)
+                metaDependencies
             },
             code = {
                 codeSnippet.source
@@ -38,8 +35,6 @@ class TypeClassesTest {
 
   @Test
   fun `polymorphic constrain`() {
-    val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
     val codeSnippet = """
        import arrow.*
        import arrowx.*
@@ -55,13 +50,18 @@ class TypeClassesTest {
       """
     assertThis(CompilerTest(
       config = {
-        metaDependencies + addDependencies(arrowCoreData)
+        metaDependencies
       },
       code = {
         codeSnippet.source
       },
       assert = {
-        allOf("result".source.evalsTo("1122"))
+        allOf(
+          "result1".source.evalsTo(""),
+          "result2".source.evalsTo("11"),
+          "result3".source.evalsTo("22"),
+          "result".source.evalsTo("1122")
+        )
       }
     ))
   }

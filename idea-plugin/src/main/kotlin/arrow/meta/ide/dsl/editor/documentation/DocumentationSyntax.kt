@@ -18,7 +18,7 @@ interface DocumentationSyntax {
   /**
    * registers a [DocumentationProvider].
    * Users are now able to hover over descriptors and see the provided documentation.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke

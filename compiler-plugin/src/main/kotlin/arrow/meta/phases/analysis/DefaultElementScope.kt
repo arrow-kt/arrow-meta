@@ -95,11 +95,18 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
  */
 class DefaultElementScope(project: Project) : ElementScope {
+
+  companion object {
+    val DEFAULT_BASE_DIR: Path = Paths.get("build")
+    val DEFAULT_GENERATED_SRC_PATH: Path = Paths.get("generated", "source", "kapt", "main")
+  }
 
   private val delegate = KtPsiFactory(project)
 
@@ -447,7 +454,7 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
 
-  override fun String.file(fileName: String): File = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this))
+  override fun String.file(fileName: String): File = file(fileName, DEFAULT_GENERATED_SRC_PATH.toString())
 
   override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
 

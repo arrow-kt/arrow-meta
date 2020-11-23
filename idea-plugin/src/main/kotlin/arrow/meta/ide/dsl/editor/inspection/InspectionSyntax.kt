@@ -41,7 +41,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   /**
    * registers a Local ApplicableInspection and has [KtPsiFactory] in Scope to modify the element, project or editor at once within [applyTo].
    * The following example is a simplified purityPlugin, where every function that returns Unit has to be suspended. Otherwise the code can not be compiled.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.dsl.utils.intersectFunction
@@ -61,6 +61,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
    *       addApplicableInspection(
    *         defaultFixText = "Simplified PurityPlugin",
    *         staticDescription = "Purity Inspection",
+   *         fixText = { "Purity" },
    *         inspectionHighlightType = { ProblemHighlightType.ERROR },
    *         kClass = KtNamedFunction::class.java,
    *         inspectionText = { f -> "Teach your users why Function ${f.name} has to be suspended" },
@@ -97,7 +98,8 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   @Suppress("UNCHECKED_CAST")
   fun <K : KtElement> MetaIde.addApplicableInspection(
     defaultFixText: String,
-    staticDescription: String,
+    staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -111,7 +113,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     enabledByDefault: Boolean = true
   ): ExtensionPhase =
     addLocalInspection(
-      applicableInspection(defaultFixText, staticDescription, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
+      applicableInspection(defaultFixText, staticDescription, fixText, kClass, highlightingRange, inspectionText, applyTo, isApplicable, inspectionHighlightType, enabledByDefault),
       groupPath,
       groupDisplayName,
       level
@@ -124,7 +126,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
     level: HighlightDisplayLevel = HighlightDisplayLevel.WEAK_WARNING
   ): ExtensionPhase =
     addLocalInspection(inspection, level, inspection.defaultFixText, inspection.staticDescription
-      ?: "No description provided", groupPath, inspection.defaultFixText)
+      ?: "No description provided", groupPath, groupDisplayName)
 
   /**
    * registers a GlobalInspection.
@@ -206,6 +208,7 @@ interface InspectionSyntax : InspectionUtilitySyntax {
   fun <K : KtElement> InspectionSyntax.applicableInspection(
     defaultFixText: String,
     staticDescription: String?,
+    fixText: (element: K)-> String,
     kClass: Class<K> = KtElement::class.java as Class<K>,
     highlightingRange: (element: K) -> TextRange? = Noop.nullable1(),
     inspectionText: (element: K) -> String,
@@ -237,6 +240,9 @@ interface InspectionSyntax : InspectionUtilitySyntax {
         inspectionHighlightType(element)
 
       override fun getStaticDescription(): String? = staticDescription
+
+      override fun fixText(element: K): String =
+        fixText(element)
     }
 
   fun InspectionSyntax.inspectionSuppressor(

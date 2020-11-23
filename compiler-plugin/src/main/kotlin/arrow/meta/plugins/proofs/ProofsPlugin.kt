@@ -13,6 +13,7 @@ import arrow.meta.plugins.proofs.phases.resolve.cliValidateRefinedCalls
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressConstantExpectedTypeMismatch
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressProvenTypeMismatch
 import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressTypeInferenceExpectedTypeMismatch
+import arrow.meta.plugins.proofs.phases.resolve.proofResolutionRules
 import arrow.meta.plugins.proofs.phases.resolve.scopes.provenSyntheticScope
 import arrow.meta.quotes.objectDeclaration
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
@@ -27,6 +28,7 @@ val Meta.typeProofs: CliPlugin
         provenSyntheticScope(),
         objectDeclaration(this, KtObjectDeclaration::isRefined) { objectWithSerializedRefinement(scope, ctx) },
         cliValidateRefinedCalls(),
+        proofResolutionRules(),
         generateGivenExtensionsFile(this@typeProofs),
         suppressDiagnostic { ctx.suppressProvenTypeMismatch(it) },
         suppressDiagnostic { ctx.suppressConstantExpectedTypeMismatch(it) },

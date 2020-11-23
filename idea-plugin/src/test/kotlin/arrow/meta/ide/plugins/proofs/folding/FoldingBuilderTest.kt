@@ -23,8 +23,13 @@ class FoldingBuilderTest : IdeTestSetUp() {
             myFixture.addFileToProject("arrow/unions.kt", FoldingBuilderTestCode.unionPrelude)
             collectFolding(code, myFixture) { it.unionTypeMatches() }
           },
-          result = resolvesWhen("Unions foldingBuilder should return 3 folding regions") {
-            it.size == 3
+          result = resolvesWhen("Unions foldingBuilder should return 3 folding regions") { result: List<FoldingDescriptor> ->
+            result.size == 5 &&
+            result[0].placeholderText == "String | Int | Double" &&
+            result[1].placeholderText == "String | Int | Double" &&
+            result[2].placeholderText == "String | Int | Double | Long" &&
+            result[3].placeholderText == "null | String | Int | Double" &&
+            result[4].placeholderText == "null | String | Int | Double | Char | ..."
           }
         ),
         IdeTest(

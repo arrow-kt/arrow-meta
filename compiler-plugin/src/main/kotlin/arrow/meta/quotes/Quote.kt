@@ -1,5 +1,6 @@
 package arrow.meta.quotes
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
@@ -10,6 +11,7 @@ import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_BASE_DIR
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
 import arrow.meta.phases.analysis.traverseFilter
@@ -33,11 +35,11 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
-import java.util.*
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"
-const val DEFAULT_META_FILE_NAME = "Source.kt"
-const val DEFAULT_SOURCE_PATH = "build/generated/source/kapt/main"
 
 /**
  * ### Quote Templates DSL

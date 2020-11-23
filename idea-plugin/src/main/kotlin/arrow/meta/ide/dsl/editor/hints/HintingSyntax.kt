@@ -62,7 +62,7 @@ interface HintingSyntax {
    * The following examples is a minimal version of the
    * [org.jetbrains.kotlin.idea.codeInsight.KotlinExpressionTypeProvider] and targets [KtFunction]s, who are expressed as expressions.
    *
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
@@ -224,7 +224,7 @@ interface HintingSyntax {
    * registers a [KotlinTypeArgumentInfoHandlerBase]
    * This extension is used for [DeclarationDescriptor]'s, the `Owner` is [KtTypeArgumentList] and the `ActualType` is [KtTypeProjection].
    * The following example provides Hints for [ClassDescriptor] from [org.jetbrains.kotlin.idea.parameterInfo.KotlinClassTypeArgumentInfoHandler]:
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke
@@ -274,7 +274,7 @@ interface HintingSyntax {
    * registers a [KotlinParameterInfoWithCallHandlerBase]
    * This is used for [FunctionDescriptor]'s, the `Owner` is [ArgumentList] and the `ActualType` is [Argument]. Naturally, `Type` is a [FunctionDescriptor].
    * The following example is for [KtLambdaArgument]s from [org.jetbrains.kotlin.idea.parameterInfo.KotlinLambdaParameterInfoHandler]:
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.invoke

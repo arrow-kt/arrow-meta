@@ -8,9 +8,7 @@ plugins {
   id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
 }
 
-apply plugin: 'java'
 apply plugin: 'kotlin'
-apply plugin: 'org.jetbrains.intellij'
 
 repositories {
   maven {
@@ -22,9 +20,10 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
   implementation "org.celtric.kotlin:kotlin-html:$KOTLIN_HTML_VERSION"
-  api project(path: ':compiler-plugin', configuration: 'shadow')
+  compileOnly project(path: ':compiler-plugin', configuration: 'shadow')
 
-  testCompile("org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION") // for the JetBrains Gradle test framework
+  testCompileOnly "org.apache.ant:ant:$IDEA_APACHE_ANT_VERSION" // for the JetBrains Gradle test framework
+  testImplementation project(path: ':compiler-plugin', configuration: 'shadow')
 }
 
 compileKotlin {
@@ -71,12 +70,13 @@ test {
   systemProperties['idea.is.internal'] = "false"
 }
 
-apply from: 'https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/gradle-mvn-push.gradle'
-apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
+// Configuration to prepare libraries for the plugin
 apply from: file("${rootProject.rootDir}/gradle/build-idea-plugin.gradle")
 
+// Intellij Plugin Verifier
+apply from: 'https://raw.githubusercontent.com/FWDekker/intellij-randomness/master/gradle/scripts/verifier.gradle'
 runPluginVerifier {
     pluginFileName = "Arrow Meta-$VERSION_NAME"
     ides = ["IC-$INTELLIJ_IDEA_VERSION_UNDER_TEST"]
-    verifierVersion = "1.241"
+    verifierVersion = "$INTELLIJ_PLUGIN_VERIFIER"
 }

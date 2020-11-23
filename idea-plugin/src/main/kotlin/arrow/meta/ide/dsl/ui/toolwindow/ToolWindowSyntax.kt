@@ -34,14 +34,14 @@ interface ToolWindowSyntax {
    * registers an Action with the title [toolId] and [actionId].
    * When the user executes the latter a tool window with displayName [toolId] is activated or registered by absence.
    * The following example enables the internal `Fir Explorer`, whenever the current document is a kotlin file.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
    * import arrow.meta.ide.invoke
    * import com.intellij.openapi.actionSystem.CommonDataKeys
    * import org.jetbrains.kotlin.idea.KotlinFileType
-   * import org.jetbrains.kotlin.idea.actions.internal.FirExplorerToolWindow
+   * import org.jetbrains.kotlin.idea.internal.KotlinBytecodeToolWindow
    *
    * val MetaIde.exampleToolWindow: IdePlugin
    *   get() = "ShowFirInTheIde" {
@@ -51,7 +51,7 @@ interface ToolWindowSyntax {
    *         actionId = "Unique",
    *         icon = ArrowIcons.ICON4,
    *         content = { project, toolWindow ->
-   *           FirExplorerToolWindow(project, toolWindow)
+   *           KotlinBytecodeToolWindow(project, toolWindow)
    *         },
    *         update = { e ->
    *           e.presentation.isEnabled = e.project != null && e.getData(CommonDataKeys.PSI_FILE)?.fileType == KotlinFileType.INSTANCE
@@ -122,7 +122,7 @@ interface ToolWindowSyntax {
 
   /**
    * Adds a notification balloon to the Toolwindow and only disappears if the users clicks on it.
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons
@@ -230,7 +230,7 @@ interface ToolWindowSyntax {
   /**
    * constructs a [JPanel] with an [Editor] inside.
    *
-   * ```kotlin:ank:playground
+   * ```kotlin:ank
    * import arrow.meta.ide.IdePlugin
    * import arrow.meta.ide.MetaIde
    * import arrow.meta.ide.resources.ArrowIcons

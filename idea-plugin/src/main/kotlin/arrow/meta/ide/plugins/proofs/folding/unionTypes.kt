@@ -1,10 +1,12 @@
 package arrow.meta.ide.plugins.proofs.folding
 
 import arrow.meta.ide.IdeMetaPlugin
+import arrow.meta.ide.dsl.utils.getType
 import arrow.meta.phases.ExtensionPhase
 import com.intellij.psi.util.strictParents
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNullableType
+import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.KtTypeProjection
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
@@ -42,8 +44,8 @@ private fun KtTypeReference.foldString(): String =
 
 
 private fun KtElement.foldTypeString(): String =
-  this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.let {
-    it.children.joinToString(
+  this.firstChild.safeAs<KtUserType>()?.typeArgumentList?.let { ktTypeArgList: KtTypeArgumentList ->
+    ktTypeArgList.children.joinToString(
       separator = " | ",
       transform = {
         it.safeAs<KtTypeProjection>()?.typeReference?.let { ktTypeReference ->

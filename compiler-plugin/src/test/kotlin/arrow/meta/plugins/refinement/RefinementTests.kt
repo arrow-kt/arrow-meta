@@ -1,42 +1,141 @@
 package arrow.meta.plugins.refinement
 
+import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
-import org.junit.Test
-import org.junit.Ignore
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 class RefinementTests {
 
-  val prelude = """
-    package test
-    import arrow.Refined
-    import arrow.Refinement
-    import arrow.Coercion
-  """.trimIndent()
-
-  private fun twitterHandle(): String =
-    """
-    @Refinement class TwitterHandle(val handle: String)  {
-      companion object : Refined<String, TwitterHandle> {
-        override val target: (String) -> TwitterHandle = ::TwitterHandle
-        override val validate: String.() -> Map<String, Boolean> = {
-          mapOf(
-            "Should start with '@'" to startsWith("@"),
-            "Should have length <= 16" to (length <= 16),
-            "Should not contain the word 'twitter'" to !contains("twitter"),
-            "Should not contain the word 'admin'" to !contains("admin")
-          )
-        }
+  @Test
+  fun `Construction is validated with arrays of literals`() {
+    refinementTest(
+      """
+           |$nonEmptyArray
+           |val x: NonEmptyArray = NonEmptyArray(emptyArray())
+           |""",
+      assert = {
+        failsWith { it.contains("Should not be empty") }
       }
-    }
-    
-    @Coercion
-    fun String.twitterHandle(): TwitterHandle? =
-      TwitterHandle.from(this)
+    )
+  }
+
+  @Test
+  fun `Construction is validated with predicates 1`() {
+    refinementTest(
+      """
+           |${twitterHandle()}
+           |val x: TwitterHandle = TwitterHandle("@admin")
+           |""",
+      assert = {
+        failsWith { it.contains("Should not contain the word 'admin'") }
+      }
+    )
+  }
+
+  @Test
+  fun `Construction is validated with predicates PositiveInt with negative value`() {
+    refinementTest(
+      """
+           |$positiveInt
+           |val x: PositiveInt = PositiveInt(-1)
+           |""",
+      assert = {
+        failsWith { it.contains("Should be >= 0") }
+      }
+    )
+  }
+
+  @Test
+  fun `Construction is validated with PositiveInt value`() {
+    refinementTest(
+      """
+           |$positiveInt
+           |val x: PositiveInt = PositiveInt(1)
+           |""",
+      assert = {
+        "x".source.evalsTo(1)
+      }
+    )
+  }
+
+  @Disabled
+  @Test
+  fun `Runtime validation for nullable types coerces to null if invalid`() {
+    refinementTest(
+      """
+           |${twitterHandle()}
+           |val x: TwitterHandle? = "@admin"
+           |""",
+      assert = {
+        "x".source.evalsTo(null)
+      }
+    )
+  }
+
+  @Disabled
+  @Test
+  fun `Runtime validation for nullable types accepts if valid`() {
+    refinementTest(
+      """
+           |${twitterHandle()}
+           |fun x(): TwitterHandle? = "@whatever"
+           |val result = x()?.handle
+           |""",
+      assert = {
+        "result".source.evalsTo("@whatever")
+      }
+    )
+  }
+
+
+  fun refinementTest(src: String, assert: CompilerTest.Companion.() -> Assert): Unit {
+    assertThis(CompilerTest(
+      config = { metaDependencies },
+      code = {
+        """
+    |package test
+    |
+    |import arrow.Refined
+    |import arrow.Refinement
+    |import arrow.Coercion
+    |
+    |$src
+    """.source
+      },
+      assert = assert
+    ))
+  }
+
+  fun twitterHandle(): String =
+    """
+      @Refinement
+      inline class TwitterHandle(val handle: String) {
+          companion object : Refined<String, TwitterHandle> {
+              override val target = ::TwitterHandle
+              override val validate: String.() -> Map<String, Boolean> = {
+                  mapOf(
+                      "Should start with '@'" to startsWith("@"),
+                      "Should have length <= 16" to (length <= 16),
+                      "Should have length > 2" to (length > 2),
+                      "Should not contain the word 'twitter'" to !contains("twitter"),
+                      "Should not contain the word 'admin'" to !contains("admin")
+                  )
+              }
+          }
+      }
       
+      @arrow.Coercion
+      fun String.twitterHandle(): TwitterHandle? =
+          TwitterHandle.from(this)
+      
+      @arrow.Coercion
+      fun TwitterHandle.handle(): String =
+          handle
     """
 
-  private fun positiveInt(): String =
+  val positiveInt: String =
     """
       inline class PositiveInt(val value: Int)  {
         companion object : Refined<Int, PositiveInt> {
@@ -54,9 +153,9 @@ class RefinementTests {
         PositiveInt.from(this)
     """
 
-
-  private fun nonEmptyArray(): String =
+  val nonEmptyArray: String =
     """
+    @Refinement 
     inline class NonEmptyArray(val value: Array<Int>) {
       companion object : Refined<Array<Int>, NonEmptyArray> {
         override val target: (Array<Int>) -> NonEmptyArray = ::NonEmptyArray
@@ -72,104 +171,5 @@ class RefinementTests {
     fun Array<Int>.nonEmpty(): NonEmptyArray? =
       NonEmptyArray.from(this)
     """
-
-  @Test
-  fun `Construction is validated with arrays of literals`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${nonEmptyArray()}
-           |val x: NonEmptyArray = NonEmptyArray(emptyArray())
-           |""".source
-      },
-      assert = {
-        failsWith { it.contains("Should not be empty") }
-      }
-    ))
-  }
-
-  @Test
-  fun `Construction is validated with predicates 1`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${twitterHandle()}
-           |val x: TwitterHandle = TwitterHandle("@admin")
-           |""".source
-      },
-      assert = {
-        failsWith { it.contains("Should not contain the word 'admin'") }
-      }
-    ))
-  }
-
-  @Test
-  fun `Construction is validated with predicates PositiveInt with negative value`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${positiveInt()}
-           |val x: PositiveInt = PositiveInt(-1)
-           |""".source
-      },
-      assert = {
-        failsWith { it.contains("Should be >= 0") }
-      }
-    ))
-  }
-
-  @Test
-  fun `Construction is validated with PositiveInt value`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${positiveInt()}
-           |val x: PositiveInt = PositiveInt(1)
-           |""".source
-      },
-      assert = {
-        "x".source.evalsTo(1)
-      }
-    ))
-  }
-
-  @Ignore
-  @Test
-  fun `Runtime validation for nullable types coerces to null if invalid`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${twitterHandle()}
-           |val x: TwitterHandle? = "@admin"
-           |""".source
-      },
-      assert = {
-        "x".source.evalsTo(null)
-      }
-    ))
-  }
-
-  @Ignore
-  @Test
-  fun `Runtime validation for nullable types accepts if valid`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies },
-      code = {
-        """|$prelude
-           |${twitterHandle()}
-           |fun x(): TwitterHandle? = "@whatever"
-           |val result = x()?.handle
-           |""".source
-      },
-      assert = {
-        "result".source.evalsTo("@whatever")
-      }
-    ))
-  }
-
 }
+

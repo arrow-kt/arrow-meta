@@ -13,7 +13,9 @@ import arrow.meta.plugins.proofs.phases.ir.typeSubstitutor
 import arrow.meta.plugins.proofs.phases.resolve.ProofReceiverValue
 import org.jetbrains.kotlin.codegen.coroutines.createCustomCopy
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -70,13 +72,13 @@ class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
       null
     }
 
-  override fun getSyntheticConstructors(scope: ResolutionScope): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($scope), result: $this" }) {
+  override fun getSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructor($classifierDescriptors), result: $this" }) {
       emptyList()
     }
 
-  override fun getSyntheticConstructors(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructors($scope), $name result: $this" }) {
+  override fun getSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
+    Log.Silent({ "ProofsSyntheticScope.getSyntheticConstructors($contributedClassifier, $location) result: $this" }) {
       emptyList()
     }
 
@@ -100,13 +102,13 @@ class ProofsSyntheticScope(private val ctx: CompilerContext) : SyntheticScope {
       ctx.syntheticMemberFunctions(receiverTypes, name)
     }
 
-  override fun getSyntheticStaticFunctions(scope: ResolutionScope): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions($scope)" }) {
+  override fun getSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
+    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions($functionDescriptors)" }) {
       emptyList()
     }
 
-  override fun getSyntheticStaticFunctions(scope: ResolutionScope, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions name: $name" }) {
+  override fun getSyntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
+    Log.Silent({ "ProofsSyntheticScope.getSyntheticStaticFunctions contributedFunctions: $contributedFunctions" }) {
       emptyList()
     }
 }
@@ -136,8 +138,8 @@ fun Meta.provenSyntheticScope(): ExtensionPhase =
         emptyList()
       }
     },
-    syntheticStaticFunctionsForName = { scope, name, location ->
-      Log.Silent({ "syntheticScopes.syntheticStaticFunctionsForName $scope $name $location $this" }) {
+    syntheticStaticFunctionsForName = { contributedFunctions, location ->
+      Log.Silent({ "syntheticScopes.syntheticStaticFunctionsForName $contributedFunctions $location $this" }) {
         emptyList()
       }
     },
@@ -151,8 +153,8 @@ fun Meta.provenSyntheticScope(): ExtensionPhase =
         emptyList()
       }
     },
-    syntheticConstructorsForName = { scope, name, location ->
-      Log.Silent({ "syntheticScopes.syntheticConstructorsForName $scope $name, $location" }) {
+    syntheticConstructorsForName = { contributedClassifier, location ->
+      Log.Silent({ "syntheticScopes.syntheticConstructorsForName $contributedClassifier $location" }) {
         emptyList()
       }
     },
