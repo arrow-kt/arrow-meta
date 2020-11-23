@@ -46,7 +46,7 @@ ext {
     set("LOCAL_PATHS_FILE", "${projectDir}/localPaths.log")
     // Reason: required by ank; file must exist during Gradle configuration check
     if ( !file("$LOCAL_PATHS_FILE").exists() )  file("$LOCAL_PATHS_FILE").createNewFile()
-    set("LOCAL_PATHS_COLLECTION" , layout.files(file("$LOCAL_PATHS_FILE").readLines()))
+    set("LOCAL_PATHS_COLLECTION" , project.files(file("$LOCAL_PATHS_FILE").readLines()))
 }
 
 ank {
