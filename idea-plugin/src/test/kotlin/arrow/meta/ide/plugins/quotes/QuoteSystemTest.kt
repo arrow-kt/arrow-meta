@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Test
+import org.junit.Ignore
 
+@Ignore
 class QuoteSystemTest : IdeTestSetUp() {
 
   @Test

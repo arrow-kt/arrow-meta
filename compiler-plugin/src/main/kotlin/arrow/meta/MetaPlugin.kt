@@ -16,13 +16,11 @@ open class MetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
-      higherKindedTypes2,
-      //typeClasses,
+      // higherKindedTypes2,
+      // typeClasses,
       // comprehensions,
-      //lenses,
+      // lenses,
       typeProofs,
       optics
     )
 }
-
-
