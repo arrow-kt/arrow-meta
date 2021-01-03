@@ -7,7 +7,9 @@ import arrow.meta.ide.testing.unavailable
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.junit.Test
+import org.junit.Ignore
 
+@Ignore
 class QuoteCacheTest : IdeTestSetUp() {
   //** This test updates a PsiFile in place and validated the cache afterwards. *//*
   @Test

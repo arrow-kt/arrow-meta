@@ -1,7 +1,6 @@
 package arrow.meta.ide.testing.env
 
 import arrow.meta.ide.dsl.IdeSyntax
-import arrow.meta.ide.plugins.helloworld.helloWorld
 import arrow.meta.ide.testing.IdeEnvironment
 import arrow.meta.ide.testing.IdeTest
 import arrow.meta.ide.testing.dsl.IdeTestSyntax
