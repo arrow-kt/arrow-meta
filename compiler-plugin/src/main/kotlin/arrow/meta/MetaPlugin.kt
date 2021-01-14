@@ -1,9 +1,9 @@
 package arrow.meta
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.higherkind.higherKindedTypes2
 import arrow.meta.plugins.optics.optics
 import arrow.meta.plugins.proofs.typeProofs
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -13,6 +13,7 @@ import kotlin.contracts.ExperimentalContracts
  * provide their plugins.
  */
 open class MetaPlugin : Meta {
+  @ObsoleteDescriptorBasedAPI // TODO: remove
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(

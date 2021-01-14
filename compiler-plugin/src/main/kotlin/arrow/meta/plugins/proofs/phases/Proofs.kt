@@ -14,9 +14,9 @@ import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
@@ -168,7 +168,7 @@ fun CompilerContext.extensionProofCandidate(candidates: List<ExtensionProof>): E
     .filter {
       extensionProofs().skippedProofsDueToAmbiguities()
         .firstOrNull { (p, _) -> p == it } == null
-    }.minBy { it.through.visibility != Visibilities.INTERNAL }
+    }.minBy { it.through.visibility != DescriptorVisibilities.INTERNAL }
 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
   proof<ExtensionProof>().matchingCandidates(this, subType, superType)
@@ -185,7 +185,7 @@ fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): GivenProo
       it.isResolved(givenProofs()) &&
         givenProofs().skippedProofsDueToAmbiguities()
           .firstOrNull { (p, _) -> p == it } == null
-    }.minBy { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != Visibilities.INTERNAL }
+    }.minBy { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
 
 inline fun <reified P : Proof> CompilerContext.proof(): List<P> =
   module.proofs.filterIsInstance<P>()

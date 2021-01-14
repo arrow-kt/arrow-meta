@@ -5,6 +5,7 @@ import arrow.meta.phases.codegen.ir.unsubstitutedDescriptor
 import arrow.meta.phases.resolve.intersection
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.KotlinType
@@ -21,6 +22,7 @@ data class GivenUpperBound(
         givenUpperBound = null
       )
 
+    @ObsoleteDescriptorBasedAPI // TODO: remove
     operator fun invoke(call: IrCall): GivenUpperBound =
       call.substitutedValueParameters
         .filter { it.first.type.annotations.hasAnnotation(ArrowGivenProof) }

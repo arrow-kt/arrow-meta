@@ -17,7 +17,6 @@ import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.ArrowRefined
-import arrow.meta.plugins.proofs.phases.ArrowRefinedBy
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.ExtensionProof
@@ -32,17 +31,17 @@ import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
 import arrow.meta.plugins.proofs.phases.refinementProofs
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
@@ -179,7 +178,7 @@ fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtF
 fun KtDeclaration.isPublishedInternalOrphan(bindingContext: BindingContext): KtDeclaration? =
   takeIf {
     it.isProof(bindingContext) &&
-      it.hasAnnotation(bindingContext, KotlinBuiltIns.FQ_NAMES.publishedApi) &&
+      it.hasAnnotation(bindingContext, StandardNames.FqNames.publishedApi) &&
       it.hasModifier(KtTokens.INTERNAL_KEYWORD)
   }
 
@@ -231,8 +230,8 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>
     proofs.exists { p1, p2 ->
       val a = p1.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
       val b = p2.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
-      a == Visibilities.PUBLIC && b == Visibilities.PUBLIC
-        || (a == Visibilities.INTERNAL && b == Visibilities.INTERNAL)
+      a == DescriptorVisibilities.PUBLIC && b == DescriptorVisibilities.PUBLIC
+        || (a == DescriptorVisibilities.INTERNAL && b == DescriptorVisibilities.INTERNAL)
       // TODO: Loosen the rule to allow package scoped proofs when they have the same package-info
     }.filter { (_, v) -> v.isNotEmpty() } // filter out proofs with conflicts
   }.flatten()
@@ -254,11 +253,11 @@ fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities(): List<Pair<A,
     // collect those without a SourceElement, which the user is needs to override
     with(proof.through as DeclarationDescriptorWithVisibility) {
       findPsi() == null &&
-        (visibility == Visibilities.INTERNAL // case: instrumented dependencies that publish internal proofs
-          || visibility == Visibilities.PUBLIC) && others.any {
+        (visibility == DescriptorVisibilities.INTERNAL // case: instrumented dependencies that publish internal proofs
+          || visibility == DescriptorVisibilities.PUBLIC) && others.any {
         // case: local project publishes public proof over non-owned types
         with(it.through) {
-          visibility == Visibilities.PUBLIC && findPsi() == null
+          visibility == DescriptorVisibilities.PUBLIC && findPsi() == null
         }
       }
     }

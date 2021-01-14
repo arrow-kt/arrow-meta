@@ -1,6 +1,6 @@
 package arrow.meta.phases.analysis.diagnostic
 
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.ParametrizedDiagnostic
@@ -53,11 +53,11 @@ val onIdentifyingElement: PositioningStrategy<KtObjectDeclaration> =
  */
 fun KtDeclaration.publishedApiAnnotation(): KtAnnotationEntry? =
   annotationEntries.firstOrNull {
-    it.shortName == KotlinBuiltIns.FQ_NAMES.publishedApi.shortName()
+    it.shortName == StandardNames.FqNames.publishedApi.shortName()
   }
 
 fun KtDeclaration.onPublishedApi(ctx: BindingContext): Pair<KtAnnotationEntry, TextRange>? =
-  annotationEntries.firstOrNull { ctx.get(BindingContext.ANNOTATION, it)?.fqName == KotlinBuiltIns.FQ_NAMES.publishedApi }
+  annotationEntries.firstOrNull { ctx.get(BindingContext.ANNOTATION, it)?.fqName == StandardNames.FqNames.publishedApi }
     ?.let { it to it.textRangeWithoutComments }
 
 fun <A : PsiElement> position(

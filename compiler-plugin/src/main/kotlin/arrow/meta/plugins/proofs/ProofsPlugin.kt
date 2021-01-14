@@ -16,8 +16,10 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressTypeInferenc
 import arrow.meta.plugins.proofs.phases.resolve.proofResolutionRules
 import arrow.meta.plugins.proofs.phases.resolve.scopes.provenSyntheticScope
 import arrow.meta.quotes.objectDeclaration
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
+@ObsoleteDescriptorBasedAPI // TODO: remove
 val Meta.typeProofs: CliPlugin
   get() =
     "Type Proofs CLI" {

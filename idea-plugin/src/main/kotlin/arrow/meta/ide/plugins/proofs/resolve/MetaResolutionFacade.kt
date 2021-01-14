@@ -6,6 +6,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.idea.FrontendInternals
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -26,16 +27,19 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
   override fun resolveToDescriptor(declaration: KtDeclaration, bodyResolveMode: BodyResolveMode): DeclarationDescriptor =
     delegate.resolveToDescriptor(declaration, bodyResolveMode)
 
+  @FrontendInternals
   override fun <T : Any> getFrontendService(element: PsiElement, serviceClass: Class<T>): T =
     Log.Verbose({ "MetaResolutionFacade.getFrontendService $element $serviceClass" }) {
       delegate.getFrontendService(element, serviceClass)
     }
 
+  @FrontendInternals
   override fun <T : Any> getFrontendService(serviceClass: Class<T>): T =
     Log.Verbose({ "MetaResolutionFacade.getFrontendService $serviceClass" }) {
       delegate.getFrontendService(serviceClass)
     }
 
+  @FrontendInternals
   override fun <T : Any> getFrontendService(moduleDescriptor: ModuleDescriptor, serviceClass: Class<T>): T =
     Log.Verbose({ "MetaResolutionFacade.getFrontendService $moduleDescriptor $serviceClass" }) {
       delegate.getFrontendService(moduleDescriptor, serviceClass)
@@ -46,6 +50,7 @@ class MetaResolutionFacade(val delegate: ResolutionFacade) : ResolutionFacade by
       delegate.getIdeService(serviceClass)
     }
 
+  @FrontendInternals
   override fun <T : Any> tryGetFrontendService(element: PsiElement, serviceClass: Class<T>): T? =
     Log.Verbose({ "MetaResolutionFacade.tryGetFrontendService $element $serviceClass" }) {
       delegate.tryGetFrontendService(element, serviceClass)

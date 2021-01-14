@@ -14,12 +14,12 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.idea.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -177,7 +177,7 @@ private fun SimpleFunctionDescriptor.synthetic(): SimpleFunctionDescriptor =
   copy(
     containingDeclaration,
     modality,
-    if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
+    if (visibility == DescriptorVisibilities.INHERITED) DescriptorVisibilities.PUBLIC else visibility,
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     true
   )
@@ -204,9 +204,9 @@ private fun LazyClassDescriptor.synthetic(declarationProvider: DeclarationProvid
     source = SourceElement.NO_SOURCE,
     outerScope = scopeForClassHeaderResolution,
     modality = if (modality == Modality.SEALED) Modality.ABSTRACT else modality,
-    visibility = if (visibility == Visibilities.INHERITED) Visibilities.PUBLIC else visibility,
+    visibility = if (visibility == DescriptorVisibilities.INHERITED) DescriptorVisibilities.PUBLIC else visibility,
     annotations = annotations,
-    constructorVisibility = Visibilities.PUBLIC,
+    constructorVisibility = DescriptorVisibilities.PUBLIC,
     kind = kind,
     isCompanionObject = isCompanionObject
   ).apply {

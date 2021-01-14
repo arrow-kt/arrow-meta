@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -34,7 +35,6 @@ import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
@@ -55,11 +55,11 @@ class IrUtils(
     TypeTranslator(
       symbolTable = pluginContext.symbols.externalSymbolTable,
       languageVersionSettings = pluginContext.languageVersionSettings,
-      builtIns = pluginContext.builtIns
+      builtIns = pluginContext.irBuiltIns.builtIns
     ).apply translator@{
       constantValueGenerator =
         ConstantValueGenerator(
-          moduleDescriptor = pluginContext.builtIns.builtInsModule.module,
+          moduleDescriptor = pluginContext.irBuiltIns.builtIns.builtInsModule.module,
           symbolTable = pluginContext.symbols.externalSymbolTable
         ).apply {
           this.typeTranslator = this@translator
@@ -79,8 +79,8 @@ class IrUtils(
             endOffset = UNDEFINED_OFFSET,
             type = irSimpleFunctionSymbol.owner.returnType,
             symbol = irSimpleFunctionSymbol,
-            typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
-            valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+            typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
+            valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
           )
         } ?: TODO("Unsupported irCall for $this")
       }
@@ -91,20 +91,20 @@ class IrUtils(
           endOffset = UNDEFINED_OFFSET,
           type = irSymbol.owner.returnType,
           symbol = irSymbol,
-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size,
-          constructorTypeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size
+          typeArgumentsCount = irSymbol.owner.typeParameters.size,
+          valueArgumentsCount = irSymbol.owner.valueParameters.size,
+          constructorTypeArgumentsCount = irSymbol.owner.typeParameters.size
         )
       }
       is FunctionDescriptor -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceFunction(this)
+        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceSimpleFunction(this)
         IrCallImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
           type = irSymbol.owner.returnType,
           symbol = irSymbol,
-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size
+          typeArgumentsCount = irSymbol.owner.typeParameters.size,
+          valueArgumentsCount = irSymbol.owner.valueParameters.size
         )
       }
       is FakeCallableDescriptorForObject -> {
@@ -129,8 +129,8 @@ class IrUtils(
         endOffset = UNDEFINED_OFFSET,
         type = irSimpleFunctionSymbol.owner.returnType,
         symbol = irSimpleFunctionSymbol,
-        typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
-        valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+        typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
+        valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
       )
     }
   }
@@ -143,8 +143,8 @@ class IrUtils(
         endOffset = UNDEFINED_OFFSET,
         type = irConstructorSymbol.owner.returnType,
         symbol = irConstructorSymbol,
-        typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
-        valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
+        typeArgumentsCount = irConstructorSymbol.owner.typeParameters.size,
+        valueArgumentsCount = irConstructorSymbol.owner.valueParameters.size,
         constructorTypeArgumentsCount = declaredTypeParameters.size
       )
     }
@@ -165,7 +165,7 @@ class IrUtils(
         f(declaration, a)
         return super.visitFunction(declaration, data)
       }
-    }, data)
+    }, data) as IrStatement
 }
 
 fun IrCall.dfsCalls(): List<IrCall> { // search for parent function
@@ -206,9 +206,11 @@ val IrCall.typeArguments: List<Pair<Int, IrType?>>
     return args.toList()
   }
 
+@ObsoleteDescriptorBasedAPI
 val IrCall.unsubstitutedDescriptor: FunctionDescriptor
   get() = symbol.owner.descriptor
 
+@ObsoleteDescriptorBasedAPI
 val IrCall.substitutedValueParameters: List<Pair<ValueParameterDescriptor, KotlinType>>
   get() = unsubstitutedDescriptor.substitutedValueParameters(this)
 
@@ -218,12 +220,12 @@ val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
   else
     typeParameters
 
-fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
+fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
   container.allTypeParameters.withIndex().associate {
     it.value to getTypeArgument(it.index)!!
   }
 
-val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
+val IrMemberAccessExpression<*>.typeSubstitutions: Map<IrTypeParameter, IrType>
   get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
 /**
