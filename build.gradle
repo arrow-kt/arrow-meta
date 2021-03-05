@@ -53,10 +53,8 @@ subprojects { project ->
   }
 }
 
-configure(subprojects
-        - project("docs")
-) {
-  apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/master/gradle/publication.gradle"
+configure(subprojects - project("docs")) {
+  apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/master/arrow-libs/gradle/publication.gradle"
 }
 
 // To run tests for Arrow Meta IDEA Plugin
