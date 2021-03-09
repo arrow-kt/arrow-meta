@@ -8,6 +8,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.AnalysisHandler
 import arrow.meta.phases.analysis.isAnnotatedWith
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.orEmpty
 import arrow.meta.quotes.scope
@@ -33,15 +34,14 @@ internal fun Meta.cliValidateRefinedCalls(): AnalysisHandler =
   analysis(
     doAnalysis = Noop.nullable7<AnalysisResult>(),
     analysisCompleted = { project, module, bindingTrace, files ->
-      validateRefinedCalls(bindingTrace)
+      evaluateDependsOnRewindableAnalysisPhase { validateRefinedCalls(bindingTrace) }
       null
     }
   )
 
 internal fun CompilerContext.validateRefinedCalls(bindingTrace: BindingTrace) {
   val calls = bindingTrace.bindingContext.getSliceContents(BindingContext.CALL)
-  calls
-    .forEach { (element, call) ->
+  calls.forEach { (element, call) ->
       val resolvedCall = call.getResolvedCall(bindingTrace.bindingContext)
       val validation = resolvedCall?.let(::validateConstructorCall).orEmpty()
       resolvedCall?.let {

@@ -50,6 +50,14 @@ class PropertyTest {
             | }
             | """.source
 
+    private val propertyDescriptor = """
+            | //metadebug
+            |
+            | class Address {
+            |     val descriptorEvaluation: String = ""
+            | }
+            | """.source
+
     val propertyExpressions = arrayOf(
       property,
       propertyGetter,
@@ -78,11 +86,25 @@ class PropertyTest {
     validate(propertyDelegate)
   }
 
-  fun validate(source: Code.Source) {
+  @Test
+  fun `validate property descriptor`() {
+    validate(
+      propertyDescriptor,
+      """
+            | //metadebug
+            |
+            | class Address {
+            |     val descriptorEvaluation: Boolean = true
+            | }
+            | """.source
+    )
+  }
+
+  fun validate(source: Code.Source, transformedSource: Code.Source = source) {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(PropertyPlugin())) },
       code = { source },
-      assert = { quoteOutputMatches(source) }
+      assert = { quoteOutputMatches(transformedSource) }
     ))
   }
 }

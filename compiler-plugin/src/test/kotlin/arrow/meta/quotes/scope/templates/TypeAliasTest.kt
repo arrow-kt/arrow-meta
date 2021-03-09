@@ -28,6 +28,12 @@ class TypeAliasTest  {
                          | typealias Predicate<T> = (T) -> Boolean
                          | """.source
 
+    private val typeAliasDescriptor = """
+                         | //metadebug
+                         | 
+                         | typealias DescriptorEvaluation = String
+                         | """.source
+
     val typeAliasExpressions = arrayOf(
       typeAlias,
       typeAliasWithConstraints,
@@ -50,11 +56,23 @@ class TypeAliasTest  {
     validate(typeAliasWithGenerics)
   }
 
-  private fun validate(source: Code.Source) {
+  @Test
+  fun `Validate type alias descriptor`() {
+    validate(
+      typeAliasDescriptor,
+      """
+      | //metadebug
+      | 
+      | typealias DescriptorEvaluation = Boolean
+      | """.source
+    )
+  }
+
+  private fun validate(source: Code.Source, transformedSource: Code.Source = source) {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(TypeAliasPlugin())) },
       code = { source },
-      assert = { quoteOutputMatches(source) }
+      assert = { quoteOutputMatches(transformedSource) }
     ))
   }
 }

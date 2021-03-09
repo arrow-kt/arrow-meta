@@ -7,9 +7,7 @@ import arrow.meta.internal.Noop
 import arrow.meta.internal.registry.setFinalStatic
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
-import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.Composite
-import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.*
 import arrow.meta.phases.config.Config
 import arrow.meta.plugins.proofs.phases.resolve.ProofTypeChecker
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -104,15 +102,19 @@ interface ConfigSyntax {
   fun Meta.typeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker): ExtensionPhase =
     Composite(storageComponent(
       registerModuleComponents = { container, moduleDescriptor ->
-        val defaultTypeChecker = KotlinTypeChecker.DEFAULT
-        val replacement = replace(defaultTypeChecker)
-        if (replacement != defaultTypeChecker) {
-          val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
-          setFinalStatic(defaultTypeCheckerField, replacement)
-        }
+        evaluateDependsOnRewindableAnalysisPhase { evaluateTypeChecker(replace) }
       },
       check = Noop.effect4
     ), registerArgumentTypeResolver())
+
+  private fun evaluateTypeChecker(replace: (KotlinTypeChecker) -> NewKotlinTypeChecker) {
+    val defaultTypeChecker = KotlinTypeChecker.DEFAULT
+    val replacement = replace(defaultTypeChecker)
+    if (replacement != defaultTypeChecker) {
+      val defaultTypeCheckerField = KotlinTypeChecker::class.java.getDeclaredField("DEFAULT")
+      setFinalStatic(defaultTypeCheckerField, replacement)
+    }
+  }
 
   fun callChecker(
     check: CompilerContext.(resolvedCall: ResolvedCall<*>, reportOn: org.jetbrains.kotlin.com.intellij.psi.PsiElement, context: CallCheckerContext) -> Unit
@@ -133,6 +135,7 @@ interface ConfigSyntax {
     cli {
       analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+          if (!ctx.analysisPhaseWasRewind.get()) return@analysis null
           Log.Verbose({ "analysis.registerArgumentTypeResolver.initializeProofCache + replace type checker" }) {
             replaceArgumentTypeResolverTypeChecker(componentProvider)
             null

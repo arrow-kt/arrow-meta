@@ -5,6 +5,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.phases.analysis.traverseFilter
+import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.Transform
@@ -22,22 +23,26 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
-  meta.file(this, KtFile::containsGivenConstrains) {
-    Transform.newSources(
-      """
-      $importList
-      ${generateGivenSupportingFunctions(givenConstrainedDeclarations())}
-      """.file("Extensions.$name")
-    )
+  meta.file(this, { this.containsGivenConstrains(ctx) }) {
+    evaluateDependsOnRewindableAnalysisPhase { givenExtensionsFile(this) } ?: Transform.empty
   }
+
+private fun CompilerContext.givenExtensionsFile(file: File): Transform<KtFile> =
+  Transform.newSources(
+    """
+      ${file.importList}
+      ${generateGivenSupportingFunctions(file.givenConstrainedDeclarations())}
+      """.file("Extensions.${file.name}")
+  )
 
 private val givenAnnotation: Regex = Regex("@(arrow\\.)?Given")
 
-private fun KtFile.containsGivenConstrains(): Boolean =
+private fun KtFile.containsGivenConstrains(ctx: CompilerContext): Boolean = ctx.evaluateDependsOnRewindableAnalysisPhase {
   givenConstrainedDeclarations().isNotEmpty()
+} ?: false
 
 private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
-  value.givenConstrainedDeclarations().map { NamedFunction(it) }
+  value.givenConstrainedDeclarations().map { NamedFunction(it, null) }
 
 private fun KtFile.givenConstrainedDeclarations(): List<KtNamedFunction> =
   traverseFilter(KtNamedFunction::class.java) {
@@ -58,7 +63,7 @@ private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedF
       """
       public fun $`(unconstrainedTypeParams)` $receiver$name $`(paramsWithGiven)`$returnType =
           ${runScope(this, `(givenParams)`)}
-      """.function.value
+      """.function(null).value
     }
   }, separator = "\n")
 

@@ -42,6 +42,9 @@ import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -146,11 +149,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val KtTypeReference.functionTypeParameter: Parameter
     get() = Parameter(delegate.createFunctionTypeParameter(this))
 
-  override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement): TypeAlias =
-    TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement))
+  override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement, descriptor: TypeAliasDescriptor?): TypeAlias =
+    TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement), descriptor)
 
-  override fun typeAlias(name: String, typeParameters: List<String>, body: String): TypeAlias =
-    TypeAlias(delegate.createTypeAlias(name, typeParameters, body))
+  override fun typeAlias(name: String, typeParameters: List<String>, body: String, descriptor: TypeAliasDescriptor?): TypeAlias =
+    TypeAlias(delegate.createTypeAlias(name, typeParameters, body), descriptor)
 
   override val star: PsiElement
     get() = delegate.createStar()
@@ -201,22 +204,22 @@ class DefaultElementScope(project: Project) : ElementScope {
     get() {
       val synth = "@arrow.synthetic"
       return when(this) {
-        is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}")) as A
+        is Property -> Property(this@DefaultElementScope.delegate.createDeclaration("$synth ${value.text}"), this.descriptor) as A
         else -> this
       }
     }
 
-  override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?): Property =
-    Property(delegate.createProperty(modifiers, name, type, isVar, initializer))
+  override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?, descriptor: PropertyDescriptor?): Property =
+    Property(delegate.createProperty(modifiers, name, type, isVar, initializer), descriptor)
 
-  override fun property(name: String, type: String?, isVar: Boolean, initializer: String?): Property =
-    Property(delegate.createProperty(name, type, isVar, initializer))
+  override fun property(name: String, type: String?, isVar: Boolean, initializer: String?, descriptor: PropertyDescriptor?): Property =
+    Property(delegate.createProperty(name, type, isVar, initializer), descriptor)
 
-  override fun property(name: String, type: String?, isVar: Boolean): Property =
-    Property(delegate.createProperty(name, type, isVar))
+  override fun property(name: String, type: String?, isVar: Boolean, descriptor: PropertyDescriptor?): Property =
+    Property(delegate.createProperty(name, type, isVar), descriptor)
 
-  override val String.property: Property
-    get() = Property(delegate.createProperty(trimMargin().trim()))
+  override val String.property: (PropertyDescriptor?) -> Property
+    get() = { Property(delegate.createProperty(trimMargin().trim()), it) }
 
   override fun propertyGetter(expression: KtExpression): PropertyAccessor =
     PropertyAccessor(delegate.createPropertyGetter(expression))
@@ -225,10 +228,10 @@ class DefaultElementScope(project: Project) : ElementScope {
     PropertyAccessor(delegate.createPropertyGetter(expression))
 
   override val String.propertyAccessorGet: PropertyAccessor
-    get() = property.getter
+    get() = property(null).getter
 
   override val String.propertyAccessorSet: PropertyAccessor
-    get() = property.setter
+    get() = property(null).setter
 
   override fun propertyDelegate(expression: KtExpression): Scope<KtPropertyDelegate> =
     Scope(delegate.createPropertyDelegate(expression))
@@ -254,8 +257,8 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.identifier: PsiElement
     get() = delegate.createIdentifier(trimMargin().trim())
 
-  override val String.function: NamedFunction
-    get() = NamedFunction(delegate.createFunction(trimMargin().trim()))
+  override val String.function: (FunctionDescriptor?) -> NamedFunction
+    get() = { NamedFunction(delegate.createFunction(trimMargin().trim()), it) }
 
   override val String.binaryExpression: BinaryExpression
     get() = BinaryExpression(expression.value as KtBinaryExpression)

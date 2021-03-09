@@ -13,7 +13,7 @@ private val Meta.transformRemoveSingleElement: CliPlugin
   get() =
     "Transform Remove Single Element" {
       meta(
-        namedFunction(this, { name == "transformRemove" }) { f ->
+        namedFunction(this, { element.name == "transformRemove" }) { (f, _) ->
           Transform.remove(f)
         }
       )
@@ -23,7 +23,7 @@ private val Meta.transformRemoveSingleElementFromContext: CliPlugin
   get() =
     "Transform Remove Single Element from Context" {
       meta(
-        namedFunction(this, { name == "transformRemoveSingleElement" }) { f ->
+        namedFunction(this, { element.name == "transformRemoveSingleElement" }) { (f, _) ->
           Transform.remove(
             removeIn = f,
             declaration = """ println("") """.expressionIn(f)
@@ -36,7 +36,7 @@ private val Meta.transformRemoveElementsFromContext: CliPlugin
   get() =
     "Transform Remove Multiple Elements from Context" {
       meta(
-        namedFunction(this, { name == "transformRemoveElements" }) { f ->
+        namedFunction(this, { element.name == "transformRemoveElements" }) { (f, _) ->
           Transform.remove(
             removeIn = f,
             declarations = listOf(

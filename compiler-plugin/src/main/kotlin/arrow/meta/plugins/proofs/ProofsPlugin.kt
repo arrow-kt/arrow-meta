@@ -26,7 +26,7 @@ val Meta.typeProofs: CliPlugin
         enableProofCallResolver(),
         typeChecker { ProofTypeChecker(ctx) },
         provenSyntheticScope(),
-        objectDeclaration(this, KtObjectDeclaration::isRefined) { objectWithSerializedRefinement(ctx) },
+        objectDeclaration(this, KtObjectDeclaration::isRefined) { objectWithSerializedRefinement(scope, ctx) },
         cliValidateRefinedCalls(),
         proofResolutionRules(),
         generateGivenExtensionsFile(this@typeProofs),
@@ -41,5 +41,3 @@ val Meta.typeProofs: CliPlugin
         irDump()
       )
     }
-
-

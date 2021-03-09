@@ -3,6 +3,7 @@ package arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.modifierlistowner.TypeReference
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
@@ -33,11 +34,12 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  */
 class TypeAlias(
   override val value: KtTypeAlias,
+  override val descriptor: TypeAliasDescriptor?,
   val name: Name? = value.nameAsName,
   val type: TypeReference = TypeReference(value.getTypeReference())
-) : TypeParameterListOwner<KtTypeAlias>(value) {
+) : TypeParameterListOwner<KtTypeAlias, TypeAliasDescriptor>(value, descriptor) {
 
-  override fun ElementScope.identity(): TypeAlias =
-    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""")
+  override fun ElementScope.identity(descriptor: TypeAliasDescriptor?): TypeAlias =
+    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""", descriptor)
 
 }

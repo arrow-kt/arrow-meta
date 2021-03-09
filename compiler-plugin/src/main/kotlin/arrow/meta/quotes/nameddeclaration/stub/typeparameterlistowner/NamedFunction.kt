@@ -5,6 +5,8 @@ import arrow.meta.phases.analysis.body
 import arrow.meta.phases.analysis.bodySourceAsExpression
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.TypedScope
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtModifierList
@@ -31,10 +33,10 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *    get() =
  *      "Reformat Named Function" {
  *        meta(
- *          namedFunction(this, { true }) { typeParameterListOwner ->
+ *          namedFunction(this, { true }) { (typeParameterListOwner, d) ->
  *            Transform.replace(
  *              replacing = typeParameterListOwner,
- *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
+ *              newDeclaration = """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function(d)
  *            )
  *          }
  *        )
@@ -43,6 +45,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  */
 class NamedFunction(
   override val value: KtNamedFunction,
+  override val descriptor: FunctionDescriptor?,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val modifiers: Scope<KtModifierList> = Scope(value.modifierList),
@@ -57,9 +60,9 @@ class NamedFunction(
   ),
   val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
-) : TypeParameterListOwner<KtNamedFunction>(value) {
-    override fun ElementScope.identity(): Scope<KtNamedFunction> {
-        return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function
+) : TypeParameterListOwner<KtNamedFunction, FunctionDescriptor>(value, descriptor) {
+    override fun ElementScope.identity(descriptor: FunctionDescriptor?): TypedScope<KtNamedFunction, FunctionDescriptor> {
+        return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function(descriptor)
     }
 }
 

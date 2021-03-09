@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 /**
  * The resulting action from matching on transformation
  */
-sealed class Transform<out K : KtElement> {
+sealed class Transform<out K> {
 
   /**
    * A Transform that replaces some element in AST. See below:
@@ -24,13 +24,13 @@ sealed class Transform<out K : KtElement> {
    *  get() =
    *   "Replace Transform" {
    *     meta(
-   *      namedFunction(this, { name == "helloWorld" }) { c ->
+   *      namedFunction(this, { element.name == "helloWorld" }) { (c, d) ->
    *        Transform.replace(
    *          replacing = c,
    *          newDeclaration =
    *          """|fun helloWorld(): Unit =
    *             |  println("Hello ΛRROW Meta!")
-   *             |""".function.syntheticScope
+   *             |""".function(d).syntheticScope
    *        )
    *      }
    *     )
@@ -60,7 +60,7 @@ sealed class Transform<out K : KtElement> {
    *  get() =
    *   "Remove Transform" {
    *     meta(
-   *      namedFunction(this, { name == "helloWorld" }) { c ->
+   *      namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
    *        Transform.remove(
    *          removeIn = c,
    *          declaration = """ println("") """.expressionIn(c)

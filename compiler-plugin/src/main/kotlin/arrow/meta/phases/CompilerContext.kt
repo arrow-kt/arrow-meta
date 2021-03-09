@@ -9,10 +9,12 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentHashMap
 import arrow.meta.plugins.proofs.phases.proofs as tp
 
@@ -37,6 +39,12 @@ open class CompilerContext(
   val quotes: MutableList<QuoteDefinition<out KtElement, out KtElement, out Scope<KtElement>>> =
     mutableListOf()
 
+  val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
+
+  val analysisPhaseWasRewind: AtomicBoolean = AtomicBoolean(false)
+
+  val analysisPhaseCanBeRewind: AtomicBoolean = AtomicBoolean(false)
+
   val ModuleDescriptor?.proofs: List<Proof>
     get() = this?.tp(this@CompilerContext) ?: emptyList()
 
@@ -56,3 +64,16 @@ open class CompilerContext(
 
   val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
 }
+
+fun <T> CompilerContext.evaluateDependsOn(
+  noRewindablePhase: () -> T?,
+  rewindablePhase: (Boolean) -> T?
+): T? {
+  if (!analysisPhaseCanBeRewind.get()) return noRewindablePhase()
+  return rewindablePhase(analysisPhaseWasRewind.get())
+}
+
+fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () -> T?): T? = evaluateDependsOn(
+  noRewindablePhase = evaluation,
+  rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
+)

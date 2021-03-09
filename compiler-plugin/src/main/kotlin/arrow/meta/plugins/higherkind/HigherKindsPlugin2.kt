@@ -23,12 +23,12 @@ val Meta.higherKindedTypes2: CliPlugin
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> ${name}Of<${`(typeParameters)`.invariant()}>.fix(): $name<${`(typeParameters)`.invariant()}> =
                |  (this as arrowx.Kinded).value as $name<${`(typeParameters)`.invariant()}>
-               |""".function.syntheticScope,
+               |""".function(null).syntheticScope,
             """|@arrow.Proof(arrow.TypeProof.Subtyping)
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> $name<${`(typeParameters)`.invariant()}>.unfix(): ${name}Of<${`(typeParameters)`.invariant()}> =
                |  arrowx.Kinded(this)
-               |""".function.syntheticScope,
+               |""".function(null).syntheticScope,
             /** generate partial aliases if this kind has > 1 type parameters **/
             /** generate partial aliases if this kind has > 1 type parameters **/
             if (c.arity > 1)
