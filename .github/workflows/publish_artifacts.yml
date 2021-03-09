@@ -98,7 +98,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         S3_BUCKET: ${{ secrets.S3_BUCKET }}
       run: |
-        aws s3 cp idea-plugin s3://$S3_BUCKET/idea-plugin --recursive > aws_sync_jekyll.log
+        aws s3 cp idea-plugin s3://$S3_BUCKET/idea-plugin --recursive
     - name: Publish IDEA plugin into Jetbrains repository
       if: steps.properties.outputs.repository-type == 'release'
       env:
