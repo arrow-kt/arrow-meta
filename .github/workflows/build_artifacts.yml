@@ -11,13 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set env
+        run: |
+          echo "$JAVA_HOME_8_X64/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME_8_X64" >> $GITHUB_ENV
       - uses: actions/checkout@v1
       - name: Build with Gradle
         # if using ubuntu-20.04, Java 8 is not the default version and its needed to be set explicitly
         # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-        run: |
-          JAVA_HOME=$JAVA_HOME_8_X64
-          ./gradlew buildMeta
+        run: ./gradlew buildMeta
     #- name: Check next version
     #  run: |
     #    echo "Is there an upcoming version to check?"

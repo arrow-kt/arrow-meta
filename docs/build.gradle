@@ -65,7 +65,6 @@ task getLocalPaths {
             "kotlin-scripting-compiler-impl-$KOTLIN_VERSION",
             "kotlin-script-util-$KOTLIN_VERSION",
             "kotlin-reflect-$KOTLIN_VERSION",
-            "kotlin-stdlib-jdk7-$KOTLIN_VERSION",
             "kotlin-scripting-jvm-$KOTLIN_VERSION",
             "kotlin-scripting-common-$KOTLIN_VERSION",
             "kotlin-script-runtime-$KOTLIN_VERSION",
