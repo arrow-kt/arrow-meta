@@ -24,7 +24,7 @@ Checking .github/workflows/sandbox/<version>.diff ...
 ```
 2. Create a stash entry for that patch:
 ```
-git checkout master
+git checkout main
 git apply .github/workflows/sandbox/<version>.diff
 git stash
 ```
