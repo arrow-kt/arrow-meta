@@ -25,16 +25,9 @@ allprojects {
   }
 
   repositories {
-    maven { url "https://kotlin.bintray.com/kotlinx" }
-    maven {
-      url "https://dl.bintray.com/arrow-kt/arrow-kt/"
-      content {
-        includeGroup "io.arrow-kt"
-      }
-    }
     mavenCentral()
-    jcenter()
-    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    jcenter() // TODO: Replace the use of org.celtric.kotlin:kotlin-html by kotlinx.html
   }
 }
 

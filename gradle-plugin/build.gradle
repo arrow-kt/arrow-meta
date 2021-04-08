@@ -1,17 +1,8 @@
 plugins {
+  id 'kotlin'
   id 'java-gradle-plugin'
   id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
 }
-
-repositories {
-  maven { url "https://kotlin.bintray.com/kotlinx" }
-  maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
-  maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-  mavenCentral()
-  jcenter()
-}
-
-apply plugin: 'kotlin'
 
 group = 'io.arrow-kt'
 version = VERSION_NAME

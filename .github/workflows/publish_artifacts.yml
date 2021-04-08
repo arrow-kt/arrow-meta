@@ -61,8 +61,10 @@ jobs:
         fi
     - name: Publish artifacts
       env:
-        BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-        BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
+        SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+        SONATYPE_PWD: ${{ secrets.SONATYPE_PWD }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
       run: |
         echo "NOTE: docs has its own publication workflows"
         echo "Uploading artifacts..."
