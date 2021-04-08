@@ -22,7 +22,7 @@ If using a SNAPSHOT version, it must be included with the legacy plugin applicat
 ```
 buildscript {
     repositories {
-        maven { url "https://oss.jfrog.org/artifactory/oss-snapshot-local/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
         classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
@@ -90,7 +90,7 @@ dependencies {
 }
 
 repositories {
-    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
 // Since Intellij Gradle Plugin 0.5

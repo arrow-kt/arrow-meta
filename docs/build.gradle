@@ -1,8 +1,4 @@
 buildscript {
-  repositories {
-    mavenCentral()
-    maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
-  }
   dependencies {
     classpath "io.arrow-kt:arrow-ank-gradle:$ARROW_VERSION"
   }
@@ -104,3 +100,7 @@ task getLocalPaths {
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
+
+afterEvaluate {
+    tasks.findByPath(':docs:runAnk').dependsOn ':idea-plugin:jar'
+}
