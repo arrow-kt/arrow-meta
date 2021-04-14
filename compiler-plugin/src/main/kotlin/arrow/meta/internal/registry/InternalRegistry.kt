@@ -151,11 +151,11 @@ interface InternalRegistry : ConfigSyntax {
     ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
-    println("System.properties are: " + System.getProperties().map {
-      "\n${it.key} : ${it.value}"
-    })
-
-    installArrowPlugin()
+//    println("System.properties are: " + System.getProperties().map {
+//     "\n${it.key} : ${it.value}"
+//    })
+//
+//    installArrowPlugin()
 
     val initialPhases = listOf("Initial setup" {
       listOf(compilerContextService())
@@ -199,13 +199,13 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun installArrowPlugin() {
-    val ideaPath = System.getProperty("idea.plugins.path")
-    val userDir = System.getProperty("user.dir")
-    if (ideaPath != null && ideaPath.isNotEmpty() && userDir != null && userDir.isNotEmpty()) {
-      println("Installing Arrow Plugin: $ideaPath, $userDir")
-    }
-  }
+//  fun installArrowPlugin() {
+//    val ideaPath = System.getProperty("idea.plugins.path")
+//    val userDir = System.getProperty("user.dir")
+//    if (ideaPath != null && ideaPath.isNotEmpty() && userDir != null && userDir.isNotEmpty()) {
+//      println("Installing Arrow Plugin: $ideaPath, $userDir")
+//    }
+//  }
 
   fun registerMetaAnalyzer(): ExtensionPhase = ExtensionPhase.Empty
 
