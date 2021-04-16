@@ -187,19 +187,19 @@ class ProofsIrCodegen(
             (valueType != targetType && expression.valueArgumentsCount > 0) -> {
               dispatchReceiver = null
 
-              expression.symbol.owner.valueParameters.forEachIndexed { n, _ ->
+              expression.symbol.owner.valueParameters.forEachIndexed { n: Int, _ ->
                 val valueArgument = expression.getValueArgument(n)
-                val valueType2 = valueArgument?.type?.originalKotlinType
-                val targetType2 = expression.substitutedValueParameters[n].second
-                val proofCall2 = extensionProofCall(valueType2!!, targetType2?.originalKotlinType!!) as? IrMemberAccessExpression<*>
+                val valueType2 = valueArgument?.type?.originalKotlinType!!
+                val targetType2 = expression.substitutedValueParameters[n].second?.originalKotlinType!!
+                val proofCall2 = extensionProofCall(valueType2, targetType2) as? IrMemberAccessExpression<*>
                 if (proofCall2 != null) {
                   proofCall2.extensionReceiver = valueArgument
                   if (proofCall2.typeArgumentsCount > 0) {
                     proofCall2.putTypeArgument(0, valueType.toIrType())
                   }
-                  proofCall2
+                  expression.putValueArgument(n, proofCall2)
                 } else {
-                  valueArgument
+                  expression.putValueArgument(n, valueArgument)
                 }
               }
             }
