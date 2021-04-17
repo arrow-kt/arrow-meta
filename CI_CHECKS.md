@@ -8,9 +8,7 @@ Arrow Meta is a functional companion to Kotlin's Compiler & IDE so it's necessar
 
 * Latest Kotlin release version
 * Latest Kotlin DEV version
-* Latest Kotlin EAP version 
-* Latest Intellij IDEA version
-* Latest Kotlin IDEA Plugin version
+* Latest Kotlin EAP version
 
 It's only possible to check `compiler-plugin` for **Kotlin DEV and EAP versions**  because correspondent **Kotlin IDEA Plugin version** is just available for Kotlin release versions.
 

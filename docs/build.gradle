@@ -4,14 +4,10 @@ buildscript {
   }
 }
 
-plugins {
-    id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
-}
 
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-    implementation project(':idea-plugin')
     implementation project(path: ':compiler-plugin', configuration: 'shadow')
     runtimeOnly "junit:junit:4.13"
     runtimeOnly "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION"
@@ -24,10 +20,6 @@ dependencies {
     runtimeOnly "org.jetbrains.kotlin:kotlin-script-runtime:$KOTLIN_VERSION"
 }
 
-intellij {
-    version = "$INTELLIJ_IDEA_VERSION"
-    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
-}
 
 task printcp {
     doLast {
@@ -71,7 +63,6 @@ task getLocalPaths {
             "kindedj",
             "kotlin-stdlib-$KOTLIN_VERSION",
             "arrow-ank-$ARROW_VERSION",
-            "idea-plugin-$VERSION_NAME",
             "compiler-plugin-$VERSION_NAME-all",
             "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
             "arrow-core-data-$ARROW_VERSION",
@@ -81,15 +72,7 @@ task getLocalPaths {
         ]
         def librariesFromCompilation = [
             // From Kotlin IDEA Plugin:
-            'kotlin-plugin.jar',
-            // From Intellij IDEA:
-            'platform-api.jar',
-            'platform-impl.jar',
-            'idea.jar',
-            'testFramework.jar',
-            'ide-common.jar',
-            'util.jar',
-            'platform-core-ui.jar'
+            'kotlin-plugin.jar'
         ]
         def localPaths = librariesFromRuntime.collect{ library -> sourceSets.main.runtimeClasspath.find{ path -> path.name.contains("$library") } }
         localPaths.addAll(librariesFromCompilation.collect{ library -> sourceSets.main.compileClasspath.find{ path -> (path.name == "$library") } })
@@ -100,7 +83,3 @@ task getLocalPaths {
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
-
-afterEvaluate {
-    tasks.findByPath(':docs:runAnk').dependsOn ':idea-plugin:jar'
-}

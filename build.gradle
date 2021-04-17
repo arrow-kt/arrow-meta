@@ -62,7 +62,6 @@ task publishIdeTestingDependencies {
 task cleanMeta {
   dependsOn ':compiler-plugin:clean'
   dependsOn ':gradle-plugin:clean'
-  dependsOn ':idea-plugin:clean'
   dependsOn ':meta-test:clean'
   dependsOn ':prelude:clean'
 }
@@ -72,11 +71,8 @@ task buildMeta {
   description = "Assembles and tests"
   dependsOn ':compiler-plugin:build'
   dependsOn ':gradle-plugin:build'
-  dependsOn ':publishIdeTestingDependencies'
-  dependsOn ':idea-plugin:build'
   dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
-  tasks.findByPath(':idea-plugin:build').mustRunAfter ':publishIdeTestingDependencies'
 }
 
 task publishMeta {
@@ -84,18 +80,6 @@ task publishMeta {
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':meta-test:publishToMavenLocal'
   dependsOn ':prelude:publishToMavenLocal'
-}
-
-task publishAndRunIde {
-  group = "Arrow Meta"
-  description = "Publishes and runs IDE on local workspace"
-  dependsOn ':cleanMeta'
-  dependsOn ':publishMeta'
-  dependsOn ':idea-plugin:buildPlugin'
-  dependsOn ':idea-plugin:runIde'
-  tasks.findByPath(':publishMeta').mustRunAfter ':cleanMeta'
-  tasks.findByPath(':idea-plugin:buildPlugin').mustRunAfter ':publishMeta'
-  tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':idea-plugin:buildPlugin'
 }
 
 task generateDoc(type:Exec) {
