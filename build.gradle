@@ -47,7 +47,7 @@ subprojects { project ->
 }
 
 configure(subprojects
-        - project("docs")
+  - project("docs")
 ) {
   apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
 }
@@ -82,29 +82,29 @@ task publishMeta {
   dependsOn ':prelude:publishToMavenLocal'
 }
 
-task generateDoc(type:Exec) {
-    // Reason of commandLine: dokka is not available in root project
-    // and to avoid specifying the list of modules
-    commandLine "sh", "gradlew", "dokka"
+task generateDoc(type: Exec) {
+  // Reason of commandLine: dokka is not available in root project
+  // and to avoid specifying the list of modules
+  commandLine "sh", "gradlew", "dokka"
 }
 
-task configureValidation(type:Exec) {
-    // Reason of commandLine: getLocalPaths and runAnk come from
-    // the same Gradle configuration and they must not be run
-    // in the same process
-    commandLine "sh", "gradlew", ":docs:getLocalPaths"
+task configureValidation(type: Exec) {
+  // Reason of commandLine: getLocalPaths and runAnk come from
+  // the same Gradle configuration and they must not be run
+  // in the same process
+  commandLine "sh", "gradlew", ":docs:getLocalPaths"
 }
 
-task runValidation(type:Exec) {
-    commandLine "sh", "gradlew", ":docs:runAnk"
+task runValidation(type: Exec) {
+  commandLine "sh", "gradlew", ":docs:runAnk"
 }
 
 task buildMetaDoc {
-    group = "Arrow Meta"
-    description = "Generates API Doc and validates all the documentation"
-    dependsOn 'configureValidation'
-    dependsOn 'generateDoc'
-    dependsOn 'runValidation'
+  group = "Arrow Meta"
+  description = "Generates API Doc and validates all the documentation"
+  dependsOn 'configureValidation'
+  dependsOn 'generateDoc'
+  dependsOn 'runValidation'
 }
 
 generateDoc.mustRunAfter configureValidation
