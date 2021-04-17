@@ -6,13 +6,13 @@
 [![Kotlin version badge](https://img.shields.io/badge/kotlin-1.3-blue.svg)](https://kotlinlang.org/docs/reference/whatsnew13.html)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Functional companion to Kotlin's Compiler & IDE
+Functional companion to Kotlin's Compiler
 
 ## Getting started
 
 Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all it's phases bringing its full power to the community.
 
-Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, automatic code refactoring,... are just a few of the [use cases](#use-cases) of the things that can be accomplished with Meta.
+Writing compiler plugins, source transformations, linters, type search engines, automatic code refactoring,... are just a few of the [use cases](#use-cases) of the things that can be accomplished with Meta.
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=WKR384ZeBgk
 " target="_blank"><img src="http://img.youtube.com/vi/WKR384ZeBgk/0.jpg" 
@@ -32,12 +32,6 @@ Pre-requirements: JDK 8
 
 ```
 ./gradlew buildMeta
-```
-
-**Build and run test + IDE plugin**
-
-```
-./gradlew publishAndRunIde
 ```
 
 **Generate API Doc and validate it**
