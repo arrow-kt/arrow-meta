@@ -12,7 +12,9 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrFactory
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
@@ -47,9 +50,13 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrUtils(
   val pluginContext: IrPluginContext,
-  val compilerContext: CompilerContext
+  val compilerContext: CompilerContext,
+  val moduleFragment: IrModuleFragment
 ) : ReferenceSymbolTable by pluginContext.symbols.externalSymbolTable,
-  IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns) {
+  IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns),
+  IrFactory by pluginContext.irFactory {
+
+  val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
     TypeTranslator(
@@ -166,6 +173,10 @@ class IrUtils(
         return super.visitFunction(declaration, data)
       }
     }, data) as IrStatement
+
+  fun IrModuleFragment.interpret(expression: IrExpression): IrExpression =
+    IrInterpreter(this).interpret(expression)
+
 }
 
 fun IrCall.dfsCalls(): List<IrCall> { // search for parent function

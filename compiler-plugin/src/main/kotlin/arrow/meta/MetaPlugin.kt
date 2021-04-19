@@ -2,6 +2,7 @@ package arrow.meta
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.higherkind.higherKindedTypes2
+import arrow.meta.plugins.liquid.liquidExpressions
 import arrow.meta.plugins.optics.optics
 import arrow.meta.plugins.proofs.typeProofs
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -23,6 +24,7 @@ open class MetaPlugin : Meta {
       // comprehensions,
       // lenses,
       typeProofs,
-      optics
+      optics,
+      liquidExpressions
     )
 }
