@@ -10,9 +10,6 @@ options:
       - title: Hello World Compiler Plugin
         url: /apidocs/compiler-plugin/arrow.meta.plugins.hello-world/hello-world.html
 
-      - title: Hello World IDE Plugin
-        url: /apidocs/idea-plugin/arrow.meta.ide.plugins.helloworld/hello-world.html
-
       - title: Setup
         url: /setup.html
 
@@ -75,31 +72,6 @@ options:
       - title: IR Codegen
         url: /apidocs/compiler-plugin/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
-  - title: IntelliJ Platform API
-
-    nested_options:
-
-      - title: ExtensionProviderSyntax
-        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.extensions/-extension-provider-syntax/
-
-        nested_options:
-
-          - title: InspectionSyntax
-            url: /apidocs/idea-plugin/arrow.meta.ide.dsl.inspection/add-applicable-inspection.html
-
-          - title: LineMarkerSyntax
-            url: /apidocs/idea-plugin/arrow.meta.ide.dsl.line-marker/add-line-marker-provider.html
-
-      - title: AnActionSyntax
-        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.action/-an-action-syntax/
-
-      - title: IntentionSyntax
-        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.intention/-intention-syntax/
-
-      - title: SyntaxHighlighterSyntax
-        url: /apidocs/idea-plugin/arrow.meta.ide.dsl.editor.syntax-highlighter/-syntax-highlighter-syntax/add-syntax-highlighter.html
-
-
   - title: Testing
 
     nested_options:
@@ -107,18 +79,12 @@ options:
       - title: Compiler Plugins Tests
         url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
 
-      - title: IntelliJ Plugin Tests
-        url: /apidocs/idea-plugin/arrow.meta.ide.testing.env/ide-test.html
-
   - title: API Docs
 
     nested_options:
 
       - title: Compiler plugin
         url: /apidocs/compiler-plugin/
-
-      - title: IntelliJ plugin
-        url: /apidocs/idea-plugin/
 
       - title: Testing library
         url: /apidocs/meta-test/
