@@ -1,0 +1,48 @@
+name: Publish Artifacts
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  publish_artifacts:
+
+    env:
+      JAVA_OPTS: -Xms512m -Xmx1024m
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set env
+      run: |
+        echo "$JAVA_HOME_8_X64/bin" >> $GITHUB_PATH
+        echo "JAVA_HOME=$JAVA_HOME_8_X64" >> $GITHUB_ENV
+    - uses: actions/checkout@v1
+    - name: Check properties
+      id: properties
+      run: |
+        ACTUAL_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2)
+        echo "::set-output name=actual-version::$ACTUAL_VERSION"
+        if [[ "$ACTUAL_VERSION" == *-SNAPSHOT ]]; then
+            echo "::set-output name=repository-type::snapshot"
+        else
+            echo "::set-output name=repository-type::release"
+        fi
+    - name: Publish artifacts
+      env:
+        SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+        SONATYPE_PWD: ${{ secrets.SONATYPE_PWD }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
+      run: |
+        echo "NOTE: docs has its own publication workflows"
+        echo "Uploading artifacts..."
+        ./gradlew publish
+        echo "${{ steps.properties.outputs.actual-version }} deployed!"
+    - name: Publish Gradle Plugin into Gradle Plugins Portal
+      if: steps.properties.outputs.repository-type == 'release'
+      env:
+        GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+        GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+      run: |
+        ./gradlew -Dgradle.publish.key=$GRADLE_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PUBLISH_SECRET publishPlugins
