@@ -15,7 +15,7 @@ video: WKR384ZeBgk
 
 Λrrow Meta is a meta-programming library that cooperates with the Kotlin compiler in all its phases, bringing its full power to the community.
 
-Writing compiler plugins, source transformations, IDEA plugins, linters, type search engines, and automatic code refactoring are just a few of the things that can be accomplished with Meta.
+Writing compiler plugins, source transformations, linters, type search engines, and automatic code refactoring are just a few of the things that can be accomplished with Meta.
 
 {:.gif}
 ![Hello World Compiler Plugin Demo]({{ 'img/demos/hello-world-compiler-plugin.gif' | relative_url }})

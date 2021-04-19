@@ -1,24 +1,5 @@
 name: Publish Artifacts
 
-# Custom repository for Arrow Meta IDE Plugin to install the plugin and for development: pluginsRepo
-# Source: https://github.com/JetBrains/gradle-intellij-plugin
-#
-#  idea-plugin
-#  ├── <version>
-#  │   └── updatePlugins.xml
-#  ├── latest-release
-#  │   └── updatePlugins.xml
-#  ├── latest-snapshot
-#  │   └── updatePlugins.xml
-#  ├── release
-#  │   └── io.arrow-kt.arrow
-#  │       └── <version>
-#  │           └── io.arrow-kt.arrow-<version>.zip
-#  └── snapshot
-#      └── io.arrow-kt.arrow
-#          └── <version>
-#              └── io.arrow-kt.arrow-<version>.zip
-
 on:
   push:
     branches:
@@ -37,16 +18,6 @@ jobs:
         echo "$JAVA_HOME_8_X64/bin" >> $GITHUB_PATH
         echo "JAVA_HOME=$JAVA_HOME_8_X64" >> $GITHUB_ENV
     - uses: actions/checkout@v1
-    - name: Set compatibility IDEA builds
-      run: |
-        KOTLIN_VERSION=$(grep KOTLIN_VERSION gradle.properties | cut -d= -f2)
-        BRANCH_NUMBER=$(grep INTELLIJ_IDEA_VERSION gradle.properties | cut -d= -f2 | cut -b 3-4,6)
-        curl -o plugin.xml https://raw.githubusercontent.com/JetBrains/kotlin/v$KOTLIN_VERSION/idea/resources/META-INF/plugin.xml.$BRANCH_NUMBER
-        SINCE_BUILD=$(cat plugin.xml | grep -o -e 'since-build="[^"]\+"' | cut -d= -f2)
-        UNTIL_BUILD=$(cat plugin.xml | grep -o -e 'until-build="[^"]\+"' | cut -d= -f2)
-        sed -i "s/patchPluginXml {/patchPluginXml {\\nsinceBuild $SINCE_BUILD\\nuntilBuild $UNTIL_BUILD/g" idea-plugin/build.gradle
-        sed -i "s/%SINCE_BUILD%/$SINCE_BUILD/g" .github/workflows/templates/updatePlugins.xml
-        sed -i "s/%UNTIL_BUILD%/$UNTIL_BUILD/g" .github/workflows/templates/updatePlugins.xml
     - name: Check properties
       id: properties
       run: |
@@ -54,10 +25,8 @@ jobs:
         echo "::set-output name=actual-version::$ACTUAL_VERSION"
         if [[ "$ACTUAL_VERSION" == *-SNAPSHOT ]]; then
             echo "::set-output name=repository-type::snapshot"
-            echo "::set-output name=artifact-version-ext::-$(date +%s)"
         else
             echo "::set-output name=repository-type::release"
-            echo "::set-output name=artifact-version-ext::"
         fi
     - name: Publish artifacts
       env:
@@ -70,47 +39,6 @@ jobs:
         echo "Uploading artifacts..."
         ./gradlew publish
         echo "${{ steps.properties.outputs.actual-version }} deployed!"
-    - name: Build Arrow Meta IDE Plugin
-      run: |
-        ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
-        ARTIFACT_VERSION_EXT=${{ steps.properties.outputs.artifact-version-ext }}
-        sed -i "s/patchPluginXml {/patchPluginXml {\\nversion \"${ARTIFACT_VERSION}${ARTIFACT_VERSION_EXT}\"/g" idea-plugin/build.gradle
-        ./gradlew :idea-plugin:buildPlugin
-    - name: Prepare Arrow Meta IDE Plugin for the private repository
-      run: |
-        ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
-        ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
-        REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
-        PLUGIN_DIRECTORY="idea-plugin/${REPOSITORY_TYPE}/${ARTIFACT_ID}/${ARTIFACT_VERSION}"
-        mkdir -p $PLUGIN_DIRECTORY
-        cp idea-plugin/build/distributions/*.zip $PLUGIN_DIRECTORY/${ARTIFACT_ID}-${ARTIFACT_VERSION}.zip
-    - name: Create the private IDEA plugin repository
-      run: |
-        ARTIFACT_ID=$(grep "<id>" idea-plugin/src/main/resources/META-INF/plugin.xml | cut -d'>' -f2 | cut -d'<' -f1)
-        ARTIFACT_VERSION=${{ steps.properties.outputs.actual-version }}
-        ARTIFACT_VERSION_EXT=${{ steps.properties.outputs.artifact-version-ext }}
-        REPOSITORY_TYPE=${{ steps.properties.outputs.repository-type }}
-        mkdir -p idea-plugin/latest-${REPOSITORY_TYPE}
-        mkdir idea-plugin/${ARTIFACT_VERSION}
-        sed -i "s/%ARTIFACT_ID%/${ARTIFACT_ID}/g" .github/workflows/templates/updatePlugins.xml
-        sed -i "s/%ARTIFACT_VERSION%/${ARTIFACT_VERSION}/g" .github/workflows/templates/updatePlugins.xml
-        sed -i "s/%ARTIFACT_VERSION_EXT%/${ARTIFACT_VERSION_EXT}/g" .github/workflows/templates/updatePlugins.xml
-        sed -i "s/%REPOSITORY_TYPE%/${REPOSITORY_TYPE}/g" .github/workflows/templates/updatePlugins.xml
-        cp .github/workflows/templates/updatePlugins.xml idea-plugin/latest-${REPOSITORY_TYPE}/
-        cp .github/workflows/templates/updatePlugins.xml idea-plugin/${ARTIFACT_VERSION}/
-    - name: Publish IDEA plugin into private repository
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: eu-west-1
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
-      run: |
-        aws s3 cp idea-plugin s3://$S3_BUCKET/idea-plugin --recursive
-    - name: Publish IDEA plugin into Jetbrains repository
-      if: steps.properties.outputs.repository-type == 'release'
-      env:
-        JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
-      run: ./gradlew :idea-plugin:publishPlugin
     - name: Publish Gradle Plugin into Gradle Plugins Portal
       if: steps.properties.outputs.repository-type == 'release'
       env:

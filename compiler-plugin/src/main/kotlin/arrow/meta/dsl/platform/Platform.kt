@@ -1,6 +1,5 @@
 package arrow.meta.dsl.platform
 
-import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 
 private val isIde: Boolean = Project::class.java.name == "com.intellij.openapi.project.Project"
