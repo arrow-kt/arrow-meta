@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrErrorDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrField
@@ -67,7 +68,7 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrSetField
-import org.jetbrains.kotlin.ir.expressions.IrSetVariable
+import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.expressions.IrSuspendableExpression
@@ -128,7 +129,7 @@ interface IrSyntax {
   fun Meta.irDeclaration(f: IrUtils.(IrDeclaration) -> IrStatement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitDeclaration(expression: IrDeclaration, data: Unit): IrStatement =
+        override fun visitDeclaration(expression: IrDeclarationBase, data: Unit): IrStatement =
           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitDeclaration(expression, data)
       }, Unit)
     }
@@ -398,11 +399,11 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun Meta.irSetVariable(f: IrUtils.(IrSetVariable) -> IrExpression?): IRGeneration =
+  fun Meta.irSetValue(f: IrUtils.(IrSetValue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitSetVariable(expression: IrSetVariable, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitSetVariable(expression, data)
+        override fun visitSetValue(expression: IrSetValue, data: Unit): IrExpression =
+          f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitSetValue(expression, data)
       }, Unit)
     }
 
@@ -430,10 +431,10 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun Meta.irMemberAccess(f: IrUtils.(IrMemberAccessExpression) -> IrElement?): IRGeneration =
+  fun Meta.irMemberAccess(f: IrUtils.(IrMemberAccessExpression<*>) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitMemberAccess(expression: IrMemberAccessExpression, data: Unit): IrElement =
+        override fun visitMemberAccess(expression: IrMemberAccessExpression<*>, data: Unit): IrElement =
           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitMemberAccess(expression, data)
       }, Unit)
     }
@@ -487,10 +488,10 @@ interface IrSyntax {
       }, Unit)
     }
 
-  fun Meta.irCallableReference(f: IrUtils.(IrCallableReference) -> IrElement?): IRGeneration =
+  fun Meta.irCallableReference(f: IrUtils.(IrCallableReference<*>) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitCallableReference(expression: IrCallableReference, data: Unit): IrElement =
+        override fun visitCallableReference(expression: IrCallableReference<*>, data: Unit): IrElement =
           f(IrUtils(pluginContext, compilerContext), expression) ?: super.visitCallableReference(expression, data)
       }, Unit)
     }
