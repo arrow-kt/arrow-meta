@@ -1,106 +1,22 @@
 buildscript {
+  repositories {
+    mavenCentral()
+  }
   dependencies {
     classpath "io.arrow-kt:arrow-ank-gradle:$ARROW_VERSION"
   }
 }
 
-plugins {
-    id "org.jetbrains.intellij" version "$INTELLIJ_GRADLE_PLUGIN_VERSION"
-}
-
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-    implementation project(':idea-plugin')
-    implementation project(path: ':compiler-plugin', configuration: 'shadow')
-    runtimeOnly "junit:junit:4.13"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-compiler:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-impl:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-jvm:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-scripting-common:$KOTLIN_VERSION"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-script-runtime:$KOTLIN_VERSION"
+  runtimeOnly project(':compiler-plugin')
 }
 
-intellij {
-    version = "$INTELLIJ_IDEA_VERSION"
-    plugins = ["org.jetbrains.kotlin:${KOTLIN_IDEA_VERSION}"]
-}
-
-task printcp {
-    doLast {
-        println "compile classpath:"
-        sourceSets.main.compileClasspath.each { println it }
-        println "runtime classpath:"
-        sourceSets.main.runtimeClasspath.each { println it }
-    }
-}
-
-ext {
-    set("LOCAL_PATHS_FILE", "${projectDir}/localPaths.log")
-    // Reason: required by ank; file must exist during Gradle configuration check
-    if ( !file("$LOCAL_PATHS_FILE").exists() )  file("$LOCAL_PATHS_FILE").createNewFile()
-    set("LOCAL_PATHS_COLLECTION" , project.files(file("$LOCAL_PATHS_FILE").readLines()))
-    ank.source = file("${projectDir}/docs")
-    ank.target = file("${projectDir}/build/site")
-    ank.classpath = LOCAL_PATHS_COLLECTION
-    println ">> ank.classpath:"
-    ank.classpath.each { println it }
-}
-
-task getLocalPaths {
-    // Reason: local paths cannot be generated in Ank extension neither ext section
-    doLast {
-
-        def librariesFromRuntime = [
-            "junit",
-            "kotlin-compiler-$KOTLIN_VERSION",
-            "kotlin-scripting-compiler-$KOTLIN_VERSION",
-            "kotlin-scripting-compiler-impl-$KOTLIN_VERSION",
-            "kotlin-script-util-$KOTLIN_VERSION",
-            "kotlin-reflect-$KOTLIN_VERSION",
-            "kotlin-scripting-jvm-$KOTLIN_VERSION",
-            "kotlin-scripting-common-$KOTLIN_VERSION",
-            "kotlin-script-runtime-$KOTLIN_VERSION",
-            "trove4j",
-            "kotlin-stdlib-common-$KOTLIN_VERSION",
-            "annotations-13.0",
-            "kotlinx-coroutines-core",
-            "kindedj",
-            "kotlin-stdlib-$KOTLIN_VERSION",
-            "arrow-ank-$ARROW_VERSION",
-            "idea-plugin-$VERSION_NAME",
-            "compiler-plugin-$VERSION_NAME-all",
-            "kotlin-stdlib-jdk8-$KOTLIN_VERSION",
-            "arrow-core-data-$ARROW_VERSION",
-            "arrow-fx-coroutines-$ARROW_VERSION",
-            "arrow-annotations-$ARROW_VERSION",
-            "arrow-core-$ARROW_VERSION"
-        ]
-        def librariesFromCompilation = [
-            // From Kotlin IDEA Plugin:
-            'kotlin-plugin.jar',
-            // From Intellij IDEA:
-            'platform-api.jar',
-            'platform-impl.jar',
-            'idea.jar',
-            'testFramework.jar',
-            'ide-common.jar',
-            'util.jar',
-            'platform-core-ui.jar'
-        ]
-        def localPaths = librariesFromRuntime.collect{ library -> sourceSets.main.runtimeClasspath.find{ path -> path.name.contains("$library") } }
-        localPaths.addAll(librariesFromCompilation.collect{ library -> sourceSets.main.compileClasspath.find{ path -> (path.name == "$library") } })
-        def localPathsFile = file("$LOCAL_PATHS_FILE")
-        localPathsFile.write localPaths.join("\n")
-        layout.files(file("$LOCAL_PATHS_FILE").readLines()).each { println it.path }
-    }
+ank {
+  source = file("${projectDir}/docs")
+  target = file("${projectDir}/build/site")
+  classpath = sourceSets.main.runtimeClasspath
 }
 
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]
-
-afterEvaluate {
-    tasks.findByPath(':docs:runAnk').dependsOn ':idea-plugin:jar'
-}

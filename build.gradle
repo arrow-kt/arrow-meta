@@ -47,22 +47,14 @@ subprojects { project ->
 }
 
 configure(subprojects
-        - project("docs")
+  - project("docs")
 ) {
   apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
-}
-
-// To run tests for Arrow Meta IDEA Plugin
-task publishIdeTestingDependencies {
-  dependsOn ':compiler-plugin:publishToMavenLocal'
-  dependsOn ':gradle-plugin:publishToMavenLocal'
-  dependsOn ':prelude:publishToMavenLocal'
 }
 
 task cleanMeta {
   dependsOn ':compiler-plugin:clean'
   dependsOn ':gradle-plugin:clean'
-  dependsOn ':idea-plugin:clean'
   dependsOn ':meta-test:clean'
   dependsOn ':prelude:clean'
 }
@@ -72,11 +64,8 @@ task buildMeta {
   description = "Assembles and tests"
   dependsOn ':compiler-plugin:build'
   dependsOn ':gradle-plugin:build'
-  dependsOn ':publishIdeTestingDependencies'
-  dependsOn ':idea-plugin:build'
   dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
-  tasks.findByPath(':idea-plugin:build').mustRunAfter ':publishIdeTestingDependencies'
 }
 
 task publishMeta {
@@ -86,42 +75,21 @@ task publishMeta {
   dependsOn ':prelude:publishToMavenLocal'
 }
 
-task publishAndRunIde {
-  group = "Arrow Meta"
-  description = "Publishes and runs IDE on local workspace"
-  dependsOn ':cleanMeta'
-  dependsOn ':publishMeta'
-  dependsOn ':idea-plugin:buildPlugin'
-  dependsOn ':idea-plugin:runIde'
-  tasks.findByPath(':publishMeta').mustRunAfter ':cleanMeta'
-  tasks.findByPath(':idea-plugin:buildPlugin').mustRunAfter ':publishMeta'
-  tasks.findByPath(':idea-plugin:runIde').mustRunAfter ':idea-plugin:buildPlugin'
+task generateDoc(type: Exec) {
+  // Reason of commandLine: dokka is not available in root project
+  // and to avoid specifying the list of modules
+  commandLine "sh", "gradlew", "dokka"
 }
 
-task generateDoc(type:Exec) {
-    // Reason of commandLine: dokka is not available in root project
-    // and to avoid specifying the list of modules
-    commandLine "sh", "gradlew", "dokka"
-}
-
-task configureValidation(type:Exec) {
-    // Reason of commandLine: getLocalPaths and runAnk come from
-    // the same Gradle configuration and they must not be run
-    // in the same process
-    commandLine "sh", "gradlew", ":docs:getLocalPaths"
-}
-
-task runValidation(type:Exec) {
-    commandLine "sh", "gradlew", ":docs:runAnk"
+task runValidation(type: Exec) {
+  commandLine "sh", "gradlew", ":docs:runAnk"
 }
 
 task buildMetaDoc {
-    group = "Arrow Meta"
-    description = "Generates API Doc and validates all the documentation"
-    dependsOn 'configureValidation'
-    dependsOn 'generateDoc'
-    dependsOn 'runValidation'
+  group = "Arrow Meta"
+  description = "Generates API Doc and validates all the documentation"
+  dependsOn 'generateDoc'
+  dependsOn 'runValidation'
 }
 
-generateDoc.mustRunAfter configureValidation
 runValidation.mustRunAfter generateDoc
