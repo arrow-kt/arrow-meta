@@ -169,7 +169,7 @@ fun CompilerContext.extensionProofCandidate(candidates: List<ExtensionProof>): E
     .filter {
       extensionProofs().skippedProofsDueToAmbiguities()
         .firstOrNull { (p, _) -> p == it } == null
-    }.minBy { it.through.visibility != DescriptorVisibilities.INTERNAL }
+    }.minByOrNull { it.through.visibility != DescriptorVisibilities.INTERNAL }
 
 fun CompilerContext.extensionProofs(subType: KotlinType, superType: KotlinType): List<ExtensionProof> =
   proof<ExtensionProof>().matchingCandidates(this, subType, superType)
@@ -186,7 +186,7 @@ fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): GivenProo
       it.isResolved(givenProofs()) &&
         givenProofs().skippedProofsDueToAmbiguities()
           .firstOrNull { (p, _) -> p == it } == null
-    }.minBy { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
+    }.minByOrNull { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
 
 inline fun <reified P : Proof> CompilerContext.proof(): List<P> =
   module.proofs.filterIsInstance<P>()
