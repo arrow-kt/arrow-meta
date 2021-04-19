@@ -27,10 +27,8 @@ class ArrowGradlePlugin : Plugin<Project> {
     if (kotlinVersion != project.getKotlinPluginVersion())
        throw InvalidUserDataException("Use Kotlin $kotlinVersion for Arrow Meta Gradle Plugin")
     project.afterEvaluate { p ->
-      // Dependencies that aren't provided by compiler-plugin
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-script-util:$kotlinVersion")
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-      p.dependencies.add("kotlinCompilerClasspath", "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
+      // To add its transitive dependencies
+      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:compiler-plugin:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf(
@@ -40,21 +38,6 @@ class ArrowGradlePlugin : Plugin<Project> {
         )
       }
     }
-    project.tasks.register("install-idea-plugin", InstallIdeaPlugin::class.java) {
-      it.group = "Arrow Meta"
-      it.description = "Installs the correspondent Arrow Meta IDE Plugin if it's not already installed."
-    }
-    when {
-      inIdea() && pluginsDirExists() && !ideaPluginExists() -> { printMessageForInstallation(compilerPluginVersion) }
-    }
-  }
-
-  private fun printMessageForInstallation(compilerPluginVersion: String): Unit {
-    val versionType = when { compilerPluginVersion.endsWith("SNAPSHOT") -> "snapshot" else -> "release" }
-    println("Arrow Meta IDE Plugin is not installed!")
-    println("Run 'install-idea-plugin' Gradle task to install it (under 'Tasks -> arrow meta' in Gradle tool window; choose just one project when multi-project)")
-    println("Receive update notifications when adding this custom repository: https://meta.arrow-kt.io/idea-plugin/latest-$versionType/updatePlugins.xml")
-    println("Guideline: https://www.jetbrains.com/help/idea/managing-plugins.html#repos")
   }
 
   private fun classpathOf(dependency: String): File {

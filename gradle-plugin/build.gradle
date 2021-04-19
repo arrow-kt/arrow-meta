@@ -21,7 +21,6 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$KOTLIN_VERSION"
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
-  implementation "xerces:xercesImpl:$XERCES_VERSION"
   // Necessary during plugin execution to be found and added for compilation
   runtimeOnly project(':compiler-plugin')
 }
