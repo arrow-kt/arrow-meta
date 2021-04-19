@@ -52,13 +52,6 @@ configure(subprojects
   apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
 }
 
-// To run tests for Arrow Meta IDEA Plugin
-task publishIdeTestingDependencies {
-  dependsOn ':compiler-plugin:publishToMavenLocal'
-  dependsOn ':gradle-plugin:publishToMavenLocal'
-  dependsOn ':prelude:publishToMavenLocal'
-}
-
 task cleanMeta {
   dependsOn ':compiler-plugin:clean'
   dependsOn ':gradle-plugin:clean'
