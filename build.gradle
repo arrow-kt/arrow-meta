@@ -81,13 +81,6 @@ task generateDoc(type: Exec) {
   commandLine "sh", "gradlew", "dokka"
 }
 
-task configureValidation(type: Exec) {
-  // Reason of commandLine: getLocalPaths and runAnk come from
-  // the same Gradle configuration and they must not be run
-  // in the same process
-  commandLine "sh", "gradlew", ":docs:getLocalPaths"
-}
-
 task runValidation(type: Exec) {
   commandLine "sh", "gradlew", ":docs:runAnk"
 }
@@ -95,10 +88,8 @@ task runValidation(type: Exec) {
 task buildMetaDoc {
   group = "Arrow Meta"
   description = "Generates API Doc and validates all the documentation"
-  dependsOn 'configureValidation'
   dependsOn 'generateDoc'
   dependsOn 'runValidation'
 }
 
-generateDoc.mustRunAfter configureValidation
 runValidation.mustRunAfter generateDoc
