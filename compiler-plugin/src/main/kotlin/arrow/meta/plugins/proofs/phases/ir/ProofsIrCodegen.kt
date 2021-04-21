@@ -164,12 +164,8 @@ class ProofsIrCodegen(
     val valueType = expression.dispatchReceiver?.type?.originalKotlinType
       ?: expression.extensionReceiver?.type?.originalKotlinType
       ?: (if (expression.valueArgumentsCount > 0) expression.getValueArgument(0)?.type?.originalKotlinType else null)
-    // TODO:
-    val targetType =
-      //(expression.symbol.descriptor.dispatchReceiverParameter?.containingDeclaration as? FunctionDescriptor)?.dispatchReceiverParameter?.type
-        //?:
-        expression.symbol.owner.extensionReceiverParameter?.type?.originalKotlinType
-        ?: expression.substitutedValueParameters.firstOrNull()?.second?.originalKotlinType
+    val targetType = expression.symbol.owner.extensionReceiverParameter?.type?.originalKotlinType
+      ?: expression.substitutedValueParameters.firstOrNull()?.second?.originalKotlinType
     if (targetType != null && valueType != null && targetType != valueType && !baseLineTypeChecker.isSubtypeOf(valueType, targetType)) {
       expression.apply {
         val proofCall = extensionProofCall(valueType, targetType)

@@ -19,7 +19,7 @@ import arrow.meta.quotes.objectDeclaration
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
-@ObsoleteDescriptorBasedAPI
+@ObsoleteDescriptorBasedAPI // TODO: Reason: proveReturn from ProofsIrCodegen
 val Meta.typeProofs: CliPlugin
   get() =
     "Type Proofs CLI" {
