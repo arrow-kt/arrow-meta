@@ -5,6 +5,7 @@ import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.dfsCalls
+import arrow.meta.phases.codegen.ir.returnType
 import arrow.meta.phases.codegen.ir.substitutedValueParameters
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.phases.resolve.typeArgumentsMap
@@ -17,7 +18,6 @@ import arrow.meta.plugins.proofs.phases.extensionProof
 import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -238,13 +238,9 @@ class ProofsIrCodegen(
     } else it
   }
 
-  @ObsoleteDescriptorBasedAPI
   fun CompilerContext.proveReturn(it: IrReturn): IrReturn? =
     irUtils.run {
-      // TODO: Remove the annotation "ObsoleteDescriptorBasedAPI"
-      // Alternative:
-      //   val targetType = it.returnTargetSymbol.owner.returnType(<backend-context>)
-      val targetType = it.returnTargetSymbol.descriptor.returnType
+      val targetType = it.returnTargetSymbol.owner.returnType(pluginContext.irBuiltIns).originalKotlinType
       val valueType = it.value.type.originalKotlinType
       return if (targetType != null && valueType != null && targetType != valueType) {
         extensionProofCall(valueType, targetType)?.let { call ->
