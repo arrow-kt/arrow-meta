@@ -151,6 +151,7 @@ interface InternalRegistry : ConfigSyntax {
     ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
+// TODO: Pending fix https://github.com/gradle/gradle/issues/14727
 //    println("System.properties are: " + System.getProperties().map {
 //     "\n${it.key} : ${it.value}"
 //    })
@@ -199,6 +200,7 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
+// TODO: Pending fix https://github.com/gradle/gradle/issues/14727
 //  fun installArrowPlugin() {
 //    val ideaPath = System.getProperty("idea.plugins.path")
 //    val userDir = System.getProperty("user.dir")
