@@ -4,19 +4,19 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -24,15 +24,17 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
-import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
@@ -41,8 +43,6 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.asSimpleType
-import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrUtils(
@@ -55,11 +55,11 @@ class IrUtils(
     TypeTranslator(
       symbolTable = pluginContext.symbols.externalSymbolTable,
       languageVersionSettings = pluginContext.languageVersionSettings,
-      builtIns = pluginContext.builtIns
+      builtIns = pluginContext.irBuiltIns.builtIns
     ).apply translator@{
       constantValueGenerator =
         ConstantValueGenerator(
-          moduleDescriptor = pluginContext.builtIns.builtInsModule.module,
+          moduleDescriptor = pluginContext.irBuiltIns.builtIns.builtInsModule.module,
           symbolTable = pluginContext.symbols.externalSymbolTable
         ).apply {
           this.typeTranslator = this@translator
@@ -79,8 +79,8 @@ class IrUtils(
             endOffset = UNDEFINED_OFFSET,
             type = irSimpleFunctionSymbol.owner.returnType,
             symbol = irSimpleFunctionSymbol,
-            typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
-            valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+            typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
+            valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
           )
         } ?: TODO("Unsupported irCall for $this")
       }
@@ -91,9 +91,9 @@ class IrUtils(
           endOffset = UNDEFINED_OFFSET,
           type = irSymbol.owner.returnType,
           symbol = irSymbol,
-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size,
-          constructorTypeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size
+          typeArgumentsCount = irSymbol.owner.typeParameters.size,
+          valueArgumentsCount = irSymbol.owner.valueParameters.size,
+          constructorTypeArgumentsCount = irSymbol.owner.typeParameters.size
         )
       }
       is FunctionDescriptor -> {
@@ -102,9 +102,9 @@ class IrUtils(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
           type = irSymbol.owner.returnType,
-          symbol = irSymbol,
-          typeArgumentsCount = irSymbol.owner.descriptor.typeParameters.size,
-          valueArgumentsCount = irSymbol.owner.descriptor.valueParameters.size
+          symbol = irSymbol as IrSimpleFunctionSymbol,
+          typeArgumentsCount = irSymbol.owner.typeParameters.size,
+          valueArgumentsCount = irSymbol.owner.valueParameters.size
         )
       }
       is FakeCallableDescriptorForObject -> {
@@ -129,8 +129,8 @@ class IrUtils(
         endOffset = UNDEFINED_OFFSET,
         type = irSimpleFunctionSymbol.owner.returnType,
         symbol = irSimpleFunctionSymbol,
-        typeArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.typeParameters.size,
-        valueArgumentsCount = irSimpleFunctionSymbol.owner.descriptor.valueParameters.size
+        typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
+        valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
       )
     }
   }
@@ -143,8 +143,8 @@ class IrUtils(
         endOffset = UNDEFINED_OFFSET,
         type = irConstructorSymbol.owner.returnType,
         symbol = irConstructorSymbol,
-        typeArgumentsCount = irConstructorSymbol.owner.descriptor.typeParameters.size,
-        valueArgumentsCount = irConstructorSymbol.owner.descriptor.valueParameters.size,
+        typeArgumentsCount = irConstructorSymbol.owner.typeParameters.size,
+        valueArgumentsCount = irConstructorSymbol.owner.valueParameters.size,
         constructorTypeArgumentsCount = declaredTypeParameters.size
       )
     }
@@ -165,7 +165,7 @@ class IrUtils(
         f(declaration, a)
         return super.visitFunction(declaration, data)
       }
-    }, data)
+    }, data) as IrStatement
 }
 
 fun IrCall.dfsCalls(): List<IrCall> { // search for parent function
@@ -206,11 +206,8 @@ val IrCall.typeArguments: List<Pair<Int, IrType?>>
     return args.toList()
   }
 
-val IrCall.unsubstitutedDescriptor: FunctionDescriptor
-  get() = symbol.owner.descriptor
-
-val IrCall.substitutedValueParameters: List<Pair<ValueParameterDescriptor, KotlinType>>
-  get() = unsubstitutedDescriptor.substitutedValueParameters(this)
+val IrCall.substitutedValueParameters: List<Pair<IrValueParameter, IrType?>>
+  get() = symbol.owner.substitutedValueParameters(this)
 
 val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
   get() = if (this is IrConstructor)
@@ -218,26 +215,26 @@ val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
   else
     typeParameters
 
-fun IrMemberAccessExpression.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
+fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
   container.allTypeParameters.withIndex().associate {
     it.value to getTypeArgument(it.index)!!
   }
 
-val IrMemberAccessExpression.typeSubstitutions: Map<IrTypeParameter, IrType>
+val IrMemberAccessExpression<*>.typeSubstitutions: Map<IrTypeParameter, IrType>
   get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
 /**
  * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
  */
-fun CallableMemberDescriptor.substitutedValueParameters(call: IrCall): List<Pair<ValueParameterDescriptor, KotlinType>> =
-  valueParameters.filterNotNull()
+private fun IrSimpleFunction.substitutedValueParameters(call: IrCall): List<Pair<IrValueParameter, IrType?>> =
+  valueParameters
     .map {
       val type = it.type
-      it to (type.takeIf { t -> !t.isTypeParameter() }
-        ?: typeParameters.filterNotNull()
-          .firstOrNull { typeParam -> typeParam.defaultType == type.asSimpleType() }
+      it to (type.takeIf { t -> !t!!.isTypeParameter() }
+        ?: typeParameters
+          .firstOrNull { typeParam -> typeParam.defaultType == type }
           ?.let { typeParam ->
-            call.getTypeArgument(typeParam.index)?.originalKotlinType
+            call.getTypeArgument(typeParam.index)
           } ?: type // Could not resolve the substituted KotlinType
         )
     }

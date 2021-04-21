@@ -68,7 +68,7 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrSetField
-import org.jetbrains.kotlin.ir.expressions.IrSetVariable
+import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.expressions.IrSuspendableExpression
@@ -122,7 +122,7 @@ open class IrSyntaxPlugin : Meta {
         irGetEnumValue(irVisit(IrGetEnumValue::class.java)),
         irValueAccess(irVisit(IrValueAccessExpression::class.java)),
         irGetValue(irVisit(IrGetValue::class.java)),
-        irSetVariable(irVisit(IrSetVariable::class.java)),
+        irSetValue(irVisit(IrSetValue::class.java)),
         irFieldAccess(irVisit(IrFieldAccessExpression::class.java)),
         irGetField(irVisit(IrGetField::class.java)),
         irSetField(irVisit(IrSetField::class.java)),
