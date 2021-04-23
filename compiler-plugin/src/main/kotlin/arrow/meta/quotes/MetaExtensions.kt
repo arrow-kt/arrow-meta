@@ -37,6 +37,7 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -44,6 +45,7 @@ import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -58,6 +60,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
@@ -252,7 +255,7 @@ fun Meta.lambdaExpression(
 fun Meta.namedFunction(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> namedFunctionDescriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> descriptor(element) },
   map: NamedFunction.(TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>) -> Transform<KtNamedFunction>
 ): ExtensionPhase =
   typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> NamedFunction(element, descriptor) }
@@ -293,7 +296,7 @@ fun Meta.parameter(
 fun Meta.property(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtProperty, PropertyDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> propertyDescriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> descriptor(element) },
   map: Property.(TypedQuoteTemplate<KtProperty, PropertyDescriptor>) -> Transform<KtProperty>
 ): ExtensionPhase =
   typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> Property(element, descriptor) }
@@ -404,7 +407,7 @@ fun Meta.tryExpression(
 fun Meta.typeAlias(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> typeAliasDescriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> descriptor(element) },
   map: TypeAlias.(TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>) -> Transform<KtTypeAlias>
 ): ExtensionPhase =
   typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> TypeAlias(element, descriptor) }

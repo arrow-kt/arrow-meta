@@ -17,6 +17,7 @@ import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProof
 import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
+import org.jetbrains.kotlin.backend.common.ir.returnType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
