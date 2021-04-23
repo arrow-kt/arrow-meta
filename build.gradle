@@ -27,7 +27,6 @@ allprojects {
   repositories {
     mavenCentral()
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-    jcenter() // TODO: Replace the use of org.celtric.kotlin:kotlin-html by kotlinx.html
   }
 }
 
