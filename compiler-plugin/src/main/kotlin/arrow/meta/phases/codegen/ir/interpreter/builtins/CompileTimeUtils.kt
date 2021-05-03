@@ -11,4 +11,4 @@ val compileTimeAnnotation = FqName("kotlin.CompileTimeCalculation")
 val evaluateIntrinsicAnnotation = FqName("kotlin.EvaluateIntrinsic")
 val contractsDslAnnotation = FqName("kotlin.internal.ContractsDsl")
 
-data class CompileTimeFunction(val methodName: String, val args: List<String>)
+//data class CompileTimeFunction(val methodName: String, val args: List<String>)

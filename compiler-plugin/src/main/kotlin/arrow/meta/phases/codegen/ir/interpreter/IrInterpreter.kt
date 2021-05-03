@@ -5,7 +5,6 @@
 
 package arrow.meta.phases.codegen.ir.interpreter
 
-import arrow.meta.phases.codegen.ir.interpreter.builtins.CompileTimeFunction
 import arrow.meta.phases.codegen.ir.interpreter.builtins.compileTimeFunctions
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.IrElement
@@ -36,6 +35,7 @@ import org.jetbrains.kotlin.backend.common.ir.allParameters
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.interpreter.builtins.CompileTimeFunction
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
