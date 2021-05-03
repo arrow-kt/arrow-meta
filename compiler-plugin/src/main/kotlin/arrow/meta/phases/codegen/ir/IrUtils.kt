@@ -60,7 +60,7 @@ class IrUtils(
   IrFactory by pluginContext.irFactory {
 
   @ExperimentalStdlibApi
-  val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
+  internal val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
     TypeTranslator(

@@ -5,21 +5,17 @@
 
 package arrow.meta.phases.codegen.ir.interpreter.state
 
+import arrow.meta.phases.codegen.ir.interpreter.builtins.evaluateIntrinsicAnnotation
+import arrow.meta.phases.codegen.ir.interpreter.getEvaluateIntrinsicValue
+import arrow.meta.phases.codegen.ir.interpreter.isThrowable
+import arrow.meta.phases.codegen.ir.interpreter.isTypeParameter
+import arrow.meta.phases.codegen.ir.interpreter.method
+import org.jetbrains.kotlin.backend.common.ir.allParameters
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.interpreter.*
-import arrow.meta.phases.codegen.ir.interpreter.builtins.evaluateIntrinsicAnnotation
-import arrow.meta.phases.codegen.ir.interpreter.classLoadedFunction
-import arrow.meta.phases.codegen.ir.interpreter.getEvaluateIntrinsicValue
-import arrow.meta.phases.codegen.ir.interpreter.getLastOverridden
-import arrow.meta.phases.codegen.ir.interpreter.hasAnnotation
-import arrow.meta.phases.codegen.ir.interpreter.internalName
-import arrow.meta.phases.codegen.ir.interpreter.isThrowable
-import arrow.meta.phases.codegen.ir.interpreter.isTypeParameter
-import arrow.meta.phases.codegen.ir.interpreter.method
-import org.jetbrains.kotlin.backend.common.ir.allParameters
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType

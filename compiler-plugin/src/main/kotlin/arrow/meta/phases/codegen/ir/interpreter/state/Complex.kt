@@ -6,13 +6,13 @@
 package arrow.meta.phases.codegen.ir.interpreter.state
 
 import arrow.meta.phases.codegen.ir.interpreter.getCorrectReceiverByFunction
-import arrow.meta.phases.codegen.ir.interpreter.getLastOverridden
 import arrow.meta.phases.codegen.ir.interpreter.stack.Variable
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.isInterface

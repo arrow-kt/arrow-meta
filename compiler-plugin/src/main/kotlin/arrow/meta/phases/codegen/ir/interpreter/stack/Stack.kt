@@ -5,12 +5,12 @@
 
 package arrow.meta.phases.codegen.ir.interpreter.stack
 
-import arrow.meta.phases.codegen.ir.interpreter.ExecutionResult
-import arrow.meta.phases.codegen.ir.interpreter.exceptions.InterpreterException
 import arrow.meta.phases.codegen.ir.interpreter.getCapitalizedFileName
 import arrow.meta.phases.codegen.ir.interpreter.state.State
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.name
+import org.jetbrains.kotlin.ir.interpreter.ExecutionResult
+import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterException
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.util.file

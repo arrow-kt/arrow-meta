@@ -5,11 +5,11 @@
 
 package arrow.meta.phases.codegen.ir.interpreter.intrinsics
 
-import arrow.meta.phases.codegen.ir.interpreter.ExecutionResult
-import arrow.meta.phases.codegen.ir.interpreter.exceptions.InterpreterMethodNotFoundException
 import arrow.meta.phases.codegen.ir.interpreter.stack.Stack
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.interpreter.ExecutionResult
+import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterMethodNotFoundException
 
 internal class IntrinsicEvaluator {
     fun evaluate(irFunction: IrFunction, stack: Stack, interpret: IrElement.() -> ExecutionResult): ExecutionResult {

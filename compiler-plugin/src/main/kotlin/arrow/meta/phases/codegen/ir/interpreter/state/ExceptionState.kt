@@ -5,12 +5,12 @@
 
 package arrow.meta.phases.codegen.ir.interpreter.state
 
-import arrow.meta.phases.codegen.ir.interpreter.getLastOverridden
 import arrow.meta.phases.codegen.ir.interpreter.stack.Variable
 import arrow.meta.phases.codegen.ir.interpreter.toState
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
 import org.jetbrains.kotlin.ir.util.isSubclassOf
 import org.jetbrains.kotlin.ir.util.nameForIrSerialization
 import kotlin.math.min
