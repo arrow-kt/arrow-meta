@@ -462,7 +462,7 @@ open class Converter {
         is PsiWhiteSpace -> null
         else -> when (node.text) {
           // We ignore some modifiers because we handle them elsewhere
-          "enum", "companion" -> null
+          "enum", "companion", "value" -> null
           else -> modifiersByText[node.text]?.let {
             Node.Modifier.Lit(it).let { lit -> (node.psi as? KtElement)?.let { lit.map(it) } ?: lit }
           } ?: error("Unrecognized modifier: ${node.text}")

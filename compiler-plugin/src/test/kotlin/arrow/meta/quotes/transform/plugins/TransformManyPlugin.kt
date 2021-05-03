@@ -16,8 +16,8 @@ val Meta.transformMany: List<CliPlugin>
 private val Meta.transformManyRemove: CliPlugin
   get() = "Transform Many" {
     meta(
-      classDeclaration(this, { name == "ManyRemove" }) { c ->
-        removeFooPrint(c, this) + removeBarPrint(c, this) + cleanMethods("ManyRemove", c, this)
+      classDeclaration(this, { element.name == "ManyRemove" }) { c ->
+        removeFooPrint(c.element, this) + removeBarPrint(c.element, this) + cleanMethods("ManyRemove", c.element, this)
       }
     )
   }
@@ -25,8 +25,8 @@ private val Meta.transformManyRemove: CliPlugin
 private val Meta.transformManyReplace: CliPlugin
   get() = "Transform Many" {
     meta(
-      classDeclaration(this, { name == "ManyReplace" }) { c ->
-        createPrints("ManyReplace", c, this) + cleanMethods("ManyReplace", c, this)
+      classDeclaration(this, { element.name == "ManyReplace" }) { c ->
+        createPrints("ManyReplace", c.element, this) + cleanMethods("ManyReplace", c.element, this)
       }
     )
   }
@@ -34,8 +34,8 @@ private val Meta.transformManyReplace: CliPlugin
 private val Meta.transformManyCustomCase: CliPlugin
   get() = "Transform Many" {
     meta(
-      classDeclaration(this, { name == "ManyCustomCase" }) { c ->
-        createPrints("ManyCustomCase", c, this) + removeFooPrint(c, this)
+      classDeclaration(this, { element.name == "ManyCustomCase" }) { c ->
+        createPrints("ManyCustomCase", c.element, this) + removeFooPrint(c.element, this)
       }
     )
   }
@@ -43,8 +43,8 @@ private val Meta.transformManyCustomCase: CliPlugin
 private val Meta.transformManySimpleCase: CliPlugin
   get() = "Transform Many" {
     meta(
-      classDeclaration(this, { name == "ManySimpleCase" }) { c ->
-        changeClassVisibility("ManySimpleCase", c, this) + removeFooPrint(c, this)
+      classDeclaration(this, { element.name == "ManySimpleCase" }) { c ->
+        changeClassVisibility("ManySimpleCase", c.element, this) + removeFooPrint(c.element, this)
       }
     )
   }

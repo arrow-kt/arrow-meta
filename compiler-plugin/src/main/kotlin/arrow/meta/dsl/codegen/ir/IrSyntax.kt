@@ -81,7 +81,9 @@ import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
+import org.jetbrains.kotlin.ir.util.KotlinLikeDumpOptions
 import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 /**
@@ -700,5 +702,9 @@ interface IrSyntax {
 
   fun Meta.irDump(): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
     println(moduleFragment.dump())
+  }
+
+  fun Meta.irDumpKotlinLike(options: KotlinLikeDumpOptions = KotlinLikeDumpOptions()): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
+    println(moduleFragment.dumpKotlinLike(options))
   }
 }

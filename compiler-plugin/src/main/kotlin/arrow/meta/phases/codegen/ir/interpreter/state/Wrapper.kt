@@ -19,9 +19,11 @@ import arrow.meta.phases.codegen.ir.interpreter.internalName
 import arrow.meta.phases.codegen.ir.interpreter.isThrowable
 import arrow.meta.phases.codegen.ir.interpreter.isTypeParameter
 import arrow.meta.phases.codegen.ir.interpreter.method
+import org.jetbrains.kotlin.backend.common.ir.allParameters
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -47,7 +49,8 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(
     val intrinsicName = getJavaOriginalName(irFunction)
     val methodName = intrinsicName ?: propertyCall ?: irFunction.name.toString()
     val methodType = irFunction.getMethodType()
-    val method = irFunction.method(receiverClass.canonicalName, methodName)
+    val paramTypes = irFunction.allParameters.map { it.type.dumpKotlinLike() }
+    val method = irFunction.method(receiverClass.canonicalName, methodName, paramTypes)
     return method?.let { MethodHandles.lookup().unreflect(it) }
   }
 

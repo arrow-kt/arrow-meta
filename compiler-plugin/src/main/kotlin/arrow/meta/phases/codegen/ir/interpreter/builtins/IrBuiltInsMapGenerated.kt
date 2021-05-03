@@ -1,28 +1,57 @@
 package arrow.meta.phases.codegen.ir.interpreter.builtins
 
 import arrow.meta.phases.codegen.ir.interpreter.state.ExceptionState
+import org.jetbrains.kotlin.ir.interpreter.builtins.binaryFunctions
+import org.jetbrains.kotlin.ir.interpreter.builtins.binaryOperation
+import org.jetbrains.kotlin.ir.interpreter.builtins.ternaryFunctions
+import org.jetbrains.kotlin.ir.interpreter.builtins.unaryFunctions
+import org.jetbrains.kotlin.ir.interpreter.builtins.unaryOperation
+import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KCallable
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KFunction3
+import kotlin.reflect.KTypeParameter
+import kotlin.reflect.javaType
 
-inline fun <reified A> KFunction1<A, *>.unaryOp(): Pair<CompileTimeFunction, Function<*>> =
-  CompileTimeFunction(name, listOfNotNull(A::class.simpleName)) to this
+fun KCallable<*>.op(): Pair<CompileTimeFunction, Function1<Array<out Any?>, *>> =
+  CompileTimeFunction(name, parameters.mapNotNull {
+    when (val c = it.type.classifier) {
+      is KClass<*> -> c.simpleName
+      is KTypeParameter -> c.name
+      else -> null
+    }
+  }) to ::invokeCallable
 
-inline fun <reified A, reified B> KFunction2<A, B, *>.binaryOp(): Pair<CompileTimeFunction, Function<*>> =
-  CompileTimeFunction(name, listOfNotNull(A::class.simpleName, B::class.simpleName)) to this
-
-inline fun <reified A, reified B, reified C> KFunction3<A, B, C, *>.ternaryOp(): Pair<CompileTimeFunction, Function<*>> =
-  CompileTimeFunction(name, listOfNotNull(A::class.simpleName, B::class.simpleName)) to this
-
-inline fun KCallable<*>.op(): Pair<CompileTimeFunction, Function1<Array<out Any?>, *>> =
-  CompileTimeFunction(name, parameters.map { it.type.toString() }) to { args: Array<out Any?> -> call(args) }
+private fun KCallable<*>.invokeCallable(args: Array<out Any?>): Any? =
+  call(*args)
 
 inline fun <reified A> ops(): Map<CompileTimeFunction, Function1<Array<out Any?>, *>> =
   A::class.members.associate { it.op() }
 
-val compileTimeFunctions =
-  ops<Boolean>() +
+
+
+val compilerIrInterpreterFunctions: Map<CompileTimeFunction, (Array<out Any?>) -> Any?> =
+  unaryFunctions.mapNotNull { (c, f) ->
+    CompileTimeFunction(c.methodName, c.args) to { args: Array<out Any?> ->
+      f(args[0])
+    }
+  }.toMap() +
+    binaryFunctions.mapNotNull { (c, f) ->
+      CompileTimeFunction(c.methodName, c.args) to { args: Array<out Any?> ->
+        f(args[0], args[1])
+      }
+    }.toMap() +
+    ternaryFunctions.mapNotNull { (c, f) ->
+      CompileTimeFunction(c.methodName, c.args) to { args: Array<out Any?> ->
+        f(args[0], args[1], args[3])
+      }
+    }.toMap()
+
+val compileTimeFunctions: MutableMap<CompileTimeFunction, (Array<out Any?>) -> Any?> =
+  (
+    ops<Boolean>() +
     ops<Char>() +
     ops<Byte>() +
     ops<Float>() +
@@ -32,6 +61,7 @@ val compileTimeFunctions =
     ops<Long>() +
     ops<ULong>() +
     ops<String>() +
+    ops<CharSequence>() +
     ops<BooleanArray>() +
     ops<CharArray>() +
     ops<ByteArray>() +
@@ -43,3 +73,5 @@ val compileTimeFunctions =
     ops<Array<Any?>>() +
     ops<Any>() +
     ops<ExceptionState>()
+      + compilerIrInterpreterFunctions
+    ).toMutableMap()

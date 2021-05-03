@@ -59,6 +59,7 @@ class IrUtils(
   IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns),
   IrFactory by pluginContext.irFactory {
 
+  @ExperimentalStdlibApi
   val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
@@ -177,6 +178,7 @@ class IrUtils(
       }
     }, data) as IrStatement
 
+  @ExperimentalStdlibApi
   fun IrModuleFragment.interpret(expression: IrExpression): IrExpression =
     IrInterpreter(this).interpret(expression)
 

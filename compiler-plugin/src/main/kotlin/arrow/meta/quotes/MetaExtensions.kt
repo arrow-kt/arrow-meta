@@ -38,6 +38,7 @@ import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunct
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -134,10 +135,11 @@ fun Meta.classBody(
  */
 fun Meta.classDeclaration(
   ctx: CompilerContext,
-  match: KtClass.() -> Boolean,
-  map: ClassDeclaration.(KtClass) -> Transform<KtClass>
+  match: TypedQuoteTemplate<KtClass, ClassDescriptor>.() -> Boolean,
+  mapDescriptor: List<DeclarationDescriptor>.(KtClass) -> ClassDescriptor? = { element -> descriptor(element) },
+  map: ClassDeclaration.(TypedQuoteTemplate<KtClass, ClassDescriptor>) -> Transform<KtClass>
 ): ExtensionPhase =
-  quote(ctx, match, map) { ClassDeclaration(it) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> ClassDeclaration(element, descriptor) }
 
 /**
  * @see [ContinueExpression]
@@ -265,10 +267,11 @@ fun Meta.namedFunction(
  */
 fun Meta.objectDeclaration(
   ctx: CompilerContext,
-  match: KtObjectDeclaration.() -> Boolean,
-  map: ObjectDeclaration.(KtObjectDeclaration) -> Transform<KtObjectDeclaration>
+  match: TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>.() -> Boolean,
+  mapDescriptor: List<DeclarationDescriptor>.(KtObjectDeclaration) -> ClassDescriptor? = { element -> descriptor(element) },
+  map: ObjectDeclaration.(TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>) -> Transform<KtObjectDeclaration>
 ): ExtensionPhase =
-  quote(ctx, match, map) { ObjectDeclaration(it) }
+  typedQuote(ctx, match, map, mapDescriptor) {  (element, descriptor) -> ObjectDeclaration(element, descriptor)}
 
 /**
  * @see [PackageDirective]

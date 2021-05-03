@@ -10,60 +10,91 @@ class LiquidTests {
 
   @Test
   fun `validation passes at compile and runtime`() {
-    """
-      |${imports()}
-      |val z = Positive(1)
-      """(
-      withPlugin = { "z".source.evalsTo(1) },
-      withoutPlugin = { "z".source.evalsTo(1) }
+    passingRefinedExpressionTest(
+      expression = "PositiveInt(1).value",
+      value = 1
     )
   }
 
   @Test
   fun `validation fails at compile and runtime`() {
-    """
-      |${imports()}
-      |val z = Positive(-1)
-      """(
-      withPlugin = {
-        failsWith {
-          it.contains("-1 should be > 0")
-        }
-      },
-      withoutPlugin = {
-        "z".source.evalsTo(RuntimeError("-1 should be > 0")) { RuntimeError(it) }
-      }
+    failedRefinedExpressionTest(
+      expression = "PositiveInt(-1).value",
+      msg = "-1 should be > 0"
+    )
+  }
+
+
+  @Test
+  fun `Valid twitter handle passes`() {
+    passingRefinedExpressionTest(
+      expression = """TwitterHandle("@ok").value""",
+      value = "@ok"
     )
   }
 
   @Test
-  fun `exceptions compose when left predicate fails`() {
-    """
-      |${imports()}
-      |
-      |inline val PositiveEven get() = Positive and Even 
-      |val z = PositiveEven(-2)
-      """(
-      withPlugin = {
-        failsWith {
-          it.contains("-2 should be > 0") && !it.contains("-2 should be an even number")
-        }
-      },
-      withoutPlugin = {
-        "z".source.evalsTo(RuntimeError("-2 should be > 0")) { RuntimeError(it) }
-      }
+  fun `Invalid twitter handle 'admin' and fails`() {
+    failedRefinedExpressionTest(
+      expression = """TwitterHandle("admin").value""",
+      msg = "should not contain the word 'admin'"
     )
   }
 
 }
 
+private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =
+  """
+      |${imports()}
+      |$prelude
+      |val z = $expression
+      """(
+    withPlugin = { "z".source.evalsTo(value) },
+    withoutPlugin = { "z".source.evalsTo(value) }
+  )
+
+private fun failedRefinedExpressionTest(expression: String, msg: String, prelude: String = ""): Unit =
+  """
+      |${imports()}
+      |$prelude
+      |val z = $expression
+      """(
+    withPlugin = { failsWith { it.contains(msg) } },
+    withoutPlugin = { "z".source.evalsTo(RuntimeError(msg)) { RuntimeError(it) } }
+  )
+
+
 private fun imports() =
   """
 package test
 
-import arrow.Predicate
-import arrow.Positive
-import arrow.Even
+import arrow.refinement.Refined
+import arrow.refinement.ensure
+import arrow.refinement.PositiveInt
+import arrow.refinement.Even
+
+data class TwitterHandle private constructor(val value: String) {
+  companion object : Refined<String, TwitterHandle>(::TwitterHandle, {
+    ensure(
+      it.startsWith('@') to "${'$'}it should start with @",
+      (it.length <= 16) to "${'$'}it should not contain more than 16 characters but it's ${'$'}{it.length} characters long",
+      (("twitter" !in it) to "should not contain the word 'twitter'"),
+      (("admin" !in it) to "should not contain the word 'admin'")
+    )
+  })
+}
+
+data class NotBlank private constructor(val value: String) {
+  companion object
+    : Refined<String, NotBlank>(::NotBlank, {
+    ensure((it.isNotBlank()) to "expected not blank")
+  })
+}
+
+data class TwitterHandleNotBlank private constructor(val value: String) {
+  companion object : Refined<String, TwitterHandleNotBlank>(::TwitterHandleNotBlank, TwitterHandle, NotBlank)
+}
+
 
  """
 

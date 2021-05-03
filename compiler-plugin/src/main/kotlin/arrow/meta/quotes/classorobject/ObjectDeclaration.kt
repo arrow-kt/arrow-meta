@@ -2,6 +2,7 @@ package arrow.meta.quotes.classorobject
 
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.quotes.Scope
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 /**
@@ -35,8 +36,9 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  * ```
  */
 class ObjectDeclaration(
-  override val value: KtObjectDeclaration
-): ClassOrObjectScope<KtObjectDeclaration>(value) {
+  override val value: KtObjectDeclaration,
+  override val descriptor: ClassDescriptor?
+): ClassOrObjectScope<KtObjectDeclaration>(value, descriptor) {
 
   override fun ElementScope.identity(): ObjectDeclaration =
     """

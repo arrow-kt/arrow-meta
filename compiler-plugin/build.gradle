@@ -3,6 +3,9 @@ apply plugin: 'kotlin'
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
+    api project(":prelude")
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
+    implementation group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
     api "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
     api("org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION") {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"

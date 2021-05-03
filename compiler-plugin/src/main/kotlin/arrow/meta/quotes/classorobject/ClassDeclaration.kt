@@ -1,6 +1,7 @@
 package arrow.meta.quotes.classorobject
 
 import arrow.meta.quotes.ScopedList
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtParameter
@@ -105,6 +106,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  */
 class ClassDeclaration(
   override val value: KtClass,
+  override val descriptor: ClassDescriptor?,
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val kind: Name? =
     (when {
@@ -115,4 +117,4 @@ class ClassDeclaration(
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
   val `(params)`: ScopedList<KtParameter> = ScopedList(prefix = "public constructor (", value = value.getValueParameters(), postfix = ")"),
   val supertypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value.superTypeListEntries)
-) : ClassOrObjectScope<KtClass>(value)
+) : ClassOrObjectScope<KtClass>(value, descriptor)

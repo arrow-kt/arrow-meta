@@ -298,8 +298,9 @@ fun List<Proof>.refinementExpressionFromAnnotation(superType: KotlinType): Strin
 fun List<Proof>.refinementExpressionFromPsi(superType: KotlinType): String? =
   refinementsFor(superType)
     .mapNotNull {
-      val psi = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.findPsi()
+      val descriptor = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
+      val psi = descriptor?.findPsi()
       val ktObject = psi as? KtObjectDeclaration
-      val objectDeclaration = ktObject?.let(::ObjectDeclaration)
+      val objectDeclaration = ktObject?.let { ObjectDeclaration(it, descriptor) }
       objectDeclaration?.refinementExpression()
     }.firstOrNull()

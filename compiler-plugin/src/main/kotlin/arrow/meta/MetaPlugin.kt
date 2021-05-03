@@ -17,6 +17,7 @@ import kotlin.contracts.ExperimentalContracts
 open class MetaPlugin : Meta {
   @ObsoleteDescriptorBasedAPI // TODO: Reason: proveReturn from ProofsIrCodegen
   @ExperimentalContracts
+  @ExperimentalStdlibApi
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
       // higherKindedTypes2,

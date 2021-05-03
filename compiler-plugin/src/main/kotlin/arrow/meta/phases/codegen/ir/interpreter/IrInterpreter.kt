@@ -5,6 +5,8 @@
 
 package arrow.meta.phases.codegen.ir.interpreter
 
+import arrow.meta.phases.codegen.ir.interpreter.builtins.CompileTimeFunction
+import arrow.meta.phases.codegen.ir.interpreter.builtins.compileTimeFunctions
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
@@ -30,18 +32,29 @@ import arrow.meta.phases.codegen.ir.interpreter.state.asBooleanOrNull
 import arrow.meta.phases.codegen.ir.interpreter.state.asString
 import arrow.meta.phases.codegen.ir.interpreter.state.checkNullability
 import arrow.meta.phases.codegen.ir.interpreter.state.isSubtypeOf
+import org.jetbrains.kotlin.backend.common.ir.allParameters
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.load.kotlin.computeJvmDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import java.lang.invoke.MethodHandle
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import kotlin.concurrent.thread
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.kotlinFunction
 
 private const val MAX_COMMANDS = 500_000
 
+@ExperimentalStdlibApi
 class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map<IdSignature, IrBody> = emptyMap()) {
   private val irExceptions = mutableListOf<IrClass>()
 
@@ -202,20 +215,24 @@ class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map
       }
     }
 
-    fun IrType.getOnlyName(): String {
-      return when {
-        this.originalKotlinType != null -> this.originalKotlinType.toString()
-        this is IrSimpleType -> (this.classifierOrFail.owner as IrDeclarationWithName).name.asString() + (if (this.hasQuestionMark) "?" else "")
-        else -> this.render()
-      }
+    val signature = CompileTimeFunction(
+      methodName,
+      argsType.mapNotNull { (it.originalKotlinType?.constructor?.declarationDescriptor?.name?.asString()) })
+    val function = compileTimeFunctions[signature]
+
+    val resolvedArgValues = argsValues.toTypedArray().resolve()
+
+    if (function != null) {
+      val result = function(*resolvedArgValues.toTypedArray())
+      stack.pushReturnValue(result.toState(result.getType(irFunction.returnType)))
+    } else {
+      val callable = irFunction.classLoadedFunction()
+      val function =
+        callable ?: throw InterpreterMethodNotFoundException("Can't resolve ${irFunction.fqNameForIrSerialization}")
+      val result = function(*resolvedArgValues.toTypedArray())
+
+      stack.pushReturnValue(result.toState(result.getType(irFunction.returnType)))
     }
-
-    val callable = irFunction.classLoadedFunction()
-    val function =
-      callable ?: throw InterpreterMethodNotFoundException("Can't resolve ${irFunction.fqNameForIrSerialization}")
-    val result = function(*argsValues.toTypedArray())
-
-    stack.pushReturnValue(result.toState(result.getType(irFunction.returnType)))
     return Next
   }
 
@@ -245,7 +262,17 @@ class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map
     val valueParametersSymbols = receiverAsFirstArgument + irFunction.valueParameters.map { it.symbol }
 
     val valueArguments = (0 until expression.valueArgumentsCount).map { expression.getValueArgument(it) }
-    val defaultValues = expression.symbol.owner.valueParameters.map { it.defaultValue?.expression }
+    val defaultValues = expression.symbol.owner.valueParameters.map {
+      it.defaultValue?.expression
+      when (it.defaultValue?.expression) {
+        is IrErrorExpression -> IrConstImpl.defaultValueForType(
+          UNDEFINED_OFFSET,
+          UNDEFINED_OFFSET,
+          it.type
+        )
+        else -> it.defaultValue?.expression
+      }
+    }
 
     return stack.newFrame(asSubFrame = true, initPool = pool) {
       for (i in valueArguments.indices) {
@@ -682,6 +709,9 @@ class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map
       IrTypeOperator.IMPLICIT_NOTNULL -> {
 
       }
+      IrTypeOperator.SAM_CONVERSION -> {
+        //TODO do something with this ?
+      }
       else -> TODO("${expression.operator} not implemented")
     }
     return executionResult
@@ -822,18 +852,58 @@ internal fun IrFunction.classLoadedFunction(): ((Array<out Any?>) -> Any?)? =
     val methodName =
       if (isGetter || isSetter) it.last().asString().replace("<", "").replace(">", "").replace("-", "")
       else it.last().asString()
-    val method = method(className, methodName)
+    val method = method(className, methodName, allParameters.map { it.type.dumpKotlinLike() })
     if (method != null) { args ->
-      if (method.parameterCount == 0) method.invoke(null)
-      else method.invoke(null, *args)
+      val f = method.kotlinFunction
+      f?.isAccessible = true
+      val reflectionArgs = f?.parameters?.mapIndexed { n, it ->
+        if (it.isOptional) null
+        else if (it.isVararg) {
+          val a = mutableListOf<Any>()
+          val varargs = args[0] as Array<Object>
+          for (arg in varargs) a += arg
+          it to a.toTypedArray()
+        }
+        else it to args[n]
+      }?.filterNotNull().orEmpty().toMap()
+      try {
+        f?.callBy(reflectionArgs)
+      } catch (e: InvocationTargetException) {
+        throw InterpreterException(e.targetException.message ?: e.targetException.toString())
+      }
     }
     else null
   }
 
-internal fun IrFunction.method(className: String, methodName: String): Method? {
-  val foundClass = Class.forName(className)
-  val method = foundClass.methods.firstOrNull {
-    it.name == methodName || it.name.startsWith("$methodName-") //special case for infix and operators
+private fun Array<out Any?>.resolve(): List<Any?> =
+  map {
+    when (it) {
+      is Wrapper -> it.value
+      is Common ->
+        if (it.irClass.isCompanion) {
+          val value =
+            Class.forName(it.irClass.parentClassOrNull?.fqNameForIrSerialization?.asString()).kotlin.companionObjectInstance
+          value
+        } else it
+      else -> it
+    }
+  }
+
+internal fun IrFunction.method(className: String, methodName: String, parameterTypes: List<String>): Method? {
+  //TODO use signature instead of name
+  val signature = this.toIrBasedDescriptor().computeJvmDescriptor(true, false)
+  val foundClass = try {
+    Class.forName(className)
+  } catch (e: ClassNotFoundException) {
+    try {
+      Class.forName(className.replace(".Companion", ""))
+    } catch (e: ClassNotFoundException) {
+      null
+    }
+  }
+  val method = foundClass?.methods?.firstOrNull {
+    val methodSignature = it.getSignature()
+    signature == methodSignature
   }
   return method
 }
