@@ -10,7 +10,7 @@ buildscript {
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-  runtimeOnly project(':compiler-plugin')
+  runtimeOnly project(':compiler-plugin-core')
 }
 
 ank {

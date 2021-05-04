@@ -25,18 +25,33 @@ class ArrowGradlePlugin : Plugin<Project> {
     val compilerPluginVersion = properties.getProperty("COMPILER_PLUGIN_VERSION")
     val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
     if (kotlinVersion != project.getKotlinPluginVersion())
-       throw InvalidUserDataException("Use Kotlin $kotlinVersion for Arrow Meta Gradle Plugin")
+      throw InvalidUserDataException("Use Kotlin $kotlinVersion for Arrow Meta Gradle Plugin")
+
+    val pluginsList = project.extensions.create("arrowMeta", PluginsListExtension::class.java)
     project.afterEvaluate { p ->
       // To add its transitive dependencies
-      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:compiler-plugin:$compilerPluginVersion")
+      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:compiler-plugin-core:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf(
-          "-Xplugin=${classpathOf("compiler-plugin:$compilerPluginVersion")}"
+          "-Xplugin=${classpathOf("compiler-plugin-core:$compilerPluginVersion")}"
           , "-P"
           , "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
         )
       }
+
+      pluginsList.plugins
+        .map { plugin ->
+          when {
+            plugin.endsWith(".jar") -> plugin
+            else -> classpathOf("compiler-plugin-$plugin:$compilerPluginVersion")
+          }
+        }
+        .forEach { plugin ->
+          p.tasks.withType(KotlinCompile::class.java).configureEach {
+            it.kotlinOptions.freeCompilerArgs += listOf("-Xplugin=$plugin")
+          }
+        }
     }
   }
 
