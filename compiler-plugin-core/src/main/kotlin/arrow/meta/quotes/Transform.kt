@@ -95,8 +95,8 @@ sealed class Transform<out K> {
    * val Meta.transformManySimpleCase: CliPlugin
    *  get() = "Transform Many" {
    *   meta(
-   *      classDeclaration(this, { element.name == "ManySimpleCase" }) { c ->
-   *       changeClassVisibility("ManySimpleCase", c.element, this) + removeFooPrint(c.element, this)
+   *      classDeclaration(this, { element.name == "ManySimpleCase" }) {
+   *       changeClassVisibility("ManySimpleCase", it.element, this) + removeFooPrint(it.element, this)
    *     }
    *    )
    *   }
