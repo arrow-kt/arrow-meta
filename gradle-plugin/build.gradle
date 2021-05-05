@@ -22,7 +22,9 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   // Necessary during plugin execution to be found and added for compilation
-  runtimeOnly project(':compiler-plugin')
+  api project(':compiler-plugin-core')
+  api project(':compiler-plugin-proofs')
+  api project(':compiler-plugin-optics')
 }
 
 compileKotlin {
