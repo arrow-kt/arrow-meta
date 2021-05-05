@@ -1,7 +1,7 @@
 package arrow.meta
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.optics.optics
+import arrow.meta.plugins.liquid.liquidExpressions
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -10,11 +10,11 @@ import kotlin.contracts.ExperimentalContracts
  * Compiler Plugin Authors can create a similar class or override this one to
  * provide their plugins.
  */
-open class OpticsMetaPlugin : Meta {
+open class LiquidMetaPlugin : Meta {
   @ExperimentalContracts
+  @ExperimentalStdlibApi
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
-      // lenses,
-      optics
+      liquidExpressions
     )
 }

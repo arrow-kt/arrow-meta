@@ -6,10 +6,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':compiler-plugin-core')
-    testRuntimeOnly project(':compiler-plugin-proofs')
-    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin"
-    }
+    testRuntimeOnly project(':compiler-plugin-liquid')
 }
 
 compileKotlin {
@@ -30,7 +27,7 @@ jar {
     manifest {
         attributes["Specification-Title"] = project.name
         attributes["Specification-Version"] = project.version
-        attributes["Implementation-Title"] = "arrow.meta.plugin.compiler.proofs"
+        attributes["Implementation-Title"] = "arrow.meta.plugin.compiler.liquid"
         attributes["Implementation-Version"] = project.version
     }
 }

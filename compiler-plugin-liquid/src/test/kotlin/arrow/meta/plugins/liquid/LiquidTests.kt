@@ -4,6 +4,7 @@ import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
+import arrow.meta.plugins.newMetaDependencies
 import org.junit.jupiter.api.Test
 
 class LiquidTests {
@@ -112,7 +113,7 @@ private operator fun String.invoke(
   withoutPlugin: AssertSyntax.() -> Assert
 ) {
   assertThis(CompilerTest(
-    config = { metaDependencies },
+    config = { newMetaDependencies() },
     code = { this@invoke.source },
     assert = { withPlugin() }
   ))

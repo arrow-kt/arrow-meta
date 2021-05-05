@@ -9,15 +9,11 @@ import arrow.meta.phases.codegen.ir.interpreter.builtins.ops
 import arrow.refinement.Constrains
 import arrow.refinement.Refined
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -63,32 +59,6 @@ private fun IrUtils.evalRefinement(
       compilerContext.handleInterpreterResult(result, it)
     }
   }
-}
-
-@ExperimentalStdlibApi
-fun IrUtils.interpretFunction(originalCall: IrCall, typeName: Name, value: IrConst<*>): IrExpression {
-  val fnName = "require${typeName.asString()}"
-  val fn = moduleFragment.files.flatMap { it.declarations }
-    .filterIsInstance<IrFunction>().firstOrNull {
-      it.name.asString() == fnName
-    }
-  val call = if (fn != null) {
-    IrCallImpl(
-      startOffset = UNDEFINED_OFFSET,
-      endOffset = UNDEFINED_OFFSET,
-      type = irBuiltIns.unitType,
-      symbol = fn.symbol as IrSimpleFunctionSymbol,
-      typeArgumentsCount = 0,
-      valueArgumentsCount = 1,
-      origin = null,
-      superQualifierSymbol = null
-    ).also {
-      it.putValueArgument(0, value)
-    }
-  } else null
-  return if (call != null)
-    irInterpreter.interpret(call)
-  else irInterpreter.interpret(originalCall)
 }
 
 private fun IrCall.isCallToRefinedFunction(): Boolean =

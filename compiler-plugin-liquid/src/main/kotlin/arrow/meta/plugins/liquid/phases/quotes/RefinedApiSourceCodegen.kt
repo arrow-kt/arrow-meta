@@ -12,7 +12,6 @@ import arrow.meta.quotes.filebase.File
 import arrow.meta.quotes.objectDeclaration
 import org.jetbrains.kotlin.backend.common.serialization.findPackage
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.name.ClassId
@@ -20,11 +19,9 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
-import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
 import org.jetbrains.kotlin.resolve.descriptorUtil.isSubclassOf
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.parents
-import org.jetbrains.kotlin.resolve.descriptorUtil.parentsWithSelf
 
 internal fun CompilerContext.generateRefinedApi(meta: Meta): ExtensionPhase =
   meta.objectDeclaration(this@generateRefinedApi, ::isRefined) {
@@ -39,7 +36,7 @@ internal fun CompilerContext.generateRefinedApi(meta: Meta): ExtensionPhase =
 fun isRefined(template: TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>): Boolean {
   val refinedClassId = ClassId.fromString("arrow/refinement/Refined")
   val refinedClass = template.descriptor?.module?.findClassAcrossModuleDependencies(refinedClassId)
-  return refinedClass != null && template.descriptor.isSubclassOf(refinedClass)
+  return refinedClass != null && template.descriptor!!.isSubclassOf(refinedClass)
 }
 
 private fun ObjectDeclaration.refinedLambda(): KtFunctionLiteral? =
