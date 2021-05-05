@@ -78,9 +78,9 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *     "Example" {
  *       meta(
  *         /** Intercepts all classes named 'Test' **/
- *         classDeclaration(this, { name == "Test" }) { classElement ->
+ *         classDeclaration(this, { element.name == "Test" }) {
  *           Transform.replace(
- *             replacing = classElement,
+ *             replacing = it.element,
  *             newDeclaration =
  *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
  *                  |  $body

@@ -21,9 +21,9 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
  *    get() =
  *      "ReformatObjectDeclaration" {
  *        meta(
- *          objectDeclaration(this, { isObjectLiteral() }) { c ->
+ *          objectDeclaration(this, { element.isObjectLiteral() }) {
  *            Transform.replace(
- *              replacing = c,
+ *              replacing = it.element,
  *              newDeclaration = """
  *                  | $`@annotations` object $name $superTypes {
  *                  |   $body
