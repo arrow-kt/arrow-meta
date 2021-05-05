@@ -52,7 +52,7 @@ configure(subprojects
 }
 
 task cleanMeta {
-  dependsOn ':compiler-plugin:clean'
+  dependsOn ':compiler-plugin-core:clean'
   dependsOn ':gradle-plugin:clean'
   dependsOn ':meta-test:clean'
   dependsOn ':prelude:clean'
@@ -61,14 +61,14 @@ task cleanMeta {
 task buildMeta {
   group = "Arrow Meta"
   description = "Assembles and tests"
-  dependsOn ':compiler-plugin:build'
+  dependsOn ':compiler-plugin-core:build'
   dependsOn ':gradle-plugin:build'
   dependsOn ':meta-test:build'
   dependsOn ':prelude:build'
 }
 
 task publishMeta {
-  dependsOn ':compiler-plugin:publishToMavenLocal'
+  dependsOn ':compiler-plugin-core:publishToMavenLocal'
   dependsOn ':gradle-plugin:publishToMavenLocal'
   dependsOn ':meta-test:publishToMavenLocal'
   dependsOn ':prelude:publishToMavenLocal'

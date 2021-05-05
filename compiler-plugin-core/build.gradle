@@ -1,0 +1,67 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+    compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
+    api project(":prelude")
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
+    implementation group: 'org.javassist', name: 'javassist', version: '3.27.0-GA'
+    api "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+    api("org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION") {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+    }
+    api "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+
+    testCompileOnly "org.jetbrains.kotlin:kotlin-compiler-embeddable:$KOTLIN_VERSION"
+    testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
+    testImplementation project(":meta-test")
+    testRuntimeOnly project(':compiler-plugin-core')
+    testRuntimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
+    testRuntimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin"
+    }
+    testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin"
+    }
+    testRuntimeOnly project(":prelude")
+}
+
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xjvm-default=enable"]
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+        jvmTarget = "1.8"
+    }
+}
+
+jar {
+    manifest {
+        attributes["Specification-Title"] = project.name
+        attributes["Specification-Version"] = project.version
+        attributes["Implementation-Title"] = "arrow.meta.plugin.compiler"
+        attributes["Implementation-Version"] = project.version
+    }
+}
+
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+test {
+    useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+    jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+}

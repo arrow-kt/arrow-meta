@@ -128,7 +128,7 @@ interface ConfigSyntax {
   val metaDependencies: List<Config>
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
-      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin:$currentVersion")))
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin-core:$currentVersion")))
       return addCompilerPlugins(compilerPlugin) + addDependencies(prelude(currentVersion))
     }
 }
