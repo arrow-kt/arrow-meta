@@ -39,7 +39,6 @@ class ArrowGradlePlugin : Plugin<Project> {
           , "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
         )
       }
-
       pluginsList.plugins
         .map { plugin ->
           when {
@@ -56,7 +55,11 @@ class ArrowGradlePlugin : Plugin<Project> {
   }
 
   private fun classpathOf(dependency: String): File {
-    val regex = Regex(".*${dependency.replace(':', '-')}.*")
-    return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
+    try {
+      val regex = Regex(".*${dependency.replace(':', '-')}.*")
+      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
+    } catch (e: NoSuchElementException) {
+      throw InvalidUserDataException("$dependency not found")
+    }
   }
 }
