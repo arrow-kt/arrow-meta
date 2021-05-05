@@ -115,19 +115,6 @@ fun CompilerContext.extensionProofs(): Map<Pair<KotlinType, KotlinType>, List<Ex
     }.toMap()
 
 /**
- * returns a Map, where the keys represent refinements from [KotlinType] -> to [KotlinType] and the values are the corresponding Proofs
- */
-fun CompilerContext.refinementProofs(): Map<Pair<KotlinType, KotlinType>, List<RefinementProof>> =
-  proof<RefinementProof>()
-    .fold(mutableMapOf<Pair<KotlinType, KotlinType>, List<RefinementProof>>()) { acc, proof ->
-      val key = proof.from to proof.to
-      acc.apply {
-        if (acc.containsKey(key)) acc[key] = acc[key].orEmpty() + proof
-        else acc[key] = listOf(proof)
-      }
-    }.toMap()
-
-/**
  * returns a Map, where the keys are [KotlinType] and the values are
  * all corresponding proofs without refining the list as it is done in [givenProofs].
  */
@@ -179,5 +166,4 @@ fun Proof.asString(): String =
   when (this) {
     is GivenProof -> "GivenProof ${through.fqNameSafe.asString()} on the type ${ProofRenderer.renderType(to)}"
     is ExtensionProof -> "ExtensionProof ${through.fqNameSafe.asString()}: ${ProofRenderer.renderType(from)} -> ${ProofRenderer.renderType(to)}"
-    is RefinementProof -> "RefinementProof ${through.fqNameSafe.asString()}: ${ProofRenderer.renderType(from)} -> ${ProofRenderer.renderType(to)}"
   }

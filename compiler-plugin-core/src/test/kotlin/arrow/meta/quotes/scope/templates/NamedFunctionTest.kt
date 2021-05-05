@@ -54,11 +54,7 @@ class NamedFunctionTest {
     @Test
     fun `function with descriptor validation`() {
         validate(
-          descriptorFunction,
-          """ fun descriptorEvaluation(): String {
-            |   println(true)
-            |   return "" 
-            | }""".namedFunction()
+          descriptorFunction
         )
     }
 

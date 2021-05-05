@@ -6,7 +6,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.asProof
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -68,6 +67,5 @@ private fun List<Proof>.show(): String =
     when (it) {
       is GivenProof -> "Given: -> ${it.to.show(20)}"
       is ExtensionProof -> "Extension: ${it.from.show(20)} -> ${it.to.show(20)}"
-      is RefinementProof -> "Refinement: ${it.from.show(20)} -> ${it.to.show(20)}"
     }
   }

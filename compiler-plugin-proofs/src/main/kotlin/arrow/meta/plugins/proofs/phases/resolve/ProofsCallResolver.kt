@@ -4,7 +4,6 @@ import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.calls.components.CallableReferenceResolver
@@ -56,8 +55,7 @@ class ProofsCallResolver(
       it.fold(
         given = { givenCandidate(candidateFactory) },
         coercion = { extensionCandidate(candidateFactory, extensionReceiver) },
-        projection = { extensionCandidate(candidateFactory, extensionReceiver) },
-        refinement = { refinementCandidate(candidateFactory) }
+        projection = { extensionCandidate(candidateFactory, extensionReceiver) }
       ).forceResolution()
     }
 
@@ -77,13 +75,6 @@ class ProofsCallResolver(
     )
     return choseMostSpecific(candidateFactory, resolutionCallbacks, expectedType, candidates)
   }
-
-  private fun RefinementProof.refinementCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
-    candidateFactory.createCandidate(
-      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
-      explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-      extensionReceiver = null
-    )
 
   private fun GivenProof.givenCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
     candidateFactory.createCandidate(

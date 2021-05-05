@@ -59,12 +59,7 @@ class TypeAliasTest  {
   @Test
   fun `Validate type alias descriptor`() {
     validate(
-      typeAliasDescriptor,
-      """
-      | //metadebug
-      | 
-      | typealias DescriptorEvaluation = Boolean
-      | """.source
+      typeAliasDescriptor
     )
   }
 

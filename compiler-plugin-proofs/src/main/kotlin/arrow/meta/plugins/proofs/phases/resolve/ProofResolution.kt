@@ -5,7 +5,6 @@ import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.ArrowCoercionProof
 import arrow.meta.plugins.proofs.phases.ArrowExtensionProof
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
-import arrow.meta.plugins.proofs.phases.ArrowRefinementProof
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.CoercionProof
@@ -14,7 +13,6 @@ import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import arrow.meta.quotes.classorobject.ObjectDeclaration
@@ -220,7 +218,6 @@ fun ClassDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
     when (it.fqName) {
       ArrowGivenProof -> asGivenProof()
-      ArrowRefinementProof -> asRefinementProof()
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
   }
@@ -243,14 +240,7 @@ fun FunctionDescriptor.asProof(): Sequence<Proof> =
     }
   }
 
-private fun ClassDescriptor.asRefinementProof(): RefinementProof? =
-  unsubstitutedPrimaryConstructor?.let {
-    val from = constructors.first().valueParameters.first().type
-    val to = this.defaultType
-    RefinementProof(from, to, it)
-  }
-
-private fun ClassDescriptor.asGivenProof(): GivenProof? =
+private fun ClassDescriptor.asGivenProof(): GivenProof =
   if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this)
   else ClassProof(defaultType, this)
 

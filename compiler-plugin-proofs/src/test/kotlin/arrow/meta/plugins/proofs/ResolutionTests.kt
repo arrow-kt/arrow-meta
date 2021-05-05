@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import arrow.meta.plugins.refinement.RefinementTests
 import arrow.meta.plugins.typeclasses.GivenTest
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -308,70 +307,6 @@ class ResolutionTests {
       failsWith {
         it.contains("There is no Proof for this type Semigroup<Int> to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
       }
-    }
-  }
-
-  @Test
-  fun `incorrect refinement proof, because of too many refinements`() {
-    refinementResolutionTest(
-      source = {
-        """
-      inline class PositiveInt(val value: Int)  {
-        companion object : Refined<Int, PositiveInt> {
-          override val target : (Int) -> PositiveInt = ::PositiveInt
-          override val validate: Int.() -> Map<String, Boolean> = {
-            mapOf(
-              "Should be >= 0" to (this >= 0)
-            )
-          }
-        }
-        
-        object Override : Refined<Int, PositiveInt> {
-          override val target : (Int) -> PositiveInt = ::PositiveInt
-          override val validate: Int.() -> Map<String, Boolean> = {
-            mapOf(
-              "Should be > 0" to (this > 0)
-            )
-          }
-        }
-      }
-    """
-      },
-      assert = {
-        failsWith {
-          it.contains("Refinements can only be defined over one companion object, which implements arrow.Refined<kotlin.Int,test.PositiveInt>. Please remove this object or remove the superType Refined.")
-        }
-      }
-    )
-  }
-
-  @Test
-  fun `incorrect refinement proof, because of wrong "to"`() {
-    refinementResolutionTest(
-      source = {
-        """
-      $positiveInt    
-      inline class StrictPositiveInt(val value: Int)  {
-        companion object : Refined<String, PositiveInt> {
-          override val target : (String) -> PositiveInt = TODO()
-          override val validate: String.() -> Map<String, Boolean> = 
-            TODO()
-        }
-      }
-    """
-      },
-      assert = {
-        failsWith {
-          it.contains("This Refinement can only be defined over one companion object, which implements arrow.Refined<kotlin.Int,test.StrictPositiveInt>.")
-        }
-      }
-    )
-  }
-
-
-  private fun refinementResolutionTest(source: RefinementTests.() -> String, assert: CompilerTest.Companion.() -> Assert) {
-    RefinementTests().run {
-      refinementTest(source(this), assert = assert)
     }
   }
 

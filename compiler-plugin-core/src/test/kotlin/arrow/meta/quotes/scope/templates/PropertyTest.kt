@@ -89,14 +89,7 @@ class PropertyTest {
   @Test
   fun `validate property descriptor`() {
     validate(
-      propertyDescriptor,
-      """
-            | //metadebug
-            |
-            | class Address {
-            |     val descriptorEvaluation: Boolean = true
-            | }
-            | """.source
+      propertyDescriptor
     )
   }
 
