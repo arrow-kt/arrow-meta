@@ -31,8 +31,6 @@ private fun KCallable<*>.invokeCallable(args: Array<out Any?>): Any? =
 inline fun <reified A> ops(): Map<CompileTimeFunction, Function1<Array<out Any?>, *>> =
   A::class.members.associate { it.op() }
 
-
-
 val compilerIrInterpreterFunctions: Map<CompileTimeFunction, (Array<out Any?>) -> Any?> =
   unaryFunctions.mapNotNull { (c, f) ->
     CompileTimeFunction(c.methodName, c.args) to { args: Array<out Any?> ->
