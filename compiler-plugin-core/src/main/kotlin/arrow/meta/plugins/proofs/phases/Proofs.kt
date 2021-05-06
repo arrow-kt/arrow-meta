@@ -24,14 +24,12 @@ sealed class Proof(
   inline fun <A> fold(
     given: GivenProof.() -> A,
     coercion: CoercionProof.() -> A,
-    projection: ProjectionProof.() -> A,
-    refinement: RefinementProof.() -> A
+    projection: ProjectionProof.() -> A
   ): A =
     when (this) {
       is GivenProof -> given(this)
       is CoercionProof -> coercion(this)
       is ProjectionProof -> projection(this)
-      is RefinementProof -> refinement(this)
     }
 }
 
@@ -84,10 +82,3 @@ data class ProjectionProof(
   override val to: KotlinType,
   override val through: FunctionDescriptor
 ) : ExtensionProof(from, to, through, false)
-
-data class RefinementProof(
-  val from: KotlinType,
-  override val to: KotlinType,
-  override val through: CallableMemberDescriptor,
-  val coerce: Boolean = true
-) : Proof(to, through)

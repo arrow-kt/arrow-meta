@@ -135,7 +135,7 @@ fun transform(ktElement: KtElement): Scope<KtElement> {
     is KtImportDirective -> ImportDirective(ktElement)
     is KtIsExpression -> IsExpression(ktElement)
     is KtLambdaExpression -> LambdaExpression(ktElement)
-    is KtObjectDeclaration -> ObjectDeclaration(ktElement)
+    is KtObjectDeclaration -> ObjectDeclaration(ktElement, null)
     is KtPackageDirective -> PackageDirective(ktElement)
     is KtReturnExpression -> ReturnExpression(ktElement)
     is KtThisExpression -> ThisExpression(ktElement)

@@ -23,14 +23,12 @@ import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.allGivenProofs
 import arrow.meta.plugins.proofs.phases.extensionProofs
 import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.hasAnnotation
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
-import arrow.meta.plugins.proofs.phases.refinementProofs
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -97,14 +95,6 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   // Rule-set for GivenProofs
   allGivenProofs().run {
     reportUnresolvedGivenProofs(trace, messageCollector)
-    reportDisallowedUserDefinedAmbiguities(trace)
-    reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
-      messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
-        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
-    }
-  }
-  // Rule-set for RefinementProofs
-  refinementProofs().run {
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
@@ -200,11 +190,6 @@ fun KtDeclaration.isViolatingOwnershipRule(bindingContext: BindingContext, ctx: 
               false -> !it.from.isUserOwned() && !it.to.isUserOwned() // Proofs over user-owned Types don't break ownership
             }
           is GivenProof -> !it.to.isUserOwned()
-          is RefinementProof ->
-            when (it.from.isUserOwned() xor it.to.isUserOwned()) {
-              true -> false // Proof is not violating ownership
-              false -> !it.from.isUserOwned() && !it.to.isUserOwned() // Proofs over user-owned Types don't break ownership
-            }
         })
     }?.let {
       this to it

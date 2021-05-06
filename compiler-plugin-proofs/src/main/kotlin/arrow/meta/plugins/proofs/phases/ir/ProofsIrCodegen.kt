@@ -13,10 +13,10 @@ import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
-import arrow.meta.plugins.proofs.phases.RefinementProof
 import arrow.meta.plugins.proofs.phases.extensionProof
 import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.resolve.GivenUpperBound
+import org.jetbrains.kotlin.backend.common.ir.returnType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -96,18 +96,8 @@ class ProofsIrCodegen(
     fold(
       given = { substitutor(superType) },
       coercion = { substitutor(superType) },
-      projection = { substitutor(superType) },
-      refinement = { substitutor(superType) }
+      projection = { substitutor(superType) }
     )
-
-  fun RefinementProof.substitutor(
-    superType: KotlinType
-  ): NewTypeSubstitutorByConstructorMap =
-    ProofCandidate(
-      proofType = to,
-      otherType = superType.unwrappedNotNullableType,
-      through = through
-    ).typeSubstitutor
 
   fun ExtensionProof.substitutor(
     superType: KotlinType

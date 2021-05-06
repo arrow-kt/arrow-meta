@@ -10,7 +10,6 @@ dependencies {
     testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
-    testRuntimeOnly project(":prelude")
 }
 
 compileKotlin {

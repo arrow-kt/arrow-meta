@@ -17,7 +17,6 @@ import arrow.meta.plugins.proofs.phases.resolve.diagnostics.suppressTypeInferenc
 import arrow.meta.plugins.proofs.phases.resolve.proofResolutionRules
 import arrow.meta.plugins.proofs.phases.resolve.scopes.provenSyntheticScope
 import arrow.meta.quotes.objectDeclaration
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
 val Meta.typeProofs: CliPlugin
   get() =
@@ -27,7 +26,7 @@ val Meta.typeProofs: CliPlugin
         enableProofCallResolver(),
         typeChecker { ProofTypeChecker(ctx) },
         provenSyntheticScope(),
-        objectDeclaration(this, KtObjectDeclaration::isRefined) { objectWithSerializedRefinement(scope, ctx) },
+        objectDeclaration(this, { element.isRefined() }) { objectWithSerializedRefinement(scope, ctx) },
         cliValidateRefinedCalls(),
         proofResolutionRules(),
         generateGivenExtensionsFile(this@typeProofs),
@@ -39,6 +38,6 @@ val Meta.typeProofs: CliPlugin
         irProperty { ProofsIrCodegen(this) { proveProperty(it) } },
         irVariable { ProofsIrCodegen(this) { proveVariable(it) } },
         irReturn { ProofsIrCodegen(this) { proveReturn(it) } },
-        irDump()
+        irDumpKotlinLike()
       )
     }

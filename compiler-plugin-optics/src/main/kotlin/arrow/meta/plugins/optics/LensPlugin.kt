@@ -24,15 +24,12 @@ val Meta.lenses: CliPlugin
   get() =
     "lenses" {
       meta(
-        classDeclaration(this, ::isProductType) { c: KtClass ->
-
-          val location = c.toSourceElement().safeAs<KotlinSourceElement>()?.psi?.textRange
-
+        classDeclaration(this, { isProductType(element) }) { c ->
           validateMaxArityAllowed(this)
           Transform.replace<KtClass>(
-            replacing = c,
+            replacing = c.element,
             newDeclaration =
-            if (c.companionObjects.isEmpty())
+            if (c.element.companionObjects.isEmpty())
               """|
                  |$kind $name $`(params)` {
                  |  

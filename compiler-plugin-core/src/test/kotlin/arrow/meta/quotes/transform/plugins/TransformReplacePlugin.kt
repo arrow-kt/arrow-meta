@@ -25,9 +25,9 @@ private val Meta.transformReplaceFunction: CliPlugin
 private val Meta.transformReplaceClass: CliPlugin
   get() = "Transform Replace Class" {
     meta(
-      classDeclaration(this, { name == "Foo" }) { c ->
+      classDeclaration(this, { element.name == "Foo" }) { c ->
         Transform.replace(
-          c,
+          c.element,
           """
           | class FooModified {
           |   fun generatedFun() = println("Generated function")

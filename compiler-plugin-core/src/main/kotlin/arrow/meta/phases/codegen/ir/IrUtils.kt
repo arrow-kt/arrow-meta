@@ -12,9 +12,11 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrFactory
 import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrReturnTarget
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrReturnTarget
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -27,6 +29,8 @@ import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
+import arrow.meta.phases.codegen.ir.interpreter.IrInterpreter
+import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
@@ -42,6 +46,7 @@ import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -50,9 +55,14 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrUtils(
   val pluginContext: IrPluginContext,
-  val compilerContext: CompilerContext
+  val compilerContext: CompilerContext,
+  val moduleFragment: IrModuleFragment
 ) : ReferenceSymbolTable by pluginContext.symbols.externalSymbolTable,
-  IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns) {
+  IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns),
+  IrFactory by pluginContext.irFactory {
+
+  @ExperimentalStdlibApi
+  internal val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
     TypeTranslator(
@@ -68,6 +78,32 @@ class IrUtils(
           this.typeTranslator = this@translator
         }
     }
+  
+  @ExperimentalStdlibApi
+  fun interpretFunction(originalCall: IrCall, typeName: Name, value: IrConst<*>): IrExpression {
+    val fnName = "require${typeName.asString()}"
+    val fn = moduleFragment.files.flatMap { it.declarations }
+      .filterIsInstance<IrFunction>().firstOrNull {
+        it.name.asString() == fnName
+      }
+    val call = if (fn != null) {
+      IrCallImpl(
+        startOffset = UNDEFINED_OFFSET,
+        endOffset = UNDEFINED_OFFSET,
+        type = irBuiltIns.unitType,
+        symbol = fn.symbol as IrSimpleFunctionSymbol,
+        typeArgumentsCount = 0,
+        valueArgumentsCount = 1,
+        origin = null,
+        superQualifierSymbol = null
+      ).also {
+        it.putValueArgument(0, value)
+      }
+    } else null
+    return if (call != null)
+      irInterpreter.interpret(call)
+    else irInterpreter.interpret(originalCall)
+  }
 
   fun KotlinType.toIrType(): IrType =
     typeTranslator.translateType(this)
@@ -169,6 +205,11 @@ class IrUtils(
         return super.visitFunction(declaration, data)
       }
     }, data) as IrStatement
+
+  @ExperimentalStdlibApi
+  fun IrModuleFragment.interpret(expression: IrExpression): IrExpression =
+    IrInterpreter(this).interpret(expression)
+
 }
 
 fun IrCall.dfsCalls(): List<IrCall> { // search for parent function

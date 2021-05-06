@@ -1,6 +1,7 @@
 include ':compiler-plugin-core'
 include ':compiler-plugin-proofs'
 include ':compiler-plugin-optics'
+include ':compiler-plugin-liquid'
 // include ':compiler-plugin-higherkind'
 include ':gradle-plugin'
 include ':meta-test'

@@ -178,13 +178,13 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val Int.newLine: PsiElement
     get() = delegate.createNewLine()
   override val String.`class`: ClassDeclaration
-    get() = ClassDeclaration(delegate.createClass(trimMargin()))
+    get() = ClassDeclaration(delegate.createClass(trimMargin()), null)
   override val String.`object`: ObjectDeclaration
-    get() = ObjectDeclaration(delegate.createObject(trimMargin()))
+    get() = ObjectDeclaration(delegate.createObject(trimMargin()), null)
   override val companionObject: ObjectDeclaration
-    get() = ObjectDeclaration(delegate.createCompanionObject())
+    get() = ObjectDeclaration(delegate.createCompanionObject(), null)
   override val String.companionObject: ObjectDeclaration
-    get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()))
+    get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()), null)
 
   override val <A : KtDeclaration> Scope<A>.syntheticScope: Scope<A>
     get() {

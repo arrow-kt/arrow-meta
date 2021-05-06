@@ -16,9 +16,9 @@ open class ObjectDeclarationPlugin : Meta {
 val Meta.objectDeclarationPlugin
   get() = "Object Declaration Scope Plugin" {
     meta(
-      objectDeclaration(this, { name == "Test" }) { declaration ->
+      objectDeclaration(this, { element.name == "Test" }) {
         Transform.replace(
-          replacing = declaration,
+          replacing = it.element,
           newDeclaration = identity()
         )
       }

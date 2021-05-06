@@ -2,7 +2,9 @@ package arrow.meta.quotes.classorobject
 
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
+import arrow.meta.quotes.TypedScope
 import arrow.meta.quotes.element.ClassBody
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
@@ -27,6 +29,7 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
  */
 open class ClassOrObjectScope<out T : KtClassOrObject>(
   override val value: T,
+  override val descriptor: ClassDescriptor?,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val superTypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value = value.superTypeListEntries, prefix = if (value.superTypeListEntries.isEmpty()) "" else " : "),
@@ -37,7 +40,7 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   val secondaryConstructor: ScopedList<KtSecondaryConstructor> = ScopedList(value = value.secondaryConstructors),
   val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers()),
   val name: Name? = value.nameAsName
-  ) : Scope<T>(value)
+  ) : TypedScope<T, ClassDescriptor>(value, descriptor)
 
 fun <T: KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> = Scope(value.getOrCreateBody())
 

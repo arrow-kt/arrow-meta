@@ -28,7 +28,7 @@ val Meta.transformNewSource: List<CliPlugin>
 private val Meta.transformNewSourceSingleGeneration: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration(this, { name == "NewSource" }) {
+      classDeclaration(this, { element.name == "NewSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -45,7 +45,7 @@ private val Meta.transformNewSourceSingleGeneration: CliPlugin
 private val Meta.transformNewSourceMultipleGeneration: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration(this, { name == "NewMultipleSource" }) {
+      classDeclaration(this, { element.name == "NewMultipleSource" }) {
         Transform.newSources(
           """
             package arrow
@@ -69,11 +69,11 @@ private val Meta.transformNewSourceMultipleGeneration: CliPlugin
 private val Meta.transformNewSourceWithManyTransformation: CliPlugin
   get() = "Transform New Source With Many Transformation" {
     meta(
-      classDeclaration(this, { name == "NewSourceMany" }) { c ->
+      classDeclaration(this, { element.name == "NewSourceMany" }) { c ->
         (
-          changeClassVisibility("NewSourceMany", c, this)
-          + removeFooPrint(c, this)
-          + removeBarPrint(c, this)
+          changeClassVisibility("NewSourceMany", c.element, this)
+          + removeFooPrint(c.element, this)
+          + removeBarPrint(c.element, this)
           + generateSupplierClass(this)
         )
       }
@@ -112,7 +112,7 @@ private fun CompilerContext.generateSupplierClass(declaration: ClassDeclaration)
 private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration(this, { name == "NewSourceWithCustomPath" }) {
+      classDeclaration(this, { element.name == "NewSourceWithCustomPath" }) {
         Transform.newSources(
           """
             package arrow
@@ -127,7 +127,7 @@ private val Meta.transformNewSourceSingleGenerationWithCustomPath: CliPlugin
 private val Meta.transformNewSourceSingleGenerationWithBaseDir: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration(this, { name == "NewSourceWithBaseDir" }) {
+      classDeclaration(this, { element.name == "NewSourceWithBaseDir" }) {
         Transform.newSources(
           """
             package arrow
@@ -142,7 +142,7 @@ private val Meta.transformNewSourceSingleGenerationWithBaseDir: CliPlugin
 private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: CliPlugin
   get() = "Transform New Source" {
     meta(
-      classDeclaration(this, { name == "NewSourceWithBaseDirAndCustomPath" }) {
+      classDeclaration(this, { element.name == "NewSourceWithBaseDirAndCustomPath" }) {
         Transform.newSources(
           """
             package arrow
@@ -157,7 +157,7 @@ private val Meta.transformNewSourceSingleGenerationWithBaseDirAndCustomPath: Cli
 private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration(this, { name == "NewMultipleSourceWithCustomPath" }) {
+      classDeclaration(this, { element.name == "NewMultipleSourceWithCustomPath" }) {
         Transform.newSources(
           """
             package arrow
@@ -177,7 +177,7 @@ private val Meta.transformNewSourceMultipleGenerationWithCustomPath: CliPlugin
 private val Meta.transformNewSourceMultipleGenerationWithBaseDir: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration(this, { name == "NewMultipleSourceWithBaseDir" }) {
+      classDeclaration(this, { element.name == "NewMultipleSourceWithBaseDir" }) {
         Transform.newSources(
           """
             package arrow
@@ -197,7 +197,7 @@ private val Meta.transformNewSourceMultipleGenerationWithBaseDir: CliPlugin
 private val Meta.transformNewSourceMultipleGenerationWithBaseDirAndCustomPath: CliPlugin
   get() = "Transform New Multiple Source" {
     meta(
-      classDeclaration(this, { name == "NewMultipleSourceWithBaseDirAndCustomPath" }) {
+      classDeclaration(this, { element.name == "NewMultipleSourceWithBaseDirAndCustomPath" }) {
         Transform.newSources(
           """
             package arrow

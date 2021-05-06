@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
@@ -72,3 +73,6 @@ fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () 
   noRewindablePhase = evaluation,
   rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
 )
+
+inline fun <reified D: DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
+  compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }

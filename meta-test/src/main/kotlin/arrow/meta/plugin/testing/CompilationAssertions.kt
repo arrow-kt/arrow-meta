@@ -98,7 +98,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       Assert.CompilationResult.Fails -> assertFails(compilationResult)
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
-      is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output)
+      is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output, singleAssert.onError)
       is Assert.QuoteFileMatches ->
         assertQuoteFileMatches(compilationResult, singleAssert.filename, singleAssert.source,
           Paths.get("build", "generated", "source", "kapt", "main"))
@@ -134,7 +134,7 @@ private fun CompilationData.addCommandLineProcessors(config: Config.AddCommandLi
 private fun CompilationData.addPluginOptions(config: Config.AddPluginOptions) =
   copy(pluginOptions = pluginOptions + config.pluginOptions)
 
-private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?) {
+private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output: Any?, onError: (Throwable) -> Any?) {
   assertCompiles(compilationResult)
   val className = source.filename.replace(".kt", "Kt")
   val expression = source.text.trimMargin()
@@ -144,7 +144,7 @@ private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output
     .matches("^($VARIABLE)|($METHOD_CALL)\$")
   when {
     expression.matches(Regex("^$METHOD_CALL\$")) -> assertThat(call(className, expression, classesDirectory)).isEqualTo(output)
-    else -> assertThat(eval(className, expression, classesDirectory)).isEqualTo(output)
+    else -> assertThat(eval(className, expression, classesDirectory, onError)).isEqualTo(output)
   }
 }
 
@@ -200,12 +200,16 @@ private fun call(className: String, expression: String, classesDirectory: File):
   }
 }
 
-private fun eval(className: String, expression: String, classesDirectory: File): Any? {
+private fun eval(className: String, expression: String, classesDirectory: File, onError: (Throwable) -> Any?): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
   val fullClassName = getFullClassName(classesDirectory, className)
   val field = classLoader.loadClass(fullClassName).getDeclaredField(expression)
   field.isAccessible = true
-  return field.get(Object())
+  return try {
+    field.get(Object())
+  } catch (e: Throwable) {
+    onError(e)
+  }
 }
 
 private fun getFullClassName(classesDirectory: File, className: String): String =

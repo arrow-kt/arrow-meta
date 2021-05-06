@@ -29,10 +29,10 @@ val Meta.optics: CliPlugin
   get() =
     "optics" {
       meta(
-        classDeclaration(this, ::isOpticsTarget) { c: KtClass ->
-          if (c.companionObjects.isEmpty())
-            knownError(c.nameAsSafeName.asString().noCompanion, c)
-          val files = ctx.process(listOf(adt(c)))
+        classDeclaration(this,  { isOpticsTarget(element) }) { c ->
+          if (c.element.companionObjects.isEmpty())
+            knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
+          val files = ctx.process(listOf(adt(c.element)))
           Transform.newSources(*files.toTypedArray())
         }
       )

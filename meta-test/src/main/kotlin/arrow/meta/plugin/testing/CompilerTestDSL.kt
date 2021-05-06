@@ -118,7 +118,7 @@ interface ConfigSyntax {
   operator fun Config.plus(other: Config): List<Config> =
     listOf(this, other)
 
-  private fun prelude(currentVersion: String?): Dependency =
+  fun prelude(currentVersion: String?): Dependency =
     Dependency("prelude:$currentVersion")
 
   /**
@@ -258,7 +258,7 @@ interface AssertSyntax {
    *
    * @param value Expected result after running the code snippet.
    */
-  infix fun Code.Source.evalsTo(value: Any?): Assert.SingleAssert = Assert.EvalsTo(this, value)
+  fun Code.Source.evalsTo(value: Any?, onError: (Throwable) -> Any? = { throw it }): Assert.SingleAssert = Assert.EvalsTo(this, value, onError)
 
   /**
    * Returns a Source object from a String.
@@ -292,7 +292,7 @@ sealed class Assert {
   internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
   internal data class QuoteFileMatches(val filename: String, val source: Code.Source) : SingleAssert()
   internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: Path) : SingleAssert()
-  internal data class EvalsTo(val source: Code.Source, val output: Any?) : SingleAssert()
+  internal data class EvalsTo(val source: Code.Source, val output: Any?, val onError: (Throwable) -> Any?) : SingleAssert()
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
   internal sealed class CompilationResult : SingleAssert() {
     object Compiles : CompilationResult()
