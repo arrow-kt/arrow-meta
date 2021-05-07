@@ -18,59 +18,59 @@ options:
     nested_options:
 
       - title: Index
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes/
+        url: /apidocs/arrow-meta/arrow.meta.quotes/
 
       - title: ClassOrObject
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.classorobject/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.classorobject/
 
       - title: Declaration
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.declaration/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.declaration/
 
       - title: Element
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.element/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.element/
 
       - title: WhenCondition
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.element.whencondition/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.element.whencondition/
 
       - title: Expression
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.expression/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.expression/
 
       - title: ExpressionWithLabel
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.expression.expressionwithlabel/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.expressionwithlabel/
 
       - title: LoopExpression
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.expression.loopexpression/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.loopexpression/
 
       - title: Filebase
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.filebase/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.filebase/
 
       - title: Modifierlist
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.modifierlist/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.modifierlist/
 
       - title: NamedDeclaration - NotStubbed
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.nameddeclaration.notstubbed/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.notstubbed/
 
       - title: NamedDeclaration - Stub
-        url: /apidocs/compiler-plugin-core/arrow.meta.quotes.nameddeclaration.stub/
+        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.stub/
 
   - title: Compiler API
 
     nested_options:
 
       - title: Config
-        url: /apidocs/compiler-plugin-core/arrow.meta.dsl.config/-config-syntax/
+        url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
 
       - title: Analysis
-        url: /apidocs/compiler-plugin-core/arrow.meta.dsl.analysis/-analysis-syntax/
+        url: /apidocs/arrow-meta/arrow.meta.dsl.analysis/-analysis-syntax/
 
       - title: Resolution
-        url: /apidocs/compiler-plugin-core/arrow.meta.dsl.resolve/-resolve-syntax/
+        url: /apidocs/arrow-meta/arrow.meta.dsl.resolve/-resolve-syntax/
 
       - title: ASM Codegen
-        url: /apidocs/compiler-plugin-core/arrow.meta.dsl.codegen.asm/-asm-syntax/
+        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.asm/-asm-syntax/
 
       - title: IR Codegen
-        url: /apidocs/compiler-plugin-core/arrow.meta.dsl.codegen.ir/-ir-syntax/
+        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
   - title: Testing
 
@@ -84,7 +84,7 @@ options:
     nested_options:
 
       - title: Compiler plugin Core
-        url: /apidocs/compiler-plugin-core/
+        url: /apidocs/arrow-meta/
 
       - title: Testing library
         url: /apidocs/meta-test/

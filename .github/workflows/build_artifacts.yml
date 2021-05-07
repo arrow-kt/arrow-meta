@@ -19,7 +19,7 @@ jobs:
       - name: Build with Gradle
         # if using ubuntu-20.04, Java 8 is not the default version and its needed to be set explicitly
         # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md#java
-        run: ./gradlew buildMeta
+        run: ./gradlew build
     #- name: Check next version
     #  run: |
     #    echo "Is there an upcoming version to check?"

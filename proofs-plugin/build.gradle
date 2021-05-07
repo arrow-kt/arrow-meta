@@ -1,0 +1,40 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compileOnly project(':arrow-meta')
+
+    testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
+    testImplementation project(":meta-test")
+    testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':proofs-plugin')
+    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+        exclude group: "org.jetbrains.kotlin"
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xjvm-default=enable"]
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+        jvmTarget = "1.8"
+    }
+}
+
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+test {
+    useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+    jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+}

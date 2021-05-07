@@ -7,10 +7,11 @@ buildscript {
   }
 }
 
+apply plugin: 'kotlin'
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
-  runtimeOnly project(':compiler-plugin-core')
+  runtimeOnly project(':arrow-meta')
 }
 
 ank {

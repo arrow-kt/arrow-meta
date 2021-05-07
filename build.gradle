@@ -10,73 +10,53 @@ buildscript {
 plugins {
   // Replace plugin DSL by legacy plugin application to use EAP versions by Kotlin
   // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
-  id "org.jetbrains.dokka" version "$DOKKA_VERSION"
-  id 'com.github.johnrengelman.shadow' version "$SHADOW_JAR_VERSION"
+  id "org.jetbrains.dokka" version "$DOKKA_VERSION" apply false
 }
 
 apply plugin: "org.jetbrains.kotlin.jvm"
 
 def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 
-allprojects {
-
+configure(subprojects
+  - project("docs")
+) {
+  // Documentation
   clean.doFirst {
     delete pathApiDocs
   }
 
+  apply plugin: "org.jetbrains.dokka"
+  dokka {
+    outputFormat = 'jekyll'
+    outputDirectory = pathApiDocs
+  }
+
+  // Publication
+  group = GROUP
+  version = VERSION_NAME
+  afterEvaluate {
+    jar {
+      archiveBaseName = POM_ARTIFACT_ID
+      manifest {
+        attributes["Specification-Title"] = project.name
+        attributes["Specification-Version"] = project.version
+        attributes["Implementation-Title"] = POM_NAME
+        attributes["Implementation-Version"] = project.version
+      }
+    }
+  }
+  apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
+}
+
+allprojects {
   repositories {
     mavenCentral()
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
   }
 }
 
-subprojects { project ->
-
-  group = GROUP
-  version = VERSION_NAME
-
-  apply plugin: 'kotlin'
-  apply plugin: 'org.jetbrains.dokka'
-
-  //dokka log spam `Can't find node by signature` comes from https://github.com/Kotlin/dokka/issues/269
-  dokka {
-    outputFormat = 'jekyll'
-    outputDirectory = pathApiDocs
-  }
-}
-
-configure(subprojects
-  - project("docs")
-) {
-  apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
-}
-
-task cleanMeta {
-  dependsOn ':compiler-plugin-core:clean'
-  dependsOn ':gradle-plugin:clean'
-  dependsOn ':meta-test:clean'
-  dependsOn ':prelude:clean'
-}
-
-task buildMeta {
-  group = "Arrow Meta"
-  description = "Assembles and tests"
-  dependsOn ':compiler-plugin-core:build'
-  dependsOn ':gradle-plugin:build'
-  dependsOn ':meta-test:build'
-  dependsOn ':prelude:build'
-}
-
-task publishMeta {
-  dependsOn ':compiler-plugin-core:publishToMavenLocal'
-  dependsOn ':gradle-plugin:publishToMavenLocal'
-  dependsOn ':meta-test:publishToMavenLocal'
-  dependsOn ':prelude:publishToMavenLocal'
-}
-
 task generateDoc(type: Exec) {
-  // Reason of commandLine: dokka is not available in root project
-  // and to avoid specifying the list of modules
+  // Reason of commandLine: to avoid specifying the list of modules
   commandLine "sh", "gradlew", "dokka"
 }
 
@@ -85,7 +65,7 @@ task runValidation(type: Exec) {
 }
 
 task buildMetaDoc {
-  group = "Arrow Meta"
+  group = "documentation"
   description = "Generates API Doc and validates all the documentation"
   dependsOn 'generateDoc'
   dependsOn 'runValidation'

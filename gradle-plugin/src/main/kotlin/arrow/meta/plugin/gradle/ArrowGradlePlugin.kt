@@ -30,11 +30,11 @@ class ArrowGradlePlugin : Plugin<Project> {
     val pluginsList = project.extensions.create("arrowMeta", PluginsListExtension::class.java)
     project.afterEvaluate { p ->
       // To add its transitive dependencies
-      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:compiler-plugin-core:$compilerPluginVersion")
+      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:arrow-meta:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf(
-          "-Xplugin=${classpathOf("compiler-plugin-core:$compilerPluginVersion")}"
+          "-Xplugin=${classpathOf("arrow-meta:$compilerPluginVersion")}"
           , "-P"
           , "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
         )
@@ -43,7 +43,7 @@ class ArrowGradlePlugin : Plugin<Project> {
         .map { plugin ->
           when {
             plugin.endsWith(".jar") -> plugin
-            else -> classpathOf("compiler-plugin-$plugin:$compilerPluginVersion")
+            else -> classpathOf("arrow-$plugin-plugin:$compilerPluginVersion")
           }
         }
         .forEach { plugin ->
