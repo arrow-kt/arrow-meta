@@ -42,6 +42,14 @@ class LiquidTests {
     )
   }
 
+  @Test
+  fun `Local predicate composition`() {
+    failedRefinedExpressionTest(
+      expression = """TwitterHandleNotBlank("admin").value""",
+      msg = "should not contain the word 'admin'"
+    )
+  }
+
 }
 
 private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =

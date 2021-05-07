@@ -26,6 +26,7 @@ import arrow.meta.phases.codegen.ir.interpreter.state.asString
 import arrow.meta.phases.codegen.ir.interpreter.state.checkNullability
 import arrow.meta.phases.codegen.ir.interpreter.state.isSubtypeOf
 import org.jetbrains.kotlin.backend.common.ir.allParameters
+import org.jetbrains.kotlin.backend.jvm.codegen.psiElement
 import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
@@ -998,7 +999,7 @@ private fun Array<out Any?>.resolve(): List<Any?> =
     when (it) {
       is Wrapper -> it.value
       is Common ->
-        if (it.irClass.isCompanion) {
+        if (it.irClass.isCompanion && it.irClass.psiElement == null) {
           val value =
             Class.forName(it.irClass.parentClassOrNull?.fqNameForIrSerialization?.asString()).kotlin.companionObjectInstance
           value
