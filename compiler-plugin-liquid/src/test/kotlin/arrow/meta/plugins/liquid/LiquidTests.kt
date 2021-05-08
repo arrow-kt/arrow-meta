@@ -74,6 +74,38 @@ class LiquidTests {
     )
   }
 
+  @Test
+  fun `Remote and local predicate composition fails`() {
+    failedRefinedExpressionTest(
+      expression = """PositiveIntEven18(16).value""",
+      msg = "expected 18"
+    )
+  }
+
+  @Test
+  fun `Remote and local predicate composition succeeds`() {
+    passingRefinedExpressionTest(
+      expression = """PositiveIntEven18(18).value""",
+      value = 18
+    )
+  }
+
+  @Test
+  fun `Remote and local predicate composition fails, composition order swapped`() {
+    failedRefinedExpressionTest(
+      expression = """PositiveIntEven18OrderSwapped(16).value""",
+      msg = "expected 18"
+    )
+  }
+
+  @Test
+  fun `Remote and local predicate composition succeeds, composition order swapped `() {
+    passingRefinedExpressionTest(
+      expression = """PositiveIntEven18OrderSwapped(18).value""",
+      value = 18
+    )
+  }
+
 }
 
 private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =
@@ -120,7 +152,7 @@ data class TwitterHandle private constructor(val value: String) {
 data class NotBlank private constructor(val value: String) {
   companion object
     : Refined<String, NotBlank>(::NotBlank, {
-    ensure((it.isNotBlank()) to "expected not blank")
+    ensure((!it.isBlank()) to "expected not blank")
   })
 }
 
@@ -130,6 +162,21 @@ data class TwitterHandleNotBlank private constructor(val value: String) {
 
 data class PositiveIntEven private constructor(val value: Int) {
   companion object : Refined<Int, PositiveIntEven>(::PositiveIntEven, PositiveInt, Even)
+}
+
+data class Eighteen private constructor(val value: Int) {
+  companion object
+    : Refined<Int, Eighteen>(::Eighteen, {
+    ensure((it == 18) to "expected 18")
+  })
+}
+
+data class PositiveIntEven18 private constructor(val value: Int) {
+  companion object : Refined<Int, PositiveIntEven18>(::PositiveIntEven18, PositiveIntEven, Eighteen)
+}
+
+data class PositiveIntEven18OrderSwapped private constructor(val value: Int) {
+  companion object : Refined<Int, PositiveIntEven18OrderSwapped>(::PositiveIntEven18OrderSwapped, Eighteen, PositiveIntEven)
 }
 
  """

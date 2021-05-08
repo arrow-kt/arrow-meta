@@ -108,6 +108,7 @@ import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.getUnsignedType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -336,7 +337,10 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
 
     val signature = CompileTimeFunction(
       methodName,
-      argsType.mapNotNull { (it.originalKotlinType?.constructor?.declarationDescriptor?.name?.asString()) })
+      argsType.mapNotNull {
+        val name = it.originalKotlinType?.constructor?.declarationDescriptor?.name?.asString()
+        if (it.isNullable()) "$name?" else name
+      })
     val function = compileTimeFunctions[signature]
 
     val resolvedArgValues = argsValues.toTypedArray().resolve()
@@ -347,7 +351,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
     } else {
       val callable = irFunction.classLoadedFunction()
       val function =
-        callable ?: throw InterpreterMethodNotFoundException("Can't resolve ${irFunction.fqNameForIrSerialization}")
+        callable ?: throw InterpreterMethodNotFoundException("Can't resolve function ${irFunction.fqNameForIrSerialization} in compiler evaluable builtin functions.")
       val result = function(*resolvedArgValues.toTypedArray())
 
       stack.pushReturnValue(result.toState(result.getType(irFunction.returnType)))
@@ -1010,7 +1014,7 @@ private fun Array<out Any?>.resolve(): List<Any?> =
 
 internal fun IrFunction.method(className: String, methodName: String, parameterTypes: List<String>): Method? {
   //TODO use signature instead of name
-  val signature = this.toIrBasedDescriptor().computeJvmDescriptor(true, false)
+  val signature = this.toIrBasedDescriptor().computeJvmDescriptor(true, true)
   val foundClass = try {
     Class.forName(className)
   } catch (e: ClassNotFoundException) {

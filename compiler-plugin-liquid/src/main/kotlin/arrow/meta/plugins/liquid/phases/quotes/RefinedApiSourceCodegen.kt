@@ -103,11 +103,14 @@ private fun CompilerContext.generateRefinedApi(
     val params = if (paramsL.isEmpty()) "it: $refinedTarget" else paramsL.joinToString()
     //composition of remote predicates
     val firstExp = refExpression.firstOrNull()
-    val predicates =
-      if (firstExp is KtCallExpression && firstExp.getCalleeExpressionIfAny()?.text == "constrains") refExpression.map { it.text }
-      else refExpression.flatMap { it.children.toList() }.filterIsInstance<KtCallExpression>()
-        .flatMap { it.valueArguments }.map { it.text }
-    val mappedExpr = predicates.joinToString(prefix = "ensureA(", postfix = ")").expression
+    val predicates = refExpression.map {
+      if (it.text.startsWith("ensure")) it.text.replaceFirst("ensure", "ensureA")
+      else it.text
+    }
+    val mappedExpr = predicates.joinToString(prefix = "ensureA(", postfix = ")") {
+      if (it.startsWith("ensure(")) it.replace("ensure", "ensureA")
+      else it
+    }.expression
     """
     package ${descriptor?.findPackage()?.fqName?.asString()}
     

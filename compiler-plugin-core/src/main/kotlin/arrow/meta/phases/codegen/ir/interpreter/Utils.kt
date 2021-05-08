@@ -189,7 +189,7 @@ internal fun IrType.isThrowable() = this.getClass()?.fqNameWhenAvailable?.asStri
 
 internal fun Method.getSignature(): String? =
   try {
-    Descriptor.ofMethod(
+    name + Descriptor.ofMethod(
       ClassPool.getDefault().get(returnType.canonicalName),
       parameterTypes.map { ClassPool.getDefault().get(it.canonicalName) }.toTypedArray()
     )
