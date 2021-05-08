@@ -119,7 +119,7 @@ interface ConfigSyntax {
     listOf(this, other)
 
   fun prelude(currentVersion: String?): Dependency =
-    Dependency("prelude:$currentVersion")
+    Dependency("arrow-meta-prelude:$currentVersion")
 
   /**
    * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as
@@ -128,7 +128,7 @@ interface ConfigSyntax {
   val metaDependencies: List<Config>
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
-      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("compiler-plugin-core:$currentVersion")))
+      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("arrow-meta:$currentVersion")))
       return addCompilerPlugins(compilerPlugin) + addDependencies(prelude(currentVersion))
     }
 }

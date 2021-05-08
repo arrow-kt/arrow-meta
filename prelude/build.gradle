@@ -11,15 +11,6 @@ compileKotlin {
     }
 }
 
-jar {
-    manifest {
-        attributes["Specification-Title"] = project.name
-        attributes["Specification-Version"] = project.version
-        attributes["Implementation-Title"] = "arrow.meta.prelude"
-        attributes["Implementation-Version"] = project.version
-    }
-}
-
 tasks.withType(AbstractArchiveTask) {
     preserveFileTimestamps = false
     reproducibleFileOrder = true

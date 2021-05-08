@@ -22,9 +22,9 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
   implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
   // Necessary during plugin execution to be found and added for compilation
-  api project(':compiler-plugin-core')
-  api project(':compiler-plugin-proofs')
-  api project(':compiler-plugin-optics')
+  api project(':arrow-meta')
+  api project(':proofs-plugin')
+  api project(':optics-plugin')
 }
 
 compileKotlin {
@@ -32,15 +32,6 @@ compileKotlin {
 }
 compileTestKotlin {
   kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
-}
-
-jar {
-  manifest {
-    attributes["Specification-Title"] = project.name
-    attributes["Specification-Version"] = project.version
-    attributes["Implementation-Title"] = pluginId
-    attributes["Implementation-Version"] = project.version
-  }
 }
 
 // Required to put the Kotlin plugin on the classpath for the functional test suite

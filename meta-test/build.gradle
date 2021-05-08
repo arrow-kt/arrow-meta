@@ -14,7 +14,7 @@ dependencies {
         exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
     }
     implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
-    implementation project(':compiler-plugin-core')
+    implementation project(':arrow-meta')
 
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testRuntimeOnly project(':prelude')
@@ -34,13 +34,4 @@ test {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-}
-
-jar {
-    manifest {
-        attributes["Specification-Title"] = project.name
-        attributes["Specification-Version"] = project.version
-        attributes["Implementation-Title"] = "arrow.meta.plugin.testing"
-        attributes["Implementation-Version"] = project.version
-    }
 }
