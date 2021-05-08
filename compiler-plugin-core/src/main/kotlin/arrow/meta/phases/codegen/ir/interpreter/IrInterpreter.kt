@@ -174,7 +174,6 @@ import kotlin.reflect.jvm.kotlinFunction
 
 private const val MAX_COMMANDS = 500_000
 
-@ExperimentalStdlibApi
 internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map<IdSignature, IrBody> = emptyMap()) {
   private val irExceptions = mutableListOf<IrClass>()
 

@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
-@ExperimentalStdlibApi
 internal fun Meta.registerIrInterpreterCompileTimeFunctions(): IRGeneration =
   irModuleFragment {
     compileTimeFunctions +=
@@ -29,7 +28,6 @@ internal fun Meta.registerIrInterpreterCompileTimeFunctions(): IRGeneration =
     null
   }
 
-@ExperimentalStdlibApi
 internal fun Meta.validateIrCallsToRefinedFunctions(): IRGeneration =
   irCall {
     if (it.isCallToRefinedFunction()) {
@@ -39,7 +37,6 @@ internal fun Meta.validateIrCallsToRefinedFunctions(): IRGeneration =
     null
   }
 
-@ExperimentalStdlibApi
 private fun IrUtils.evalRefinement(
   it: IrCall
 ): Unit {

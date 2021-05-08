@@ -12,7 +12,6 @@ import kotlin.contracts.ExperimentalContracts
  */
 open class LiquidMetaPlugin : Meta {
   @ExperimentalContracts
-  @ExperimentalStdlibApi
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
       liquidExpressions

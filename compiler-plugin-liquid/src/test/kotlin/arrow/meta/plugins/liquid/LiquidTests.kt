@@ -25,7 +25,6 @@ class LiquidTests {
     )
   }
 
-
   @Test
   fun `Valid twitter handle passes`() {
     passingRefinedExpressionTest(
