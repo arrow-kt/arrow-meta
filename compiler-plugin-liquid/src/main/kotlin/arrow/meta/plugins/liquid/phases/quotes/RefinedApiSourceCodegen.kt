@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getReferenceTargets
+import org.jetbrains.kotlin.resolve.calls.callUtil.getCalleeExpressionIfAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isSubclassOf
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
@@ -58,7 +60,7 @@ private fun CompilerContext.refinedExpressions(declaration: ObjectDeclaration): 
           if (localDescriptor != null && localPsi != null && localPsi is KtObjectDeclaration) {
             refinedExpressions(ObjectDeclaration(localPsi, localDescriptor))
           } else {
-            listOf("${exp.text}.constrains(it)".expression.value)
+            listOf("constrains(${exp.text}, it)".expression.value)
           }
         }
         else -> emptyList<KtExpression>()
@@ -99,13 +101,13 @@ private fun CompilerContext.generateRefinedApi(
         else it.functionLiteral.valueParameters.joinToString { "${it.name}: $refinedTarget" }
       }
     val params = if (paramsL.isEmpty()) "it: $refinedTarget" else paramsL.joinToString()
-    val predicates = refExpression.flatMap { it.children.toList() }.filterIsInstance<KtCallExpression>().flatMap { it.valueArguments }.map { it.text }
+    //composition of remote predicates
+    val firstExp = refExpression.firstOrNull()
+    val predicates =
+      if (firstExp is KtCallExpression && firstExp.getCalleeExpressionIfAny()?.text == "constrains") refExpression.map { it.text }
+      else refExpression.flatMap { it.children.toList() }.filterIsInstance<KtCallExpression>()
+        .flatMap { it.valueArguments }.map { it.text }
     val mappedExpr = predicates.joinToString(prefix = "ensureA(", postfix = ")").expression
-    val args = companion.supertypesArgumentExpressions(this@generateRefinedApi).filterIsInstance<KtLambdaExpression>()
-      .joinToString {
-        if (it.valueParameters.isEmpty()) "it"
-        else it.functionLiteral.valueParameters.joinToString { "${it.name}" }
-      }
     """
     package ${descriptor?.findPackage()?.fqName?.asString()}
     

@@ -43,10 +43,34 @@ class LiquidTests {
   }
 
   @Test
-  fun `Local predicate composition`() {
+  fun `Local predicate composition fails`() {
     failedRefinedExpressionTest(
       expression = """TwitterHandleNotBlank("admin").value""",
       msg = "should not contain the word 'admin'"
+    )
+  }
+
+  @Test
+  fun `Local predicate composition succeeds`() {
+    passingRefinedExpressionTest(
+      expression = """TwitterHandleNotBlank("@ok").value""",
+      value = "@ok"
+    )
+  }
+
+  @Test
+  fun `Remote predicate composition fails`() {
+    failedRefinedExpressionTest(
+      expression = """PositiveIntEven(-1).value""",
+      msg = "-1 should be even"
+    )
+  }
+
+  @Test
+  fun `Remote predicate composition succeeds`() {
+    passingRefinedExpressionTest(
+      expression = """PositiveIntEven(2).value""",
+      value = 2
     )
   }
 
@@ -104,6 +128,9 @@ data class TwitterHandleNotBlank private constructor(val value: String) {
   companion object : Refined<String, TwitterHandleNotBlank>(::TwitterHandleNotBlank, TwitterHandle, NotBlank)
 }
 
+data class PositiveIntEven private constructor(val value: Int) {
+  companion object : Refined<Int, PositiveIntEven>(::PositiveIntEven, PositiveInt, Even)
+}
 
  """
 
