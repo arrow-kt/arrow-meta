@@ -5,9 +5,9 @@ title: Setup
 
 # Setup
 
-## Λrrow Meta Compiler Plugin
+## Λrrow Compiler Plugins
 
-The Arrow Meta Compiler Plugin can be enabled in your project with the Arrow Meta Gradle Plugin.
+The compiler plugins can be enabled in your project with the Arrow Gradle Plugin.
 
 If using a SNAPSHOT version, it must be included with the legacy plugin application:
 
@@ -26,22 +26,38 @@ apply plugin: "io.arrow-kt.arrow"
 
 Then add the list of the required compiler plugins on `arrowMeta.plugins`.
 
-For instance, for using Arrow Meta Proofs Compiler Plugin:
+For instance, to use Arrow Proofs Compiler Plugin:
 
 ```
 arrowMeta.plugins = ['proofs']
 ```
 
-For using Arrow Meta Proofs Optics Plugin:
+To use Arrow Optics Plugin:
 
 ```
 arrowMeta.plugins = ['optics']
 ```
 
-For using Arrow Meta Proofs Compiler Plugin and then a custom compiler plugin based on Arrow Meta:
+To use Arrow Proofs Compiler Plugin and then a custom compiler plugin based on Arrow Meta:
 
 ```
 arrowMeta.plugins = ['proofs', '(...)/custom-plugin.jar']
+```
+
+In case the custom compiler plugin is published in an artifacts repository:
+
+```
+buildscript {
+    ...
+    dependencies {
+        ...
+        classpath "<groupId>:<artifactId>:<version>"
+    }
+}
+
+...
+
+arrowMeta.plugins = ['proofs', '<artifactId>:<version>']
 ```
 
 # See Also

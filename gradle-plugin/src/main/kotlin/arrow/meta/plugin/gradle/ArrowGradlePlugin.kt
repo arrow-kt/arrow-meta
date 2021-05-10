@@ -31,6 +31,7 @@ class ArrowGradlePlugin : Plugin<Project> {
     project.afterEvaluate { p ->
       // To add its transitive dependencies
       p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:arrow-meta:$compilerPluginVersion")
+      p.dependencies.add("compileClasspath", "io.arrow-kt:arrow-meta-prelude:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf(
@@ -43,6 +44,7 @@ class ArrowGradlePlugin : Plugin<Project> {
         .map { plugin ->
           when {
             plugin.endsWith(".jar") -> plugin
+            plugin.contains(':') -> classpathOf(plugin)
             else -> classpathOf("arrow-$plugin-plugin:$compilerPluginVersion")
           }
         }
@@ -54,10 +56,10 @@ class ArrowGradlePlugin : Plugin<Project> {
     }
   }
 
-  private fun classpathOf(dependency: String): File {
+  private fun classpathOf(dependency: String): String {
     try {
       val regex = Regex(".*${dependency.replace(':', '-')}.*")
-      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
+      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")
     }
