@@ -7,10 +7,9 @@ import arrow.meta.plugins.liquid.phases.ir.registerIrInterpreterCompileTimeFunct
 import arrow.meta.plugins.liquid.phases.ir.validateIrCallsToRefinedFunctions
 import arrow.meta.plugins.liquid.phases.quotes.generateRefinedApi
 
-@ExperimentalStdlibApi
 val Meta.liquidExpressions: CliPlugin
   get() =
-    "Compile time validation and refined types for Kotlin" {
+    "Compile time validation of refined types for Kotlin" {
       meta(
         generateRefinedApi(this@liquidExpressions),
         registerIrInterpreterCompileTimeFunctions(),

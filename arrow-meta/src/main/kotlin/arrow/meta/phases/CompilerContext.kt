@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentHashMap
@@ -32,6 +34,7 @@ open class CompilerContext(
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
+  var bindingTrace: BindingTrace? = null
 
   var configuration: CompilerConfiguration? = null
 

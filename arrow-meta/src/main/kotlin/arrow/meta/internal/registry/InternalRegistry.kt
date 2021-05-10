@@ -114,6 +114,16 @@ interface InternalRegistry : ConfigSyntax {
           ctx.componentProvider = componentProvider
           return null
         }
+
+        override fun analysisCompleted(
+          project: Project,
+          module: ModuleDescriptor,
+          bindingTrace: BindingTrace,
+          files: Collection<KtFile>
+        ): AnalysisResult? {
+          ctx.module = module
+          return super.analysisCompleted(project, module, bindingTrace, files)
+        }
       })
     }
   }

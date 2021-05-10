@@ -61,7 +61,6 @@ class IrUtils(
   IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns),
   IrFactory by pluginContext.irFactory {
 
-  @ExperimentalStdlibApi
   internal val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
@@ -78,8 +77,7 @@ class IrUtils(
           this.typeTranslator = this@translator
         }
     }
-  
-  @ExperimentalStdlibApi
+
   fun interpretFunction(originalCall: IrCall, typeName: Name, value: IrConst<*>): IrExpression {
     val fnName = "require${typeName.asString()}"
     val fn = moduleFragment.files.flatMap { it.declarations }

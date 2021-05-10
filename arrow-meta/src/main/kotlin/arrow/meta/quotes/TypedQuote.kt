@@ -109,6 +109,7 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
       },
       analysisCompleted = { project, module, bindingTrace, files ->
         if (!analysisPhaseWasRewind.get()) {
+          this.bindingTrace = bindingTrace
           analysedDescriptors.addAll(BindingContext.DECLARATIONS_TO_DESCRIPTORS.flatMap {
             it.makeRawValueVersion().let<ReadOnlySlice<Any, Any>, ImmutableMap<Any, Any>>(bindingTrace.bindingContext::getSliceContents).values.map { it as DeclarationDescriptor }
           })
