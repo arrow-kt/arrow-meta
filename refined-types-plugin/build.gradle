@@ -2,10 +2,13 @@ apply plugin: 'kotlin'
 
 dependencies {
     compileOnly project(':arrow-meta')
+    compileOnly project(':predicates')
 
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':prelude')
+    testRuntimeOnly project(':predicates')
     testRuntimeOnly project(':refined-types-plugin')
 }
 

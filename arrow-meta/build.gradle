@@ -3,7 +3,6 @@ apply plugin: 'kotlin'
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
-    api project(":prelude")
     compileOnly "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
     api 'org.javassist:javassist:3.27.0-GA'
     api "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"

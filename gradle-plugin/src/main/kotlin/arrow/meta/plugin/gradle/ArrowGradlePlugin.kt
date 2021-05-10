@@ -31,7 +31,8 @@ class ArrowGradlePlugin : Plugin<Project> {
     project.afterEvaluate { p ->
       // To add its transitive dependencies
       p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:arrow-meta:$compilerPluginVersion")
-      p.dependencies.add("compileClasspath", "io.arrow-kt:arrow-meta-prelude:$compilerPluginVersion")
+      p.dependencies.add("implementation", "io.arrow-kt:arrow-meta-prelude:$compilerPluginVersion")
+      p.dependencies.add("implementation", "io.arrow-kt:arrow-meta-predicates:$compilerPluginVersion")
 
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf(

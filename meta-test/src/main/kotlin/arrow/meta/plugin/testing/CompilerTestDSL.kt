@@ -121,6 +121,9 @@ interface ConfigSyntax {
   fun prelude(currentVersion: String?): Dependency =
     Dependency("arrow-meta-prelude:$currentVersion")
 
+  fun predicates(currentVersion: String?): Dependency =
+    Dependency("arrow-meta-predicates:$currentVersion")
+
   /**
    * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as
    * a dependency.
