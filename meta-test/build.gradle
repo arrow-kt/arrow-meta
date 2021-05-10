@@ -1,7 +1,8 @@
-apply plugin: 'kotlin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 dependencies {
-
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     implementation "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
 
@@ -16,6 +17,7 @@ dependencies {
     implementation "org.assertj:assertj-core:$ASSERTJ_VERSION"
     implementation project(':arrow-meta')
 
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testRuntimeOnly project(':prelude')
 }

@@ -7,7 +7,10 @@ buildscript {
   }
 }
 
-apply plugin: 'kotlin'
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+}
+
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {

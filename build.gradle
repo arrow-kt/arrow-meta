@@ -1,24 +1,12 @@
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
-  }
-}
-
 plugins {
-  // Replace plugin DSL by legacy plugin application to use EAP versions by Kotlin
-  // id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
+  id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
   id "org.jetbrains.dokka" version "$DOKKA_VERSION" apply false
 }
-
-apply plugin: "org.jetbrains.kotlin.jvm"
 
 def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 
 configure(subprojects
-  - project("docs")
+        - project("docs")
 ) {
   // Documentation
   clean.doFirst {
@@ -34,6 +22,12 @@ configure(subprojects
   // Publication
   group = GROUP
   version = VERSION_NAME
+}
+
+configure(subprojects
+        - project("docs")
+        - project("arrow-refined-types")
+) {
   afterEvaluate {
     jar {
       archiveBaseName = POM_ARTIFACT_ID

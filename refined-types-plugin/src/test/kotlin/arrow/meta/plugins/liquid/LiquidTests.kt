@@ -202,7 +202,7 @@ private operator fun String.invoke(
     config = {
       listOf(addDependencies(
         prelude(System.getProperty("CURRENT_VERSION")),
-        predicates(System.getProperty("CURRENT_VERSION"))
+        refinedTypesLib(System.getProperty("CURRENT_VERSION"))
       ))
     },
     code = { this@invoke.source },

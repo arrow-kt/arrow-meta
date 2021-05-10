@@ -1,14 +1,18 @@
-apply plugin: 'kotlin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     compileOnly project(':arrow-meta')
-    compileOnly project(':predicates')
+    compileOnly project(':arrow-refined-types')
 
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':arrow-refined-types')
     testRuntimeOnly project(':prelude')
-    testRuntimeOnly project(':predicates')
     testRuntimeOnly project(':refined-types-plugin')
 }
 

@@ -1,0 +1,29 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+}
+
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+            }
+        }
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+                jvmTarget = "1.8"
+            }
+        }
+    }
+}
+
+tasks.withType(AbstractArchiveTask) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+apply from: "$rootDir/gradle/publication-mpp.gradle"
