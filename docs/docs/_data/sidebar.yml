@@ -1,6 +1,33 @@
 options:
+  - title: Refined Types
 
-  - title: Quick Start
+    nested_options:
+
+      - title: Quick Start
+        url: /apidocs/prelude/arrow.refinement/index.html
+
+      - title: Numbers
+        url: /apidocs/prelude/arrow.refinement.numbers/index.html
+
+      - title: Characters
+        url: /apidocs/prelude/arrow.refinement.chars/index.html
+
+      - title: Strings
+        url: /apidocs/prelude/arrow.refinement.strings/index.html
+
+      - title: Collections
+        url: /apidocs/prelude/arrow.refinement.collections/index.html
+
+      - title: Digests
+        url: /apidocs/prelude/arrow.refinement.digests/index.html
+
+      - title: Network
+        url: /apidocs/prelude/arrow.refinement.network/index.html
+
+      - title: Time
+        url: /apidocs/prelude/arrow.refinement.time/index.html
+
+  - title: Kotlin Compiler Plugins API
 
     nested_options:
 
@@ -12,50 +39,6 @@ options:
 
       - title: Setup
         url: /setup.html
-
-  - title: Quotes
-
-    nested_options:
-
-      - title: Index
-        url: /apidocs/arrow-meta/arrow.meta.quotes/
-
-      - title: ClassOrObject
-        url: /apidocs/arrow-meta/arrow.meta.quotes.classorobject/
-
-      - title: Declaration
-        url: /apidocs/arrow-meta/arrow.meta.quotes.declaration/
-
-      - title: Element
-        url: /apidocs/arrow-meta/arrow.meta.quotes.element/
-
-      - title: WhenCondition
-        url: /apidocs/arrow-meta/arrow.meta.quotes.element.whencondition/
-
-      - title: Expression
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression/
-
-      - title: ExpressionWithLabel
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.expressionwithlabel/
-
-      - title: LoopExpression
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.loopexpression/
-
-      - title: Filebase
-        url: /apidocs/arrow-meta/arrow.meta.quotes.filebase/
-
-      - title: Modifierlist
-        url: /apidocs/arrow-meta/arrow.meta.quotes.modifierlist/
-
-      - title: NamedDeclaration - NotStubbed
-        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.notstubbed/
-
-      - title: NamedDeclaration - Stub
-        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.stub/
-
-  - title: Compiler API
-
-    nested_options:
 
       - title: Config
         url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
@@ -83,7 +66,7 @@ options:
 
     nested_options:
 
-      - title: Compiler plugin Core
+      - title: Meta
         url: /apidocs/arrow-meta/
 
       - title: Testing library

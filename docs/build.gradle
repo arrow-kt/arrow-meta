@@ -12,6 +12,7 @@ apply plugin: 'ank-gradle-plugin'
 
 dependencies {
   runtimeOnly project(':arrow-meta')
+    runtimeOnly project(':prelude')
 }
 
 ank {

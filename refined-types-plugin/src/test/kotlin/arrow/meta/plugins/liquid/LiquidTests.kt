@@ -134,8 +134,8 @@ package test
 
 import arrow.refinement.Refined
 import arrow.refinement.ensure
-import arrow.refinement.PositiveInt
-import arrow.refinement.Even
+import arrow.refinement.numbers.PositiveInt
+import arrow.refinement.numbers.Even
 
 data class TwitterHandle private constructor(val value: String) {
   companion object : Refined<String, TwitterHandle>(::TwitterHandle, {

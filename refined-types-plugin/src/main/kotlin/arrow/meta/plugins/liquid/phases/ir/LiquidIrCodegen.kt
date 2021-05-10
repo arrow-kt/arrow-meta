@@ -6,7 +6,7 @@ import arrow.meta.phases.codegen.ir.IRGeneration
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.interpreter.builtins.compileTimeFunctions
 import arrow.meta.phases.codegen.ir.interpreter.builtins.ops
-import arrow.refinement.Constrains
+import arrow.refinement.Constraints
 import arrow.refinement.Refined
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
@@ -24,7 +24,7 @@ internal fun Meta.registerIrInterpreterCompileTimeFunctions(): IRGeneration =
   irModuleFragment {
     compileTimeFunctions +=
       ops<Refined<Any?, Any?>>() +
-        ops<Constrains>()
+        ops<Constraints>()
     null
   }
 
