@@ -6,8 +6,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':arrow-meta')
-    testRuntimeOnly project(':optics-plugin')
     testRuntimeOnly project(':prelude')
+    testRuntimeOnly project(':optics-plugin')
     testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
