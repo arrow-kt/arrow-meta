@@ -25,6 +25,7 @@ dependencies {
   api project(':arrow-meta')
   api project(':proofs-plugin')
   api project(':optics-plugin')
+  api project(':refined-types-plugin')
 }
 
 compileKotlin {
