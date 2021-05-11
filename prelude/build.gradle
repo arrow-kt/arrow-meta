@@ -12,8 +12,3 @@ compileKotlin {
         jvmTarget = "1.8"
     }
 }
-
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-}

@@ -21,9 +21,4 @@ kotlin {
     }
 }
 
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-}
-
 apply from: "$rootDir/gradle/publication-mpp.gradle"

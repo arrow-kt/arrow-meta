@@ -45,11 +45,6 @@ compileTestKotlin {
     }
 }
 
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
-}
-
 test {
     useJUnitPlatform()
     testLogging.showStandardStreams = true
