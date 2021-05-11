@@ -72,6 +72,7 @@ if (project.hasProperty("signingKey") && project.hasProperty("signingPassword"))
         def signingPassword = findProperty("signingPassword")
         useInMemoryPgpKeys(signingKey, signingPassword)
 
-        sign publishing.publications.mavenJava
+        sign publishing.publications.kotlinMultiplatform
+        sign publishing.publications.jvm
     }
 }
