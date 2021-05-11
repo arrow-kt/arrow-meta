@@ -1,4 +1,6 @@
-apply plugin: 'kotlin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 dependencies {
     compileOnly project(':arrow-meta')
@@ -16,11 +18,6 @@ compileTestKotlin {
         freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
         jvmTarget = "1.8"
     }
-}
-
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
 }
 
 test {

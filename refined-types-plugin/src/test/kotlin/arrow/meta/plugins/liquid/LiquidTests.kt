@@ -199,7 +199,7 @@ private operator fun String.invoke(
     assert = { withPlugin() }
   ))
   assertThis(CompilerTest(
-    config = { listOf(addDependencies(prelude(System.getProperty("CURRENT_VERSION")))) },
+    config = { listOf(addDependencies(refinedTypesLib(System.getProperty("CURRENT_VERSION")))) },
     code = { this@invoke.source },
     assert = { withoutPlugin() }
   ))
