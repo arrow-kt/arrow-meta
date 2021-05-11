@@ -7,10 +7,14 @@ buildscript {
   }
 }
 
-apply plugin: 'kotlin'
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+}
+
 apply plugin: 'ank-gradle-plugin'
 
 dependencies {
+  runtimeOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   runtimeOnly project(':arrow-meta')
     runtimeOnly project(':prelude')
 }

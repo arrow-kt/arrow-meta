@@ -1,11 +1,16 @@
-apply plugin: 'kotlin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     compileOnly project(':arrow-meta')
 
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
     testImplementation project(":meta-test")
     testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':prelude')
     testRuntimeOnly project(':optics-plugin')
     testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
@@ -27,11 +32,6 @@ compileTestKotlin {
         freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
         jvmTarget = "1.8"
     }
-}
-
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
 }
 
 test {

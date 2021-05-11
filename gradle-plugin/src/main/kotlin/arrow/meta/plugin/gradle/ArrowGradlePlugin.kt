@@ -3,7 +3,6 @@ package arrow.meta.plugin.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.File
 import io.github.classgraph.ClassGraph
 import org.gradle.api.InvalidUserDataException
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -15,10 +14,6 @@ import java.util.Properties
  */
 class ArrowGradlePlugin : Plugin<Project> {
 
-  companion object {
-    fun isEnabled(project: Project): Boolean = project.plugins.findPlugin(ArrowGradlePlugin::class.java) != null
-  }
-
   override fun apply(project: Project): Unit {
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
@@ -29,20 +24,28 @@ class ArrowGradlePlugin : Plugin<Project> {
 
     val pluginsList = project.extensions.create("arrowMeta", PluginsListExtension::class.java)
     project.afterEvaluate { p ->
-      // To add its transitive dependencies
-      p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:arrow-meta:$compilerPluginVersion")
+      p.dependencies.add("implementation", "io.arrow-kt:arrow-meta-prelude:$compilerPluginVersion")
+      p.dependencies.add("implementation", "io.arrow-kt:arrow-refined-types-jvm:$compilerPluginVersion")
 
-      p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += listOf(
-          "-Xplugin=${classpathOf("arrow-meta:$compilerPluginVersion")}"
-          , "-P"
-          , "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
-        )
+      when {
+        pluginsList.plugins.isNotEmpty() -> {
+          // To add its transitive dependencies
+          p.dependencies.add("kotlinCompilerClasspath", "io.arrow-kt:arrow-meta:$compilerPluginVersion")
+
+          p.tasks.withType(KotlinCompile::class.java).configureEach {
+            it.kotlinOptions.freeCompilerArgs += listOf(
+              "-Xplugin=${classpathOf("arrow-meta:$compilerPluginVersion")}",
+              "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
+            )
+          }
+        }
       }
+
       pluginsList.plugins
         .map { plugin ->
           when {
             plugin.endsWith(".jar") -> plugin
+            plugin.contains(':') -> classpathOf(plugin)
             else -> classpathOf("arrow-$plugin-plugin:$compilerPluginVersion")
           }
         }
@@ -54,10 +57,10 @@ class ArrowGradlePlugin : Plugin<Project> {
     }
   }
 
-  private fun classpathOf(dependency: String): File {
+  private fun classpathOf(dependency: String): String {
     try {
       val regex = Regex(".*${dependency.replace(':', '-')}.*")
-      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }
+      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")
     }

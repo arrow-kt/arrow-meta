@@ -1,9 +1,10 @@
-apply plugin: 'kotlin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
     compileOnly "com.intellij:openapi:$OPENAPI_VERSION"
-    api project(":prelude")
     compileOnly "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
     api 'org.javassist:javassist:3.27.0-GA'
     api "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
@@ -42,11 +43,6 @@ compileTestKotlin {
         freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
         jvmTarget = "1.8"
     }
-}
-
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
 }
 
 test {
