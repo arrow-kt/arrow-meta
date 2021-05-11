@@ -8,11 +8,6 @@ import arrow.meta.plugin.testing.Dependency
 fun ConfigSyntax.newMetaDependencies(): List<Config> {
   val currentVersion = System.getProperty("CURRENT_VERSION")
   val refinedTypesPlugin =
-    CompilerPlugin(
-      "Arrow Refined Types Plugin",
-      listOf(Dependency("arrow-refined-types-plugin:$currentVersion"))
-    )
-  return metaDependencies +
-    addCompilerPlugins(refinedTypesPlugin) +
-    addDependencies(refinedTypesLib(currentVersion))
+    CompilerPlugin("RefinedTypesPlugin", listOf(Dependency("arrow-refined-types-plugin:$currentVersion")))
+  return metaDependencies + addCompilerPlugins(refinedTypesPlugin) + addDependencies(refinedTypesLib(currentVersion))
 }
