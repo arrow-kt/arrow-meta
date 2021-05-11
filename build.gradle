@@ -29,6 +29,9 @@ configure(subprojects
   dokka {
     outputFormat = 'jekyll'
     outputDirectory = pathApiDocs
+    configuration {
+        includes = ['README.md']
+    }
   }
 
   // Publication
