@@ -25,7 +25,7 @@ class ArrowGradlePlugin : Plugin<Project> {
     val pluginsList = project.extensions.create("arrowMeta", PluginsListExtension::class.java)
     project.afterEvaluate { p ->
       p.dependencies.add("implementation", "io.arrow-kt:arrow-meta-prelude:$compilerPluginVersion")
-      p.dependencies.add("implementation", "io.arrow-kt:arrow-meta-predicates:$compilerPluginVersion")
+      p.dependencies.add("implementation", "io.arrow-kt:arrow-refined-types-jvm:$compilerPluginVersion")
 
       when {
         pluginsList.plugins.isNotEmpty() -> {
