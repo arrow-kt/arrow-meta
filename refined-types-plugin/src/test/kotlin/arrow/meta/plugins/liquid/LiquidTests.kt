@@ -37,7 +37,7 @@ class LiquidTests {
   fun `Invalid twitter handle 'admin' and fails`() {
     failedRefinedExpressionTest(
       expression = """TwitterHandle("admin").value""",
-      msg = "should not contain the word 'admin'"
+      msg = "admin should start with @, should not contain the word 'admin'"
     )
   }
 
@@ -45,7 +45,7 @@ class LiquidTests {
   fun `Local predicate composition fails`() {
     failedRefinedExpressionTest(
       expression = """TwitterHandleNotBlank("admin").value""",
-      msg = "should not contain the word 'admin'"
+      msg = "admin should start with @, should not contain the word 'admin'"
     )
   }
 
@@ -61,7 +61,7 @@ class LiquidTests {
   fun `Remote predicate composition fails`() {
     failedRefinedExpressionTest(
       expression = """PositiveIntEven(-1).value""",
-      msg = "-1 should be even"
+      msg = "-1 should be > 0, -1 should be even"
     )
   }
 

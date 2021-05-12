@@ -51,11 +51,11 @@ value
  * # Unsafe require
  *
  * ```kotlin:ank
- * Equal.Value(1)(1)
+ * Equal.Value(1).require(1)
  * ```
  *
- * ```kotlin:ank:fail
- * Equal.Value(1)(0)
+ * ```kotlin:ank
+ * try { Equal.Value(1).require(0) } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  */

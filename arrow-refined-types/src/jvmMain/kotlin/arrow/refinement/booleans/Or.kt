@@ -5,7 +5,9 @@ import arrow.refinement.allValid
 
 /**
  * Boolean disjunction of the [left] and [right] predicates.
- * left || right
+ * left or right
+ *
+ * @see arrow.refinement.or
  */
 class Or<A, B>(
   private val left: Refined<A, *>,
@@ -16,5 +18,5 @@ class Or<A, B>(
     val newConstrains =
       if (left.constraints(it).allValid()) left.constraints(it)
       else right.constraints(it)
-    newConstrains.mapValues { (_, v) -> defaultMsg ?: v }
+    newConstrains.map { (k, v) -> k to (defaultMsg ?: v) }
   })

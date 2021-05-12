@@ -4,20 +4,25 @@ import arrow.refinement.booleans.And
 import arrow.refinement.booleans.Not
 import arrow.refinement.booleans.Or
 
-typealias Constraints = Map<Boolean, String>
+typealias Constraints = List<Pair<Boolean, String>>
 
-fun ensure(vararg constraints: Pair<Boolean, String>) : Map<Boolean, String> =
-  mapOf(*constraints)
+fun ensure(vararg constraints: Pair<Boolean, String>) : Constraints =
+  constraints.toList()
 
-fun ensureA(vararg constraints: Any) : Map<Boolean, String> =
-  constraints.filterIsInstance<Pair<Boolean, String>>().toMap() +
-    constraints.filterIsInstance<Map<Boolean, String>>().fold(emptyMap(), Map<Boolean, String>::plus)
+/**
+ * This is a compile time only function for compatibility with varargs and to cope with the
+ * equality mismatch between Pair[] and Object[]
+ * @suppress
+ */
+fun ensureA(vararg constraints: Any) : Constraints =
+  constraints.filterIsInstance<Pair<Boolean, String>>() +
+    constraints.filterIsInstance<Constraints>().flatten()
 
 inline fun Constraints.allValid(): Boolean =
-  all { it.key }
+  all { it.first }
 
 inline fun renderMessages(results: Constraints): String =
-  results.entries.filter { !it.key }.joinToString { it.value }
+  results.filter { !it.first }.joinToString { it.second }
 
 fun require(constraints: Constraints): Unit {
   if (constraints.allValid()) Unit
@@ -33,8 +38,10 @@ abstract class Refined<A, B>(
 ) {
 
   constructor(f: (A) -> B, vararg predicates: Refined<A, *>) : this(f, { a: A ->
-    predicates.map { it.constraints(a) }.fold(emptyMap<Boolean, String>()) { acc, constrains ->
-      acc + constrains
+    when {
+      predicates.isEmpty() -> emptyList()
+      predicates.size == 1 -> predicates[0].constraints(a)
+      else -> predicates.reduce { l, r -> l + r }.constraints(a)
     }
   })
 
@@ -43,6 +50,9 @@ abstract class Refined<A, B>(
     return if (results.allValid()) f(value)
     else throw IllegalArgumentException(renderMessages(results))
   }
+
+  inline fun require(value: A): B =
+    invoke(value)
 
   inline operator fun not(): Refined<A, B> =
     Not(this)
@@ -58,7 +68,7 @@ abstract class Refined<A, B>(
     val results = constraints(value)
     return if (results.allValid()) ifValid(f(value))
     else {
-      val failedConstrains = results.filterNot { it.key }
+      val failedConstrains = results.filterNot { it.first }
       ifInvalid(failedConstrains)
     }
   }

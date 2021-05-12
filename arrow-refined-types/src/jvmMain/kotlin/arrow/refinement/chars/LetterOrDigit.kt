@@ -63,15 +63,15 @@ value
  *  # Unsafe require
  *
  * ```kotlin:ank
- * LetterOrDigit('1')
+ * LetterOrDigit.require('1')
  * ```
  *
  *  ```kotlin:ank
- * LetterOrDigit('a')
+ * LetterOrDigit.require('a')
  * ```
  *
- * ```kotlin:ank:fail
- * LetterOrDigit('%')
+ * ```kotlin:ank
+ * try { LetterOrDigit.require('%') } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  */

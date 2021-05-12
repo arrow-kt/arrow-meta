@@ -16,7 +16,7 @@ apply plugin: 'ank-gradle-plugin'
 dependencies {
   runtimeOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
   runtimeOnly project(':arrow-meta')
-    runtimeOnly project(':prelude')
+    runtimeOnly project(':arrow-refined-types')
 }
 
 ank {

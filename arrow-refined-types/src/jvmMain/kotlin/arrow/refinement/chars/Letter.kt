@@ -54,12 +54,12 @@ value
  *
  * # Unsafe require
  *
- * ```kotlin:ank:fail
- * Letter('1')
+ * ```kotlin:ank
+ * try { Letter.require('1') } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  * ```kotlin:ank
- * Letter('a')
+ * Letter.require('a')
  * ```
  *
  */

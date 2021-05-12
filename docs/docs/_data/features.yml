@@ -7,6 +7,3 @@ content:
 
     - title: Arrow Optics
       url: https://arrow-kt.io/docs/optics/dsl/
-
-    - title: Arrow Incubator
-      url: https://arrow-kt.io/docs/aql/intro/

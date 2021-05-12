@@ -51,11 +51,11 @@ value
  *  # Unsafe require
  *
  * ```kotlin:ank
- * WhiteSpaceChar(' ')
+ * WhiteSpaceChar.require(' ')
  * ```
  *
- *  ```kotlin:ank:fail
- * WhiteSpaceChar('A')
+ * ```kotlin:ank
+ * try { WhiteSpaceChar.require('A') } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  */

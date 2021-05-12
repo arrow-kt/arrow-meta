@@ -63,11 +63,11 @@ value
  *  # Unsafe require
  *
  *  ```kotlin:ank
- * LowerCaseChar('a')
+ * LowerCaseChar.require('a')
  * ```
  *
- * ```kotlin:ank:fail
- * LowerCaseChar('A')
+ * ```kotlin:ank
+ * try { LowerCaseChar.require('A') } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  */

@@ -55,11 +55,11 @@ value
  * # Unsafe require
  *
  * ```kotlin:ank
- * Digit('1')
+ * Digit.require('1')
  * ```
  *
- * ```kotlin:ank:fail
- * Digit('a')
+ * ```kotlin:ank
+ * try { Digit.require('a') } catch (e: IllegalArgumentException) { e.message }
  * ```
  *
  */
