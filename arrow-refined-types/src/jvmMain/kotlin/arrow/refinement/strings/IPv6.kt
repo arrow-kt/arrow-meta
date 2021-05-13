@@ -4,7 +4,62 @@ import arrow.refinement.Refined
 import arrow.refinement.ensure
 
 @JvmInline
-value class IPv6 private constructor(val value: String) {
+value class
+/**
+ * [IPv6] constrains [String] to be a valid IPv6
+ *
+ * # Safe nullable construction
+ *
+ * ```kotlin:ank
+ * import arrow.refinement.strings.IPv6
+ *
+ * IPv6.orNull("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+ * ```
+ *
+ * ```kotlin:ank
+ * IPv6.orNull("abc")
+ * ```
+ *
+ * # Resolved constraints
+ *
+ * ```kotlin:ank
+ * IPv6.constraints("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+ * ```
+ *
+ * ```kotlin:ank
+ * IPv6.constraints("abc")
+ * ```
+ *
+ *  ```kotlin:ank
+ * IPv6.isValid("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+ * ```
+ *
+ * ```kotlin:ank
+ * IPv6.isValid("abc")
+ * ```
+ *
+ * # Folding validation
+ *
+ * ```kotlin:ank
+ * IPv6.fold("2001:0db8:85a3:0000:0000:8a2e:0370:7334", { "failed: $it" }, { "success: $it" })
+ * ```
+ *
+ * ```kotlin:ank
+ * IPv6.fold("abc", { "failed: $it" }, { "success: $it" })
+ * ```
+ *
+ * # Unsafe require
+ *
+ * ```kotlin:ank
+ * IPv6.require("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+ * ```
+ *
+ * ```kotlin:ank
+ * try { IPv6.require("abc") } catch (e: IllegalArgumentException) { e.message }
+ * ```
+ *
+ */
+IPv6 private constructor(val value: String) {
   companion object : Refined<String, IPv6>(::IPv6, {
     ensure((it.matches(Companion.IPV6Regex)) to ("Expected $it to be an IPv6 address"))
   }) {

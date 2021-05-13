@@ -48,10 +48,6 @@ value
  * Letter.fold('a', { "failed: $it" }, { "success: $it" })
  * ```
  *
- * ```kotlin:ank
- * Letter.fold('a', { "failed: $it" }, { "success: $it" })
- * ```
- *
  * # Unsafe require
  *
  * ```kotlin:ank

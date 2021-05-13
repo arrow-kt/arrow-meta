@@ -48,10 +48,6 @@ value
  * Digit.fold('a', { "failed: $it" }, { "success: $it" })
  * ```
  *
- * ```kotlin:ank
- * Digit.fold('a', { "failed: $it" }, { "success: $it" })
- * ```
- *
  * # Unsafe require
  *
  * ```kotlin:ank

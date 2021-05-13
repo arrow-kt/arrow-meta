@@ -13,6 +13,28 @@ declared types truly represent the programmers intent.
 The refined-types plugin is a Kotlin compiler plugin that can be enabled via Gradle in your build by adding it to the
 list of your Gradle plugins.
 
+Release
+
+```groovy
+plugins {
+    id "io.arrow-kt.arrow-refined-types" version "<release-version>"
+}
+```
+
+Snapshots
+
+```groovy
+buildscript {
+    repositories {
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    dependencies {
+        classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+    }
+}
+apply plugin: "io.arrow-kt.arrow-refined-types"
+```
+
 ## Issues modeling with primitives types.
 
 Leveraging programming languages built-in types like `String` and `Int` is convenient and allows us to express a wide

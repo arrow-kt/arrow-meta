@@ -78,7 +78,7 @@ import arrow.refinement.Refined
  * ```
  *
  * @see arrow.refinement.Refined.plus
- * @see arrow.refinement.and
+ * @see arrow.refinement.Refined.and
  */
 class And<A, B>(
   private val left: Refined<A, *>,
@@ -88,5 +88,5 @@ class And<A, B>(
   Refined<A, B>({ right(it) }, {
     val newConstrains = left.constraints(it).toList() + right.constraints(it).toList()
     val compositionResults = newConstrains.map { (k, v) -> k to (defaultMsg ?: v) }
-    compositionResults
+    compositionResults.distinct()
   })
