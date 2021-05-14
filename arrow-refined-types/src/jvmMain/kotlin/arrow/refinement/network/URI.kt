@@ -6,7 +6,9 @@ import arrow.refinement.ensure
 @JvmInline
 value
 /**
- * [URI] constrains [String] to be a valid hexadecimal [String] of length 32
+ * JVM only
+ *
+ * [URI] constrains [String] to be validated by [java.net.URI]
  *
  * # Safe nullable construction
  *

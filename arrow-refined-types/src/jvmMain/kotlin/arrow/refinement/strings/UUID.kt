@@ -6,7 +6,9 @@ import arrow.refinement.ensure
 @JvmInline
 value
 /**
- * [UUID] constrains [String] to be a valid UUID
+ * JVM only
+ *
+ * [UUID] constrains [String] to be a valid [java.util.UUID]
  *
  * # Safe nullable construction
  *

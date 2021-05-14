@@ -6,6 +6,8 @@ import arrow.refinement.ensure
 @JvmInline
 value
 /**
+ * JVM only
+ *
  * [ValidBigDecimal] constrains [String] to be a valid [java.math.BigDecimal]
  *
  * # Safe nullable construction

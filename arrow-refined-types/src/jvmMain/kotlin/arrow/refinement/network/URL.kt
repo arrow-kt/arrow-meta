@@ -7,7 +7,9 @@ import java.net.MalformedURLException
 @JvmInline
 value
 /**
- * [URL] constrains [String] to be a valid hexadecimal [String] of length 32
+ * JVM only
+ *
+ * [URL] constrains [String] to be validated by [java.net.URL]
  *
  * # Safe nullable construction
  *

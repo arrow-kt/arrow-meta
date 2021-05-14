@@ -116,7 +116,7 @@ inline fun <A> constraints(refined: Refined<A, *>, value: A): Constraints =
  * }
  * ```
  */
-abstract class Refined<A, B>(
+abstract class Refined<A, out B>(
   /**
    * Refined type constructor that will be applied if [constraints] invocation
    * results in a list of valid [Constraints]
