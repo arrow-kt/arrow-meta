@@ -2,6 +2,7 @@ package arrow.refinement.numbers
 
 import arrow.refinement.Refined
 import arrow.refinement.ensure
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value

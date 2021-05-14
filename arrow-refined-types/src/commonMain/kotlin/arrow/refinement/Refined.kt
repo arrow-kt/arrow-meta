@@ -81,7 +81,7 @@ inline fun renderMessages(results: Constraints): String =
  */
 fun require(constraints: Constraints): Unit {
   if (constraints.allValid()) Unit
-  else throw java.lang.IllegalArgumentException(renderMessages(constraints))
+  else throw IllegalArgumentException(renderMessages(constraints))
 }
 
 /**
