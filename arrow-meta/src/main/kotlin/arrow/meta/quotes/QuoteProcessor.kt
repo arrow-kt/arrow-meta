@@ -87,7 +87,6 @@ inline fun <reified K : KtElement> CompilerContext.transformFile(
     (it.first ?: ktFile) to it.second
   }
   val newFile = newSource.map { source -> changeSource(source.first, Writer.write(source.second), ktFile, sourcePath = source.second.path) }
-  println("Transformed file: $ktFile. New contents: \n$newSource")
   return newFile
 }
 
@@ -149,7 +148,6 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(ktFile: KtFile, compil
 fun <K : KtElement> Transform.Replace<K>.replace(file: Node.File, context: PsiElement? = null): Node.File = MutableVisitor.preVisit(file) { element, _ ->
   if (element != null && element == (context?.ast ?: replacing.ast)) {
     val newContents = newDeclarations.joinToString("\n") { it.value?.text ?: "" }
-    println("Replacing ${element.javaClass} with ${newDeclarations.map { it.value?.javaClass }}: newContents: \n$newContents")
     element.dynamic = newContents
     element
   } else element
@@ -159,7 +157,6 @@ fun <K : KtElement> Transform.Remove<K>.remove(file: Node.File, context: PsiElem
   val elementsToRemove = declarations.elementsFromItsContexts(context)
   return MutableVisitor.preVisit(file) { element, _ ->
     if (element != null && elementsToRemove.any { it.textRange == element.psiElement?.textRange }) element.also {
-      println("Removing ${element.javaClass}")
       it.dynamic = ""
     } else element
   }

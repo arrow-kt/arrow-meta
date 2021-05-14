@@ -1,4 +1,38 @@
 options:
+  - title: Compiler Plugins API
+
+    nested_options:
+
+      - title: Overview
+        url: /
+
+      - title: Hello World Compiler Plugin
+        url: /hello-world.html
+
+      - title: Setup
+        url: /setup.html
+
+      - title: Config
+        url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
+
+      - title: Analysis
+        url: /apidocs/arrow-meta/arrow.meta.dsl.analysis/-analysis-syntax/
+
+      - title: Resolution
+        url: /apidocs/arrow-meta/arrow.meta.dsl.resolve/-resolve-syntax/
+
+      - title: IR Codegen
+        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
+
+      - title: Compiler Plugins Tests
+        url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
+
+      - title: Meta API docs
+        url: /apidocs/arrow-meta/
+
+      - title: Testing library API docs
+        url: /apidocs/meta-test/
+
   - title: Refined Types
 
     nested_options:
@@ -29,48 +63,3 @@ options:
 
       - title: Time
         url: /apidocs/arrow-refined-types/arrow.refinement.time/
-
-  - title: Kotlin Compiler Plugins API
-
-    nested_options:
-
-      - title: Overview
-        url: /
-
-      - title: Hello World Compiler Plugin
-        url: /hello-world.html
-
-      - title: Setup
-        url: /setup.html
-
-      - title: Config
-        url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
-
-      - title: Analysis
-        url: /apidocs/arrow-meta/arrow.meta.dsl.analysis/-analysis-syntax/
-
-      - title: Resolution
-        url: /apidocs/arrow-meta/arrow.meta.dsl.resolve/-resolve-syntax/
-
-      - title: ASM Codegen
-        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.asm/-asm-syntax/
-
-      - title: IR Codegen
-        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
-
-  - title: Testing
-
-    nested_options:
-
-      - title: Compiler Plugins Tests
-        url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
-
-  - title: API Docs
-
-    nested_options:
-
-      - title: Meta
-        url: /apidocs/arrow-meta/
-
-      - title: Testing library
-        url: /apidocs/meta-test/

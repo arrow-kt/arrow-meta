@@ -144,11 +144,7 @@ interface InternalRegistry : ConfigSyntax {
     context: CompilerContext? = null
   ) {
     cli {
-      println("it's the CLI plugin")
       registerSyntheticScopeProviderIfNeeded(project)
-    }
-    ide {
-      println("it's the IDEA plugin")
     }
     val ctx: CompilerContext =
       if (context != null) {

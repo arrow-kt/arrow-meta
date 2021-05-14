@@ -40,7 +40,6 @@ internal fun Meta.validateIrCallsToRefinedFunctions(): IRGeneration =
 private fun IrUtils.evalRefinement(
   it: IrCall
 ): Unit {
-  println("Evaluating refined call: ${it.dumpKotlinLike()}")
   val valueArg = it.getValueArgument(0)
   val value = valueArg as? IrConst<*>
   when {

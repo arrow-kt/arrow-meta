@@ -62,5 +62,5 @@ value
  */
 class From private constructor(val value: Int) {
   class N(n: UInt, msg: (Int) -> String = { "$it should be greater than or equal to $n" }) :
-    Refined<Int, From>(::From, GreaterThan.N(n) or Equal.Value(n.toInt()))
+    Refined<Int, From>(::From, GreaterThan.N(n, msg) or Equal.Value(n.toInt(), msg))
 }

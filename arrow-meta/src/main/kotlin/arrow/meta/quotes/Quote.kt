@@ -151,20 +151,12 @@ inline fun <P : KtElement, reified K : KtElement, S : Scope<K>> Meta.quote(
     analysis(
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         files as ArrayList
-        println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map)
         updateFiles(files, fileMutations, match)
-        println("END quote.doAnalysis: $files")
         files.forEach {
           val fileText = it.text
           if (fileText.contains(META_DEBUG_COMMENT)) {
             File(it.virtualFilePath + ".meta").writeText(it.text.replaceFirst(META_DEBUG_COMMENT, "//meta: ${Date()}"))
-            println("""|
-              |ktFile: $it
-              |----
-              |${it.text}
-              |----
-              """.trimMargin())
           }
         }
         null
