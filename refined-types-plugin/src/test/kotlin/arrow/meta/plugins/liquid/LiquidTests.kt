@@ -105,6 +105,18 @@ class LiquidTests {
     )
   }
 
+  @Test
+  fun `failure to evaluate dynamic values results in orNull suggestion`() {
+    """
+      |${imports()}
+      |val n = 1
+      |val z = PositiveInt(n)
+      """(
+      withPlugin = { failsWith { """val n = 1 can't be verified at compile time. Use `Predicate.orNull(val n = 1)` for safe access or `Predicate.require(val n = 1)` for explicit unsafe instantiation""" in it } },
+      withoutPlugin = { "z".source.evalsTo(1) }
+    )
+  }
+
 }
 
 private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =
