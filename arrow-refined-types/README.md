@@ -29,7 +29,7 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-        classpath "io.arrow-kt:gradle-plugin:<snapshot-version>"
+        classpath "io.arrow-kt:arrow-refined-types-gradle-plugin:<snapshot-version>"
     }
 }
 apply plugin: "io.arrow-kt.arrow-refined-types"
