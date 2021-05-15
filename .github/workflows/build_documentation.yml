@@ -18,7 +18,7 @@ jobs:
       env:
         JEKYLL_ENV: production
       run: |
-        gem install bundler
+        sudo gem install bundler
         bundle install --gemfile docs/Gemfile --path vendor/bundle
         BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -s docs/build/site -d docs/build/_site
     - name: "Simulate deploy"
