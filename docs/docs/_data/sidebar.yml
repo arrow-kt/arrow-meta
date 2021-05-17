@@ -1,6 +1,5 @@
 options:
-
-  - title: Quick Start
+  - title: Compiler Plugins API
 
     nested_options:
 
@@ -13,50 +12,6 @@ options:
       - title: Setup
         url: /setup.html
 
-  - title: Quotes
-
-    nested_options:
-
-      - title: Index
-        url: /apidocs/arrow-meta/arrow.meta.quotes/
-
-      - title: ClassOrObject
-        url: /apidocs/arrow-meta/arrow.meta.quotes.classorobject/
-
-      - title: Declaration
-        url: /apidocs/arrow-meta/arrow.meta.quotes.declaration/
-
-      - title: Element
-        url: /apidocs/arrow-meta/arrow.meta.quotes.element/
-
-      - title: WhenCondition
-        url: /apidocs/arrow-meta/arrow.meta.quotes.element.whencondition/
-
-      - title: Expression
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression/
-
-      - title: ExpressionWithLabel
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.expressionwithlabel/
-
-      - title: LoopExpression
-        url: /apidocs/arrow-meta/arrow.meta.quotes.expression.loopexpression/
-
-      - title: Filebase
-        url: /apidocs/arrow-meta/arrow.meta.quotes.filebase/
-
-      - title: Modifierlist
-        url: /apidocs/arrow-meta/arrow.meta.quotes.modifierlist/
-
-      - title: NamedDeclaration - NotStubbed
-        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.notstubbed/
-
-      - title: NamedDeclaration - Stub
-        url: /apidocs/arrow-meta/arrow.meta.quotes.nameddeclaration.stub/
-
-  - title: Compiler API
-
-    nested_options:
-
       - title: Config
         url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
 
@@ -66,25 +21,45 @@ options:
       - title: Resolution
         url: /apidocs/arrow-meta/arrow.meta.dsl.resolve/-resolve-syntax/
 
-      - title: ASM Codegen
-        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.asm/-asm-syntax/
-
       - title: IR Codegen
         url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
-
-  - title: Testing
-
-    nested_options:
 
       - title: Compiler Plugins Tests
         url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
 
-  - title: API Docs
+      - title: Meta API docs
+        url: /apidocs/arrow-meta/
+
+      - title: Testing library API docs
+        url: /apidocs/meta-test/
+
+  - title: Refined Types
 
     nested_options:
 
-      - title: Compiler plugin Core
-        url: /apidocs/arrow-meta/
+      - title: Quick Start
+        url: /apidocs/arrow-refined-types/arrow.refinement/
 
-      - title: Testing library
-        url: /apidocs/meta-test/
+      - title: Booleans
+        url: /apidocs/arrow-refined-types/arrow.refinement.booleans/
+
+      - title: Numbers
+        url: /apidocs/arrow-refined-types/arrow.refinement.numbers/
+
+      - title: Characters
+        url: /apidocs/arrow-refined-types/arrow.refinement.chars/
+
+      - title: Strings
+        url: /apidocs/arrow-refined-types/arrow.refinement.strings/
+
+      - title: Collections
+        url: /apidocs/arrow-refined-types/arrow.refinement.collections/
+
+      - title: Digests
+        url: /apidocs/arrow-refined-types/arrow.refinement.digests/
+
+      - title: Network
+        url: /apidocs/arrow-refined-types/arrow.refinement.network/
+
+      - title: Time
+        url: /apidocs/arrow-refined-types/arrow.refinement.time/

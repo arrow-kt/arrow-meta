@@ -89,10 +89,8 @@ inline fun <P : KtElement, reified K : KtElement, reified D : DeclarationDescrip
       doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
         if (!ctx.analysisPhaseWasRewind.get()) return@analysis null
         files as ArrayList
-        println("START quote.doAnalysis: $files")
         val fileMutations = processFiles(files, quoteFactory, match, map, mapDescriptor, analysedDescriptors)
         updateFiles(files, fileMutations, match.let { m -> { element: K -> m(TypedQuoteTemplate(element, analysedDescriptors.mapDescriptor(element))) } })
-        println("END quote.doAnalysis: $files")
         files.forEach {
           val fileText = it.text
           if (fileText.contains(META_DEBUG_COMMENT)) {

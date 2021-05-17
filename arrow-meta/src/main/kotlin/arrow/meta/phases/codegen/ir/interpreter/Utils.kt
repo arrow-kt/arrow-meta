@@ -194,6 +194,5 @@ internal fun Method.getSignature(): String? =
       parameterTypes.map { ClassPool.getDefault().get(it.canonicalName) }.toTypedArray()
     )
   } catch (e: NotFoundException) {
-    println(e.message)
     null
   }

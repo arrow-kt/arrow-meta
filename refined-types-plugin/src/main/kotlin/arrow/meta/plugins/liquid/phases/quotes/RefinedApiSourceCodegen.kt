@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.ValueArgument
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.isSubclassOf
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.parents
@@ -55,7 +56,8 @@ private fun CompilerContext.refinedExpressions(declaration: ObjectDeclaration): 
           if (localDescriptor != null && localPsi != null && localPsi is KtObjectDeclaration) {
             refinedExpressions(ObjectDeclaration(localPsi, localDescriptor))
           } else {
-            listOf("constrains(${exp.text}, it)".expression.value)
+            val fqName = bindingTrace?.bindingContext?.getType(exp)?.constructor?.declarationDescriptor?.fqNameSafe
+            listOf("constraints($fqName, it)".expression.value)
           }
         }
         else -> emptyList<KtExpression>()

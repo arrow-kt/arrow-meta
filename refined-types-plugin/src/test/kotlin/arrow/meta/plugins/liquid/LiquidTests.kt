@@ -37,7 +37,7 @@ class LiquidTests {
   fun `Invalid twitter handle 'admin' and fails`() {
     failedRefinedExpressionTest(
       expression = """TwitterHandle("admin").value""",
-      msg = "should not contain the word 'admin'"
+      msg = "admin should start with @, should not contain the word 'admin'"
     )
   }
 
@@ -45,7 +45,7 @@ class LiquidTests {
   fun `Local predicate composition fails`() {
     failedRefinedExpressionTest(
       expression = """TwitterHandleNotBlank("admin").value""",
-      msg = "should not contain the word 'admin'"
+      msg = "admin should start with @, should not contain the word 'admin'"
     )
   }
 
@@ -61,7 +61,7 @@ class LiquidTests {
   fun `Remote predicate composition fails`() {
     failedRefinedExpressionTest(
       expression = """PositiveIntEven(-1).value""",
-      msg = "-1 should be even"
+      msg = "-1 should be > 0, -1 should be even"
     )
   }
 
@@ -105,6 +105,18 @@ class LiquidTests {
     )
   }
 
+  @Test
+  fun `failure to evaluate dynamic values results in orNull suggestion`() {
+    """
+      |${imports()}
+      |val n = 1
+      |val z = PositiveInt(n)
+      """(
+      withPlugin = { failsWith { """val n = 1 can't be verified at compile time. Use `Predicate.orNull(val n = 1)` for safe access or `Predicate.require(val n = 1)` for explicit unsafe instantiation""" in it } },
+      withoutPlugin = { "z".source.evalsTo(1) }
+    )
+  }
+
 }
 
 private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =
@@ -134,8 +146,8 @@ package test
 
 import arrow.refinement.Refined
 import arrow.refinement.ensure
-import arrow.refinement.PositiveInt
-import arrow.refinement.Even
+import arrow.refinement.numbers.PositiveInt
+import arrow.refinement.numbers.Even
 
 data class TwitterHandle private constructor(val value: String) {
   companion object : Refined<String, TwitterHandle>(::TwitterHandle, {

@@ -4,10 +4,13 @@ title: Hello World
 ---
 
 # Hello World Compiler Plugin
+```
+NOTE: This Example is outdated as Arrow Meta will replace the current psi and descriptor based frontend implementations in favor of the FIR model once that becomes stable in the Kotlin compiler.
+```
 
 The following example shows a Hello World Compiler Plugin.
 
-The Hello World plugin auto implements the `helloWorld` function by rewriting the Kotlin AST before the compiler proceeds.
+The Hello World plugin auto implements the `helloWorld` function by creating a new the Kotlin AST before the compiler proceeds.
 
 ```kotlin
 val Meta.helloWorld: CliPlugin get() =
