@@ -1,0 +1,56 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+}
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+            }
+        }
+        commonTest {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+                implementation "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
+
+                // To avoid issues in the IDE
+                implementation "io.kotest:kotest-framework-api-jvm:$KOTEST_VERSION"
+            }
+        }
+        jvmMain {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+            }
+        }
+        jvmTest {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+                implementation "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
+            }
+        }
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+                jvmTarget = "1.8"
+            }
+        }
+    }
+}
+
+tasks.jvmTest{
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat 'full'
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
+//apply from: "$rootDir/gradle/publication-mpp.gradle"

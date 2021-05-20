@@ -124,6 +124,9 @@ interface ConfigSyntax {
   fun refinedTypesLib(currentVersion: String?): Dependency =
     Dependency("arrow-refined-types-jvm:$currentVersion")
 
+  fun macrosLib(currentVersion: String?): Dependency =
+    Dependency("arrow-inline-macros-jvm:$currentVersion")
+
   /**
    * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as
    * a dependency.
