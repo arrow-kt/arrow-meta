@@ -5,9 +5,7 @@ plugins {
 
 def pathApiDocs = "${rootDir}/docs/docs/apidocs"
 
-configure(subprojects
-        - project("docs")
-) {
+configure(subprojects - project("docs")) {
   // Documentation
   clean.doFirst {
     delete pathApiDocs
@@ -27,9 +25,10 @@ configure(subprojects
   version = VERSION_NAME
 }
 
-configure(subprojects
-        - project("docs")
-        - project("arrow-refined-types")
+configure(subprojects -
+        project("docs") -
+        project("arrow-refined-types") -
+        project("arrow-inline-macros")
 ) {
   afterEvaluate {
     jar {
