@@ -25,4 +25,8 @@ ank {
   classpath = sourceSets.main.runtimeClasspath
 }
 
+clean.doFirst {
+  delete PATH_APIDOCS
+}
+
 compileKotlin.kotlinOptions.freeCompilerArgs += ["-Xskip-runtime-version-check"]

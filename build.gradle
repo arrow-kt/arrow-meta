@@ -1,22 +1,18 @@
+buildscript {
+  ext.set("PATH_APIDOCS", "${rootDir}/docs/docs/apidocs")
+}
+
 plugins {
-  id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION"
+  id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION" apply false
   id "org.jetbrains.dokka" version "$DOKKA_VERSION" apply false
 }
 
-def pathApiDocs = "${rootDir}/docs/docs/apidocs"
-
-configure(subprojects
-        - project("docs")
+configure(subprojects - project("docs")
 ) {
-  // Documentation
-  clean.doFirst {
-    delete pathApiDocs
-  }
-
   apply plugin: "org.jetbrains.dokka"
   dokka {
     outputFormat = 'jekyll'
-    outputDirectory = pathApiDocs
+    outputDirectory = PATH_APIDOCS
     configuration {
         includes = ['README.md']
     }
@@ -27,9 +23,9 @@ configure(subprojects
   version = VERSION_NAME
 }
 
-configure(subprojects
-        - project("docs")
-        - project("arrow-refined-types")
+configure(subprojects -
+        project("docs") -
+        project("arrow-refined-types")
 ) {
   afterEvaluate {
     jar {

@@ -12,12 +12,9 @@ kotlin {
         commonTest {
             dependencies {
                 compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-                implementation "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
                 implementation "io.kotest:kotest-property:$KOTEST_VERSION"
                 implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
-
-                // To avoid issues in the IDE
-                implementation "io.kotest:kotest-framework-api-jvm:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-framework-api:$KOTEST_VERSION"
             }
         }
         jvmMain {
@@ -42,6 +39,10 @@ kotlin {
                 jvmTarget = "1.8"
             }
         }
+    }
+
+    js {
+        nodejs()
     }
 }
 
