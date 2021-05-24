@@ -41,7 +41,7 @@ fun <A, B> checkLaw(
 }
 
 abstract class RefinedLaws<A>(arb: Arb<A>, vararg refined: Refined<A, *>) : StringSpec({
-  println("Running laws for ${refined.map { it::class.simpleName }.joinToString()}")
+  println("Running laws for ${refined.joinToString { it::class.toString() }}")
   refined.forEach {
     it::class.simpleName?.invoke { it.laws(arb)  }
   }
