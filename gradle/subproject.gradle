@@ -1,0 +1,25 @@
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses", "-Xjvm-default=enable"]
+        jvmTarget = "$JVM_TARGET_VERSION"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+        jvmTarget = "$JVM_TARGET_VERSION"
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams true
+        exceptionFormat 'full'
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
+    systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+    jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
+}

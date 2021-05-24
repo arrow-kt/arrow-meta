@@ -22,18 +22,4 @@ dependencies {
     testRuntimeOnly project(':prelude')
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "$JVM_TARGET_VERSION"
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        exceptionFormat 'full'
-        events "passed", "skipped", "failed", "standardOut", "standardError"
-    }
-    systemProperty "CURRENT_VERSION", "$VERSION_NAME"
-}
+apply from: file("${rootDir}/${SUBPROJECT}")
