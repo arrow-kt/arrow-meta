@@ -2,57 +2,5 @@ plugins {
     id "org.jetbrains.kotlin.multiplatform"
 }
 
-kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-            }
-        }
-        commonTest {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-framework-api:$KOTEST_VERSION"
-            }
-        }
-        jvmMain {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-            }
-        }
-        jvmTest {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-                implementation "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
-            }
-        }
-    }
-
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
-                jvmTarget = "1.8"
-            }
-        }
-    }
-
-    js {
-        browser()
-        nodejs()
-    }
-}
-
-tasks.jvmTest{
-    useJUnitPlatform()
-    testLogging {
-        exceptionFormat 'full'
-        events "passed", "skipped", "failed", "standardOut", "standardError"
-    }
-}
-
-apply from: "$rootDir/gradle/publication-mpp.gradle"
+apply from: "${rootDir}/${SUBPROJECT_MPP}"
+apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"

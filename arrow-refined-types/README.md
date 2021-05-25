@@ -17,7 +17,7 @@ Release
 
 ```groovy
 plugins {
-    id "io.arrow-kt.arrow-refined-types" version "<release-version>"
+    id "io.arrow-kt.refined-types" version "<release-version>"
 }
 ```
 
@@ -32,7 +32,7 @@ buildscript {
         classpath "io.arrow-kt:arrow-refined-types-gradle-plugin:<snapshot-version>"
     }
 }
-apply plugin: "io.arrow-kt.arrow-refined-types"
+apply plugin: "io.arrow-kt.refined-types"
 ```
 
 ## Issues modeling with primitives types.

@@ -7,6 +7,7 @@ plugins {
   id "org.jetbrains.dokka" version "$DOKKA_VERSION" apply false
 }
 
+// APIDOC
 configure(subprojects - project("docs")
 ) {
   apply plugin: "org.jetbrains.dokka"
@@ -17,15 +18,20 @@ configure(subprojects - project("docs")
         includes = ['README.md']
     }
   }
+}
 
-  // Publication
+// Publication
+configure(subprojects - project("docs")
+) {
   group = GROUP
   version = VERSION_NAME
 }
 
+// JVM Publication
 configure(subprojects -
         project("docs") -
-        project("arrow-refined-types")
+        project("gradle-plugin-commons") -
+        project("arrow-refined-types") // MPP subprojects
 ) {
   afterEvaluate {
     jar {
