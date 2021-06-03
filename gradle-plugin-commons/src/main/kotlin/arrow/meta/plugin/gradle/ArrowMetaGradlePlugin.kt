@@ -46,6 +46,7 @@ abstract class ArrowMetaGradlePlugin : Plugin<Project> {
 
   protected fun addCompilerPlugin(project: Project, plugin: String) =
     project.afterEvaluate { p ->
+      println("Applying $plugin for ${project.name} ...")
       p.tasks.withType(KotlinCompile::class.java).configureEach {
         it.kotlinOptions.freeCompilerArgs += listOf("-Xplugin=${classpathOf(plugin)}")
       }
