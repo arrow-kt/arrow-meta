@@ -108,7 +108,6 @@ class GivenTest {
   val prelude = """
     package test
     import arrow.*
-    import arrowx.*
     
     fun <A> given(evidence: @Given A = arrow.given): A =
       evidence

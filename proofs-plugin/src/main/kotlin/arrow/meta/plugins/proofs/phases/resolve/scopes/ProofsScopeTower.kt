@@ -47,7 +47,7 @@ class ProofsScopeTower(
     memberScopes = arrayOf({ proofs }.memberScope())
   )//.addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
-  override val syntheticScopes: SyntheticScopes = ProofsSyntheticScopes(null, compilerContext)
+  override val syntheticScopes: SyntheticScopes = SyntheticScopes.Empty
   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
   override fun interceptFunctionCandidates(
@@ -72,12 +72,5 @@ class ProofsScopeTower(
   ): Collection<VariableDescriptor> =
     Log.Verbose({ "ProofsScopeTower.interceptVariableCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location" }) {
       emptyList()
-    }
-}
-
-class ProofsSyntheticScopes(delegate: JavaSyntheticScopes? = null, ctx: CompilerContext) : SyntheticScopes {
-  override val scopes: Collection<SyntheticScope> =
-    Log.Silent({ "ProofsSyntheticScopes.scopes $this" }) {
-      delegate?.scopes.orEmpty() + listOf(ProofsSyntheticScope(ctx))
     }
 }

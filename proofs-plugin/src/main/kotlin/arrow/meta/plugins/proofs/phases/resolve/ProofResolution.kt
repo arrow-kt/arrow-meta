@@ -2,16 +2,11 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
-import arrow.meta.plugins.proofs.phases.ArrowCoercionProof
-import arrow.meta.plugins.proofs.phases.ArrowExtensionProof
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
-import arrow.meta.plugins.proofs.phases.CoercionProof
-import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.ObjectProof
-import arrow.meta.plugins.proofs.phases.ProjectionProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.quotes.refinementExpression
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
@@ -49,29 +44,6 @@ import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
-
-inline fun <reified A : ExtensionProof> List<A>.matchingCandidates(
-  compilerContext: CompilerContext,
-  subType: KotlinType,
-  superType: KotlinType
-): List<A> {
-  val proofs = if (containsErrorsOrNothing(subType, superType)) emptyList<A>()
-  else {
-    compilerContext.run {
-      try {
-        module?.run {
-          componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-            val proofs = this@matchingCandidates.resolveExtensionProofs(subType, superType, compilerContext, proofsCallResolver, this)
-            proofs
-          }
-        } ?: emptyList()
-      } catch (e: ContainerConsistencyException) {
-        emptyList<A>()
-      }
-    }
-  }
-  return proofs
-}
 
 fun List<GivenProof>.matchingCandidates(
   compilerContext: CompilerContext,
@@ -116,30 +88,6 @@ fun List<GivenProof>.resolveGivenProofs(
   return callResolutionResult.matchingGivenProofs(superType)
 }
 
-
-inline fun <reified A : ExtensionProof> List<A>.resolveExtensionProofs(
-  subType: KotlinType,
-  superType: KotlinType,
-  compilerContext: CompilerContext,
-  proofsCallResolver: ProofsCallResolver,
-  moduleDescriptor: ModuleDescriptor
-): List<A> {
-  val extensionReceiver = ProofReceiverValue(subType)
-  val receiverValue = ReceiverValueWithSmartCastInfo(extensionReceiver, emptySet(), true)
-  val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
-  val kotlinCall: KotlinCall = receiverValue.kotlinCall()
-  val callResolutionResult = proofsCallResolver.run {
-    resolveCandidates(
-      scopeTower = scopeTower,
-      kotlinCall = kotlinCall,
-      expectedType = superType.unwrap(),
-      collectAllCandidates = true,
-      extensionReceiver = receiverValue
-    )
-  }
-  return callResolutionResult.matchingExtensionProofs(subType, superType)
-}
-
 fun containsErrorsOrNothing(vararg types: KotlinType) =
   types.any { it.isError || it.isNothing() }
 
@@ -151,17 +99,6 @@ inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(sup
     }.filter {
       it is A && includeInCandidates(it.to, superType)
     }.filterIsInstance<A>()
-    proofs.toList()
-  } else emptyList()
-
-inline fun <reified A : ExtensionProof> CallResolutionResult.matchingExtensionProofs(subType: KotlinType, superType: KotlinType): List<A> =
-  if (this is AllCandidatesResolutionResult) {
-    val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
-    val proofs = selectedCandidates
-      .flatMap { it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable() }
-      .filter {
-        it is A && includeInCandidates(it.from, it.to, subType, superType)
-      }.filterIsInstance<A>()
     proofs.toList()
   } else emptyList()
 
@@ -233,8 +170,6 @@ fun PropertyDescriptor.asProof(): Sequence<Proof> =
 fun FunctionDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
     when (it.fqName) {
-      ArrowExtensionProof -> if (isExtension) asProjectionProof() else null
-      ArrowCoercionProof -> if (isExtension) asCoercionProof() else null
       ArrowGivenProof -> if (!isExtension) asGivenProof() else null
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
@@ -246,51 +181,3 @@ private fun ClassDescriptor.asGivenProof(): GivenProof =
 
 private fun CallableMemberDescriptor.asGivenProof(): GivenProof? =
   returnType?.let { CallableMemberProof(it, this) }
-
-private fun FunctionDescriptor.asCoercionProof(): CoercionProof? =
-  extensionReceiverParameter?.type?.let { from ->
-    returnType?.let { to ->
-      CoercionProof(
-        from = from,
-        to = to,
-        through = this
-      )
-    }
-  }
-
-
-private fun FunctionDescriptor.asProjectionProof(): ProjectionProof? =
-  extensionReceiverParameter?.type?.let { from ->
-    returnType?.let { to ->
-      ProjectionProof(
-        from = from,
-        to = to,
-        through = this
-      )
-    }
-  }
-
-
-fun List<Proof>.refinementsFor(superType: KotlinType): List<Proof> =
-  filter { proof ->
-    baseLineTypeChecker.isSubtypeOf(superType.makeNotNullable(), proof.to)
-  }
-
-fun List<Proof>.refinementExpressionFromAnnotation(superType: KotlinType): String? =
-  refinementsFor(superType)
-    .mapNotNull {
-      val refinedAnnotation = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor?.annotations?.findAnnotation(FqName("arrow.RefinedBy"))
-      if (refinedAnnotation != null) {
-        refinedAnnotation.argumentValue("predicate")?.value as? String
-      } else null
-    }.firstOrNull()
-
-fun List<Proof>.refinementExpressionFromPsi(superType: KotlinType): String? =
-  refinementsFor(superType)
-    .mapNotNull {
-      val descriptor = (it.to.makeNotNullable().constructor.declarationDescriptor as? ClassDescriptor)?.companionObjectDescriptor
-      val psi = descriptor?.findPsi()
-      val ktObject = psi as? KtObjectDeclaration
-      val objectDeclaration = ktObject?.let { ObjectDeclaration(it, descriptor) }
-      objectDeclaration?.refinementExpression()
-    }.firstOrNull()

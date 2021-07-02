@@ -3,7 +3,6 @@ package arrow.meta.plugins.proofs.phases.resolve.cache
 import arrow.meta.log.Log
 import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.isProof
@@ -66,6 +65,5 @@ private fun List<Proof>.show(): String =
   joinToString("\n") {
     when (it) {
       is GivenProof -> "Given: -> ${it.to.show(20)}"
-      is ExtensionProof -> "Extension: ${it.from.show(20)} -> ${it.to.show(20)}"
     }
   }

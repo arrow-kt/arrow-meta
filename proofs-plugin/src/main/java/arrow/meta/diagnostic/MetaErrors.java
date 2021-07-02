@@ -29,12 +29,7 @@ public interface MetaErrors {
     DiagnosticFactory1<KtDeclaration, KotlinType> UnresolvedGivenProof = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<KtExpression, ResolvedCall<?>, KotlinType> UnresolvedGivenCallSite = DiagnosticFactory2.create(ERROR);
-
-    DiagnosticFactory1<KtElement, String> RefinementValidationError = DiagnosticFactory1.create(ERROR);
-
-    DiagnosticFactory2<KtObjectDeclaration, KotlinType, KotlinType> IncorrectRefinement = DiagnosticFactory2.create(ERROR, onIdentifyingElement);
-
-    DiagnosticFactory2<KtObjectDeclaration, KotlinType, KotlinType> TooManyRefinements = DiagnosticFactory2.create(ERROR, onIdentifyingElement);
+    
     /**
      * needed to prevent NPE in
      * org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages#getRendererForDiagnostic(org.jetbrains.kotlin.diagnostics.Diagnostic)
