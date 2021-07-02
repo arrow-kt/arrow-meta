@@ -71,4 +71,3 @@ annotation class Given
 val given: Nothing
   get() = TODO("Should have been replaced by Arrow Proofs Compiler Plugin provided by [plugins { id 'io.arrow-kt.proofs' version 'x.x.x' }")
 
-fun <A> given(evidence: @Given A = arrow.given): A = evidence
