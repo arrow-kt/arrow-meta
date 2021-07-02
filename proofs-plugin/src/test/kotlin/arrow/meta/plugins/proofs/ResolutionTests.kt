@@ -59,6 +59,44 @@ class ResolutionTests {
     }
   }
 
+    @Test
+    fun `This test should pass or fail`() {
+        givenResolutionTest(
+            source =
+                """
+          
+        class RemoteDataSource {            
+            fun getUser(): String = "Javier"
+        }     
+
+        @Given     
+        fun givenRemoteDataSource(): RemoteDataSource = RemoteDataSource()   
+                    
+        interface GetUser {
+            operator fun invoke(): String
+        }
+        
+        @Given
+        class GetUserImpl(
+            private val remoteDataSource: RemoteDataSource = given(),
+        ) : GetUser {
+            override operator fun invoke(): String = remoteDataSource.getUser()
+        }
+        
+        @Given
+        class UserViewModel(
+            private val getUser: GetUser = given(),
+        ) {
+            fun loadUser(): String = getUser()
+        }                            
+        
+        val viewModel: UserViewModel = given()
+        val name = viewModel.loadUser()
+                
+      """
+        ) { allOf("name".source.evalsTo("Javier")) }
+    }
+
   @Test
   fun `@Given internal orphan override`() {
     givenResolutionTest(
