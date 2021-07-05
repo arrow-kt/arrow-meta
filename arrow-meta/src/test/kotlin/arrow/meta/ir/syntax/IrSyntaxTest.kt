@@ -170,7 +170,7 @@ class IrSyntaxTest {
         suspend fun hello(): Unit =
           println("Hello")
           
-        fun <A> provider(@Given evidence: A = arrow.given): A =
+        fun <A> provider(@Given evidence: A): A =
             evidence
 
         suspend fun foo(vararg a: Int) {

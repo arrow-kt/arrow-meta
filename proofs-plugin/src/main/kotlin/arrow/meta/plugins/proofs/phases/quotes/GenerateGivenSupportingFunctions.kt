@@ -76,7 +76,7 @@ private fun ReceiverParameterDescriptor?.render(): String {
 
 private fun List<ValueParameterDescriptor>.renderParameters(): String =
   joinToString {
-    if (it.isProof()) "${it.name}: ${it.type} = arrow.given"
+    if (it.isProof()) "${it.name}: ${it.type} = TODO(\"Compile time replaced\")"
     else "${it.name}: ${it.type}"
   } + ", unit: Unit = Unit"
 

@@ -75,7 +75,3 @@ annotation class Given
 annotation class CompileTime
 
 inline fun <A> given(@Given identity: A): A = identity
-
-val given: Nothing
-  get() = TODO("Should have been replaced by Arrow Proofs Compiler Plugin provided by [plugins { id 'io.arrow-kt.proofs' version 'x.x.x' }")
-
