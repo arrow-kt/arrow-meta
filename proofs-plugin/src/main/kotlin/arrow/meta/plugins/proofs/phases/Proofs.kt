@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val ArrowGivenProof: FqName = FqName("arrow.Given")
+val ArrowCompileTime: FqName = FqName("arrow.CompileTime")
 
 val ArrowProofSet: Set<FqName> = setOf(
   ArrowGivenProof

@@ -62,11 +62,19 @@ package arrow
   AnnotationTarget.CLASS,
   AnnotationTarget.FUNCTION,
   AnnotationTarget.PROPERTY,
-  AnnotationTarget.TYPE_PARAMETER,
-  AnnotationTarget.TYPE
+  AnnotationTarget.VALUE_PARAMETER
 )
 @MustBeDocumented
 annotation class Given
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(
+  AnnotationTarget.FUNCTION
+)
+@MustBeDocumented
+annotation class CompileTime
+
+inline fun <A> given(@Given identity: A): A = identity
 
 val given: Nothing
   get() = TODO("Should have been replaced by Arrow Proofs Compiler Plugin provided by [plugins { id 'io.arrow-kt.proofs' version 'x.x.x' }")

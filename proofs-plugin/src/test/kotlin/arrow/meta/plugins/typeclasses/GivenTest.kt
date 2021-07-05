@@ -107,10 +107,8 @@ class GivenTest {
 
   val prelude = """
     package test
-    import arrow.*
-    
-    fun <A> given(evidence: @Given A = arrow.given): A =
-      evidence
+    import arrow.Given
+    import arrow.given
       
     //metadebug
   """.trimIndent()

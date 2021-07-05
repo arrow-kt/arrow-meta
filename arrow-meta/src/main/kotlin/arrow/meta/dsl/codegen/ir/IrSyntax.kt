@@ -116,7 +116,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transform(object : IrElementTransformer<Unit> {
         override fun visitModuleFragment(declaration: IrModuleFragment, data: Unit): IrModuleFragment =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitModuleFragment(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitModuleFragment(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -124,7 +129,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFile(declaration: IrFile, data: Unit): IrFile =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitFile(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitFile(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -132,7 +142,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDeclaration(expression: IrDeclarationBase, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDeclaration(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDeclaration(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -140,7 +155,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitClass(expression: IrClass, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitClass(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitClass(expression, data)
+          }
       }, Unit)
     }
 
@@ -148,7 +165,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunction(expression: IrFunction, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFunction(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFunction(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -156,7 +178,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitSimpleFunction(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitSimpleFunction(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -164,7 +191,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitConstructor(declaration: IrConstructor, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitConstructor(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitConstructor(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -172,7 +204,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitProperty(declaration: IrProperty, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitProperty(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitProperty(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -180,7 +217,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitField(declaration: IrField, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitField(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitField(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -188,7 +230,10 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitLocalDelegatedProperty(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration)
+              ?: super.visitLocalDelegatedProperty(declaration, data)
+          }
       }, Unit)
     }
 
@@ -196,7 +241,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitEnumEntry(declaration: IrEnumEntry, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitEnumEntry(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitEnumEntry(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -204,7 +254,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitAnonymousInitializer(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitAnonymousInitializer(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -212,7 +267,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitVariable(declaration: IrVariable, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitVariable(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitVariable(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -220,7 +280,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeParameter(declaration: IrTypeParameter, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitTypeParameter(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitTypeParameter(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -229,7 +294,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitValueParameter(declaration: IrValueParameter, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitValueParameter(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitValueParameter(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -237,7 +307,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeAlias(declaration: IrTypeAlias, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitTypeAlias(declaration, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration) ?: super.visitTypeAlias(
+              declaration,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -245,7 +320,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBody(body: IrBody, data: Unit): IrBody =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitBody(body, data)
+          body.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitBody(body, data)
+          }
       }, Unit)
     }
 
@@ -253,7 +330,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitExpressionBody(body: IrExpressionBody, data: Unit): IrBody =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitExpressionBody(body, data)
+          body.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitExpressionBody(body, data)
+          }
       }, Unit)
     }
 
@@ -261,7 +340,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBlockBody(body: IrBlockBody, data: Unit): IrBody =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitBlockBody(body, data)
+          body.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitBlockBody(body, data)
+          }
       }, Unit)
     }
 
@@ -269,7 +350,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSyntheticBody(body: IrSyntheticBody, data: Unit): IrBody =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitSyntheticBody(body, data)
+          body.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), body) ?: super.visitSyntheticBody(body, data)
+          }
       }, Unit)
     }
 
@@ -277,7 +360,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSuspendableExpression(expression: IrSuspendableExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSuspendableExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSuspendableExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -285,7 +373,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSuspensionPoint(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSuspensionPoint(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -293,7 +386,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitExpression(expression: IrExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -301,7 +399,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun <T> visitConst(expression: IrConst<T>, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitConst(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitConst(expression, data)
+          }
       }, Unit)
     }
 
@@ -309,7 +409,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitVararg(expression: IrVararg, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitVararg(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitVararg(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -317,7 +422,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSpreadElement(spread: IrSpreadElement, data: Unit): IrSpreadElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), spread) ?: super.visitSpreadElement(spread, data)
+          spread.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), spread) ?: super.visitSpreadElement(spread, data)
+          }
       }, Unit)
     }
 
@@ -325,7 +432,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitContainerExpression(expression: IrContainerExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitContainerExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitContainerExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -333,7 +445,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitBlock(expression: IrBlock, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitBlock(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitBlock(expression, data)
+          }
       }, Unit)
     }
 
@@ -341,7 +455,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitComposite(expression: IrComposite, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitComposite(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitComposite(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -349,7 +468,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitStringConcatenation(expression: IrStringConcatenation, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitStringConcatenation(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitStringConcatenation(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -357,7 +481,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDeclarationReference(expression: IrDeclarationReference, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDeclarationReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDeclarationReference(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -365,7 +494,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSingletonReference(expression: IrGetSingletonValue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSingletonReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSingletonReference(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -373,7 +507,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetObjectValue(expression: IrGetObjectValue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetObjectValue(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetObjectValue(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -381,7 +520,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetEnumValue(expression: IrGetEnumValue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetEnumValue(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetEnumValue(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -389,7 +533,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitValueAccess(expression: IrValueAccessExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitValueAccess(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitValueAccess(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -397,7 +546,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetValue(expression: IrGetValue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetValue(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetValue(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -405,7 +559,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSetValue(expression: IrSetValue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSetValue(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSetValue(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -413,7 +572,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFieldAccess(expression: IrFieldAccessExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFieldAccess(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFieldAccess(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -421,7 +585,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetField(expression: IrGetField, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetField(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetField(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -429,7 +598,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitSetField(expression: IrSetField, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSetField(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitSetField(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -437,7 +611,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitMemberAccess(expression: IrMemberAccessExpression<*>, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitMemberAccess(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitMemberAccess(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -445,7 +624,10 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunctionAccess(expression: IrFunctionAccessExpression, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFunctionAccess(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitFunctionAccess(expression, data)
+          }
       }, Unit)
     }
 
@@ -453,7 +635,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitCall(expression: IrCall, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitCall(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitCall(
+            expression,
+            data
+          )
+        }
       }, Unit)
     }
 
@@ -461,7 +648,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitConstructorCall(expression: IrConstructorCall, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitConstructorCall(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitConstructorCall(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -469,8 +661,10 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-            ?: super.visitDelegatingConstructorCall(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitDelegatingConstructorCall(expression, data)
+          }
       }, Unit)
     }
 
@@ -478,7 +672,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitEnumConstructorCall(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitEnumConstructorCall(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -486,7 +685,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitGetClass(expression: IrGetClass, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetClass(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitGetClass(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -494,7 +698,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitCallableReference(expression: IrCallableReference<*>, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitCallableReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitCallableReference(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -502,7 +711,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitFunctionReference(expression: IrFunctionReference, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFunctionReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitFunctionReference(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -510,16 +724,26 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitPropertyReference(expression: IrPropertyReference, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitPropertyReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitPropertyReference(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irLocalDelegatedPropertyReference(f: IrUtils.(IrLocalDelegatedPropertyReference) -> IrElement?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference, data: Unit): IrElement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-            ?: super.visitLocalDelegatedPropertyReference(expression, data)
+        override fun visitLocalDelegatedPropertyReference(
+          expression: IrLocalDelegatedPropertyReference,
+          data: Unit
+        ): IrElement =
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitLocalDelegatedPropertyReference(expression, data)
+          }
       }, Unit)
     }
 
@@ -527,7 +751,10 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitClassReference(expression: IrClassReference, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitClassReference(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitClassReference(expression, data)
+          }
       }, Unit)
     }
 
@@ -535,7 +762,13 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitInstanceInitializerCall(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitInstanceInitializerCall(
+                expression,
+                data
+              )
+          }
       }, Unit)
     }
 
@@ -543,7 +776,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitTypeOperator(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitTypeOperator(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -551,87 +789,127 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitWhen(expression: IrWhen, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitWhen(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitWhen(expression, data)
+          }
       }, Unit)
     }
 
   fun Meta.irBranch(f: IrUtils.(IrBranch) -> IrBranch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitBranch(expression: IrBranch, data: Unit): IrBranch =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitBranch(expression, data)
+        override fun visitBranch(branch: IrBranch, data: Unit): IrBranch =
+          branch.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), branch) ?: super.visitBranch(
+              branch,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irElseBranch(f: IrUtils.(IrElseBranch) -> IrElseBranch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitElseBranch(expression: IrElseBranch, data: Unit): IrElseBranch =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitElseBranch(expression, data)
+        override fun visitElseBranch(branch: IrElseBranch, data: Unit): IrElseBranch =
+          branch.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), branch) ?: super.visitElseBranch(
+              branch,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irLoop(f: IrUtils.(IrLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitLoop(expression: IrLoop, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitLoop(expression, data)
+        override fun visitLoop(loop: IrLoop, data: Unit): IrExpression =
+          loop.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), loop) ?: super.visitLoop(loop, data)
+          }
       }, Unit)
     }
 
   fun Meta.irWhileLoop(f: IrUtils.(IrWhileLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitWhileLoop(expression: IrWhileLoop, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitWhileLoop(expression, data)
+        override fun visitWhileLoop(loop: IrWhileLoop, data: Unit): IrExpression =
+          loop.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), loop) ?: super.visitWhileLoop(
+              loop,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irDoWhileLoop(f: IrUtils.(IrDoWhileLoop) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitDoWhileLoop(expression: IrDoWhileLoop, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDoWhileLoop(expression, data)
+        override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Unit): IrExpression =
+          loop.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), loop) ?: super.visitDoWhileLoop(
+              loop,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irTry(f: IrUtils.(IrTry) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitTry(expression: IrTry, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitTry(expression, data)
+        override fun visitTry(aTry: IrTry, data: Unit): IrExpression =
+          aTry.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), aTry) ?: super.visitTry(aTry, data)
+          }
       }, Unit)
     }
 
   fun Meta.irCatch(f: IrUtils.(IrCatch) -> IrCatch?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitCatch(expression: IrCatch, data: Unit): IrCatch =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitCatch(expression, data)
+        override fun visitCatch(aCatch: IrCatch, data: Unit): IrCatch =
+          aCatch.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), aCatch) ?: super.visitCatch(aCatch, data)
+          }
       }, Unit)
     }
 
   fun Meta.irBreakContinue(f: IrUtils.(IrBreakContinue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitBreakContinue(expression: IrBreakContinue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitBreakContinue(expression, data)
+        override fun visitBreakContinue(jump: IrBreakContinue, data: Unit): IrExpression =
+          jump.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), jump) ?: super.visitBreakContinue(
+              jump,
+              data
+            )
+          }
       }, Unit)
     }
 
   fun Meta.irBreak(f: IrUtils.(IrBreak) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitBreak(expression: IrBreak, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitBreak(expression, data)
+        override fun visitBreak(jump: IrBreak, data: Unit): IrExpression =
+          jump.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), jump) ?: super.visitBreak(jump, data)
+          }
       }, Unit)
     }
 
   fun Meta.irContinue(f: IrUtils.(IrContinue) -> IrExpression?): IRGeneration =
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
-        override fun visitContinue(expression: IrContinue, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitContinue(expression, data)
+        override fun visitContinue(jump: IrContinue, data: Unit): IrExpression =
+          jump.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), jump) ?: super.visitContinue(
+              jump,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -639,7 +917,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitReturn(expression: IrReturn, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitReturn(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitReturn(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -647,7 +930,9 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitThrow(expression: IrThrow, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitThrow(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitThrow(expression, data)
+          }
       }, Unit)
     }
 
@@ -655,7 +940,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicExpression(expression: IrDynamicExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDynamicExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDynamicExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -663,8 +953,10 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-            ?: super.visitDynamicOperatorExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitDynamicOperatorExpression(expression, data)
+          }
       }, Unit)
     }
 
@@ -672,7 +964,13 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitDynamicMemberExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
+              ?: super.visitDynamicMemberExpression(
+                expression,
+                data
+              )
+          }
       }, Unit)
     }
 
@@ -680,7 +978,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorDeclaration(expression: IrErrorDeclaration, data: Unit): IrStatement =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorDeclaration(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorDeclaration(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -688,7 +991,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorExpression(expression: IrErrorExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -696,7 +1004,12 @@ interface IrSyntax {
     IrGeneration { compilerContext, moduleFragment, pluginContext ->
       moduleFragment.transformChildren(object : IrElementTransformer<Unit> {
         override fun visitErrorCallExpression(expression: IrErrorCallExpression, data: Unit): IrExpression =
-          f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorCallExpression(expression, data)
+          expression.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression) ?: super.visitErrorCallExpression(
+              expression,
+              data
+            )
+          }
       }, Unit)
     }
 
@@ -704,7 +1017,8 @@ interface IrSyntax {
     println(moduleFragment.dump())
   }
 
-  fun Meta.irDumpKotlinLike(options: KotlinLikeDumpOptions = KotlinLikeDumpOptions()): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
-    println(moduleFragment.dumpKotlinLike(options))
-  }
+  fun Meta.irDumpKotlinLike(options: KotlinLikeDumpOptions = KotlinLikeDumpOptions()): IRGeneration =
+    IrGeneration { compilerContext, moduleFragment, pluginContext ->
+      println(moduleFragment.dumpKotlinLike(options))
+    }
 }

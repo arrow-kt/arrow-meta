@@ -12,6 +12,7 @@ import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
+import arrow.meta.plugins.proofs.phases.ArrowCompileTime
 import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
@@ -48,6 +49,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal fun Meta.proofResolutionRules(): ExtensionPhase =
@@ -81,7 +83,11 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
   }
 }
 
-internal fun CompilerContext.callSiteResolution(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext): Unit =
+internal fun CompilerContext.callSiteResolution(
+  resolvedCall: ResolvedCall<*>,
+  reportOn: PsiElement,
+  context: CallCheckerContext
+): Unit =
   reportOn.parent.safeAs<KtExpression>()?.let {
     reportUnresolvedGivenCallSite(resolvedCall, it, context.trace)
   } ?: Unit
@@ -91,16 +97,12 @@ val ClassDescriptor.inlinedType: KotlinType?
     unsubstitutedPrimaryConstructor?.valueParameters?.first()?.type
   }
 
-fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): Pair<List<ValueParameterDescriptor>, List<TypeParameterDescriptor>> =
+fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): List<ValueParameterDescriptor> =
   call.resultingDescriptor
     .valueParameters.filter { v ->
-    v.type.annotations.hasAnnotation(ArrowGivenProof) && givenProof(v.type) == null
-      && call.valueArguments[v] == DefaultValueArgument.DEFAULT
-  }.filterNotNull() to
-    call.resultingDescriptor
-      .typeParameters.filter { t ->
-      t.annotations.hasAnnotation(ArrowGivenProof) && givenProof(t.defaultType) == null
-    }.filterNotNull()
+      v.containingDeclaration.annotations.hasAnnotation(ArrowCompileTime) && givenProof(v.type) == null
+        && call.valueArguments[v] == DefaultValueArgument.DEFAULT
+    }.filter { !it.type.isUnit() }
 
 fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
@@ -119,7 +121,10 @@ fun CompilerContext.ownershipViolations(trace: BindingContext, file: KtFile): Li
     declaration.isViolatingOwnershipRule(trace, this)
   }
 
-fun KtDeclaration.isViolatingOwnershipRule(bindingContext: BindingContext, ctx: CompilerContext): Pair<KtDeclaration, Proof>? =
+fun KtDeclaration.isViolatingOwnershipRule(
+  bindingContext: BindingContext,
+  ctx: CompilerContext
+): Pair<KtDeclaration, Proof>? =
   takeIf { it.isProof(bindingContext) }?.let {
     ctx.proof<Proof>().firstOrNull {
       it.through == bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
@@ -230,8 +235,14 @@ fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: Binding
     proofs.forEach { proof ->
       proof.through.findPsi()?.safeAs<KtDeclaration>()?.let { element ->
         trace.report(UnresolvedGivenProof.on(element, type))
-      } ?: msg?.report(CompilerMessageSeverity.WARNING,
-        "The GivenProof ${proof.through.fqNameSafe.asString()} from the project dependencies on the type ${DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type)} can't be semi-inductively resolved and won't be considered in resolution.")
+      } ?: msg?.report(
+        CompilerMessageSeverity.WARNING,
+        "The GivenProof ${proof.through.fqNameSafe.asString()} from the project dependencies on the type ${
+          DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(
+            type
+          )
+        } can't be semi-inductively resolved and won't be considered in resolution."
+      )
     }
   }
 
@@ -269,12 +280,32 @@ private fun <K, A : Proof> Map<K, List<A>>.reportSkippedProofsDueToAmbiguities(
 ): Unit =
   skippedProofsDueToAmbiguities().toMap().forEach(f)
 
-private fun CompilerContext.reportUnresolvedGivenCallSite(call: ResolvedCall<*>, element: KtExpression, trace: BindingTrace): Unit =
-  unresolvedGivenCallSite(call).let { (values, types) ->
+private fun CompilerContext.reportUnresolvedGivenCallSite(
+  call: ResolvedCall<*>,
+  element: KtExpression,
+  trace: BindingTrace
+): Unit =
+  unresolvedGivenCallSite(call).let { values ->
     values.forEach {
+      reportMissingInductiveDependencies(it, trace, element, call)
       trace.report(UnresolvedGivenCallSite.on(element, call, it.type))
     }
-    types.forEach {
-      trace.report(UnresolvedGivenCallSite.on(element, call, it.defaultType))
+  }
+
+private fun CompilerContext.reportMissingInductiveDependencies(
+  it: ValueParameterDescriptor,
+  trace: BindingTrace,
+  element: KtExpression,
+  call: ResolvedCall<*>
+) {
+  if (it.type.constructor.declarationDescriptor?.annotations?.hasAnnotation(ArrowGivenProof) == true) {
+    val dcl = it.type.constructor.declarationDescriptor
+    if (dcl is ClassDescriptor) {
+      dcl.constructors.firstOrNull { it.isPrimary }?.valueParameters?.forEach {
+        val parameterProof = givenProof(it.type)
+        if (parameterProof == null)
+          trace.report(UnresolvedGivenCallSite.on(element, call, it.type))
+      }
     }
   }
+}

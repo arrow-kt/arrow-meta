@@ -45,7 +45,6 @@ class ResolutionTests {
     }
   }
 
-  @Disabled
   @Test
   fun `@Extension internal orphan override`() {
     resolutionTest(
@@ -208,13 +207,12 @@ class ResolutionTests {
   fun `unresolved class provider due to non injected given as default value and missing GivenProof on String`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String)
+        @Given class X(@Given val value: String)
         val result = given<X>().value
       """
     ) {
       allOf(
-        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
-        failsWith { it.contains("There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") }
+        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") }
       )
     }
   }
@@ -223,7 +221,7 @@ class ResolutionTests {
   fun `unresolved class provider due to missing GivenProof on String`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String = given())
+        @Given class X(@Given val value: String)
         val result = given<X>().value
       """
     ) {
@@ -239,7 +237,7 @@ class ResolutionTests {
   fun `resolved class provider due to coherent Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String = given(), val p: @Given Person = given())
+        @Given class X(@Given val value: String = given(),  @Given val p: Person = given())
         
         @Given
         internal val x: String = "yes!"
