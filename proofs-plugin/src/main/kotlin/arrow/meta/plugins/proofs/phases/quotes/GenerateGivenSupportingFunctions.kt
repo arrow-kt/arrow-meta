@@ -5,7 +5,10 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.isProof
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -47,21 +50,33 @@ private fun Iterable<KtFile>.firstParentPath(): String? =
   firstOrNull()?.virtualFilePath?.let { java.io.File(it).parentFile.absolutePath }
 
 
-private fun ModuleDescriptor.renderFunctions(ctx: CompilerContext): List<Pair<SimpleFunctionDescriptor, String>> =
-  functionsWithGivenArguments().filterIsInstance<SimpleFunctionDescriptor>()
+private fun ModuleDescriptor.renderFunctions(ctx: CompilerContext): List<Pair<DeclarationDescriptor, String>> =
+  functionsWithGivenArguments()
     .map {
       it to ctx.internalGivenFunction(it)
     }
 
 
-private fun CompilerContext.internalGivenFunction(f: SimpleFunctionDescriptor): String =
+private fun CompilerContext.internalGivenFunction(f: DeclarationDescriptor): String =
   f.run {
     val s =
-      """ 
-        package ${f.containingPackage()}
-        @arrow.CompileTime
-        internal fun ${typeParameters.render()} ${extensionReceiverParameter.render()} $name(${valueParameters.renderParameters()}): $returnType = $fqNameSafe(${valueParameters.renderAsArguments()}) 
-        """.trimIndent()
+      when (this) {
+        is CallableDescriptor -> {
+          """ 
+            package ${f.containingPackage()}
+            @arrow.CompileTime
+            internal fun ${typeParameters.render()} ${extensionReceiverParameter.render()} $name(${valueParameters.renderParameters()}): $returnType = $fqNameSafe(${valueParameters.renderAsArguments()}) 
+            """.trimIndent()
+        }
+        is ClassDescriptor -> {
+          """ 
+            package ${f.containingPackage()}
+            @arrow.CompileTime
+            internal fun ${declaredTypeParameters.render()} $name(${unsubstitutedPrimaryConstructor?.valueParameters?.renderParameters()}): $defaultType = $fqNameSafe(${unsubstitutedPrimaryConstructor?.valueParameters?.renderAsArguments()}) 
+            """.trimIndent()
+        }
+        else -> ""
+      }
     s
   }
 
@@ -84,19 +99,33 @@ private fun List<ValueParameterDescriptor>.renderAsArguments(): String =
   joinToString { it.name.asString() }
 
 private tailrec fun ModuleDescriptor.functionsWithGivenArguments(
-  acc: List<CallableMemberDescriptor> = emptyList(),
-  packages: List<FqName> = listOf(FqName.ROOT)
-): List<CallableMemberDescriptor> =
+  acc: List<DeclarationDescriptor> = emptyList(),
+  packages: List<FqName> = listOf(FqName.ROOT),
+  skipPacks: Set<FqName> = setOf(
+    FqName("com.apple"),
+    FqName("com.oracle"),
+    FqName("org.omg"),
+    FqName("com.sun"),
+    FqName("META-INF"),
+    FqName("jdk"),
+    FqName("apple"),
+    FqName("java"),
+    FqName("javax"),
+    FqName("kotlin"),
+    FqName("sun")
+  )
+): List<DeclarationDescriptor> =
   when {
     packages.isEmpty() -> acc
     else -> {
       val current = packages.first()
       val packagedProofs = getPackage(current).memberScope.getContributedDescriptors { true }
-        .filterIsInstance<CallableMemberDescriptor>()
+        //TODO classes here need to be check
         .filter {
-          it.valueParameters.any { it.isProof() }
+          (it is ClassDescriptor && it.isProof()) ||
+            it is CallableDescriptor && it.valueParameters.any { it.isProof() }
         }
-      val remaining = getSubPackagesOf(current) { true } + packages.drop(1)
+      val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
       functionsWithGivenArguments(acc + packagedProofs.asSequence(), remaining)
     }
   }

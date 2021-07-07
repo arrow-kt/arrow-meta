@@ -101,8 +101,8 @@ fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): List<ValuePa
   call.resultingDescriptor
     .valueParameters.filter { v ->
       v.containingDeclaration.annotations.hasAnnotation(ArrowCompileTime) && givenProof(v.type) == null
-        && call.valueArguments[v] == DefaultValueArgument.DEFAULT
-    }.filter { !it.type.isUnit() }
+        && call.valueArguments[v] == DefaultValueArgument.DEFAULT && !v.type.isUnit()
+    }
 
 fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtFile): List<KtDeclaration> =
   file.traverseFilter(KtDeclaration::class.java) { declaration ->
@@ -214,7 +214,7 @@ fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
-    if (param.type.annotations.hasAnnotation(ArrowGivenProof))
+    if (param.annotations.hasAnnotation(ArrowGivenProof))
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else param.declaresDefaultValue()
   } ?: false
@@ -224,7 +224,7 @@ fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.valueParameters.all { param ->
-    if (param.type.annotations.hasAnnotation(ArrowGivenProof))
+    if (param.annotations.hasAnnotation(ArrowGivenProof))
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else
       true

@@ -77,10 +77,10 @@ class ProofsIrCodegen(
     ).typeSubstitutor
 
 
-  fun CompilerContext.proveNestedCalls(expression: IrCall): IrCall =
+  fun CompilerContext.proveNestedCalls(expression: IrCall): IrMemberAccessExpression<*> =
     proveCall(expression)
 
-  private fun CompilerContext.proveCall(expression: IrCall): IrCall =
+  private fun CompilerContext.proveCall(expression: IrCall): IrMemberAccessExpression<*> =
     Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       if (expression.symbol.owner.annotations.hasAnnotation(ArrowCompileTime)) {
         insertGivenCall(expression)
@@ -89,8 +89,8 @@ class ProofsIrCodegen(
 
   private fun CompilerContext.insertGivenCall(
     expression: IrCall
-  ): IrCall {
-    val replacement: IrCall? = expression.replacementCall()
+  ): IrMemberAccessExpression<*> {
+    val replacement: IrMemberAccessExpression<*>? = expression.replacementCall()
     return if (replacement != null) {
       expression.substitutedValueParameters.forEachIndexed { index, (_, superType) ->
         givenProofCall(superType?.originalKotlinType!!)?.apply {
@@ -130,10 +130,11 @@ val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
     )
   }
 
-internal fun IrCall.replacementCall(): IrCall? =
-  symbol.owner.body?.statements?.firstOrNull()?.filterMap<IrCall, IrCall>({ true }) {
-    it
-  }?.firstOrNull()?.run {
+internal fun IrCall.replacementCall(): IrMemberAccessExpression<*>? =
+  symbol.owner.body?.statements?.firstOrNull()
+    ?.filterMap<IrMemberAccessExpression<*>, IrMemberAccessExpression<*>>({ true }) {
+      it
+    }?.firstOrNull()?.run {
     copyTypeArgumentsFrom(this)
     this@replacementCall.valueArguments.forEach { (n, arg) ->
       if (valueArgumentsCount > n && arg != null)

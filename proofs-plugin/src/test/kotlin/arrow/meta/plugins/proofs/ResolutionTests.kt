@@ -6,10 +6,8 @@ import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
 import arrow.meta.plugins.typeclasses.GivenTest
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-// TODO: build ide peace with annotator
 class ResolutionTests {
   @Test
   fun `prohibited public proof of non user types`() {
@@ -237,18 +235,18 @@ class ResolutionTests {
   fun `resolved class provider due to coherent Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
-        @Given class X(@Given val value: String = given(),  @Given val p: Person = given())
+        @Given class X(@Given val value: String,  @Given val p: Person)
         
         @Given
         internal val x: String = "yes!"
         
         @Given
-        val publicPerson = Person("Peter Schmitz", 22)
+        val publicPerson: Person = Person("Peter Schmitz", 22)
         
         @Given
-        internal val orphan = Person("Micheal Müller", 16)
+        internal val orphan: Person = Person("Micheal Müller", 16)
         
-        val result = given<X>()
+        val result = X()
         val value = result.value
         val name = result.p.name
         val age = result.p.age
@@ -260,29 +258,6 @@ class ResolutionTests {
         "age".source.evalsTo(16)
       )
 
-    }
-  }
-
-  @Disabled // Currently Given injections with type params need to be reviewed #741 among other things
-  @Test
-  fun `resolved function due to Semi-inductive implementation`() {
-    givenResolutionTest(
-      source = """
-      fun <A : @Given Semigroup<A>> List<A>.collapse(
-        initial: A,
-        f: @Given() (A) -> A = given()
-      ): A =
-        fold(initial) { acc: A, a: A ->
-          acc.combine(f(a))
-        }
-      
-      @Given
-      internal fun <A> id(a: A): A = a
-      
-      val result = listOf("Hello ", "is it me", "your looking for").collapse(String.empty())
-      """
-    ) {
-      "result".source.evalsTo("Hello is it me, your looking for")
     }
   }
 
@@ -309,23 +284,6 @@ class ResolutionTests {
       """
     ) {
       "result".source.evalsTo("5")
-    }
-  }
-
-  @Disabled // TODO: Add compiler Error after fixing resolution
-  @Test
-  fun `unresolved polymorphic constraint`() {
-    givenResolutionTest(
-      """
-        fun <A> A.mappend(b: A, ctx: @Given Semigroup<A> = given()): A =
-          ctx.run { this@mappend.combine(b) }
-          
-        val result = 1.mappend(1)
-      """.trimIndent()
-    ) {
-      failsWith {
-        it.contains("There is no Proof for this type Semigroup<Int> to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
-      }
     }
   }
 
