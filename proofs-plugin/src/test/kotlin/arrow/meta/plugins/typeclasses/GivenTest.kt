@@ -34,7 +34,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given internal val x = "yes!"
-        fun id(evidence: String = given()): String =
+        fun id(@Given evidence: String): String =
           evidence
         val result = id()
       """,
@@ -47,7 +47,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given internal val x = "yes!"
-        fun id(evidence: String = given()): String =
+        fun id(@Given evidence: String): String =
           evidence
         val result = id("nope!")
       """,

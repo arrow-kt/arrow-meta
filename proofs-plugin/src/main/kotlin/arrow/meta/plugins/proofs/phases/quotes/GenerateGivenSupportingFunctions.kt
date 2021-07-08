@@ -69,11 +69,13 @@ private fun CompilerContext.internalGivenFunction(f: DeclarationDescriptor): Str
             """.trimIndent()
         }
         is ClassDescriptor -> {
-          """ 
+          if (unsubstitutedPrimaryConstructor?.valueParameters?.isNotEmpty() == true) {
+            """ 
             package ${f.containingPackage()}
             @arrow.CompileTime
             internal fun ${declaredTypeParameters.render()} $name(${unsubstitutedPrimaryConstructor?.valueParameters?.renderParameters()}): $defaultType = $fqNameSafe(${unsubstitutedPrimaryConstructor?.valueParameters?.renderAsArguments()}) 
             """.trimIndent()
+          } else ""
         }
         else -> ""
       }
