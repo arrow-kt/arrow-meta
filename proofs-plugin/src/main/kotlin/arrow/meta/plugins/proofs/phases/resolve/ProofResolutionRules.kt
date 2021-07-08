@@ -13,7 +13,6 @@ import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowCompileTime
-import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.GivenProof
@@ -214,7 +213,7 @@ fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
-    if (param.annotations.hasAnnotation(ArrowGivenProof))
+    if (param.annotations.hasGivenContextProof())
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else param.declaresDefaultValue()
   } ?: false
@@ -224,7 +223,7 @@ fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.valueParameters.all { param ->
-    if (param.annotations.hasAnnotation(ArrowGivenProof))
+    if (param.annotations.hasGivenContextProof())
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else
       true
@@ -298,7 +297,7 @@ private fun CompilerContext.reportMissingInductiveDependencies(
   element: KtExpression,
   call: ResolvedCall<*>
 ) {
-  if (it.type.constructor.declarationDescriptor?.annotations?.hasAnnotation(ArrowGivenProof) == true) {
+  if (it.type.constructor.declarationDescriptor?.annotations?.hasGivenContextProof() == true) {
     val dcl = it.type.constructor.declarationDescriptor
     if (dcl is ClassDescriptor) {
       dcl.constructors.firstOrNull { it.isPrimary }?.valueParameters?.forEach {

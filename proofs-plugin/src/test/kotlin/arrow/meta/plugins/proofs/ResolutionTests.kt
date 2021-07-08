@@ -322,6 +322,21 @@ class ResolutionTests {
           |import arrow.typeclasses.*
           |import arrow.*
           |
+          |import arrow.Context
+          |
+          |@Context
+          |@Retention(AnnotationRetention.RUNTIME)
+          |@Target(
+          |  AnnotationTarget.CLASS,
+          |  AnnotationTarget.FUNCTION,
+          |  AnnotationTarget.PROPERTY,
+          |  AnnotationTarget.VALUE_PARAMETER
+          |)
+          |@MustBeDocumented
+          |annotation class Given
+          |
+          |inline fun <A> given(@Given identity: A): A = identity
+          |
           |data class Person(val name: String, val age: Int)
           |
           |$source

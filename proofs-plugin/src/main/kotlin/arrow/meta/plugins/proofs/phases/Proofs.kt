@@ -4,6 +4,8 @@ import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.diagnostic.ProofRenderer
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
+import arrow.meta.plugins.proofs.phases.resolve.hasGivenContextProof
+import arrow.meta.plugins.proofs.phases.resolve.isGivenContextProof
 import arrow.meta.plugins.proofs.phases.resolve.isResolved
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.skippedProofsDueToAmbiguities
@@ -24,18 +26,10 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-val ArrowGivenProof: FqName = FqName("arrow.Given")
 val ArrowCompileTime: FqName = FqName("arrow.CompileTime")
 
-val ArrowProofSet: Set<FqName> = setOf(
-  ArrowGivenProof
-)
-
-fun KtAnnotated.isProof(trace: BindingTrace): Boolean =
-  ArrowProofSet.any { hasAnnotation(trace, it) }
-
 fun KtAnnotated.isProof(ctx: BindingContext): Boolean =
-  ArrowProofSet.any { hasAnnotation(ctx, it) }
+  annotations(ctx).any { it.isGivenContextProof() }
 
 fun KtAnnotated.annotations(trace: BindingTrace): List<AnnotationDescriptor> =
   annotationEntries.mapNotNull { trace.get(BindingContext.ANNOTATION, it) }
@@ -50,7 +44,7 @@ fun KtAnnotated.hasAnnotation(ctx: BindingContext, fqName: FqName): Boolean =
   annotations(ctx).any { it.fqName == fqName }
 
 fun Annotated.isProof(): Boolean =
-  ArrowProofSet.any(annotations::hasAnnotation)
+  annotations.hasGivenContextProof()
 
 private fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableMemberDescriptor? =
   when (kind) {

@@ -2,7 +2,6 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
-import arrow.meta.plugins.proofs.phases.ArrowGivenProof
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.GivenProof
@@ -19,6 +18,9 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
@@ -144,26 +146,32 @@ fun DeclarationDescriptor.asProof(): Sequence<Proof> =
     else -> TODO("asProof: Unsupported proof declaration type: $this")
   }
 
+fun AnnotationDescriptor.isGivenContextProof(): Boolean =
+  type.constructor.declarationDescriptor?.annotations?.hasAnnotation(FqName("arrow.Context")) == true
+
+fun Annotations.hasGivenContextProof(): Boolean =
+  any { it.isGivenContextProof() }
+
 fun ClassDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
-    when (it.fqName) {
-      ArrowGivenProof -> asGivenProof()
+    when {
+      it.isGivenContextProof() -> asGivenProof()
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
   }
 
 fun PropertyDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
-    when (it.fqName) {
-      ArrowGivenProof -> if (!isExtension) asGivenProof() else null
+    when {
+      it.isGivenContextProof() -> if (!isExtension) asGivenProof() else null
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
   }
 
 fun FunctionDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
-    when (it.fqName) {
-      ArrowGivenProof -> if (!isExtension) asGivenProof() else null
+    when {
+      it.isGivenContextProof() -> if (!isExtension) asGivenProof() else null
       else -> TODO("asProof: Unsupported proof declaration type: $this")
     }
   }

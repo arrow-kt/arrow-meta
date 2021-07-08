@@ -107,8 +107,20 @@ class GivenTest {
 
   val prelude = """
     package test
-    import arrow.Given
-    import arrow.given
+    import arrow.Context
+    
+    @Context
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(
+      AnnotationTarget.CLASS,
+      AnnotationTarget.FUNCTION,
+      AnnotationTarget.PROPERTY,
+      AnnotationTarget.VALUE_PARAMETER
+    )
+    @MustBeDocumented
+    annotation class Given
+
+    inline fun <A> given(@Given identity: A): A = identity
       
     //metadebug
   """.trimIndent()
