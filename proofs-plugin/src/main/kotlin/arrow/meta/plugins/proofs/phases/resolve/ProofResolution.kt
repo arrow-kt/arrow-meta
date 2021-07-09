@@ -4,20 +4,25 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.asProof
+import arrow.meta.plugins.proofs.phases.isGivenContextProof
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.ValueArgument
+import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallArgument
+import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
-import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
+import org.jetbrains.kotlin.resolve.calls.model.NoValueForParameter
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.jetbrains.kotlin.resolve.calls.tower.ExpressionKotlinCallArgumentImpl
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
@@ -34,7 +39,8 @@ fun List<GivenProof>.matchingCandidates(
       try {
         module?.run {
           componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-            val proofs = this@matchingCandidates.resolveGivenProofs(superType, compilerContext, proofsCallResolver, this)
+            val proofs =
+              this@matchingCandidates.resolveGivenProofs(superType, compilerContext, proofsCallResolver, this)
             proofs
           }
         } ?: emptyList()
@@ -53,7 +59,7 @@ fun List<GivenProof>.resolveGivenProofs(
   moduleDescriptor: ModuleDescriptor
 ): List<GivenProof> {
   val scopeTower = ProofsScopeTower(moduleDescriptor, this, compilerContext)
-  val kotlinCall: KotlinCall = kotlinCall()
+  val kotlinCall: KotlinCall = kotlinCall(superType)
   val callResolutionResult =
     proofsCallResolver.run {
       resolveCandidates(
@@ -72,7 +78,14 @@ fun containsErrorsOrNothing(vararg types: KotlinType) =
 
 inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<A> =
   if (this is AllCandidatesResolutionResult) {
-    val selectedCandidates = allCandidates.filter { it.diagnostics.isEmpty() }
+    //TODO if candidate diagnostics includes NoValueForParameter then we may want to proceed to inductive resolution
+    // if the param was a contextual param
+    val selectedCandidates = allCandidates.filter {
+      val missingParams = it.diagnostics.firstOrNull()
+      it.diagnostics.isEmpty() ||
+        //this is a provider with contextual arguments
+        missingParams is NoValueForParameter && missingParams.parameterDescriptor.annotations.any { it.isGivenContextProof() }
+    }
     val proofs = selectedCandidates.flatMap {
       it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable()
     }.filter {
@@ -81,15 +94,15 @@ inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(sup
     proofs.toList()
   } else emptyList()
 
-fun includeInCandidates(from: KotlinType, to: KotlinType, subType: KotlinType, superType: KotlinType): Boolean =
-  includeInCandidates(from, subType) && includeInCandidates(to, superType)
-
 fun includeInCandidates(a: KotlinType, b: KotlinType): Boolean =
-  (a.isTypeParameter() || baseLineTypeChecker.isSubtypeOf(a.replaceArgumentsWithStarProjections(), b.replaceArgumentsWithStarProjections()))
+  (a.isTypeParameter() ||
+    baseLineTypeChecker.isSubtypeOf(a.replaceArgumentsWithStarProjections(), b.replaceArgumentsWithStarProjections()))
 
-fun kotlinCall(): KotlinCall =
+fun kotlinCall(superType: KotlinType): KotlinCall =
   object : KotlinCall {
-    override val argumentsInParenthesis: List<KotlinCallArgument> = emptyList()
+    override val argumentsInParenthesis: List<KotlinCallArgument> get() {
+      return emptyList()
+    }
     override val callKind: KotlinCallKind = KotlinCallKind.FUNCTION
     override val explicitReceiver: ReceiverKotlinCallArgument? = null
     override val externalArgument: KotlinCallArgument? = null
@@ -99,15 +112,4 @@ fun kotlinCall(): KotlinCall =
     override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
 
-fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
-  object : KotlinCall {
-    override val argumentsInParenthesis: List<KotlinCallArgument> = emptyList()
-    override val callKind: KotlinCallKind = KotlinCallKind.FUNCTION
-    override val explicitReceiver: ReceiverKotlinCallArgument? = ReceiverExpressionKotlinCallArgument(this@kotlinCall)
-    override val externalArgument: KotlinCallArgument? = null
-    override val isForImplicitInvoke: Boolean = false
-    override val name: Name = Name.identifier("Proof type-checking and resolution")
-    override val typeArguments: List<TypeArgument> = emptyList()
-    override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
-  }
 

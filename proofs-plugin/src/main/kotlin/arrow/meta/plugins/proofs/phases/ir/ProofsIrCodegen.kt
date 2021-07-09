@@ -47,8 +47,18 @@ class ProofsIrCodegen(
     return fn.irCall().apply {
       if (this is IrMemberAccessExpression<*>) {
         fn.typeParameters.forEachIndexed { n, descriptor ->
-          //TODO determine why sometimes type susbtitution returns unbound type args. Ex: fun <A> SecondN<FirstN<A>>.flatten(): Second<A>
           putTypeArgument(n, irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType })
+        }
+        fn.valueParameters.forEachIndexed { n, descriptor ->
+          val contextFqName = descriptor.contextualAnnotations().firstOrNull()
+          if (contextFqName != null) {
+            val argProof = this@matchedCandidateProofCall.compilerContext.givenProofCall(
+              contextFqName,
+              descriptor.type
+            )
+            if (argProof != null)
+              putValueArgument(n, argProof)
+          }
         }
       }
     }
@@ -101,6 +111,7 @@ class ProofsIrCodegen(
         val type = superType?.originalKotlinType
         if (contextFqName != null && type != null) {
           givenProofCall(contextFqName, type)?.apply {
+            //todo we need to recursively place over this expression inductive steps
             if (replacement.getValueArgument(index) != null)
               replacement.putValueArgument(index, this)
           }

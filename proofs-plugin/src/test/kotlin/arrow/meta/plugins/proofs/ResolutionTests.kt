@@ -98,6 +98,48 @@ class ResolutionTests {
   }
 
   @Test
+  fun `Member injection (class with injected args and members re-scoped)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      class Foo(@Given val y: Int) {
+        fun foo(@Given x: Int): Int = x + y
+      }
+      
+      fun t(foo: Foo = Foo()): Foo = foo
+        
+      val x = t().foo()
+      """
+    ) {
+      "x".source.evalsTo(42 * 2)
+    }
+  }
+
+  @Test
+  fun `A provider may have injection arguments which are polymorphically resolved`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo(val n: Int)
+      
+      @Given
+      internal fun fooProvider(@Given x: Int): Foo = Foo(x)
+      
+      fun <A> id(@Given ev: A): A = ev
+        
+      val x = id<Foo>().n
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
   fun `primitive internal orphan override`() {
     resolutionTest(
       """
