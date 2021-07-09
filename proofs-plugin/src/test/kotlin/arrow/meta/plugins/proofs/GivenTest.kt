@@ -1,4 +1,4 @@
-package arrow.meta.plugins.typeclasses
+package arrow.meta.plugins.proofs
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis

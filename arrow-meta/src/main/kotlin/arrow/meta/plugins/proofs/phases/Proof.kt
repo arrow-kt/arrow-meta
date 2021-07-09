@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -18,6 +19,8 @@ sealed class Proof(
     when (this) {
       is GivenProof -> given(this)
     }
+
+  abstract fun isContextAmbiguous(other: Proof): Boolean
 }
 
 sealed class GivenProof(
@@ -25,6 +28,9 @@ sealed class GivenProof(
   override val through: DeclarationDescriptor
 ) : Proof(to, through) {
   abstract val callableDescriptor: CallableDescriptor
+  val contexts: Set<FqName> get() = through.contextualAnnotations()
+  override fun isContextAmbiguous(other: Proof): Boolean =
+    other is GivenProof && contexts == other.contexts
 }
 
 data class ClassProof(

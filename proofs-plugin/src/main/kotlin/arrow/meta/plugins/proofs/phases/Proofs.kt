@@ -4,8 +4,6 @@ import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.diagnostic.ProofRenderer
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache
-import arrow.meta.plugins.proofs.phases.resolve.hasGivenContextProof
-import arrow.meta.plugins.proofs.phases.resolve.isGivenContextProof
 import arrow.meta.plugins.proofs.phases.resolve.isResolved
 import arrow.meta.plugins.proofs.phases.resolve.matchingCandidates
 import arrow.meta.plugins.proofs.phases.resolve.skippedProofsDueToAmbiguities
@@ -44,7 +42,7 @@ fun KtAnnotated.hasAnnotation(ctx: BindingContext, fqName: FqName): Boolean =
   annotations(ctx).any { it.fqName == fqName }
 
 fun Annotated.isProof(): Boolean =
-  annotations.hasGivenContextProof()
+  annotations.any { it.isGivenContextProof() }
 
 private fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableMemberDescriptor? =
   when (kind) {
@@ -61,19 +59,26 @@ fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<Ca
     .filterIsInstance<CallableMemberDescriptor>()
     .mapNotNull(CallableMemberDescriptor::discardPlatformBaseObjectFakeOverrides)
 
-fun CompilerContext.givenProof(superType: KotlinType): GivenProof? =
-  givenProofCandidate(givenProofs(superType))
+fun CompilerContext.givenProof(context: FqName, superType: KotlinType): GivenProof? =
+  givenProofCandidate(givenProofs(context, superType))
 
-fun CompilerContext.givenProofs(superType: KotlinType): List<GivenProof> =
-  proof<GivenProof>().matchingCandidates(this, superType)
-
-fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): GivenProof? =
-  candidates
+private fun CompilerContext.givenProofs(context: FqName, superType: KotlinType): List<GivenProof> =
+  proof<GivenProof>()
     .filter {
-      it.isResolved(givenProofs()) &&
-        givenProofs().skippedProofsDueToAmbiguities()
+      context in it.contexts
+    }
+    .matchingCandidates(this, superType)
+
+private fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): GivenProof? {
+  val proofs = givenProofs()
+  return candidates
+    .filter {
+      it.isResolved(proofs) &&
+        proofs.skippedProofsDueToAmbiguities()
           .firstOrNull { (p, _) -> p == it } == null
-    }.minByOrNull { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
+    }
+    .minByOrNull { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
+}
 
 inline fun <reified P : Proof> CompilerContext.proof(): List<P> =
   module?.proofs(this)?.filterIsInstance<P>()!!
@@ -101,6 +106,7 @@ fun CompilerContext.givenProofs(): Map<KotlinType, List<GivenProof>> =
       proofs.matchingCandidates(this, type)
     }.filterValues { it.isNotEmpty() }
 
+@Synchronized
 fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
   if (this is ModuleDescriptorImpl) {
     try {
@@ -109,7 +115,9 @@ fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
         cacheValue != null -> {
           cacheValue.proofs
         }
-        else -> cli { initializeProofCache(ctx) } ?: emptyList()
+        else -> {
+          initializeProofCache(ctx)
+        }
       }
     } catch (e: RuntimeException) {
       println("TODO() Detected exception: ${e.printStackTrace()}")

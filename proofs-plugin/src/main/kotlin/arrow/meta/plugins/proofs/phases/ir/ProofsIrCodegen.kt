@@ -12,8 +12,10 @@ import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.proofs.phases.ArrowCompileTime
 import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.contextualAnnotations
 import arrow.meta.plugins.proofs.phases.givenProof
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.statements
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
@@ -52,10 +55,11 @@ class ProofsIrCodegen(
   }
 
   fun CompilerContext.givenProofCall(
+    context: FqName,
     superType: KotlinType
   ): IrExpression? =
     irUtils.run {
-      val candidate = givenProof(superType)
+      val candidate = givenProof(context, superType)
       candidate?.let { proof ->
         substitutedProofCall(proof, superType)
       }
@@ -92,13 +96,17 @@ class ProofsIrCodegen(
   ): IrMemberAccessExpression<*> {
     val replacement: IrMemberAccessExpression<*>? = expression.replacementCall()
     return if (replacement != null) {
-      expression.substitutedValueParameters.forEachIndexed { index, (_, superType) ->
-        givenProofCall(superType?.originalKotlinType!!)?.apply {
-          if (replacement.getValueArgument(index) != null)
-            replacement.putValueArgument(index, this)
+      expression.substitutedValueParameters.forEachIndexed { index, (param, superType) ->
+        val contextFqName = param.toIrBasedDescriptor().contextualAnnotations().firstOrNull()
+        val type = superType?.originalKotlinType
+        if (contextFqName != null && type != null) {
+          givenProofCall(contextFqName, type)?.apply {
+            if (replacement.getValueArgument(index) != null)
+              replacement.putValueArgument(index, this)
+          }
         }
       }
-      replacement.patchDeclarationParents()
+      replacement
     } else expression
   }
 
@@ -135,10 +143,14 @@ internal fun IrCall.replacementCall(): IrMemberAccessExpression<*>? =
     ?.filterMap<IrMemberAccessExpression<*>, IrMemberAccessExpression<*>>({ true }) {
       it
     }?.firstOrNull()?.run {
-    copyTypeArgumentsFrom(this)
-    this@replacementCall.valueArguments.forEach { (n, arg) ->
-      if (valueArgumentsCount > n && arg != null)
-        putValueArgument(n, arg)
+      val rep = deepCopyWithSymbols(this@replacementCall.symbol.owner)
+      rep.copyTypeArgumentsFrom(this)
+      this@replacementCall.valueArguments.forEach { (n, arg) ->
+        if (rep.valueArgumentsCount > n && arg != null)
+          rep.putValueArgument(n, arg)
+      }
+
+      //rep.extensionReceiver = this@replacementCall.extensionReceiver
+      rep.dispatchReceiver = this@replacementCall.extensionReceiver
+      rep
     }
-    deepCopyWithSymbols(this@replacementCall.symbol.owner)
-  }

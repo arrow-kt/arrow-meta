@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import arrow.meta.plugins.typeclasses.GivenTest
 import org.junit.jupiter.api.Test
 
 class ResolutionTests {
@@ -44,7 +43,62 @@ class ResolutionTests {
   }
 
   @Test
-  fun `@Extension internal orphan override`() {
+  fun `Member injection (object)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      object Foo {
+        fun foo(@Given x: Int): Int = x
+      }
+        
+      val x = Foo.foo()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Member injection (class)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo {
+        fun foo(@Given x: Int): Int = x
+      }
+        
+      val x = Foo().foo()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Member injection (class with injected args and members)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      class Foo(@Given val y: Int) {
+        fun foo(@Given x: Int): Int = x + y
+      }
+        
+      val x = Foo().foo()
+      """
+    ) {
+      "x".source.evalsTo(42 * 2)
+    }
+  }
+
+  @Test
+  fun `primitive internal orphan override`() {
     resolutionTest(
       """
       @Given

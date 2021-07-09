@@ -19,8 +19,10 @@ import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.allGivenProofs
+import arrow.meta.plugins.proofs.phases.contextualAnnotations
 import arrow.meta.plugins.proofs.phases.givenProof
 import arrow.meta.plugins.proofs.phases.hasAnnotation
+import arrow.meta.plugins.proofs.phases.isGivenContextProof
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.proof
 import org.jetbrains.kotlin.builtins.StandardNames
@@ -31,7 +33,6 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SourceElement
-import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -99,8 +100,12 @@ val ClassDescriptor.inlinedType: KotlinType?
 fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): List<ValueParameterDescriptor> =
   call.resultingDescriptor
     .valueParameters.filter { v ->
-      v.containingDeclaration.annotations.hasAnnotation(ArrowCompileTime) && givenProof(v.type) == null
-        && call.valueArguments[v] == DefaultValueArgument.DEFAULT && !v.type.isUnit()
+      val contextFqName = v.contextualAnnotations().firstOrNull()
+      v.containingDeclaration.annotations.hasAnnotation(ArrowCompileTime) &&
+        contextFqName != null &&
+        givenProof(contextFqName, v.type) == null &&
+        call.valueArguments[v] == DefaultValueArgument.DEFAULT &&
+        !v.type.isUnit()
     }
 
 fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtFile): List<KtDeclaration> =
@@ -156,8 +161,9 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>
     proofs.exists { p1, p2 ->
       val a = p1.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
       val b = p2.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
-      a == DescriptorVisibilities.PUBLIC && b == DescriptorVisibilities.PUBLIC
-        || (a == DescriptorVisibilities.INTERNAL && b == DescriptorVisibilities.INTERNAL)
+      (a == DescriptorVisibilities.PUBLIC && b == DescriptorVisibilities.PUBLIC
+        || (a == DescriptorVisibilities.INTERNAL && b == DescriptorVisibilities.INTERNAL))
+        && p1.isContextAmbiguous(p2)
       // TODO: Loosen the rule to allow package scoped proofs when they have the same package-info
     }.filter { (_, v) -> v.isNotEmpty() } // filter out proofs with conflicts
   }.flatten()
@@ -213,7 +219,7 @@ fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
-    if (param.annotations.hasGivenContextProof())
+    if (param.annotations.any { it.isGivenContextProof() })
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else param.declaresDefaultValue()
   } ?: false
@@ -223,7 +229,7 @@ fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.valueParameters.all { param ->
-    if (param.annotations.hasGivenContextProof())
+    if (param.annotations.any { it.isGivenContextProof() })
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else
       true
@@ -297,13 +303,14 @@ private fun CompilerContext.reportMissingInductiveDependencies(
   element: KtExpression,
   call: ResolvedCall<*>
 ) {
-  if (it.type.constructor.declarationDescriptor?.annotations?.hasGivenContextProof() == true) {
+  if (it.type.constructor.declarationDescriptor?.annotations?.any { it.isGivenContextProof() } == true) {
     val dcl = it.type.constructor.declarationDescriptor
     if (dcl is ClassDescriptor) {
-      dcl.constructors.firstOrNull { it.isPrimary }?.valueParameters?.forEach {
-        val parameterProof = givenProof(it.type)
+      dcl.constructors.firstOrNull { it.isPrimary }?.valueParameters?.forEach { valueParam ->
+        val contextFqName = valueParam.contextualAnnotations().firstOrNull()
+        val parameterProof = contextFqName?.let { givenProof(it, valueParam.type) }
         if (parameterProof == null)
-          trace.report(UnresolvedGivenCallSite.on(element, call, it.type))
+          trace.report(UnresolvedGivenCallSite.on(element, call, valueParam.type))
       }
     }
   }

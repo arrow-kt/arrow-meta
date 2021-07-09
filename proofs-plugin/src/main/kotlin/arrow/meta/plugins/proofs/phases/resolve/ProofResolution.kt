@@ -2,25 +2,12 @@ package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.resolve.baseLineTypeChecker
-import arrow.meta.plugins.proofs.phases.CallableMemberProof
-import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.GivenProof
-import arrow.meta.plugins.proofs.phases.ObjectProof
-import arrow.meta.plugins.proofs.phases.Proof
+import arrow.meta.plugins.proofs.phases.asProof
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
@@ -30,9 +17,6 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverExpressionKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
-import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
-import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
@@ -127,58 +111,3 @@ fun ReceiverValueWithSmartCastInfo.kotlinCall(): KotlinCall =
     override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
 
-class ProofReceiverValue(private val kotlinType: KotlinType) : ReceiverValue {
-  override fun replaceType(p0: KotlinType): ReceiverValue =
-    ProofReceiverValue(p0)
-
-  override fun getOriginal(): ReceiverValue = this
-
-  override fun getType(): KotlinType = kotlinType
-}
-
-fun DeclarationDescriptor.asProof(): Sequence<Proof> =
-  when (this) {
-    is PropertyDescriptor -> asProof()
-    is ClassConstructorDescriptor -> containingDeclaration.asProof()
-    is FunctionDescriptor -> asProof()
-    is ClassDescriptor -> asProof()
-    is FakeCallableDescriptorForObject -> classDescriptor.asProof()
-    else -> TODO("asProof: Unsupported proof declaration type: $this")
-  }
-
-fun AnnotationDescriptor.isGivenContextProof(): Boolean =
-  type.constructor.declarationDescriptor?.annotations?.hasAnnotation(FqName("arrow.Context")) == true
-
-fun Annotations.hasGivenContextProof(): Boolean =
-  any { it.isGivenContextProof() }
-
-fun ClassDescriptor.asProof(): Sequence<Proof> =
-  annotations.asSequence().mapNotNull {
-    when {
-      it.isGivenContextProof() -> asGivenProof()
-      else -> TODO("asProof: Unsupported proof declaration type: $this")
-    }
-  }
-
-fun PropertyDescriptor.asProof(): Sequence<Proof> =
-  annotations.asSequence().mapNotNull {
-    when {
-      it.isGivenContextProof() -> if (!isExtension) asGivenProof() else null
-      else -> TODO("asProof: Unsupported proof declaration type: $this")
-    }
-  }
-
-fun FunctionDescriptor.asProof(): Sequence<Proof> =
-  annotations.asSequence().mapNotNull {
-    when {
-      it.isGivenContextProof() -> if (!isExtension) asGivenProof() else null
-      else -> TODO("asProof: Unsupported proof declaration type: $this")
-    }
-  }
-
-private fun ClassDescriptor.asGivenProof(): GivenProof =
-  if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this)
-  else ClassProof(defaultType, this)
-
-private fun CallableMemberDescriptor.asGivenProof(): GivenProof? =
-  returnType?.let { CallableMemberProof(it, this) }

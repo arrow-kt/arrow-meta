@@ -1,10 +1,8 @@
 package arrow.meta.diagnostic;
 
-import arrow.meta.plugins.proofs.phases.ProofsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages;
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap;
-import org.jetbrains.kotlin.diagnostics.rendering.Renderers;
 
 import static arrow.meta.diagnostic.MetaErrors.*;
 import static arrow.meta.phases.analysis.diagnostic.RenderersKt.*;

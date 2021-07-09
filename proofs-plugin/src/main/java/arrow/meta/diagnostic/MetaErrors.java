@@ -6,15 +6,12 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.psi.KtDeclaration;
-import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.psi.KtExpression;
-import org.jetbrains.kotlin.psi.KtObjectDeclaration;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.types.KotlinType;
 
 import java.util.Collection;
 
-import static arrow.meta.phases.analysis.diagnostic.PositionStrategiesKt.onIdentifyingElement;
 import static arrow.meta.phases.analysis.diagnostic.PositionStrategiesKt.onPublishedInternalOrphan;
 import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
 
