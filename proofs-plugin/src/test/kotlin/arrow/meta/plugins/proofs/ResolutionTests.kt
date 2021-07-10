@@ -119,6 +119,32 @@ class ResolutionTests {
   }
 
   @Test
+  fun `Non termination on cyclic dependencies`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(@Given s: String): Int = s.toInt() 
+      
+      @Given
+      internal fun s(@Given n: Int): String = n.toString() 
+      """
+    ) {
+      allOf(
+        failsWith {
+          it.contains("This GivenProof on the type kotlin.Int has cyclic dependencies: GivenProof test.n on the type kotlin.Int,\n" +
+            "GivenProof test.s on the type kotlin.String. Please verify that proofs dont depend on each other for resolution.")
+        },
+        failsWith {
+          it.contains(
+            "This GivenProof on the type kotlin.String has cyclic dependencies: GivenProof test.s on the type kotlin.String,\n" +
+              "GivenProof test.n on the type kotlin.Int. Please verify that proofs dont depend on each other for resolution."
+          )
+        }
+      )
+    }
+  }
+
+  @Test
   fun `A provider may have injection arguments which are polymorphically resolved`() {
     resolutionTest(
       """

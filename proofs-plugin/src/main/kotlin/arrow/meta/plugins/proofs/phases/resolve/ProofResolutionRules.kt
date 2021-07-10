@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.resolve
 import arrow.meta.Meta
 import arrow.meta.diagnostic.MetaErrors
 import arrow.meta.diagnostic.MetaErrors.AmbiguousProof
+import arrow.meta.diagnostic.MetaErrors.CycleOnGivenProof
 import arrow.meta.diagnostic.MetaErrors.OwnershipViolatedProof
 import arrow.meta.diagnostic.MetaErrors.UnresolvedGivenCallSite
 import arrow.meta.diagnostic.MetaErrors.UnresolvedGivenProof
@@ -10,6 +11,7 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.analysis.diagnostic.RenderProofs
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowCompileTime
@@ -34,6 +36,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.diagnostics.rendering.RenderingContext
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -78,7 +81,7 @@ internal fun CompilerContext.resolutionRules(trace: BindingTrace, files: Collect
     reportDisallowedUserDefinedAmbiguities(trace)
     reportSkippedProofsDueToAmbiguities { proof, ambiguities ->
       messageCollector?.report(CompilerMessageSeverity.ERROR, "Please Provide an internal Proof")
-        ?: println("TODO for skipped Proofs:$proof with ambeguities:$ambiguities")
+        ?: println("TODO for skipped Proofs:$proof with ambiguities:$ambiguities")
     }
   }
 }
@@ -199,47 +202,77 @@ fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities(): List<Pair<A,
  * `unresolved` that is a GivenProof that has Parameters e.g.: [ClassProof], [CallableMemberProof] and
  * those don't have default values or are not being semi-inductively resolved by other GivenProof's.
  */
-fun Map<KotlinType, List<GivenProof>>.unresolvedGivenProofs(): Map<KotlinType, List<GivenProof>> =
+fun Map<KotlinType, List<GivenProof>>.unresolvedGivenProofs(): Map<KotlinType, Map<ResolutionResult, GivenProof>> =
   mapValues { (_, proofs) ->
-    proofs.filter { !it.isResolved(this) }
-  }.filter { (_, unresolved) ->
-    unresolved.isNotEmpty()
+    proofs.map {
+      val resolutionResult = it.isResolved(this, mutableSetOf())
+      resolutionResult to it
+    }.filter { (result, _) ->
+      !result.first
+    }.toMap()
   }
 
-fun GivenProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
+/**
+ * if its resolved and any cycled proofs found that otherwise would have led to non-termination
+ */
+typealias ResolutionResult = Pair<Boolean, Set<GivenProof>>
+
+fun GivenProof.isResolved(
+  others: Map<KotlinType, List<GivenProof>>,
+  previousProofs: MutableSet<GivenProof>
+): ResolutionResult =
   when (this) {
-    is ObjectProof -> true // object proofs are resolved automatically, as they do not have constructors
-    is ClassProof -> isResolved(others)
-    is CallableMemberProof -> isResolved(others)
+    is ObjectProof -> true to emptySet() // object proofs are resolved automatically, as they do not have constructors
+    is ClassProof -> isResolved(others, previousProofs)
+    is CallableMemberProof -> isResolved(others, previousProofs)
   }
 
 /**
  * in IR the primaryConstructor is chosen see [arrow.meta.plugins.proofs.phases.resolve.asGivenProof]
  * TODO: Check if the defaultValue is resolved
  */
-fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
-  through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
+fun ClassProof.isResolved(
+  others: Map<KotlinType, List<GivenProof>>,
+  previousProofs: MutableSet<GivenProof>
+): ResolutionResult =
+  if (this in previousProofs) false to previousProofs
+  else through.unsubstitutedPrimaryConstructor?.valueParameters?.all { param ->
     if (param.annotations.any { it.isGivenContextProof() })
-      others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+      others.getOrDefault(param.type, emptyList()).any {
+        previousProofs.add(this)
+        it.isResolved(others, previousProofs).first
+      }
     else param.declaresDefaultValue()
-  } ?: false
+  }?.let { it to previousProofs } ?: false to previousProofs
 
 /**
  * TODO: Check if the defaultValue is resolved
  */
-fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
-  through.valueParameters.all { param ->
+fun CallableMemberProof.isResolved(
+  others: Map<KotlinType, List<GivenProof>>,
+  previousProofs: MutableSet<GivenProof>
+): ResolutionResult =
+  if (this in previousProofs) false to previousProofs
+  else through.valueParameters.all { param ->
     if (!param.type.isTypeParameter() && param.annotations.any { it.isGivenContextProof() })
-      others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
+      others.getOrDefault(param.type, emptyList()).any {
+        previousProofs.add(this)
+        it.isResolved(others, previousProofs).first
+      }
     else
       true
-  }
+  } to previousProofs
 
 fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: BindingTrace, msg: MessageCollector?): Unit =
-  unresolvedGivenProofs().forEach { (type, proofs) ->
-    proofs.forEach { proof ->
+  unresolvedGivenProofs().forEach { (type, results) ->
+    results.forEach { (t, proof) ->
+      val (_, cycles) = t
       proof.through.findPsi()?.safeAs<KtDeclaration>()?.let { element ->
-        trace.report(UnresolvedGivenProof.on(element, type))
+        if (cycles.isNotEmpty()) {
+          trace.report(CycleOnGivenProof.on(element, type, cycles))
+        } else {
+          trace.report(UnresolvedGivenProof.on(element, type))
+        }
       } ?: msg?.report(
         CompilerMessageSeverity.WARNING,
         "The GivenProof ${proof.through.fqNameSafe.asString()} from the project dependencies on the type ${

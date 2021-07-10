@@ -25,6 +25,9 @@ public interface MetaErrors {
 
     DiagnosticFactory1<KtDeclaration, KotlinType> UnresolvedGivenProof = DiagnosticFactory1.create(ERROR);
 
+    DiagnosticFactory2<KtDeclaration, KotlinType, Collection<? extends Proof>> CycleOnGivenProof = DiagnosticFactory2.create(ERROR);
+
+
     DiagnosticFactory2<KtExpression, ResolvedCall<?>, KotlinType> UnresolvedGivenCallSite = DiagnosticFactory2.create(ERROR);
     
     /**

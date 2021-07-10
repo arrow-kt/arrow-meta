@@ -73,7 +73,7 @@ private fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): G
   val proofs = givenProofs()
   return candidates
     .filter {
-      it.isResolved(proofs) &&
+      it.isResolved(proofs, mutableSetOf()).first &&
         proofs.skippedProofsDueToAmbiguities()
           .firstOrNull { (p, _) -> p == it } == null
     }
