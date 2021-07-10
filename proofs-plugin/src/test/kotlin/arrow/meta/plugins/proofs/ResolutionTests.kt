@@ -140,6 +140,27 @@ class ResolutionTests {
   }
 
   @Test
+  fun `A polymorphic provider may have injection arguments which are polymorphically resolved`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo<A>(val n: A)
+      
+      @Given
+      internal fun <A> fooProvider(@Given x: A): Foo<A> = Foo(x)
+      
+      fun <A> id(@Given ev: A): A = ev
+        
+      val x = id<Foo<Int>>().n
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
   fun `primitive internal orphan override`() {
     resolutionTest(
       """

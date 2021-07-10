@@ -7,6 +7,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.filterMap
 import arrow.meta.phases.codegen.ir.substitutedValueParameters
+import arrow.meta.phases.codegen.ir.typeArguments
 import arrow.meta.phases.codegen.ir.valueArguments
 import arrow.meta.phases.resolve.typeArgumentsMap
 import arrow.meta.phases.resolve.unwrappedNotNullableType
@@ -15,11 +16,14 @@ import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.contextualAnnotations
 import arrow.meta.plugins.proofs.phases.givenProof
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
+import org.jetbrains.kotlin.ir.descriptors.toIrBasedKotlinType
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.copyTypeArgumentsFrom
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.dump
@@ -54,7 +58,7 @@ class ProofsIrCodegen(
           if (contextFqName != null) {
             val argProof = this@matchedCandidateProofCall.compilerContext.givenProofCall(
               contextFqName,
-              descriptor.type
+              irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType }.toIrBasedKotlinType()
             )
             if (argProof != null)
               putValueArgument(n, argProof)
@@ -107,18 +111,32 @@ class ProofsIrCodegen(
     val replacement: IrMemberAccessExpression<*>? = expression.replacementCall()
     return if (replacement != null) {
       expression.substitutedValueParameters.forEachIndexed { index, (param, superType) ->
-        val contextFqName = param.toIrBasedDescriptor().contextualAnnotations().firstOrNull()
-        val type = superType?.originalKotlinType
-        if (contextFqName != null && type != null) {
-          givenProofCall(contextFqName, type)?.apply {
-            //todo we need to recursively place over this expression inductive steps
-            if (replacement.getValueArgument(index) != null)
-              replacement.putValueArgument(index, this)
-          }
-        }
+        processValueParameter(param, superType, replacement, index)
       }
       replacement
     } else expression
+  }
+
+  private fun CompilerContext.processValueParameter(
+    param: IrValueParameter,
+    superType: IrType?,
+    replacement: IrMemberAccessExpression<*>?,
+    index: Int
+  ) {
+    val contextFqName = param.toIrBasedDescriptor().contextualAnnotations().firstOrNull()
+    val type = superType?.originalKotlinType
+    if (contextFqName != null && type != null) {
+      givenProofCall(contextFqName, type)?.apply {
+        if (this is IrCall) {
+          symbol.owner.valueParameters.forEachIndexed { n, param ->
+            processValueParameter(param, param.type, this, n)
+          }
+        }
+        //todo we need to recursively place over this expression inductive steps
+        if (replacement != null && replacement.valueArgumentsCount > index)
+          replacement.putValueArgument(index, this)
+      }
+    }
   }
 
   companion object {
@@ -155,7 +173,10 @@ internal fun IrCall.replacementCall(): IrMemberAccessExpression<*>? =
       it
     }?.firstOrNull()?.run {
       val rep = deepCopyWithSymbols(this@replacementCall.symbol.owner)
-      rep.copyTypeArgumentsFrom(this)
+      this@replacementCall.typeArguments.forEach { (n, arg) ->
+        if (rep.typeArgumentsCount > n && arg != null)
+          rep.putTypeArgument(n, arg)
+      }
       this@replacementCall.valueArguments.forEach { (n, arg) ->
         if (rep.valueArgumentsCount > n && arg != null)
           rep.putValueArgument(n, arg)

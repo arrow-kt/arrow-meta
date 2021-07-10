@@ -229,7 +229,7 @@ fun ClassProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
  */
 fun CallableMemberProof.isResolved(others: Map<KotlinType, List<GivenProof>>): Boolean =
   through.valueParameters.all { param ->
-    if (param.annotations.any { it.isGivenContextProof() })
+    if (!param.type.isTypeParameter() && param.annotations.any { it.isGivenContextProof() })
       others.getOrDefault(param.type, emptyList()).any { it.isResolved(others) }
     else
       true
