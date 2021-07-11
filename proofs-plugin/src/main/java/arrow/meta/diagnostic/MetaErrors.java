@@ -1,10 +1,7 @@
 package arrow.meta.diagnostic;
 
 import arrow.meta.plugins.proofs.phases.Proof;
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
-import org.jetbrains.kotlin.diagnostics.Errors;
+import org.jetbrains.kotlin.diagnostics.*;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
@@ -20,6 +17,8 @@ public interface MetaErrors {
     DiagnosticFactory0<KtDeclaration> PublishedInternalOrphan = DiagnosticFactory0.create(ERROR, onPublishedInternalOrphan);
 
     DiagnosticFactory2<KtDeclaration, Proof, Collection<? extends Proof>> AmbiguousProof = DiagnosticFactory2.create(ERROR);
+
+    DiagnosticFactory3<KtExpression, KotlinType, Proof, Collection<? extends Proof>> AmbiguousProofForSupertype = DiagnosticFactory3.create(ERROR);
 
     DiagnosticFactory1<KtDeclaration, Proof> OwnershipViolatedProof = DiagnosticFactory1.create(ERROR);
 

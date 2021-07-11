@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val ArrowCompileTime: FqName = FqName("arrow.CompileTime")
@@ -59,8 +60,14 @@ fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<Ca
     .filterIsInstance<CallableMemberDescriptor>()
     .mapNotNull(CallableMemberDescriptor::discardPlatformBaseObjectFakeOverrides)
 
-fun CompilerContext.givenProof(context: FqName, superType: KotlinType): GivenProof? =
-  givenProofCandidate(givenProofs(context, superType))
+data class GivenProofResolution(
+  val givenProof: GivenProof?,
+  val targetType: KotlinType,
+  val ambiguousProofs: List<GivenProof>
+)
+
+fun CompilerContext.givenProof(context: FqName, superType: KotlinType): GivenProofResolution =
+  givenProofCandidate(superType, givenProofs(context, superType))
 
 private fun CompilerContext.givenProofs(context: FqName, superType: KotlinType): List<GivenProof> =
   proof<GivenProof>()
@@ -69,15 +76,26 @@ private fun CompilerContext.givenProofs(context: FqName, superType: KotlinType):
     }
     .matchingCandidates(this, superType)
 
-private fun CompilerContext.givenProofCandidate(candidates: List<GivenProof>): GivenProof? {
+private fun CompilerContext.givenProofCandidate(
+  targetType: KotlinType,
+  candidates: List<GivenProof>
+): GivenProofResolution {
   val proofs = givenProofs()
-  return candidates
+  val c = candidates
     .filter {
       it.isResolved(proofs, mutableSetOf()).first &&
         proofs.skippedProofsDueToAmbiguities()
           .firstOrNull { (p, _) -> p == it } == null
     }
-    .minByOrNull { it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL }
+  val maybeAmbiguous = c.filter {
+    it.to != targetType && it.to.isSubtypeOf(targetType)
+  }
+  val choosenCandidate = c.minByOrNull {
+    it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL
+  }
+
+  val ambiguous = if (maybeAmbiguous.size > 1) maybeAmbiguous else emptyList()
+  return GivenProofResolution(choosenCandidate, targetType, ambiguous)
 }
 
 inline fun <reified P : Proof> CompilerContext.proof(): List<P> =

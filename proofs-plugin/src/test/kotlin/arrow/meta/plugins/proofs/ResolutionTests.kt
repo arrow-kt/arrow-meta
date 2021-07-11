@@ -119,6 +119,48 @@ class ResolutionTests {
   }
 
   @Test
+  fun `Type bounds based injection`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      fun t(@Given x: Number): Number = x
+        
+      val x = t()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Ambiguous type bounds based injection`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      internal fun d(): Double = 33.0
+      
+      fun t(@Given x: Number): Number = x
+        
+      val x = t()
+      """
+    ) {
+      allOf(
+        failsWith {
+          it.contains(
+            "Found ambiguous proofs for type kotlin.Number. Proofs : GivenProof test.n on the type kotlin.Int,\n" +
+              "GivenProof test.d on the type kotlin.Double"
+          )
+        }
+      )
+    }
+  }
+
+  @Test
   fun `Non termination on cyclic dependencies`() {
     resolutionTest(
       """
@@ -131,8 +173,10 @@ class ResolutionTests {
     ) {
       allOf(
         failsWith {
-          it.contains("This GivenProof on the type kotlin.Int has cyclic dependencies: GivenProof test.n on the type kotlin.Int,\n" +
-            "GivenProof test.s on the type kotlin.String. Please verify that proofs dont depend on each other for resolution.")
+          it.contains(
+            "This GivenProof on the type kotlin.Int has cyclic dependencies: GivenProof test.n on the type kotlin.Int,\n" +
+              "GivenProof test.s on the type kotlin.String. Please verify that proofs dont depend on each other for resolution."
+          )
         },
         failsWith {
           it.contains(
@@ -237,8 +281,10 @@ class ResolutionTests {
     ) {
       allOf(
         failsWith {
-          it.contains("This GivenProof test.n on the type kotlin.Int has following conflicting proof/s: GivenProof test.n2 on the type kotlin.Int.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.n on the type kotlin.Int has following conflicting proof/s: GivenProof test.n2 on the type kotlin.Int.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         },
         failsWith {
           it.contains(

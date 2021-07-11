@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.resolve
 import arrow.meta.Meta
 import arrow.meta.diagnostic.MetaErrors
 import arrow.meta.diagnostic.MetaErrors.AmbiguousProof
+import arrow.meta.diagnostic.MetaErrors.AmbiguousProofForSupertype
 import arrow.meta.diagnostic.MetaErrors.CycleOnGivenProof
 import arrow.meta.diagnostic.MetaErrors.OwnershipViolatedProof
 import arrow.meta.diagnostic.MetaErrors.UnresolvedGivenCallSite
@@ -18,6 +19,7 @@ import arrow.meta.plugins.proofs.phases.ArrowCompileTime
 import arrow.meta.plugins.proofs.phases.CallableMemberProof
 import arrow.meta.plugins.proofs.phases.ClassProof
 import arrow.meta.plugins.proofs.phases.GivenProof
+import arrow.meta.plugins.proofs.phases.GivenProofResolution
 import arrow.meta.plugins.proofs.phases.ObjectProof
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.allGivenProofs
@@ -100,15 +102,19 @@ val ClassDescriptor.inlinedType: KotlinType?
     unsubstitutedPrimaryConstructor?.valueParameters?.first()?.type
   }
 
-fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): List<ValueParameterDescriptor> =
+fun CompilerContext.unresolvedGivenCallSite(call: ResolvedCall<*>): List<Pair<GivenProofResolution?, ValueParameterDescriptor>> =
   call.resultingDescriptor
     .valueParameters.filter { v ->
-      val contextFqName = v.contextualAnnotations().firstOrNull()
       v.containingDeclaration.annotations.hasAnnotation(ArrowCompileTime) &&
-        contextFqName != null &&
-        givenProof(contextFqName, v.type) == null &&
         call.valueArguments[v] == DefaultValueArgument.DEFAULT &&
         !v.type.isUnit()
+    }.mapNotNull { v ->
+      val contextFqName = v.contextualAnnotations().firstOrNull()
+      if (contextFqName != null) {
+        val givenProofResolution = givenProof(contextFqName, v.type)
+        if (givenProofResolution.givenProof == null) null to v
+        else givenProofResolution to v
+      } else null
     }
 
 fun prohibitedPublishedInternalOrphans(bindingContext: BindingContext, file: KtFile): List<KtDeclaration> =
@@ -324,9 +330,21 @@ private fun CompilerContext.reportUnresolvedGivenCallSite(
   trace: BindingTrace
 ): Unit =
   unresolvedGivenCallSite(call).let { values ->
-    values.forEach {
-      reportMissingInductiveDependencies(it, trace, element, call)
-      trace.report(UnresolvedGivenCallSite.on(element, call, it.type))
+    values.forEach { (resolution, v) ->
+      if (resolution?.ambiguousProofs?.isNotEmpty() == true && resolution.ambiguousProofs.size > 1 && resolution.givenProof != null) {
+        trace.report(
+          AmbiguousProofForSupertype.on(
+            element,
+            resolution.targetType,
+            resolution.givenProof,
+            resolution.ambiguousProofs
+          )
+        )
+      }
+      if (resolution?.givenProof == null) {
+        reportMissingInductiveDependencies(v, trace, element, call)
+        trace.report(UnresolvedGivenCallSite.on(element, call, v.type))
+      }
     }
   }
 
@@ -342,7 +360,7 @@ private fun CompilerContext.reportMissingInductiveDependencies(
       dcl.constructors.firstOrNull { it.isPrimary }?.valueParameters?.forEach { valueParam ->
         val contextFqName = valueParam.contextualAnnotations().firstOrNull()
         val parameterProof = contextFqName?.let { givenProof(it, valueParam.type) }
-        if (parameterProof == null)
+        if (parameterProof?.givenProof == null)
           trace.report(UnresolvedGivenCallSite.on(element, call, valueParam.type))
       }
     }

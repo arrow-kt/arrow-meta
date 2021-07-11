@@ -74,7 +74,7 @@ class ProofsIrCodegen(
   ): IrExpression? =
     irUtils.run {
       val candidate = givenProof(context, superType)
-      candidate?.let { proof ->
+      candidate?.givenProof?.let { proof ->
         substitutedProofCall(proof, superType)
       }
     }
