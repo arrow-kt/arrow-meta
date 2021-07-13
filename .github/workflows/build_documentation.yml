@@ -21,10 +21,3 @@ jobs:
         sudo gem install bundler
         bundle install --gemfile docs/Gemfile --path vendor/bundle
         BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -s docs/build/site -d docs/build/_site
-    - name: "Simulate deploy"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
-        AWS_DEFAULT_REGION: eu-west-1
-      run: aws s3 sync docs/build/_site s3://$S3_BUCKET --dryrun
