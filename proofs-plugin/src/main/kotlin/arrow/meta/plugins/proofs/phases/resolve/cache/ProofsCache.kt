@@ -31,7 +31,7 @@ fun ModuleDescriptor.initializeProofCache(ctx: CompilerContext): List<Proof> =
     emptyList()
   }
 
-private val skipPackages = setOf(
+val skipPackages = setOf(
   FqName("com.apple"),
   FqName("com.oracle"),
   FqName("org.omg"),

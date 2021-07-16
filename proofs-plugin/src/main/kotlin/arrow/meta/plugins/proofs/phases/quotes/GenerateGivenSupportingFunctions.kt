@@ -5,6 +5,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.plugins.proofs.phases.contextualAnnotations
 import arrow.meta.plugins.proofs.phases.isProof
+import arrow.meta.plugins.proofs.phases.resolve.cache.skipPackages
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -104,19 +105,7 @@ private fun List<ValueParameterDescriptor>.renderAsArguments(): String =
 private tailrec fun ModuleDescriptor.declarationsWithGivenArguments(
   acc: List<DeclarationDescriptor> = emptyList(),
   packages: List<FqName> = listOf(FqName.ROOT),
-  skipPacks: Set<FqName> = setOf(
-    FqName("com.apple"),
-    FqName("com.oracle"),
-    FqName("org.omg"),
-    FqName("com.sun"),
-    FqName("META-INF"),
-    FqName("jdk"),
-    FqName("apple"),
-    FqName("java"),
-    FqName("javax"),
-    FqName("kotlin"),
-    FqName("sun")
-  )
+  skipPacks: Set<FqName> = skipPackages
 ): List<DeclarationDescriptor> =
   when {
     packages.isEmpty() -> acc

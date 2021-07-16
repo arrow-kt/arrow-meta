@@ -25,7 +25,7 @@ fun DeclarationDescriptor.asProof(): Sequence<Proof> =
     is FunctionDescriptor -> asProof()
     is ClassDescriptor -> asProof()
     is FakeCallableDescriptorForObject -> classDescriptor.asProof()
-    else -> TODO("asProof: Unsupported proof declaration type: $this")
+    else -> emptySequence()
   }
 
 fun AnnotationDescriptor.isGivenContextProof(): Boolean =
