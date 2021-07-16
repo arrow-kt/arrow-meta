@@ -124,7 +124,8 @@ interface Tuple22<out A, out B, out C, out D, out E, out F, out G, out H, out I,
   operator fun component22(): V = value[21] as V
 }
 
-inline class tupleOf private constructor(override val value: Array<Any?>) :
+@JvmInline
+value class tupleOf private constructor(override val value: Array<Any?>) :
   Tuple22<Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing> {
   companion object {
     operator fun <A, B> invoke(a: A, b: B): Tuple2<A, B> =

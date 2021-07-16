@@ -142,7 +142,6 @@ class IrSyntaxTest {
       """
         package test
         import arrow.*
-        import arrowx.*
               
         val zero = 0
         
@@ -171,7 +170,7 @@ class IrSyntaxTest {
         suspend fun hello(): Unit =
           println("Hello")
           
-        fun <A> provider(evidence: @Given A = arrow.given): A =
+        fun <A> provider(evidence: A): A =
             evidence
 
         suspend fun foo(vararg a: Int) {

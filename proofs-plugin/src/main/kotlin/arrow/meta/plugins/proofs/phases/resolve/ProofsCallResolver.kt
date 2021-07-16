@@ -1,7 +1,6 @@
 package arrow.meta.plugins.proofs.phases.resolve
 
 import arrow.meta.phases.resolve.baseLineTypeChecker
-import arrow.meta.plugins.proofs.phases.ExtensionProof
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -54,8 +53,6 @@ class ProofsCallResolver(
     val resolutionCandidates = map {
       it.fold(
         given = { givenCandidate(candidateFactory) },
-        coercion = { extensionCandidate(candidateFactory, extensionReceiver) },
-        projection = { extensionCandidate(candidateFactory, extensionReceiver) }
       ).forceResolution()
     }
 
@@ -81,13 +78,6 @@ class ProofsCallResolver(
       towerCandidate = CandidateWithBoundDispatchReceiver(null, callableDescriptor, emptyList()),
       explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
       extensionReceiver = null
-    )
-
-  private fun ExtensionProof.extensionCandidate(candidateFactory: SimpleCandidateFactory, extensionReceiver: ReceiverValueWithSmartCastInfo?): KotlinResolutionCandidate =
-    candidateFactory.createCandidate(
-      towerCandidate = CandidateWithBoundDispatchReceiver(null, through, emptyList()),
-      explicitReceiverKind = if (extensionReceiver != null) ExplicitReceiverKind.EXTENSION_RECEIVER else ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-      extensionReceiver = extensionReceiver
     )
 
   private fun choseMostSpecific(

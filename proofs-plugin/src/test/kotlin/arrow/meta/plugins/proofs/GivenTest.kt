@@ -1,4 +1,4 @@
-package arrow.meta.plugins.typeclasses
+package arrow.meta.plugins.proofs
 
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
@@ -34,7 +34,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given internal val x = "yes!"
-        fun id(evidence: String = given()): String =
+        fun id(@Given evidence: String): String =
           evidence
         val result = id()
       """,
@@ -47,7 +47,7 @@ class GivenTest {
     givenTest(
       source = """
         @Given internal val x = "yes!"
-        fun id(evidence: String = given()): String =
+        fun id(@Given evidence: String): String =
           evidence
         val result = id("nope!")
       """,
@@ -107,11 +107,20 @@ class GivenTest {
 
   val prelude = """
     package test
-    import arrow.*
-    import arrowx.*
+    import arrow.Context
     
-    fun <A> given(evidence: @Given A = arrow.given): A =
-      evidence
+    @Context
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(
+      AnnotationTarget.CLASS,
+      AnnotationTarget.FUNCTION,
+      AnnotationTarget.PROPERTY,
+      AnnotationTarget.VALUE_PARAMETER
+    )
+    @MustBeDocumented
+    annotation class Given
+
+    inline fun <A> given(@Given identity: A): A = identity
       
     //metadebug
   """.trimIndent()

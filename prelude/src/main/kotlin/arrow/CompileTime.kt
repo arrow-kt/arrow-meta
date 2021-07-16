@@ -5,4 +5,4 @@ package arrow
   AnnotationTarget.FUNCTION
 )
 @MustBeDocumented
-annotation class Extension
+annotation class CompileTime

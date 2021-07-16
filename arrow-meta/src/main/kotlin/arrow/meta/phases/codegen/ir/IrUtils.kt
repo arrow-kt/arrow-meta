@@ -210,18 +210,21 @@ class IrUtils(
 
 }
 
-fun IrCall.dfsCalls(): List<IrCall> { // search for parent function
-  val calls = arrayListOf<IrCall>()
-  val recursiveVisitor = object : IrElementVisitor<Unit, Unit> {
+
+inline fun <reified E, B> IrElement.filterMap(
+  crossinline filter: (E) -> Boolean,
+  crossinline map: (E) -> B): List<B> {
+  val els = arrayListOf<B>()
+  val visitor = object : IrElementVisitor<Unit, Unit> {
     override fun visitElement(element: IrElement, data: Unit) {
-      if (element is IrCall) {
-        calls.addAll(element.dfsCalls())
+      if (element is E && filter(element)) {
+        els.add(map(element))
       }
+      element.acceptChildren(this, Unit)
     }
   }
-  acceptChildren(recursiveVisitor, Unit)
-  calls.add(this)
-  return calls
+  acceptChildren(visitor, Unit)
+  return els
 }
 
 /**

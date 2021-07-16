@@ -61,6 +61,16 @@ open class CompilerContext(
 
   val ctx: CompilerContext = this
 
+  @PublishedApi
+  internal val sessionData: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
+
+  fun <T: Any> set(key: String, value: T): Unit {
+    sessionData[key] = value
+  }
+
+  inline fun <reified T: Any> get(key: String): T? =
+    sessionData[key] as? T
+
   val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
 }
 
