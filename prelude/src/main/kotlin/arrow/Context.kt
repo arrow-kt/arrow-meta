@@ -1,6 +1,8 @@
 package arrow
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
+@Target(
+  AnnotationTarget.ANNOTATION_CLASS
+)
 @MustBeDocumented
-annotation class Coercion
+annotation class Context

@@ -5,24 +5,21 @@ import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.Dependency
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import arrow.meta.plugins.typeclasses.GivenTest
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-// TODO: build ide peace with annotator
 class ResolutionTests {
   @Test
   fun `prohibited public proof of non user types`() {
     resolutionTest(
       """
-      @Coercion
-      fun String.toInt16(): Int? =
-        toIntOrNull(16)
+      @Given
+      fun n(): Int = 42 
         
-      val x: Int? = "30"
-      """) {
+      val x = given<Int>()
+      """
+    ) {
       failsWith {
-        it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int? violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+        it.contains("This GivenProof test.n on the type kotlin.Int violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
       }
     }
   }
@@ -31,31 +28,219 @@ class ResolutionTests {
   fun `prohibited public proof over polymorphic type parameter`() {
     resolutionTest(
       """
-      @Coercion
-      fun <A> A.eq(): Eq<A> =
+      @Given
+      fun <A> eq(): Eq<A> =
           object : Eq<A> {
               override fun A.eqv(b: A): Boolean =
                   this == b
           }
-      """) {
+      """
+    ) {
       failsWith {
-        it.contains("This ExtensionProof test.eq: A -> arrow.typeclasses.Eq<A> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+        it.contains("This GivenProof test.eq on the type arrow.typeclasses.Eq<A> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
       }
     }
   }
 
-  @Disabled
   @Test
-  fun `@Extension internal orphan override`() {
+  fun `Member injection (object)`() {
     resolutionTest(
       """
-      @Coercion
-      internal fun String.toInt16(): Int? =
-        toIntOrNull(16)
-  
-      val x: Int? = "30"
-      """) {
-      "x".source.evalsTo(48)
+      @Given
+      internal fun n(): Int = 42 
+      
+      object Foo {
+        fun foo(@Given x: Int): Int = x
+      }
+        
+      val x = Foo.foo()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Member injection (class)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo {
+        fun foo(@Given x: Int): Int = x
+      }
+        
+      val x = Foo().foo()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Member injection (class with injected args and members)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      class Foo(@Given val y: Int) {
+        fun foo(@Given x: Int): Int = x + y
+      }
+        
+      val x = Foo().foo()
+      """
+    ) {
+      "x".source.evalsTo(42 * 2)
+    }
+  }
+
+  @Test
+  fun `Member injection (class with injected args and members re-scoped)`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      class Foo(@Given val y: Int) {
+        fun foo(@Given x: Int): Int = x + y
+      }
+      
+      fun t(foo: Foo = Foo()): Foo = foo
+        
+      val x = t().foo()
+      """
+    ) {
+      "x".source.evalsTo(42 * 2)
+    }
+  }
+
+  @Test
+  fun `Type bounds based injection`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      fun t(@Given x: Number): Number = x
+        
+      val x = t()
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `Ambiguous type bounds based injection`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      @Given
+      internal fun d(): Double = 33.0
+      
+      fun t(@Given x: Number): Number = x
+        
+      val x = t()
+      """
+    ) {
+      allOf(
+        failsWith {
+          it.contains(
+            "Found ambiguous proofs for type kotlin.Number. Proofs : GivenProof test.n on the type kotlin.Int,\n" +
+              "GivenProof test.d on the type kotlin.Double"
+          )
+        }
+      )
+    }
+  }
+
+  @Test
+  fun `Non termination on cyclic dependencies`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(@Given s: String): Int = s.toInt() 
+      
+      @Given
+      internal fun s(@Given n: Int): String = n.toString() 
+      """
+    ) {
+      allOf(
+        failsWith {
+          it.contains(
+            "This GivenProof on the type kotlin.Int has cyclic dependencies: GivenProof test.n on the type kotlin.Int,\n" +
+              "GivenProof test.s on the type kotlin.String. Please verify that proofs dont depend on each other for resolution."
+          )
+        },
+        failsWith {
+          it.contains(
+            "This GivenProof on the type kotlin.String has cyclic dependencies: GivenProof test.s on the type kotlin.String,\n" +
+              "GivenProof test.n on the type kotlin.Int. Please verify that proofs dont depend on each other for resolution."
+          )
+        }
+      )
+    }
+  }
+
+  @Test
+  fun `A provider may have injection arguments which are polymorphically resolved`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo(val n: Int)
+      
+      @Given
+      internal fun fooProvider(@Given x: Int): Foo = Foo(x)
+      
+      fun <A> id(@Given ev: A): A = ev
+        
+      val x = id<Foo>().n
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `A polymorphic provider may have injection arguments which are polymorphically resolved`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+      
+      class Foo<A>(val n: A)
+      
+      @Given
+      internal fun <A> fooProvider(@Given x: A): Foo<A> = Foo(x)
+      
+      fun <A> id(@Given ev: A): A = ev
+        
+      val x = id<Foo<Int>>().n
+      """
+    ) {
+      "x".source.evalsTo(42)
+    }
+  }
+
+  @Test
+  fun `primitive internal orphan override`() {
+    resolutionTest(
+      """
+      @Given
+      internal fun n(): Int = 42 
+        
+      val x = given<Int>()
+      """
+    ) {
+      "x".source.evalsTo(42)
     }
   }
 
@@ -72,7 +257,8 @@ class ResolutionTests {
         val result = given<Person>()
         val name = result.name
         val age = result.age
-      """) {
+      """
+    ) {
       allOf(
         "name".source.evalsTo("Harry Potter"),
         "age".source.evalsTo(14)
@@ -84,50 +270,61 @@ class ResolutionTests {
   fun `ambiguous internal orphans`() {
     resolutionTest(
       """
-      @Coercion
-      internal fun String.toInt16(): Int? = // "30" -> 48
-        toIntOrNull(16)
+      @Given
+      internal fun n(): Int = 42 
       
-      @Coercion
-      internal fun String.toInt8(): Int? = // "30" -> 24
-        toIntOrNull(8)
-      """) {
+      @Given
+      internal fun n2(): Int = 0 
+        
+      val x = given<Int>()
+      """
+    ) {
       allOf(
         failsWith {
-          it.contains("This ExtensionProof test.toInt16: kotlin.String -> kotlin.Int? has following conflicting proof/s: ExtensionProof test.toInt8: kotlin.String -> kotlin.Int?.")
+          it.contains(
+            "This GivenProof test.n on the type kotlin.Int has following conflicting proof/s: GivenProof test.n2 on the type kotlin.Int.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         },
         failsWith {
-          it.contains("This ExtensionProof test.toInt8: kotlin.String -> kotlin.Int? has following conflicting proof/s: ExtensionProof test.toInt16: kotlin.String -> kotlin.Int?.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.n2 on the type kotlin.Int has following conflicting proof/s: GivenProof test.n on the type kotlin.Int.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         }
       )
     }
   }
 
   @Test
-  fun `ambiguous public coercion proofs`() {
+  fun `ambiguous public given proofs`() {
     resolutionTest(
       """
-      @Coercion
-      fun Pair<String, Int>.toPerson(): Person =
-        Person(first, second)
+      @Given
+      fun person1(): Person =
+        Person("X", 0)
 
-      @Coercion
-      fun Pair<String, Int>.toPersonWithLeapYear(): Person =
-        Person(first, second % 383)
+      @Given
+      fun person2(): Person =
+        Person("X", 0)
       
-      @Coercion
-      internal fun Pair<String, Int>.toPersonMod355(): Person =
-        Person(first, second % 355)
-      """) {
+      @Given
+      internal fun person3(): Person =
+        Person("X", 0)
+      """
+    ) {
       allOf(
         failsWith {
-          it.contains("This ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.person1 on the type test.Person has following conflicting proof/s: GivenProof test.person2 on the type test.Person.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         },
         failsWith {
-          it.contains("This ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.person2 on the type test.Person has following conflicting proof/s: GivenProof test.person1 on the type test.Person.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         }
       )
     }
@@ -135,41 +332,44 @@ class ResolutionTests {
 
 
   @Test
-  fun `ambiguous internal and public coercion proofs`() {
+  fun `ambiguous internal and public given proofs`() {
     resolutionTest(
       """
-      @Coercion
-      fun Pair<String, Int>.toPerson(): Person =
-        Person(first, second)
+      @Given
+      fun person1(): Person =
+        Person("X", 0)
+
+      @Given
+      fun person2(): Person =
+        Person("X", 0)
       
-      @Coercion
-      fun Pair<String, Int>.toPerson365(): Person =
-        Person(first, second % 365)
-      
-      @Coercion
-      internal fun Pair<String, Int>.toPersonWithLeapYear(): Person =
-        Person(first, second % 383)
-      
-      @Coercion
-      internal fun Pair<String, Int>.toPersonMod355(): Person =
-        Person(first, second % 355)
-      """) {
+      @Given
+      internal fun person3(): Person =
+        Person("X", 0)
+        
+      @Given
+      internal fun person4(): Person =
+        Person("X", 0)
+      """
+    ) {
       allOf(
         failsWith {
-          it.contains("This ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson365: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.person1 on the type test.Person has following conflicting proof/s: GivenProof test.person2 on the type test.Person.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         },
         failsWith {
-          it.contains("This ExtensionProof test.toPerson365: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPerson: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.person3 on the type test.Person has following conflicting proof/s: GivenProof test.person4 on the type test.Person.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         },
         failsWith {
-          it.contains("This ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonMod355: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
-        },
-        failsWith {
-          it.contains("This ExtensionProof test.toPersonMod355: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person has following conflicting proof/s: ExtensionProof test.toPersonWithLeapYear: kotlin.Pair<kotlin.String, kotlin.Int> -> test.Person.\n" +
-            "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project.")
+          it.contains(
+            "This GivenProof test.person4 on the type test.Person has following conflicting proof/s: GivenProof test.person3 on the type test.Person.\n" +
+              "Please disambiguate resolution, by either declaring only one internal orphan / public proof over the desired type/s or remove conflicting proofs from the project."
+          )
         }
       )
     }
@@ -177,12 +377,13 @@ class ResolutionTests {
 
   @Test
   fun `prohibited published internal orphan`() {
-    resolutionTest("""
-      @Coercion
+    resolutionTest(
+      """
+      @Given
       @kotlin.PublishedApi
-      internal fun String.toInt16(): Int? =
-        toIntOrNull(16)
-      """) {
+      internal fun n(): Int = 0
+      """
+    ) {
       failsWith {
         it.contains("Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation.")
       }
@@ -193,12 +394,12 @@ class ResolutionTests {
   fun `unresolved class provider due to non injected given as default value and missing GivenProof on String`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String)
+        @Given class X(@Given val value: String)
         val result = given<X>().value
-      """) {
+      """
+    ) {
       allOf(
-        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
-        failsWith { it.contains("There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") }
+        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") }
       )
     }
   }
@@ -207,9 +408,10 @@ class ResolutionTests {
   fun `unresolved class provider due to missing GivenProof on String`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String = given())
+        @Given class X(@Given val value: String)
         val result = given<X>().value
-      """) {
+      """
+    ) {
       allOf(
         failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
         failsWith { it.contains("There is no Proof for this type kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") },
@@ -222,22 +424,23 @@ class ResolutionTests {
   fun `resolved class provider due to coherent Semi-inductive implementation`() {
     givenResolutionTest(
       source = """
-        @Given class X(val value: @Given String = given(), val p: @Given Person = given())
+        @Given class X(@Given val value: String,  @Given val p: Person)
         
         @Given
         internal val x: String = "yes!"
         
         @Given
-        val publicPerson = Person("Peter Schmitz", 22)
+        val publicPerson: Person = Person("Peter Schmitz", 22)
         
         @Given
-        internal val orphan = Person("Micheal Müller", 16)
+        internal val orphan: Person = Person("Micheal Müller", 16)
         
-        val result = given<X>()
+        val result = X()
         val value = result.value
         val name = result.p.name
         val age = result.p.age
-      """) {
+      """
+    ) {
       allOf(
         "value".source.evalsTo("yes!"),
         "name".source.evalsTo("Micheal Müller"),
@@ -247,34 +450,13 @@ class ResolutionTests {
     }
   }
 
-  @Disabled // Currently Given injections with type params need to be reviewed #741 among other things
-  @Test
-  fun `resolved function due to Semi-inductive implementation`() {
-    givenResolutionTest(
-      source = """
-      fun <A : @Given Semigroup<A>> List<A>.collapse(
-        initial: A,
-        f: @Given() (A) -> A = given()
-      ): A =
-        fold(initial) { acc: A, a: A ->
-          acc.combine(f(a))
-        }
-      
-      @Given
-      internal fun <A> id(a: A): A = a
-      
-      val result = listOf("Hello ", "is it me", "your looking for").collapse(String.empty())
-      """) {
-      "result".source.evalsTo("Hello is it me, your looking for")
-    }
-  }
-
   @Test
   fun `unresolved callable Member`() {
     givenResolutionTest(
       source = """
         val result = given<(Int) -> String>().invoke(5)
-      """) {
+      """
+    ) {
       failsWith {
         it.contains("There is no Proof for this type (kotlin.Int) -> kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
       }
@@ -288,67 +470,69 @@ class ResolutionTests {
         @Given
         internal val x: (Int) -> String = { i -> i.toString() }
         val result = given<(Int) -> String>().invoke(5)
-      """) {
-      "result".source.evalsTo("5")
-    }
-  }
-
-  @Disabled // TODO: Add compiler Error after fixing resolution
-  @Test
-  fun `unresolved polymorphic constraint`() {
-    givenResolutionTest(
       """
-        fun <A> A.mappend(b: A, ctx: @Given Semigroup<A> = given()): A =
-          ctx.run { this@mappend.combine(b) }
-          
-        val result = 1.mappend(1)
-      """.trimIndent()
     ) {
-      failsWith {
-        it.contains("There is no Proof for this type Semigroup<Int> to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
-      }
+      "result".source.evalsTo("5")
     }
   }
 
   private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
-    assertThis(CompilerTest(
-      config = {
-        newMetaDependencies() + addDependencies(arrowCoreData)
-      },
-      code = {
-        """
+    assertThis(
+      CompilerTest(
+        config = {
+          newMetaDependencies() + addDependencies(arrowCoreData)
+        },
+        code = {
+          """
           |${GivenTest().prelude}
           |data class Person(val name: String, val age: Int)
           |$source
         """.trimMargin().source
-      },
-      assert = assert
-    ))
+        },
+        assert = assert
+      )
+    )
   }
 
 
   private fun resolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")
     val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
-    assertThis(CompilerTest(
-      config = {
-        newMetaDependencies() + addDependencies(arrowCoreData)
-      },
-      code = {
-        """
+    assertThis(
+      CompilerTest(
+        config = {
+          newMetaDependencies() + addDependencies(arrowCoreData)
+        },
+        code = {
+          """
           |package test
           |import arrow.typeclasses.*
           |import arrow.*
-          |import arrowx.*
+          |
+          |import arrow.Context
+          |
+          |@Context
+          |@Retention(AnnotationRetention.RUNTIME)
+          |@Target(
+          |  AnnotationTarget.CLASS,
+          |  AnnotationTarget.FUNCTION,
+          |  AnnotationTarget.PROPERTY,
+          |  AnnotationTarget.VALUE_PARAMETER
+          |)
+          |@MustBeDocumented
+          |annotation class Given
+          |
+          |inline fun <A> given(@Given identity: A): A = identity
           |
           |data class Person(val name: String, val age: Int)
           |
           |$source
         """.trimMargin().source
-      },
-      assert = assert
-    ))
+        },
+        assert = assert
+      )
+    )
   }
 }

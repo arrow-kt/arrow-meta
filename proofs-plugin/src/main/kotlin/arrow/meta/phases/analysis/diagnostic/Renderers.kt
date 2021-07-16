@@ -1,6 +1,5 @@
 package arrow.meta.phases.analysis.diagnostic
 
-import arrow.meta.plugins.proofs.phases.ArrowProofSet
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.asString
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer
@@ -24,9 +23,7 @@ val RenderProofs: DiagnosticParameterRenderer<Collection<Proof>> =
 
 
 val ProofRenderer: DescriptorRenderer =
-  DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
-    annotationFilter = { ArrowProofSet.none { p -> p == it.fqName } }
-  }
+  DescriptorRenderer.FQ_NAMES_IN_TYPES
 
 @JvmField
 val RenderTypes: DiagnosticParameterRenderer<KotlinType> =

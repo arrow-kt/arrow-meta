@@ -3,88 +3,125 @@ package arrow.meta.plugins.proofs.phases.quotes
 import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.phases.analysis.traverseFilter
-import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
-import arrow.meta.quotes.Scope
-import arrow.meta.quotes.ScopedList
-import arrow.meta.quotes.Transform
-import arrow.meta.quotes.file
-import arrow.meta.quotes.filebase.File
-import arrow.meta.quotes.foldIndexed
-import arrow.meta.quotes.map
-import arrow.meta.quotes.modifierlistowner.TypeReference
-import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
-import arrow.meta.quotes.plus
-import org.jetbrains.kotlin.psi.KtExpression
+import arrow.meta.plugins.proofs.phases.contextualAnnotations
+import arrow.meta.plugins.proofs.phases.isProof
+import arrow.meta.plugins.proofs.phases.resolve.cache.skipPackages
+import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.containingPackage
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtTypeParameter
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
-fun CompilerContext.generateGivenExtensionsFile(meta: Meta): ExtensionPhase =
-  meta.file(this, { this.containsGivenConstrains(ctx) }) {
-    evaluateDependsOnRewindableAnalysisPhase { givenExtensionsFile(this) } ?: Transform.empty
-  }
+private const val genkey: String = "given.generated"
 
-private fun CompilerContext.givenExtensionsFile(file: File): Transform<KtFile> =
-  Transform.newSources(
-    """
-      ${file.importList}
-      ${generateGivenSupportingFunctions(file.givenConstrainedDeclarations())}
-      """.file("Extensions.${file.name}")
+fun Meta.generateGivenPreludeFile(): ExtensionPhase =
+  analysis(
+    doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+      val alreadyGenerated = get<Boolean>(genkey)
+      if (alreadyGenerated != null && alreadyGenerated) null
+      else {
+        val path = files.firstParentPath()?.let { java.io.File(it) }
+        path?.let { generateGivenFiles(module, it.absolutePath) }
+        set(genkey, true)
+        AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
+      }
+    }
   )
 
-private val givenAnnotation: Regex = Regex("@(arrow\\.)?Given")
-
-private fun KtFile.containsGivenConstrains(ctx: CompilerContext): Boolean = ctx.evaluateDependsOnRewindableAnalysisPhase {
-  givenConstrainedDeclarations().isNotEmpty()
-} ?: false
-
-private fun File.givenConstrainedDeclarations(): List<NamedFunction> =
-  value.givenConstrainedDeclarations().map { NamedFunction(it, null) }
-
-private fun KtFile.givenConstrainedDeclarations(): List<KtNamedFunction> =
-  traverseFilter(KtNamedFunction::class.java) {
-    it.takeIf { f -> f.containsGivenConstrain() }
+private fun CompilerContext.generateGivenFiles(module: ModuleDescriptor, parentPath: String): List<java.io.File> =
+  module.renderFunctions(this).map { (fn, source) ->
+    java.io.File(
+      parentPath,
+      "/${fn.fqNameSafe}.given.kt",
+    ).also {
+      it.createNewFile()
+      it.writeText(source)
+    }
   }
 
-private fun ElementScope.generateGivenSupportingFunctions(functions: List<NamedFunction>): ScopedList<KtNamedFunction> =
-  ScopedList(functions.map {
-    it.run {
-      val `(unconstrainedTypeParams)` = `(typeParameters)`.map { "${it.name}".typeParameter.value }
-      val `(givenParams)` = `(typeParameters)`.foldIndexed(ScopedList.empty<KtParameter>()) { n, params, typeParam ->
-        val givenConstrain = typeParam.givenConstrain()?.toString()?.replace(givenAnnotation, "")
-        if (givenConstrain != null) params + "given$n: @arrow.Given $givenConstrain = arrow.given".parameter
-        else params
+private fun Iterable<KtFile>.firstParentPath(): String? =
+  firstOrNull()?.virtualFilePath?.let { java.io.File(it).parentFile.absolutePath }
+
+
+private fun ModuleDescriptor.renderFunctions(ctx: CompilerContext): List<Pair<DeclarationDescriptor, String>> =
+  declarationsWithGivenArguments()
+    .map {
+      it to ctx.internalGivenFunction(it)
+    }
+
+
+private fun CompilerContext.internalGivenFunction(f: DeclarationDescriptor): String =
+  f.run {
+    val s =
+      when (this) {
+        is CallableDescriptor -> {
+          """ 
+            package ${f.containingPackage()}
+            @arrow.CompileTime
+            internal fun ${typeParameters.render()} ${extensionReceiverParameter.render()} ${dispatchReceiverParameter.render()} $name(${valueParameters.renderParameters()}): $returnType = 
+              $name(${valueParameters.renderAsArguments()}) 
+            """.trimIndent()
+        }
+        is ClassDescriptor -> {
+          if (unsubstitutedPrimaryConstructor?.valueParameters?.isNotEmpty() == true) {
+            """ 
+            package ${f.containingPackage()}
+            @arrow.CompileTime
+            internal fun ${declaredTypeParameters.render()} $name(${unsubstitutedPrimaryConstructor?.valueParameters?.renderParameters()}): $defaultType = 
+              $name(${unsubstitutedPrimaryConstructor?.valueParameters?.renderAsArguments()}) 
+            """.trimIndent()
+          } else ""
+        }
+        else -> ""
       }
+    s
+  }
 
-      val `(paramsWithGiven)` = `(params)` + `(givenParams)`
-      """
-      public fun $`(unconstrainedTypeParams)` $receiver$name $`(paramsWithGiven)`$returnType =
-          ${runScope(this, `(givenParams)`)}
-      """.function(null).value
-    }
-  }, separator = "\n")
+private fun List<TypeParameterDescriptor>.render(): String =
+  if (isEmpty()) ""
+  else joinToString(prefix = "<", postfix = ">") { it.name.asString() }
 
-private fun ElementScope.runScope(namedFunction: NamedFunction, scopedList: ScopedList<KtParameter>): Scope<KtExpression> {
-  val body = namedFunction.body
-  return if (body != null)
-    scopedList.value.fold(body.toString().expression) { acc, parameter ->
-      """
-      with<${parameter.typeReference?.text}, ${namedFunction.returnType.copy(prefix = "")}>(${parameter.name}) { $acc }
-      """.expression
-    }
-  else Scope.empty<KtExpression>()
+private fun ReceiverParameterDescriptor?.render(): String {
+  return this?.value?.type?.toString()?.let { "$it."} ?: ""
 }
 
-private fun KtTypeParameter.givenConstrain(): TypeReference? =
-  if (containsGivenConstrain()) TypeReference(extendsBound) else null
+private fun List<ValueParameterDescriptor>.renderParameters(): String =
+  joinToString {
+    val context = it.contextualAnnotations().firstOrNull()
+    if (it.isProof() && context != null) "@$context ${it.name}: ${it.type} = TODO(\"Compile time replaced\")"
+    else "${it.name}: ${it.type}"
+  } + ", unit: Unit = Unit"
 
-private fun KtNamedFunction.containsGivenConstrain(): Boolean =
-  typeParameters.any { typeParameter ->
-    typeParameter.containsGivenConstrain()
+private fun List<ValueParameterDescriptor>.renderAsArguments(): String =
+  joinToString { it.name.asString() }
+
+private tailrec fun ModuleDescriptor.declarationsWithGivenArguments(
+  acc: List<DeclarationDescriptor> = emptyList(),
+  packages: List<FqName> = listOf(FqName.ROOT),
+  skipPacks: Set<FqName> = skipPackages
+): List<DeclarationDescriptor> =
+  when {
+    packages.isEmpty() -> acc
+    else -> {
+      val current = packages.first()
+      val topLevelDescriptors = getPackage(current).memberScope.getContributedDescriptors { true }.toList()
+      val memberDescriptors = topLevelDescriptors.filterIsInstance<ClassDescriptor>().flatMap {
+        it.unsubstitutedMemberScope.getContributedDescriptors { true }.toList()
+      }
+      val allPackageDescriptors = topLevelDescriptors + memberDescriptors
+      val packagedProofs = allPackageDescriptors
+        .filter {
+          (it is ClassDescriptor && it.isProof()) ||
+            it is CallableDescriptor && it.valueParameters.any { it.isProof() }
+        }
+      val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
+      declarationsWithGivenArguments(acc + packagedProofs.asSequence(), remaining)
+    }
   }
-
-private fun KtTypeParameter.containsGivenConstrain(): Boolean =
-  extendsBound?.annotationEntries?.any { it.text.matches(givenAnnotation) } ?: false
