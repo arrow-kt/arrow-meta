@@ -1,5 +1,7 @@
 package arrow.meta.phases
 
+import arrow.meta.ArrowMetaConfigurationKeys
+import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.resolve.cache.ProofsCache
 import arrow.meta.quotes.QuoteDefinition
@@ -16,6 +18,8 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ConcurrentHashMap
 
@@ -89,3 +93,11 @@ fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () 
 
 inline fun <reified D: DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
   compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }
+
+fun CompilerContext.getOrCreateBaseDirectory(parentPath: File?): File {
+  val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DefaultElementScope.DEFAULT_BASE_DIR.toString()))?.get(0)
+  val path = Paths.get(baseDir ?: DefaultElementScope.DEFAULT_BASE_DIR.toString(), parentPath?.path ?: "")
+  val directory = path.toFile()
+  directory.mkdirs()
+  return directory
+}

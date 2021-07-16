@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.quotes
 import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.getOrCreateBaseDirectory
 import arrow.meta.plugins.proofs.phases.contextualAnnotations
 import arrow.meta.plugins.proofs.phases.isProof
 import arrow.meta.plugins.proofs.phases.resolve.cache.skipPackages
@@ -27,8 +28,9 @@ fun Meta.generateGivenPreludeFile(): ExtensionPhase =
       val alreadyGenerated = get<Boolean>(genkey)
       if (alreadyGenerated != null && alreadyGenerated) null
       else {
-        val path = files.firstParentPath()?.let { java.io.File(it) }
-        path?.let { generateGivenFiles(module, it.absolutePath) }
+        val parentPath = files.firstParentPath()?.let { java.io.File(it) }
+        val path = getOrCreateBaseDirectory(parentPath)
+        generateGivenFiles(module, path.absolutePath)
         set(genkey, true)
         AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
       }
