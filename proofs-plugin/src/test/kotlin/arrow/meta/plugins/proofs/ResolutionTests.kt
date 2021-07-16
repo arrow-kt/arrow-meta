@@ -478,7 +478,7 @@ class ResolutionTests {
 
   private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
+    val arrowCoreData = Dependency("arrow-core:$arrowVersion")
     assertThis(
       CompilerTest(
         config = {
@@ -499,7 +499,7 @@ class ResolutionTests {
 
   private fun resolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")
-    val arrowCoreData = Dependency("arrow-core-data:$arrowVersion")
+    val arrowCoreData = Dependency("arrow-core:$arrowVersion")
     assertThis(
       CompilerTest(
         config = {
