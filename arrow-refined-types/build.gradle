@@ -4,3 +4,15 @@ plugins {
 
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
 apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"
+
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+                    exclude group: "org.jetbrains.kotlin"
+                }
+            }
+        }
+    }
+}
