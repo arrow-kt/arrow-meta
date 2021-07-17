@@ -12,7 +12,7 @@ dependencies {
     testRuntimeOnly project(':arrow-meta')
     testRuntimeOnly project(':prelude')
     testRuntimeOnly project(':proofs-plugin')
-    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+    testRuntimeOnly("io.arrow-kt:arrow-core:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
 }
