@@ -30,7 +30,7 @@ class IsoTests {
       |  companion object
       |}
       |
-      |val i: Iso<IsoSecondaryConstructor, Tuple2<Int, String>> = IsoSecondaryConstructor.iso
+      |val i: Iso<IsoSecondaryConstructor, Pair<Int, String>> = IsoSecondaryConstructor.iso
       |val r = i != null
       """ { "r".source.evalsTo(true) }
   }

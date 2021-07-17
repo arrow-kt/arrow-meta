@@ -5,17 +5,28 @@ import org.junit.jupiter.api.Test
 class DSLTests {
 
   @Test
-  fun `DSL is generated for complex model`() {
+  fun `DSL is generated for complex model with Every`() {
     """
       |$imports
       |$dslModel
-      |val john = Employee("Audrey Tang",
-      |       Company("Arrow",
-      |               Address("Functional city",
-      |                       Street(42, "lambda street"))))
-      |val modify = Employee.company.address.street.name.modify(john, String::toUpperCase)
-      |val r = modify.company?.address?.street?.name
-      """ { "r".source.evalsTo("LAMBDA STREET") }
+      |$dslValues
+      |val modify = Employees.employees.every(Every.list()).company.address
+      |  .street.name.modify(employees, String::toUpperCase)
+      |val r = modify.employees.map { it.company?.address?.street?.name }.toString()
+      """ { "r".source.evalsTo("[LAMBDA STREET, LAMBDA STREET]") }
   }
 
+  @Test
+  fun `DSL is generated for complex model with At`() {
+    """
+      |$imports
+      |$dslModel
+      |$dslValues
+      |val modify = Db.content.at(At.map(), One).set(db, None)
+      |val r = modify.toString()
+      """ { "r".source.evalsTo("Db(content={Two=two, Three=three, Four=four})") }
+  }
+
+
+//Db.content.at(At.map(), One).set(db, None)
 }

@@ -22,7 +22,7 @@ dependencies {
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-script-util:$KOTLIN_VERSION"
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$KOTLIN_VERSION"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-    testRuntimeOnly("io.arrow-kt:arrow-core-data:$ARROW_VERSION") {
+    testRuntimeOnly("io.arrow-kt:arrow-core:$ARROW_VERSION") {
         exclude group: "org.jetbrains.kotlin"
     }
     testRuntimeOnly("io.arrow-kt:arrow-optics:$ARROW_VERSION") {
