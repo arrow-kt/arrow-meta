@@ -29,15 +29,17 @@ class ResolutionTests {
     resolutionTest(
       """
       @Given
-      fun <A> eq(): Eq<A> =
-          object : Eq<A> {
-              override fun A.eqv(b: A): Boolean =
-                  this == b
-          }
+      fun <A> monoid(): Monoid<Iterable<A>> =
+        object : Monoid<Iterable<A>> {
+            override fun empty(): Iterable<A> =
+                emptyList()
+            override fun Iterable<A>.combine(b: Iterable<A>): Iterable<A> =
+                this.stdlibPlus(b)
+        }
       """
     ) {
       failsWith {
-        it.contains("This GivenProof test.eq on the type arrow.typeclasses.Eq<A> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+        it.contains("This GivenProof test.monoid on the type arrow.typeclasses.Monoid<kotlin.collections.Iterable<A>> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
       }
     }
   }
@@ -510,7 +512,7 @@ class ResolutionTests {
           |package test
           |import arrow.typeclasses.*
           |import arrow.*
-          |
+          |import kotlin.collections.plus as stdlibPlus
           |import arrow.Context
           |
           |@Context
