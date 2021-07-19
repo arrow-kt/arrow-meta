@@ -21,8 +21,10 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isInt
+import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
 
@@ -70,7 +72,7 @@ private fun Solver.formulaWithArgs(
 ): Formula? = when (descriptor.fqNameSafe) {
   FqName("arrow.refinement.pre") -> {
     //recursion ends here
-    boolAnd(args) //TODO apparently we don't get called for composed predicates with && or ||
+    args[0] //TODO apparently we don't get called for composed predicates with && or ||
   }
   FqName("arrow.refinement.post") -> {
     //recursion ends here
@@ -104,7 +106,7 @@ private fun Solver.argsFormulae(
     if (resolvedCall != null && !resolvedCall.preOrPostCall()) { // not match on the parent call
       val args = argsFormulae(resolvedCall)
       val descriptor = resolvedCall.resultingDescriptor
-      val expressionFormula = formulaWithArgs(descriptor, args, resolvedCall)
+      val expressionFormula = formulaWithArgs(descriptor, args.map { it.third }, resolvedCall)
       expressionFormula?.also { results.add(it) }
     }
   }
@@ -112,28 +114,28 @@ private fun Solver.argsFormulae(
   return results.distinct()
 }
 
-private fun <D : CallableDescriptor> Solver.argsFormulae(
+internal fun <D : CallableDescriptor> Solver.argsFormulae(
   resolvedCall: ResolvedCall<D>
-): List<Formula> =
+): List<Triple<KotlinType, String, Formula>> =
   ints {
     booleans {
       val argsExpressions = resolvedCall.allArgumentExpressions()
-      argsExpressions.mapNotNull { (type, maybeEx) ->
+      argsExpressions.mapNotNull { (name, type, maybeEx) ->
         when (val ex = maybeEx) {
           is KtConstantExpression ->
             when {
               type.isInt() ->
-                makeNumber(ex.text)
+                Triple(type, name, makeNumber(ex.text))
               type.isBoolean() ->
-                makeBoolean(ex.text.toBooleanStrict())
+                Triple(type, name , makeBoolean(ex.text.toBooleanStrict()))
               else -> null
             }
           else -> ex?.text?.let {
             when {
               type.isInt() ->
-                makeVariable(FormulaType.IntegerType, ex.text)
+                Triple(type, name, makeVariable(FormulaType.IntegerType, ex.text))
               type.isBoolean() ->
-                makeVariable(FormulaType.BooleanType, ex.text)
+                Triple(type, name, makeVariable(FormulaType.BooleanType, ex.text))
               else -> null
             }
           }
@@ -142,14 +144,16 @@ private fun <D : CallableDescriptor> Solver.argsFormulae(
     }
   }
 
-private fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Pair<KotlinType, KtExpression?>> =
-  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { it to getReceiverExpression() }) +
+private fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
     valueArguments.flatMap { (param, resolvedArg) ->
       val containingType =
-        (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
-          ?: param.builtIns.nothingType
-      resolvedArg.arguments.map {
-        containingType to it.getArgumentExpression()
+        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
+          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
+            ?: param.builtIns.nothingType
+        else param.type
+      resolvedArg.arguments.mapIndexed { n, it ->
+        Triple(param.name.asString(), containingType, it.getArgumentExpression())
       }
     }
 

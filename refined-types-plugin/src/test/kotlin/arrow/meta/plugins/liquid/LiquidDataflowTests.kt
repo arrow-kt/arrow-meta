@@ -18,7 +18,7 @@ class LiquidDataflowTests {
         val z = x + 2
         return z.post("returns 44") { it == 44 }
       }
-      val result = bar(42)
+      val result = bar(1)
       """(
       withPlugin = { "result".source.evalsTo(44) },
       withoutPlugin = { "result".source.evalsTo(44) }

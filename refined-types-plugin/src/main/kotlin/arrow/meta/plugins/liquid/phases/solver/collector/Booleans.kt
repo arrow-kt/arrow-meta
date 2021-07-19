@@ -24,7 +24,7 @@ internal fun Solver.boolImplication(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.boolAnd(args: List<Formula>): Formula? =
+internal fun Solver.boolAnd(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
       val (left, right) = args
