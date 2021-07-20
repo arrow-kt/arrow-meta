@@ -4,6 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.liquid.errors.MetaErrors.UnsatCall
 import arrow.meta.plugins.liquid.phases.solver.Solver
 import arrow.meta.plugins.liquid.phases.solver.collector.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.solver.collector.constraints
@@ -92,10 +93,7 @@ private fun CompilerContext.proveInCallChecker(
         if (!solverState.prover.isUnsat) {
           println(solverState.prover.model)
         } else {
-          println("Unsat!!!")
-          solverState.prover.unsatCore.forEach {
-            println(it)
-          }
+          context.trace.report(UnsatCall.on(reportOn, resolvedCall, solverState.prover.unsatCore.filterIsInstance<Formula>()))
         }
       }
     }
