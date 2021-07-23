@@ -25,14 +25,15 @@ import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
 
 data class DeclarationConstraints(
   val descriptor: DeclarationDescriptor,
   val element: KtDeclaration,
-  val pre: List<Formula>,
-  val post: List<Formula>
+  val pre: List<BooleanFormula>,
+  val post: List<BooleanFormula>
 )
 
 internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
@@ -47,13 +48,16 @@ internal fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
 fun Solver.formula(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
-): Pair<ResolvedCall<out CallableDescriptor>, Formula>? =
+): Pair<ResolvedCall<out CallableDescriptor>, BooleanFormula>? =
   ints {
     val callable = resolvedCall.resultingDescriptor
     val call = callable.builtIns.run {
       call(resolvedCall, bindingContext)
     }
-    call?.let { resolvedCall to it }
+    when (call) {
+      is BooleanFormula -> resolvedCall to call
+      else -> null  // TODO: report error
+    }
   }
 
 private fun Solver.call(
@@ -144,7 +148,7 @@ internal fun <D : CallableDescriptor> Solver.argsFormulae(
     }
   }
 
-private fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
     valueArguments.flatMap { (param, resolvedArg) ->
       val containingType =
@@ -181,7 +185,7 @@ private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
 internal fun KtDeclaration.constraints(
   solver: Solver,
   context: BindingContext
-): List<Pair<ResolvedCall<*>, Formula>> =
+): List<Pair<ResolvedCall<*>, BooleanFormula>> =
   constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
     val call = it.getResolvedCall(context)
     if (call != null && call.preOrPostCall()) {
