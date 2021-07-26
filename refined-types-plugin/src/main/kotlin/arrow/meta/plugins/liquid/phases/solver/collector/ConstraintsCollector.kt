@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -109,7 +110,7 @@ private fun Solver.argsFormulae(
   val visitor = expressionRecursiveVisitor {
     val resolvedCall = it.getResolvedCall(bindingContext)
     if (resolvedCall != null && !resolvedCall.preOrPostCall()) { // not match on the parent call
-      val args = argsFormulae(resolvedCall)
+      val args = argsFormulae(resolvedCall, bindingContext)
       val descriptor = resolvedCall.resultingDescriptor
       val expressionFormula = formulaWithArgs(descriptor, args.map { it.third }, resolvedCall)
       expressionFormula?.also { results.add(it) }
@@ -120,7 +121,8 @@ private fun Solver.argsFormulae(
 }
 
 internal fun <D : CallableDescriptor> Solver.argsFormulae(
-  resolvedCall: ResolvedCall<D>
+  resolvedCall: ResolvedCall<D>,
+  bindingContext: BindingContext,
 ): List<Triple<KotlinType, String, Formula>> =
   ints {
     booleans {
@@ -135,15 +137,23 @@ internal fun <D : CallableDescriptor> Solver.argsFormulae(
                 Triple(type, name , makeBoolean(ex.text.toBooleanStrict()))
               else -> null
             }
-          else -> ex?.text?.let {
+          is KtNameReferenceExpression -> ex.getReferencedName().let {
             when {
               type.isInt() ->
-                Triple(type, name, makeVariable(FormulaType.IntegerType, ex.text))
+                Triple(type, name, makeVariable(FormulaType.IntegerType, it))
               type.isBoolean() ->
-                Triple(type, name, makeVariable(FormulaType.BooleanType, ex.text))
+                Triple(type, name, makeVariable(FormulaType.BooleanType, it))
               else -> null
             }
           }
+          is KtElement -> {
+            val argCall = ex.getResolvedCall(bindingContext)
+            val expResCall = argCall?.let { argsFormulae(it, bindingContext) }
+            val descriptor = argCall?.resultingDescriptor
+            val formula =  descriptor?.let { formulaWithArgs(it, expResCall?.map { it.third }.orEmpty(), argCall) }
+            Triple(type, name, formula)
+          }
+          else -> Triple(type, name, null)
         }
       }
     }

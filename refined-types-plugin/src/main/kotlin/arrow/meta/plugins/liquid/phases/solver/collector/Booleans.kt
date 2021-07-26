@@ -2,6 +2,7 @@ package arrow.meta.plugins.liquid.phases.solver.collector
 
 import arrow.meta.plugins.liquid.phases.solver.Solver
 import org.sosy_lab.java_smt.api.BooleanFormula
+import org.sosy_lab.java_smt.api.BooleanFormulaManager
 import org.sosy_lab.java_smt.api.Formula
 
 internal fun Solver.boolEquivalence(args: List<Formula>): Formula? =
@@ -33,6 +34,17 @@ internal fun Solver.boolAnd(args: List<Formula>): BooleanFormula? =
       } else null
     } else null
   }
+
+internal fun Solver.implication(args: List<Formula>): BooleanFormula? =
+  booleans {
+    if (args.size == 2) {
+      val (left, right) = args
+      if (left is BooleanFormula && right is BooleanFormula) {
+        implication(left, right)
+      } else null
+    } else null
+  }
+
 
 internal fun Solver.boolOr(args: List<Formula>): Formula? =
   booleans {

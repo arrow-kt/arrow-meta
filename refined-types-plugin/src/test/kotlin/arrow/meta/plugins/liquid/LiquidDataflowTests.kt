@@ -17,7 +17,7 @@ class LiquidDataflowTests {
         pre("x is 42") { x == 42 }
         pre("x is also 43") { x == 43 }
         val z = x + 2
-        return z.post("returns 44") { it == 44 }
+        return z.post("returns 44") { it == x + 2 }
       }
       val result = bar(1)
       """(
