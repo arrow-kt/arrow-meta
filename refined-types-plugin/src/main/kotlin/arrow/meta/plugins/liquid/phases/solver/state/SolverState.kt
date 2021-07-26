@@ -115,17 +115,25 @@ private fun CompilerContext.collectDeclarationsConstraints(
     solverState.collecting()
     val solver = solverState.solver
     val constraints = declaration.constraints(solver, context.trace.bindingContext)
-    if (constraints.isNotEmpty()) {
-      val preConstraints = arrayListOf<BooleanFormula>()
-      val postConstraints = arrayListOf<BooleanFormula>()
-      constraints.forEach { (call, formula) ->
-        if (call.preCall()) preConstraints.add(formula)
-        if (call.postCall()) postConstraints.add(formula)
-      }
-      solverState.callableConstraints.add(
-        DeclarationConstraints(descriptor, declaration, preConstraints, postConstraints)
-      )
+    solverState.addConstraintsToSolverState(constraints, descriptor, declaration)
+  }
+}
+
+private fun SolverState.addConstraintsToSolverState(
+  constraints: List<Pair<ResolvedCall<*>, BooleanFormula>>,
+  descriptor: DeclarationDescriptor,
+  declaration: KtDeclaration
+) {
+  if (constraints.isNotEmpty()) {
+    val preConstraints = arrayListOf<BooleanFormula>()
+    val postConstraints = arrayListOf<BooleanFormula>()
+    constraints.forEach { (call, formula) ->
+      if (call.preCall()) preConstraints.add(formula)
+      if (call.postCall()) postConstraints.add(formula)
     }
+    callableConstraints.add(
+      DeclarationConstraints(descriptor, declaration, preConstraints, postConstraints)
+    )
   }
 }
 
@@ -159,32 +167,67 @@ private fun CompilerContext.checkDeclarationConstraints(
   val constraints = solverState?.constraintsFromSolverState(descriptor)
   if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
     if (declaration is KtFunction) {
-      solverState.bracket {
-        // assert preconditions (if available)
-        val inconsistentPreconditions = constraints?.pre?.let {
-          solverState.addAndCheckConsistency(it) { unsatCore ->
-            context.trace.report(
-              InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>()))
-          }
-        } ?: false  // if there are no preconditions, they are consistent
-        // if we are inconsistent, there's no point in going on, just stop early
-        if (inconsistentPreconditions) return@bracket
-        // go check the body
-        val resultName = solverState.names.newName("result")
-        // TODO: rename the result
-        // TODO: remove the pre- and post-conditions
-        solverState.checkExpressionConstraints(resultName, declaration.body(), context)
-        // check the post-conditions
-        constraints?.post?.forEach { postCondition ->
-          solverState.checkImplicationOf(postCondition) {
-            context.trace.report(
-              UnsatBodyPost.on(declaration.psiOrParent, declaration, listOf(postCondition)))
-          }
-        }
-      }
+      solverState.checkFunctionConstraints(constraints, context, declaration)
     }
   }
 }
+
+private fun SolverState.checkFunctionConstraints(
+  constraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  declaration: KtFunction
+) {
+  bracket {
+    // assert preconditions (if available)
+    val inconsistentPreconditions = checkPreconditionsInconsistencies(
+      constraints,
+      context,
+      declaration
+    )  // if there are no preconditions, they are consistent
+    // if we are inconsistent, there's no point in going on, just stop early
+    if (inconsistentPreconditions) return@bracket
+    checkBody(declaration, context)
+    // check the post-conditions
+    checkPostConditionsImplication(constraints, context, declaration)
+  }
+}
+
+private fun SolverState.checkPostConditionsImplication(
+  constraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  declaration: KtFunction
+) {
+  constraints?.post?.forEach { postCondition ->
+    checkImplicationOf(postCondition) {
+      context.trace.report(
+        UnsatBodyPost.on(declaration.psiOrParent, declaration, listOf(postCondition))
+      )
+    }
+  }
+}
+
+private fun SolverState.checkBody(
+  declaration: KtFunction,
+  context: DeclarationCheckerContext
+) {
+  // go check the body
+  val resultName = names.newName("result")
+  // TODO: rename the result
+  // TODO: remove the pre- and post-conditions
+  checkExpressionConstraints(resultName, declaration.body(), context)
+}
+
+private fun SolverState.checkPreconditionsInconsistencies(
+  constraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  declaration: KtFunction
+): Boolean = constraints?.pre?.let {
+  addAndCheckConsistency(it) { unsatCore ->
+    context.trace.report(
+      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>())
+    )
+  }
+} ?: false
 
 private fun SolverState.checkExpressionConstraints(
   associatedVarName: String,
