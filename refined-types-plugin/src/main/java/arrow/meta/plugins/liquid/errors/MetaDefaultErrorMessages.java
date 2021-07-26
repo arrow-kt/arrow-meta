@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages;
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 
-import static arrow.meta.plugins.liquid.errors.MetaErrors.UnsatCall;
+import static arrow.meta.plugins.liquid.errors.MetaErrors.*;
 
 public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension {
     @NotNull
@@ -20,7 +20,18 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
 
 
     static {
-        MAP.put(UnsatCall, "call to {0} fails to satisfy constraints: {1}", FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
+        MAP.put(InconsistentBodyPre,
+                "{0} has inconsistent pre-conditions: {1}",
+                FormulaRendererKt.RenderDeclaration, FormulaRendererKt.RenderFormula);
+        MAP.put(UnsatBodyPost,
+                "{0} fails to satisfy the post-condition: {1}",
+                FormulaRendererKt.RenderDeclaration, FormulaRendererKt.RenderFormula);
+        MAP.put(UnsatCallPre,
+                "call to {0} fails to satisfy its pre-conditions: {1}",
+                FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
+        MAP.put(InconsistentCallPost,
+                "unreachable code due to post-conditions: {1}",
+                FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
     }
 }
 
