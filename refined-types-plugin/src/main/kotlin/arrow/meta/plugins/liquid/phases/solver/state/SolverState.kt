@@ -12,17 +12,15 @@ import arrow.meta.plugins.liquid.phases.solver.collector.constraints
 import arrow.meta.plugins.liquid.phases.solver.collector.postCall
 import arrow.meta.plugins.liquid.phases.solver.collector.preCall
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.types.typeUtil.isBoolean
-import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -201,7 +199,9 @@ private fun SolverState.checkExpressionConstraints(
     }
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression, context)
-    else -> return
+    else -> expression?.getChildrenOfType<KtExpression>()?.forEach {
+      checkExpressionConstraints(associatedVarName, it, context)
+    }
   }
 }
 
@@ -218,11 +218,11 @@ private fun SolverState.checkCallExpression(
     //   this function creates a new name for each argument,
     //   based on the formal parameter name;
     //   this creates a renaming for the original constraints
-    val argVars = resolvedCall?.allArgumentExpressions()?.map { (name, ty, expr) ->
+    val argVars = resolvedCall?.allArgumentExpressions()?.associate { (name, ty, expr) ->
       val argUniqueName = names.newName(name)
       checkExpressionConstraints(argUniqueName, expr, context)
       Pair(name, argUniqueName)
-    }?.toMap() ?: emptyMap()
+    } ?: emptyMap()
     // obtain and rename the pre- and post-conditions
     // TODO: rename the result variable using the associatedVar
     val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {

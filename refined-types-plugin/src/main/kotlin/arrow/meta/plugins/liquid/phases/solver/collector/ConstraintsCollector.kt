@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
-import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FormulaType
 
 data class DeclarationConstraints(
@@ -44,10 +43,10 @@ internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
 internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
 
-internal fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
+private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
   preCall() || postCall()
 
-fun Solver.formula(
+private fun Solver.formula(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
 ): Pair<ResolvedCall<out CallableDescriptor>, BooleanFormula>? =
@@ -120,7 +119,7 @@ private fun Solver.argsFormulae(
   return results.distinct()
 }
 
-internal fun <D : CallableDescriptor> Solver.argsFormulae(
+private fun <D : CallableDescriptor> Solver.argsFormulae(
   resolvedCall: ResolvedCall<D>,
   bindingContext: BindingContext,
 ): List<Triple<KotlinType, String, Formula>> =
@@ -128,36 +127,68 @@ internal fun <D : CallableDescriptor> Solver.argsFormulae(
     booleans {
       val argsExpressions = resolvedCall.allArgumentExpressions()
       argsExpressions.mapNotNull { (name, type, maybeEx) ->
-        when (val ex = maybeEx) {
-          is KtConstantExpression ->
-            when {
-              type.isInt() ->
-                Triple(type, name, makeNumber(ex.text))
-              type.isBoolean() ->
-                Triple(type, name , makeBoolean(ex.text.toBooleanStrict()))
-              else -> null
-            }
-          is KtNameReferenceExpression -> ex.getReferencedName().let {
-            when {
-              type.isInt() ->
-                Triple(type, name, makeVariable(FormulaType.IntegerType, it))
-              type.isBoolean() ->
-                Triple(type, name, makeVariable(FormulaType.BooleanType, it))
-              else -> null
-            }
-          }
-          is KtElement -> {
-            val argCall = ex.getResolvedCall(bindingContext)
-            val expResCall = argCall?.let { argsFormulae(it, bindingContext) }
-            val descriptor = argCall?.resultingDescriptor
-            val formula =  descriptor?.let { formulaWithArgs(it, expResCall?.map { it.third }.orEmpty(), argCall) }
-            Triple(type, name, formula)
-          }
-          else -> Triple(type, name, null)
-        }
+        expressionToFormulae(maybeEx, type, name, bindingContext)
       }
     }
   }
+
+private fun Solver.expressionToFormulae(
+  maybeEx: KtExpression?,
+  type: KotlinType,
+  name: String,
+  bindingContext: BindingContext
+): Triple<KotlinType, String, Formula>? =
+  when (val ex = maybeEx) {
+    is KtConstantExpression ->
+      makeConstant(type, name, ex)
+    is KtNameReferenceExpression ->
+      makeVariable(ex, type, name)
+    is KtElement -> {
+      makeExpression(ex, bindingContext, type, name)
+    }
+    else -> null
+  }
+
+private fun Solver.makeExpression(
+  ex: KtExpression?,
+  bindingContext: BindingContext,
+  type: KotlinType,
+  name: String
+): Triple<KotlinType, String, Formula>? {
+  val argCall = ex.getResolvedCall(bindingContext)
+  val expResCall = argCall?.let { argsFormulae(it, bindingContext) }
+  val descriptor = argCall?.resultingDescriptor
+  val formula = descriptor?.let { formulaWithArgs(it, expResCall?.map { it.third }.orEmpty(), argCall) }
+  return formula?.let { Triple(type, name, formula) }
+}
+
+private fun Solver.makeVariable(
+  ex: KtNameReferenceExpression,
+  type: KotlinType,
+  name: String
+): Triple<KotlinType, String, Formula>? =
+  ex.getReferencedName().let {
+    when {
+      type.isInt() ->
+        Triple(type, name, makeVariable(FormulaType.IntegerType, it))
+      type.isBoolean() ->
+        Triple(type, name, makeVariable(FormulaType.BooleanType, it))
+      else -> null
+    }
+  }
+
+
+private fun Solver.makeConstant(
+  type: KotlinType,
+  name: String,
+  ex: KtConstantExpression
+): Triple<KotlinType, String, Formula>? = when {
+  type.isInt() ->
+    Triple(type, name, integerFormulaManager.makeNumber(ex.text))
+  type.isBoolean() ->
+    Triple(type, name, booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict()))
+  else -> null
+}
 
 fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
