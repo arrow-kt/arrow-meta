@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
+import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FormulaType
 
 data class DeclarationConstraints(

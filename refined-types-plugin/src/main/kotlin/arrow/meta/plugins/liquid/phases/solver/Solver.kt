@@ -53,6 +53,9 @@ class Solver(context: SolverContext) :
   fun <A> uninterpretedFunctions(f: UFManager.() -> A): A =
     f(ufManager)
 
+  fun <A> formulae(f: FormulaManager.() -> A): A =
+    f(formulaManager)
+
   companion object {
     operator fun invoke(): Solver {
       val config: Configuration = Configuration.defaultConfiguration()

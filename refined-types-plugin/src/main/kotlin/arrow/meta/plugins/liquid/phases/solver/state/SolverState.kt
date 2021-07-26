@@ -12,6 +12,7 @@ import arrow.meta.plugins.liquid.phases.solver.collector.constraints
 import arrow.meta.plugins.liquid.phases.solver.collector.postCall
 import arrow.meta.plugins.liquid.phases.solver.collector.preCall
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.*
@@ -20,6 +21,8 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.typeUtil.isBoolean
+import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -88,47 +91,11 @@ internal fun Meta.solverStateAnalysis(): ExtensionPhase =
       declarationChecker { declaration, descriptor, context ->
         collectDeclarationsConstraints(context, declaration, descriptor)
       },
-      /* callChecker { resolvedCall, reportOn, context ->
-        proveInCallChecker(context, resolvedCall, reportOn)
-      }, */
       declarationChecker { declaration, descriptor, context ->
         checkDeclarationConstraints(context, declaration, descriptor)
       }
     )
   )
-
-/*
-private fun CompilerContext.proveInCallChecker(
-  context: CallCheckerContext,
-  resolvedCall: ResolvedCall<*>,
-  reportOn: PsiElement
-) {
-  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null && (solverState.currentStage() == SolverState.Stage.Prove)) {
-    val callConstraints = solverState.constraintsFromSolverState(resolvedCall)
-    if (callConstraints?.pre?.isNotEmpty() == true) {
-      println("prove pre conditions for ${resolvedCall.call.callElement.text}")
-      val formula = solverState.resolvedCallProveFormula(resolvedCall)
-      if (formula != null) {
-        solverState.prover.addConstraint(formula)
-        if (!solverState.prover.isUnsat) {
-          println(solverState.prover.model)
-        } else {
-          context.trace.report(UnsatCall.on(reportOn, resolvedCall, solverState.prover.unsatCore.filterIsInstance<Formula>()))
-        }
-      }
-    }
-
-    if (callConstraints?.post?.isNotEmpty() == true) {
-      println("prove post conditions for ${resolvedCall.call.callElement.text}")
-    }
-
-    //TODO here we can push and pop solving context as tree of calls is traversed
-
-  }
-  println("callChecker: $resolvedCall, $reportOn, $context")
-}
-*/
 
 internal fun SolverState.constraintsFromSolverState(resolvedCall: ResolvedCall<*>): DeclarationConstraints? =
   callableConstraints.firstOrNull {
@@ -193,23 +160,25 @@ private fun CompilerContext.checkDeclarationConstraints(
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
   val constraints = solverState?.constraintsFromSolverState(descriptor)
   if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
-    if (this is KtFunction) {
+    if (declaration is KtFunction) {
       solverState.bracket {
         // assert preconditions (if available)
         constraints?.pre?.let {
           solverState.addAndCheckConsistency(it) { unsatCore ->
             context.trace.report(
-              InconsistentBodyPre.on(psiOrParent, this, unsatCore.filterIsInstance<Formula>()))
+              InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>()))
           }
         }
         // go check the body
+        val resultName = solverState.names.newName("result")
+        // TODO: rename the result
         // TODO: remove the pre- and post-conditions
-        solverState.checkExpressionConstraints(body(), context)
+        solverState.checkExpressionConstraints(resultName, declaration.body(), context)
         // check the post-conditions
         constraints?.post?.forEach { postCondition ->
           solverState.checkImplicationOf(postCondition) {
             context.trace.report(
-              UnsatBodyPost.on(psiOrParent, this, listOf(postCondition)))
+              UnsatBodyPost.on(declaration.psiOrParent, declaration, listOf(postCondition)))
           }
         }
       }
@@ -218,39 +187,104 @@ private fun CompilerContext.checkDeclarationConstraints(
 }
 
 private fun SolverState.checkExpressionConstraints(
+  associatedVarName: String,
   expression: KtExpression?,
   context: DeclarationCheckerContext
 ) {
   when (expression) {
-    is KtCallExpression -> expression.getResolvedCall(context.trace.bindingContext).let { resolvedCall ->
-      // recursively perform check on arguments
-      // including extension receiver and dispatch receiver
-      resolvedCall?.allArgumentExpressions()?.forEach { (name, ty, expr) ->
-        checkExpressionConstraints(expr, context)
-      }
-      // perform the actual check
-      val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }
-      // check preconditions
-      callConstraints?.pre?.forEach { callPreCondition ->
-        checkImplicationOf(callPreCondition) {
-          context.trace.report(
-            UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition)))
-        }
-      }
-      // assert postconditions, inconsistent means unreachable code
-      callConstraints?.post?.let {
-        addAndCheckConsistency(it) { unsatCore ->
-          context.trace.report(
-            InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore.filterIsInstance<Formula>()))
-        }
-      }
-    }
+    is KtCallExpression ->
+      checkCallExpression(associatedVarName, expression, context)
     is KtBlockExpression -> expression.statements.forEach {
-      checkExpressionConstraints(it, context)
+      checkExpressionConstraints(associatedVarName, it, context)
     }
+    is KtConstantExpression ->
+      checkConstantExpression(associatedVarName, expression, context)
     else -> return
   }
 }
+
+private fun SolverState.checkCallExpression(
+  associatedVarName: String,
+  expression: KtCallExpression,
+  context: DeclarationCheckerContext
+) {
+  expression.getResolvedCall(context.trace.bindingContext).let { resolvedCall ->
+    // recursively perform check on arguments
+    // including extension receiver and dispatch receiver
+    //
+    // [NOTE: argument renaming]
+    //   this function creates a new name for each argument,
+    //   based on the formal parameter name;
+    //   this creates a renaming for the original constraints
+    val argVars = resolvedCall?.allArgumentExpressions()?.map { (name, ty, expr) ->
+      val argUniqueName = names.newName(name)
+      checkExpressionConstraints(argUniqueName, expr, context)
+      Pair(name, argUniqueName)
+    }?.toMap() ?: emptyMap()
+    // obtain and rename the pre- and post-conditions
+    // TODO: rename the result variable using the associatedVar
+    val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
+      solver.renameDeclarationConstraints(it, argVars)
+    }
+    // check pre-conditions
+    callConstraints?.pre?.forEach { callPreCondition ->
+      checkImplicationOf(callPreCondition) {
+        context.trace.report(
+          UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
+        )
+      }
+    }
+    // assert post-conditions (inconsistent means unreachable code)
+    callConstraints?.post?.let {
+      addAndCheckConsistency(it) { unsatCore ->
+        context.trace.report(
+          InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore.filterIsInstance<Formula>())
+        )
+      }
+    }
+  }
+}
+
+// this function makes the desired variable name
+// equal to the value encoded in the constant
+private fun SolverState.checkConstantExpression(
+  associatedVarName: String,
+  expression: KtConstantExpression,
+  context: DeclarationCheckerContext
+) {
+  solver.formulae {
+    val mayBoolean  = expression.text.toBooleanStrictOrNull()
+    val mayInteger  = expression.text.toBigIntegerOrNull()
+    val mayRational = expression.text.toBigDecimalOrNull()
+    when {
+      mayBoolean == true ->
+        makeVariable(FormulaType.BooleanType, associatedVarName)
+      mayBoolean == false ->
+        solver.booleans { not(makeVariable(FormulaType.BooleanType, associatedVarName)) }
+      mayInteger != null ->
+        solver.ints {
+          equal(
+            makeVariable(FormulaType.IntegerType, associatedVarName),
+            makeNumber(mayInteger)
+          )
+        }
+      mayRational != null ->
+        solver.rationals {
+          equal(
+            makeVariable(FormulaType.RationalType, associatedVarName),
+            makeNumber(mayRational)
+          )
+        }
+      else -> null
+    }?.let {
+      prover.addConstraint(it)
+    }
+  }
+}
+
+// SOLVER INTERACTION
+// these two functions ultimately call the SMT solver,
+// and report errors as desired
 
 private fun SolverState.addAndCheckConsistency(
   constraints: Iterable<BooleanFormula>,
@@ -265,9 +299,7 @@ private fun SolverState.checkImplicationOf(
   message: (model: Model) -> Unit
 ) {
   bracket {
-    solver.booleans {
-      prover.addConstraint(not(constraint))
-    }
+    solver.booleans { prover.addConstraint(not(constraint)) }
     if (!prover.isUnsat) { message(prover.model) }
   }
 }
