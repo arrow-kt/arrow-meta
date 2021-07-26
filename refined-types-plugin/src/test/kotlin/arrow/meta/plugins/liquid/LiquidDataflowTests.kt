@@ -15,13 +15,14 @@ class LiquidDataflowTests {
       ${imports()}
       fun bar(x: Int): Int {
         pre("x is 42") { x == 42 }
+        pre("x is also 43") { x == 43 }
         val z = x + 2
         return z.post("returns 44") { it == 44 }
       }
       val result = bar(1)
       """(
-      withPlugin = { "result".source.evalsTo(44) },
-      withoutPlugin = { "result".source.evalsTo(44) }
+      withPlugin = { failsWith { it.contains("inconsistent pre-conditions") } },
+      withoutPlugin = { compiles }
     )
   }
 
