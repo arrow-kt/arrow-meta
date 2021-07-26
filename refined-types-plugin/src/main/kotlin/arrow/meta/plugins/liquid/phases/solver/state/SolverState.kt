@@ -163,12 +163,14 @@ private fun CompilerContext.checkDeclarationConstraints(
     if (declaration is KtFunction) {
       solverState.bracket {
         // assert preconditions (if available)
-        constraints?.pre?.let {
+        val inconsistentPreconditions = constraints?.pre?.let {
           solverState.addAndCheckConsistency(it) { unsatCore ->
             context.trace.report(
               InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>()))
           }
-        }
+        } ?: false  // if there are no preconditions, they are consistent
+        // if we are inconsistent, there's no point in going on, just stop early
+        if (inconsistentPreconditions) return@bracket
         // go check the body
         val resultName = solverState.names.newName("result")
         // TODO: rename the result
@@ -289,17 +291,20 @@ private fun SolverState.checkConstantExpression(
 private fun SolverState.addAndCheckConsistency(
   constraints: Iterable<BooleanFormula>,
   message: (unsatCore: List<BooleanFormula>) -> Unit
-) {
+): Boolean {
   constraints.forEach { prover.addConstraint(it) }
-  if (prover.isUnsat) { message(prover.unsatCore) }
+  val unsat = prover.isUnsat
+  if (unsat) { message(prover.unsatCore) }
+  return unsat
 }
 
 private fun SolverState.checkImplicationOf(
   constraint: BooleanFormula,
   message: (model: Model) -> Unit
-) {
+): Boolean =
   bracket {
     solver.booleans { prover.addConstraint(not(constraint)) }
-    if (!prover.isUnsat) { message(prover.model) }
+    val unsat = prover.isUnsat
+    if (!unsat) { message(prover.model) }
+    !unsat
   }
-}
