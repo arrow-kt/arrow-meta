@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
-  fun `pre and post are resolved in the classpath`() {
+  fun `inconsistent preconditions`() {
     """
       ${imports()}
       fun bar(x: Int): Int {
@@ -26,6 +26,21 @@ class LiquidDataflowTests {
     )
   }
 
+  @Test
+  fun `wrong call`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre("x is 42") { x == 42 }
+        val z = x + 2
+        return z.post("returns 44") { it == x + 2 }
+      }
+      val result = bar(1)
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

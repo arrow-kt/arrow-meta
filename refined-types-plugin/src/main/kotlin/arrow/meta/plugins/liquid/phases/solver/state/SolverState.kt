@@ -95,6 +95,9 @@ internal fun Meta.solverStateAnalysis(): ExtensionPhase =
     )
   )
 
+// PHASE 1: COLLECTION OF CONSTRAINTS
+// ==================================
+
 internal fun SolverState.constraintsFromSolverState(resolvedCall: ResolvedCall<*>): DeclarationConstraints? =
   callableConstraints.firstOrNull {
     resolvedCall.resultingDescriptor.fqNameSafe == it.descriptor.fqNameSafe
@@ -158,6 +161,13 @@ private fun CompilerContext.ensureSolverStateInitialization(
   }
 }
 
+// PHASE 2: CHECKING OF CONSTRAINTS
+// ================================
+
+val RESULT_VAR_NAME = "${'$'}result"
+
+// 2.0: entry point
+
 private fun CompilerContext.checkDeclarationConstraints(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration,
@@ -166,16 +176,33 @@ private fun CompilerContext.checkDeclarationConstraints(
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
   val constraints = solverState?.constraintsFromSolverState(descriptor)
   if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
-    if (declaration is KtFunction) {
-      solverState.checkFunctionConstraints(constraints, context, declaration)
+    // choose a good name for the result
+    // should we change it for 'val' declarations?
+    val resultVarName = RESULT_VAR_NAME
+    // now go on and check the body
+    when (declaration) {
+      is KtDeclarationWithBody -> declaration.body()
+      is KtDeclarationWithInitializer -> declaration.initializer
+      else -> null
+    }?.let { body ->
+      solverState.checkDeclarationWithBody(
+        constraints, context,
+        resultVarName, declaration, body
+      )
     }
   }
 }
 
-private fun SolverState.checkFunctionConstraints(
+
+// 2.1: declarations
+// -----------------
+
+private fun SolverState.checkDeclarationWithBody(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
-  declaration: KtFunction
+  resultVarName: String,
+  declaration: KtDeclaration,
+  body: KtExpression?
 ) {
   bracket {
     // assert preconditions (if available)
@@ -186,16 +213,28 @@ private fun SolverState.checkFunctionConstraints(
     )  // if there are no preconditions, they are consistent
     // if we are inconsistent, there's no point in going on, just stop early
     if (inconsistentPreconditions) return@bracket
-    checkBody(declaration, context)
+    checkExpressionConstraints(resultVarName, body, context)
     // check the post-conditions
     checkPostConditionsImplication(constraints, context, declaration)
   }
 }
 
+private fun SolverState.checkPreconditionsInconsistencies(
+  constraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  declaration: KtDeclaration
+): Boolean = constraints?.pre?.let {
+  addAndCheckConsistency(it) { unsatCore ->
+    context.trace.report(
+      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>())
+    )
+  }
+} ?: false
+
 private fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
-  declaration: KtFunction
+  declaration: KtDeclaration
 ) {
   constraints?.post?.forEach { postCondition ->
     checkImplicationOf(postCondition) {
@@ -206,28 +245,8 @@ private fun SolverState.checkPostConditionsImplication(
   }
 }
 
-private fun SolverState.checkBody(
-  declaration: KtFunction,
-  context: DeclarationCheckerContext
-) {
-  // go check the body
-  val resultName = names.newName("result")
-  // TODO: rename the result
-  // TODO: remove the pre- and post-conditions
-  checkExpressionConstraints(resultName, declaration.body(), context)
-}
-
-private fun SolverState.checkPreconditionsInconsistencies(
-  constraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  declaration: KtFunction
-): Boolean = constraints?.pre?.let {
-  addAndCheckConsistency(it) { unsatCore ->
-    context.trace.report(
-      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>())
-    )
-  }
-} ?: false
+// 2.2: expressions
+// ----------------
 
 private fun SolverState.checkExpressionConstraints(
   associatedVarName: String,
@@ -267,9 +286,9 @@ private fun SolverState.checkCallExpression(
       Pair(name, argUniqueName)
     } ?: emptyMap()
     // obtain and rename the pre- and post-conditions
-    // TODO: rename the result variable using the associatedVar
     val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
-      solver.renameDeclarationConstraints(it, argVars)
+      val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+      solver.renameDeclarationConstraints(it, completeRenaming)
     }
     // check pre-conditions
     callConstraints?.pre?.forEach { callPreCondition ->
@@ -328,6 +347,7 @@ private fun SolverState.checkConstantExpression(
 }
 
 // SOLVER INTERACTION
+// ==================
 // these two functions ultimately call the SMT solver,
 // and report errors as desired
 
