@@ -1,9 +1,22 @@
-package arrow.meta.plugins.liquid.phases.solver.collector
+package arrow.meta.plugins.liquid.phases.analysis.solver
 
-import arrow.meta.plugins.liquid.phases.solver.Solver
+import arrow.meta.phases.CompilerContext
+import arrow.meta.plugins.liquid.smt.Solver
+import arrow.meta.plugins.liquid.smt.intDivide
+import arrow.meta.plugins.liquid.smt.intEquals
+import arrow.meta.plugins.liquid.smt.intGreaterThan
+import arrow.meta.plugins.liquid.smt.intGreaterThanOrEquals
+import arrow.meta.plugins.liquid.smt.intLessThan
+import arrow.meta.plugins.liquid.smt.intLessThanOrEquals
+import arrow.meta.plugins.liquid.smt.intMinus
+import arrow.meta.plugins.liquid.smt.intMultiply
+import arrow.meta.plugins.liquid.smt.intPlus
+import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -15,9 +28,11 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
@@ -28,6 +43,86 @@ import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
+
+// PHASE 1: COLLECTION OF CONSTRAINTS
+// ==================================
+
+internal fun SolverState.constraintsFromSolverState(resolvedCall: ResolvedCall<*>): DeclarationConstraints? =
+  callableConstraints.firstOrNull {
+    resolvedCall.resultingDescriptor.fqNameSafe == it.descriptor.fqNameSafe
+  }
+
+internal fun SolverState.constraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
+  callableConstraints.firstOrNull {
+    descriptor.fqNameSafe == it.descriptor.fqNameSafe
+  }
+
+internal fun CompilerContext.collectDeclarationsConstraints(
+  context: DeclarationCheckerContext,
+  declaration: KtDeclaration,
+  descriptor: DeclarationDescriptor
+) {
+  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
+  if (solverState != null && (solverState.isIn(SolverState.Stage.Init) || solverState.isIn(SolverState.Stage.CollectConstraints))) {
+    solverState.collecting()
+    val solver = solverState.solver
+    val constraints = declaration.constraints(solver, context.trace.bindingContext)
+    solverState.addConstraintsToSolverState(constraints, descriptor, declaration)
+  }
+}
+
+internal fun KtDeclaration.constraints(
+  solver: Solver,
+  context: BindingContext
+): List<Pair<ResolvedCall<*>, BooleanFormula>> =
+  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
+    val call = it.getResolvedCall(context)
+    if (call != null && call.preOrPostCall()) {
+      val f = solver.formula(call, context)
+      f
+    } else null
+  }
+
+private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
+  val results = hashSetOf<PsiElement>()
+  val visitor = callExpressionRecursiveVisitor {
+    if (it.calleeExpression?.text == "pre" || it.calleeExpression?.text == "post") {
+      results.add(it)
+    }
+  }
+  accept(visitor)
+  acceptChildren(visitor)
+  return results
+}
+
+private fun SolverState.addConstraintsToSolverState(
+  constraints: List<Pair<ResolvedCall<*>, BooleanFormula>>,
+  descriptor: DeclarationDescriptor,
+  declaration: KtDeclaration
+) {
+  if (constraints.isNotEmpty()) {
+    val preConstraints = arrayListOf<BooleanFormula>()
+    val postConstraints = arrayListOf<BooleanFormula>()
+    constraints.forEach { (call, formula) ->
+      if (call.preCall()) preConstraints.add(formula)
+      if (call.postCall()) postConstraints.add(formula)
+    }
+    callableConstraints.add(
+      DeclarationConstraints(descriptor, declaration, preConstraints, postConstraints)
+    )
+  }
+}
+
+internal fun CompilerContext.finalizeConstraintsCollection(
+  module: ModuleDescriptor,
+  bindingTrace: BindingTrace
+): AnalysisResult? {
+  val solverState = get<SolverState>(SolverState.key(module))
+  return if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
+    solverState.collectionEnds()
+    AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
+  } else null
+}
 
 internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre")
@@ -124,6 +219,19 @@ private fun <D : CallableDescriptor> Solver.argsFormulae(
     }
   }
 
+internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
+    valueArguments.flatMap { (param, resolvedArg) ->
+      val containingType =
+        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
+          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
+            ?: param.builtIns.nothingType
+        else param.type
+      resolvedArg.arguments.mapIndexed { n, it ->
+        Triple(param.name.asString(), containingType, it.getArgumentExpression())
+      }
+    }
+
 private fun Solver.expressionToFormulae(
   maybeEx: KtExpression?,
   type: KotlinType,
@@ -169,7 +277,6 @@ private fun Solver.makeVariable(
     }
   }
 
-
 private fun Solver.makeConstant(
   type: KotlinType,
   name: String,
@@ -182,48 +289,3 @@ private fun Solver.makeConstant(
   else -> null
 }
 
-fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
-  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
-    valueArguments.flatMap { (param, resolvedArg) ->
-      val containingType =
-        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
-          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
-            ?: param.builtIns.nothingType
-        else param.type
-      resolvedArg.arguments.mapIndexed { n, it ->
-        Triple(param.name.asString(), containingType, it.getArgumentExpression())
-      }
-    }
-
-
-fun KotlinType.formulaType(): FormulaType<*>? =
-  when {
-    isInt() -> FormulaType.IntegerType
-    isBoolean() -> FormulaType.BooleanType
-    else -> null
-  }
-
-
-private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
-  val results = hashSetOf<PsiElement>()
-  val visitor = callExpressionRecursiveVisitor {
-    if (it.calleeExpression?.text == "pre" || it.calleeExpression?.text == "post") {
-      results.add(it)
-    }
-  }
-  accept(visitor)
-  acceptChildren(visitor)
-  return results
-}
-
-internal fun KtDeclaration.constraints(
-  solver: Solver,
-  context: BindingContext
-): List<Pair<ResolvedCall<*>, BooleanFormula>> =
-  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
-    val call = it.getResolvedCall(context)
-    if (call != null && call.preOrPostCall()) {
-      val f = solver.formula(call, context)
-      f
-    } else null
-  }

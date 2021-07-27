@@ -1,8 +1,7 @@
 package arrow.meta.plugins.liquid.phases.solver.collector
 
-import arrow.meta.plugins.liquid.phases.solver.Solver
+import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.BooleanFormula
-import org.sosy_lab.java_smt.api.BooleanFormulaManager
 import org.sosy_lab.java_smt.api.Formula
 
 internal fun Solver.boolEquivalence(args: List<Formula>): Formula? =

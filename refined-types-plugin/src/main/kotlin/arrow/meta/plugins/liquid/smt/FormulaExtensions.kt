@@ -1,8 +1,8 @@
 package arrow.meta.plugins.liquid.phases.solver.collector
 
-import arrow.meta.plugins.liquid.phases.solver.Solver
+import arrow.meta.plugins.liquid.phases.analysis.solver.DeclarationConstraints
+import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.Formula
-import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
 
 fun <T: Formula> Solver.substituteFormulae(formula: T, subst: Map<Formula, Formula>): T =

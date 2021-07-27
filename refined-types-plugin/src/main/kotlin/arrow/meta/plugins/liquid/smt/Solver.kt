@@ -1,25 +1,21 @@
-package arrow.meta.plugins.liquid.phases.solver
+package arrow.meta.plugins.liquid.smt
 
 import org.sosy_lab.common.ShutdownManager
 import org.sosy_lab.common.configuration.Configuration
 import org.sosy_lab.common.log.BasicLogManager
 import org.sosy_lab.common.log.LogManager
 import org.sosy_lab.java_smt.SolverContextFactory
-import org.sosy_lab.java_smt.SolverContextFactory.Solvers
 import org.sosy_lab.java_smt.api.ArrayFormulaManager
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager
 import org.sosy_lab.java_smt.api.BooleanFormulaManager
 import org.sosy_lab.java_smt.api.FloatingPointFormulaManager
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.IntegerFormulaManager
-import org.sosy_lab.java_smt.api.Model
 import org.sosy_lab.java_smt.api.QuantifiedFormulaManager
 import org.sosy_lab.java_smt.api.RationalFormulaManager
 import org.sosy_lab.java_smt.api.SLFormulaManager
 import org.sosy_lab.java_smt.api.SolverContext
-import org.sosy_lab.java_smt.api.SolverContext.ProverOptions
 import org.sosy_lab.java_smt.api.UFManager
-
 
 class Solver(context: SolverContext) :
   SolverContext by context,
@@ -62,10 +58,9 @@ class Solver(context: SolverContext) :
       val logger: LogManager = BasicLogManager.create(config)
       val shutdown = ShutdownManager.create()
       val context = SolverContextFactory.createSolverContext(
-        config, logger, shutdown.notifier, Solvers.PRINCESS
+        config, logger, shutdown.notifier, SolverContextFactory.Solvers.PRINCESS
       )
       return Solver(context)
     }
   }
 }
-
