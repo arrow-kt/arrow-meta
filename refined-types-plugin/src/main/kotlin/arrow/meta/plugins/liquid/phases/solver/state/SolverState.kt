@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.phases.solver.state
 
 import arrow.meta.Meta
+import arrow.meta.continuations.*
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
@@ -13,6 +14,7 @@ import arrow.meta.plugins.liquid.phases.solver.collector.postCall
 import arrow.meta.plugins.liquid.phases.solver.collector.preCall
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.codegen.kotlinType
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
@@ -187,7 +189,7 @@ private fun CompilerContext.checkDeclarationConstraints(
       solverState.checkDeclarationWithBody(
         constraints, context,
         resultVarName, declaration, body
-      )
+      ).runCont()
     }
   }
 }
@@ -202,39 +204,42 @@ private fun SolverState.checkDeclarationWithBody(
   resultVarName: String,
   declaration: KtDeclaration,
   body: KtExpression?
-) {
-  bracket {
+): SimpleCont<Unit> = bracket {
     // assert preconditions (if available)
-    val inconsistentPreconditions = checkPreconditionsInconsistencies(
+    checkPreconditionsInconsistencies(
       constraints,
       context,
       declaration
-    )  // if there are no preconditions, they are consistent
-    // if we are inconsistent, there's no point in going on, just stop early
-    if (inconsistentPreconditions) return@bracket
-    checkExpressionConstraints(resultVarName, body, context)
-    // check the post-conditions
-    checkPostConditionsImplication(constraints, context, declaration)
+    ).then { inconsistentPreconditions ->
+      // if we are inconsistent, there's no point in going on, just stop early
+      guard(!inconsistentPreconditions)
+    }.then {
+      checkExpressionConstraints(resultVarName, body, context)
+    }.then {
+      // check the post-conditions
+      checkPostConditionsImplication(constraints, context, declaration)
+    }
   }
-}
 
 private fun SolverState.checkPreconditionsInconsistencies(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
-): Boolean = constraints?.pre?.let {
-  addAndCheckConsistency(it) { unsatCore ->
-    context.trace.report(
-      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore)
-    )
-  }
-} ?: false
+): SimpleCont<Boolean> = wrap {
+  constraints?.pre?.let {
+    addAndCheckConsistency(it) { unsatCore ->
+      context.trace.report(
+        InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore)
+      )
+    }
+  } ?: false // if there are no preconditions, they are consistent
+}
 
 private fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
-) {
+): SimpleCont<Unit> = wrap {
   constraints?.post?.forEach { postCondition ->
     checkImplicationOf(postCondition) {
       context.trace.report(
@@ -251,46 +256,35 @@ private fun SolverState.checkExpressionConstraints(
   associatedVarName: String,
   expression: KtExpression?,
   context: DeclarationCheckerContext
-) {
+): SimpleCont<Unit> =
   when (expression) {
     // TODO: fix block expressions!
-    is KtBlockExpression -> expression.statements.forEach {
-      checkExpressionConstraints(associatedVarName, it, context)
-    }
+    is KtBlockExpression ->
+      expression.statements.contEach {
+        checkExpressionConstraints(associatedVarName, it, context)
+      }.forget()
     is KtCallExpression ->
       checkCallExpression(associatedVarName, expression, context)
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
-    is KtSimpleNameExpression -> {
-      // FIX: add only things in scope
-      val referencedName = expression.getReferencedName().nameAsSafeName().asString()
-      // TODO: for now only for integers
-      if (expression.kotlinType(context.trace.bindingContext)?.isInt() == true) {
-        solver.formulae { solver.ints {
-          equal(
-            makeVariable(FormulaType.IntegerType, associatedVarName),
-            makeVariable(FormulaType.IntegerType, referencedName)
-          )
-        } }.let { prover.addConstraint(it) }
-      }
-    }
+    is KtSimpleNameExpression ->
+      checkNameExpression(associatedVarName, expression, context)
     is KtNamedDeclaration ->
       checkDeclarationExpression(expression.nameAsSafeName.asString(), expression, context)
     is KtDeclaration -> { // declaration without names, make up a new one
       val madeUpName = names.newName("decl")
       checkDeclarationExpression(madeUpName, expression, context)
     }
-    else -> expression?.getChildrenOfType<KtExpression>()?.forEach {
+    else -> expression?.getChildrenOfType<KtExpression>()?.toList()?.contEach {
       checkExpressionConstraints(associatedVarName, it, context)
-    }
+    }?.forget().orDoNothing()
   }
-}
 
 private fun SolverState.checkCallExpression(
   associatedVarName: String,
   expression: KtCallExpression,
   context: DeclarationCheckerContext
-) {
+): SimpleCont<Unit> =
   expression.getResolvedCall(context.trace.bindingContext).let { resolvedCall ->
     // recursively perform check on arguments
     // including extension receiver and dispatch receiver
@@ -299,41 +293,48 @@ private fun SolverState.checkCallExpression(
     //   this function creates a new name for each argument,
     //   based on the formal parameter name;
     //   this creates a renaming for the original constraints
-    val argVars = resolvedCall?.allArgumentExpressions()?.associate { (name, _, expr) ->
+    resolvedCall?.allArgumentExpressions()?.contEach { (name, _, expr) ->
       val argUniqueName = names.newName(name)
-      checkExpressionConstraints(argUniqueName, expr, context)
-      Pair(name, argUniqueName)
-    } ?: emptyMap()
+      checkExpressionConstraints(argUniqueName, expr, context).then {
+        continueWith(Pair(name, argUniqueName))
+      }
+    }?.then { continueWith(it.toMap()) }
+      .orElse { continueWith<Unit, Map<String, String>>(emptyMap()) }
     // obtain and rename the pre- and post-conditions
-    val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
-      val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
-      solver.renameDeclarationConstraints(it, completeRenaming)
-    }
-    // check pre-conditions
-    callConstraints?.pre?.forEach { callPreCondition ->
-      checkImplicationOf(callPreCondition) {
-        context.trace.report(
-          UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
-        )
+      .then { argVars ->
+        wrap {
+          val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
+            val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+            solver.renameDeclarationConstraints(it, completeRenaming)
+          }
+          // check pre-conditions
+          callConstraints?.pre?.forEach { callPreCondition ->
+            checkImplicationOf(callPreCondition) {
+              context.trace.report(
+                UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
+              )
+            }
+          }
+          // assert post-conditions (inconsistent means unreachable code)
+          callConstraints?.post?.let {
+            addAndCheckConsistency(it) { unsatCore ->
+              context.trace.report(
+                InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
+              )
+            }
+          }
+          // and done!
+          Unit
+        }
       }
-    }
-    // assert post-conditions (inconsistent means unreachable code)
-    callConstraints?.post?.let {
-      addAndCheckConsistency(it) { unsatCore ->
-        context.trace.report(
-          InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
-        )
-      }
-    }
   }
-}
 
 // this function makes the desired variable name
 // equal to the value encoded in the constant
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
   expression: KtConstantExpression
-) {
+): SimpleCont<Unit> = wrap {
   solver.formulae {
     val mayBoolean  = expression.text.toBooleanStrictOrNull()
     val mayInteger  = expression.text.toBigIntegerOrNull()
@@ -368,9 +369,29 @@ private fun SolverState.checkDeclarationExpression(
   newVarName: String,
   declaration: KtDeclaration,
   context: DeclarationCheckerContext
-) = declaration.stableBody()?.let {
+): SimpleCont<Unit> = declaration.stableBody()?.let {
     checkExpressionConstraints(newVarName, it, context)
+  }.orDoNothing()
+
+private fun SolverState.checkNameExpression(
+  associatedVarName: String,
+  expression: KtSimpleNameExpression,
+  context: DeclarationCheckerContext
+): Cont<Unit, Unit> = wrap {
+  // FIX: add only things in scope
+  val referencedName = expression.getReferencedName().nameAsSafeName().asString()
+  // TODO: for now only for integers
+  if (expression.kotlinType(context.trace.bindingContext)?.isInt() == true) {
+    solver.formulae {
+      solver.ints {
+        equal(
+          makeVariable(FormulaType.IntegerType, associatedVarName),
+          makeVariable(FormulaType.IntegerType, referencedName)
+        )
+      }
+    }.let { prover.addConstraint(it) }
   }
+}
 
 private fun KtDeclaration.stableBody(): KtExpression?
   = when (this) {
