@@ -275,9 +275,10 @@ private fun SolverState.checkExpressionConstraints(
       val madeUpName = names.newName("decl")
       checkDeclarationExpression(madeUpName, expression, context)
     }
-    else -> expression?.getChildrenOfType<KtExpression>()?.toList()?.contEach {
+    else -> continueWith(Unit)
+    /*expression?.getChildrenOfType<KtExpression>()?.toList()?.contEach {
       checkExpressionConstraints(associatedVarName, it, context)
-    }?.forget().orDoNothing()
+    }?.forget().orDoNothing()*/
   }
 
 private fun SolverState.checkCallExpression(
