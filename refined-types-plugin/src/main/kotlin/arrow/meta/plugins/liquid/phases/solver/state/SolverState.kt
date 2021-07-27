@@ -180,11 +180,7 @@ private fun CompilerContext.checkDeclarationConstraints(
     // should we change it for 'val' declarations?
     val resultVarName = RESULT_VAR_NAME
     // now go on and check the body
-    when (declaration) {
-      is KtDeclarationWithBody -> declaration.body()
-      is KtDeclarationWithInitializer -> declaration.initializer
-      else -> null
-    }?.let { body ->
+    declaration.stableBody()?.let { body ->
       solverState.checkDeclarationWithBody(
         constraints, context,
         resultVarName, declaration, body
@@ -360,14 +356,17 @@ private fun SolverState.checkDeclarationExpression(
   newVarName: String,
   declaration: KtDeclaration,
   context: DeclarationCheckerContext
-) = when (declaration) {
-    is KtDeclarationWithBody -> declaration.body()
-    is KtDeclarationWithInitializer -> declaration.initializer
-    else -> null
-  }?.let {
+) = declaration.stableBody()?.let {
     checkExpressionConstraints(newVarName, it, context)
   }
 
+private fun KtDeclaration.stableBody(): KtExpression?
+  = when (this) {
+      is KtVariableDeclaration -> if (isVar) null else initializer
+      is KtDeclarationWithBody -> body()
+      is KtDeclarationWithInitializer -> initializer
+      else -> null
+    }
 
 // SOLVER INTERACTION
 // ==================
