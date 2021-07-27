@@ -254,13 +254,23 @@ private fun SolverState.checkExpressionConstraints(
   context: DeclarationCheckerContext
 ) {
   when (expression) {
-    is KtCallExpression ->
-      checkCallExpression(associatedVarName, expression, context)
+    // TODO: fix block expressions!
     is KtBlockExpression -> expression.statements.forEach {
       checkExpressionConstraints(associatedVarName, it, context)
     }
+    is KtCallExpression ->
+      checkCallExpression(associatedVarName, expression, context)
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression, context)
+    is KtSimpleNameExpression ->
+      // if (expression.getReferencedNameElement())
+      null  // case of variable
+    is KtNamedDeclaration ->
+      checkDeclarationExpression(expression.nameAsSafeName.asString(), expression, context)
+    is KtDeclaration -> { // declaration without names, make up a new one
+      val madeUpName = names.newName("decl")
+      checkDeclarationExpression(madeUpName, expression, context)
+    }
     else -> expression?.getChildrenOfType<KtExpression>()?.forEach {
       checkExpressionConstraints(associatedVarName, it, context)
     }
@@ -345,6 +355,19 @@ private fun SolverState.checkConstantExpression(
     }
   }
 }
+
+private fun SolverState.checkDeclarationExpression(
+  newVarName: String,
+  declaration: KtDeclaration,
+  context: DeclarationCheckerContext
+) = when (declaration) {
+    is KtDeclarationWithBody -> declaration.body()
+    is KtDeclarationWithInitializer -> declaration.initializer
+    else -> null
+  }?.let {
+    checkExpressionConstraints(newVarName, it, context)
+  }
+
 
 // SOLVER INTERACTION
 // ==================
