@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     compileOnly project(':arrow-meta')
     compileOnly project(':arrow-refined-types')
 
