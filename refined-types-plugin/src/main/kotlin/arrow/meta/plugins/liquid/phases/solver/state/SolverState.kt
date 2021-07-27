@@ -12,8 +12,10 @@ import arrow.meta.plugins.liquid.phases.solver.collector.constraints
 import arrow.meta.plugins.liquid.phases.solver.collector.postCall
 import arrow.meta.plugins.liquid.phases.solver.collector.preCall
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -21,6 +23,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -222,7 +225,7 @@ private fun SolverState.checkPreconditionsInconsistencies(
 ): Boolean = constraints?.pre?.let {
   addAndCheckConsistency(it) { unsatCore ->
     context.trace.report(
-      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore.filterIsInstance<Formula>())
+      InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore)
     )
   }
 } ?: false
@@ -257,10 +260,20 @@ private fun SolverState.checkExpressionConstraints(
     is KtCallExpression ->
       checkCallExpression(associatedVarName, expression, context)
     is KtConstantExpression ->
-      checkConstantExpression(associatedVarName, expression, context)
-    is KtSimpleNameExpression ->
-      // if (expression.getReferencedNameElement())
-      null  // case of variable
+      checkConstantExpression(associatedVarName, expression)
+    is KtSimpleNameExpression -> {
+      // FIX: add only things in scope
+      val referencedName = expression.getReferencedName().nameAsSafeName().asString()
+      // TODO: for now only for integers
+      if (expression.kotlinType(context.trace.bindingContext)?.isInt() == true) {
+        solver.formulae { solver.ints {
+          equal(
+            makeVariable(FormulaType.IntegerType, associatedVarName),
+            makeVariable(FormulaType.IntegerType, referencedName)
+          )
+        } }.let { prover.addConstraint(it) }
+      }
+    }
     is KtNamedDeclaration ->
       checkDeclarationExpression(expression.nameAsSafeName.asString(), expression, context)
     is KtDeclaration -> { // declaration without names, make up a new one
@@ -286,7 +299,7 @@ private fun SolverState.checkCallExpression(
     //   this function creates a new name for each argument,
     //   based on the formal parameter name;
     //   this creates a renaming for the original constraints
-    val argVars = resolvedCall?.allArgumentExpressions()?.associate { (name, ty, expr) ->
+    val argVars = resolvedCall?.allArgumentExpressions()?.associate { (name, _, expr) ->
       val argUniqueName = names.newName(name)
       checkExpressionConstraints(argUniqueName, expr, context)
       Pair(name, argUniqueName)
@@ -308,7 +321,7 @@ private fun SolverState.checkCallExpression(
     callConstraints?.post?.let {
       addAndCheckConsistency(it) { unsatCore ->
         context.trace.report(
-          InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore.filterIsInstance<Formula>())
+          InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
         )
       }
     }
@@ -319,8 +332,7 @@ private fun SolverState.checkCallExpression(
 // equal to the value encoded in the constant
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
-  expression: KtConstantExpression,
-  context: DeclarationCheckerContext
+  expression: KtConstantExpression
 ) {
   solver.formulae {
     val mayBoolean  = expression.text.toBooleanStrictOrNull()

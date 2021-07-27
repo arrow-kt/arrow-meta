@@ -27,17 +27,33 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `wrong call`() {
+  fun `pre-conditions are not satisfied in call`() {
     """
       ${imports()}
       fun bar(x: Int): Int {
         pre("x is 42") { x == 42 }
         val z = x + 2
-        return z.post("returns 44") { it == x + 2 }
+        return z
       }
       val result = bar(1)
       """(
       withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are satisfied in call`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre("x greater than 0") { x > 0 }
+        val z = x + 2
+        return z
+      }
+      val result = bar(1)
+      """(
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }
