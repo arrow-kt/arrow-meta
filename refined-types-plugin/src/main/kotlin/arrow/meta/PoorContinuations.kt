@@ -3,6 +3,8 @@ package arrow.meta
 typealias Cont<R, A> = (cont: (x: A) -> R) -> R
 
 fun <A> Cont<A, A>.runCont(): A = this { it }
+fun <R, A> Cont<R, A>.runCont(cont: (x: A) -> R): R = this(cont)
+fun <R, A> reifyCont(f: ((x: A) -> R) -> R): Cont<R, A> = f
 
 fun <R, A> continueWith(x: A): Cont<R, A> = { cont -> cont(x) }
 fun <R, A> abortWith(r: R): Cont<R, A> = { _ -> r }
@@ -38,4 +40,13 @@ fun main(args: Array<String>): Unit {
     if (n >= 1) abortWith(Unit)
     else continueWith(Unit)
   }.forget().runCont()
+
+  reifyCont<Unit, Int> { cont ->
+    cont(1)
+    cont(2)
+  }.then { n ->
+    println("Hello $n")
+    continueWith(Unit)
+  }.runCont()
+
 }
