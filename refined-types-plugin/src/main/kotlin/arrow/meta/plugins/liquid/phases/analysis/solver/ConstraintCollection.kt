@@ -47,16 +47,25 @@ import org.sosy_lab.java_smt.api.FormulaType
 // PHASE 1: COLLECTION OF CONSTRAINTS
 // ==================================
 
+/**
+ * Looks up in the solver state previously collected constraints and
+ * returns the constraints associated to this [resolvedCall] resulting descriptor if any
+ */
 internal fun SolverState.constraintsFromSolverState(resolvedCall: ResolvedCall<*>): DeclarationConstraints? =
-  callableConstraints.firstOrNull {
-    resolvedCall.resultingDescriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }
+  constraintsFromSolverState(resolvedCall.resultingDescriptor)
 
+/**
+ * Looks up in the solver state previously collected constraints and
+ * returns the constraints associated to this [descriptor] if any
+ */
 internal fun SolverState.constraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
   callableConstraints.firstOrNull {
     descriptor.fqNameSafe == it.descriptor.fqNameSafe
   }
 
+/**
+ * Collects constraints from all declarations and adds them to the solver state
+ */
 internal fun CompilerContext.collectDeclarationsConstraints(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration,
@@ -71,6 +80,12 @@ internal fun CompilerContext.collectDeclarationsConstraints(
   }
 }
 
+/**
+ * Gather constraints from the local module by inspecting
+ * - Custom DSL elements (pre and post)
+ * - Ad-hoc constraints over third party types TODO
+ * - Annotated declarations in compiled third party dependency modules TODO
+ */
 internal fun KtDeclaration.constraints(
   solver: Solver,
   context: BindingContext
@@ -83,6 +98,10 @@ internal fun KtDeclaration.constraints(
     } else null
   }
 
+/**
+ * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]
+ * that hold preconditions
+ */
 private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   val results = hashSetOf<PsiElement>()
   val visitor = callExpressionRecursiveVisitor {
@@ -95,6 +114,10 @@ private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   return results
 }
 
+/**
+ * Adds gathered [constraints] as an association to this [descriptor]
+ * in the [SolverState]
+ */
 private fun SolverState.addConstraintsToSolverState(
   constraints: List<Pair<ResolvedCall<*>, BooleanFormula>>,
   descriptor: DeclarationDescriptor,
@@ -113,6 +136,10 @@ private fun SolverState.addConstraintsToSolverState(
   }
 }
 
+/**
+ * Instructs the compiler analysis phase that we have finished collecting constraints
+ * and its time to Rewind analysis for phase 2 [arrow.meta.plugins.liquid.phases.analysis.solver.checkDeclarationConstraints]
+ */
 internal fun CompilerContext.finalizeConstraintsCollection(
   module: ModuleDescriptor,
   bindingTrace: BindingTrace
@@ -124,15 +151,34 @@ internal fun CompilerContext.finalizeConstraintsCollection(
   } else null
 }
 
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.pre]
+ */
 internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre")
 
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.post]
+ */
 internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
 
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
+ */
 private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
   preCall() || postCall()
 
+/**
+ * Translates a [resolvedCall] into an smt [BooleanFormula]
+ * Ex.
+ * ```kotlin
+ * x > 2
+ * ```
+ * ```smt
+ * (x > 2)
+ * ```
+ */
 private fun Solver.formula(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
@@ -148,6 +194,10 @@ private fun Solver.formula(
     }
   }
 
+/**
+ * Recursively resolves all symbols in [resolvedCall] translating it into
+ * an smt [Formula]
+ */
 private fun Solver.call(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
@@ -157,6 +207,11 @@ private fun Solver.call(
   return formulaWithArgs(descriptor, args, resolvedCall)
 }
 
+/**
+ * Given a list of [args] and a [resolvedCall] whose
+ * resulting descriptor points to a supported operation
+ * we translate that supported operation such as [Int.plus] into a [Formula]
+ */
 private fun Solver.formulaWithArgs(
   descriptor: CallableDescriptor,
   args: List<Formula>,
@@ -188,6 +243,11 @@ private fun Solver.formulaWithArgs(
   else -> null
 }
 
+/**
+ * Given an [element] and [bindingContext] we traverse all
+ * element subexpression resolving the [element] nested calls
+ * and recursively transforming them into a list of smt [Formula]
+ */
 private fun Solver.argsFormulae(
   bindingContext: BindingContext,
   element: KtElement
@@ -206,6 +266,11 @@ private fun Solver.argsFormulae(
   return results.distinct()
 }
 
+/**
+ * Given a [resolvedCall] and [bindingContext] we traverse all
+ * arguments subexpressions
+ * and recursively get their [Formula] and associated name and type information
+ */
 private fun <D : CallableDescriptor> Solver.argsFormulae(
   resolvedCall: ResolvedCall<D>,
   bindingContext: BindingContext,
@@ -219,6 +284,10 @@ private fun <D : CallableDescriptor> Solver.argsFormulae(
     }
   }
 
+/**
+ * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
+ * value arguments
+ */
 internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
     valueArguments.flatMap { (param, resolvedArg) ->
@@ -232,6 +301,9 @@ internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): 
       }
     }
 
+/**
+ * Transform a [KtExpression] into a [Formula]
+ */
 private fun Solver.expressionToFormulae(
   maybeEx: KtExpression?,
   type: KotlinType,
@@ -249,6 +321,11 @@ private fun Solver.expressionToFormulae(
     else -> null
   }
 
+/**
+ * Uses the same resolution infra in [argsFormulae] to turn a complex
+ * [KtExpression] into a [Formula] by resolving its nested calls
+ * recursively
+ */
 private fun Solver.makeExpression(
   ex: KtExpression?,
   bindingContext: BindingContext,
@@ -262,6 +339,14 @@ private fun Solver.makeExpression(
   return formula?.let { Triple(type, name, formula) }
 }
 
+/**
+ * Turns a named referenced expression into a smt [Formula]
+ * represented as a variable declared in the correct theory
+ * given this [type].
+ *
+ * For example if [type] refers to [Int] the variable will have as
+ * formula type [FormulaType.IntegerType]
+ */
 private fun Solver.makeVariable(
   ex: KtNameReferenceExpression,
   type: KotlinType,
@@ -277,6 +362,14 @@ private fun Solver.makeVariable(
     }
   }
 
+/**
+ * Turns a named constant expression into a smt [Formula]
+ * represented as a constant declared in the correct theory
+ * given this [type].
+ *
+ * For example if [type] refers to [Int] the constant smt value will have as
+ * formula type [FormulaType.IntegerType]
+ */
 private fun Solver.makeConstant(
   type: KotlinType,
   name: String,
