@@ -16,6 +16,7 @@ import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.solver.collector.renameDeclarationConstraints
 import org.jetbrains.kotlin.codegen.kotlinType
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -29,6 +30,7 @@ import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.FormulaType
@@ -36,10 +38,13 @@ import org.sosy_lab.java_smt.api.FormulaType
 // PHASE 2: CHECKING OF CONSTRAINTS
 // ================================
 
-val RESULT_VAR_NAME = "${'$'}result"
+private val RESULT_VAR_NAME = "${'$'}result"
 
 // 2.0: entry point
-
+/**
+ * When the solver is in the prover state
+ * check this [declaration] body constraints
+ */
 internal fun CompilerContext.checkDeclarationConstraints(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration,
@@ -64,7 +69,13 @@ internal fun CompilerContext.checkDeclarationConstraints(
 
 // 2.1: declarations
 // -----------------
-
+/**
+ * When the solver is in the prover state
+ * check this [declaration] body and constraints for
+ * - pre-condition inconsistencies
+ * - expressions constraints
+ * - post condition implications
+ */
 private fun SolverState.checkDeclarationWithBody(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
@@ -88,6 +99,14 @@ private fun SolverState.checkDeclarationWithBody(
   }
 }
 
+/**
+ * Checks that this [declaration] does not contain logical inconsistencies in its preconditions.
+ * For example
+ * (x > 0)
+ * (x < 0)
+ *
+ * If any inconsistencies are found report them through the [context] trace diagnostics
+ */
 private fun SolverState.checkPreconditionsInconsistencies(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
@@ -102,6 +121,10 @@ private fun SolverState.checkPreconditionsInconsistencies(
   } ?: false // if there are no preconditions, they are consistent
 }
 
+/**
+ * Checks that this [declaration] constraints post conditions hold
+ * according to the declaration body in the current solver state
+ */
 private fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
@@ -118,7 +141,10 @@ private fun SolverState.checkPostConditionsImplication(
 
 // 2.2: expressions
 // ----------------
-
+/**
+ * Produces a continuation that when invoked
+ * recursively checks an [expression] set of constraints
+ */
 private fun SolverState.checkExpressionConstraints(
   associatedVarName: String,
   expression: KtExpression?,
@@ -148,6 +174,10 @@ private fun SolverState.checkExpressionConstraints(
     }?.forget().orDoNothing()*/
   }
 
+/**
+ * Produces a continuation that when invoked
+ * recursively checks a call [expression] set of constraints
+ */
 private fun SolverState.checkCallExpression(
   associatedVarName: String,
   expression: KtCallExpression,
@@ -171,34 +201,74 @@ private fun SolverState.checkCallExpression(
       // obtain and rename the pre- and post-conditions
       .then { argVars ->
         wrap {
-          val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
-            val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
-            solver.renameDeclarationConstraints(it, completeRenaming)
-          }
-          // check pre-conditions
-          callConstraints?.pre?.forEach { callPreCondition ->
-            checkImplicationOf(callPreCondition) {
-              context.trace.report(
-                MetaErrors.UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
-              )
-            }
-          }
-          // assert post-conditions (inconsistent means unreachable code)
-          callConstraints?.post?.let {
-            addAndCheckConsistency(it) { unsatCore ->
-              context.trace.report(
-                MetaErrors.InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
-              )
-            }
-          }
-          // and done!
-          Unit
+          checkPreAndPostConditions(resolvedCall, argVars, associatedVarName, context, expression)
         }
       }
   }
 
-// this function makes the desired variable name
-// equal to the value encoded in the constant
+/**
+ * Checks this [resolvedCall] pre and post conditions based on the solver state constraints
+ */
+private fun SolverState.checkPreAndPostConditions(
+  resolvedCall: ResolvedCall<out CallableDescriptor>?,
+  argVars: Map<String, String>,
+  associatedVarName: String,
+  context: DeclarationCheckerContext,
+  expression: KtCallExpression
+) {
+  val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
+    val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+    solver.renameDeclarationConstraints(it, completeRenaming)
+  }
+  if (resolvedCall != null) {
+    // check pre-conditions
+    checkPreconditions(callConstraints, context, expression, resolvedCall)
+    // assert post-conditions (inconsistent means unreachable code)
+    checkPostConditions(callConstraints, context, expression, resolvedCall)
+  }
+}
+
+/**
+ * Checks the pre conditions in [callConstraints] hold for [resolvedCall]
+ */
+private fun SolverState.checkPreconditions(
+  callConstraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  expression: KtCallExpression,
+  resolvedCall: ResolvedCall<out CallableDescriptor>
+) {
+  callConstraints?.pre?.forEach { callPreCondition ->
+    checkImplicationOf(callPreCondition) {
+      context.trace.report(
+        MetaErrors.UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
+      )
+    }
+  }
+}
+
+/**
+ * Checks the post conditions in [callConstraints] hold for [resolvedCall]
+ */
+private fun SolverState.checkPostConditions(
+  callConstraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  expression: KtCallExpression,
+  resolvedCall: ResolvedCall<out CallableDescriptor>
+) {
+  callConstraints?.post?.let {
+    addAndCheckConsistency(it) { unsatCore ->
+      context.trace.report(
+        MetaErrors.InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
+      )
+    }
+  }
+}
+
+/**
+ * This function produces a continuation that makes the desired variable name
+ * equal to the value encoded in the constant and adds the resulting  boolean formula
+ * to the [SolverState.prover] constraints.
+ */
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
   expression: KtConstantExpression
@@ -233,6 +303,10 @@ private fun SolverState.checkConstantExpression(
   }
 }
 
+/**
+ * This function produces a continuation that makes the desired variable name
+ * equal to the value encoded in the named expression.
+ */
 private fun SolverState.checkDeclarationExpression(
   newVarName: String,
   declaration: KtDeclaration,
@@ -241,6 +315,11 @@ private fun SolverState.checkDeclarationExpression(
   checkExpressionConstraints(newVarName, it, context)
 }.orDoNothing()
 
+/**
+ * This function produces a continuation that makes the desired variable name
+ * equal to the value encoded in the named expression and adds the resulting boolean formula
+ * to the [SolverState.prover] constraints.
+ */
 private fun SolverState.checkNameExpression(
   associatedVarName: String,
   expression: KtSimpleNameExpression,
@@ -261,6 +340,11 @@ private fun SolverState.checkNameExpression(
   }
 }
 
+/**
+ * TODO I believe here instead of trying to see which fields represent a body we just need to recursively
+ * visit the declaration as we do in [argsFormulae] where it uses an expression recursive visitor.
+ * That will recursively visit all body element as well and there we can match just in those we care.
+ */
 private fun KtDeclaration.stableBody(): KtExpression?
   = when (this) {
   is KtVariableDeclaration -> if (isVar) null else initializer
