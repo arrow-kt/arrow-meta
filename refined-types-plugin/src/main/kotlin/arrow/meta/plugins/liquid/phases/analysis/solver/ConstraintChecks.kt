@@ -305,7 +305,7 @@ private fun SolverState.checkCallExpression(
             val arg1 = this@ints.makeVariable(argVars[0].second)
             val arg2 = this@ints.makeVariable(argVars[1].second)
             val cstr = specialCase(result, arg1, arg2)
-            prover.addConstraint(cstr)
+            cstr?.let { addConstraint(it) }
           }
         }
       }.forget()
@@ -447,7 +447,7 @@ private fun SolverState.checkConstantExpression(
         }
       else -> null
     }?.let {
-      prover.addConstraint(it)
+      addConstraint(it)
     }
   }
 }
@@ -486,7 +486,7 @@ private fun SolverState.checkNameExpression(
           makeVariable(FormulaType.IntegerType, referencedName)
         )
       }
-    }.let { prover.addConstraint(it) }
+    }.let { addConstraint(it) }
   }
 }
 
@@ -527,7 +527,7 @@ private fun SolverState.checkConditional(
         bracket {
           // assert the negation of the new variables
           newVariables.map {
-            prover.addConstraint(not(makeVariable(it)))
+            addConstraint(not(makeVariable(it)))
           }
           // go on with the rest of the cases
           go(remainingBranches.drop(1))
