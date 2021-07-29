@@ -27,6 +27,20 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `unreachable code`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre("x is > 0") { x > 0 }
+        if (true) return 2 else return 3
+      }
+      """(
+      withPlugin = { failsWith { it.contains("unreachable code due to conflicting conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `pre-conditions are not satisfied in call`() {
     """
       ${imports()}

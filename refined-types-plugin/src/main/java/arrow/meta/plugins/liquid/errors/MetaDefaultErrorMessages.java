@@ -32,6 +32,9 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(InconsistentCallPost,
                 "unreachable code due to post-conditions: {1}",
                 FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
+        MAP.put(InconsistentConditions,
+                "unreachable code due to conflicting conditions: {1}",
+                FormulaRendererKt.RenderFormula);
     }
 }
 

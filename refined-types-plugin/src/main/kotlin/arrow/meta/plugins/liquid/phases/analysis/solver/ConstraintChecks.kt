@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.types.typeUtil.isInt
+import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.FormulaType
 
 // PHASE 2: CHECKING OF CONSTRAINTS
@@ -197,10 +198,17 @@ private fun SolverState.checkExpressionConstraints(
       }
       checkDeclarationExpression(declName, expression, context, returnPoints)
     }
-    else ->  // in the rest of the cases, treat as a call if possible
-      expression?.getResolvedCall(context.trace.bindingContext)?.let {
-        checkCallExpression(associatedVarName, expression, it, context, returnPoints)
-      }.orDoNothing()
+    // fall-through cases
+    else -> when {
+      // either treat as conditional
+      expression?.isConditional() == true ->
+        checkConditional(associatedVarName, expression.conditionalBranches()!!, context, returnPoints)
+      // or try to treat it as a function call (for +, -, and so on)
+      else ->
+        expression?.getResolvedCall(context.trace.bindingContext)?.let {
+          checkCallExpression(associatedVarName, expression, it, context, returnPoints)
+        }.orDoNothing()
+    }
   }
 
 /**
@@ -387,7 +395,7 @@ private fun SolverState.checkNameExpression(
   associatedVarName: String,
   expression: KtSimpleNameExpression,
   context: DeclarationCheckerContext
-): Cont<Unit, Unit> = wrap {
+): SimpleCont<Unit> = wrap {
   // FIX: add only things in scope
   val referencedName = expression.getReferencedName().nameAsSafeName().asString()
   // TODO: for now only for integers
@@ -400,6 +408,86 @@ private fun SolverState.checkNameExpression(
         )
       }
     }.let { prover.addConstraint(it) }
+  }
+}
+
+/**
+ * Check each of the branches of a condition.
+ */
+private fun SolverState.checkConditional(
+  associatedVarName: String,
+  info: ConditionalBranches,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
+): SimpleCont<Unit> = reifyCont<Unit, Unit> { cont ->
+  // go over each element
+  // we use a recursive function because
+  // we need to nest the calls to [bracket]
+  fun go(remainingBranches: List<ConditionalBranch>) {
+    when (val first = remainingBranches.firstOrNull()) {
+      null -> { }  // done
+      else -> solver.booleans {
+        val newVariables = introduceCondition(first.condition, context, returnPoints)
+        // either the things are true
+        bracket {
+          // assert the variables and check that we are consistent
+          val inconsistentEnvironment =
+            checkConditionsInconsistencies<Boolean>(
+              newVariables.map { makeVariable(it) },
+              context, first.whole).runCont()
+          // it only makes sense to continue if we are not consistent
+          if (!inconsistentEnvironment) {
+            // check the body
+            checkExpressionConstraints(associatedVarName, first.body, context, returnPoints).runCont()
+            // and now execute the rest of the analysis
+            // by calling the continuation
+            cont(Unit)
+          }
+        }
+        // or they are false
+        bracket {
+          // assert the negation of the new variables
+          newVariables.map {
+            prover.addConstraint(not(makeVariable(it)))
+          }
+          // go on with the rest of the cases
+          go(remainingBranches.drop(1))
+        }
+      }
+    }
+  }
+
+  go(info.branches)
+}
+
+private fun SolverState.introduceCondition(
+  expressions: List<Condition>?,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
+): List<String> = expressions?.map {
+  // create a new variable for the condition
+  val conditionVar = names.newName("cond")
+  // and now go and check it
+  when (it) {
+    is BooleanCondition ->
+      checkExpressionConstraints(conditionVar, it.expression, context, returnPoints).runCont()
+  }
+  // return the variable
+  conditionVar
+} ?: emptyList()
+
+/**
+ * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
+ */
+private fun <R> SolverState.checkConditionsInconsistencies(
+  formulae: List<BooleanFormula>,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Cont<R, Boolean> = wrap {
+  addAndCheckConsistency(formulae) { unsatCore ->
+    context.trace.report(
+      MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
+    )
   }
 }
 
