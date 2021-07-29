@@ -13,7 +13,7 @@ internal fun SolverState.addAndCheckConsistency(
   constraints: Iterable<BooleanFormula>,
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
-  constraints.forEach { prover.addConstraint(it) }
+  constraints.forEach { addConstraint(it) }
   val unsat = prover.isUnsat
   if (unsat) { message(prover.unsatCore) }
   return unsat
@@ -24,7 +24,7 @@ internal fun SolverState.checkImplicationOf(
   message: (model: Model) -> Unit
 ): Boolean =
   bracket {
-    solver.booleans { prover.addConstraint(not(constraint)) }
+    solver.booleans { addConstraint(not(constraint)) }
     val unsat = prover.isUnsat
     if (!unsat) { message(prover.model) }
     !unsat
