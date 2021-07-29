@@ -274,42 +274,31 @@ private fun SolverState.checkCallExpression(
       checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
         continueWith(Pair(name, argUniqueName))
       }
-    }.thenWrap { argVars ->
-      checkCallPreAndPostConditions(
-        resolvedCall, argVars.toMap(), associatedVarName, expression, context)
+    }.thenWrap { it.toMap() }
+     .thenWrap { argVars ->
+      constraintsFromSolverState(resolvedCall)?.let {
+        val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+        solver.renameDeclarationConstraints(it, completeRenaming)
+      }
+    }.then { callConstraints ->
+      // check pre-conditions and post-conditions
+      checkCallPreConditionsImplication(callConstraints, context, expression, resolvedCall).then {
+        checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
+      }
+    }.then { inconsistentPostConditions ->
+      // there's no point in continuing if we are in an inconsistent position
+      guard(!inconsistentPostConditions)
     }
-
-/**
- * Checks this [resolvedCall] pre- and post-conditions based on the solver state constraints
- */
-private fun SolverState.checkCallPreAndPostConditions(
-  resolvedCall: ResolvedCall<out CallableDescriptor>?,
-  argVars: Map<String, String>,
-  associatedVarName: String,
-  originalExpression: KtExpression,
-  context: DeclarationCheckerContext
-) {
-  val callConstraints = resolvedCall?.let { constraintsFromSolverState(it) }?.let {
-    val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
-    solver.renameDeclarationConstraints(it, completeRenaming)
-  }
-  if (resolvedCall != null) {
-    // check pre-conditions
-    checkCallPreconditionsImplication(callConstraints, context, originalExpression, resolvedCall)
-    // assert post-conditions (inconsistent means unreachable code)
-    checkCallPostConditionsInconsistencies(callConstraints, context, originalExpression, resolvedCall)
-  }
-}
 
 /**
  * Checks the pre-conditions in [callConstraints] hold for [resolvedCall]
  */
-private fun SolverState.checkCallPreconditionsImplication(
+private fun SolverState.checkCallPreConditionsImplication(
   callConstraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-) {
+): SimpleCont<Unit> = wrap {
   callConstraints?.pre?.forEach { callPreCondition ->
     checkImplicationOf(callPreCondition) {
       context.trace.report(
@@ -327,14 +316,14 @@ private fun SolverState.checkCallPostConditionsInconsistencies(
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-) {
+): SimpleCont<Boolean> = wrap {
   callConstraints?.post?.let {
     addAndCheckConsistency(it) { unsatCore ->
       context.trace.report(
         MetaErrors.InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
       )
     }
-  }
+  } ?: false
 }
 
 /**
