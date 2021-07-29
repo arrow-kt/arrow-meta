@@ -5,17 +5,24 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.solver.collector.renameDeclarationConstraints
+import arrow.meta.plugins.liquid.smt.*
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.BooleanFormula
+import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
+import org.sosy_lab.java_smt.api.NumeralFormula
 
 // PHASE 2: CHECKING OF CONSTRAINTS
 // ================================
@@ -270,33 +277,59 @@ private fun SolverState.checkCallExpression(
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
 ): SimpleCont<Unit> =
-    // recursively perform check on arguments
-    // including extension receiver and dispatch receiver
-    //
-    // [NOTE: argument renaming]
-    //   this function creates a new name for each argument,
-    //   based on the formal parameter name;
-    //   this creates a renaming for the original constraints
-    resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
-      val argUniqueName = names.newName(name)
-      checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
-        continueWith(Pair(name, argUniqueName))
+  when (val specialCase = specialCasingForResolvedCalls(resolvedCall)) {
+    null ->
+      checkCallArguments(resolvedCall, context, returnPoints).thenWrap { it.toMap() }.thenWrap { argVars ->
+        constraintsFromSolverState(resolvedCall)?.let {
+          val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+          solver.renameDeclarationConstraints(it, completeRenaming)
+        }
+      }.then { callConstraints ->
+        // check pre-conditions and post-conditions
+        checkCallPreConditionsImplication(callConstraints, context, expression, resolvedCall).then {
+          checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
+        }
+      }.then { inconsistentPostConditions ->
+        // there's no point in continuing if we are in an inconsistent position
+        guard(!inconsistentPostConditions)
       }
-    }.thenWrap { it.toMap() }
-     .thenWrap { argVars ->
-      constraintsFromSolverState(resolvedCall)?.let {
-        val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
-        solver.renameDeclarationConstraints(it, completeRenaming)
-      }
-    }.then { callConstraints ->
-      // check pre-conditions and post-conditions
-      checkCallPreConditionsImplication(callConstraints, context, expression, resolvedCall).then {
-        checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
-      }
-    }.then { inconsistentPostConditions ->
-      // there's no point in continuing if we are in an inconsistent position
-      guard(!inconsistentPostConditions)
-    }
+    else ->  // this is the special case
+      checkCallArguments(resolvedCall, context, returnPoints).thenWrap { argVars ->
+        solver.ints {
+          solver.booleans {
+            var result =
+              if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
+                this.makeVariable(associatedVarName)
+              else
+                this@ints.makeVariable(associatedVarName)
+            val arg1 = this@ints.makeVariable(argVars[0].second)
+            val arg2 = this@ints.makeVariable(argVars[1].second)
+            val cstr = specialCase(result, arg1, arg2)
+            prover.addConstraint(cstr)
+          }
+        }
+      }.forget()
+  }
+
+/**
+ * Recursively perform check on arguments,
+ * including extension receiver and dispatch receiver
+ *
+ * [NOTE: argument renaming]
+ *   this function creates a new name for each argument,
+ *   based on the formal parameter name;
+ *   this creates a renaming for the original constraints
+ */
+private fun SolverState.checkCallArguments(
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
+) = resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
+  val argUniqueName = names.newName(name)
+  checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
+    continueWith(Pair(name, argUniqueName))
+  }
+}
 
 /**
  * Checks the pre-conditions in [callConstraints] hold for [resolvedCall]
@@ -333,6 +366,52 @@ private fun SolverState.checkCallPostConditionsInconsistencies(
     }
   } ?: false
 }
+
+// TODO: remove when we can obtain the laws
+private fun SolverState.specialCasingForResolvedCalls(
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+): ((result: Formula, arg1: Formula, arg2: Formula) -> BooleanFormula?)? =
+  solver.ints {
+    solver.booleans {
+      when (resolvedCall.resultingDescriptor.fqNameSafe) {
+        FqName("kotlin.Int.equals") -> { result, arg1, arg2 ->
+          equivalence(result as BooleanFormula, equal(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+        }
+        FqName("kotlin.Int.plus") -> { result, arg1, arg2 ->
+          equal(result as NumeralFormula.IntegerFormula, add(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+        }
+        FqName("kotlin.Int.minus") -> { result, arg1, arg2 ->
+          equal(result as NumeralFormula.IntegerFormula, subtract(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+        }
+        FqName("kotlin.Int.times") -> { result, arg1, arg2 ->
+          equal(result as NumeralFormula.IntegerFormula, multiply(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+        }
+        FqName("kotlin.Int.div") -> { result, arg1, arg2 ->
+          equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+        }
+        FqName("kotlin.Int.compareTo") -> {
+          val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+          when (op) {
+            ">" -> { result, arg1, arg2 ->
+              equivalence(result as BooleanFormula, greaterThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+            }
+            ">=" -> { result, arg1, arg2 ->
+              equivalence(result as BooleanFormula, greaterOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+            }
+            "<" -> { result, arg1, arg2 ->
+              equivalence(result as BooleanFormula, lessThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+            }
+            "<=" -> { result, arg1, arg2 ->
+              equivalence(result as BooleanFormula, lessOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+            }
+            else -> null
+          }
+        }
+        else -> null
+      }
+    }
+  }
+
 
 /**
  * This function produces a constraint that makes the desired variable name

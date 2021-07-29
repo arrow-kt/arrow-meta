@@ -32,7 +32,7 @@ class LiquidDataflowTests {
       ${imports()}
       fun bar(x: Int): Int {
         pre("x is > 0") { x > 0 }
-        if (true) return 2 else return 3
+        if (x > 0) return 2 else return 3
       }
       """(
       withPlugin = { failsWith { it.contains("unreachable code due to conflicting conditions") } },
