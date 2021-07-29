@@ -38,6 +38,31 @@ import org.sosy_lab.java_smt.api.FormulaType
 // PHASE 2: CHECKING OF CONSTRAINTS
 // ================================
 
+/* [NOTE: which do we use continuations?]
+ * It might look odd that we create continuations when checking
+ * the body, instead of simply performing the steps.
+ *
+ * The reason to do so is to have the ability to decide whether
+ * and how to execute the "remainder of the analysis". For example:
+ * - if we find a `return`, we ought to stop, since no further
+ *   statement is executed;
+ * - if we are in a condition, the "remainder of the analysis"
+ *   ought to be executed more than once; in fact once per possible
+ *   execution flow.
+ *
+ * What makes the problem complicated, and brings in continuations,
+ * is that these decisions may have to be made within an argument:
+ *
+ * ```
+ * f(if (x > 0) 3 else 2)
+ * ```
+ *
+ * yet they must affect the global ongoing computations. Continuations
+ * allow us to do so by saying that checking `if (x > 0) 3 else 2`
+ * is the current computation, and checking `f(...)` the "remainder".
+ * Thus, the conditional `if` can duplicate the check of the "remainder".
+ */
+
 private val RESULT_VAR_NAME = "${'$'}result"
 
 // 2.0: entry point
@@ -72,9 +97,9 @@ internal fun CompilerContext.checkDeclarationConstraints(
 /**
  * When the solver is in the prover state
  * check this [declaration] body and constraints for
- * - pre-condition inconsistencies
- * - expressions constraints
- * - post condition implications
+ * - pre-condition inconsistencies,
+ * - whether the body satisfy all the pre-conditions in calls,
+ * - whether the post-condition really holds.
  */
 private fun SolverState.checkDeclarationWithBody(
   constraints: DeclarationConstraints?,
@@ -101,9 +126,9 @@ private fun SolverState.checkDeclarationWithBody(
 
 /**
  * Checks that this [declaration] does not contain logical inconsistencies in its preconditions.
- * For example
- * (x > 0)
- * (x < 0)
+ * For example:
+ * - `(x > 0)`
+ * - `(x < 0)`
  *
  * If any inconsistencies are found report them through the [context] trace diagnostics
  */
@@ -197,11 +222,11 @@ private fun SolverState.checkCallExpression(
         continueWith(Pair(name, argUniqueName))
       }
     }?.then { continueWith(it.toMap()) }
-      .orElse { continueWith<Unit, Map<String, String>>(emptyMap()) }
+      .orElse(continueWith<Unit, Map<String, String>>(emptyMap()))
       // obtain and rename the pre- and post-conditions
       .then { argVars ->
         wrap {
-          checkPreAndPostConditions(resolvedCall, argVars, associatedVarName, context, expression)
+          checkCallPreAndPostConditions(resolvedCall, argVars, associatedVarName, context, expression)
         }
       }
   }
@@ -209,7 +234,7 @@ private fun SolverState.checkCallExpression(
 /**
  * Checks this [resolvedCall] pre and post conditions based on the solver state constraints
  */
-private fun SolverState.checkPreAndPostConditions(
+private fun SolverState.checkCallPreAndPostConditions(
   resolvedCall: ResolvedCall<out CallableDescriptor>?,
   argVars: Map<String, String>,
   associatedVarName: String,
@@ -222,16 +247,16 @@ private fun SolverState.checkPreAndPostConditions(
   }
   if (resolvedCall != null) {
     // check pre-conditions
-    checkPreconditions(callConstraints, context, expression, resolvedCall)
+    checkCallPreconditionsImplication(callConstraints, context, expression, resolvedCall)
     // assert post-conditions (inconsistent means unreachable code)
-    checkPostConditions(callConstraints, context, expression, resolvedCall)
+    checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
   }
 }
 
 /**
  * Checks the pre conditions in [callConstraints] hold for [resolvedCall]
  */
-private fun SolverState.checkPreconditions(
+private fun SolverState.checkCallPreconditionsImplication(
   callConstraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   expression: KtCallExpression,
@@ -249,7 +274,7 @@ private fun SolverState.checkPreconditions(
 /**
  * Checks the post conditions in [callConstraints] hold for [resolvedCall]
  */
-private fun SolverState.checkPostConditions(
+private fun SolverState.checkCallPostConditionsInconsistencies(
   callConstraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   expression: KtCallExpression,
@@ -265,9 +290,9 @@ private fun SolverState.checkPostConditions(
 }
 
 /**
- * This function produces a continuation that makes the desired variable name
- * equal to the value encoded in the constant and adds the resulting  boolean formula
- * to the [SolverState.prover] constraints.
+ * This function produces a constraint that makes the desired variable name
+ * equal to the value encoded in the constant and adds it to the
+ * [SolverState.prover] constraints.
  */
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
