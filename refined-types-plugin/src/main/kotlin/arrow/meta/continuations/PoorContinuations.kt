@@ -19,6 +19,8 @@ fun <R> Cont<R, Unit>?.orDoNothing() = this ?: continueWith(Unit)
 
 fun <R, A, B> Cont<R, A>.then(f: ((a: A) -> Cont<R, B>)): Cont<R, B> =
   { cont: (r: B) -> R -> this { a -> f(a)(cont) } }
+fun <R, A, B> Cont<R, A>.thenWrap(f: ((a: A) -> B)): Cont<R, B> =
+  then { wrap { f(it ) } }
 fun <R, A, B> Cont<R, A>.par(cont: () -> Cont<R, B>): Cont<R, Pair<A, B>> =
   this.then { a -> cont().then { b -> continueWith(Pair(a, b)) } }
 
