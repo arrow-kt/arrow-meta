@@ -355,9 +355,9 @@ private fun Solver.makeVariable(
   ex.getReferencedName().let {
     when {
       type.isInt() ->
-        Triple(type, name, makeVariable(FormulaType.IntegerType, it))
+        Triple(type, name, makeIntegerObjectVariable(it))
       type.isBoolean() ->
-        Triple(type, name, makeVariable(FormulaType.BooleanType, it))
+        Triple(type, name, makeBooleanObjectVariable(it))
       else -> null
     }
   }

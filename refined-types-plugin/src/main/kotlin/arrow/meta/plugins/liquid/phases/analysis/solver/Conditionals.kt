@@ -52,7 +52,7 @@ fun KtWhenExpression.conditionalBranches(): ConditionalBranches {
 
 fun KtIfExpression.conditionalBranches(): ConditionalBranches {
   val branches = listOf(
-    ConditionalBranch(listOf(BooleanCondition(condition!!)), `then`!!, `then`!!),
+    ConditionalBranch(listOf(BooleanCondition(condition!!)), then!!, then!!),
     ConditionalBranch(null, `else`!!, `else`!!)
   )
   return ConditionalBranches(null, branches)

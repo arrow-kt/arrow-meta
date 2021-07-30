@@ -190,7 +190,7 @@ private fun SolverState.checkExpressionConstraints(
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
     is KtSimpleNameExpression ->
-      checkNameExpression(associatedVarName, expression, context)
+      checkNameExpression(associatedVarName, expression)
     is KtLabeledExpression ->
       checkExpressionConstraints(
         associatedVarName, expression.baseExpression, context,
@@ -294,19 +294,14 @@ private fun SolverState.checkCallExpression(
       }
     else ->  // this is the special case
       checkCallArguments(resolvedCall, context, returnPoints).thenWrap { argVars ->
-        solver.ints {
-          solver.booleans {
-            val result =
-              if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
-                this.makeVariable(associatedVarName)
-              else
-                this@ints.makeVariable(associatedVarName)
-            val arg1 = this@ints.makeVariable(argVars[0].second)
-            val arg2 = this@ints.makeVariable(argVars[1].second)
-            val cstr = specialCase(result, arg1, arg2)
-            cstr?.let { addConstraint(it) }
-          }
-        }
+        val result =
+          if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
+            solver.makeBooleanObjectVariable(associatedVarName)
+          else
+            solver.makeIntegerObjectVariable(associatedVarName)
+        val arg1 = solver.makeIntegerObjectVariable(argVars[0].second)
+        val arg2 = solver.makeIntegerObjectVariable(argVars[1].second)
+        specialCase(result, arg1, arg2)?.let { addConstraint(it) }
       }.forget()
   }
 
@@ -426,20 +421,20 @@ private fun SolverState.checkConstantExpression(
     val mayRational = expression.text.toBigDecimalOrNull()
     when {
       mayBoolean == true ->
-        makeVariable(FormulaType.BooleanType, associatedVarName)
+        solver.makeBooleanObjectVariable(associatedVarName)
       mayBoolean == false ->
-        solver.booleans { not(makeVariable(FormulaType.BooleanType, associatedVarName)) }
+        solver.booleans { not(solver.makeBooleanObjectVariable(associatedVarName)) }
       mayInteger != null ->
         solver.ints {
           equal(
-            makeVariable(FormulaType.IntegerType, associatedVarName),
+            solver.makeIntegerObjectVariable(associatedVarName),
             makeNumber(mayInteger)
           )
         }
       mayRational != null ->
         solver.rationals {
           equal(
-            makeVariable(FormulaType.RationalType, associatedVarName),
+            solver.decimalValue(solver.makeObjectVariable(associatedVarName)),
             makeNumber(mayRational)
           )
         }
@@ -470,22 +465,13 @@ private fun SolverState.checkDeclarationExpression(
  */
 private fun SolverState.checkNameExpression(
   associatedVarName: String,
-  expression: KtSimpleNameExpression,
-  context: DeclarationCheckerContext
+  expression: KtSimpleNameExpression
 ): SimpleCont<Unit> = wrap {
   // FIX: add only things in scope
   val referencedName = expression.getReferencedName().nameAsSafeName().asString()
-  // TODO: for now only for integers
-  if (expression.kotlinType(context.trace.bindingContext)?.isInt() == true) {
-    solver.formulae {
-      solver.ints {
-        equal(
-          makeVariable(FormulaType.IntegerType, associatedVarName),
-          makeVariable(FormulaType.IntegerType, referencedName)
-        )
-      }
-    }.let { addConstraint(it) }
-  }
+  solver.objects {
+    equal(solver.makeObjectVariable(associatedVarName), solver.makeObjectVariable(referencedName))
+  }.let { addConstraint(it) }
 }
 
 /**
@@ -510,7 +496,7 @@ private fun SolverState.checkConditional(
           // assert the variables and check that we are consistent
           val inconsistentEnvironment =
             checkConditionsInconsistencies<Boolean>(
-              newVariables.map { makeVariable(it) },
+              newVariables.map { solver.makeBooleanObjectVariable(it) },
               context, first.whole).runCont()
           // it only makes sense to continue if we are not consistent
           if (!inconsistentEnvironment) {
@@ -525,7 +511,7 @@ private fun SolverState.checkConditional(
         bracket {
           // assert the negation of the new variables
           newVariables.map {
-            addConstraint(not(makeVariable(it)))
+            addConstraint(not(solver.makeBooleanObjectVariable(it)))
           }
           // go on with the rest of the cases
           go(remainingBranches.drop(1))

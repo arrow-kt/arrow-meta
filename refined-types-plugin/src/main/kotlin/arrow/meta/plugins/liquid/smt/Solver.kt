@@ -5,17 +5,10 @@ import org.sosy_lab.common.configuration.Configuration
 import org.sosy_lab.common.log.BasicLogManager
 import org.sosy_lab.common.log.LogManager
 import org.sosy_lab.java_smt.SolverContextFactory
-import org.sosy_lab.java_smt.api.ArrayFormulaManager
-import org.sosy_lab.java_smt.api.BitvectorFormulaManager
-import org.sosy_lab.java_smt.api.BooleanFormulaManager
-import org.sosy_lab.java_smt.api.FloatingPointFormulaManager
-import org.sosy_lab.java_smt.api.FormulaManager
-import org.sosy_lab.java_smt.api.IntegerFormulaManager
-import org.sosy_lab.java_smt.api.QuantifiedFormulaManager
-import org.sosy_lab.java_smt.api.RationalFormulaManager
-import org.sosy_lab.java_smt.api.SLFormulaManager
-import org.sosy_lab.java_smt.api.SolverContext
-import org.sosy_lab.java_smt.api.UFManager
+import org.sosy_lab.java_smt.api.*
+
+typealias ObjectFormula = NumeralFormula.IntegerFormula
+val ObjectFormulaType = FormulaType.IntegerType
 
 class Solver(context: SolverContext) :
   SolverContext by context,
@@ -23,6 +16,9 @@ class Solver(context: SolverContext) :
   BooleanFormulaManager by context.formulaManager.booleanFormulaManager {
 
   fun <A> ints(f: IntegerFormulaManager.() -> A): A =
+    f(integerFormulaManager)
+
+  fun <A> objects(f: IntegerFormulaManager.() -> A): A =
     f(integerFormulaManager)
 
   fun <A> booleans(f: BooleanFormulaManager.() -> A): A =
@@ -52,6 +48,31 @@ class Solver(context: SolverContext) :
   fun <A> formulae(f: FormulaManager.() -> A): A =
     f(formulaManager)
 
+  val intValueFun: FunctionDeclaration<ObjectFormula> =
+    ufManager.declareUF(INT_VALUE_NAME, FormulaType.IntegerType, ObjectFormulaType)
+  val boolValueFun: FunctionDeclaration<BooleanFormula> =
+    ufManager.declareUF(BOOL_VALUE_NAME, FormulaType.BooleanType, ObjectFormulaType)
+  val decimalValueFun: FunctionDeclaration<NumeralFormula.RationalFormula> =
+    ufManager.declareUF(DECIMAL_VALUE_NAME, FormulaType.RationalType, ObjectFormulaType)
+
+  fun intValue(formula: ObjectFormula): NumeralFormula.IntegerFormula =
+    uninterpretedFunctions { callUF(intValueFun, formula) }
+
+  fun boolValue(formula: ObjectFormula): BooleanFormula =
+    uninterpretedFunctions { callUF(boolValueFun, formula) }
+
+  fun decimalValue(formula: ObjectFormula): NumeralFormula.RationalFormula =
+    uninterpretedFunctions { callUF(decimalValueFun, formula) }
+
+  fun makeObjectVariable(varName: String): ObjectFormula =
+    objects { this.makeVariable(varName) }
+
+  fun makeBooleanObjectVariable(varName: String): BooleanFormula =
+    boolValue(makeObjectVariable(varName))
+
+  fun makeIntegerObjectVariable(varName: String): NumeralFormula.IntegerFormula =
+    intValue(makeObjectVariable(varName))
+
   companion object {
     operator fun invoke(): Solver {
       val config: Configuration = Configuration.defaultConfiguration()
@@ -62,5 +83,9 @@ class Solver(context: SolverContext) :
       )
       return Solver(context)
     }
+
+    val INT_VALUE_NAME = "int"
+    val BOOL_VALUE_NAME = "bool"
+    val DECIMAL_VALUE_NAME = "dec"
   }
 }
