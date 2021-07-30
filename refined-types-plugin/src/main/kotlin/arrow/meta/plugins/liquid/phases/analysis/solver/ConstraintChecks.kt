@@ -5,7 +5,6 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.solver.collector.renameDeclarationConstraints
-import arrow.meta.plugins.liquid.smt.*
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -297,7 +296,7 @@ private fun SolverState.checkCallExpression(
       checkCallArguments(resolvedCall, context, returnPoints).thenWrap { argVars ->
         solver.ints {
           solver.booleans {
-            var result =
+            val result =
               if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
                 this.makeVariable(associatedVarName)
               else
@@ -390,8 +389,7 @@ private fun SolverState.specialCasingForResolvedCalls(
           equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
         }
         FqName("kotlin.Int.compareTo") -> {
-          val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
-          when (op) {
+          when ((resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator) {
             ">" -> { result, arg1, arg2 ->
               equivalence(result as BooleanFormula, greaterThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
             }
@@ -498,7 +496,7 @@ private fun SolverState.checkConditional(
   info: ConditionalBranches,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> = reifyCont<Unit, Unit> { cont ->
+): SimpleCont<Unit> = reifyCont { cont ->
   // go over each element
   // we use a recursive function because
   // we need to nest the calls to [bracket]
@@ -556,7 +554,7 @@ private fun SolverState.introduceCondition(
 } ?: emptyList()
 
 /**
- * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
+ * Add the [formulae] to the set and checks that it remains consistent
  */
 private fun <R> SolverState.checkConditionsInconsistencies(
   formulae: List<BooleanFormula>,
