@@ -17,10 +17,8 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
-import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
-import org.sosy_lab.java_smt.api.FormulaType
 import org.sosy_lab.java_smt.api.NumeralFormula
 
 // PHASE 2: CHECKING OF CONSTRAINTS
@@ -162,8 +160,8 @@ data class ReturnPoints(
   val topMostReturnPointVariableName: String,
   val namedReturnPointVariableNames: Map<String, String>) {
 
-  fun replaceTopMost(newVariableName: String) =
-    ReturnPoints(newVariableName, namedReturnPointVariableNames)
+  // fun replaceTopMost(newVariableName: String) =
+  //   ReturnPoints(newVariableName, namedReturnPointVariableNames)
 
   fun add(returnPoint: String, variableName: String) =
     ReturnPoints(
@@ -318,12 +316,13 @@ private fun SolverState.checkCallArguments(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-) = resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
-  val argUniqueName = names.newName(name)
-  checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
-    continueWith(Pair(name, argUniqueName))
+): SimpleCont<List<Pair<String, String>>> =
+  resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
+    val argUniqueName = names.newName(name)
+    checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
+      continueWith(Pair(name, argUniqueName))
+    }
   }
-}
 
 /**
  * Checks the pre-conditions in [callConstraints] hold for [resolvedCall]
