@@ -58,7 +58,7 @@ class Solver(context: SolverContext) :
       val logger: LogManager = BasicLogManager.create(config)
       val shutdown = ShutdownManager.create()
       val context = SolverContextFactory.createSolverContext(
-        config, logger, shutdown.notifier, SolverContextFactory.Solvers.PRINCESS
+        config, logger, shutdown.notifier, SolverContextFactory.Solvers.SMTINTERPOL
       )
       return Solver(context)
     }

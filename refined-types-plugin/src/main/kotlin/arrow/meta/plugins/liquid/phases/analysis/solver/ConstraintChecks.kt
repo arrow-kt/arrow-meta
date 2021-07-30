@@ -75,7 +75,7 @@ internal fun CompilerContext.checkDeclarationConstraints(
       solverState.checkDeclarationWithBody(
         constraints, context,
         resultVarName, declaration, body
-      ).runCont()
+      )
     }
   }
 }
@@ -96,7 +96,7 @@ private fun SolverState.checkDeclarationWithBody(
   resultVarName: String,
   declaration: KtDeclaration,
   body: KtExpression?
-): SimpleCont<Unit> = bracket {
+) = bracket {
   // assert preconditions (if available)
   checkPreconditionsInconsistencies(
     constraints,
@@ -110,7 +110,7 @@ private fun SolverState.checkDeclarationWithBody(
   }.then {
     // check the post-conditions
     checkPostConditionsImplication(constraints, context, declaration)
-  }
+  }.runCont()
 }
 
 /**

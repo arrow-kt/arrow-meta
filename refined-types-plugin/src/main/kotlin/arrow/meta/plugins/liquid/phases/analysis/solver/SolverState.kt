@@ -15,7 +15,7 @@ data class SolverState(
   ),
   val callableConstraints: MutableList<DeclarationConstraints> = mutableListOf(),
   val names: NameProvider = NameProvider(),
-  val allAddedConstraints: MutableList<BooleanFormula> = mutableListOf()
+  val solverTrace: MutableList<String> = mutableListOf()
 ) {
 
   private var stage = Stage.Init
@@ -31,9 +31,11 @@ data class SolverState(
   }
 
   fun <A> bracket(f: () -> A): A {
+    solverTrace.add("PUSH")
     prover.push()
     val result = f()
     prover.pop()
+    solverTrace.add("POP")
     return result
   }
 
@@ -41,7 +43,7 @@ data class SolverState(
 
   fun addConstraint(formula: BooleanFormula) {
     prover.addConstraint(formula)
-    allAddedConstraints.add(formula)
+    solverTrace.add(formula.toString())
   }
 
   companion object {
