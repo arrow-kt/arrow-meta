@@ -310,10 +310,14 @@ private fun Solver.expressionToFormulae(
   name: String,
   bindingContext: BindingContext
 ): Triple<KotlinType, String, Formula>? =
+  //TODO(change name for actual argument name instead of param name
+  // change also `it` or whatever named first lambda argument of post condition gets renamed to `result`)
   when (val ex = maybeEx) {
     is KtConstantExpression ->
       makeConstant(type, name, ex)
     is KtNameReferenceExpression ->
+      //TODO(here we can introduce that any data type member or property extension with no arguments should
+      // be lifted as an object field in z3 using the UF utilities in Solver)
       makeVariable(ex, type, name)
     is KtElement -> {
       makeExpression(ex, bindingContext, type, name)

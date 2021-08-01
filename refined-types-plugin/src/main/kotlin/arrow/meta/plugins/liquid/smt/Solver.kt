@@ -50,8 +50,10 @@ class Solver(context: SolverContext) :
 
   val intValueFun: FunctionDeclaration<ObjectFormula> =
     ufManager.declareUF(INT_VALUE_NAME, FormulaType.IntegerType, ObjectFormulaType)
+
   val boolValueFun: FunctionDeclaration<BooleanFormula> =
     ufManager.declareUF(BOOL_VALUE_NAME, FormulaType.BooleanType, ObjectFormulaType)
+
   val decimalValueFun: FunctionDeclaration<NumeralFormula.RationalFormula> =
     ufManager.declareUF(DECIMAL_VALUE_NAME, FormulaType.RationalType, ObjectFormulaType)
 
@@ -79,7 +81,7 @@ class Solver(context: SolverContext) :
       val logger: LogManager = BasicLogManager.create(config)
       val shutdown = ShutdownManager.create()
       val context = SolverContextFactory.createSolverContext(
-        config, logger, shutdown.notifier, SolverContextFactory.Solvers.SMTINTERPOL
+        config, logger, shutdown.notifier, SolverContextFactory.Solvers.Z3
       )
       return Solver(context)
     }
