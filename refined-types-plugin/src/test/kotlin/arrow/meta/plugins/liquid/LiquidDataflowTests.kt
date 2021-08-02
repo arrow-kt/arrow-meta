@@ -64,7 +64,7 @@ class LiquidDataflowTests {
         pre("x greater than 0") { x > 0 }
         pre("x less than 10") { x < 10 }
         val z = x + 2
-        return z.post("it == x + 2") { it == x + 2 } 
+        return z.post("it == x + 2") { r -> r == x + 2 } 
       }
       val result = bar(1)
       """(
@@ -85,6 +85,22 @@ class LiquidDataflowTests {
       val result = bar(1)
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `annotated pre-conditions are checked in call `() {
+    """
+      ${imports()}
+      
+      @Pre(formulae = ["(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (< (int x) 10))\n", "(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (> (int x) 0))\n"])
+      fun bar(x: Int): Int =
+        x + 2
+     
+      val result = bar(30)
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }

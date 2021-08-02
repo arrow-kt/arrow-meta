@@ -26,18 +26,20 @@ import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
+import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
-import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -338,7 +340,7 @@ private fun Solver.argsFormulae(
     if (resolvedCall != null && !resolvedCall.preOrPostCall()) { // not match on the parent call
       val args = argsFormulae(resolvedCall, bindingContext)
       val descriptor = resolvedCall.resultingDescriptor
-      val expressionFormula = formulaWithArgs(descriptor, args.map { it.third }, resolvedCall)
+      val expressionFormula = formulaWithArgs(descriptor, args, resolvedCall)
       expressionFormula?.also { results.add(it) }
     }
   }
@@ -354,7 +356,7 @@ private fun Solver.argsFormulae(
 private fun <D : CallableDescriptor> Solver.argsFormulae(
   resolvedCall: ResolvedCall<D>,
   bindingContext: BindingContext,
-): List<Triple<KotlinType, String, Formula>> =
+): List<Formula> =
   ints {
     booleans {
       val argsExpressions = resolvedCall.allArgumentExpressions()
@@ -389,21 +391,36 @@ private fun Solver.expressionToFormulae(
   type: KotlinType,
   name: String,
   bindingContext: BindingContext
-): Triple<KotlinType, String, Formula>? =
-  //TODO(change name for actual argument name instead of param name
+): Formula? =
   // change also `it` or whatever named first lambda argument of post condition gets renamed to `result`)
   when (val ex = maybeEx) {
     is KtConstantExpression ->
-      makeConstant(type, ex.text, ex)
-    is KtNameReferenceExpression ->
+      makeConstant(type, ex)
+    is KtNameReferenceExpression -> {
       //TODO(here we can introduce that any data type member or property extension with no arguments should
       // be lifted as an object field in z3 using the UF utilities in Solver)
-      makeVariable(ex, type, ex.text)
+      if (isResultReference(ex, bindingContext)) {
+        makeVariable(ex, type, bindingContext)
+      } else makeVariable(ex, type, bindingContext)
+    }
     is KtElement -> {
-      makeExpression(ex, bindingContext, type, ex.text)
+      makeExpression(ex, bindingContext)
     }
     else -> null
   }
+
+internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
+  val maybePostCall =
+    ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
+  return if (maybePostCall != null && maybePostCall.postCall()) {
+    val expArg = maybePostCall.valueArguments.entries.toList()[1].value as? ExpressionValueArgument
+    val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
+    val params = lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
+      listOf("it")
+    ex.text in params.distinct()
+  } else false
+}
+
 
 /**
  * Uses the same resolution infra in [argsFormulae] to turn a complex
@@ -412,15 +429,12 @@ private fun Solver.expressionToFormulae(
  */
 private fun Solver.makeExpression(
   ex: KtExpression?,
-  bindingContext: BindingContext,
-  type: KotlinType,
-  name: String
-): Triple<KotlinType, String, Formula>? {
+  bindingContext: BindingContext
+): Formula? {
   val argCall = ex.getResolvedCall(bindingContext)
   val expResCall = argCall?.let { argsFormulae(it, bindingContext) }
   val descriptor = argCall?.resultingDescriptor
-  val formula = descriptor?.let { formulaWithArgs(it, expResCall?.map { it.third }.orEmpty(), argCall) }
-  return formula?.let { Triple(type, name, formula) }
+  return descriptor?.let { formulaWithArgs(it, expResCall.orEmpty(), argCall) }
 }
 
 /**
@@ -434,17 +448,17 @@ private fun Solver.makeExpression(
 private fun Solver.makeVariable(
   ex: KtNameReferenceExpression,
   type: KotlinType,
-  name: String
-): Triple<KotlinType, String, Formula>? =
-  ex.getReferencedName().let {
-    when {
-      type.isInt() ->
-        Triple(type, name, makeIntegerObjectVariable(it))
-      type.isBoolean() ->
-        Triple(type, name, makeBooleanObjectVariable(it))
-      else -> null
-    }
+  bindingContext: BindingContext
+): Formula? {
+  val variableName = formulaVariableName(ex, bindingContext)
+  return when {
+    type.isInt() ->
+      makeIntegerObjectVariable(variableName)
+    type.isBoolean() ->
+      makeBooleanObjectVariable(variableName)
+    else -> null
   }
+}
 
 /**
  * Turns a named constant expression into a smt [Formula]
@@ -456,13 +470,17 @@ private fun Solver.makeVariable(
  */
 private fun Solver.makeConstant(
   type: KotlinType,
-  name: String,
   ex: KtConstantExpression
-): Triple<KotlinType, String, Formula>? = when {
-  type.isInt() ->
-    Triple(type, name, integerFormulaManager.makeNumber(ex.text))
-  type.isBoolean() ->
-    Triple(type, name, booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict()))
-  else -> null
-}
+): Formula? =
+  when {
+    type.isInt() ->
+      integerFormulaManager.makeNumber(ex.text)
+    type.isBoolean() ->
+      booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict())
+    else -> null
+  }
+
+
+internal fun Solver.formulaVariableName(ex: KtNameReferenceExpression, bindingContext: BindingContext): String =
+  if (isResultReference(ex, bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
 

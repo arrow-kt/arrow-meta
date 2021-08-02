@@ -49,7 +49,7 @@ import org.sosy_lab.java_smt.api.NumeralFormula
  * Thus, the conditional `if` can duplicate the check of the "remainder".
  */
 
-private const val RESULT_VAR_NAME = "${'$'}result"
+internal const val RESULT_VAR_NAME = "${'$'}result"
 
 // 2.0: entry point
 /**
@@ -318,7 +318,9 @@ private fun SolverState.checkCallArguments(
   returnPoints: ReturnPoints
 ): SimpleCont<List<Pair<String, String>>> =
   resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
-    val argUniqueName = names.newName(name)
+    val argUniqueName = if (expr != null && solver.isResultReference(expr, context.trace.bindingContext)) {
+      RESULT_VAR_NAME
+    } else names.newName(name)
     checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
       continueWith(Pair(name, argUniqueName))
     }
