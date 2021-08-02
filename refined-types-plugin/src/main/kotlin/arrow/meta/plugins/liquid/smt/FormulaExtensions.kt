@@ -36,7 +36,6 @@ fun Solver.renameDeclarationConstraints(
   mapping: Map<String, String>): DeclarationConstraints =
   DeclarationConstraints(
     decl.descriptor,
-    decl.element,
     decl.pre.map { rename(it, mapping) },
     decl.post.map { rename(it, mapping) }
   )

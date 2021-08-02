@@ -62,8 +62,9 @@ class LiquidDataflowTests {
       ${imports()}
       fun bar(x: Int): Int {
         pre("x greater than 0") { x > 0 }
+        pre("x less than 10") { x < 10 }
         val z = x + 2
-        return z
+        return z.post("it == x + 2") { it == x + 2 } 
       }
       val result = bar(1)
       """(
@@ -71,6 +72,24 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `annotated pre-conditions are satisfied in call`() {
+    """
+      ${imports()}
+      
+      @Pre(formulae = ["(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (< (int x) 10))\n", "(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (> (int x) 0))\n"])
+      fun bar(x: Int): Int =
+        x + 2
+     
+      val result = bar(1)
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+
 }
 
 private fun imports() =
@@ -79,6 +98,8 @@ package test
 
 import arrow.refinement.pre
 import arrow.refinement.post
+import arrow.refinement.Pre
+import arrow.refinement.Post
 
  """
 

@@ -7,3 +7,15 @@ inline fun <A> A.post(msg: String, predicate: (A) -> Boolean): A {
   require(predicate(this)) { msg }
   return this
 }
+
+@Target(
+  AnnotationTarget.FUNCTION
+)
+@Repeatable
+annotation class Pre(val formulae: Array<String>)
+
+@Target(
+  AnnotationTarget.FUNCTION
+)
+@Repeatable
+annotation class Post(val formulae: Array<String>)

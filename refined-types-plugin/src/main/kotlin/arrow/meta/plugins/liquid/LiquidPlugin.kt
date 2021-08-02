@@ -6,7 +6,7 @@ import arrow.meta.invoke
 import arrow.meta.plugins.liquid.phases.ir.registerIrInterpreterCompileTimeFunctions
 import arrow.meta.plugins.liquid.phases.ir.validateIrCallsToRefinedFunctions
 import arrow.meta.plugins.liquid.phases.quotes.generateRefinedApi
-import arrow.meta.plugins.liquid.phases.analysis.solverStateAnalysis
+import arrow.meta.plugins.liquid.phases.liquidDataflowPhases
 
 
 val Meta.liquidExpressions: CliPlugin
@@ -14,7 +14,7 @@ val Meta.liquidExpressions: CliPlugin
     "Compile time validation of refined types for Kotlin" {
       meta(
         generateRefinedApi(this@liquidExpressions),
-        solverStateAnalysis(),
+        liquidDataflowPhases(),
         registerIrInterpreterCompileTimeFunctions(),
         validateIrCallsToRefinedFunctions()
       )

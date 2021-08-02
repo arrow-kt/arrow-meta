@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.Annotated
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
@@ -29,10 +31,14 @@ import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.ConstantValue
+import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
@@ -131,7 +137,78 @@ private fun SolverState.addConstraintsToSolverState(
       if (call.postCall()) postConstraints.add(formula)
     }
     callableConstraints.add(
-      DeclarationConstraints(descriptor, declaration, preConstraints, postConstraints)
+      DeclarationConstraints(descriptor, preConstraints, postConstraints)
+    )
+  }
+}
+
+private fun Annotated.preAnnotation(): AnnotationDescriptor? =
+  annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Pre") }
+
+private fun Annotated.postAnnotation(): AnnotationDescriptor? =
+  annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Post") }
+
+
+private val skipPackages = setOf(
+  FqName("com.apple"),
+  FqName("com.oracle"),
+  FqName("org.omg"),
+  FqName("com.sun"),
+  FqName("META-INF"),
+  FqName("jdk"),
+  FqName("apple"),
+  FqName("java"),
+  FqName("javax"),
+  FqName("kotlin"),
+  FqName("sun")
+)
+
+internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
+  acc: List<DeclarationDescriptor> = emptyList(),
+  packages: List<FqName> = listOf(FqName.ROOT),
+  skipPacks: Set<FqName> = skipPackages
+): List<DeclarationDescriptor> =
+  when {
+    packages.isEmpty() -> acc
+    else -> {
+      val current = packages.first()
+      val topLevelDescriptors = getPackage(current).memberScope.getContributedDescriptors { true }.toList()
+      val memberDescriptors = topLevelDescriptors.filterIsInstance<ClassDescriptor>().flatMap {
+        it.unsubstitutedMemberScope.getContributedDescriptors { true }.toList()
+      }
+      val allPackageDescriptors = topLevelDescriptors + memberDescriptors
+      val packagedProofs = allPackageDescriptors
+        .filter {
+          it.preAnnotation() != null || it.postAnnotation() != null
+        }
+      val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
+      declarationsWithConstraints(acc + packagedProofs.asSequence(), remaining)
+    }
+  }
+
+internal fun SolverState.addClassPathConstraintsToSolverState(
+  descriptor: DeclarationDescriptor
+) {
+  val constraints = descriptor.annotations.mapNotNull {
+    if (it.fqName == FqName("arrow.refinement.Pre")) {
+      val formulae = it.argumentValue("formulae") as? ArrayValue
+      if (formulae != null) "pre" to formulae.value.filterIsInstance<StringValue>().map { solver.parse(it.value) }
+      else null
+    } else if (it.fqName == FqName("arrow.refinement.Post")) {
+      val formulae = it.argumentValue("formulae") as? ArrayValue
+      if (formulae != null) "post" to formulae.value.filterIsInstance<StringValue>().map { solver.parse(it.value) }
+      else null
+    } else null
+  }
+  if (constraints.isNotEmpty()) {
+    val preConstraints = arrayListOf<BooleanFormula>()
+    val postConstraints = arrayListOf<BooleanFormula>()
+    constraints.forEach { (call, formula) ->
+      if (call == "pre") preConstraints.addAll(formula)
+      if (call == "post") postConstraints.addAll(formula)
+    }
+    callableConstraints.add(
+      DeclarationConstraints(descriptor, preConstraints, postConstraints)
     )
   }
 }
@@ -146,6 +223,9 @@ internal fun CompilerContext.finalizeConstraintsCollection(
 ): AnalysisResult? {
   val solverState = get<SolverState>(SolverState.key(module))
   return if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
+    module.declarationsWithConstraints().forEach {
+      solverState.addClassPathConstraintsToSolverState(it)
+    }
     solverState.collectionEnds()
     AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
   } else null
@@ -314,13 +394,13 @@ private fun Solver.expressionToFormulae(
   // change also `it` or whatever named first lambda argument of post condition gets renamed to `result`)
   when (val ex = maybeEx) {
     is KtConstantExpression ->
-      makeConstant(type, name, ex)
+      makeConstant(type, ex.text, ex)
     is KtNameReferenceExpression ->
       //TODO(here we can introduce that any data type member or property extension with no arguments should
       // be lifted as an object field in z3 using the UF utilities in Solver)
-      makeVariable(ex, type, name)
+      makeVariable(ex, type, ex.text)
     is KtElement -> {
-      makeExpression(ex, bindingContext, type, name)
+      makeExpression(ex, bindingContext, type, ex.text)
     }
     else -> null
   }
