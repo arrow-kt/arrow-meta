@@ -381,9 +381,9 @@ private fun SolverState.specialCasingForResolvedCalls(
         FqName("kotlin.Int.times") -> { result, arg1, arg2 ->
           equal(result as NumeralFormula.IntegerFormula, multiply(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
         }
-        FqName("kotlin.Int.div") -> { result, arg1, arg2 ->
-          equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
-        }
+//        FqName("kotlin.Int.div") -> { result, arg1, arg2 ->
+//          equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+//        }
         FqName("kotlin.Int.compareTo") -> {
           when ((resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator) {
             ">" -> { result, arg1, arg2 ->

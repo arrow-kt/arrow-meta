@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.phases.CompilerContext
+import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.intDivide
 import arrow.meta.plugins.liquid.smt.intEquals
@@ -20,18 +21,23 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
+import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
@@ -43,6 +49,7 @@ import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
@@ -84,7 +91,7 @@ internal fun CompilerContext.collectDeclarationsConstraints(
     solverState.collecting()
     val solver = solverState.solver
     val constraints = declaration.constraints(solver, context.trace.bindingContext)
-    solverState.addConstraintsToSolverState(constraints, descriptor, declaration)
+    solverState.addConstraintsToSolverState(constraints, descriptor, context.trace.bindingContext)
   }
 }
 
@@ -129,7 +136,7 @@ private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
 private fun SolverState.addConstraintsToSolverState(
   constraints: List<Pair<ResolvedCall<*>, BooleanFormula>>,
   descriptor: DeclarationDescriptor,
-  declaration: KtDeclaration
+  bindingContext: BindingContext
 ) {
   if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<BooleanFormula>()
@@ -138,10 +145,37 @@ private fun SolverState.addConstraintsToSolverState(
       if (call.preCall()) preConstraints.add(formula)
       if (call.postCall()) postConstraints.add(formula)
     }
+    addConstraints(descriptor, preConstraints, postConstraints, bindingContext)
+  }
+}
+
+private fun SolverState.addConstraints(
+  descriptor: DeclarationDescriptor,
+  preConstraints: ArrayList<BooleanFormula>,
+  postConstraints: ArrayList<BooleanFormula>,
+  bindingContext: BindingContext
+) {
+  val remoteDescriptorFromRemoteLaw =
+    descriptor.annotations.findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
+      val subjectFqName = (lawSubject.argumentValue("fqName") as? StringValue)?.value?.let { FqName(it) }
+      if (subjectFqName != null) {
+        val pck = subjectFqName.parent()
+        val fn = subjectFqName.pathSegments().lastOrNull()
+        descriptor.module.getPackage(pck).memberScope.getContributedDescriptors { it == fn }.firstOrNull()
+      } else null
+    }
+  val targetDescriptorFromLocalLaw =
+    ((descriptor.findPsi() as? KtFunction)?.body()
+      ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
+  val lawSubject = remoteDescriptorFromRemoteLaw ?: targetDescriptorFromLocalLaw
+  if (lawSubject != null) {
     callableConstraints.add(
-      DeclarationConstraints(descriptor, preConstraints, postConstraints)
+      DeclarationConstraints(lawSubject, preConstraints, postConstraints)
     )
   }
+  callableConstraints.add(
+    DeclarationConstraints(descriptor, preConstraints, postConstraints)
+  )
 }
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
@@ -189,7 +223,8 @@ internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
   }
 
 internal fun SolverState.addClassPathConstraintsToSolverState(
-  descriptor: DeclarationDescriptor
+  descriptor: DeclarationDescriptor,
+  bindingContext: BindingContext
 ) {
   val constraints = descriptor.annotations.mapNotNull {
     if (it.fqName == FqName("arrow.refinement.Pre")) {
@@ -209,9 +244,7 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
       if (call == "pre") preConstraints.addAll(formula)
       if (call == "post") postConstraints.addAll(formula)
     }
-    callableConstraints.add(
-      DeclarationConstraints(descriptor, preConstraints, postConstraints)
-    )
+    addConstraints(descriptor, preConstraints, postConstraints, bindingContext)
   }
 }
 
@@ -226,7 +259,7 @@ internal fun CompilerContext.finalizeConstraintsCollection(
   val solverState = get<SolverState>(SolverState.key(module))
   return if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
     module.declarationsWithConstraints().forEach {
-      solverState.addClassPathConstraintsToSolverState(it)
+      solverState.addClassPathConstraintsToSolverState(it, bindingTrace.bindingContext)
     }
     solverState.collectionEnds()
     AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
@@ -307,7 +340,14 @@ private fun Solver.formulaWithArgs(
     //recursion ends here
     args[0] //TODO apparently we don't get called for composed predicates with && or ||
   }
-  FqName("kotlin.Int.equals") -> intEquals(args)
+  FqName("kotlin.Int.equals") -> {
+    val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+    when (op) {
+      "==" -> intEquals(args)
+      "!=" -> intEquals(args)?.let { not(it) }
+      else -> null
+    }
+  }
   FqName("kotlin.Int.plus") -> intPlus(args)
   FqName("kotlin.Int.minus") -> intMinus(args)
   FqName("kotlin.Int.times") -> intMultiply(args)

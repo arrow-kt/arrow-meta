@@ -1,12 +1,13 @@
 package arrow.meta.plugins.liquid.smt
 
+import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.NumeralFormula
 
 private fun List<Formula>.numeric(): List<NumeralFormula.IntegerFormula> =
   filterIsInstance<NumeralFormula.IntegerFormula>()
 
-internal fun Solver.intEquals(args: List<Formula>): Formula? =
+internal fun Solver.intEquals(args: List<Formula>): BooleanFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()

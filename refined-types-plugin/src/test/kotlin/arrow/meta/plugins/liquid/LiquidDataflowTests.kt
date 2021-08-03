@@ -105,6 +105,24 @@ class LiquidDataflowTests {
     )
   }
 
+  @Test
+  fun `ad-hoc laws are checked in call `() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(other: Int): Int {
+        pre("other is not zero") { other != 0 }
+        return this / other
+      }
+     
+      val result = 1 / 0
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
 
 }
 
@@ -116,6 +134,7 @@ import arrow.refinement.pre
 import arrow.refinement.post
 import arrow.refinement.Pre
 import arrow.refinement.Post
+import arrow.refinement.Law
 
  """
 

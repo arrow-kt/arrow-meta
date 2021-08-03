@@ -14,11 +14,15 @@ import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
 internal fun IrUtils.annotateWithConstraints(fn: IrFunction): Unit {
   val solverState = compilerContext.get<SolverState>(SolverState.key(moduleFragment.descriptor))
@@ -46,6 +50,13 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction): Unit {
         if (postFormulae.isNotEmpty()) {
           postAnnotation(postFormulae)?.let { fn.addAnnotation(it) }
         }
+        if (fn.hasAnnotation(FqName("arrow.refinement.Law"))) {
+          val callToSubject = (fn.body?.statements?.lastOrNull() as? IrReturn)?.value as? IrFunctionAccessExpression
+          val fnDescriptor = callToSubject?.symbol?.owner?.toIrBasedDescriptor() as? SimpleFunctionDescriptor
+          if (fnDescriptor != null) {
+            lawSubjectAnnotation(fnDescriptor)?.let { fn.addAnnotation(it) }
+          }
+        }
       }
     }
   }
@@ -62,9 +73,22 @@ private fun IrUtils.preAnnotation(formulae: List<String>): IrConstructorCall? =
 private fun IrUtils.postAnnotation(formulae: List<String>): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/refinement/Post"), formulae)
 
+private fun IrUtils.lawSubjectAnnotation(descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
+  lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/refinement/Subject"), descriptor)
+
 private fun IrUtils.annotationFromClassId(classId: ClassId, formulae: List<String>): IrConstructorCall? =
   moduleFragment.descriptor.findClassAcrossModuleDependencies(classId)?.let {
     annotation(formulae, it)
+  }
+
+private fun IrUtils.lawSubjectAnnotationFromClassId(classId: ClassId, descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
+  moduleFragment.descriptor.findClassAcrossModuleDependencies(classId)?.let {
+    lawSubjectAnnotation(descriptor, it)
+  }
+
+private fun IrUtils.lawSubjectAnnotation(fnDescriptor: SimpleFunctionDescriptor, descriptor: ClassDescriptor): IrConstructorCall? =
+  descriptor.irConstructorCall()?.also {
+    it.putValueArgument(0, constantValue(fnDescriptor.fqNameSafe.asString()))
   }
 
 private fun IrUtils.annotation(formulae: List<String>, descriptor: ClassDescriptor): IrConstructorCall? =
