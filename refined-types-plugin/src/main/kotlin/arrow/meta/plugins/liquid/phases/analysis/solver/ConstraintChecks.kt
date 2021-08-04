@@ -518,7 +518,7 @@ private fun SolverState.checkConditional(
   info: ConditionalBranches,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleComputation<Unit> = computation { //todo was using reifyCont
+): SimpleComputation<Unit> = computation {  //todo was using reifyCont
   // go over each element
   // we use a recursive function because
   // we need to nest the calls to [bracket]
@@ -542,7 +542,8 @@ private fun SolverState.checkConditional(
             checkExpressionConstraints(associatedVarName, first.body, context, returnPoints).run()
             // and now execute the rest of the analysis
             // by calling the continuation
-            this@computation.run()
+            //this@computation.cont.re
+            abort(Unit)
           }
         }
         // or they are false

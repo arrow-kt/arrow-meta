@@ -30,7 +30,7 @@ data class SolverState(
     stage = Stage.Prove
   }
 
-  fun <A> bracket(f: () -> A): A {
+  inline fun <A> bracket(f: () -> A): A {
     solverTrace.add("PUSH")
     prover.push()
     val result = f()
