@@ -1,4 +1,4 @@
-package arrow.meta.continuations
+package arrow.meta.continuations.disabled
 
 typealias Cont<R, A> = (cont: (x: A) -> R) -> R
 typealias SimpleCont<A> = Cont<Unit, A>
@@ -38,25 +38,3 @@ fun <R, A, B> List<A>.contEach(f: ((a: A) -> Cont<R, B>)): Cont<R, List<B>> =
     }
 fun <R, A> Int.contEach(f: (n: Int) -> Cont<R, A>): Cont<R, List<A>> =
   List(this, { it }).contEach { n -> f(n) }
-
-fun main(args: Array<String>): Unit {
-  3.contEach<Unit, Unit> {
-    println("Hello $it")
-    continueWith(Unit)
-  }.forget().runCont()
-
-  3.contEach<Unit, Unit> { n ->
-    println("Bye $n")
-    if (n >= 1) abortWith(Unit)
-    else continueWith(Unit)
-  }.forget().runCont()
-
-  reifyCont<Unit, Int> { cont ->
-    cont(1)
-    cont(2)
-  }.then { n ->
-    println("Hello $n")
-    continueWith(Unit)
-  }.runCont()
-
-}

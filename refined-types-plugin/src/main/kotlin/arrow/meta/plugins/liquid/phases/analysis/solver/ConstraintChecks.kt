@@ -4,7 +4,6 @@ import arrow.meta.continuations.Computation
 import arrow.meta.continuations.SimpleComputation
 import arrow.meta.continuations.computation
 import arrow.meta.continuations.contEach
-import arrow.meta.continuations.continueWith
 import arrow.meta.continuations.guard
 import arrow.meta.continuations.run
 import arrow.meta.phases.CompilerContext
@@ -519,7 +518,7 @@ private fun SolverState.checkConditional(
   info: ConditionalBranches,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleComputation<Unit> = computation {
+): SimpleComputation<Unit> = computation { //todo was using reifyCont
   // go over each element
   // we use a recursive function because
   // we need to nest the calls to [bracket]

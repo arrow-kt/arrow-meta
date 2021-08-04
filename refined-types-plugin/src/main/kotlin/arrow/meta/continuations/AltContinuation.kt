@@ -1,3 +1,5 @@
+package arrow.meta.continuations
+
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.coroutines.Continuation
@@ -6,6 +8,8 @@ import kotlin.coroutines.RestrictsSuspension
 import kotlin.coroutines.resume
 import kotlin.coroutines.startCoroutine
 import kotlin.coroutines.suspendCoroutine
+
+typealias SimpleComputation<A> = Computation<Unit, A>
 
 class Computation<R, A>(val computation: suspend Cont<R>.() -> A) {
     fun forget(): Computation<R, Unit> = computation {
