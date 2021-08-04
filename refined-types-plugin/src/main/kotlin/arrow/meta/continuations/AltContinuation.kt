@@ -55,7 +55,20 @@ class Cont<R>(private val cont: Continuation<R>) : Continuation<R> by cont {
 
     suspend fun <A> abort(r: R): A =
         suspendCoroutine { this@Cont.resume(r) }
+
+    suspend fun <A, B> List<A>.traverse(f: (a: A) -> Computation<R, B>): List<B> =
+        if (this@traverse.isEmpty()) emptyList()
+        else map { a -> f(a).bind() }
+
+    suspend fun <A> repeat(n: Int, f: (n: Int) -> Computation<R, A>): List<A> =
+        List(n) { f(it).bind() }
 }
+
+suspend fun <R, A, B> List<A>.traverse(f: ((a: A) -> Computation<R, B>)): Computation<R, List<B>> =
+    computation { traverse(f) }
+
+suspend fun <R, A> Int.contEach(f: (n: Int) -> Computation<R, A>): Computation<R, List<A>> =
+    computation { repeat(this@contEach, f) }
 
 suspend fun Cont<Unit>.guard(condition: Boolean): Unit =
     if (condition) Unit else abort(Unit)
