@@ -77,7 +77,7 @@ internal fun CompilerContext.checkDeclarationConstraints(
       solverState.checkDeclarationWithBody(
         constraints, context,
         resultVarName, declaration, body
-      )
+      ).run()
     }
   }
 }
@@ -111,8 +111,8 @@ private fun SolverState.checkDeclarationWithBody(
     if (inconsistentPreconditions)
       guard(!inconsistentPreconditions)
 
-    checkExpressionConstraints(resultVarName, body, context, ReturnPoints(resultVarName, emptyMap()))
-    checkPostConditionsImplication(constraints, context, declaration)
+    checkExpressionConstraints(resultVarName, body, context, ReturnPoints(resultVarName, emptyMap())).bind()
+    checkPostConditionsImplication(constraints, context, declaration).bind()
   }
 }
 
@@ -331,7 +331,7 @@ private fun SolverState.checkCallArguments(
       val argUniqueName = if (expr != null && solver.isResultReference(expr, context.trace.bindingContext)) {
         RESULT_VAR_NAME
       } else names.newName(name)
-      checkExpressionConstraints(argUniqueName, expr, context, returnPoints)
+      checkExpressionConstraints(argUniqueName, expr, context, returnPoints).bind()
       name to argUniqueName
     }
   }
