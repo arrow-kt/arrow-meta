@@ -326,7 +326,7 @@ private fun SolverState.checkCallArguments(
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
 ): SimpleComputation<List<Pair<String, String>>> = computation {
-  resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
+  resolvedCall.allArgumentExpressions().traverse { (name, _, expr) ->
     computation {
       val argUniqueName = if (expr != null && solver.isResultReference(expr, context.trace.bindingContext)) {
         RESULT_VAR_NAME
@@ -571,7 +571,7 @@ private fun SolverState.introduceCondition(
   // and now go and check it
   when (it) {
     is BooleanCondition ->
-      checkExpressionConstraints(conditionVar, it.expression, context, returnPoints).runCont()
+      checkExpressionConstraints(conditionVar, it.expression, context, returnPoints).run()
   }
   // return the variable
   conditionVar
