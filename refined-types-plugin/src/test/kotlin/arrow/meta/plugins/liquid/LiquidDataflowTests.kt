@@ -5,6 +5,7 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class LiquidDataflowTests {
@@ -27,6 +28,7 @@ class LiquidDataflowTests {
   }
 
   @Test
+  @Disabled // TODO causes z3 to crash
   fun `unreachable code`() {
     """
       ${imports()}

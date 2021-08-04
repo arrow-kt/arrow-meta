@@ -1,6 +1,12 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
-import arrow.meta.continuations.*
+import arrow.meta.continuations.Computation
+import arrow.meta.continuations.SimpleComputation
+import arrow.meta.continuations.computation
+import arrow.meta.continuations.contEach
+import arrow.meta.continuations.continueWith
+import arrow.meta.continuations.guard
+import arrow.meta.continuations.run
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
@@ -94,20 +100,21 @@ private fun SolverState.checkDeclarationWithBody(
   declaration: KtDeclaration,
   body: KtExpression?
 ) = bracket {
-  // assert preconditions (if available)
-  checkPreconditionsInconsistencies(
-    constraints,
-    context,
-    declaration
-  ).then { inconsistentPreconditions ->
+  computation<Unit, Unit> {
+    // assert preconditions (if available)
+    val inconsistentPreconditions = checkPreconditionsInconsistencies(
+      constraints,
+      context,
+      declaration
+    ).bind()
     // if we are inconsistent, there's no point in going on, just stop early
-    guard(!inconsistentPreconditions)
-  }.then {
+
+    if (inconsistentPreconditions)
+      guard(!inconsistentPreconditions)
+
     checkExpressionConstraints(resultVarName, body, context, ReturnPoints(resultVarName, emptyMap()))
-  }.then {
-    // check the post-conditions
     checkPostConditionsImplication(constraints, context, declaration)
-  }.runCont()
+  }
 }
 
 /**
@@ -122,7 +129,7 @@ private fun SolverState.checkPreconditionsInconsistencies(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
-): SimpleCont<Boolean> = wrap {
+): SimpleComputation<Boolean> = computation {
   constraints?.pre?.let {
     addAndCheckConsistency(it) { unsatCore ->
       context.trace.report(
@@ -140,7 +147,7 @@ private fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
-): SimpleCont<Unit> = wrap {
+): SimpleComputation<Unit> = computation {
   constraints?.post?.forEach { postCondition ->
     checkImplicationOf(postCondition) {
       context.trace.report(
@@ -158,7 +165,8 @@ private fun SolverState.checkPostConditionsImplication(
  */
 data class ReturnPoints(
   val topMostReturnPointVariableName: String,
-  val namedReturnPointVariableNames: Map<String, String>) {
+  val namedReturnPointVariableNames: Map<String, String>
+) {
 
   // fun replaceTopMost(newVariableName: String) =
   //   ReturnPoints(newVariableName, namedReturnPointVariableNames)
@@ -179,41 +187,43 @@ private fun SolverState.checkExpressionConstraints(
   expression: KtExpression?,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> =
+): SimpleComputation<Unit> = computation {
   when (expression) {
     is KtBlockExpression ->
-      checkBlockExpression(associatedVarName, expression.statements, context, returnPoints)
+      checkBlockExpression(associatedVarName, expression.statements, context, returnPoints).bind()
     is KtReturnExpression ->
-      checkReturnConstraints(expression, context, returnPoints)
+      checkReturnConstraints(expression, context, returnPoints).bind()
     is KtConstantExpression ->
-      checkConstantExpression(associatedVarName, expression)
+      checkConstantExpression(associatedVarName, expression).bind()
     is KtSimpleNameExpression ->
-      checkNameExpression(associatedVarName, expression)
+      checkNameExpression(associatedVarName, expression).bind()
     is KtLabeledExpression ->
       checkExpressionConstraints(
         associatedVarName, expression.baseExpression, context,
         // add the return point to the list and recur
-        returnPoints.add(expression.name!!, associatedVarName))
+        returnPoints.add(expression.name!!, associatedVarName)
+      ).bind()
     is KtDeclaration -> {
       val declName = when (expression) {
         // use the given name if available
         is KtNamedDeclaration -> expression.nameAsSafeName.asString()
         else -> names.newName("decl")
       }
-      checkDeclarationExpression(declName, expression, context, returnPoints)
+      checkDeclarationExpression(declName, expression, context, returnPoints).bind()
     }
     // fall-through cases
     else -> when {
       // either treat as conditional
       expression?.isConditional() == true ->
-        checkConditional(associatedVarName, expression.conditionalBranches()!!, context, returnPoints)
+        checkConditional(associatedVarName, expression.conditionalBranches()!!, context, returnPoints).bind()
       // or try to treat it as a function call (for +, -, and so on)
       else ->
         expression?.getResolvedCall(context.trace.bindingContext)?.let {
-          checkCallExpression(associatedVarName, expression, it, context, returnPoints)
-        }.orDoNothing()
+          checkCallExpression(associatedVarName, expression, it, context, returnPoints).bind()
+        } ?: Unit
     }
   }
+}
 
 /**
  * Checks each statement in a block expression in order.
@@ -225,20 +235,20 @@ private fun SolverState.checkBlockExpression(
   expressions: List<KtExpression>,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> =
+): SimpleComputation<Unit> = computation {
   when (expressions.size) {
-    0 -> continueWith(Unit)
+    0 -> Unit
     1 -> // this is the last element, so it's the return value of the expression
-      checkExpressionConstraints(associatedVarName, expressions[0], context, returnPoints)
+      checkExpressionConstraints(associatedVarName, expressions[0], context, returnPoints).bind()
     else -> {
       val first = expressions[0]
       val remainder = expressions.drop(1)
       val inventedName = names.newName("stmt")
-      checkExpressionConstraints(inventedName, first, context, returnPoints). then {
-        checkBlockExpression(associatedVarName, remainder, context, returnPoints)
-      }
+      checkExpressionConstraints(inventedName, first, context, returnPoints).bind()
+      checkBlockExpression(associatedVarName, remainder, context, returnPoints).bind()
     }
   }
+}
 
 /**
  * Checks a 'return' or 'return@label' statement.
@@ -249,7 +259,7 @@ private fun SolverState.checkReturnConstraints(
   expression: KtReturnExpression,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): Cont<Unit, Unit> {
+): SimpleComputation<Unit> = computation {
   // figure out the right variable to assign
   // - if 'return@label', find the label in the recorded return points
   // - otherwise, it should be the top-most one
@@ -257,9 +267,8 @@ private fun SolverState.checkReturnConstraints(
     returnPoints.namedReturnPointVariableNames[it]
   } ?: returnPoints.topMostReturnPointVariableName
   // and now assign it
-  return checkExpressionConstraints(returnVarName, expression.returnedExpression, context, returnPoints).then {
-    abortWith(Unit)
-  }
+  checkExpressionConstraints(returnVarName, expression.returnedExpression, context, returnPoints).bind()
+  abort(Unit)
 }
 
 /**
@@ -273,35 +282,36 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> =
+): SimpleComputation<Unit> = computation {
   when (val specialCase = specialCasingForResolvedCalls(resolvedCall)) {
-    null ->
-      checkCallArguments(resolvedCall, context, returnPoints).thenWrap { it.toMap() }.thenWrap { argVars ->
-        constraintsFromSolverState(resolvedCall)?.let {
-          val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
-          solver.renameDeclarationConstraints(it, completeRenaming)
-        }
-      }.then { callConstraints ->
-        // check pre-conditions and post-conditions
-        checkCallPreConditionsImplication(callConstraints, context, expression, resolvedCall).then {
-          checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
-        }
-      }.then { inconsistentPostConditions ->
-        // there's no point in continuing if we are in an inconsistent position
-        guard(!inconsistentPostConditions)
+    null -> {
+      val argVars = checkCallArguments(resolvedCall, context, returnPoints).bind().toMap()
+      val callConstraints = constraintsFromSolverState(resolvedCall)?.let {
+        val completeRenaming = argVars + (RESULT_VAR_NAME to associatedVarName)
+        solver.renameDeclarationConstraints(it, completeRenaming)
       }
-    else ->  // this is the special case
-      checkCallArguments(resolvedCall, context, returnPoints).thenWrap { argVars ->
-        val result =
-          if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
-            solver.makeBooleanObjectVariable(associatedVarName)
-          else
-            solver.makeIntegerObjectVariable(associatedVarName)
-        val arg1 = solver.makeIntegerObjectVariable(argVars[0].second)
-        val arg2 = solver.makeIntegerObjectVariable(argVars[1].second)
-        specialCase(result, arg1, arg2)?.let { addConstraint(it) }
-      }.forget()
+
+      // check pre-conditions and post-conditions
+      checkCallPreConditionsImplication(callConstraints, context, expression, resolvedCall).bind()
+      val inconsistentPostConditions =
+        checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall).bind()
+
+      // there's no point in continuing if we are in an inconsistent position
+      guard(!inconsistentPostConditions)
+    }
+    else -> { // this is the special case
+      val argVars = checkCallArguments(resolvedCall, context, returnPoints).bind()
+      val result =
+        if (expression.kotlinType(context.trace.bindingContext)?.isBoolean() == true)
+          solver.makeBooleanObjectVariable(associatedVarName)
+        else
+          solver.makeIntegerObjectVariable(associatedVarName)
+      val arg1 = solver.makeIntegerObjectVariable(argVars[0].second)
+      val arg2 = solver.makeIntegerObjectVariable(argVars[1].second)
+      specialCase(result, arg1, arg2)?.let { addConstraint(it) }
+    }
   }
+}
 
 /**
  * Recursively perform check on arguments,
@@ -316,15 +326,17 @@ private fun SolverState.checkCallArguments(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<List<Pair<String, String>>> =
+): SimpleComputation<List<Pair<String, String>>> = computation {
   resolvedCall.allArgumentExpressions().contEach { (name, _, expr) ->
-    val argUniqueName = if (expr != null && solver.isResultReference(expr, context.trace.bindingContext)) {
-      RESULT_VAR_NAME
-    } else names.newName(name)
-    checkExpressionConstraints(argUniqueName, expr, context, returnPoints).then {
-      continueWith(Pair(name, argUniqueName))
+    computation {
+      val argUniqueName = if (expr != null && solver.isResultReference(expr, context.trace.bindingContext)) {
+        RESULT_VAR_NAME
+      } else names.newName(name)
+      checkExpressionConstraints(argUniqueName, expr, context, returnPoints)
+      name to argUniqueName
     }
   }
+}
 
 /**
  * Checks the pre-conditions in [callConstraints] hold for [resolvedCall]
@@ -334,7 +346,7 @@ private fun SolverState.checkCallPreConditionsImplication(
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-): SimpleCont<Unit> = wrap {
+): SimpleComputation<Unit> = computation {
   callConstraints?.pre?.forEach { callPreCondition ->
     checkImplicationOf(callPreCondition) {
       context.trace.report(
@@ -352,7 +364,7 @@ private fun SolverState.checkCallPostConditionsInconsistencies(
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-): SimpleCont<Boolean> = wrap {
+): SimpleComputation<Boolean> = computation {
   callConstraints?.post?.let {
     addAndCheckConsistency(it) { unsatCore ->
       context.trace.report(
@@ -370,16 +382,28 @@ private fun SolverState.specialCasingForResolvedCalls(
     solver.booleans {
       when (resolvedCall.resultingDescriptor.fqNameSafe) {
         FqName("kotlin.Int.equals") -> { result, arg1, arg2 ->
-          equivalence(result as BooleanFormula, equal(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+          equivalence(
+            result as BooleanFormula,
+            equal(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+          )
         }
         FqName("kotlin.Int.plus") -> { result, arg1, arg2 ->
-          equal(result as NumeralFormula.IntegerFormula, add(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+          equal(
+            result as NumeralFormula.IntegerFormula,
+            add(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+          )
         }
         FqName("kotlin.Int.minus") -> { result, arg1, arg2 ->
-          equal(result as NumeralFormula.IntegerFormula, subtract(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+          equal(
+            result as NumeralFormula.IntegerFormula,
+            subtract(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+          )
         }
         FqName("kotlin.Int.times") -> { result, arg1, arg2 ->
-          equal(result as NumeralFormula.IntegerFormula, multiply(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+          equal(
+            result as NumeralFormula.IntegerFormula,
+            multiply(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+          )
         }
 //        FqName("kotlin.Int.div") -> { result, arg1, arg2 ->
 //          equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
@@ -387,16 +411,28 @@ private fun SolverState.specialCasingForResolvedCalls(
         FqName("kotlin.Int.compareTo") -> {
           when ((resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator) {
             ">" -> { result, arg1, arg2 ->
-              equivalence(result as BooleanFormula, greaterThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+              equivalence(
+                result as BooleanFormula,
+                greaterThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+              )
             }
             ">=" -> { result, arg1, arg2 ->
-              equivalence(result as BooleanFormula, greaterOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+              equivalence(
+                result as BooleanFormula,
+                greaterOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+              )
             }
             "<" -> { result, arg1, arg2 ->
-              equivalence(result as BooleanFormula, lessThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+              equivalence(
+                result as BooleanFormula,
+                lessThan(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+              )
             }
             "<=" -> { result, arg1, arg2 ->
-              equivalence(result as BooleanFormula, lessOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
+              equivalence(
+                result as BooleanFormula,
+                lessOrEquals(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula)
+              )
             }
             else -> null
           }
@@ -415,10 +451,10 @@ private fun SolverState.specialCasingForResolvedCalls(
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
   expression: KtConstantExpression
-): SimpleCont<Unit> = wrap {
+): SimpleComputation<Unit> = computation {
   solver.formulae {
-    val mayBoolean  = expression.text.toBooleanStrictOrNull()
-    val mayInteger  = expression.text.toBigIntegerOrNull()
+    val mayBoolean = expression.text.toBooleanStrictOrNull()
+    val mayInteger = expression.text.toBigIntegerOrNull()
     val mayRational = expression.text.toBigDecimalOrNull()
     when {
       mayBoolean == true ->
@@ -455,9 +491,9 @@ private fun SolverState.checkDeclarationExpression(
   declaration: KtDeclaration,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> = declaration.stableBody()?.let {
+): SimpleComputation<Unit> = declaration.stableBody()?.let {
   checkExpressionConstraints(newVarName, it, context, returnPoints)
-}.orDoNothing()
+} ?: computation { Unit }
 
 /**
  * This function produces a continuation that makes the desired variable name
@@ -467,7 +503,7 @@ private fun SolverState.checkDeclarationExpression(
 private fun SolverState.checkNameExpression(
   associatedVarName: String,
   expression: KtSimpleNameExpression
-): SimpleCont<Unit> = wrap {
+): SimpleComputation<Unit> = computation {
   // FIX: add only things in scope
   val referencedName = expression.getReferencedName().nameAsSafeName().asString()
   solver.objects {
@@ -483,13 +519,14 @@ private fun SolverState.checkConditional(
   info: ConditionalBranches,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleCont<Unit> = reifyCont { cont ->
+): SimpleComputation<Unit> = computation {
   // go over each element
   // we use a recursive function because
   // we need to nest the calls to [bracket]
   fun go(remainingBranches: List<ConditionalBranch>) {
     when (val first = remainingBranches.firstOrNull()) {
-      null -> { }  // done
+      null -> {
+      }  // done
       else -> solver.booleans {
         val newVariables = introduceCondition(first.condition, context, returnPoints)
         // either the things are true
@@ -498,14 +535,15 @@ private fun SolverState.checkConditional(
           val inconsistentEnvironment =
             checkConditionsInconsistencies<Boolean>(
               newVariables.map { solver.makeBooleanObjectVariable(it) },
-              context, first.whole).runCont()
+              context, first.whole
+            ).run()
           // it only makes sense to continue if we are not consistent
           if (!inconsistentEnvironment) {
             // check the body
-            checkExpressionConstraints(associatedVarName, first.body, context, returnPoints).runCont()
+            checkExpressionConstraints(associatedVarName, first.body, context, returnPoints).run()
             // and now execute the rest of the analysis
             // by calling the continuation
-            cont(Unit)
+            this@computation.run()
           }
         }
         // or they are false
@@ -547,7 +585,7 @@ private fun <R> SolverState.checkConditionsInconsistencies(
   formulae: List<BooleanFormula>,
   context: DeclarationCheckerContext,
   expression: KtElement
-): Cont<R, Boolean> = wrap {
+): Computation<R, Boolean> = computation {
   addAndCheckConsistency(formulae) { unsatCore ->
     context.trace.report(
       MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
@@ -560,8 +598,7 @@ private fun <R> SolverState.checkConditionsInconsistencies(
  * visit the declaration as we do in [argsFormulae] where it uses an expression recursive visitor.
  * That will recursively visit all body element as well and there we can match just in those we care.
  */
-private fun KtDeclaration.stableBody(): KtExpression?
-  = when (this) {
+private fun KtDeclaration.stableBody(): KtExpression? = when (this) {
   is KtVariableDeclaration -> if (isVar) null else initializer
   is KtDeclarationWithBody -> body()
   is KtDeclarationWithInitializer -> initializer
