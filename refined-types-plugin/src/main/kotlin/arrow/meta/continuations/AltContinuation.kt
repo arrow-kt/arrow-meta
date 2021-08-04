@@ -7,6 +7,24 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.startCoroutine
 import kotlin.coroutines.suspendCoroutine
 
+class Computation<R, A>(val computation: suspend Cont<R>.() -> A) {
+    fun forget(): Computation<R, Unit> = computation {
+        this@Computation.bind()
+        Unit
+    }
+}
+
+fun <A> Computation<A, A>.run(): A {
+    var value: Any? = EMPTY_VALUE
+    val cont = Continuation<A>(EmptyCoroutineContext) {
+        it.fold({ a ->
+            value = a
+        }, { e -> throw e })
+    }
+    computation.startCoroutine(Cont(cont), cont)
+    return EMPTY_VALUE.unbox(value)
+}
+
 /**
  * `computation` block that allows for control flow through [Continuation] with pure values.
  *
@@ -22,12 +40,7 @@ import kotlin.coroutines.suspendCoroutine
  *    this would allow further composition of computation by deferral of execution.
  *    Triggering the computation could then be don by a `run` method.
  */
-fun computation(f: suspend Cont.() -> Unit): Unit {
-    val cont = Continuation<Unit>(EmptyCoroutineContext) {
-        it.fold({ }, { e -> throw e })
-    }
-    f.startCoroutine(Cont(cont), cont)
-}
+fun <R, A> computation(f: suspend Cont<R>.() -> A): Computation<R, A> = Computation(f)
 
 /**
  * Syntax class for [computation], which enables the DSL syntax inside the lambda block.
@@ -35,44 +48,34 @@ fun computation(f: suspend Cont.() -> Unit): Unit {
  * which allows us to short-circuit by resuming to the parent instead of to our own scope.
  */
 @RestrictsSuspension
-class Cont(private val cont: Continuation<Unit>) : Continuation<Unit> by cont {
+class Cont<R>(private val cont: Continuation<R>) : Continuation<R> by cont {
 
-    suspend fun <A> abort(): A =
-        suspendCoroutine { this@Cont.resume(Unit) }
+    suspend fun <A> Computation<R, A>.bind(): A =
+        computation.invoke(this@Cont)
 
-    suspend fun guard(condition: Boolean): Unit =
-        if (condition) Unit else abort()
-
-    suspend fun ensure(condition: Boolean): Unit =
-        guard(condition)
-
-    @OptIn(ExperimentalContracts::class)
-    suspend fun <A : Any> ensureNotNull(value: A?): A {
-        contract {
-            returns() implies (value != null)
-        }
-
-        return value ?: abort()
-    }
+    suspend fun <A> abort(r: R): A =
+        suspendCoroutine { this@Cont.resume(r) }
 }
 
-fun main() {
-    computation {
-        (0..3).forEach {
-            println("Hello, $it")
-        }
+suspend fun Cont<Unit>.guard(condition: Boolean): Unit =
+    if (condition) Unit else abort(Unit)
+
+suspend fun Cont<Unit>.ensure(condition: Boolean): Unit =
+    guard(condition)
+
+@OptIn(ExperimentalContracts::class)
+suspend fun <A : Any> Cont<Unit>.ensureNotNull(value: A?): A {
+    contract {
+        returns() implies (value != null)
     }
 
-    computation {
-        (0..3).forEach { n ->
-            if (n >= 1) abort() else Unit
-        }
-    }
+    return value ?: abort(Unit)
+}
 
-    sequence {
-        yield(1)
-        yield(2)
-    }.map { n ->
-        println("Hello $n")
-    }.toList() // drain sequence
+// Hack for more efficient nested nulls
+@Suppress("ClassName")
+internal object EMPTY_VALUE {
+    @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+    inline fun <T> unbox(value: Any?): T =
+        if (value === this) null as T else value as T
 }
