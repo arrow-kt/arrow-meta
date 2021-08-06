@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - paco-site-changes
 
 jobs:
   publish_documentation:
