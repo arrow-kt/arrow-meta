@@ -19,3 +19,4 @@ include ':refined-types-gradle-plugin'
 // Libraries
 include ':prelude'
 include ':arrow-refined-types'
+include ':arrow-refined-laws-std'

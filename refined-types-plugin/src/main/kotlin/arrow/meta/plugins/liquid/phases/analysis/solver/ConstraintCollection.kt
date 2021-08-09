@@ -436,13 +436,7 @@ private fun Solver.expressionToFormulae(
   when (val ex = maybeEx) {
     is KtConstantExpression ->
       makeConstant(type, ex)
-    is KtNameReferenceExpression -> {
-      //TODO(here we can introduce that any data type member or property extension with no arguments should
-      // be lifted as an object field in z3 using the UF utilities in Solver)
-      if (isResultReference(ex, bindingContext)) {
-        makeVariable(ex, type, bindingContext)
-      } else makeVariable(ex, type, bindingContext)
-    }
+    is KtNameReferenceExpression -> makeVariable(ex, type, bindingContext)
     is KtElement -> {
       makeExpression(ex, bindingContext)
     }
@@ -496,7 +490,7 @@ private fun Solver.makeVariable(
       makeIntegerObjectVariable(variableName)
     type.isBoolean() ->
       makeBooleanObjectVariable(variableName)
-    else -> null
+    else -> makeObjectVariable(variableName)
   }
 }
 

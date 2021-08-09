@@ -1,13 +1,25 @@
 package arrow.meta.plugins.liquid.smt
 
-import org.sosy_lab.common.ShutdownManager
-import org.sosy_lab.common.configuration.Configuration
-import org.sosy_lab.common.log.BasicLogManager
-import org.sosy_lab.common.log.LogManager
 import org.sosy_lab.java_smt.SolverContextFactory
-import org.sosy_lab.java_smt.api.*
+import org.sosy_lab.java_smt.api.ArrayFormulaManager
+import org.sosy_lab.java_smt.api.BitvectorFormulaManager
+import org.sosy_lab.java_smt.api.BooleanFormula
+import org.sosy_lab.java_smt.api.BooleanFormulaManager
+import org.sosy_lab.java_smt.api.FloatingPointFormulaManager
+import org.sosy_lab.java_smt.api.FormulaManager
+import org.sosy_lab.java_smt.api.FormulaType
+import org.sosy_lab.java_smt.api.FunctionDeclaration
+import org.sosy_lab.java_smt.api.IntegerFormulaManager
+import org.sosy_lab.java_smt.api.NumeralFormula
+import org.sosy_lab.java_smt.api.QuantifiedFormulaManager
+import org.sosy_lab.java_smt.api.RationalFormulaManager
+import org.sosy_lab.java_smt.api.SLFormulaManager
+import org.sosy_lab.java_smt.api.SolverContext
+import org.sosy_lab.java_smt.api.UFManager
+
 
 typealias ObjectFormula = NumeralFormula.IntegerFormula
+
 val ObjectFormulaType = FormulaType.IntegerType
 
 class Solver(context: SolverContext) :
@@ -76,18 +88,42 @@ class Solver(context: SolverContext) :
     intValue(makeObjectVariable(varName))
 
   companion object {
-    operator fun invoke(): Solver {
-      val config: Configuration = Configuration.defaultConfiguration()
-      val logger: LogManager = BasicLogManager.create(config)
-      val shutdown = ShutdownManager.create()
-      val context = SolverContextFactory.createSolverContext(
-        config, logger, shutdown.notifier, SolverContextFactory.Solvers.Z3
-      )
-      return Solver(context)
-    }
+
+    operator fun invoke(log: (String) -> Unit): Solver =
+      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL))
 
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"
     val DECIMAL_VALUE_NAME = "dec"
   }
 }
+
+//val initZ3: Unit = //initializes first the turnkey distribution to enable z3 dynamic loading
+//
+////tricks java smt lib by injecting the turnkey z3 unpackaded location as part of the java libs
+//  //before java smt loads it
+//  run {
+//    //initializes first the turnkey distribution to enable z3 dynamic loading
+//    val z3 = Native.getFullVersion()
+//    println(z3)
+//    //tricks java smt lib by injecting the turnkey z3 unpackaded location as part of the java libs
+//    //before java smt loads it
+//    val z3TurnKeyDistribution: File? = System.getProperty("java.io.tmpdir")?.let {
+//      File(it).listFiles().orEmpty().filter {
+//        it.name.contains("z3-turnkey")
+//      }.firstOrNull()
+//    }
+//    val nativePath = NativeLibraries.getNativeLibraryPath().toFile()
+//    if (nativePath.exists()) {
+//      nativePath.mkdirs()
+//    }
+//    z3TurnKeyDistribution?.listFiles()?.orEmpty()?.forEach {
+//      try {
+//        if (it.exists()) {
+//       //   it.copyTo(File(nativePath, it.name), true)
+//        }
+//      } catch (ex: IOException) {
+//        println(ex.message)
+//      }
+//    }
+//  }
