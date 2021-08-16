@@ -125,7 +125,7 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `ad-hoc laws are checked in call `() {
+  fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}
       
@@ -142,6 +142,26 @@ class LiquidDataflowTests {
     )
   }
 
+  @Test
+  fun `ad-hoc laws are checked in call, 2`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(other: Int): Int {
+        pre("other is not zero") { other != 0 }
+        return this / other
+      }
+     
+      fun foo() {
+        val x = 1 - 2
+        val result = 1 / x
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
 
 }
 
