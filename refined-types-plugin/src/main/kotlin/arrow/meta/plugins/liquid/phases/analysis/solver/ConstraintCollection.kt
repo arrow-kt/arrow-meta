@@ -14,10 +14,7 @@ import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
@@ -229,11 +226,11 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
   val constraints = descriptor.annotations.mapNotNull {
     if (it.fqName == FqName("arrow.refinement.Pre")) {
       val formulae = it.argumentValue("formulae") as? ArrayValue
-      if (formulae != null) "pre" to formulae.value.filterIsInstance<StringValue>().map { solver.parse(it.value) }
+      if (formulae != null) "pre" to formulae.value.filterIsInstance<StringValue>().map { parseFormula(descriptor, it.value) }
       else null
     } else if (it.fqName == FqName("arrow.refinement.Post")) {
       val formulae = it.argumentValue("formulae") as? ArrayValue
-      if (formulae != null) "post" to formulae.value.filterIsInstance<StringValue>().map { solver.parse(it.value) }
+      if (formulae != null) "post" to formulae.value.filterIsInstance<StringValue>().map { parseFormula(descriptor, it.value) }
       else null
     } else null
   }
@@ -246,6 +243,34 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
     }
     addConstraints(descriptor, preConstraints, postConstraints, bindingContext)
   }
+}
+
+internal fun SolverState.parseFormula(
+  descriptor: DeclarationDescriptor,
+  formula: String
+): BooleanFormula {
+  val VALUE_TYPE = "Int"
+  // build the UFs environment
+  val basicUFs = """
+    (declare-fun int  ($VALUE_TYPE) Int)
+    (declare-fun bool ($VALUE_TYPE) Bool)
+    (declare-fun dec  ($VALUE_TYPE) Real)
+  """.trimIndent()
+  // build the parameters environment
+  val params = when (descriptor) {
+    is CallableDescriptor ->
+      descriptor.valueParameters.map {
+        "(declare-fun ${it.name} () $VALUE_TYPE)"
+      }.joinToString(separator = "\n")
+    else -> ""
+  }
+  // build the rest of the environment
+  val rest = """
+    (declare-fun this () $VALUE_TYPE)
+    (declare-fun ${RESULT_VAR_NAME} () $VALUE_TYPE)
+  """.trimIndent()
+  val fullString = "$basicUFs\n$params\n$rest\n(assert $formula)"
+  return solver.parse(fullString)
 }
 
 /**

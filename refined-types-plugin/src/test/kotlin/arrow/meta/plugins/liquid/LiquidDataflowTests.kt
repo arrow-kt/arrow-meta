@@ -80,7 +80,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (< (int x) 10))\n", "(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (> (int x) 0))\n"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
       fun bar(x: Int): Int =
         x + 2
      
@@ -96,7 +96,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (< (int x) 10))\n", "(declare-fun int (Int) Int)\n(declare-fun x () Int)\n(assert (> (int x) 0))\n"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
       fun bar(x: Int): Int =
         x + 2
      

@@ -30,20 +30,8 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction): Unit {
     val declarationConstraints = solverState.constraintsFromSolverState(fn.toIrBasedDescriptor())
     if (declarationConstraints != null) {
       solverState.solver.formulae {
-        val preFormulae = declarationConstraints.pre.mapNotNull {
-          val builder = StringBuilder()
-          solverState.solver.formulae {
-            dumpFormula(it)
-          }.appendTo(builder)
-          builder.toString()
-        }
-        val postFormulae = declarationConstraints.post.mapNotNull {
-          val builder = StringBuilder()
-          solverState.solver.formulae {
-            dumpFormula(it)
-          }.appendTo(builder)
-          builder.toString()
-        }
+        val preFormulae = declarationConstraints.pre.mapNotNull { it.toString() }
+        val postFormulae = declarationConstraints.post.mapNotNull { it.toString() }
         if (preFormulae.isNotEmpty()) {
           preAnnotation(preFormulae)?.let { fn.addAnnotation(it) }
         }
