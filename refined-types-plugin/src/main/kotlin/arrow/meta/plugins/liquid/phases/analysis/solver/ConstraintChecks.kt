@@ -3,7 +3,6 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.continuations.Computation
 import arrow.meta.continuations.SimpleComputation
 import arrow.meta.continuations.computation
-import arrow.meta.continuations.contEach
 import arrow.meta.continuations.guard
 import arrow.meta.continuations.run
 import arrow.meta.phases.CompilerContext
@@ -188,6 +187,8 @@ private fun SolverState.checkExpressionConstraints(
   returnPoints: ReturnPoints
 ): SimpleComputation<Unit> = computation {
   when (expression) {
+    is KtParenthesizedExpression ->
+      checkExpressionConstraints(associatedVarName, expression.expression, context, returnPoints).bind()
     is KtBlockExpression ->
       checkBlockExpression(associatedVarName, expression.statements, context, returnPoints).bind()
     is KtReturnExpression ->
@@ -202,7 +203,7 @@ private fun SolverState.checkExpressionConstraints(
         // add the return point to the list and recur
         returnPoints.add(expression.name!!, associatedVarName)
       ).bind()
-    is KtDeclaration -> {
+    is KtDeclaration -> if (!expression.isVar()) {
       val declName = when (expression) {
         // use the given name if available
         is KtNamedDeclaration -> expression.nameAsSafeName.asString()
@@ -214,7 +215,10 @@ private fun SolverState.checkExpressionConstraints(
     else -> when {
       // either treat as conditional
       expression?.isConditional() == true ->
-        checkConditional(associatedVarName, expression.conditionalBranches()!!, context, returnPoints).bind()
+        checkConditional(
+          associatedVarName,
+          expression.conditionalBranches()!!,
+          context, returnPoints).bind()
       // or try to treat it as a function call (for +, -, and so on)
       else ->
         expression?.getResolvedCall(context.trace.bindingContext)?.let {
@@ -222,6 +226,11 @@ private fun SolverState.checkExpressionConstraints(
         } ?: Unit
     }
   }
+}
+
+private fun KtDeclaration.isVar(): Boolean = when (this) {
+  is KtVariableDeclaration -> this.isVar
+  else -> false
 }
 
 /**
@@ -563,17 +572,14 @@ private fun SolverState.checkConditional(
 }
 
 private fun SolverState.introduceCondition(
-  expressions: List<Condition>?,
+  expressions: List<KtExpression>?,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
 ): List<String> = expressions?.map {
   // create a new variable for the condition
   val conditionVar = names.newName("cond")
   // and now go and check it
-  when (it) {
-    is BooleanCondition ->
-      checkExpressionConstraints(conditionVar, it.expression, context, returnPoints).run()
-  }
+  checkExpressionConstraints(conditionVar, it, context, returnPoints).run()
   // return the variable
   conditionVar
 } ?: emptyList()

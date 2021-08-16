@@ -2,29 +2,27 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import org.jetbrains.kotlin.psi.*
 
-/**
- * Represents a condition which may appear in an `if` or a `when`.
- * It allows us to code uniformly over both elements.
- */
-interface Condition {}
-data class BooleanCondition(val expression: KtExpression): Condition
-data class NonBooleanCondition(val whenCondition: KtWhenCondition): Condition
-
-data class ConditionalBranch(val condition: List<Condition>?, val body: KtExpression, val whole: KtElement)
-
+data class ConditionalBranch(val condition: List<KtExpression>?, val body: KtExpression, val whole: KtElement)
 data class ConditionalBranches(val subject: KtExpression?, val branches: List<ConditionalBranch>)
 
 /**
- * Bridges between Kotlin's [KtWhenCondition]
- * and our own [Condition].
+ * Obtains the corresponding expression when the `when` has no subject.
  */
-fun KtWhenCondition.toCondition(): Condition = when (this) {
-  // TODO: this is not really correct, we need to check whether
-  // we have a real Boolean condition, or otherwise generate an equality
-  // (for example, the case when (x) { 0 -> ... })
-  is KtWhenConditionWithExpression -> BooleanCondition(expression!!)
-  else -> NonBooleanCondition(this)
+fun KtWhenCondition.subjectlessCondition(): KtExpression = when (this) {
+  is KtWhenConditionWithExpression -> expression!!
+  else -> throw IllegalArgumentException("no subject in pattern")
 }
+
+fun KtWhenCondition.subjectfulCondition(subject: KtExpression): KtExpression? =
+  when (this) {
+    is KtWhenConditionWithExpression ->
+      expression?.let {
+        // TODO: the idea is to build here
+        //       an expression $subject == $it
+        null
+      }
+    else -> null
+  }
 
 /**
  * Obtains the information for conditional expressions, if possible.
@@ -42,7 +40,12 @@ fun KtExpression.isConditional(): Boolean =
 fun KtWhenExpression.conditionalBranches(): ConditionalBranches {
   val branches = entries.map { entry ->
     ConditionalBranch(
-      if (entry.isElse) null else entry.conditions.map { it.toCondition() },
+      when {
+        entry.isElse -> null
+        subjectExpression != null ->
+          entry.conditions.mapNotNull { it.subjectfulCondition(subjectExpression!!) }
+        else -> entry.conditions.map { it.subjectlessCondition() }
+      },
       entry.expression!!,
       entry
     )
@@ -52,7 +55,7 @@ fun KtWhenExpression.conditionalBranches(): ConditionalBranches {
 
 fun KtIfExpression.conditionalBranches(): ConditionalBranches {
   val branches = listOf(
-    ConditionalBranch(listOf(BooleanCondition(condition!!)), then!!, then!!),
+    ConditionalBranch(listOf(condition!!), then!!, then!!),
     ConditionalBranch(null, `else`!!, `else`!!)
   )
   return ConditionalBranches(null, branches)

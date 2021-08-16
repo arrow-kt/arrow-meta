@@ -43,6 +43,23 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `when with patterns`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre("x is >= 0") { x >= 0 }
+        return (when (x) {
+          0 -> 1
+          else -> x
+        }).post("result is > 0") { it > 0 }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `pre-conditions are not satisfied in call`() {
     """
       ${imports()}
