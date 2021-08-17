@@ -28,7 +28,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // TODO causes z3 to crash
   fun `unreachable code`() {
     """
       ${imports()}
@@ -43,6 +42,7 @@ class LiquidDataflowTests {
   }
 
   @Test
+  @Disabled  // does not work yet
   fun `when with patterns`() {
     """
       ${imports()}

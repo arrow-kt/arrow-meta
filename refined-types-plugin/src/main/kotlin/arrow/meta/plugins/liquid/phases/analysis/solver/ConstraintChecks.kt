@@ -5,6 +5,7 @@ import arrow.meta.continuations.SimpleComputation
 import arrow.meta.continuations.computation
 import arrow.meta.continuations.guard
 import arrow.meta.continuations.run
+import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
@@ -211,20 +212,40 @@ private fun SolverState.checkExpressionConstraints(
       }
       checkDeclarationExpression(declName, expression, context, returnPoints).bind()
     }
+    is KtIfExpression ->
+      checkSimpleConditional(
+        associatedVarName,
+        listOf(
+          Condition(expression.condition!!, expression.then!!, expression.then!!),
+          Condition(null, expression.`else`!!, expression.`else`!!)
+        ),
+        context, returnPoints
+      ).bind()
+    is KtWhenExpression ->
+      if (expression.subjectExpression != null) {
+        TODO()
+      } else {
+        val conditions: List<Condition> = expression.entries.flatMap { entry ->
+            if (entry.conditions.isEmpty()) {
+              listOf(Condition(null, entry.expression!!, entry))
+            } else {
+              entry.conditions.toList().mapNotNull { cond -> when (cond) {
+                is KtWhenConditionWithExpression ->
+                  Condition(cond.expression!!, entry.expression!!, entry)
+                else -> null
+              } }
+          } }
+        checkSimpleConditional(
+          associatedVarName, conditions,
+          context, returnPoints
+        ).bind()
+      }
     // fall-through cases
-    else -> when {
-      // either treat as conditional
-      expression?.isConditional() == true ->
-        checkConditional(
-          associatedVarName,
-          expression.conditionalBranches()!!,
-          context, returnPoints).bind()
-      // or try to treat it as a function call (for +, -, and so on)
-      else ->
-        expression?.getResolvedCall(context.trace.bindingContext)?.let {
-          checkCallExpression(associatedVarName, expression, it, context, returnPoints).bind()
-        } ?: Unit
-    }
+    else ->
+      // try to treat it as a function call (for +, -, and so on)
+      expression?.getResolvedCall(context.trace.bindingContext)?.let {
+        checkCallExpression(associatedVarName, expression, it, context, returnPoints).bind()
+      } ?: Unit
   }
 }
 
@@ -501,7 +522,7 @@ private fun SolverState.checkDeclarationExpression(
   returnPoints: ReturnPoints
 ): SimpleComputation<Unit> = declaration.stableBody()?.let {
   checkExpressionConstraints(newVarName, it, context, returnPoints)
-} ?: computation { Unit }
+} ?: computation { }
 
 /**
  * This function produces a continuation that makes the desired variable name
@@ -519,30 +540,34 @@ private fun SolverState.checkNameExpression(
   }.let { addConstraint(it) }
 }
 
+data class Condition(val condition: KtExpression?, val body: KtExpression, val whole: KtElement)
+
 /**
- * Check each of the branches of a condition.
+ * Check `if` expressions.
  */
-private fun SolverState.checkConditional(
+private fun SolverState.checkSimpleConditional(
   associatedVarName: String,
-  info: ConditionalBranches,
+  branches: List<Condition>,
   context: DeclarationCheckerContext,
   returnPoints: ReturnPoints
-): SimpleComputation<Unit> = computation {  //todo was using reifyCont
+): SimpleComputation<Unit> = computation {
   // go over each element
   // we use a recursive function because
   // we need to nest the calls to [bracket]
-  fun go(remainingBranches: List<ConditionalBranch>) {
+  fun go(remainingBranches: List<Condition>) {
     when (val first = remainingBranches.firstOrNull()) {
       null -> {
       }  // done
       else -> solver.booleans {
-        val newVariables = introduceCondition(first.condition, context, returnPoints)
+        // introduce the condition
+        val conditionVar = names.newName("cond")
+        checkExpressionConstraints(conditionVar, first.condition, context, returnPoints).run()
         // either the things are true
         bracket {
           // assert the variables and check that we are consistent
           val inconsistentEnvironment =
             checkConditionsInconsistencies<Boolean>(
-              newVariables.map { solver.makeBooleanObjectVariable(it) },
+              listOf(solver.makeBooleanObjectVariable(conditionVar)),
               context, first.whole
             ).run()
           // it only makes sense to continue if we are not consistent
@@ -558,9 +583,7 @@ private fun SolverState.checkConditional(
         // or they are false
         bracket {
           // assert the negation of the new variables
-          newVariables.map {
-            addConstraint(not(solver.makeBooleanObjectVariable(it)))
-          }
+          addConstraint(not(solver.makeBooleanObjectVariable(conditionVar)))
           // go on with the rest of the cases
           go(remainingBranches.drop(1))
         }
@@ -568,21 +591,8 @@ private fun SolverState.checkConditional(
     }
   }
 
-  go(info.branches)
+  go(branches)
 }
-
-private fun SolverState.introduceCondition(
-  expressions: List<KtExpression>?,
-  context: DeclarationCheckerContext,
-  returnPoints: ReturnPoints
-): List<String> = expressions?.map {
-  // create a new variable for the condition
-  val conditionVar = names.newName("cond")
-  // and now go and check it
-  checkExpressionConstraints(conditionVar, it, context, returnPoints).run()
-  // return the variable
-  conditionVar
-} ?: emptyList()
 
 /**
  * Add the [formulae] to the set and checks that it remains consistent
