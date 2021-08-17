@@ -213,35 +213,15 @@ private fun SolverState.checkExpressionConstraints(
       checkDeclarationExpression(declName, expression, context, returnPoints).bind()
     }
     is KtIfExpression ->
-      checkSimpleConditional(
-        associatedVarName,
-        listOf(
-          Condition(expression.condition!!, expression.then!!, expression.then!!),
-          Condition(null, expression.`else`!!, expression.`else`!!)
-        ),
-        context, returnPoints
-      ).bind()
+      checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), context, returnPoints).bind()
     is KtWhenExpression ->
       if (expression.subjectExpression != null) {
         TODO()
       } else {
-        val conditions: List<Condition> = expression.entries.flatMap { entry ->
-            if (entry.conditions.isEmpty()) {
-              listOf(Condition(null, entry.expression!!, entry))
-            } else {
-              entry.conditions.toList().mapNotNull { cond -> when (cond) {
-                is KtWhenConditionWithExpression ->
-                  Condition(cond.expression!!, entry.expression!!, entry)
-                else -> null
-              } }
-          } }
-        checkSimpleConditional(
-          associatedVarName, conditions,
-          context, returnPoints
-        ).bind()
+        checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), context, returnPoints).bind()
       }
-    // fall-through cases
     else ->
+      // fall-through case
       // try to treat it as a function call (for +, -, and so on)
       expression?.getResolvedCall(context.trace.bindingContext)?.let {
         checkCallExpression(associatedVarName, expression, it, context, returnPoints).bind()
@@ -540,10 +520,33 @@ private fun SolverState.checkNameExpression(
   }.let { addConstraint(it) }
 }
 
+/**
+ * Data type used to handle `if` and `when` without subject uniformly.
+ */
 data class Condition(val condition: KtExpression?, val body: KtExpression, val whole: KtElement)
 
+private fun KtExpression.computeSimpleConditions(): List<Condition> = when (this) {
+  is KtIfExpression ->
+    listOf(
+      Condition(condition!!, then!!, then!!),
+      Condition(null, `else`!!, `else`!!)
+    )
+  is KtWhenExpression ->
+    entries.flatMap { entry ->
+      if (entry.conditions.isEmpty()) {
+        listOf(Condition(null, entry.expression!!, entry))
+      } else {
+        entry.conditions.toList().mapNotNull { cond -> when (cond) {
+          is KtWhenConditionWithExpression ->
+            Condition(cond.expression!!, entry.expression!!, entry)
+          else -> null
+        } }
+      } }
+  else -> emptyList()
+}
+
 /**
- * Check `if` expressions.
+ * Check `if` and `when` expressions without subject.
  */
 private fun SolverState.checkSimpleConditional(
   associatedVarName: String,
