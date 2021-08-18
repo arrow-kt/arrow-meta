@@ -10,6 +10,7 @@ fun Int.safeDiv(other: Int): Int {
 }
 
 fun foo() {
-  val result = 1 / 0
+  //uncommenting this will cause the build to fail
+  //val result = 1 / 0
 }
 
