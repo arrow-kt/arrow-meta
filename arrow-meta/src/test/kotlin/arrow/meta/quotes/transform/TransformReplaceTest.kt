@@ -19,7 +19,7 @@ class TransformReplaceTest {
         """.source
       },
       assert = {
-        quoteOutputMatches(""" @arrow.synthetic fun transformReplace() = println("Transform Replace") """.source)
+        quoteOutputMatches(""" fun transformReplace() = println("Transform Replace") """.source)
       }
     ))
   }
@@ -38,7 +38,7 @@ class TransformReplaceTest {
       assert = {
         quoteOutputMatches(
           """
-          | @arrow.synthetic class FooModified {
+          | class FooModified {
           |   fun generatedFun() = println("Generated function")
           | }
           """.source

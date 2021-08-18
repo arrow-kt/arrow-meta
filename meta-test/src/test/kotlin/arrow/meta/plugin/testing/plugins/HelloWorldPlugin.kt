@@ -18,7 +18,7 @@ val Meta.helloWorld: CliPlugin
                | fun helloWorld(): String = 
                |   "Hello ΛRROW Meta!"
                |   
-               |""".function(descriptor).syntheticScope
+               |""".function(descriptor)
           )
         }
       )

@@ -16,7 +16,7 @@ private val Meta.transformReplaceFunction: CliPlugin
       namedFunction(this, { element.name == "transformReplace" }) { (f, _) ->
         Transform.replace(
           f,
-          """ fun transformReplace() = println("Transform Replace") """.function(descriptor).syntheticScope
+          """ fun transformReplace() = println("Transform Replace") """.function(descriptor)
         )
       }
     )
@@ -32,7 +32,7 @@ private val Meta.transformReplaceClass: CliPlugin
           | class FooModified {
           |   fun generatedFun() = println("Generated function")
           | }
-          """.`class`.syntheticScope
+          """.`class`
         )
       }
     )
