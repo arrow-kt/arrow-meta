@@ -74,14 +74,14 @@ private fun ElementScope.lens(source: KtClass, focus: KtParameter): Property =
   """|val ${focus.name}: arrow.optics.Lens<${source.name}, ${focus.typeReference!!.text}> = arrow.optics.Lens(
      |  get = { ${source.name!!.toLowerCase()} -> ${source.name!!.toLowerCase()}.${focus.name} },
      |  set = { ${source.name!!.toLowerCase()}, ${focus.name} -> ${source.name!!.toLowerCase()}.copy(${focus.name} = ${focus.name}) }
-     |)""".property(null).syntheticElement
+     |)""".property(null)
 
 private fun ElementScope.iso(classScope: ClassDeclaration): Property =
   classScope.run {
     """|val iso: arrow.optics.Iso<${value.name}, ${`(params)`.tupledType}> = arrow.optics.Iso(
        |  get = { (${`(params)`.destructured}) -> ${`(params)`.tupled} },
        |  reverseGet = { (${`(params)`.destructured}) -> ${value.name}(${`(params)`.destructured}) }
-       |)""".property(null).syntheticElement
+       |)""".property(null)
   }
 
 val ScopedList<KtParameter>.tupledType: String
