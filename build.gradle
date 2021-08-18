@@ -29,9 +29,9 @@ configure(subprojects - project("docs")
 
 // JVM Publication
 configure(subprojects -
-        project("docs") -
-        project("gradle-plugin-commons") -
-        project("arrow-refined-types") // MPP subprojects
+        project(":docs") -
+        project(":gradle-plugin-commons") -
+        project(":arrow-refined-types") // MPP subprojects
 ) {
     afterEvaluate {
         jar {
