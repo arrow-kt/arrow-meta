@@ -61,18 +61,15 @@ internal fun CompilerContext.checkDeclarationConstraints(
   if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
     // choose a good name for the result
     // should we change it for 'val' declarations?
-    val resultVarName = when (declaration) {
-      // use the given name if available
-      is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
-      else -> RESULT_VAR_NAME
-    }
-    // now go on and check the body
+    val resultVarName = RESULT_VAR_NAME
+    // clear the solverTrace (for debugging purposes only)
     solverState.solverTrace.clear()
+    // now go on and check the body
     declaration.stableBody()?.let { body ->
       solverState.checkDeclarationWithBody(
         constraints, context,
         resultVarName, declaration, body
-      )
+      ).drain()
     }
   }
 }
@@ -93,19 +90,17 @@ private fun SolverState.checkDeclarationWithBody(
   resultVarName: String,
   declaration: KtDeclaration,
   body: KtExpression?
-): Unit = bracket {
-  ContSeq<Unit> {
+): ContSeq<Unit> =
+  continuationBracket.andThen {
     val inconsistentPreconditions =
       checkPreconditionsInconsistencies(constraints, context, declaration)
-    ensure(!inconsistentPreconditions)
-    doneWithThis()
+    ensure<Unit>(!inconsistentPreconditions)
+    goOn()
   }.flatMap {
     checkExpressionConstraints(resultVarName, body, context, ReturnPoints(resultVarName, emptyMap()))
-  }.andThen<Unit, Unit> {
+  }.andThenSideEffect {
     checkPostConditionsImplication(constraints, context, declaration)
-    doneWithThis()
-  }.drain()
-}
+  }
 
 // 2.2: expressions
 // ----------------
@@ -156,9 +151,7 @@ private fun SolverState.checkExpressionConstraints(
         returnPoints.add(expression.name!!, associatedVarName)
       )
     is KtDeclaration ->
-      if (expression.isVar()) {
-        doneWithThis()
-      } else {
+      doOnlyWhen(!expression.isVar()) {
         val declName = when (expression) {
           // use the given name if available
           is KtNamedDeclaration -> expression.nameAsSafeName.asString()
@@ -170,7 +163,7 @@ private fun SolverState.checkExpressionConstraints(
       checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), context, returnPoints)
     is KtWhenExpression ->
       if (expression.subjectExpression != null) {
-        doneWithThis()  // TODO: handle `when` with subject
+        doNothing // TODO: handle `when` with subject
       } else {
         checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), context, returnPoints)
       }
@@ -178,10 +171,8 @@ private fun SolverState.checkExpressionConstraints(
       // fall-through case
       // try to treat it as a function call (for +, -, and so on)
       val resolvedCall = expression?.getResolvedCall(context.trace.bindingContext)
-      if (resolvedCall != null) {
-        checkCallExpression(associatedVarName, expression, resolvedCall, context, returnPoints)
-      } else {
-        doneWithThis()
+      doOnlyWhen(resolvedCall != null) {
+        checkCallExpression(associatedVarName, expression!!, resolvedCall!!, context, returnPoints)
       }
     }
   }
@@ -203,7 +194,7 @@ private fun SolverState.checkBlockExpression(
   returnPoints: ReturnPoints
 ): ContSeq<Unit> =
   when (expressions.size) {
-    0 -> doneWithThis()
+    0 -> doNothing
     1 -> // this is the last element, so it's the return value of the expression
       checkExpressionConstraints(associatedVarName, expressions[0], context, returnPoints)
     else -> {
@@ -234,7 +225,7 @@ private fun SolverState.checkReturnConstraints(
   } ?: returnPoints.topMostReturnPointVariableName
   // and now assign it
   return checkExpressionConstraints(returnVarName, expression.returnedExpression, context, returnPoints)
-          .andThen<Unit, Unit> { abort() } // Stop the computation after this
+          .andThen { abort() } // Stop the computation after this
 }
 
 /**
@@ -264,7 +255,7 @@ private fun SolverState.checkCallExpression(
             checkCallPostConditionsInconsistencies(callConstraints, context, expression, resolvedCall)
           // there's no point in continuing if we are in an inconsistent position
           ensure(!inconsistentPostConditions)
-          doneWithThis()
+          goOn()
         }
     else ->
       checkCallArguments(resolvedCall, context, returnPoints)
@@ -277,7 +268,7 @@ private fun SolverState.checkCallExpression(
           val arg1 = solver.makeIntegerObjectVariable(argVars[0].second)
           val arg2 = solver.makeIntegerObjectVariable(argVars[1].second)
           specialCase(result, arg1, arg2)?.let { addConstraint(it) }
-          doneWithThis()
+          goOn()
         }
   }
 
@@ -302,9 +293,8 @@ private fun SolverState.checkCallArguments(
         } else {
           names.newName(name)
         }
-      checkExpressionConstraints(argUniqueName, expr, context, returnPoints).andThen {
-        yield(name to argUniqueName)
-      }
+      checkExpressionConstraints(argUniqueName, expr, context, returnPoints)
+        .map { name to argUniqueName }
     }.sequence()
 
 /**
@@ -315,7 +305,7 @@ private fun SolverState.checkCallArguments(
 private fun SolverState.checkConstantExpression(
   associatedVarName: String,
   expression: KtConstantExpression
-): ContSeq<Unit> = ContSeq {
+): ContSeq<Unit> = sideEffect {
   solver.formulae {
     val mayBoolean = expression.text.toBooleanStrictOrNull()
     val mayInteger = expression.text.toBigIntegerOrNull()
@@ -344,7 +334,6 @@ private fun SolverState.checkConstantExpression(
       addConstraint(it)
     }
   }
-  doneWithThis()
 }
 
 /**
@@ -358,10 +347,9 @@ private fun SolverState.checkDeclarationExpression(
   returnPoints: ReturnPoints
 ): ContSeq<Unit> {
   val body = declaration.stableBody()
-  return if (body != null)
+  return doOnlyWhen(body != null) {
     checkExpressionConstraints(newVarName, body, context, returnPoints)
-  else
-    doneWithThis()
+  }
 }
 
 /**
@@ -372,14 +360,12 @@ private fun SolverState.checkDeclarationExpression(
 private fun SolverState.checkNameExpression(
   associatedVarName: String,
   expression: KtSimpleNameExpression
-): ContSeq<Unit> {
+): ContSeq<Unit> = sideEffect {
   // FIX: add only things in scope
   val referencedName = expression.getReferencedName().nameAsSafeName().asString()
   solver.objects {
     equal(solver.makeObjectVariable(associatedVarName), solver.makeObjectVariable(referencedName))
   }.let { addConstraint(it) }
-  // done!
-  return doneWithThis()
 }
 
 /**
@@ -419,21 +405,39 @@ private fun SolverState.checkSimpleConditional(
   branches.map { cond ->
     val conditionVar = names.newName("cond")
     // introduce the condition
-    checkExpressionConstraints(conditionVar, cond.condition, context, returnPoints).map {
-      Pair(cond, conditionVar)
-    }
+    (cond.condition?.let {
+      checkExpressionConstraints(conditionVar, it, context, returnPoints)
+    } ?: sideEffect {
+      // if we have no condition, it's equivalent to true
+      addConstraint(solver.makeBooleanObjectVariable(conditionVar))
+    }).map { Pair(cond, conditionVar) }
   }.sequence().flatMap { conditionInformation ->
-    ContSeq { yieldAll(yesNo(conditionInformation)) }.andThen { (cond, correspondingVars) ->
-      // assert the variables and check that we are consistent
-      val inconsistentEnvironment =
-        checkConditionsInconsistencies(correspondingVars, context, cond.whole)
-      // it only makes sense to continue if we are not consistent
-      guard(!inconsistentEnvironment)
-      // check the body
-      checkExpressionConstraints(associatedVarName, cond.body, context, returnPoints)
-    }
+    ContSeq {
+      yieldAll(yesNo(conditionInformation))
+    }.flatMap { (cond, correspondingVars) ->
+        continuationBracket
+          .andThen {
+            // assert the variables and check that we are consistent
+            val inconsistentEnvironment =
+              checkConditionsInconsistencies(correspondingVars, context, cond.whole)
+            // it only makes sense to continue if we are not consistent
+            guard<Unit>(!inconsistentEnvironment)
+          }.flatMap {
+            // check the body
+            checkExpressionConstraints(associatedVarName, cond.body, context, returnPoints)
+          }
+      }
   }
 
+/**
+ * Given a list of names for condition variables,
+ * create the boolean conditions for each branch.
+ *
+ * For example, given [a, b, c], it generates:
+ * - a
+ * - not a, b
+ * - not a, not b, c
+ */
 private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pair<A, List<BooleanFormula>>> {
   fun go(currents: List<Pair<A, String>>, acc: List<BooleanFormula>): List<Pair<A, List<BooleanFormula>>> =
     if (currents.isEmpty()) {

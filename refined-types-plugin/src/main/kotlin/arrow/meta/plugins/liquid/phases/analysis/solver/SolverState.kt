@@ -1,5 +1,7 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
+import arrow.meta.continuations.ContSeq
+import arrow.meta.continuations.goOn
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -39,6 +41,9 @@ data class SolverState(
     solverTrace.add("POP")
     return result
   }
+
+  val continuationBracket: ContSeq<Unit> =
+    ContSeq { bracket { goOn() } }
 
   fun isIn(that: Stage) = stage == that
 

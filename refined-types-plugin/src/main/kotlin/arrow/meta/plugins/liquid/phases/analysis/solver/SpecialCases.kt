@@ -1,6 +1,5 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.SolverState
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.name.FqName

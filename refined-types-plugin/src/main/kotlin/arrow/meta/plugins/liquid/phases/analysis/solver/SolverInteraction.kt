@@ -21,7 +21,10 @@ internal fun SolverState.addAndCheckConsistency(
 ): Boolean {
   constraints.forEach { addConstraint(it) }
   val unsat = prover.isUnsat
-  if (unsat) { message(prover.unsatCore) }
+  if (unsat) {
+    message(prover.unsatCore)
+    solverTrace.add("UNSAT! (inconsistent)")
+  }
   return unsat
 }
 
@@ -32,7 +35,10 @@ internal fun SolverState.checkImplicationOf(
   bracket {
     solver.booleans { addConstraint(not(constraint)) }
     val unsat = prover.isUnsat
-    if (!unsat) { message(prover.model) }
+    if (!unsat) {
+      message(prover.model)
+      solverTrace.add("SAT! (not implied)")
+    }
     !unsat
   }
 

@@ -67,10 +67,13 @@ interface ContSeq<out A> {
 /**
  * Alias for for-looping over all elements. Most efficient way to derive combinators.
  */
-inline fun <A> ContSeq<A>.forEach(f: (A) -> Unit): Unit {
+inline fun <A> ContSeq<A>.forEach(f: (A) -> Unit) {
   for (t in iterator()) f(t)
 }
 
+/**
+ * Execute a list of [ContSeq] and gather the values.
+ */
 fun <A> List<ContSeq<A>>.sequence(): ContSeq<List<A>> =
   if (isEmpty()) {
     yieldOne { emptyList() }
@@ -112,6 +115,13 @@ inline fun <A, B> ContSeq<A>.andThen(@BuilderInference crossinline f: suspend Co
   }
 
 @OptIn(ExperimentalTypeInference::class)
+inline fun <A> ContSeq<A>.andThenSideEffect(@BuilderInference crossinline f: (A) -> Unit): ContSeq<A> =
+  andThen {
+    f(it)
+    yield(it)
+  }
+
+@OptIn(ExperimentalTypeInference::class)
 inline fun <A, B> ContSeq<A>.map(@BuilderInference crossinline f: (A) -> B): ContSeq<B> =
   andThen { yield(f(it)) }
 
@@ -134,9 +144,31 @@ inline fun <A> yieldOne(crossinline x: () -> A): ContSeq<A> = ContSeq {
   yield(x())
 }
 
-inline fun doneWithThis(): ContSeq<Unit> = yieldOne { Unit }
+/**
+ * Yield a single `Unit` value. This is useful when
+ * you want to signal that you want to keep the
+ * computation going, but have no further information
+ * to gather.
+ */
+suspend fun ContSeqSyntax<Unit>.goOn(): Unit = yield(Unit)
 
-suspend fun ContSeqSyntax<Unit>.doneWithThis(): Unit = yield(Unit)
+/**
+ * Perform a side effect and ditch the return value.
+ */
+@OptIn(ExperimentalTypeInference::class)
+inline fun sideEffect(@BuilderInference crossinline f: () -> Unit): ContSeq<Unit> = ContSeq {
+  f()
+  goOn()
+}
+
+val doNothing: ContSeq<Unit> = sideEffect { }
+
+/**
+ * Execute a side effect only when some condition holds.
+ */
+@OptIn(ExperimentalTypeInference::class)
+inline fun doOnlyWhen(condition: Boolean, @BuilderInference crossinline f: () -> ContSeq<Unit>): ContSeq<Unit> =
+  if (condition) f() else doNothing
 
 /**
  * The scope for yielding values of a [ContSeq],
