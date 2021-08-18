@@ -3,6 +3,7 @@ package arrow.meta.internal.kastree.ast.psi
 import arrow.meta.internal.kastree.ast.COMMAND_PREFIX
 import arrow.meta.internal.kastree.ast.ExtrasMap
 import arrow.meta.internal.kastree.ast.Node
+import java.util.IdentityHashMap
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
@@ -106,7 +107,6 @@ import org.jetbrains.kotlin.psi.psiUtil.children
 import org.jetbrains.kotlin.psi.psiUtil.nextLeaf
 import org.jetbrains.kotlin.psi.psiUtil.prevLeaf
 import org.jetbrains.kotlin.psi.psiUtil.siblings
-import java.util.*
 
 open class Converter {
   protected open fun onNode(node: Node, elem: PsiElement) { node.psiElement = elem }
@@ -308,7 +308,7 @@ open class Converter {
     recv = v.receiverExpression?.let { convertDoubleColonRefRecv(it, v.questionMarks) }
   ).map(v)
 
-  open fun convertDoubleColonRefRecv(v: KtExpression, questionMarks: Int): Node.Expr.DoubleColonRef.Recv = when(v) {
+  open fun convertDoubleColonRefRecv(v: KtExpression, questionMarks: Int): Node.Expr.DoubleColonRef.Recv = when (v) {
     is KtSimpleNameExpression -> Node.Expr.DoubleColonRef.Recv.Type(
       type = Node.TypeRef.Simple(
         listOf(Node.TypeRef.Simple.Piece(v.getReferencedName(), emptyList()).map(v))
@@ -649,8 +649,8 @@ open class Converter {
   open fun convertTryCatch(v: KtCatchClause) = Node.Expr.Try.Catch(
     anns = v.catchParameter?.annotations?.map(::convertAnnotationSet) ?: emptyList(),
     varName = v.catchParameter?.name ?: error("No catch param name for $v"),
-    varType = v.catchParameter?.typeReference?.
-      let(::convertTypeRef) as? Node.TypeRef.Simple ?: error("Invalid catch param type for $v"),
+    varType = v.catchParameter?.typeReference
+      ?.let(::convertTypeRef) as? Node.TypeRef.Simple ?: error("Invalid catch param type for $v"),
     block = convertBlock(v.catchBody as? KtBlockExpression ?: error("No catch block for $v"))
   ).map(v)
 
@@ -800,12 +800,12 @@ open class Converter {
     body = convertExpr(v.body ?: error("No while body for $v")),
     doWhile = v is KtDoWhileExpression
   ).map(v)
-  
+
   open fun convertClassBody(v: KtClassBody) = Node.Decl.ClassBody(
     members = v.declarations.map(::convertDecl)
   )
 
-  protected open fun <T: Node> T.map(v: PsiElement) = also { onNode(it, v) }
+  protected open fun <T : Node> T.map(v: PsiElement) = also { onNode(it, v) }
 
   class Unsupported(message: String) : UnsupportedOperationException(message)
 
@@ -925,13 +925,13 @@ open class Converter {
       referencedName?.let { (qualifier?.names ?: emptyList()) + it } ?: emptyList()
     internal val KtExpression?.block get() = (this as? KtBlockExpression)?.statements ?: emptyList()
     internal val KtDoubleColonExpression.questionMarks get() =
-      generateSequence(node.firstChildNode, ASTNode::getTreeNext).
-        takeWhile { it.elementType != KtTokens.COLONCOLON }.
-        count { it.elementType == KtTokens.QUEST }
+      generateSequence(node.firstChildNode, ASTNode::getTreeNext)
+        .takeWhile { it.elementType != KtTokens.COLONCOLON }
+        .count { it.elementType == KtTokens.QUEST }
   }
 }
 
-internal val PsiElement.ast: Node get() = when(this) {
+internal val PsiElement.ast: Node get() = when (this) {
   is KtClassOrObject -> Converter.convertDecl(this)
   is KtNamedFunction -> Converter.convertFunc(this)
   is KtTypeAlias -> Converter.convertTypeAlias(this)
@@ -947,5 +947,5 @@ internal val PsiElement.ast: Node get() = when(this) {
   is KtPackageDirective -> Converter.convertPackage(this)
   is KtWhenCondition -> Converter.convertWhenCond(this)
   is KtWhenEntry -> Converter.convertWhenEntry(this)
-  else -> TODO("Unsupported ${this}")
+  else -> TODO("Unsupported $this")
 }

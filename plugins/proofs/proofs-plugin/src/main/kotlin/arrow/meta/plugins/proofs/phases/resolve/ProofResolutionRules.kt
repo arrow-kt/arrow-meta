@@ -12,7 +12,6 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.analysis.diagnostic.RenderProofs
 import arrow.meta.phases.analysis.exists
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.plugins.proofs.phases.ArrowCompileTime
@@ -38,7 +37,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.diagnostics.rendering.RenderingContext
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -151,7 +149,6 @@ fun KtDeclaration.isViolatingOwnershipRule(
     }
   }
 
-
 /**
  * A type is user-owned, when at least one position of the type signature is a user type in the sources.
  * e.g.: `org.core.Semigroup<A, F>` materialises into `A -> F -> org.core.Semigroup<A, F>`
@@ -170,9 +167,9 @@ fun <K, A : Proof> Map<K, List<A>>.disallowedAmbiguities(): List<Pair<A, List<A>
     proofs.exists { p1, p2 ->
       val a = p1.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
       val b = p2.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility
-      (a == DescriptorVisibilities.PUBLIC && b == DescriptorVisibilities.PUBLIC
-        || (a == DescriptorVisibilities.INTERNAL && b == DescriptorVisibilities.INTERNAL))
-        && p1.isContextAmbiguous(p2)
+      (a == DescriptorVisibilities.PUBLIC && b == DescriptorVisibilities.PUBLIC ||
+        (a == DescriptorVisibilities.INTERNAL && b == DescriptorVisibilities.INTERNAL)) &&
+        p1.isContextAmbiguous(p2)
       // TODO: Loosen the rule to allow package scoped proofs when they have the same package-info
     }.filter { (_, v) -> v.isNotEmpty() } // filter out proofs with conflicts
   }.flatten()
@@ -194,8 +191,8 @@ fun <K, A : Proof> Map<K, List<A>>.skippedProofsDueToAmbiguities(): List<Pair<A,
     // collect those without a SourceElement, which the user is needs to override
     with(proof.through as DeclarationDescriptorWithVisibility) {
       findPsi() == null &&
-        (visibility == DescriptorVisibilities.INTERNAL // case: instrumented dependencies that publish internal proofs
-          || visibility == DescriptorVisibilities.PUBLIC) && others.any {
+        (visibility == DescriptorVisibilities.INTERNAL || // case: instrumented dependencies that publish internal proofs
+          visibility == DescriptorVisibilities.PUBLIC) && others.any {
         // case: local project publishes public proof over non-owned types
         with(it.through) {
           visibility == DescriptorVisibilities.PUBLIC && findPsi() == null
@@ -289,7 +286,6 @@ fun Map<KotlinType, List<GivenProof>>.reportUnresolvedGivenProofs(trace: Binding
       )
     }
   }
-
 
 /**
  * the strategy that follows is that authors are responsible for a coherent resolution of the project.

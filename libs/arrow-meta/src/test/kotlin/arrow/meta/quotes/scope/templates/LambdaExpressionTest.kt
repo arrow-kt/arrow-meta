@@ -8,7 +8,7 @@ import arrow.meta.quotes.scope.plugins.LambdaExpressionsPlugin
 import arrow.meta.quotes.scope.templates.LambdaExpressionTest.Companion.lambdaExpression
 import org.junit.jupiter.api.Test
 
-class LambdaExpressionTest  {
+class LambdaExpressionTest {
 
   companion object {
     private val lambdaExpression = """val square: (Int) -> Int = { x -> x * x }""".lambdaExpression()

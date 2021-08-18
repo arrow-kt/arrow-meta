@@ -40,6 +40,5 @@ class TypeAlias(
 ) : TypeParameterListOwner<KtTypeAlias, TypeAliasDescriptor>(value, descriptor) {
 
   override fun ElementScope.identity(descriptor: TypeAliasDescriptor?): TypeAlias =
-    typeAlias("""$name""", `(typeParams)`.toStringList() , """$type""", descriptor)
-
+    typeAlias("""$name""", `(typeParams)`.toStringList(), """$type""", descriptor)
 }

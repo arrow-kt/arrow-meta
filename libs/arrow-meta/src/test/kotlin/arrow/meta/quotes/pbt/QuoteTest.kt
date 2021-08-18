@@ -8,16 +8,16 @@ class QuoteTest {
   fun `Check identity law`() {
 
 //    listOf(
-////      binaryExpression, // Todo: make this fail
+// //      binaryExpression, // Todo: make this fail
 //      blockExpression,
 //      breakExpression,
 //      *forExpressions,
 //      catchClauseExpression,
 //      *classBodyExpressions,
 //      *continueExpressions,
-////     destructuringDeclarationExpression, // TODO: data class
+// //     destructuringDeclarationExpression, // TODO: data class
 //      *dotQualifiedExpressions,
-////      // finallySectionExpression, // TODO implement convertFinally in Converter to support FINALLY in AST
+// //      // finallySectionExpression, // TODO implement convertFinally in Converter to support FINALLY in AST
 //      *functionalLiteralExpressions,
 //      *ifExpressions,
 //      importDirectiveExpression,
@@ -26,12 +26,12 @@ class QuoteTest {
 //      objectDeclarationExpression,
 //      *packageExpressions,
 //      *returnExpressions,
-////      // *thisExpressions, // TODO: inner class
+// //      // *thisExpressions, // TODO: inner class
 //      throwExpression,
 //      tryExpression,
 //      *typeAliasExpressions,
 //      typeReferenceExpression,
-////      // *valueArgumentExpressions, // TODO: init
+// //      // *valueArgumentExpressions, // TODO: init
 //      whenConditionExpression,
 //      whenEntryExpression,
 //      *whenExpressions,

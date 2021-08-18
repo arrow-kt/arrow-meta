@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenConditionPlugin
 import org.junit.jupiter.api.Test
 
-class WhenConditionTest  {
+class WhenConditionTest {
 
   companion object {
     val whenConditionExpression = """

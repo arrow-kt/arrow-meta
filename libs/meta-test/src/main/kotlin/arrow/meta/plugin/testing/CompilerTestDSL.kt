@@ -145,7 +145,7 @@ sealed class Config {
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
   internal data class AddArguments(val arguments: List<String>) : Config()
   internal data class AddCommandLineProcessors(val commandLineProcessors: List<CommandLineProcessor>) : Config()
-  internal data class AddPluginOptions(val pluginOptions: List<PluginOption>): Config()
+  internal data class AddPluginOptions(val pluginOptions: List<PluginOption>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
 
@@ -253,7 +253,6 @@ interface AssertSyntax {
    * @param sourcePath Source path of the expected file.
    */
   fun quoteFileMatches(filename: String, source: Code.Source, sourcePath: Path): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
-
 
   /**
    * Checks if a code snippet evals to a provided value after the compilation.

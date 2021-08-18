@@ -18,7 +18,6 @@ public fun <T> Array<out T>.binarySearchLaw(element: T, fromIndex: Int, toIndex:
     .post({ true }, { "kotlin.collections.binarySearch post-conditions" })
 }
 
-
 @Law
 public fun ByteArray.binarySearchLaw(element: Byte, fromIndex: Int, toIndex: Int): Int {
   pre(true) { "kotlin.collections.binarySearch pre-conditions" }
@@ -68,7 +67,6 @@ public fun ShortArray.binarySearchLaw(element: Short, fromIndex: Int, toIndex: I
     .post({ true }, { "kotlin.collections.binarySearch post-conditions" })
 }
 
-
 @Law
 public fun <T> Array<out T>.binarySearchLaw(
   element: T,
@@ -80,7 +78,6 @@ public fun <T> Array<out T>.binarySearchLaw(
   return binarySearch(element, comparator, fromIndex, toIndex)
     .post({ true }, { "kotlin.collections.binarySearch post-conditions" })
 }
-
 
 @Law
 public fun <R> Array<*>.filterIsInstanceLaw(klass: java.lang.Class<R>): List<R> {
@@ -98,7 +95,6 @@ public fun <C : MutableCollection<in R>, R> Array<*>.filterIsInstanceToLaw(
   return filterIsInstanceTo(destination, klass)
     .post({ true }, { "kotlin.collections.filterIsInstanceTo post-conditions" })
 }
-
 
 @Law
 public fun <T> Array<out T>.sortLaw(fromIndex: Int, toIndex: Int): Unit {
@@ -303,7 +299,6 @@ public fun ShortArray.toSortedSetLaw(): java.util.SortedSet<Short> {
     .post({ true }, { "kotlin.collections.toSortedSet post-conditions" })
 }
 
-
 @Law
 public inline fun UByteArray.sumOfLaw(selector: (UByte) -> java.math.BigDecimal): java.math.BigDecimal {
   pre(true) { "kotlin.collections.sumOf pre-conditions" }
@@ -377,7 +372,6 @@ public fun <T> sortedSetOfLaw(
     .post({ true }, { "kotlin.collections.sortedSetOf post-conditions" })
 }
 
-
 @Law
 public fun <T> Iterable<T>.shuffledLaw(random: java.util.Random): List<T> {
   pre(true) { "kotlin.collections.shuffled pre-conditions" }
@@ -391,7 +385,6 @@ public inline fun <T> java.util.Enumeration<T>.toListLaw(): List<T> {
   return toList()
     .post({ true }, { "kotlin.collections.toList post-conditions" })
 }
-
 
 @Law
 public fun <T> java.util.Enumeration<T>.iteratorLaw(): Iterator<T> {
@@ -424,7 +417,6 @@ public fun <C : MutableCollection<in R>, R> Iterable<*>.filterIsInstanceToLaw(
     .post({ true }, { "kotlin.collections.filterIsInstanceTo post-conditions" })
 }
 
-
 @Law
 public inline fun <T> Iterable<T>.sumOfLaw(selector: (T) -> java.math.BigDecimal): java.math.BigDecimal {
   pre(true) { "kotlin.collections.sumOf pre-conditions" }
@@ -452,7 +444,6 @@ public fun <T> Iterable<T>.toSortedSetLaw(comparator: Comparator<in T> /* = java
   return toSortedSet(comparator)
     .post({ true }, { "kotlin.collections.toSortedSet post-conditions" })
 }
-
 
 @Law
 public fun <K, V> sortedMapOfLaw(
@@ -498,7 +489,6 @@ public fun <K, V> Map<out K, V>.toSortedMapLaw(comparator: java.util.Comparator<
   return toSortedMap(comparator)
     .post({ true }, { "kotlin.collections.toSortedMap post-conditions" })
 }
-
 
 @Law
 public fun <T> sortedSetOfLaw(vararg elements: T): java.util.TreeSet<T> {

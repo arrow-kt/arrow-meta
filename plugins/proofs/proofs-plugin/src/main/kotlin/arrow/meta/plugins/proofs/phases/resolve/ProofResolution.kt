@@ -8,21 +8,16 @@ import arrow.meta.plugins.proofs.phases.isGivenContextProof
 import arrow.meta.plugins.proofs.phases.resolve.scopes.ProofsScopeTower
 import org.jetbrains.kotlin.container.ContainerConsistencyException
 import org.jetbrains.kotlin.container.get
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.ValueArgument
-import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.model.AllCandidatesResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallArgument
-import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallKind
 import org.jetbrains.kotlin.resolve.calls.model.NoValueForParameter
 import org.jetbrains.kotlin.resolve.calls.model.ReceiverKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
-import org.jetbrains.kotlin.resolve.calls.tower.ExpressionKotlinCallArgumentImpl
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
@@ -78,12 +73,12 @@ fun containsErrorsOrNothing(vararg types: KotlinType) =
 
 inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<A> =
   if (this is AllCandidatesResolutionResult) {
-    //TODO if candidate diagnostics includes NoValueForParameter then we may want to proceed to inductive resolution
+    // TODO if candidate diagnostics includes NoValueForParameter then we may want to proceed to inductive resolution
     // if the param was a contextual param
     val selectedCandidates = allCandidates.filter {
       val missingParams = it.diagnostics.firstOrNull()
       it.diagnostics.isEmpty() ||
-        //this is a provider with contextual arguments
+        // this is a provider with contextual arguments
         missingParams is NoValueForParameter && missingParams.parameterDescriptor.annotations.any { it.isGivenContextProof() }
     }
     val proofs = selectedCandidates.flatMap {
@@ -111,5 +106,3 @@ fun kotlinCall(superType: KotlinType): KotlinCall =
     override val typeArguments: List<TypeArgument> = emptyList()
     override val dispatchReceiverForInvokeExtension: ReceiverKotlinCallArgument? = null
   }
-
-

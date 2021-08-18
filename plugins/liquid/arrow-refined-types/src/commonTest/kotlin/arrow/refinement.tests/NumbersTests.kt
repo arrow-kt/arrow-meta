@@ -31,4 +31,3 @@ class NumbersTests :
     To.N(10u),
     Zero
   )
-

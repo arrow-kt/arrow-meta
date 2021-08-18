@@ -92,4 +92,3 @@ fun Snippet.asFileText(): String = """
             |${imports.joinToString(prefix = "\n", separator = "\n", postfix = "\n")}
             |$content
             """.trimMargin()
-

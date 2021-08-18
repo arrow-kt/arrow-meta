@@ -16,9 +16,6 @@ import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
-import org.jetbrains.kotlin.resolve.source.toSourceElement
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 val Meta.lenses: CliPlugin
   get() =

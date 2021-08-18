@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.KtSuperTypeList
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.getOrCreateBody
@@ -40,10 +39,9 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   val secondaryConstructor: ScopedList<KtSecondaryConstructor> = ScopedList(value = value.secondaryConstructors),
   val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers()),
   val name: Name? = value.nameAsName
-  ) : TypedScope<T, ClassDescriptor>(value, descriptor)
+) : TypedScope<T, ClassDescriptor>(value, descriptor)
 
-fun <T: KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> = Scope(value.getOrCreateBody())
+fun <T : KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> = Scope(value.getOrCreateBody())
 
-val <T: KtClassOrObject> ClassOrObjectScope<T>.allConstructors
+val <T : KtClassOrObject> ClassOrObjectScope<T>.allConstructors
   get() = ScopedList(value.allConstructors)
-

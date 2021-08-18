@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 
 class ContextTest {
 
-
   @Test
   fun `multiple context providers are supported`() {
     givenTest(

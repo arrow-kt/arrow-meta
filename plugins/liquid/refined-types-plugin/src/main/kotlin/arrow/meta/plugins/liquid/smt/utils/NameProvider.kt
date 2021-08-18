@@ -7,6 +7,6 @@ class NameProvider {
 
   fun newName(prefix: String): String {
     val n = counter.getAndUpdate { it + 1 }
-    return "${prefix}${n}"
+    return "${prefix}$n"
   }
 }

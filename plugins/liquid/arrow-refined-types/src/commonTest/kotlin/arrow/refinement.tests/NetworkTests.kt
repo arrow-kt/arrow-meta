@@ -29,4 +29,3 @@ class NetworkTests :
     Rfc5737Testnet3Network,
     Rfc5737TestnetNetwork
   )
-

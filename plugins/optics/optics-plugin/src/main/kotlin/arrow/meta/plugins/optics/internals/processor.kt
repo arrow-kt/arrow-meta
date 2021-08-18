@@ -24,7 +24,6 @@ fun CompilerContext.process(elements: List<ADT>): List<File> =
       }
   }
 
-
 internal fun ADT.snippets(): List<Snippet> =
   targets.map {
     when (it) {
@@ -52,7 +51,7 @@ internal fun KtClass.sealedSubclassFqNameList(): List<String> =
   sealedSubclasses().mapNotNull { it.fqName?.asString() }
 
 internal fun CompilerContext.evalAnnotatedDataClass(element: KtClass, errorMessage: String): List<Focus> =
-  when(element.classType) {
+  when (element.classType) {
     ClassType.DATA_CLASS -> element.getConstructorTypesNames().zip(element.getConstructorParamNames(), Focus.Companion::invoke)
     else -> {
       knownError(errorMessage, element)
@@ -105,6 +104,3 @@ internal fun CompilerContext.knownError(message: String, element: KtAnnotated? =
 internal fun KtClass.targets(): List<OpticsTarget> =
   if (isSealed()) listOf(OpticsTarget.PRISM, OpticsTarget.DSL)
   else listOf(OpticsTarget.ISO, OpticsTarget.LENS, OpticsTarget.OPTIONAL, OpticsTarget.DSL)
-
-
-

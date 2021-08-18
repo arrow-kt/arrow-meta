@@ -13,7 +13,7 @@ open class IfExpressionPlugin : Meta {
   )
 }
 
-val Meta.ifExpressionPlugin : CliPlugin
+val Meta.ifExpressionPlugin: CliPlugin
   get() =
     "If Expression Scope Plugin" {
       meta(

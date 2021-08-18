@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.FunctionLiteralPlugin
 import org.junit.jupiter.api.Test
 
-class FunctionLiteralTest  {
+class FunctionLiteralTest {
 
   companion object {
     private val functionLiteral = """val a = { i: Int -> i + 1 }""".functionLiteral()

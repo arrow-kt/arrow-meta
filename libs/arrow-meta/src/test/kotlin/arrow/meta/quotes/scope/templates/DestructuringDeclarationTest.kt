@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.DestructuringDeclarationPlugin
 import org.junit.jupiter.api.Test
 
-class DestructuringDeclarationTest  {
+class DestructuringDeclarationTest {
 
   private val destructuringDeclaration = """
                          | //metadebug

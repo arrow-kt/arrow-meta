@@ -87,34 +87,34 @@ open class GenericPlugin : Meta {
 
   // TODO: remove at the end
   private fun implemented(ktElement: KtElement): Boolean = (
-    ktElement is KtBinaryExpression
-      || ktElement is KtBlockExpression
-      || ktElement is KtBreakExpression
-      || ktElement is KtCatchClause
-      || ktElement is KtClassBody
-      || ktElement is KtContinueExpression
-      || ktElement is KtDestructuringDeclaration
-      || ktElement is KtDotQualifiedExpression
-      || ktElement is KtFinallySection
-      || ktElement is KtForExpression
-      || ktElement is KtFunctionLiteral
-      || ktElement is KtIfExpression
-      || ktElement is KtImportDirective
-      || ktElement is KtIsExpression
-      || ktElement is KtLambdaExpression
-      || ktElement is KtObjectDeclaration
-      || ktElement is KtPackageDirective
-      || ktElement is KtReturnExpression
-      || ktElement is KtThisExpression
-      || ktElement is KtThrowExpression
-      || ktElement is KtTryExpression
-      || ktElement is KtTypeAlias
-      || ktElement is KtTypeReference
-      || ktElement is KtValueArgument
-      || ktElement is KtWhenCondition
-      || ktElement is KtWhenEntry
-      || ktElement is KtWhenExpression
-      || ktElement is KtWhileExpression
+    ktElement is KtBinaryExpression ||
+      ktElement is KtBlockExpression ||
+      ktElement is KtBreakExpression ||
+      ktElement is KtCatchClause ||
+      ktElement is KtClassBody ||
+      ktElement is KtContinueExpression ||
+      ktElement is KtDestructuringDeclaration ||
+      ktElement is KtDotQualifiedExpression ||
+      ktElement is KtFinallySection ||
+      ktElement is KtForExpression ||
+      ktElement is KtFunctionLiteral ||
+      ktElement is KtIfExpression ||
+      ktElement is KtImportDirective ||
+      ktElement is KtIsExpression ||
+      ktElement is KtLambdaExpression ||
+      ktElement is KtObjectDeclaration ||
+      ktElement is KtPackageDirective ||
+      ktElement is KtReturnExpression ||
+      ktElement is KtThisExpression ||
+      ktElement is KtThrowExpression ||
+      ktElement is KtTryExpression ||
+      ktElement is KtTypeAlias ||
+      ktElement is KtTypeReference ||
+      ktElement is KtValueArgument ||
+      ktElement is KtWhenCondition ||
+      ktElement is KtWhenEntry ||
+      ktElement is KtWhenExpression ||
+      ktElement is KtWhileExpression
     )
 }
 

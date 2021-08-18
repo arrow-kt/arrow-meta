@@ -1,6 +1,5 @@
 package arrow.meta.plugins.proofs.phases
 
-import arrow.meta.dsl.platform.cli
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.diagnostic.ProofRenderer
 import arrow.meta.plugins.proofs.phases.resolve.cache.initializeProofCache

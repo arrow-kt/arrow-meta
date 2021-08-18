@@ -9,10 +9,8 @@ import arrow.meta.phases.codegen.ir.interpreter.builtins.ops
 import arrow.refinement.Constraints
 import arrow.refinement.Refined
 import org.jetbrains.kotlin.backend.jvm.codegen.psiElement
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocationWithRange
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.fir.toFirPsiSourceElement
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
@@ -24,7 +22,6 @@ import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
 
 internal fun Meta.registerIrInterpreterCompileTimeFunctions(): IRGeneration =
   irModuleFragment {

@@ -20,7 +20,7 @@ open class EnumBodyPlugin : Meta {
   )
 }
 
-private val Meta.classBody : CliPlugin
+private val Meta.classBody: CliPlugin
   get() =
     "Class Body Scope Plugin" {
       meta(
@@ -34,7 +34,7 @@ private val Meta.classBody : CliPlugin
     }
 
 // TODO remove after splitting elements apart
-private val Meta.enumBody : CliPlugin
+private val Meta.enumBody: CliPlugin
   get() =
     "Enum Body Scope Plugin" {
       meta(

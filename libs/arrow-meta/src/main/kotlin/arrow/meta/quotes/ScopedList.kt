@@ -15,7 +15,7 @@ data class ScopedList<K : KtElement>(
     if (value.isEmpty())
       if (forceRenderSurroundings) prefix + postfix
       else ""
-    else value.filterNot { it.text == "null" }.joinToString( //some java values
+    else value.filterNot { it.text == "null" }.joinToString( // some java values
       separator = separator,
       prefix = prefix,
       postfix = postfix,
@@ -35,7 +35,7 @@ data class ScopedList<K : KtElement>(
   fun isEmpty() = value.isEmpty()
 
   companion object {
-    fun <K: KtElement> empty(): ScopedList<K> = ScopedList(emptyList())
+    fun <K : KtElement> empty(): ScopedList<K> = ScopedList(emptyList())
   }
 }
 

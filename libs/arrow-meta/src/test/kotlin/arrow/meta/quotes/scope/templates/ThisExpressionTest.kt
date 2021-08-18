@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ThisExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class ThisExpressionTest  {
+class ThisExpressionTest {
 
   @Test
   fun `Validate this expression with labeled qualifiers scope properties`() {

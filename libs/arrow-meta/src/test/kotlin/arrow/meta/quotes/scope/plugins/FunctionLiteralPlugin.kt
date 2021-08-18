@@ -13,7 +13,7 @@ open class FunctionLiteralPlugin : Meta {
   )
 }
 
-val Meta.functionLiteralPlugin : CliPlugin
+val Meta.functionLiteralPlugin: CliPlugin
   get() =
     "Function Literal Scope Plugin" {
       meta(

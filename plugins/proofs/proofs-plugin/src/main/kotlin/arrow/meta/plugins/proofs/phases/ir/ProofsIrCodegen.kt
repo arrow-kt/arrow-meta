@@ -20,13 +20,10 @@ import org.jetbrains.kotlin.ir.descriptors.toIrBasedKotlinType
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.expressions.copyTypeArgumentsFrom
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
@@ -92,7 +89,6 @@ class ProofsIrCodegen(
       through = through
     ).typeSubstitutor
 
-
   fun CompilerContext.proveNestedCalls(expression: IrCall): IrMemberAccessExpression<*> =
     proveCall(expression)
 
@@ -128,7 +124,7 @@ class ProofsIrCodegen(
             processValueParameter(param, param.type, this, n)
           }
         }
-        //todo we need to recursively place over this expression inductive steps
+        // todo we need to recursively place over this expression inductive steps
         if (replacement != null && replacement.valueArgumentsCount > index)
           replacement.putValueArgument(index, this)
       }
@@ -178,7 +174,7 @@ internal fun IrCall.replacementCall(): IrMemberAccessExpression<*>? =
           rep.putValueArgument(n, arg)
       }
 
-      //rep.extensionReceiver = this@replacementCall.extensionReceiver
+      // rep.extensionReceiver = this@replacementCall.extensionReceiver
       rep.dispatchReceiver = this@replacementCall.extensionReceiver
       rep
     }

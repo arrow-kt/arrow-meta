@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.isPublishedApi
 
 internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
   Composite(
@@ -26,7 +25,7 @@ internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
           null
         },
         analysisCompleted = { project, module, bindingTrace, files ->
-          //module.lawScaffoldGenerationForPackage(FqName("kotlin.math"))
+          // module.lawScaffoldGenerationForPackage(FqName("kotlin.math"))
           finalizeConstraintsCollection(module, bindingTrace)
         },
       ),
@@ -76,7 +75,6 @@ private fun ModuleDescriptor.lawScaffoldGenerationForPackage(pck: FqName) {
 
   TODO("stop")
 }
-
 
 internal fun CompilerContext.ensureSolverStateInitialization(
   module: ModuleDescriptor

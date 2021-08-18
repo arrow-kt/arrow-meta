@@ -17,4 +17,3 @@ class NetworkPortsTests :
     SystemPortNumber,
     UserPortNumber
   )
-

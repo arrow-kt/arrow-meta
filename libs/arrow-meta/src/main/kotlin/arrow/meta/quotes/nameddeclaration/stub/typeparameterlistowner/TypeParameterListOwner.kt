@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
 /**
  * A template destructuring [Scope] for a [KtExpressionWithLabel]
  */
-open class TypeParameterListOwner<out T: KtTypeParameterListOwner, D: DeclarationDescriptor>(
+open class TypeParameterListOwner<out T : KtTypeParameterListOwner, D : DeclarationDescriptor>(
   override val value: T,
   override val descriptor: D?,
   open val `(typeConstraints)`: ScopedList<KtTypeConstraint> = ScopedList(value = value.typeConstraints),

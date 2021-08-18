@@ -14,7 +14,6 @@ public inline fun <reified T> Array<out T>?.orEmptyNullableLaw(): Array<out T> {
     .post({ true }, { "kotlin.collections.orEmpty post-conditions" })
 }
 
-
 @Law
 public inline fun <reified T> Collection<T>.toTypedArrayLaw(): Array<T> {
   pre(true) { "kotlin.collections.toTypedArray pre-conditions" }
@@ -29,13 +28,13 @@ public fun <T> Array<out Array<out T>>.flattenLaw(): List<T> {
     .post({ true }, { "kotlin.collections.flatten post-conditions" })
 }
 
-//uses variance with special compiler treatment for the std library where C: Array and C : R
-//@Law
-//public inline fun <C: Array<*> , R> C.ifEmptyLaw(defaultValue: () -> R): R  {
+// uses variance with special compiler treatment for the std library where C: Array and C : R
+// @Law
+// public inline fun <C: Array<*> , R> C.ifEmptyLaw(defaultValue: () -> R): R  {
 //  pre(true) { "kotlin.collections.ifEmpty pre-conditions" }
 //  return ifEmpty(defaultValue)
 //    .post({ true }, { "kotlin.collections.ifEmpty post-conditions" })
-//}
+// }
 
 @Law
 public inline fun Array<*>?.isNullOrEmptyNullableLaw(): Boolean {
@@ -113,7 +112,6 @@ public fun ShortArray.asListLaw(): List<Short> {
   return asList()
     .post({ true }, { "kotlin.collections.asList post-conditions" })
 }
-
 
 @Law
 public inline infix fun <T> Array<out T>.contentDeepEqualsLaw(other: Array<out T>): Boolean {
@@ -12711,12 +12709,12 @@ public inline fun <T> Collection<T>.containsAllLaw(elements: Collection<T>): Boo
     .post({ true }, { "kotlin.collections.containsAll post-conditions" })
 }
 
-//@Law
-//public inline fun <C : Collection<*>, R> C.ifEmptyLaw(defaultValue: () -> R): R where C : R  {
+// @Law
+// public inline fun <C : Collection<*>, R> C.ifEmptyLaw(defaultValue: () -> R): R where C : R  {
 //  pre(true) { "kotlin.collections.ifEmpty pre-conditions" }
 //  return ifEmpty(defaultValue)
 //    .post({ true }, { "kotlin.collections.ifEmpty post-conditions" })
-//}
+// }
 
 @Law
 public inline fun <T> Collection<T>.isNotEmptyLaw(): Boolean {
@@ -15107,12 +15105,12 @@ public fun <K, V> Map<K, V>.getValueLaw(key: K): V {
     .post({ true }, { "kotlin.collections.getValue post-conditions" })
 }
 
-//@Law
-//public inline fun <M : Map<*, *>, R> M.ifEmptyLaw(defaultValue: () -> R): R where M : R  {
+// @Law
+// public inline fun <M : Map<*, *>, R> M.ifEmptyLaw(defaultValue: () -> R): R where M : R  {
 //  pre(true) { "kotlin.collections.ifEmpty pre-conditions" }
 //  return ifEmpty(defaultValue)
 //    .post({ true }, { "kotlin.collections.ifEmpty post-conditions" })
-//}
+// }
 
 @Law
 public inline fun <K, V> Map<out K, V>.isNotEmptyLaw(): Boolean {
@@ -20702,6 +20700,3 @@ public inline fun <R, V> UShortArray.zipLaw(other: Iterable<R>, transform: (a: U
   return zip(other, transform)
     .post({ true }, { "kotlin.collections.zip post-conditions" })
 }
-
-
-

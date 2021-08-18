@@ -195,7 +195,6 @@ class IrUtils(
       newType?.value?.toIrType()
     }
 
-
   fun <A> IrFunction.transform(data: A, f: IrFunction.(a: A) -> Unit = Noop.effect2): IrStatement =
     transform(object : IrElementTransformer<A> {
       override fun visitFunction(declaration: IrFunction, a: A): IrStatement {
@@ -207,13 +206,12 @@ class IrUtils(
   @ExperimentalStdlibApi
   fun IrModuleFragment.interpret(expression: IrExpression): IrExpression =
     IrInterpreter(this).interpret(expression)
-
 }
-
 
 inline fun <reified E, B> IrElement.filterMap(
   crossinline filter: (E) -> Boolean,
-  crossinline map: (E) -> B): List<B> {
+  crossinline map: (E) -> B
+): List<B> {
   val els = arrayListOf<B>()
   val visitor = object : IrElementVisitor<Unit, Unit> {
     override fun visitElement(element: IrElement, data: Unit) {
@@ -283,7 +281,6 @@ private fun IrSimpleFunction.substitutedValueParameters(call: IrCall): List<Pair
           } ?: type // Could not resolve the substituted KotlinType
         )
     }
-
 
 fun IrReturnTarget.returnType(irBuiltIns: IrBuiltIns) =
   when (this) {

@@ -37,7 +37,7 @@ class TransformNewSourceTest {
       )}
     ))
   }
-  
+
   @Test
   fun `validate multiple extra files are created`() {
     assertThis(CompilerTest(
@@ -67,7 +67,7 @@ class TransformNewSourceTest {
       }
     ))
   }
-  
+
   @Test
   fun `Check if the file is modified and another file is created`() {
     assertThis(CompilerTest(
@@ -106,7 +106,7 @@ class TransformNewSourceTest {
       code = {
         """ class NewSourceWithCustomPath {} """.source
       },
-      assert = { quoteFileMatches( filename = "NewSourceWithCustomPath_Generated.kt",
+      assert = { quoteFileMatches(filename = "NewSourceWithCustomPath_Generated.kt",
         source = """
           package arrow
           class NewSourceWithCustomPath_Generated
@@ -128,7 +128,7 @@ class TransformNewSourceTest {
       code = {
         """ class NewSourceWithBaseDir {} """.source
       },
-      assert = { quoteFileMatches( filename = "NewSourceWithBaseDir_Generated.kt",
+      assert = { quoteFileMatches(filename = "NewSourceWithBaseDir_Generated.kt",
         source = """
           package arrow
           class NewSourceWithBaseDir_Generated
@@ -150,7 +150,7 @@ class TransformNewSourceTest {
       code = {
         """ class NewSourceWithBaseDirAndCustomPath {} """.source
       },
-      assert = { quoteFileMatches( filename = "NewSourceWithBaseDirAndCustomPath_Generated.kt",
+      assert = { quoteFileMatches(filename = "NewSourceWithBaseDirAndCustomPath_Generated.kt",
         source = """
           package arrow
           class NewSourceWithBaseDirAndCustomPath_Generated
@@ -169,14 +169,14 @@ class TransformNewSourceTest {
       },
       assert = {
         allOf(
-          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithCustomPath_Generated.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated
             """.source,
             sourcePath = DEFAULT_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
           ),
-          quoteFileMatches( filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithCustomPath_Generated_2
@@ -202,14 +202,14 @@ class TransformNewSourceTest {
       },
       assert = {
         allOf(
-          quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithBaseDir_Generated.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDir_Generated
             """.source,
             sourcePath = CUSTOM_BASE_DIR.resolve(DEFAULT_GENERATED_SRC_PATH)
           ),
-          quoteFileMatches( filename = "NewMultipleSourceWithBaseDir_Generated_2.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithBaseDir_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDir_Generated_2
@@ -235,14 +235,14 @@ class TransformNewSourceTest {
       },
       assert = {
         allOf(
-          quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated
             """.source,
             sourcePath = CUSTOM_BASE_DIR.resolve(CUSTOM_GENERATED_SRC_PATH_1)
           ),
-          quoteFileMatches( filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated_2.kt",
+          quoteFileMatches(filename = "NewMultipleSourceWithBaseDirAndCustomPath_Generated_2.kt",
             source = """
              package arrow
              class NewMultipleSourceWithBaseDirAndCustomPath_Generated_2

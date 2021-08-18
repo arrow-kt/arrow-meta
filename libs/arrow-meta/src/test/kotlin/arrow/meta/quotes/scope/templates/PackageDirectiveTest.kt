@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.PackageDirectivePlugin
 import org.junit.jupiter.api.Test
 
-class PackageDirectiveTest  {
+class PackageDirectiveTest {
 
   companion object {
     private val test = "test".packageDeclaration()
@@ -32,17 +32,17 @@ class PackageDirectiveTest  {
   fun `validate package is transformed correctly`() {
     validate(test)
   }
-  
+
   @Test
   fun `validate package names are reduced correctly`() {
     validate(package_names)
   }
-  
+
   @Test
   fun `validate last package name is transformed correctly`() {
-    validate(package_last_name)   // TODO
+    validate(package_last_name) // TODO
   }
-  
+
   private fun validate(lastPackage: Code.Source) {
     assertThis(CompilerTest(
       config = { listOf(addMetaPlugins(PackageDirectivePlugin())) },

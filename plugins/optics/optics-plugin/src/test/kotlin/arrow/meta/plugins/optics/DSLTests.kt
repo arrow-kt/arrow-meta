@@ -27,6 +27,5 @@ class DSLTests {
       """ { "r".source.evalsTo("Db(content={Two=two, Three=three, Four=four})") }
   }
 
-
-//Db.content.at(At.map(), One).set(db, None)
+// Db.content.at(At.map(), One).set(db, None)
 }

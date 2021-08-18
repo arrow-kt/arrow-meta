@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ReturnExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class ContinueExpressionTest  {
+class ContinueExpressionTest {
 
   companion object {
     private val continueExpression = """

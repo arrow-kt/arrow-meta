@@ -2,10 +2,10 @@ package arrow.meta.internal.kastree.ast
 
 open class MutableVisitor {
 
-  open fun <T: Node?> preVisit(v: T, parent: Node): T = v
-  open fun <T: Node?> postVisit(v: T, parent: Node): T = v
+  open fun <T : Node?> preVisit(v: T, parent: Node): T = v
+  open fun <T : Node?> postVisit(v: T, parent: Node): T = v
 
-  open fun <T: Node?> visit(v: T, parent: Node, ch: ChangedRef = ChangedRef(false)): T = v.run {
+  open fun <T : Node?> visit(v: T, parent: Node, ch: ChangedRef = ChangedRef(false)): T = v.run {
     ch.sub { newCh ->
       preVisit(this, parent)?.run {
         val new: Node = when (this) {
@@ -273,7 +273,7 @@ open class MutableVisitor {
             anns = visitChildren(anns, newCh),
             expr = visitChildren(expr, newCh)
           )
-          is Node.Expr.TypeOp -> copy (
+          is Node.Expr.TypeOp -> copy(
             lhs = visitChildren(lhs, newCh),
             oper = visitChildren(oper, newCh),
             rhs = visitChildren(rhs, newCh)
@@ -325,9 +325,9 @@ open class MutableVisitor {
     }
   }
 
-  private fun <T: Node?> Node?.visitChildren(v: T, ch: ChangedRef): T = visit(v, this!!, ch)
+  private fun <T : Node?> Node?.visitChildren(v: T, ch: ChangedRef): T = visit(v, this!!, ch)
 
-  private fun <T: Node?> Node?.visitChildren(v: List<T>, ch: ChangedRef): List<T> = ch.sub { newCh ->
+  private fun <T : Node?> Node?.visitChildren(v: List<T>, ch: ChangedRef): List<T> = ch.sub { newCh ->
     val newList = v.map { orig -> visit(orig, this!!, newCh).also { newCh.markIf(it, orig) } }
     newList.origOrChanged(v, newCh)
   }
@@ -343,11 +343,11 @@ open class MutableVisitor {
   }
 
   companion object {
-    fun <T: Node> preVisit(v: T, fn: (v: Node?, parent: Node) -> Node?) = object : MutableVisitor() {
+    fun <T : Node> preVisit(v: T, fn: (v: Node?, parent: Node) -> Node?) = object : MutableVisitor() {
       override fun <T : Node?> preVisit(v: T, parent: Node): T = fn(v, parent) as T
     }.visit(v, v)
 
-    fun <T: Node> postVisit(v: T, fn: (v: Node?, parent: Node) -> Node?) = object : MutableVisitor() {
+    fun <T : Node> postVisit(v: T, fn: (v: Node?, parent: Node) -> Node?) = object : MutableVisitor() {
       override fun <T : Node?> postVisit(v: T, parent: Node): T = fn(v, parent) as T
     }.visit(v, v)
   }

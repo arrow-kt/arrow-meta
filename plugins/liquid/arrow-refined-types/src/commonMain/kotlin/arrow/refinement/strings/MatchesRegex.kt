@@ -2,7 +2,6 @@ package arrow.refinement.strings
 
 import arrow.refinement.Refined
 import arrow.refinement.ensure
-import arrow.refinement.strings.EndsWith.Value
 import kotlin.jvm.JvmInline
 
 @JvmInline

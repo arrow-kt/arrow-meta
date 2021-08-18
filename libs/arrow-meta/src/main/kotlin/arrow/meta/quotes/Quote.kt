@@ -1,25 +1,10 @@
 package arrow.meta.quotes
 
-import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.Meta
 import arrow.meta.dsl.platform.cli
-import arrow.meta.dsl.platform.ide
-import arrow.meta.internal.kastree.ast.MutableVisitor
-import arrow.meta.internal.kastree.ast.Node
-import arrow.meta.internal.kastree.ast.Writer
-import arrow.meta.internal.kastree.ast.psi.Converter
-import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.analysis.DefaultElementScope.Companion.DEFAULT_BASE_DIR
-import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.sequence
-import arrow.meta.phases.analysis.traverseFilter
-import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.com.google.common.collect.ImmutableMap
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
@@ -31,12 +16,8 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.Date
 
 const val META_DEBUG_COMMENT = "//metadebug"

@@ -77,8 +77,7 @@ inline fun <A> ContSeq<A>.forEach(f: (A) -> Unit) {
 fun <A> List<ContSeq<A>>.sequence(): ContSeq<List<A>> =
   if (isEmpty()) {
     yieldOne { emptyList() }
-  }
-  else {
+  } else {
     this[0].zip(this.drop(1).sequence()) { x, xs ->
       listOf(x) + xs
     }

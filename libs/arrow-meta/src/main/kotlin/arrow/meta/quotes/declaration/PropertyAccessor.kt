@@ -65,11 +65,10 @@ class PropertyAccessor(
     if (value != null && value.isGetter) {
       """var $name $returnType $initializer 
               $visibility get $`(params)`$bodyExpression""".propertyAccessorGet
-    } else if(value != null && value.isSetter) {
+    } else if (value != null && value.isSetter) {
       """var  $name $returnType $initializer
               $visibility set $`(params)` $bodyExpression""".propertyAccessorSet
     } else {
       empty<KtPropertyAccessor>()
     }
 }
-

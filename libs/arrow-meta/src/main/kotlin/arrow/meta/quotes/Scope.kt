@@ -1,8 +1,6 @@
 package arrow.meta.quotes
 
 import arrow.meta.phases.analysis.ElementScope
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -11,7 +9,7 @@ import org.jetbrains.kotlin.psi.KtElement
  */
 open class Scope<out K : KtElement>(open val value: K?) {
 
-  operator fun <K: KtElement> ScopedList<K>.rangeTo(other: String): Name =
+  operator fun <K : KtElement> ScopedList<K>.rangeTo(other: String): Name =
     Name.identifier((value.map { it.text } + other).joinToString(", "))
 
   override fun toString(): String =
@@ -19,7 +17,7 @@ open class Scope<out K : KtElement>(open val value: K?) {
 
   companion object{
     fun <A> empty() = Scope(null)
-  }// java null snicking in
+  } // java null snicking in
 
   open fun ElementScope.identity(): Scope<K> = Scope(value)
 }

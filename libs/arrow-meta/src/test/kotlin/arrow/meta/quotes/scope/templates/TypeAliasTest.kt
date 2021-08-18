@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.TypeAliasPlugin
 import org.junit.jupiter.api.Test
 
-class TypeAliasTest  {
+class TypeAliasTest {
 
   companion object {
     private val typeAlias = """
@@ -50,7 +50,7 @@ class TypeAliasTest  {
   fun `Validate type alias with constraints properties`() {
     validate(typeAliasWithConstraints)
   }
-  
+
   @Test
   fun `Validate type alias properties with generics`() {
     validate(typeAliasWithGenerics)

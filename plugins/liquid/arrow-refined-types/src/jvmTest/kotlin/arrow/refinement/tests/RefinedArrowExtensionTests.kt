@@ -31,5 +31,4 @@ class RefinedArrowExtensionTests : StringSpec({
         val minusOne = PositiveInt.toValidated(-1)
         minusOne shouldBe "-1 should be > 0".invalid()
     }
-
 })

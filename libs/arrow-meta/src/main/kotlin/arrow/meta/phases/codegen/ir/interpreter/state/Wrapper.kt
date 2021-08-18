@@ -15,9 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.interpreter.*
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
@@ -27,6 +25,22 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
+import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
+import org.jetbrains.kotlin.ir.interpreter.hasAnnotation
+import org.jetbrains.kotlin.ir.interpreter.internalName
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classOrNull
+import org.jetbrains.kotlin.ir.types.isAny
+import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isCharSequence
+import org.jetbrains.kotlin.ir.types.isComparable
+import org.jetbrains.kotlin.ir.types.isIterable
+import org.jetbrains.kotlin.ir.types.isNothing
+import org.jetbrains.kotlin.ir.types.isNullable
+import org.jetbrains.kotlin.ir.types.isNumber
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
+import org.jetbrains.kotlin.ir.types.isString
+import org.jetbrains.kotlin.ir.types.makeNotNull
 
 internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(irClass, mutableListOf()) {
 
@@ -121,7 +135,7 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(
       val owner = this.classOrNull?.owner
       val fqName = owner?.fqNameWhenAvailable?.asString()
       val notNullType = this.makeNotNull()
-      //TODO check if primitive array is possible here
+      // TODO check if primitive array is possible here
       return when {
         notNullType.isPrimitiveType() || notNullType.isString() -> arrow.meta.phases.codegen.ir.interpreter.getPrimitiveClass(
           notNullType,
@@ -137,9 +151,9 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(
         notNullType.isIterable() -> Iterable::class.java
 
         // TODO implement function mapping; all complexity is to map big arity to FunctionN
-        //notNullType.isKFunction() -> Class.forName("kotlin.reflect.KFunction")
-        //notNullType.isFunction() -> Class.forName("kotlin.jvm.functions.Function_TODO")
-        //notNullType.isSuspendFunction() || notNullType.isKSuspendFunction() -> throw AssertionError()
+        // notNullType.isKFunction() -> Class.forName("kotlin.reflect.KFunction")
+        // notNullType.isFunction() -> Class.forName("kotlin.jvm.functions.Function_TODO")
+        // notNullType.isSuspendFunction() || notNullType.isKSuspendFunction() -> throw AssertionError()
 
         fqName == "kotlin.Enum" -> Enum::class.java
         fqName == "kotlin.collections.Collection" || fqName == "kotlin.collections.MutableCollection" -> Collection::class.java

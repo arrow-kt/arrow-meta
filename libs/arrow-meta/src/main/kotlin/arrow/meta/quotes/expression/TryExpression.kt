@@ -5,7 +5,6 @@ import arrow.meta.quotes.Scope
 import arrow.meta.quotes.ScopedList
 import arrow.meta.quotes.element.FinallySection
 import org.jetbrains.kotlin.psi.KtCatchClause
-import org.jetbrains.kotlin.psi.KtFinallySection
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 /**
@@ -43,5 +42,4 @@ class TryExpression(
 
   override fun ElementScope.identity(): TryExpression =
     """try $tryBlock$catchClauses$finallySection""".`try`
-
 }

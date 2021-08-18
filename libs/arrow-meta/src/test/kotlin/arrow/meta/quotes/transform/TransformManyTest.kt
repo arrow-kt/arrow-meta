@@ -6,7 +6,7 @@ import arrow.meta.quotes.transform.plugins.TransformMetaPlugin
 import org.junit.jupiter.api.Test
 
 class TransformManyTest {
-    
+
   @Test
   fun `check if the transforms are applied`() {
     assertThis(CompilerTest(
@@ -32,7 +32,7 @@ class TransformManyTest {
       }
     ))
   }
-  
+
   @Test
   fun `check if many plugin creates functions and also clean them`() {
     assertThis(CompilerTest(
@@ -55,7 +55,7 @@ class TransformManyTest {
       }
     ))
   }
-  
+
   @Test
   fun `check if many plugin will apply all replace transformations`() {
     assertThis(CompilerTest(
@@ -72,7 +72,7 @@ class TransformManyTest {
       assert = { quoteOutputMatches(""" private class ManyReplace """.source) }
     ))
   }
-  
+
   @Test
   fun `check if many plugin will apply all remove transformations`() {
     assertThis(CompilerTest(

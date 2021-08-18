@@ -42,7 +42,7 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled  // does not work yet
+  @Disabled // does not work yet
   fun `when with patterns`() {
     """
       ${imports()}
@@ -162,7 +162,6 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
-
 }
 
 private fun imports() =
@@ -193,4 +192,3 @@ private operator fun String.invoke(
     assert = { withoutPlugin() }
   ))
 }
-

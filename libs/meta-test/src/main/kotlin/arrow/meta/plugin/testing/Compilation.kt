@@ -18,9 +18,9 @@ internal fun compile(data: CompilationData): Result =
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
     compilerPlugins = data.metaPlugins
     messageOutputStream = object : PrintStream(System.out) {
-      
-      private val kotlincErrorRegex = Regex("^e:") 
-      
+
+      private val kotlincErrorRegex = Regex("^e:")
+
       override fun write(buf: ByteArray, off: Int, len: Int) {
         val newLine = String(buf, off, len)
           .run { replace(kotlincErrorRegex, "error found:") }

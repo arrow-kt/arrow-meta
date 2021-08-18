@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhenExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class WhenExpressionTest  {
+class WhenExpressionTest {
 
   companion object {
     val doMaths = """
@@ -46,7 +46,7 @@ class WhenExpressionTest  {
 
     val whenExpressions = arrayOf(
       doMaths,
-      singleExpressionFunction //,
+      singleExpressionFunction // ,
       // sealedClass Todo: Make PBT fails
     )
   }

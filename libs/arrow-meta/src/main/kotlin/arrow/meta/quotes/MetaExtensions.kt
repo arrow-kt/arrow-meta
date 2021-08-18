@@ -37,7 +37,6 @@ import arrow.meta.quotes.nameddeclaration.stub.Parameter
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.NamedFunction
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.Property
 import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -46,7 +45,6 @@ import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
-import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -61,7 +59,6 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPackageDirective
@@ -271,7 +268,7 @@ fun Meta.objectDeclaration(
   mapDescriptor: List<DeclarationDescriptor>.(KtObjectDeclaration) -> ClassDescriptor? = { element -> descriptor(element) },
   map: ObjectDeclaration.(TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>) -> Transform<KtObjectDeclaration>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) {  (element, descriptor) -> ObjectDeclaration(element, descriptor)}
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> ObjectDeclaration(element, descriptor)}
 
 /**
  * @see [PackageDirective]

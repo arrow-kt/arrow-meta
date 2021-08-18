@@ -1,6 +1,17 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
-import arrow.meta.continuations.*
+import arrow.meta.continuations.ContSeq
+import arrow.meta.continuations.andThen
+import arrow.meta.continuations.andThenSideEffect
+import arrow.meta.continuations.doNothing
+import arrow.meta.continuations.doOnlyWhen
+import arrow.meta.continuations.ensure
+import arrow.meta.continuations.flatMap
+import arrow.meta.continuations.goOn
+import arrow.meta.continuations.guard
+import arrow.meta.continuations.map
+import arrow.meta.continuations.sequence
+import arrow.meta.continuations.sideEffect
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
@@ -9,7 +20,22 @@ import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDeclarationWithBody
+import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtLabeledExpression
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtVariableDeclaration
+import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
+import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
@@ -73,7 +99,6 @@ internal fun CompilerContext.checkDeclarationConstraints(
     }
   }
 }
-
 
 // 2.1: declarations
 // -----------------

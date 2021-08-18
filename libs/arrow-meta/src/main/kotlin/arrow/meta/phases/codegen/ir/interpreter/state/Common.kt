@@ -14,7 +14,8 @@ import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 
 internal class Common private constructor(
-    override val irClass: IrClass, override val fields: MutableList<Variable>
+  override val irClass: IrClass,
+  override val fields: MutableList<Variable>
 ) : Complex(irClass, fields) {
 
     constructor(irClass: IrClass) : this(irClass, mutableListOf())

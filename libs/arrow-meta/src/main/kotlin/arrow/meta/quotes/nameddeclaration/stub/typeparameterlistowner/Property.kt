@@ -72,8 +72,8 @@ class Property(
     value.isVar -> "var"
     else -> "val"
   }.let(Name::identifier),
-  val getter : PropertyAccessor = PropertyAccessor(value.getter),
-  val setter : PropertyAccessor = PropertyAccessor(value.setter)
+  val getter: PropertyAccessor = PropertyAccessor(value.getter),
+  val setter: PropertyAccessor = PropertyAccessor(value.setter)
 ) : TypeParameterListOwner<KtProperty, PropertyDescriptor>(value, descriptor), SyntheticElement {
   override fun ElementScope.identity(descriptor: PropertyDescriptor?): TypedScope<KtProperty, PropertyDescriptor> {
     return """$modality $visibility $valOrVar $name $returnType $initializer
@@ -82,4 +82,3 @@ class Property(
                   $delegate""".property(descriptor)
   }
 }
-

@@ -6,8 +6,8 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ObjectDeclarationPlugin
 import org.junit.jupiter.api.Test
 
-class ObjectDeclarationTest  {
-  
+class ObjectDeclarationTest {
+
   companion object {
     val objectDeclarationExpression = """
                          | //metadebug
@@ -17,7 +17,7 @@ class ObjectDeclarationTest  {
                          |   fun x2() { println("Test2") }
                          | }""".source
   }
-  
+
   @Test
   fun `Validate object declaration scope properties`() {
     assertThis(CompilerTest(

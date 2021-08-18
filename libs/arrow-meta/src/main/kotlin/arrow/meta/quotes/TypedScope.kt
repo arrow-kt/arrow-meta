@@ -4,7 +4,7 @@ import arrow.meta.phases.analysis.ElementScope
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 
-open class TypedScope <out K : KtElement, D: DeclarationDescriptor>(
+open class TypedScope <out K : KtElement, D : DeclarationDescriptor>(
   override val value: K?,
   open val descriptor: D?
 ) : Scope<K>(value) {

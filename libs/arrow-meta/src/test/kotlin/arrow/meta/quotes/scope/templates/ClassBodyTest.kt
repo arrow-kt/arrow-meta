@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ClassBodyPlugin
 import org.junit.jupiter.api.Test
 
-class ClassBodyTest  {
+class ClassBodyTest {
 
   companion object {
     private val classBodyScopeTest = """
@@ -66,12 +66,12 @@ class ClassBodyTest  {
   fun `Validate class body scope properties`() {
       validate(classBodyScopeTest)
   }
-  
+
   @Test
   fun `Validate enum body scope properties`() {
     validate(enumBodyScopeTest)
   }
-  
+
   @Test
   fun `Validate object body scope properties`() {
     validate(objectBodyScopeTest)

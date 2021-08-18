@@ -1,7 +1,6 @@
 package arrow.refinement.collections
 
 import arrow.refinement.Refined
-import arrow.refinement.collections.First.Element
 import arrow.refinement.ensure
 import kotlin.jvm.JvmInline
 

@@ -81,7 +81,7 @@ private val interpreter: (CompilerTest) -> Unit = {
 
   fun Code.Source.renameBy(index: Int) =
     when (this.filename) {
-      DEFAULT_FILENAME -> Code.Source(filename = this.filename.replace(".kt", "${index}.kt"), text = this.text)
+      DEFAULT_FILENAME -> Code.Source(filename = this.filename.replace(".kt", "$index.kt"), text = this.text)
       else -> this
     }
 
