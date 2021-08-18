@@ -7,7 +7,7 @@ description: Arrow Meta is the functional companion to the Kotlin Compiler and i
 author: The Λrrow Authors
 keywords: functional-programming, kotlin-library, monads, monad-transformers, functional-data-structure, kotlin, fp-types, adt, free-monads, tagless-final, mtl, for-comprehension, category-theory
 #-------------------------
-url: https://meta.arrow-kt.io
+url: https://arrow-kt.io/docs/meta
 #-------------------------
 arrow_url: https://arrow-kt.io
 #-------------------------

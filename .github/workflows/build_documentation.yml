@@ -20,4 +20,4 @@ jobs:
       run: |
         sudo gem install bundler
         bundle install --gemfile docs/Gemfile --path vendor/bundle
-        BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -s docs/build/site -d docs/build/_site
+        BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/build/site -d docs/build/_site

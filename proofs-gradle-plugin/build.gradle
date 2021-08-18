@@ -31,7 +31,7 @@ gradlePlugin {
 }
 
 pluginBundle {
-  website = "https://meta.arrow-kt.io"
+  website = "https://arrow-kt.io/docs/meta"
   vcsUrl = "https://github.com/arrow-kt/arrow-meta"
   description = "Functional companion to Kotlin's Compiler"
   tags = ["kotlin", "compiler", "arrow", "plugin", "meta"]
