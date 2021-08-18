@@ -149,10 +149,6 @@ interface ElementScope {
   
   val String.companionObject: ObjectDeclaration
 
-  val <A: KtDeclaration> Scope<A>.syntheticScope: Scope<A>
-
-  val <A: SyntheticElement> A.syntheticElement: A
-
   fun property(
     modifiers: String?,
     name: String,
