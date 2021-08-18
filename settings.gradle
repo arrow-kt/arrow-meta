@@ -1,23 +1,49 @@
 rootProject.name = 'arrow-meta-workpace'
 
+//Libraries
+
 include ':arrow-meta'
+project(':arrow-meta').projectDir = new File('libs/arrow-meta')
+
 include ':meta-test'
+project(':meta-test').projectDir = new File('libs/meta-test')
+
+include ':gradle-plugin-commons'
+project(':gradle-plugin-commons').projectDir = new File('libs/gradle-plugin-commons')
+
+// Docs
+
 include ':docs'
 
-// Compiler Plugins
+//Plugins
+
+// Proofs
 include ':proofs-plugin'
-include ':optics-plugin'
-include ':refined-types-plugin'
-project(':refined-types-plugin').projectDir = new File('liquid/refined-types-plugin')
+project(':proofs-plugin').projectDir = new File('plugins/proofs/proofs-plugin')
 
-// Gradle Plugins
-include ':gradle-plugin-commons'
 include ':proofs-gradle-plugin'
-include ':optics-gradle-plugin'
-include ':refined-types-gradle-plugin'
-project(':refined-types-gradle-plugin').projectDir = new File('liquid/refined-types-gradle-plugin')
+project(':proofs-gradle-plugin').projectDir = new File('plugins/proofs/proofs-gradle-plugin')
 
-// Libraries
 include ':prelude'
+project(':prelude').projectDir = new File('plugins/proofs/prelude')
+
+//Optics
+
+include ':optics-plugin'
+project(':optics-plugin').projectDir = new File('plugins/optics/optics-plugin')
+
+include ':optics-gradle-plugin'
+project(':optics-gradle-plugin').projectDir = new File('plugins/optics/optics-gradle-plugin')
+
+//Liquid
+
+include ':refined-types-plugin'
+project(':refined-types-plugin').projectDir = new File('plugins/liquid/refined-types-plugin')
+
+
+include ':refined-types-gradle-plugin'
+project(':refined-types-gradle-plugin').projectDir = new File('plugins/liquid/refined-types-gradle-plugin')
+
 include ':arrow-refined-types'
+project(':arrow-refined-types').projectDir = new File('plugins/liquid/arrow-refined-types')
 
