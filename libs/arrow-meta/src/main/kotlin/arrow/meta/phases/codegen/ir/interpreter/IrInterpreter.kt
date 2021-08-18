@@ -374,7 +374,9 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
   }
 
   private fun interpretValueParameters(
-    expression: IrFunctionAccessExpression, irFunction: IrFunction, pool: MutableList<Variable>
+    expression: IrFunctionAccessExpression,
+    irFunction: IrFunction,
+    pool: MutableList<Variable>
   ): ExecutionResult {
     // if irFunction is lambda and it has receiver, then first descriptor must be taken from extension receiver
     val receiverAsFirstArgument = when (expression.dispatchReceiver?.type?.isFunction()) {
@@ -408,7 +410,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
         }
 
         with(Variable(valueParametersSymbols[i], stack.popReturnValue())) {
-          stack.addVar(this)  //must add value argument in current stack because it can be used later as default argument
+          stack.addVar(this) // must add value argument in current stack because it can be used later as default argument
           pool.add(this)
         }
       }
@@ -543,7 +545,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
       constructorCall.dispatchReceiver!!.interpret().check { return it }
       state.outerClass = Variable(irClass.parentAsClass.thisReceiver!!.symbol, stack.popReturnValue())
     }
-    valueArguments.add(Variable(irClass.thisReceiver!!.symbol, state)) //used to set up fields in body
+    valueArguments.add(Variable(irClass.thisReceiver!!.symbol, state)) // used to set up fields in body
     return stack.newFrame(initPool = valueArguments + state.typeArguments) {
       val statements = constructorCall.getBody()!!.statements
       // enum entry use IrTypeOperatorCall with IMPLICIT_COERCION_TO_UNIT as delegation call, but we need the value
@@ -829,10 +831,9 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
         stack.pushReturnValue((!isInstance).toState(irBuiltIns.nothingType))
       }
       IrTypeOperator.IMPLICIT_NOTNULL -> {
-
       }
       IrTypeOperator.SAM_CONVERSION -> {
-        //TODO do something with this ?
+        // TODO do something with this ?
       }
       else -> TODO("${expression.operator} not implemented")
     }
@@ -985,8 +986,7 @@ internal fun IrFunction.classLoadedFunction(): ((Array<out Any?>) -> Any?)? =
           val varargs = args[0] as Array<Object>
           for (arg in varargs) a += arg
           it to a.toTypedArray()
-        }
-        else it to args[n]
+        } else it to args[n]
       }?.filterNotNull().orEmpty().toMap()
       try {
         f?.callBy(reflectionArgs)
@@ -1012,7 +1012,7 @@ private fun Array<out Any?>.resolve(): List<Any?> =
   }
 
 internal fun IrFunction.method(className: String, methodName: String, parameterTypes: List<String>): Method? {
-  //TODO use signature instead of name
+  // TODO use signature instead of name
   val signature = this.toIrBasedDescriptor().computeJvmDescriptor(true, true)
   val foundClass = try {
     Class.forName(className)

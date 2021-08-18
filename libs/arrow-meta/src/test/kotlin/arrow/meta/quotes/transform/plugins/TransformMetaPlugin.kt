@@ -8,9 +8,9 @@ import kotlin.contracts.ExperimentalContracts
 open class TransformMetaPlugin : Meta {
   @ExperimentalContracts
   override fun intercept(ctx: CompilerContext): List<CliPlugin> = (
-    transformRemove
-    + transformReplace
-    + transformMany
-    + transformNewSource
+    transformRemove +
+    transformReplace +
+    transformMany +
+    transformNewSource
   )
 }

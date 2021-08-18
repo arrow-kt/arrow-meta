@@ -8,7 +8,6 @@ import arrow.meta.plugins.liquid.phases.ir.validateIrCallsToRefinedFunctions
 import arrow.meta.plugins.liquid.phases.quotes.generateRefinedApi
 import arrow.meta.plugins.liquid.phases.liquidDataflowPhases
 
-
 val Meta.liquidExpressions: CliPlugin
   get() =
     "Compile time validation of refined types for Kotlin" {
@@ -19,8 +18,3 @@ val Meta.liquidExpressions: CliPlugin
         validateIrCallsToRefinedFunctions()
       )
     }
-
-
-
-
-

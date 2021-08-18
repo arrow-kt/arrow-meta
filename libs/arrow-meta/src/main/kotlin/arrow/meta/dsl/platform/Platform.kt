@@ -19,4 +19,3 @@ fun <A> cli(f: () -> A): A? =
  */
 fun <A> ide(f: () -> A): A? =
   if (isIde) f() else null
-

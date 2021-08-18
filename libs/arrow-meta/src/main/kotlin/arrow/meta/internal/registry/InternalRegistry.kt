@@ -88,9 +88,6 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
 import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 import org.jetbrains.kotlin.types.KotlinType
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
-import java.util.*
 
 interface InternalRegistry : ConfigSyntax {
 
@@ -191,7 +188,7 @@ interface InternalRegistry : ConfigSyntax {
             is SyntheticResolver -> registerSyntheticResolver(project, this, ctx)
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
-            //is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
+            // is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
             else -> ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
           }
         }
@@ -221,7 +218,6 @@ interface InternalRegistry : ConfigSyntax {
     ExtraImportsProviderExtension.registerExtension(project, object : ExtraImportsProviderExtension {
       override fun getExtraImports(ktFile: KtFile): Collection<KtImportInfo> =
         phase.run { ctx.extraImports(ktFile) }
-
     })
   }
 
@@ -598,6 +594,4 @@ interface InternalRegistry : ConfigSyntax {
       check = { declaration, descriptor, context ->
       }
     )
-
-
 }

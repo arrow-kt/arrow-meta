@@ -23,3 +23,7 @@ test {
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
+
+ktlint {
+    version = KTLINT_VERSION
+}

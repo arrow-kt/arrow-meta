@@ -45,5 +45,5 @@ class WhenEntry(
 ) : Scope<KtWhenEntry>(value) {
 
   override fun ElementScope.identity(): WhenEntry =
-    (if (!isElse) """$conditions -> $expression""" else  """else -> $expression""").whenEntry
+    (if (!isElse) """$conditions -> $expression""" else """else -> $expression""").whenEntry
 }

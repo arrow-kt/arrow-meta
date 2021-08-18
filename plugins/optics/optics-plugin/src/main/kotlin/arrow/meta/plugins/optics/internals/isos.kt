@@ -48,4 +48,3 @@ private fun processElement(iso: ADT, target: Target): String {
         |)
         |""".trimMargin()
 }
-

@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 import java.nio.file.Paths
-import java.util.*
 
 /**
  * Quote processor defines how quotes should behave related with its processing phase
@@ -41,7 +40,6 @@ interface QuoteProcessor<T, K, S> {
    * where also uses code as a template
    */
   fun S.map(quoteTemplate: T): Transform<K>
-
 
   /**
    * Given a [quoteTemplate] value, provides a [S] value

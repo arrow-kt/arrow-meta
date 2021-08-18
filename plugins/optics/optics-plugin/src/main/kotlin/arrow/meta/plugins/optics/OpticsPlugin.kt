@@ -29,7 +29,7 @@ val Meta.optics: CliPlugin
   get() =
     "optics" {
       meta(
-        classDeclaration(this,  { isOpticsTarget(element) }) { c ->
+        classDeclaration(this, { isOpticsTarget(element) }) { c ->
           if (c.element.companionObjects.isEmpty())
             knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
           val files = ctx.process(listOf(adt(c.element)))
@@ -54,4 +54,3 @@ val opticsAnnotation: Regex = Regex("@(arrow\\.)?Optics")
 fun isOpticsTarget(ktClass: KtClass): Boolean =
   (ktClass.isData() || ktClass.isSealed()) &&
     ktClass.isAnnotatedWith(opticsAnnotation)
-

@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.IfExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class IfExpressionTest  {
+class IfExpressionTest {
 
   companion object {
     private val ifExpression = """

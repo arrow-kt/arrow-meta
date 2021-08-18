@@ -16,7 +16,7 @@ open class NamedFunctionPlugin : Meta {
     )
 }
 
-val Meta.namedFunctionPlugin : CliPlugin
+val Meta.namedFunctionPlugin: CliPlugin
     get() =
         "Named Function Scope Plugin" {
             meta(

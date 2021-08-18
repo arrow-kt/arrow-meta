@@ -44,7 +44,6 @@ internal fun Solver.implication(args: List<Formula>): BooleanFormula? =
     } else null
   }
 
-
 internal fun Solver.boolOr(args: List<Formula>): Formula? =
   booleans {
     if (args.size == 2) {
@@ -94,5 +93,3 @@ internal fun Solver.isFalse(args: List<Formula>): Boolean? =
       } else null
     } else null
   }
-
-

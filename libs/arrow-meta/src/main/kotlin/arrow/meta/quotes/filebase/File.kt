@@ -60,4 +60,4 @@ class File(
   val stub: KotlinFileStub? = value.stub,
   val classes: Array<PsiClass> = value.classes,
   val sourcePath: FqName? = null
-): Scope<KtFile>(value)
+) : Scope<KtFile>(value)

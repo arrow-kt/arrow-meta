@@ -19,10 +19,8 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.resolve.scopes.LocalRedeclarationChecker
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
-import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.jetbrains.kotlin.synthetic.JavaSyntheticScopes
 import org.jetbrains.kotlin.types.TypeApproximator
 
 class ProofsScopeTower(
@@ -51,7 +49,7 @@ class ProofsScopeTower(
     implicitReceiver = null,
     kind = LexicalScopeKind.SYNTHETIC,
     memberScopes = arrayOf({ proofs }.memberScope())
-  )//.addImportingScope(memberScope.memberScopeAsImportingScope())
+  ) // .addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = SyntheticScopes.Empty
   override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
@@ -65,7 +63,6 @@ class ProofsScopeTower(
     extensionReceiver: ReceiverValueWithSmartCastInfo?
   ): Collection<FunctionDescriptor> =
     emptyList()
-
 
   override fun interceptVariableCandidates(
     resolutionScope: ResolutionScope,

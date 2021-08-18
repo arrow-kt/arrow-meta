@@ -10,7 +10,14 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrStarProjection
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classOrNull
+import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isNullable
+import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
+import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.defaultType
 
 internal interface State {
@@ -24,8 +31,8 @@ internal interface State {
 
     fun setField(newVar: Variable) {
         when (val oldState = fields.firstOrNull { it.symbol == newVar.symbol }) {
-            null -> fields.add(newVar)                                      // newVar isn't present in value list
-            else -> fields[fields.indexOf(oldState)].state = newVar.state   // newVar already present
+            null -> fields.add(newVar) // newVar isn't present in value list
+            else -> fields[fields.indexOf(oldState)].state = newVar.state // newVar already present
         }
     }
 

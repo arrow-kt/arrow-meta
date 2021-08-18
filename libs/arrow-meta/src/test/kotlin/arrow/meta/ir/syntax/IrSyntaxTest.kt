@@ -58,7 +58,6 @@ import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
 import org.junit.jupiter.api.Test
 
-
 class IrSyntaxTest {
 
   @Test

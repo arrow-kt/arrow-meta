@@ -19,4 +19,3 @@ class CharsTests :
     UpperCaseChar,
     WhiteSpaceChar
   )
-

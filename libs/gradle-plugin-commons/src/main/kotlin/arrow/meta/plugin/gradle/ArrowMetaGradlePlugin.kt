@@ -55,7 +55,7 @@ abstract class ArrowMetaGradlePlugin : Plugin<Project> {
   private fun classpathOf(dependency: String): String {
     try {
       val compilerPluginVersion = properties.getProperty(VERSION_KEY)
-      val regex = Regex(".*${dependency}-${compilerPluginVersion}.*")
+      val regex = Regex(".*$dependency-$compilerPluginVersion.*")
       return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")

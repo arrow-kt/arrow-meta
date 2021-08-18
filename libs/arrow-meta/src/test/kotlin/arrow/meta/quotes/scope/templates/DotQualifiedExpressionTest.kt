@@ -7,10 +7,10 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.DotQualifiedExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class DotQualifiedExpressionTest  {
+class DotQualifiedExpressionTest {
 
   companion object {
-    private val dotQualifiedExpression =  """
+    private val dotQualifiedExpression = """
       | val list = listOf("12", "33", "65")
       |     list.flatMap { it.toList() }
       |""".dotQualifiedExpression()

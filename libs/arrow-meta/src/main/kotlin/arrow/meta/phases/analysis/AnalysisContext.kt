@@ -1,6 +1,7 @@
 package arrow.meta.phases.analysis
 
-import java.util.*
+import java.util.Queue
+import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal typealias PluginAnalysisExtension = Int

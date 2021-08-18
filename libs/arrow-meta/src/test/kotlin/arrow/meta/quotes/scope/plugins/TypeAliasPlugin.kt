@@ -6,8 +6,6 @@ import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.typeAlias
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 open class TypeAliasPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
@@ -36,7 +34,7 @@ val Meta.typeAliasDescriptorPlugin
         typeAlias(this, { element.name == "DescriptorEvaluation" }) { (element, descriptor) ->
           Transform.replace(
             replacing = element,
-            newDeclaration = typeAlias("""$name""", `(typeParams)`.toStringList() , """${descriptor?.let { "Boolean" } ?: type}""", descriptor)
+            newDeclaration = typeAlias("""$name""", `(typeParams)`.toStringList(), """${descriptor?.let { "Boolean" } ?: type}""", descriptor)
           )
         }
       )

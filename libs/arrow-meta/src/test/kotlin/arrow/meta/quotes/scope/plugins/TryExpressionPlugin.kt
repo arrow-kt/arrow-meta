@@ -13,7 +13,7 @@ open class TryExpressionPlugin : Meta {
   )
 }
 
-val Meta.tryExpressionPlugin : CliPlugin
+val Meta.tryExpressionPlugin: CliPlugin
   get() =
     "Try Expression Scope Plugin" {
       meta(

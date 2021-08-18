@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
-import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.util.hasAnnotation
@@ -49,7 +48,6 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction): Unit {
     }
   }
 }
-
 
 private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructorCall): Unit {
   this.annotations = this.annotations + listOf(annotation)

@@ -108,8 +108,8 @@ private fun ElementScope.refineCodegenTemplate(
     
     import arrow.refinement.*
     
-    fun require${refinedTypeName}($params): Unit =
-      require(${mappedExpr})
+    fun require$refinedTypeName($params): Unit =
+      require($mappedExpr)
     
     """.trimIndent().file("$refinedTypeName.refined")
 

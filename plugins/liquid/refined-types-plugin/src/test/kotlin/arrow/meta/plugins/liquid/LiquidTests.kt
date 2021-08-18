@@ -116,7 +116,6 @@ class LiquidTests {
       withoutPlugin = { "z".source.evalsTo(1) }
     )
   }
-
 }
 
 private fun passingRefinedExpressionTest(expression: String, value: Any?, prelude: String = ""): Unit =
@@ -138,7 +137,6 @@ private fun failedRefinedExpressionTest(expression: String, msg: String, prelude
     withPlugin = { failsWith { it.contains(msg) } },
     withoutPlugin = { "z".source.evalsTo(RuntimeError(msg)) { RuntimeError(it) } }
   )
-
 
 private fun imports() =
   """
@@ -216,5 +214,4 @@ private operator fun String.invoke(
     assert = { withoutPlugin() }
   ))
 }
-
   

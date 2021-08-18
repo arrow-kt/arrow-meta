@@ -13,7 +13,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 import java.io.File
-import java.util.*
+import java.util.Date
+import kotlin.collections.ArrayList
 
 /**
  * ### Typed Quote Templates DSL
@@ -52,7 +53,7 @@ data class TypedQuoteTemplate<out K : KtElement, out D : DeclarationDescriptor>(
 
 class TypedQuoteFactory<K : KtElement, D : DeclarationDescriptor, S : TypedScope<K, D>>(
   val transform: (TypedQuoteTemplate<K, D>) -> S
-): TypedQuote.Factory<KtElement, K, D, S> {
+) : TypedQuote.Factory<KtElement, K, D, S> {
   override fun invoke(
     containingDeclaration: KtElement,
     match: TypedQuoteTemplate<K, D>.() -> Boolean,

@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ThrowExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class ThrowExpressionTest  {
+class ThrowExpressionTest {
 
   companion object {
     val throwExpression = """

@@ -14,7 +14,10 @@ import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
@@ -34,7 +37,6 @@ import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
@@ -181,7 +183,6 @@ private fun Annotated.preAnnotation(): AnnotationDescriptor? =
 private fun Annotated.postAnnotation(): AnnotationDescriptor? =
   annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Post") }
 
-
 private val skipPackages = setOf(
   FqName("com.apple"),
   FqName("com.oracle"),
@@ -267,7 +268,7 @@ internal fun SolverState.parseFormula(
   // build the rest of the environment
   val rest = """
     (declare-fun this () $VALUE_TYPE)
-    (declare-fun ${RESULT_VAR_NAME} () $VALUE_TYPE)
+    (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
   """.trimIndent()
   val fullString = "$basicUFs\n$params\n$rest\n(assert $formula)"
   return solver.parse(fullString)
@@ -330,7 +331,7 @@ private fun Solver.formula(
     }
     when (call) {
       is BooleanFormula -> resolvedCall to call
-      else -> null  // TODO: report error
+      else -> null // TODO: report error
     }
   }
 
@@ -358,12 +359,12 @@ private fun Solver.formulaWithArgs(
   resolvedCall: ResolvedCall<out CallableDescriptor>
 ): Formula? = when (descriptor.fqNameSafe) {
   FqName("arrow.refinement.pre") -> {
-    //recursion ends here
-    args[0] //TODO apparently we don't get called for composed predicates with && or ||
+    // recursion ends here
+    args[0] // TODO apparently we don't get called for composed predicates with && or ||
   }
   FqName("arrow.refinement.post") -> {
-    //recursion ends here
-    args[0] //TODO apparently we don't get called for composed predicates with && or ||
+    // recursion ends here
+    args[0] // TODO apparently we don't get called for composed predicates with && or ||
   }
   FqName("kotlin.Int.equals") -> {
     val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
@@ -480,7 +481,6 @@ internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingCont
   } else false
 }
 
-
 /**
  * Uses the same resolution infra in [argsFormulae] to turn a complex
  * [KtExpression] into a [Formula] by resolving its nested calls
@@ -539,7 +539,5 @@ private fun Solver.makeConstant(
     else -> null
   }
 
-
 internal fun Solver.formulaVariableName(ex: KtNameReferenceExpression, bindingContext: BindingContext): String =
   if (isResultReference(ex, bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
-

@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ForExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class ForExpressionTest  {
+class ForExpressionTest {
 
     companion object {
         private val someFunction = """

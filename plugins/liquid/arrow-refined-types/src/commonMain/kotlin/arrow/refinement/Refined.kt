@@ -28,7 +28,7 @@ typealias Constraints = List<Pair<Boolean, String>>
  * ensure(true to "passed", false to "failed")
  * ```
  */
-inline fun ensure(vararg constraints: Pair<Boolean, String>) : Constraints =
+inline fun ensure(vararg constraints: Pair<Boolean, String>): Constraints =
   constraints.toList()
 
 /**
@@ -36,7 +36,7 @@ inline fun ensure(vararg constraints: Pair<Boolean, String>) : Constraints =
  * equality mismatch between Pair[] and Object[]
  * @suppress
  */
-inline fun ensureA(vararg constraints: Any) : Constraints =
+inline fun ensureA(vararg constraints: Any): Constraints =
   constraints.filterIsInstance<Pair<Boolean, String>>() +
     constraints.filterIsInstance<Constraints>().flatten()
 
@@ -274,5 +274,4 @@ abstract class Refined<A, out B>(
    */
   inline infix fun <C> and(other: Refined<A, C>): Refined<A, C> =
     And(this, other)
-
 }

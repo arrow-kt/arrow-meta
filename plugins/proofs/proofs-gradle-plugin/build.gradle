@@ -4,6 +4,7 @@ plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'java-gradle-plugin'
   id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
+  id "org.jlleitschuh.gradle.ktlint"
 }
 
 group = GROUP

@@ -24,4 +24,3 @@ class CollectionTests :
     NotEmpty,
     Tail.Elements(emptyList())
   )
-

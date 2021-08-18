@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.CatchClausePlugin
 import org.junit.jupiter.api.Test
 
-class CatchClauseTest  {
+class CatchClauseTest {
 
   companion object {
     val catchClauseExpression = """

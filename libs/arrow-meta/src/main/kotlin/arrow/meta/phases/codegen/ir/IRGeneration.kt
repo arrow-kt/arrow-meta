@@ -15,5 +15,4 @@ interface IRGeneration : ExtensionPhase {
     moduleFragment: IrModuleFragment,
     pluginContext: IrPluginContext
   )
-
 }

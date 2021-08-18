@@ -21,7 +21,6 @@ val RenderProofs: DiagnosticParameterRenderer<Collection<Proof>> =
       obj.joinToString(separator = ",\n") { it.asString() }
   }
 
-
 val ProofRenderer: DescriptorRenderer =
   DescriptorRenderer.FQ_NAMES_IN_TYPES
 

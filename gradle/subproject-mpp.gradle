@@ -60,3 +60,7 @@ tasks.jvmTest {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
 }
+
+ktlint {
+    version = KTLINT_VERSION
+}

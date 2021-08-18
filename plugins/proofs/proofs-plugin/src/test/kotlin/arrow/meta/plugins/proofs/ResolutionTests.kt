@@ -332,7 +332,6 @@ class ResolutionTests {
     }
   }
 
-
   @Test
   fun `ambiguous internal and public given proofs`() {
     resolutionTest(
@@ -448,7 +447,6 @@ class ResolutionTests {
         "name".source.evalsTo("Micheal Müller"),
         "age".source.evalsTo(16)
       )
-
     }
   }
 
@@ -497,7 +495,6 @@ class ResolutionTests {
       )
     )
   }
-
 
   private fun resolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
     val arrowVersion = System.getProperty("ARROW_VERSION")

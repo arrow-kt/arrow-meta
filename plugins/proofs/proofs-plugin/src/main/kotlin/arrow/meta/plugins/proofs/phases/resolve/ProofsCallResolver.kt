@@ -63,7 +63,6 @@ class ProofsCallResolver(
         useOrder = false
       )
       return kotlinCallCompleter.createAllCandidatesResult(allCandidates, expectedType, resolutionCallbacks)
-
     }
     val candidates = towerResolver.runWithEmptyTowerData(
       KnownResultProcessor(resolutionCandidates),
@@ -109,5 +108,3 @@ class ProofsCallResolver(
     return kotlinCallCompleter.runCompletion(candidateFactory, maximallySpecificCandidates, expectedType, resolutionCallbacks)
   }
 }
-
-

@@ -51,13 +51,11 @@ private fun CompilerContext.generateGivenFiles(module: ModuleDescriptor, parentP
 private fun Iterable<KtFile>.firstParentPath(): String? =
   firstOrNull()?.virtualFilePath?.let { java.io.File(it).parentFile.absolutePath }
 
-
 private fun ModuleDescriptor.renderFunctions(ctx: CompilerContext): List<Pair<DeclarationDescriptor, String>> =
   declarationsWithGivenArguments()
     .map {
       it to ctx.internalGivenFunction(it)
     }
-
 
 private fun CompilerContext.internalGivenFunction(f: DeclarationDescriptor): String =
   f.run {

@@ -17,7 +17,6 @@ import org.sosy_lab.java_smt.api.SLFormulaManager
 import org.sosy_lab.java_smt.api.SolverContext
 import org.sosy_lab.java_smt.api.UFManager
 
-
 typealias ObjectFormula = NumeralFormula.IntegerFormula
 
 val ObjectFormulaType = FormulaType.IntegerType
@@ -98,9 +97,9 @@ class Solver(context: SolverContext) :
   }
 }
 
-//val initZ3: Unit = //initializes first the turnkey distribution to enable z3 dynamic loading
+// val initZ3: Unit = //initializes first the turnkey distribution to enable z3 dynamic loading
 //
-////tricks java smt lib by injecting the turnkey z3 unpackaded location as part of the java libs
+// //tricks java smt lib by injecting the turnkey z3 unpackaded location as part of the java libs
 //  //before java smt loads it
 //  run {
 //    //initializes first the turnkey distribution to enable z3 dynamic loading

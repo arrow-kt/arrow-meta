@@ -17,7 +17,7 @@ fun ModuleDescriptor.initializeProofCache(ctx: CompilerContext): List<Proof> =
   try {
     val moduleProofs: List<Proof> = computeProofs(emptyList(), listOf(FqName.ROOT), skipPackages)
     ctx.run {
-      if (moduleProofs.isNotEmpty()) { //remove old cached modules if this the same kind and has more recent proofs
+      if (moduleProofs.isNotEmpty()) { // remove old cached modules if this the same kind and has more recent proofs
         cachedModule(name)?.let { proofCache.remove(it) }
         proofCache[this@initializeProofCache] = ProofsCache(moduleProofs)
       }

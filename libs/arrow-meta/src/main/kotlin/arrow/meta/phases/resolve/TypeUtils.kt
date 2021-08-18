@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.UnwrappedType
-import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
@@ -40,5 +39,3 @@ fun KotlinType.intersection(vararg other: KotlinType): KotlinType {
     constructor.createScopeForKotlinType()
   )
 }
-
-

@@ -13,7 +13,7 @@ open class ForExpressionPlugin : Meta {
   )
 }
 
-val Meta.forExpressionPlugin : CliPlugin
+val Meta.forExpressionPlugin: CliPlugin
   get() =
     "For Expression Scope Plugin" {
       meta(

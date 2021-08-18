@@ -94,5 +94,4 @@ interface Meta : ComponentRegistrar, MetaPluginSyntax, InternalRegistry {
    */
   override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) =
     super.registerProjectComponents(project, configuration)
-
 }

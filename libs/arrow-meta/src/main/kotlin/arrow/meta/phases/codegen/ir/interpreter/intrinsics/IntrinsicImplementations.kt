@@ -26,7 +26,10 @@ import org.jetbrains.kotlin.ir.interpreter.Next
 import org.jetbrains.kotlin.ir.interpreter.ReturnLabel
 import org.jetbrains.kotlin.ir.interpreter.check
 import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.isLocal
+import org.jetbrains.kotlin.ir.util.parentAsClass
 
 internal sealed class IntrinsicBase {
     abstract fun equalTo(irFunction: IrFunction): Boolean
@@ -128,7 +131,7 @@ internal object RegexReplace : IntrinsicBase() {
         val matchResultParameter = transform.valueParameters.single()
         val result = regex.replace(input) {
             val itAsState = Variable(matchResultParameter.symbol, Wrapper(it, matchResultParameter.type.classOrNull!!.owner))
-            stack.newFrame(initPool = listOf(itAsState)) { transform.interpret() }//.check { return it }
+            stack.newFrame(initPool = listOf(itAsState)) { transform.interpret() } // .check { return it }
             stack.popReturnValue().asString()
         }
         stack.pushReturnValue(result.toState(irFunction.returnType))

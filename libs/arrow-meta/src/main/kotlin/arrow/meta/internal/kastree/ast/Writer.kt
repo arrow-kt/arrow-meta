@@ -61,7 +61,7 @@ open class Writer(
           if (wildcard) append(".*") else if (alias != null) append(" as ").appendName(alias)
         }
         is Node.Command -> {
-          append( name )
+          append(name)
         }
         is Node.Decl.Structured -> childMods().also {
           append(when (form) {

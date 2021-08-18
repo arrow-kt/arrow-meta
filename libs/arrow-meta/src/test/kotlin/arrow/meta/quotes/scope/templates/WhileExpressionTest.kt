@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.WhileExpressionPlugin
 import org.junit.jupiter.api.Test
 
-class WhileExpressionTest  {
+class WhileExpressionTest {
 
   companion object {
     val whileExpression = """

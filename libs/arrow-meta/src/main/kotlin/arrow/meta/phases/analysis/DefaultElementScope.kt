@@ -1,7 +1,6 @@
 package arrow.meta.phases.analysis
 
 import arrow.meta.quotes.Scope
-import arrow.meta.quotes.SyntheticElement
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
 import arrow.meta.quotes.declaration.DestructuringDeclaration
@@ -433,7 +432,7 @@ class DefaultElementScope(project: Project) : ElementScope {
 
   override fun String.file(fileName: String): File = file(fileName, DEFAULT_GENERATED_SRC_PATH.toString())
 
-  override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if(fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
+  override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
@@ -441,4 +440,3 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }
-

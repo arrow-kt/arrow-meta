@@ -3,10 +3,8 @@ package arrow.meta.phases.codegen.ir.interpreter.builtins
 import arrow.meta.phases.codegen.ir.interpreter.state.ExceptionState
 import org.jetbrains.kotlin.ir.interpreter.builtins.CompileTimeFunction
 import org.jetbrains.kotlin.ir.interpreter.builtins.binaryFunctions
-import org.jetbrains.kotlin.ir.interpreter.builtins.binaryOperation
 import org.jetbrains.kotlin.ir.interpreter.builtins.ternaryFunctions
 import org.jetbrains.kotlin.ir.interpreter.builtins.unaryFunctions
-import org.jetbrains.kotlin.ir.interpreter.builtins.unaryOperation
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
@@ -60,12 +58,11 @@ fun registerAssociatedMembers(className: String, kotlinReflection: Boolean = tru
   } catch (e: ClassNotFoundException) {
     emptyMap()
   } catch (e: ExceptionInInitializerError) {
-    //attempt to load with java reflection unsupported kotlin reflection classes
+    // attempt to load with java reflection unsupported kotlin reflection classes
     registerAssociatedMembers(className, false)
-  } catch(e: UnsupportedOperationException) {
+  } catch (e: UnsupportedOperationException) {
     registerAssociatedMembers(className, false)
   }
-
 
 fun misc(): Map<CompileTimeFunction, (Array<out Any?>) -> Any?> =
   registerAssociatedMembers("kotlin.text.StringsKt")
@@ -110,7 +107,7 @@ val compileTimeFunctions: MutableMap<CompileTimeFunction, (Array<out Any?>) -> A
       ops<LongArray>() +
       ops<Array<Any?>>() +
       ops<Any>() +
-      ops<ExceptionState>()
-      + compilerIrInterpreterFunctions
-      + misc()
+      ops<ExceptionState>() +
+      compilerIrInterpreterFunctions +
+      misc()
     ).toMutableMap()

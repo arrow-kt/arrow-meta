@@ -34,7 +34,6 @@ annotation class Post(val formulae: Array<String>)
 )
 annotation class Law
 
-
 /**
  * Annotation to flag ad-hoc refinements over third party functions
  */

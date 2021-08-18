@@ -16,7 +16,9 @@ import org.jetbrains.kotlin.ir.util.nameForIrSerialization
 import kotlin.math.min
 
 internal class ExceptionState private constructor(
-  override val irClass: IrClass, override val fields: MutableList<Variable>, stackTrace: List<String>
+  override val irClass: IrClass,
+  override val fields: MutableList<Variable>,
+  stackTrace: List<String>
 ) : Complex(irClass, fields) {
 
     private lateinit var exceptionFqName: String
@@ -45,7 +47,9 @@ internal class ExceptionState private constructor(
     }
 
     constructor(
-        exception: Throwable, irClass: IrClass, stackTrace: List<String>
+      exception: Throwable,
+      irClass: IrClass,
+      stackTrace: List<String>
     ) : this(irClass, evaluateFields(exception, irClass, stackTrace), stackTrace + evaluateAdditionalStackTrace(exception)) {
         if (irClass.name.asString() != exception::class.java.simpleName) {
             // ir class wasn't found in classpath, a stub was passed => need to save java class hierarchy

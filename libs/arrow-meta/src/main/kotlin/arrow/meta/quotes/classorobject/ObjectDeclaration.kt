@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 class ObjectDeclaration(
   override val value: KtObjectDeclaration,
   override val descriptor: ClassDescriptor?
-): ClassOrObjectScope<KtObjectDeclaration>(value, descriptor) {
+) : ClassOrObjectScope<KtObjectDeclaration>(value, descriptor) {
 
   override fun ElementScope.identity(): ObjectDeclaration =
     """

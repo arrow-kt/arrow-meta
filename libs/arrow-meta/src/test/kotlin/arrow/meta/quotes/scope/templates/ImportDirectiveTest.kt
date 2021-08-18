@@ -6,7 +6,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ImportDirectivePlugin
 import org.junit.jupiter.api.Test
 
-class ImportDirectiveTest  {
+class ImportDirectiveTest {
 
   companion object {
     val importDirectiveExpression = """

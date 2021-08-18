@@ -71,10 +71,10 @@ private val Meta.transformNewSourceWithManyTransformation: CliPlugin
     meta(
       classDeclaration(this, { element.name == "NewSourceMany" }) { c ->
         (
-          changeClassVisibility("NewSourceMany", c.element, this)
-          + removeFooPrint(c.element, this)
-          + removeBarPrint(c.element, this)
-          + generateSupplierClass(this)
+          changeClassVisibility("NewSourceMany", c.element, this) +
+          removeFooPrint(c.element, this) +
+          removeBarPrint(c.element, this) +
+          generateSupplierClass(this)
         )
       }
     )

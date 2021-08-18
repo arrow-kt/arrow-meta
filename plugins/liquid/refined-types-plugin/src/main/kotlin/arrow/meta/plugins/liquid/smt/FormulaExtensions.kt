@@ -5,12 +5,12 @@ import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
 
-fun <T: Formula> Solver.substituteFormulae(formula: T, subst: Map<Formula, Formula>): T =
+fun <T : Formula> Solver.substituteFormulae(formula: T, subst: Map<Formula, Formula>): T =
   formulae {
     this.substitute(formula, subst)
   }
 
-fun <T: Formula> Solver.substituteVariable(formula: T, mapping: Map<String, Formula>): T =
+fun <T : Formula> Solver.substituteVariable(formula: T, mapping: Map<String, Formula>): T =
   formulae {
     val subst = mapping.mapKeys { entry ->
       makeVariable(getFormulaType(entry.value), entry.key)
@@ -18,7 +18,7 @@ fun <T: Formula> Solver.substituteVariable(formula: T, mapping: Map<String, Form
     substituteFormulae(formula, subst)
   }
 
-fun <T: Formula> Solver.rename(formula: T, mapping: Map<String, String>): T =
+fun <T : Formula> Solver.rename(formula: T, mapping: Map<String, String>): T =
   formulae {
     val renamer = object : FormulaTransformationVisitor(this) {
       override fun visitFreeVariable(f: Formula, name: String): Formula {
@@ -33,7 +33,8 @@ fun <T: Formula> Solver.rename(formula: T, mapping: Map<String, String>): T =
 
 fun Solver.renameDeclarationConstraints(
   decl: DeclarationConstraints,
-  mapping: Map<String, String>): DeclarationConstraints =
+  mapping: Map<String, String>
+): DeclarationConstraints =
   DeclarationConstraints(
     decl.descriptor,
     decl.pre.map { rename(it, mapping) },

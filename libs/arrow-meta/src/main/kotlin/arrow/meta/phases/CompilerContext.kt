@@ -67,11 +67,11 @@ open class CompilerContext(
   @PublishedApi
   internal val sessionData: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
 
-  fun <T: Any> set(key: String, value: T): Unit {
+  fun <T : Any> set(key: String, value: T): Unit {
     sessionData[key] = value
   }
 
-  inline fun <reified T: Any> get(key: String): T? =
+  inline fun <reified T : Any> get(key: String): T? =
     sessionData[key] as? T
 
   val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
@@ -90,7 +90,7 @@ fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () 
   rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
 )
 
-inline fun <reified D: DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
+inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
   compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }
 
 fun CompilerContext.getOrCreateBaseDirectory(parentPathFile: File?): File {

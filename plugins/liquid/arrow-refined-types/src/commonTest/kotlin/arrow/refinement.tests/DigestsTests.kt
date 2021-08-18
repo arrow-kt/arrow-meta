@@ -19,4 +19,3 @@ class DigestsTests :
     SHA384,
     SHA512
   )
-

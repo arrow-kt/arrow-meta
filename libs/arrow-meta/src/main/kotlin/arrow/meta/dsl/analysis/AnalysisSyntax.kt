@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.psi.KtImportInfo
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
-import java.util.*
 
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly.
@@ -143,5 +142,4 @@ interface AnalysisSyntax {
         }
       )
     } ?: ExtensionPhase.Empty
-
 }

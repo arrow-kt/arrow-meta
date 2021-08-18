@@ -7,7 +7,7 @@ import arrow.meta.plugin.testing.assertThis
 import arrow.meta.quotes.scope.plugins.ValueArgumentPlugin
 import org.junit.jupiter.api.Test
 
-class ValueArgumentTest  {
+class ValueArgumentTest {
 
   @Test
   fun `Validate value argument scope properties`() {

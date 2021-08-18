@@ -6,7 +6,6 @@ import arrow.meta.quotes.modifierlistowner.TypeReference
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
  * <code>"""$left $operation $type""".`is`</code>
@@ -43,5 +42,4 @@ class IsExpression(
 
   override fun ElementScope.identity(): IsExpression =
     """$left $operation $type""".`is`
-
 }

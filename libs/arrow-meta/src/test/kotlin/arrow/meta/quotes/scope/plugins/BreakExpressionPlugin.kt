@@ -13,11 +13,11 @@ open class BreakExpressionPlugin : Meta {
   )
 }
 
-val Meta.breakExpressionPlugin : CliPlugin
+val Meta.breakExpressionPlugin: CliPlugin
   get() =
     "Break Expression Scope Plugin" {
       meta(
-        breakExpression(this,{ true }) { expression ->
+        breakExpression(this, { true }) { expression ->
           Transform.replace(
             replacing = expression,
             newDeclaration = identity()
@@ -25,4 +25,3 @@ val Meta.breakExpressionPlugin : CliPlugin
         }
       )
     }
-

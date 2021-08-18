@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProv
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
-import java.util.*
 
 /**
  * The Resolve phase is in charge of providing the meaning of the Kotlin Language to the structured trees discovered by the Kotlin parser.
@@ -133,7 +132,6 @@ interface ResolveSyntax {
         syntheticStaticFunctionsForName(contributedFunctions, location)
     }
 
-
   /**
    * The [syntheticResolver] extension allows the user to change the top level class and nested class descriptors
    * requested by IntelliJ and some parts of the CLI compiler.
@@ -219,6 +217,4 @@ interface ResolveSyntax {
       override fun CompilerContext.generateSyntheticSecondaryConstructors(thisDescriptor: ClassDescriptor, bindingContext: BindingContext, result: MutableCollection<ClassConstructorDescriptor>): Unit =
         generateSyntheticSecondaryConstructors(thisDescriptor, bindingContext, result)
     }
-
-
 }

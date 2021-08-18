@@ -14,4 +14,3 @@ interface ExtensionPhase {
    */
   object Empty : ExtensionPhase
 }
-

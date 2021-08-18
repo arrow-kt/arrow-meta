@@ -13,7 +13,7 @@ open class BlockExpressionPlugin : Meta {
   )
 }
 
-val Meta.blockExpressionPlugin : CliPlugin
+val Meta.blockExpressionPlugin: CliPlugin
   get() =
     "Block Expression Scope Plugin" {
       meta(

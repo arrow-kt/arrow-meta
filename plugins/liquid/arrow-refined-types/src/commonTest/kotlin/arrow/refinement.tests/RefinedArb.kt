@@ -29,8 +29,8 @@ fun <A, B> checkLaw(
   refined: Refined<A, B>,
   it: A, // for any value
   propertyContext: PropertyContext
-) = if (refined.isValid(it)) { //if its valid
-  refined.require(it) //require should not throw
+) = if (refined.isValid(it)) { // if its valid
+  refined.require(it) // require should not throw
   refined.orNull(it) != null // and orNull should return a non null value
 } else try { // otherwise
   refined.require(it) // require will throw a IllegalArgumentException
@@ -43,6 +43,6 @@ fun <A, B> checkLaw(
 abstract class RefinedLaws<A>(arb: Arb<A>, vararg refined: Refined<A, *>) : StringSpec({
   println("Running laws for ${refined.joinToString { it::class.toString() }}")
   refined.forEach {
-    it::class.simpleName?.invoke { it.laws(arb)  }
+    it::class.simpleName?.invoke { it.laws(arb) }
   }
 })

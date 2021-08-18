@@ -32,5 +32,4 @@ class LensTests {
       |val r = i != null
       """ { "r".source.evalsTo(true) }
   }
-
 }

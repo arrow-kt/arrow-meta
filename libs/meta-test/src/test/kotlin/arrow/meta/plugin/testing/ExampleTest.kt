@@ -254,7 +254,7 @@ class ExampleTest {
     assertThis(CompilerTest(
       config = { listOf(
         addCommandLineProcessors(ExampleCommandLineProcessor()),
-        addPluginOptions(PluginOption(ExampleCommandLineProcessor().pluginId,"wrongKey", "value"))
+        addPluginOptions(PluginOption(ExampleCommandLineProcessor().pluginId, "wrongKey", "value"))
       )},
       code = {
         """
