@@ -31,7 +31,7 @@ data class Plugin<A>(
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
  *                               |  println("Hello ΛRROW Meta!")
- *                               |""".function.syntheticScope
+ *                               |""".function
  *         )
  *       }
  *     )

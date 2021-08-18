@@ -15,23 +15,23 @@ val Meta.higherKindedTypes2: CliPlugin
         classDeclaration(this,  { isHigherKindedType(element) }) { c ->
           Transform.replace(c.element, listOfNotNull(
             /** Kind Marker **/
-            "class For$name private constructor()".`class`.syntheticScope,
+            "class For$name private constructor()".`class`,
             /** Single arg type alias **/
-            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrowx.Kind${c.element.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>().syntheticScope,
+            "typealias ${name}Of<${`(typeParameters)`.invariant()}> = arrowx.Kind${c.element.kindAritySuffix}<For$name, ${`(typeParameters)`.invariant()}>".declaration<KtTypeAlias>(),
             """|@arrow.Proof(arrow.TypeProof.Subtyping)
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> ${name}Of<${`(typeParameters)`.invariant()}>.fix(): $name<${`(typeParameters)`.invariant()}> =
                |  (this as arrowx.Kinded).value as $name<${`(typeParameters)`.invariant()}>
-               |""".function(null).syntheticScope,
+               |""".function(null),
             """|@arrow.Proof(arrow.TypeProof.Subtyping)
                |@Suppress("UNCHECKED_CAST")
                |inline fun <${`(typeParameters)`.invariant(true)}> $name<${`(typeParameters)`.invariant()}>.unfix(): ${name}Of<${`(typeParameters)`.invariant()}> =
                |  arrowx.Kinded(this)
-               |""".function(null).syntheticScope,
+               |""".function(null),
             /** generate partial aliases if this kind has > 1 type parameters **/
             /** generate partial aliases if this kind has > 1 type parameters **/
             if (c.element.arity > 1)
-              "typealias ${name}PartialOf<${c.element.partialTypeParameters}> = arrowx.Kind${c.element.partialKindAritySuffix}<For$name, ${c.element.partialTypeParameters}>".declaration<KtTypeAlias>().syntheticScope
+              "typealias ${name}PartialOf<${c.element.partialTypeParameters}> = arrowx.Kind${c.element.partialKindAritySuffix}<For$name, ${c.element.partialTypeParameters}>".declaration<KtTypeAlias>()
             else null,
             c.element.scope()
           )

@@ -84,7 +84,7 @@ class TransformNewSourceTest {
       },
       assert = {
         allOf(
-          quoteOutputMatches(""" @arrow.synthetic private class NewSourceMany """.source),
+          quoteOutputMatches(""" private class NewSourceMany """.source),
           quoteFileMatches("NewSourceMany_Generated.kt",
             """
                package arrow

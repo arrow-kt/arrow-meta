@@ -52,7 +52,7 @@ private val Meta.transformManySimpleCase: CliPlugin
 private fun CompilerContext.cleanMethods(className: String, context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run {
   Transform.replace(
     replacing = context,
-    newDeclaration = """ private class $className {} """.`class`.syntheticScope
+    newDeclaration = """ private class $className {} """.`class`
   )
 }
 
@@ -63,7 +63,7 @@ private fun CompilerContext.createPrints(className: String, context: KtClass, de
   | private class $className {
   |   fun printFirst() = println("Foo")
   |   fun printSecond() = println("Bar")
-  | } """.`class`.syntheticScope
+  | } """.`class`
   )
 }
 
@@ -73,7 +73,7 @@ private fun CompilerContext.changeClassVisibility(className: String, context: Kt
     newDeclaration = """
     | private class $className {
     |   $body
-    | } """.`class`.syntheticScope
+    | } """.`class`
   )
 }
 

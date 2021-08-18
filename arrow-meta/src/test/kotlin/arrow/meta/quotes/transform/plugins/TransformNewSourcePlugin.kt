@@ -85,7 +85,7 @@ private fun CompilerContext.changeClassVisibility(className: String, context: Kt
   newDeclaration = """
   | private class $className {
   |   $body
-  | } """.`class`.syntheticScope
+  | } """.`class`
 )}
 
 private fun CompilerContext.removeFooPrint(context: KtClass, declaration: ClassDeclaration): Transform<KtClass> = declaration.run { Transform.remove(

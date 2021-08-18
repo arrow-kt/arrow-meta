@@ -21,7 +21,7 @@ val Meta.helloWorld: CliPlugin get() =
           replacing = c,
           newDeclaration = """|fun helloWorld(): Unit =
                               |  println("Hello ΛRROW Meta!")
-                              |""".function(descriptor).syntheticScope
+                              |""".function(descriptor)
         )
       }
     )

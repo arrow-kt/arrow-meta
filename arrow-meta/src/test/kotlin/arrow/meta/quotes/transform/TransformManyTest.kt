@@ -24,7 +24,7 @@ class TransformManyTest {
       assert = {
         quoteOutputMatches(
           """
-          | @arrow.synthetic private class ManySimpleCase {
+          | private class ManySimpleCase {
           |   fun printSecond() = println("Bar")
           | }
           """.source
@@ -47,7 +47,7 @@ class TransformManyTest {
       assert = {
         quoteOutputMatches(
           """
-          | @arrow.synthetic private class ManyCustomCase {
+          | private class ManyCustomCase {
           |   fun printSecond() = println("Bar")
           | }
           """.source
@@ -69,7 +69,7 @@ class TransformManyTest {
        | }
        """.source
       },
-      assert = { quoteOutputMatches(""" @arrow.synthetic private class ManyReplace """.source) }
+      assert = { quoteOutputMatches(""" private class ManyReplace """.source) }
     ))
   }
   
@@ -87,7 +87,7 @@ class TransformManyTest {
         | }
         """.source
       },
-      assert = { quoteOutputMatches(""" @arrow.synthetic private class ManyRemove """.source) }
+      assert = { quoteOutputMatches(""" private class ManyRemove """.source) }
     ))
   }
 }

@@ -74,7 +74,7 @@ const val META_DEBUG_COMMENT = "//metadebug"
  *           replacing = c,
  *           newDeclaration = """|fun helloWorld(): Unit =
  *                               |  println("Hello ΛRROW Meta!")
- *                               |""".function.syntheticScope
+ *                               |""".function
  *         )
  *       }
  *     )
