@@ -1,9 +1,0 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
-
-dependencies {
-    compileOnly project(':arrow-meta')
-}
-
-apply from: file("${rootDir}/${SUBPROJECT}")
