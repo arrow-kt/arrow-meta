@@ -1,11 +1,36 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+configurations {
+    // Use a custom config that inherits all dependencies from runtimeOnly and implementation.
+    // If you want to seperate your dependencies from the JavaSMT ones
+    // simply use it when pulling the dependencies.
+    javaSMTConfig.extendsFrom(runtimeOnly, implementation)
 }
 
 dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-    compileOnly project(':arrow-meta')
-    compileOnly project(':arrow-refined-types')
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    implementation project(':arrow-meta')
+    implementation project(':arrow-refined-types')
+
+
+    /* solver deps */
+    implementation 'org.sosy-lab:java-smt:3.9.0-1-g304079c2'
+
+    implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
+    // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'so'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dylib'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dylib'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dll'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dll'
+
+    // Tell implementation config to use the JavaSMT + dependencies from our dependencies folder
+    // implementation fileTree(dir: 'build/libs', include: '*.jar')
 
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
@@ -15,5 +40,57 @@ dependencies {
     testRuntimeOnly project(':prelude')
     testRuntimeOnly project(':refined-types-plugin')
 }
+
+shadowJar {
+    dependsOn 'copyDependencies'
+    mergeServiceFiles()
+    //configurations = [project.configurations.javaSMTConfig]
+    dependencies {
+        exclude("org.jetbrains.kotlin:kotlin-stdlib")
+        exclude("org.jetbrains.kotlin:kotlin-compiler-embeddable")
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
+}
+
+// Copy and rename all JavaSMT dependencies
+// This is necessary as Gradle renames the JavaSMT dependencies
+// AND they need to be in a specific location for JavaSMT to be found (the easiest ist the same folder)
+task copyDependencies(type: Copy) {
+    // Delete old dependencies as they might cause trouble
+    dependsOn 'cleanDownloadedDependencies'
+    from configurations.javaSMTConfig
+    into 'build/libs'
+    // Renames the dependencies
+
+    rename '.*(lib[^-]*)-?.*.so', '$1.so'
+    rename '.*(lib[^-]*)-?.*.dylib', '$1.dylib'
+    rename '.*(lib[^-]*)-?.*.dll', '$1.dll'
+    //rename 'libz3java.so', 'z3java.so'
+}
+
+// cleans the dependencies folder
+task cleanDownloadedDependencies(type: Delete) {
+    delete fileTree('build/libs')
+}
+
+//tasks.withType(Test) {
+//    //TODO(we need to the same in the gradle plugin to unpack this)
+//    environment "DYLD_LIBRARY_PATH", projectDir.absolutePath + "/build/libs"
+//    systemProperty "java.library.path", projectDir.absolutePath + "/build/libs"
+//}
+
+//tasks.withType(Test)  {
+//    maxParallelForks = 1
+//}
+
+//// Copy the JavaSMT dependencies before using them in run and test
+test.dependsOn copyDependencies
+shadowJar.dependsOn copyDependencies
+//
+//// When clean is called we want to delete our copied JavaSMT files
+clean.dependsOn cleanDownloadedDependencies
 
 apply from: file("${rootDir}/${SUBPROJECT}")
