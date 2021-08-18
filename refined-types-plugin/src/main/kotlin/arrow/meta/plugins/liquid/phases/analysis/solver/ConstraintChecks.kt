@@ -422,6 +422,7 @@ private fun SolverState.checkSimpleConditional(
               checkConditionsInconsistencies(correspondingVars, context, cond.whole)
             // it only makes sense to continue if we are not consistent
             guard<Unit>(!inconsistentEnvironment)
+            goOn()
           }.flatMap {
             // check the body
             checkExpressionConstraints(associatedVarName, cond.body, context, returnPoints)
