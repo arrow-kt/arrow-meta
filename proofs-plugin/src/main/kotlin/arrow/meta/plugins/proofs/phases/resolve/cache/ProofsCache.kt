@@ -1,7 +1,5 @@
 package arrow.meta.plugins.proofs.phases.resolve.cache
 
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.GivenProof
 import arrow.meta.plugins.proofs.phases.Proof
@@ -24,10 +22,8 @@ fun ModuleDescriptor.initializeProofCache(ctx: CompilerContext): List<Proof> =
         proofCache[this@initializeProofCache] = ProofsCache(moduleProofs)
       }
     }
-    Log.Verbose({ "initializeProofCache proofs: ${moduleProofs.size}" }) {}
     moduleProofs
   } catch (e: Throwable) {
-    Log.Verbose({ "initializeProofCache found error $e" }) {}
     emptyList()
   }
 

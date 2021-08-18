@@ -1,7 +1,5 @@
 package arrow.meta.plugins.proofs.phases.resolve.scopes
 
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
@@ -33,9 +31,17 @@ class ProofsScopeTower(
   compilerContext: CompilerContext
 ) : ImplicitScopeTower {
   val scopeOwner = module
-  val importingScope = LexicalScopeImpl(ImportingScope.Empty, scopeOwner, false, null, LexicalScopeKind.SYNTHETIC, LocalRedeclarationChecker.DO_NOTHING) {}
+  val importingScope = LexicalScopeImpl(
+    ImportingScope.Empty,
+    scopeOwner,
+    false,
+    null,
+    LexicalScopeKind.SYNTHETIC,
+    LocalRedeclarationChecker.DO_NOTHING
+  ) {}
   override val dynamicScope: MemberScope = SimpleMemberScope(proofs.map { it.through })
-  override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter = ImplicitsExtensionsResolutionFilter.Default
+  override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter =
+    ImplicitsExtensionsResolutionFilter.Default
   override val isDebuggerContext: Boolean = false
   override val isNewInferenceEnabled: Boolean = false
   override val lexicalScope: LexicalScope = LexicalChainedScope.create(
@@ -58,9 +64,8 @@ class ProofsScopeTower(
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
   ): Collection<FunctionDescriptor> =
-    Log.Verbose({"ProofsScopeTower.interceptFunctionCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location"}) {
-      emptyList()
-    }
+    emptyList()
+
 
   override fun interceptVariableCandidates(
     resolutionScope: ResolutionScope,
@@ -70,7 +75,5 @@ class ProofsScopeTower(
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
   ): Collection<VariableDescriptor> =
-    Log.Verbose({ "ProofsScopeTower.interceptVariableCandidates: $resolutionScope, name: $name, initialResults: $initialResults, $location" }) {
-      emptyList()
-    }
+    emptyList()
 }
