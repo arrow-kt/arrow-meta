@@ -1,7 +1,5 @@
 package arrow.meta.plugins.proofs.phases.resolve.scopes
 
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import arrow.meta.plugins.proofs.phases.Proof
 import arrow.meta.plugins.proofs.phases.callables
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
@@ -20,34 +18,25 @@ internal class ProofsMemberScope(private val synthProofs: () -> List<CallableMem
   override fun getClassifierNames(): Set<Name>? = synthProofs().map { it.name }.toSet()
 
   override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedClassifier: $name $location $this" }) {
-      synthProofs().firstOrNull { it.name == name }.safeAs()
-    }
+    synthProofs().firstOrNull { it.name == name }.safeAs()
 
-  override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedDescriptors: $kindFilter $nameFilter $this" }) {
-      synthProofs().filter { nameFilter(it.name) }
-    }
+  override fun getContributedDescriptors(
+    kindFilter: DescriptorKindFilter,
+    nameFilter: (Name) -> Boolean
+  ): Collection<DeclarationDescriptor> =
+    synthProofs().filter { nameFilter(it.name) }
 
   override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedFunctions: $name $location $this" }) {
-      synthProofs().filterIsInstance<SimpleFunctionDescriptor>().filter { it.name == name }
-    }
+    synthProofs().filterIsInstance<SimpleFunctionDescriptor>().filter { it.name == name }
 
   override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getContributedVariables: $name $location $this" }) {
-      emptyList()
-    }
+    emptyList()
 
   override fun getFunctionNames(): Set<Name> =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getFunctionNames: $this" }) {
-      synthProofs().map { it.name }.toSet()
-    }
+    synthProofs().map { it.name }.toSet()
 
   override fun getVariableNames(): Set<Name> =
-    Log.Silent({ "ProofsPackageFragmentDescriptor.getVariableNames: $this" }) {
-      emptySet()
-    }
+    emptySet()
 
   override fun printScopeStructure(p: Printer) {
     println("printScopeStructure")

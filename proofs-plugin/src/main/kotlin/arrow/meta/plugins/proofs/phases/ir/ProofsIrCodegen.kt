@@ -1,8 +1,6 @@
 package arrow.meta.plugins.proofs.phases.ir
 
 import arrow.meta.Meta
-import arrow.meta.log.Log
-import arrow.meta.log.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.phases.codegen.ir.filterMap
@@ -99,11 +97,9 @@ class ProofsIrCodegen(
     proveCall(expression)
 
   private fun CompilerContext.proveCall(expression: IrCall): IrMemberAccessExpression<*> =
-    Log.Verbose({ "insertProof:\n ${expression.dump()} \nresult\n ${this.dump()}" }) {
       if (expression.symbol.owner.annotations.hasAnnotation(ArrowCompileTime)) {
         insertGivenCall(expression)
       } else expression
-    }
 
   private fun CompilerContext.insertGivenCall(
     expression: IrCall
