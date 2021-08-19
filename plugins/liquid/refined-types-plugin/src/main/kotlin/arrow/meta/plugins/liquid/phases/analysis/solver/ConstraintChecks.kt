@@ -1,11 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
-import arrow.meta.continuations.ContSeq
-import arrow.meta.continuations.doOnlyWhen
-import arrow.meta.continuations.ensure
-import arrow.meta.continuations.flatMap
-import arrow.meta.continuations.map
-import arrow.meta.continuations.sequence
+import arrow.meta.continuations.*
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
@@ -322,33 +317,31 @@ private fun SolverState.checkConstantExpression(
   associatedVarName: String,
   expression: KtConstantExpression
 ): ContSeq<Unit> = cont {
-    solver.formulae {
-        val mayBoolean = expression.text.toBooleanStrictOrNull()
-        val mayInteger = expression.text.toBigIntegerOrNull()
-        val mayRational = expression.text.toBigDecimalOrNull()
-        when {
-            mayBoolean == true ->
-                solver.makeBooleanObjectVariable(associatedVarName)
-            mayBoolean == false ->
-                solver.booleans { not(solver.makeBooleanObjectVariable(associatedVarName)) }
-            mayInteger != null ->
-                solver.ints {
-                    equal(
-                        solver.makeIntegerObjectVariable(associatedVarName),
-                        makeNumber(mayInteger)
-                    )
-                }
-            mayRational != null ->
-                solver.rationals {
-                    equal(
-                        solver.decimalValue(solver.makeObjectVariable(associatedVarName)),
-                        makeNumber(mayRational)
-                    )
-                }
-            else -> null
-        }?.let {
-            addConstraint(it)
-        }
+    val mayBoolean = expression.text.toBooleanStrictOrNull()
+    val mayInteger = expression.text.toBigIntegerOrNull()
+    val mayRational = expression.text.toBigDecimalOrNull()
+    when {
+        mayBoolean == true ->
+            solver.makeBooleanObjectVariable(associatedVarName)
+        mayBoolean == false ->
+            solver.booleans { not(solver.makeBooleanObjectVariable(associatedVarName)) }
+        mayInteger != null ->
+            solver.ints {
+                equal(
+                    solver.makeIntegerObjectVariable(associatedVarName),
+                    makeNumber(mayInteger)
+                )
+            }
+        mayRational != null ->
+            solver.rationals {
+                equal(
+                    solver.decimalValue(solver.makeObjectVariable(associatedVarName)),
+                    makeNumber(mayRational)
+                )
+            }
+        else -> null
+    }?.let {
+        addConstraint(it)
     }
 }
 
