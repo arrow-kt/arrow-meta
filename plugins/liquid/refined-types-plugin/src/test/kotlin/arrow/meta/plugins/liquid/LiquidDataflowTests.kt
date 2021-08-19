@@ -28,6 +28,61 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `post-conditions are checked, 1`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int =
+        3.post("greater than 0") { it > 0 }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `post-conditions are checked, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int =
+        3.post("smaller than 0") { it < 0 }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `post-conditions and variables, 1`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        var z = -1
+        z = 2
+        return z.post("greater than 0") { it > 0 }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  @Disabled  // until 'return' works correctly
+  fun `post-conditions and variables, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        var z = 2
+        z = -1
+        return z.post("greater than 0") { it > 0 }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `unreachable code`() {
     """
       ${imports()}

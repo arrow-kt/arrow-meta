@@ -130,3 +130,12 @@ internal fun SolverState.checkConditionsInconsistencies(
       MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
     )
   }
+
+internal fun SolverState.checkConditionsInconsistencies(
+  formula: BooleanFormula?,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Boolean =
+  formula?.let {
+    checkConditionsInconsistencies(listOf(it), context, expression)
+  } ?: false
