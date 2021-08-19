@@ -1,17 +1,11 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.continuations.ContSeq
-import arrow.meta.continuations.andThen
-import arrow.meta.continuations.andThenSideEffect
-import arrow.meta.continuations.doNothing
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.ensure
 import arrow.meta.continuations.flatMap
-import arrow.meta.continuations.goOn
-import arrow.meta.continuations.guard
 import arrow.meta.continuations.map
 import arrow.meta.continuations.sequence
-import arrow.meta.continuations.sideEffect
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
@@ -78,9 +72,9 @@ internal const val RESULT_VAR_NAME = "${'$'}result"
  * check this [declaration] body constraints
  */
 internal fun CompilerContext.checkDeclarationConstraints(
-    context: DeclarationCheckerContext,
-    declaration: KtDeclaration,
-    descriptor: DeclarationDescriptor
+  context: DeclarationCheckerContext,
+  declaration: KtDeclaration,
+  descriptor: DeclarationDescriptor
 ) {
     val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
     val constraints = solverState?.constraintsFromSolverState(descriptor)
@@ -110,11 +104,11 @@ internal fun CompilerContext.checkDeclarationConstraints(
  * - whether the post-condition really holds.
  */
 private fun SolverState.checkDeclarationWithBody(
-    constraints: DeclarationConstraints?,
-    context: DeclarationCheckerContext,
-    resultVarName: String,
-    declaration: KtDeclaration,
-    body: KtExpression?
+  constraints: DeclarationConstraints?,
+  context: DeclarationCheckerContext,
+  resultVarName: String,
+  declaration: KtDeclaration,
+  body: KtExpression?
 ): ContSeq<Unit> =
     continuationBracket.map {
         val inconsistentPreconditions =
@@ -133,8 +127,8 @@ private fun SolverState.checkDeclarationWithBody(
  * Maps return points to the SMT variables representing that place.
  */
 data class ReturnPoints(
-    val topMostReturnPointVariableName: String,
-    val namedReturnPointVariableNames: Map<String, String>
+  val topMostReturnPointVariableName: String,
+  val namedReturnPointVariableNames: Map<String, String>
 ) {
 
     // fun replaceTopMost(newVariableName: String) =
@@ -152,10 +146,10 @@ data class ReturnPoints(
  * recursively checks an [expression] set of constraints
  */
 private fun SolverState.checkExpressionConstraints(
-    associatedVarName: String,
-    expression: KtExpression?,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  associatedVarName: String,
+  expression: KtExpression?,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> =
     when (expression) {
         is KtParenthesizedExpression ->
@@ -212,10 +206,10 @@ private fun KtDeclaration.isVar(): Boolean = when (this) {
  * is the one assigned as the "return value" of the block.
  */
 private fun SolverState.checkBlockExpression(
-    associatedVarName: String,
-    expressions: List<KtExpression>,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  associatedVarName: String,
+  expressions: List<KtExpression>,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> =
     when (expressions.size) {
         0 -> ContSeq.unit
@@ -237,9 +231,9 @@ private fun SolverState.checkBlockExpression(
  * after a return there's nothing else to be checked.
  */
 private fun SolverState.checkReturnConstraints(
-    expression: KtReturnExpression,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  expression: KtReturnExpression,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> {
     // figure out the right variable to assign
     // - if 'return@label', find the label in the recorded return points
@@ -258,11 +252,11 @@ private fun SolverState.checkReturnConstraints(
  * starting from its arguments
  */
 private fun SolverState.checkCallExpression(
-    associatedVarName: String,
-    expression: KtExpression,
-    resolvedCall: ResolvedCall<out CallableDescriptor>,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  associatedVarName: String,
+  expression: KtExpression,
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> =
     when (val specialCase = specialCasingForResolvedCalls(resolvedCall)) {
         null ->
@@ -304,9 +298,9 @@ private fun SolverState.checkCallExpression(
  *   this creates a renaming for the original constraints
  */
 private fun SolverState.checkCallArguments(
-    resolvedCall: ResolvedCall<out CallableDescriptor>,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<List<Pair<String, String>>> =
     resolvedCall.allArgumentExpressions().map { (name, _, expr) ->
         val argUniqueName =
@@ -325,8 +319,8 @@ private fun SolverState.checkCallArguments(
  * [SolverState.prover] constraints.
  */
 private fun SolverState.checkConstantExpression(
-    associatedVarName: String,
-    expression: KtConstantExpression
+  associatedVarName: String,
+  expression: KtConstantExpression
 ): ContSeq<Unit> = cont {
     solver.formulae {
         val mayBoolean = expression.text.toBooleanStrictOrNull()
@@ -363,10 +357,10 @@ private fun SolverState.checkConstantExpression(
  * equal to the value encoded in the named expression.
  */
 private fun SolverState.checkDeclarationExpression(
-    newVarName: String,
-    declaration: KtDeclaration,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  newVarName: String,
+  declaration: KtDeclaration,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> {
     val body = declaration.stableBody()
     return doOnlyWhen(body != null) {
@@ -380,8 +374,8 @@ private fun SolverState.checkDeclarationExpression(
  * to the [SolverState.prover] constraints.
  */
 private fun SolverState.checkNameExpression(
-    associatedVarName: String,
-    expression: KtSimpleNameExpression
+  associatedVarName: String,
+  expression: KtSimpleNameExpression
 ): ContSeq<Unit> = cont {
     // FIX: add only things in scope
     val referencedName = expression.getReferencedName().nameAsSafeName().asString()
@@ -422,10 +416,10 @@ private fun KtExpression.computeSimpleConditions(): List<Condition> = when (this
  * Check `if` and `when` expressions without subject.
  */
 private fun SolverState.checkSimpleConditional(
-    associatedVarName: String,
-    branches: List<Condition>,
-    context: DeclarationCheckerContext,
-    returnPoints: ReturnPoints
+  associatedVarName: String,
+  branches: List<Condition>,
+  context: DeclarationCheckerContext,
+  returnPoints: ReturnPoints
 ): ContSeq<Unit> =
     branches.map { cond ->
         val conditionVar = names.newName("cond")
@@ -452,7 +446,6 @@ private fun SolverState.checkSimpleConditional(
                 }
             }
     }
-
 
 /**
  * Given a list of names for condition variables,
