@@ -4,18 +4,8 @@ plugins {
 }
 
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
-apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"
-
 
 kotlin {
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                freeCompilerArgs += ["-Xplugin=${buildDir}/libs/new-plugin.jar",
-                                     "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
-            }
-        }
-    }
     sourceSets {
         jvmMain {
             dependencies {
@@ -25,26 +15,4 @@ kotlin {
             }
         }
     }
-}
-// Script
-configurations.create("toCopy")
-
-tasks.register("setup") {
-    doLast {
-        if (!file("$buildDir/libs").exists()) {
-            file("$buildDir/libs").mkdirs()
-
-            copy {
-                from(configurations.getAt("toCopy")).into("$buildDir/libs")
-            }
-        }
-    }
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    dependsOn 'setup'
-}
-
-dependencies {
-    "toCopy"(project(":refined-types-plugin"))
 }

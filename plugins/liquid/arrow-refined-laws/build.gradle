@@ -1,0 +1,27 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+apply from: "${rootDir}/${SUBPROJECT_MPP}"
+
+kotlin {
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                println("${rootDir}/plugins/liquid/refines-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refines-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+                                     "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
+            }
+        }
+    }
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api("io.arrow-kt:arrow-core:$ARROW_VERSION") {
+                    exclude group: "org.jetbrains.kotlin"
+                }
+            }
+        }
+    }
+}
