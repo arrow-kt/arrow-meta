@@ -1,3 +1,5 @@
+package arrow
+
 import arrow.refinement.Law
 import arrow.refinement.pre
 
@@ -8,5 +10,6 @@ fun Int.safeDiv(other: Int): Int {
 }
 
 fun foo() {
-  val result = 1 / 0
+  //comment code below should fail gradle build
+ //val result = 1 / 0
 }

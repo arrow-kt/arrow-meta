@@ -5,12 +5,14 @@ plugins {
 
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
 
+configurations.create("toCopy")
+
 kotlin {
     targets.all {
         compilations.all {
             kotlinOptions {
-                println("${rootDir}/plugins/liquid/refines-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
-                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refines-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+                println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
                                      "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
             }
         }
@@ -30,3 +32,24 @@ kotlin {
         }
     }
 }
+
+dependencies {
+    "toCopy"(project(":refined-types-plugin"))
+    kotlinCompilerClasspath(fileTree('build/libs') { include '*.jar' })
+}
+
+// Script
+tasks.register("setup") {
+    doLast {
+        if (!file("build/libs").exists()) {
+            file("build/libs").mkdirs()
+        }
+        copy {
+            from(configurations.getAt("toCopy")).into("build/libs")
+        }
+    }
+}
+
+
+compileKotlinJvm.dependsOn(":refined-types-plugin:jar")
+compileKotlinJvm.dependsOn("setup")
