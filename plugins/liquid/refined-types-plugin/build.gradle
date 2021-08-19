@@ -1,0 +1,48 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+configurations {
+    // Use a custom config that inherits all dependencies from runtimeOnly and implementation.
+    // If you want to seperate your dependencies from the JavaSMT ones
+    // simply use it when pulling the dependencies.
+    javaSMTConfig.extendsFrom(runtimeOnly, implementation)
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    implementation project(':arrow-meta')
+    implementation project(':arrow-refined-types')
+
+
+    /* solver deps */
+    implementation 'org.sosy-lab:java-smt:3.9.0-1-g304079c2'
+
+    implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
+    // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'so'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dylib'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dylib'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dll'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dll'
+
+    // Tell implementation config to use the JavaSMT + dependencies from our dependencies folder
+    // implementation fileTree(dir: 'build/libs', include: '*.jar')
+
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
+    testImplementation project(":meta-test")
+    testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':arrow-refined-types')
+    testRuntimeOnly project(':prelude')
+    testRuntimeOnly project(':refined-types-plugin')
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
+}
+
+apply from: file("${rootDir}/${SUBPROJECT}")

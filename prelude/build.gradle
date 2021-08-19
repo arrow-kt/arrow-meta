@@ -1,9 +1,0 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
-
-dependencies {
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-}
-
-apply from: file("${rootDir}/${SUBPROJECT}")

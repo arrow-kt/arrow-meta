@@ -5,6 +5,7 @@ buildscript {
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$KOTLIN_VERSION" apply false
     id "org.jetbrains.dokka" version "$DOKKA_VERSION" apply false
+    id "org.jlleitschuh.gradle.ktlint" version "$KTLINT_GRADLE_VERSION" apply false
 }
 
 // APIDOC
@@ -29,9 +30,9 @@ configure(subprojects - project("docs")
 
 // JVM Publication
 configure(subprojects -
-        project("docs") -
-        project("gradle-plugin-commons") -
-        project("arrow-refined-types") // MPP subprojects
+        project(":docs") -
+        project(":gradle-plugin-commons") -
+        project(":arrow-refined-types") // MPP subprojects
 ) {
     afterEvaluate {
         jar {

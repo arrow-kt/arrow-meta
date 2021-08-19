@@ -1,0 +1,19 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+apply from: "${rootDir}/${SUBPROJECT_MPP}"
+apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"
+
+kotlin {
+    sourceSets {
+        jvmMain {
+            dependencies {
+                api("io.arrow-kt:arrow-core:$ARROW_VERSION") {
+                    exclude group: "org.jetbrains.kotlin"
+                }
+            }
+        }
+    }
+}
