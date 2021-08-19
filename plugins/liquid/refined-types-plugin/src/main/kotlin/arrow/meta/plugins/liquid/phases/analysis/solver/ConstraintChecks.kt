@@ -146,7 +146,6 @@ fun bracketMutableVars(data: CheckData): ContSeq<Unit> = ContSeq {
   data.mutableVariables.putAll(currentMap)
 }
 
-
 // 2.1: declarations
 // -----------------
 /**
@@ -336,7 +335,6 @@ private fun SolverState.checkCallExpression(
           specialCase(result, arg1, arg2)?.let { addConstraint(it) }
         }.void()
   }
-
 
 /**
  * Recursively perform check on arguments,
