@@ -105,10 +105,11 @@ internal fun CompilerContext.checkDeclarationConstraints(
 
 data class CheckData(
   val context: DeclarationCheckerContext,
-  val returnPoints: ReturnPoints
+  val returnPoints: ReturnPoints,
+  val mutableVariables: Map<String, MutableVarInfo>
 ) {
   fun addReturnPoint(returnPoint: String, variableName: String) =
-    CheckData(context, returnPoints.add(returnPoint, variableName))
+    CheckData(context, returnPoints.add(returnPoint, variableName), mutableVariables)
 }
 
 /**
@@ -128,6 +129,16 @@ data class ReturnPoints(
       namedReturnPointVariableNames + (returnPoint to variableName)
     )
 }
+
+/**
+ * For each mutable variable, we keep two pieces of data:
+ * - invariants which may have been declared
+ * - the "current" internal name for it
+ */
+data class MutableVarInfo(
+  val invariant: BooleanFormula?,
+  val currentName: String
+)
 
 // 2.1: declarations
 // -----------------
@@ -151,7 +162,7 @@ private fun SolverState.checkDeclarationWithBody(
     ensure<Unit>(!inconsistentPreconditions)
     goOn()
   }.flatMap {
-    val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()))
+    val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), emptyMap())
     checkExpressionConstraints(resultVarName, body, data)
   }.andThenSideEffect {
     checkPostConditionsImplication(constraints, context, declaration)
@@ -187,14 +198,7 @@ private fun SolverState.checkExpressionConstraints(
         data.addReturnPoint(expression.name!!, associatedVarName)
       )
     is KtDeclaration ->
-      doOnlyWhen(!expression.isVar()) {
-        val declName = when (expression) {
-          // use the given name if available
-          is KtNamedDeclaration -> expression.nameAsSafeName.asString()
-          else -> names.newName("decl")
-        }
-        checkDeclarationExpression(declName, expression, data)
-      }
+      checkDeclarationExpression(expression, data)
     is KtIfExpression ->
       checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
     is KtWhenExpression ->
@@ -373,13 +377,37 @@ private fun SolverState.checkConstantExpression(
  * equal to the value encoded in the named expression.
  */
 private fun SolverState.checkDeclarationExpression(
-  newVarName: String,
   declaration: KtDeclaration,
   data: CheckData
 ): ContSeq<Unit> {
+  val declName = when (declaration) {
+    // use the given name if available
+    is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
+    else -> names.newName("decl")
+  }
   val body = declaration.stableBody()
-  return doOnlyWhen(body != null) {
-    checkExpressionConstraints(newVarName, body, data)
+  val invariant = obtainInvariant(body, data)
+  // TODO update declName and invariant with the variable names
+  return sideEffect {
+    invariant?.let { addConstraint(it) }
+  }.flatMap {
+    checkExpressionConstraints(declName, body, data)
+  }
+}
+
+private fun SolverState.obtainInvariant(
+  expression: KtExpression?,
+  data: CheckData
+): BooleanFormula? {
+  val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
+  return if (resolvedCall != null && resolvedCall.invariantCall()) {
+    resolvedCall.allArgumentExpressions().find {
+      it.first == "predicate"
+    }?.third?.let { theInvariant ->
+      TODO()
+    }
+  } else {
+    null
   }
 }
 

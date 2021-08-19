@@ -311,6 +311,19 @@ private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
   preCall() || postCall()
 
 /**
+ * returns true if [this] resolved call is calling [arrow.refinement.invariant]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
+
+/**
+ * returns true if [this] resolved call is calling
+ * [arrow.refinement.pre] or [arrow.refinement.post] or [arrow.refinement.invariant]
+ */
+private fun ResolvedCall<out CallableDescriptor>.preOrPostOrInvariantCall(): Boolean =
+  preCall() || postCall() || invariantCall()
+
+/**
  * Translates a [resolvedCall] into an smt [BooleanFormula]
  * Ex.
  * ```kotlin
@@ -403,7 +416,7 @@ private fun Solver.argsFormulae(
   val results = arrayListOf<Formula>()
   val visitor = expressionRecursiveVisitor {
     val resolvedCall = it.getResolvedCall(bindingContext)
-    if (resolvedCall != null && !resolvedCall.preOrPostCall()) { // not match on the parent call
+    if (resolvedCall != null && !resolvedCall.preOrPostOrInvariantCall()) { // not match on the parent call
       val args = argsFormulae(resolvedCall, bindingContext)
       val descriptor = resolvedCall.resultingDescriptor
       val expressionFormula = formulaWithArgs(descriptor, args, resolvedCall)
