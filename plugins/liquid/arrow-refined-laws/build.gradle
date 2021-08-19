@@ -16,6 +16,11 @@ kotlin {
         }
     }
     sourceSets {
+        commonMain {
+            dependencies {
+                api project(":arrow-refined-types")
+            }
+        }
         jvmMain {
             dependencies {
                 api("io.arrow-kt:arrow-core:$ARROW_VERSION") {
