@@ -56,7 +56,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       fun bar(x: Int): Int {
-        var z = -1
+        var z = 0
         z = 2
         return z.post("greater than 0") { it > 0 }
       }
@@ -73,7 +73,7 @@ class LiquidDataflowTests {
       ${imports()}
       fun bar(x: Int): Int {
         var z = 2
-        z = -1
+        z = 0
         return z.post("greater than 0") { it > 0 }
       }
       """(

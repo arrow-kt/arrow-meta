@@ -431,15 +431,13 @@ private fun SolverState.checkMutableAssignment(
   invariant: BooleanFormula?,
   body: KtExpression?,
   data: CheckData
-): ContSeq<Unit> =
-  bracketMutableVars(data).map {
-    val newName = names.newName(declName)
-    data.mutableVariables[declName] = MutableVarInfo(invariant, newName)
-    newName
-  }.flatMap { newName ->
-    val newInvariant = invariant?.let { solver.rename(it, mapOf(declName to newName)) }
-    checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
-  }
+): ContSeq<Unit> {
+  val newName = names.newName(declName)
+  val newInvariant = invariant?.let { solver.rename(it, mapOf(declName to newName)) }
+  return checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
+    .flatMap { bracketMutableVars(data) }
+    .map { data.mutableVariables[declName] = MutableVarInfo(invariant, newName) }
+}
 
 /**
  * Checks the possible invariants of a declaration, and its body.
