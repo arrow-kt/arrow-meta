@@ -10,6 +10,6 @@ fun Int.safeDiv(other: Int): Int {
 }
 
 fun foo() {
-  //comment code below should fail gradle build
+  //uncomment code below to fail gradle build
  //val result = 1 / 0
 }
