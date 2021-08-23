@@ -132,14 +132,12 @@ internal fun SolverState.checkConditionsInconsistencies(
   }
 
 internal fun SolverState.checkInvariant(
-  formula: BooleanFormula?,
+  formula: BooleanFormula,
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  formula?.let { formula ->
-    checkImplicationOf(formula) {
-      context.trace.report(
-        MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(formula))
-      )
-    }
-  } ?: true
+  checkImplicationOf(formula) {
+    context.trace.report(
+      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(formula))
+    )
+  }

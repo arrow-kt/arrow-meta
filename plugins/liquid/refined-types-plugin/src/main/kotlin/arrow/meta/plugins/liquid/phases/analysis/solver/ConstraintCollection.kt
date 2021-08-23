@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
@@ -462,6 +463,18 @@ internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): 
       }
     }
 
+internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
+  argumentName: String
+): KtExpression? =
+  this.allArgumentExpressions().find { it.first == argumentName }?.third
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
+  argumentName: String
+): ResolvedValueArgument? =
+  this.valueArguments.toList().find { it ->
+    it.first.name.asString() == argumentName
+  }?.second
+
 /**
  * Transform a [KtExpression] into a [Formula]
  */
@@ -483,21 +496,18 @@ private fun Solver.expressionToFormulae(
   }
 
 internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
-  val maybeParentCall =
+  val parent =
     ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
-  return when {
-    maybeParentCall?.postCall() == true
-      -> maybeParentCall.valueArguments.entries.toList()[1].value
-    maybeParentCall?.invariantCall() == true
-      -> maybeParentCall.valueArguments.entries.toList()[0].value
-    else -> null
-  }?.let {
-    val expArg = it as? ExpressionValueArgument
+  return if (parent != null && (parent.postCall() || parent.invariantCall())) {
+    val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
-    val params = lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
+    val params =
+      lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
       listOf("it")
     ex.text in params.distinct()
-  } ?: false
+  } else {
+    false
+  }
 }
 
 /**

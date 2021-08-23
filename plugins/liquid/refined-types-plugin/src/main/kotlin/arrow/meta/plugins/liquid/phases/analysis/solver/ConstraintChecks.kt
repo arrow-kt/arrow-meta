@@ -450,7 +450,7 @@ private fun SolverState.checkDeclarationExpressionWorker(
   data: CheckData
 ): ContSeq<Unit> =
   checkExpressionConstraints(declName, body, data).map {
-    checkInvariant(invariant, data.context, element)
+    invariant?.let { checkInvariant(it, data.context, element) }
   }
 
 private fun SolverState.obtainInvariant(
@@ -459,10 +459,7 @@ private fun SolverState.obtainInvariant(
 ): BooleanFormula? {
   val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
   return if (resolvedCall != null && resolvedCall.invariantCall()) {
-    val thePredicate = resolvedCall.allArgumentExpressions().find {
-      it.first == "predicate"
-    }?.third
-    thePredicate?.let {
+    resolvedCall.arg("predicate")?.let {
       val formulae = solver.argsFormulae(data.context.trace.bindingContext, it)
       formulae[0] as? BooleanFormula
     }
