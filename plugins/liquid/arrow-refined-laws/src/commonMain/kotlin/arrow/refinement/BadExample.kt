@@ -11,5 +11,5 @@ fun Int.safeDiv(other: Int): Int {
 
 fun foo() {
   // uncomment code below to fail gradle build
-  //val result = 1 / 0
+  // val result = 1 / 0
 }
