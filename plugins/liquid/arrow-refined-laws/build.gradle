@@ -5,18 +5,16 @@ plugins {
 
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
 
-//configurations.create("toCopy")
-
 kotlin {
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
-                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
-                                     "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
-            }
-        }
-    }
+//    targets.all {
+//        compilations.all {
+//            kotlinOptions {
+//                println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+//                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+//                                     "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
+//            }
+//        }
+//    }
     sourceSets {
         commonMain {
             dependencies {
@@ -33,41 +31,19 @@ kotlin {
     }
 }
 
-dependencies {
-//    "toCopy"(project(":refined-types-plugin")) {
-//        exclude group: "org.jetbrains.kotlin", module: "*"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-client"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-embeddable"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-script-runtime"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-script-util"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-common"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-jvm"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-compiler-embeddable"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-compiler-impl-embeddable"
-//        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-//    }
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
-    kotlinCompilerClasspath project(':refined-types-plugin')
-        //kotlinCompilerClasspath(fileTree('build/libs') { include '*.jar' })
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+        freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+                             "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
+    }
 }
 
-// Script
-//tasks.register("setup") {
-//    doLast {
-//        if (!file("build/libs").exists()) {
-//            file("build/libs").mkdirs()
-//        }
-//        copy {
-//            from(configurations.getAt("toCopy")).into("build/libs")
-//        }
-//    }
-//}
-
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    kotlinCompilerClasspath project(':refined-types-plugin')
+}
 
 compileKotlinJvm.dependsOn(":refined-types-plugin:jar")
 compileKotlinJs.dependsOn(":refined-types-plugin:jar")
 compileKotlinMetadata.dependsOn(":refined-types-plugin:jar")
-//compileKotlinJvm.dependsOn("setup")
-//compileKotlinJs.dependsOn("setup")
-//compileKotlinMetadata.dependsOn("setup")
