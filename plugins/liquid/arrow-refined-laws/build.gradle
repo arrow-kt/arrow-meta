@@ -5,7 +5,7 @@ plugins {
 
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
 
-configurations.create("toCopy")
+//configurations.create("toCopy")
 
 kotlin {
     targets.all {
@@ -34,31 +34,40 @@ kotlin {
 }
 
 dependencies {
-    "toCopy"(project(":refined-types-plugin")) {
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
-        //exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-client"
-        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-embeddable"
-    }
-    kotlinCompilerClasspath(fileTree('build/libs') { include '*.jar' })
+//    "toCopy"(project(":refined-types-plugin")) {
+//        exclude group: "org.jetbrains.kotlin", module: "*"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-client"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-embeddable"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-script-runtime"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-script-util"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-common"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-jvm"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-compiler-embeddable"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-scripting-compiler-impl-embeddable"
+//        exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+//    }
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    kotlinCompilerClasspath project(':refined-types-plugin')
+        //kotlinCompilerClasspath(fileTree('build/libs') { include '*.jar' })
 }
 
 // Script
-tasks.register("setup") {
-    doLast {
-        if (!file("build/libs").exists()) {
-            file("build/libs").mkdirs()
-        }
-        copy {
-            from(configurations.getAt("toCopy")).into("build/libs")
-        }
-    }
-}
+//tasks.register("setup") {
+//    doLast {
+//        if (!file("build/libs").exists()) {
+//            file("build/libs").mkdirs()
+//        }
+//        copy {
+//            from(configurations.getAt("toCopy")).into("build/libs")
+//        }
+//    }
+//}
 
 
 compileKotlinJvm.dependsOn(":refined-types-plugin:jar")
 compileKotlinJs.dependsOn(":refined-types-plugin:jar")
 compileKotlinMetadata.dependsOn(":refined-types-plugin:jar")
-compileKotlinJvm.dependsOn("setup")
-compileKotlinJs.dependsOn("setup")
-compileKotlinMetadata.dependsOn("setup")
+//compileKotlinJvm.dependsOn("setup")
+//compileKotlinJs.dependsOn("setup")
+//compileKotlinMetadata.dependsOn("setup")
