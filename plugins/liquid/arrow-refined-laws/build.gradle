@@ -52,4 +52,8 @@ tasks.register("setup") {
 
 
 compileKotlinJvm.dependsOn(":refined-types-plugin:jar")
+compileKotlinJs.dependsOn(":refined-types-plugin:jar")
+compileKotlinMetadata.dependsOn(":refined-types-plugin:jar")
 compileKotlinJvm.dependsOn("setup")
+compileKotlinJs.dependsOn("setup")
+compileKotlinMetadata.dependsOn("setup")
