@@ -153,8 +153,8 @@ fun bracketMutableVars(data: CheckData): ContSeq<Unit> = ContSeq {
  * Ways to return from a block.
  */
 sealed class Return
-object NoReturn: Return()
-data class ExplicitReturn(val returnPoint: String): Return()
+object NoReturn : Return()
+data class ExplicitReturn(val returnPoint: String) : Return()
 
 // 2.1: declarations
 // -----------------
@@ -227,7 +227,7 @@ private fun SolverState.checkExpressionConstraints(
           data.mutableVariables[name]?.let {
             checkMutableAssignment(expression, name, it.invariant, expression.right, data)
           }
-        } ?: cont { NoReturn }  // <- this case should not happen
+        } ?: cont { NoReturn } // <- this case should not happen
       } else {
         fallThrough(associatedVarName, expression, data)
       }
@@ -417,8 +417,8 @@ private fun SolverState.checkCallArguments(
             is ExplicitReturn -> cont { returnInfo.left() }
             else ->
               go(expressions.drop(1)).flatMap {
-                it.fold (
-                  { r -> cont { r.left() } },  // if we found a return, do it
+                it.fold(
+                  { r -> cont { r.left() } }, // if we found a return, do it
                   { restArgs -> cont { (listOf(name to argUniqueName) + restArgs).right() } }
                 )
               }
@@ -609,7 +609,7 @@ private fun SolverState.checkSimpleConditional(
       .flatMap { (returnAndCond, correspondingVars) ->
         val (returnInfo, cond) = returnAndCond
         when (returnInfo) {
-          is ExplicitReturn ->  // weird case: a return in a condition
+          is ExplicitReturn -> // weird case: a return in a condition
             cont { returnInfo }
           else ->
             continuationBracket.map {
