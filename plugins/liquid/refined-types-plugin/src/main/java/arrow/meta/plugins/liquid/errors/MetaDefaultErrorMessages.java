@@ -33,7 +33,10 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
                 "unreachable code due to post-conditions: {1}",
                 FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
         MAP.put(InconsistentConditions,
-                "unreachable code due to conflicting conditions: {1}",
+                "unreachable code due to conflicting conditions: {0}",
+                FormulaRendererKt.RenderFormula);
+        MAP.put(UnsatInvariants,
+                "invariants are not satisfied: {0}",
                 FormulaRendererKt.RenderFormula);
     }
 }

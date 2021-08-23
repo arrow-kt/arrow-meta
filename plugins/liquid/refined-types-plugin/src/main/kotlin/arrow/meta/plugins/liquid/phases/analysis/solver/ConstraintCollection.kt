@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
@@ -311,6 +312,19 @@ private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
   preCall() || postCall()
 
 /**
+ * returns true if [this] resolved call is calling [arrow.refinement.invariant]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
+
+/**
+ * returns true if [this] resolved call is calling
+ * [arrow.refinement.pre] or [arrow.refinement.post] or [arrow.refinement.invariant]
+ */
+private fun ResolvedCall<out CallableDescriptor>.preOrPostOrInvariantCall(): Boolean =
+  preCall() || postCall() || invariantCall()
+
+/**
  * Translates a [resolvedCall] into an smt [BooleanFormula]
  * Ex.
  * ```kotlin
@@ -320,7 +334,7 @@ private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
  * (x > 2)
  * ```
  */
-private fun Solver.formula(
+internal fun Solver.formula(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
 ): Pair<ResolvedCall<out CallableDescriptor>, BooleanFormula>? =
@@ -396,14 +410,14 @@ private fun Solver.formulaWithArgs(
  * element subexpression resolving the [element] nested calls
  * and recursively transforming them into a list of smt [Formula]
  */
-private fun Solver.argsFormulae(
+internal fun Solver.argsFormulae(
   bindingContext: BindingContext,
   element: KtElement
 ): List<Formula> {
   val results = arrayListOf<Formula>()
   val visitor = expressionRecursiveVisitor {
     val resolvedCall = it.getResolvedCall(bindingContext)
-    if (resolvedCall != null && !resolvedCall.preOrPostCall()) { // not match on the parent call
+    if (resolvedCall != null && !resolvedCall.preOrPostOrInvariantCall()) { // not match on the parent call
       val args = argsFormulae(resolvedCall, bindingContext)
       val descriptor = resolvedCall.resultingDescriptor
       val expressionFormula = formulaWithArgs(descriptor, args, resolvedCall)
@@ -449,6 +463,18 @@ internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): 
       }
     }
 
+internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
+  argumentName: String
+): KtExpression? =
+  this.allArgumentExpressions().find { it.first == argumentName }?.third
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
+  argumentName: String
+): ResolvedValueArgument? =
+  this.valueArguments.toList().find { it ->
+    it.first.name.asString() == argumentName
+  }?.second
+
 /**
  * Transform a [KtExpression] into a [Formula]
  */
@@ -470,15 +496,18 @@ private fun Solver.expressionToFormulae(
   }
 
 internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
-  val maybePostCall =
+  val parent =
     ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
-  return if (maybePostCall != null && maybePostCall.postCall()) {
-    val expArg = maybePostCall.valueArguments.entries.toList()[1].value as? ExpressionValueArgument
+  return if (parent != null && (parent.postCall() || parent.invariantCall())) {
+    val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
-    val params = lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
+    val params =
+      lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
       listOf("it")
     ex.text in params.distinct()
-  } else false
+  } else {
+    false
+  }
 }
 
 /**
