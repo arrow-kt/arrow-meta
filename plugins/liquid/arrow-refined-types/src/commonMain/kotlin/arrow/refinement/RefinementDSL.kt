@@ -16,6 +16,11 @@ inline fun <A> A.post(predicate: (A) -> Boolean, msg: () -> String): A {
   return this
 }
 
+inline infix fun <A> A.invariant(predicate: (A) -> Boolean): A {
+  require(predicate(this)) { "invariant" }
+  return this
+}
+
 @Target(
   AnnotationTarget.FUNCTION
 )

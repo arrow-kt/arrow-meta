@@ -130,3 +130,14 @@ internal fun SolverState.checkConditionsInconsistencies(
       MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
     )
   }
+
+internal fun SolverState.checkInvariant(
+  formula: BooleanFormula,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Boolean =
+  checkImplicationOf(formula) {
+    context.trace.report(
+      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(formula))
+    )
+  }
