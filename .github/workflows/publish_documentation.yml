@@ -18,7 +18,8 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt'
-        java-version: '15'
+        java-version: '8'
+        cache: 'gradle'
     - name: "Create API Doc and validate"
       run: ./gradlew buildMetaDoc
     - name: "Build"
