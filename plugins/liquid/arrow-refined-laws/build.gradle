@@ -34,7 +34,12 @@ kotlin {
 }
 
 dependencies {
-    "toCopy"(project(":refined-types-plugin"))
+    "toCopy"(project(":refined-types-plugin")) {
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib"
+        //exclude group: "org.jetbrains.kotlin", module: "kotlin-compiler-embeddable"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-client"
+        exclude group: "org.jetbrains.kotlin", module: "kotlin-daemon-embeddable"
+    }
     kotlinCompilerClasspath(fileTree('build/libs') { include '*.jar' })
 }
 
