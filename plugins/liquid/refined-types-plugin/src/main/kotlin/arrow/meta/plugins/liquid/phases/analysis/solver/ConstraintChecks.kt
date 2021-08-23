@@ -306,6 +306,8 @@ private fun SolverState.checkCallExpression(
         ContSeq.unit
       FqName("arrow.refinement.post") -> // ignore post arguments
         checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+      FqName("arrow.refinement.invariant") -> // ignore invariant arguments
+        checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
       else ->
         checkCallArguments(resolvedCall, data)
           .map { it.toMap() }
@@ -431,7 +433,7 @@ private fun SolverState.checkMutableAssignment(
   data: CheckData
 ): ContSeq<Unit> {
   val newName = names.newName(declName)
-  val newInvariant = invariant?.let { solver.rename(it, mapOf(declName to newName)) }
+  val newInvariant = invariant?.let { solver.rename(it, mapOf(RESULT_VAR_NAME to newName)) }
   return checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
     .flatMap { bracketMutableVars(data) }
     .map { data.mutableVariables[declName] = MutableVarInfo(invariant, newName) }
@@ -446,11 +448,10 @@ private fun SolverState.checkDeclarationExpressionWorker(
   invariant: BooleanFormula?,
   body: KtExpression?,
   data: CheckData
-): ContSeq<Unit> = cont {
-  checkConditionsInconsistencies(invariant, data.context, element)
-}.flatMap {
-  checkExpressionConstraints(declName, body, data)
-}
+): ContSeq<Unit> =
+  checkExpressionConstraints(declName, body, data).map {
+    checkInvariant(invariant, data.context, element)
+  }
 
 private fun SolverState.obtainInvariant(
   expression: KtExpression?,
@@ -458,10 +459,12 @@ private fun SolverState.obtainInvariant(
 ): BooleanFormula? {
   val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
   return if (resolvedCall != null && resolvedCall.invariantCall()) {
-    resolvedCall.allArgumentExpressions().find {
+    val thePredicate = resolvedCall.allArgumentExpressions().find {
       it.first == "predicate"
-    }?.third?.let { theInvariant ->
-      null
+    }?.third
+    thePredicate?.let {
+      val formulae = solver.argsFormulae(data.context.trace.bindingContext, it)
+      formulae[0] as? BooleanFormula
     }
   } else {
     null

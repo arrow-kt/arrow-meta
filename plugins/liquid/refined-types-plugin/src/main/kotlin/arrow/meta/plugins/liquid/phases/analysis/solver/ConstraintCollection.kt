@@ -333,7 +333,7 @@ private fun ResolvedCall<out CallableDescriptor>.preOrPostOrInvariantCall(): Boo
  * (x > 2)
  * ```
  */
-private fun Solver.formula(
+internal fun Solver.formula(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   bindingContext: BindingContext,
 ): Pair<ResolvedCall<out CallableDescriptor>, BooleanFormula>? =
@@ -409,7 +409,7 @@ private fun Solver.formulaWithArgs(
  * element subexpression resolving the [element] nested calls
  * and recursively transforming them into a list of smt [Formula]
  */
-private fun Solver.argsFormulae(
+internal fun Solver.argsFormulae(
   bindingContext: BindingContext,
   element: KtElement
 ): List<Formula> {
@@ -483,15 +483,21 @@ private fun Solver.expressionToFormulae(
   }
 
 internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
-  val maybePostCall =
+  val maybeParentCall =
     ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
-  return if (maybePostCall != null && maybePostCall.postCall()) {
-    val expArg = maybePostCall.valueArguments.entries.toList()[1].value as? ExpressionValueArgument
+  return when {
+    maybeParentCall?.postCall() == true
+      -> maybeParentCall.valueArguments.entries.toList()[1].value
+    maybeParentCall?.invariantCall() == true
+      -> maybeParentCall.valueArguments.entries.toList()[0].value
+    else -> null
+  }?.let {
+    val expArg = it as? ExpressionValueArgument
     val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
     val params = lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
       listOf("it")
     ex.text in params.distinct()
-  } else false
+  } ?: false
 }
 
 /**

@@ -19,6 +19,7 @@ public interface MetaErrors {
     DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> UnsatCallPre = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> InconsistentCallPost = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<PsiElement, List<Formula>> InconsistentConditions = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, List<Formula>> UnsatInvariants = DiagnosticFactory1.create(ERROR);
 
     /**
      * needed to prevent NPE in
