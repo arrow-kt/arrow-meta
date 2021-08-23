@@ -15,7 +15,7 @@ jobs:
     - uses: actions/setup-java@v2
       with:
         distribution: 'adopt'
-        java-version: '8'
+        java-version: '15'
         cache: 'gradle'
     - name: Build with Gradle
       run: ./gradlew build

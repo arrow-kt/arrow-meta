@@ -18,6 +18,7 @@ jobs:
       with:
         distribution: 'adopt'
         java-version: '15'
+        cache: 'gradle'
     - name: Check properties
       id: properties
       run: |
