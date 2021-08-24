@@ -47,3 +47,5 @@ project(':refined-types-gradle-plugin').projectDir = new File('plugins/liquid/re
 include ':arrow-refined-types'
 project(':arrow-refined-types').projectDir = new File('plugins/liquid/arrow-refined-types')
 
+include ':arrow-refined-laws'
+project(':arrow-refined-laws').projectDir = new File('plugins/liquid/arrow-refined-laws')

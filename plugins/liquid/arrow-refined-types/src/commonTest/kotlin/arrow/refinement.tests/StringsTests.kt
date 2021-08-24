@@ -16,14 +16,14 @@ import io.kotest.property.arbitrary.string
 class StringsTests :
   RefinedLaws<String>(
     Arb.string(),
-    EndsWith.Value("a"),
-    HexString,
-    IPv4,
-    IPv6,
-    MatchesRegex.Regex("(Arb.c)".toRegex()),
-    Size.N(0u),
-    StartsWith.Value("a"),
-    ValidDouble,
-    ValidInt,
-    ValidLong
+    "EndsWith.Value(\"a\")" to EndsWith.Value("a"),
+    "HexString" to HexString,
+    "IPv4" to IPv4,
+    "IPv6" to IPv6,
+    "MatchesRegex.Regex(\"(Arb.c)\".toRegex())" to MatchesRegex.Regex("(Arb.c)".toRegex()),
+    "Size.N(0u)" to Size.N(0u),
+    "StartsWith.Value(\"a\")" to StartsWith.Value("a"),
+    "ValidDouble" to ValidDouble,
+    "ValidInt" to ValidInt,
+    "ValidLong" to ValidLong
   )

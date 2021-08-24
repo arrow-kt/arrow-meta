@@ -1,0 +1,40 @@
+plugins {
+    id "org.jetbrains.kotlin.multiplatform"
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+apply from: "${rootDir}/${SUBPROJECT_MPP}"
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(":arrow-refined-types")
+            }
+        }
+        jvmMain {
+            dependencies {
+                api("io.arrow-kt:arrow-core:$ARROW_VERSION") {
+                    exclude group: "org.jetbrains.kotlin"
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+        freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+                             "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    kotlinCompilerClasspath project(':refined-types-plugin')
+}
+
+compileKotlinJvm.dependsOn(":refined-types-plugin:jar")
+compileKotlinJs.dependsOn(":refined-types-plugin:jar")
+compileKotlinMetadata.dependsOn(":refined-types-plugin:jar")

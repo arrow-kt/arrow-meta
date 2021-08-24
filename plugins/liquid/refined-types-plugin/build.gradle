@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id "org.jlleitschuh.gradle.ktlint"
@@ -41,8 +43,14 @@ dependencies {
     testRuntimeOnly project(':refined-types-plugin')
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+tasks.withType(KotlinCompile).configureEach {
     kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
 }
 
 apply from: file("${rootDir}/${SUBPROJECT}")
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
