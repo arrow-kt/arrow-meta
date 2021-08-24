@@ -125,6 +125,10 @@ fun <A> List<ContSeq<A>>.sequence(): ContSeq<List<A>> =
 inline fun doOnlyWhen(condition: Boolean, crossinline f: () -> ContSeq<Unit>): ContSeq<Unit> =
   if (condition) f() else ContSeq.unit
 
+/** Execute a side effect only when some condition holds. */
+inline fun <A> doOnlyWhen(condition: Boolean, value: A, crossinline f: () -> ContSeq<A>): ContSeq<A> =
+  if (condition) f() else cont { value }
+
 /**
  * [ContSyntax] exposes [abort] which allows for interruption of the computation,
  * meaning that when `abort` is encountered the `Cont` will be interrupted and will not yield a value.

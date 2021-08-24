@@ -67,7 +67,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // until 'return' works correctly
   fun `post-conditions and variables, 2`() {
     """
       ${imports()}
