@@ -401,32 +401,32 @@ private fun SolverState.checkCallArguments(
   //   and in that case we stop the check of any more arguments
   //   (stopping there is important, since introducing additional constraints from
   //    other arguments may not be right in the general case)
-  fun <A> go(expressions: List<Triple<String, A, KtExpression?>>): ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>> =
-    when (expressions.size) {
-      0 -> cont { emptyList<Pair<String, String>>().right() }
-      else -> {
-        val (name, _, expr) = expressions[0]
-        val argUniqueName =
-          if (expr != null && solver.isResultReference(expr, data.context.trace.bindingContext)) {
-            RESULT_VAR_NAME
-          } else {
-            names.newName(name)
-          }
-        checkExpressionConstraints(argUniqueName, expr, data).flatMap { returnInfo ->
-          when (returnInfo) {
-            is ExplicitReturn -> cont { returnInfo.left() }
-            else ->
-              go(expressions.drop(1)).flatMap {
-                it.fold(
-                  { r -> cont { r.left() } }, // if we found a return, do it
-                  { restArgs -> cont { (listOf(name to argUniqueName) + restArgs).right() } }
-                )
+  fun <A> acc(
+    upToNow: ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>>,
+    current: Triple<String, A, KtExpression?>
+  ): ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>> =
+    upToNow.flatMap {
+        it.fold(
+          { r -> cont { r.left() } },
+          { argsUpToNow ->
+            val (name, _, expr) = current
+            val argUniqueName =
+              if (expr != null && solver.isResultReference(expr, data.context.trace.bindingContext)) {
+                RESULT_VAR_NAME
+              } else {
+                names.newName(name)
               }
+            checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
+              when (returnInfo) {
+                is ExplicitReturn -> returnInfo.left() // stop
+                else -> (argsUpToNow + listOf(name to argUniqueName)).right()
+              }
+            }
           }
-        }
+        )
       }
-    }
-  return go(resolvedCall.allArgumentExpressions())
+  return resolvedCall.allArgumentExpressions()
+    .fold(cont { emptyList<Pair<String, String>>().right() }, ::acc)
 }
 
 /**
