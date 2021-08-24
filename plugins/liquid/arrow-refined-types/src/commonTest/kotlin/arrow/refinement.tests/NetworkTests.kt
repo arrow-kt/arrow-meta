@@ -17,15 +17,15 @@ import io.kotest.property.arbitrary.string
 class NetworkTests :
   RefinedLaws<String>(
     Arb.string(),
-    PrivateNetwork,
-    Rfc1918ClassAPrivateNetwork,
-    Rfc1918ClassBPrivateNetwork,
-    Rfc1918ClassCPrivateNetwork,
-    Rfc1918PrivateNetwork,
-    Rfc2544BenchmarkNetwork,
-    Rfc3927LocalLinkNetwork,
-    Rfc5737Testnet1Network,
-    Rfc5737Testnet2Network,
-    Rfc5737Testnet3Network,
-    Rfc5737TestnetNetwork
+    "PrivateNetwork" to PrivateNetwork,
+    "Rfc1918ClassAPrivateNetwork" to Rfc1918ClassAPrivateNetwork,
+    "Rfc1918ClassBPrivateNetwork" to Rfc1918ClassBPrivateNetwork,
+    "Rfc1918ClassCPrivateNetwork" to Rfc1918ClassCPrivateNetwork,
+    "Rfc1918PrivateNetwork" to Rfc1918PrivateNetwork,
+    "Rfc2544BenchmarkNetwork" to Rfc2544BenchmarkNetwork,
+    "Rfc3927LocalLinkNetwork" to Rfc3927LocalLinkNetwork,
+    "Rfc5737Testnet1Network" to Rfc5737Testnet1Network,
+    "Rfc5737Testnet2Network" to Rfc5737Testnet2Network,
+    "Rfc5737Testnet3Network" to Rfc5737Testnet3Network,
+    "Rfc5737TestnetNetwork" to Rfc5737TestnetNetwork
   )

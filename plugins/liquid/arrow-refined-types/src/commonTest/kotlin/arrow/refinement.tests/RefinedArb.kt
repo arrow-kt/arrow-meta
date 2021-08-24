@@ -40,9 +40,13 @@ fun <A, B> checkLaw(
   refined.orNull(it) == null // if require is consistent orNull should return null
 }
 
-abstract class RefinedLaws<A>(arb: Arb<A>, vararg refined: Refined<A, *>) : StringSpec({
-  println("Running laws for ${refined.joinToString { it::class.toString() }}")
-  refined.forEach {
-    it::class.simpleName?.invoke { it.laws(arb) }
+abstract class RefinedLaws<A>(arb: Arb<A>, vararg refined: Pair<String, Refined<A, *>>) : StringSpec({
+
+}) {
+  init {
+    println("Running laws for $refined")
+    refined.forEach { (name, refined) ->
+      name.invoke { refined.laws(arb) }
+    }
   }
-})
+}
