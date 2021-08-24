@@ -166,7 +166,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      
@@ -182,7 +182,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      

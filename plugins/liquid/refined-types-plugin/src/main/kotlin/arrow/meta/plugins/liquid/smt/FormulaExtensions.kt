@@ -3,7 +3,11 @@ package arrow.meta.plugins.liquid.phases.solver.collector
 import arrow.meta.plugins.liquid.phases.analysis.solver.DeclarationConstraints
 import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.Formula
+import org.sosy_lab.java_smt.api.FormulaManager
+import org.sosy_lab.java_smt.api.FunctionDeclaration
+import org.sosy_lab.java_smt.api.visitors.DefaultFormulaVisitor
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
+import org.sosy_lab.java_smt.api.visitors.TraversalProcess
 
 fun <T : Formula> Solver.substituteFormulae(formula: T, subst: Map<Formula, Formula>): T =
   formulae {
@@ -40,3 +44,20 @@ fun Solver.renameDeclarationConstraints(
     decl.pre.map { rename(it, mapping) },
     decl.post.map { rename(it, mapping) }
   )
+
+fun FormulaManager.fieldNames(f: Formula): List<String> {
+  val names = mutableListOf<String>()
+  val visitor = object : DefaultFormulaVisitor<TraversalProcess>() {
+    override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
+    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
+      if (fn?.name == "field") {
+        args?.get(0)?.let {
+          names.addAll(extractVariables(it).keys)
+        }
+      }
+      return TraversalProcess.CONTINUE
+    }
+  }
+  visitRecursively(f, visitor)
+  return names
+}

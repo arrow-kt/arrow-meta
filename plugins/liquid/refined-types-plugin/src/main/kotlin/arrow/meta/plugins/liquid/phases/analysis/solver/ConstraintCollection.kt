@@ -225,16 +225,12 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
   descriptor: DeclarationDescriptor,
   bindingContext: BindingContext
 ) {
-  val constraints = descriptor.annotations.mapNotNull {
-    if (it.fqName == FqName("arrow.refinement.Pre")) {
-      val formulae = it.argumentValue("formulae") as? ArrayValue
-      if (formulae != null) "pre" to formulae.value.filterIsInstance<StringValue>().map { parseFormula(descriptor, it.value) }
-      else null
-    } else if (it.fqName == FqName("arrow.refinement.Post")) {
-      val formulae = it.argumentValue("formulae") as? ArrayValue
-      if (formulae != null) "post" to formulae.value.filterIsInstance<StringValue>().map { parseFormula(descriptor, it.value) }
-      else null
-    } else null
+  val constraints = descriptor.annotations.mapNotNull { ann ->
+    when (ann.fqName) {
+      FqName("arrow.refinement.Pre") -> "pre"
+      FqName("arrow.refinement.Post") -> "post"
+      else -> null
+    }?.let { element -> parseFormula(element, ann, descriptor) }
   }
   if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<BooleanFormula>()
@@ -247,11 +243,26 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
   }
 }
 
+private fun SolverState.parseFormula(
+  element: String,
+  annotation: AnnotationDescriptor,
+  descriptor: DeclarationDescriptor
+): Pair<String, List<BooleanFormula>>? {
+  fun getArg(arg: String) =
+    (annotation.argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }
+  val dependencies = getArg("dependencies") ?: emptyList()
+  return getArg("formulae")?.map {
+    parseFormula(descriptor, it, dependencies)
+  }?.let { element to it }
+}
+
 internal fun SolverState.parseFormula(
   descriptor: DeclarationDescriptor,
-  formula: String
+  formula: String,
+  dependencies: List<String>
 ): BooleanFormula {
   val VALUE_TYPE = "Int"
+  val FIELD_TYPE = "Int"
   // build the UFs environment
   val basicUFs = """
     (declare-fun int  ($VALUE_TYPE) Int)
@@ -259,19 +270,21 @@ internal fun SolverState.parseFormula(
     (declare-fun dec  ($VALUE_TYPE) Real)
   """.trimIndent()
   // build the parameters environment
-  val params = when (descriptor) {
-    is CallableDescriptor ->
-      descriptor.valueParameters.map {
-        "(declare-fun ${it.name} () $VALUE_TYPE)"
-      }.joinToString(separator = "\n")
-    else -> ""
+  val params = (descriptor as? CallableDescriptor)?.let {
+    it.valueParameters.joinToString(separator = "\n") {
+      "(declare-fun ${it.name} () $VALUE_TYPE)"
+    }
+  } ?: ""
+  // build the dependencies
+  val deps = dependencies.joinToString(separator = "\n") {
+    "(declare-fun $it () $FIELD_TYPE)"
   }
   // build the rest of the environment
   val rest = """
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
   """.trimIndent()
-  val fullString = "$basicUFs\n$params\n$rest\n(assert $formula)"
+  val fullString = "$basicUFs\n$params\n$deps\n$rest\n(assert $formula)"
   return solver.parse(fullString)
 }
 
