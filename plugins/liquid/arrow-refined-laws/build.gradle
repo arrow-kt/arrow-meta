@@ -6,15 +6,6 @@ plugins {
 apply from: "${rootDir}/${SUBPROJECT_MPP}"
 
 kotlin {
-//    targets.all {
-//        compilations.all {
-//            kotlinOptions {
-//                println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
-//                freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
-//                                     "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
-//            }
-//        }
-//    }
     sourceSets {
         commonMain {
             dependencies {
