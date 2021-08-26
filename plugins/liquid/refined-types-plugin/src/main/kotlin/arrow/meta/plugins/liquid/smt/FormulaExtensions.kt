@@ -75,8 +75,8 @@ fun FormulaManager.isSingleVariable(f: Formula): Boolean {
 fun Solver.isFieldCall(f: Formula): Boolean {
   val visitor = object : DefaultFormulaVisitor<Boolean>() {
     override fun visitDefault(f: Formula?): Boolean = false
-    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, functionDeclaration: FunctionDeclaration<*>?): Boolean
-      = functionDeclaration?.name == Solver.FIELD_FUNCTION_NAME
+    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, functionDeclaration: FunctionDeclaration<*>?): Boolean =
+      functionDeclaration?.name == Solver.FIELD_FUNCTION_NAME
   }
   return visit(f, visitor)
 }
