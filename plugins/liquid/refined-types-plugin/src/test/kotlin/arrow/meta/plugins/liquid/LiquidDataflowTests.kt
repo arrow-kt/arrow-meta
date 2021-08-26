@@ -233,7 +233,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled
   fun `safe get`() {
     """
       ${imports()}
@@ -245,7 +244,7 @@ class LiquidDataflowTests {
         return get(ix)
       }
       """(
-      withPlugin = { failsWith { it.contains("inconsistent pre-conditions") } },
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }

@@ -95,7 +95,7 @@ internal fun CompilerContext.checkDeclarationConstraints(
     // now go on and check the body
     declaration.stableBody()?.let { body ->
       solverState.checkDeclarationWithBody(
-        constraints, context,
+        constraints, context, descriptor,
         resultVarName, declaration, body
       ).drain()
     }
@@ -168,6 +168,7 @@ data class ExplicitReturn(val returnPoint: String) : Return()
 private fun SolverState.checkDeclarationWithBody(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor,
   resultVarName: String,
   declaration: KtDeclaration,
   body: KtExpression?
@@ -177,11 +178,17 @@ private fun SolverState.checkDeclarationWithBody(
       checkPreconditionsInconsistencies(constraints, context, declaration)
     ensure(!inconsistentPreconditions)
   }.flatMap {
-    val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), mutableMapOf())
-    checkExpressionConstraints(resultVarName, body, data)
-  }.onEach {
-    checkPostConditionsImplication(constraints, context, declaration)
+    // only check body when we are not in a @Law
+    doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
+      val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), mutableMapOf())
+      checkExpressionConstraints(resultVarName, body, data).onEach {
+        checkPostConditionsImplication(constraints, context, declaration)
+      }
+    }
   }
+
+fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
+  annotations.hasAnnotation(FqName("arrow.refinement.Law"))
 
 // 2.2: expressions
 // ----------------
