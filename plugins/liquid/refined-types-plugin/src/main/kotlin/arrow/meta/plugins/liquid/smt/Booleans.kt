@@ -34,6 +34,13 @@ internal fun Solver.boolAnd(args: List<Formula>): BooleanFormula? =
     } else null
   }
 
+internal fun Solver.boolAndList(args: List<BooleanFormula>): BooleanFormula? =
+  when (args.size) {
+    0 -> null
+    1 -> args[0]
+    else -> booleans { and(args) }
+  }
+
 internal fun Solver.implication(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {

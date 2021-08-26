@@ -3,7 +3,7 @@ package arrow.meta.plugins.liquid.phases.ir
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugins.liquid.phases.analysis.solver.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.constraintsFromSolverState
-import arrow.meta.plugins.liquid.phases.solver.collector.fieldNames
+import arrow.meta.plugins.liquid.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies

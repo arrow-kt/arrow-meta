@@ -18,8 +18,10 @@ import org.sosy_lab.java_smt.api.SolverContext
 import org.sosy_lab.java_smt.api.UFManager
 
 typealias ObjectFormula = NumeralFormula.IntegerFormula
+typealias FieldFormula = NumeralFormula.IntegerFormula
 
 val ObjectFormulaType = FormulaType.IntegerType
+val FieldFormulaType = FormulaType.IntegerType
 
 class Solver(context: SolverContext) :
   SolverContext by context,
@@ -68,6 +70,9 @@ class Solver(context: SolverContext) :
   val decimalValueFun: FunctionDeclaration<NumeralFormula.RationalFormula> =
     ufManager.declareUF(DECIMAL_VALUE_NAME, FormulaType.RationalType, ObjectFormulaType)
 
+  val fieldFun: FunctionDeclaration<ObjectFormula> =
+    ufManager.declareUF(FIELD_FUNCTION_NAME, ObjectFormulaType, FieldFormulaType, ObjectFormulaType)
+
   fun intValue(formula: ObjectFormula): NumeralFormula.IntegerFormula =
     uninterpretedFunctions { callUF(intValueFun, formula) }
 
@@ -76,6 +81,12 @@ class Solver(context: SolverContext) :
 
   fun decimalValue(formula: ObjectFormula): NumeralFormula.RationalFormula =
     uninterpretedFunctions { callUF(decimalValueFun, formula) }
+
+  fun field(fieldName: FieldFormula, formula: ObjectFormula): ObjectFormula =
+    uninterpretedFunctions { callUF(fieldFun, fieldName, formula) }
+
+  fun field(fieldName: String, formula: ObjectFormula): ObjectFormula =
+    field(integerFormulaManager.makeVariable(fieldName), formula)
 
   fun makeObjectVariable(varName: String): ObjectFormula =
     objects { this.makeVariable(varName) }
@@ -94,6 +105,7 @@ class Solver(context: SolverContext) :
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"
     val DECIMAL_VALUE_NAME = "dec"
+    val FIELD_FUNCTION_NAME = "field"
   }
 }
 

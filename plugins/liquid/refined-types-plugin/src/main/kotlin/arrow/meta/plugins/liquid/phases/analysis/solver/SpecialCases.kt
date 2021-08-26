@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
+import arrow.meta.plugins.liquid.smt.Solver
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.name.FqName
@@ -11,11 +12,11 @@ import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.NumeralFormula
 
 // TODO: remove when we can obtain the laws
-internal fun SolverState.specialCasingForResolvedCalls(
+internal fun Solver.specialCasingForResolvedCalls(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
 ): ((result: Formula, arg1: Formula, arg2: Formula) -> BooleanFormula?)? =
-  solver.ints {
-    solver.booleans {
+  ints {
+    booleans {
       when (resolvedCall.resultingDescriptor.fqNameSafe) {
         FqName("kotlin.Int.equals") -> { result, arg1, arg2 ->
           equivalence(

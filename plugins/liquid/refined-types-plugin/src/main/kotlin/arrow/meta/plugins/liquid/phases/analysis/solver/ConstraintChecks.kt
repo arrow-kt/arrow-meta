@@ -11,8 +11,8 @@ import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
-import arrow.meta.plugins.liquid.phases.solver.collector.rename
-import arrow.meta.plugins.liquid.phases.solver.collector.renameDeclarationConstraints
+import arrow.meta.plugins.liquid.smt.rename
+import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -332,7 +332,7 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   data: CheckData
 ): ContSeq<Return> =
-  when (val specialCase = specialCasingForResolvedCalls(resolvedCall)) {
+  when (val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)) {
     null -> when (resolvedCall.resultingDescriptor.fqNameSafe) {
       FqName("arrow.refinement.pre") -> // ignore calls to 'pre'
         cont { NoReturn }
@@ -411,7 +411,7 @@ private fun SolverState.checkCallArguments(
           { argsUpToNow ->
             val (name, _, expr) = current
             val argUniqueName =
-              if (expr != null && solver.isResultReference(expr, data.context.trace.bindingContext)) {
+              if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
                 RESULT_VAR_NAME
               } else {
                 names.newName(name)
@@ -528,8 +528,7 @@ private fun SolverState.obtainInvariant(
   val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
   return if (resolvedCall != null && resolvedCall.invariantCall()) {
     resolvedCall.arg("predicate")?.let {
-      val formulae = solver.argsFormulae(data.context.trace.bindingContext, it)
-      formulae[0] as? BooleanFormula
+      solver.expressionToFormula(it, data.context.trace.bindingContext) as? BooleanFormula
     }
   } else {
     null

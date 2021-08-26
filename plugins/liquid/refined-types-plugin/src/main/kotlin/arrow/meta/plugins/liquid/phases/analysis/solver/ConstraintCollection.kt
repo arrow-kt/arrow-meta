@@ -2,6 +2,9 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
+import arrow.meta.plugins.liquid.phases.solver.collector.boolAndList
+import arrow.meta.plugins.liquid.smt.isSingleVariable
+import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.intDivide
 import arrow.meta.plugins.liquid.smt.intEquals
@@ -12,28 +15,34 @@ import arrow.meta.plugins.liquid.smt.intLessThanOrEquals
 import arrow.meta.plugins.liquid.smt.intMinus
 import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
+import arrow.meta.plugins.liquid.smt.isFieldCall
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.ParameterDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
-import org.jetbrains.kotlin.psi.expressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -41,6 +50,7 @@ import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
@@ -53,7 +63,10 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
+import org.jetbrains.kotlin.types.typeUtil.isDouble
+import org.jetbrains.kotlin.types.typeUtil.isFloat
 import org.jetbrains.kotlin.types.typeUtil.isInt
+import org.jetbrains.kotlin.types.typeUtil.isLong
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
@@ -105,12 +118,14 @@ internal fun KtDeclaration.constraints(
   solver: Solver,
   context: BindingContext
 ): List<Pair<ResolvedCall<*>, BooleanFormula>> =
-  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
-    val call = it.getResolvedCall(context)
-    if (call != null && call.preOrPostCall()) {
-      val f = solver.formula(call, context)
-      f
-    } else null
+  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull { element ->
+    val call = element.getResolvedCall(context)
+    if (call?.preOrPostCall() == true) {
+      val e = solver.expressionToFormula(call.arg("predicate"), context)
+      (e as? BooleanFormula)?.let { result -> call to result }
+    } else {
+      null
+    }
   }
 
 /**
@@ -128,6 +143,30 @@ private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   acceptChildren(visitor)
   return results
 }
+
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.pre]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre")
+
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.post]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
+
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
+ */
+private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
+  preCall() || postCall()
+
+/**
+ * returns true if [this] resolved call is calling [arrow.refinement.invariant]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
 
 /**
  * Adds gathered [constraints] as an association to this [descriptor]
@@ -149,6 +188,12 @@ private fun SolverState.addConstraintsToSolverState(
   }
 }
 
+/**
+ * Depending on the source of the [descriptor] we might
+ * need to attach the information to different places.
+ * The main case is when you declare a @Law, in which
+ * case you have to look for the proper place.
+ */
 private fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
   preConstraints: ArrayList<BooleanFormula>,
@@ -198,6 +243,10 @@ private val skipPackages = setOf(
   FqName("sun")
 )
 
+/**
+ * Get all the pre- and post- conditions for declarations
+ * in the CLASSPATH, by looking at the annotations.
+ */
 internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
   acc: List<DeclarationDescriptor> = emptyList(),
   packages: List<FqName> = listOf(FqName.ROOT),
@@ -243,6 +292,9 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
   }
 }
 
+/**
+ * Parse constraints from annotations.
+ */
 private fun SolverState.parseFormula(
   element: String,
   annotation: AnnotationDescriptor,
@@ -256,6 +308,9 @@ private fun SolverState.parseFormula(
   }?.let { element to it }
 }
 
+/**
+ * Parse constraints from annotations.
+ */
 internal fun SolverState.parseFormula(
   descriptor: DeclarationDescriptor,
   formula: String,
@@ -270,9 +325,9 @@ internal fun SolverState.parseFormula(
     (declare-fun dec  ($VALUE_TYPE) Real)
   """.trimIndent()
   // build the parameters environment
-  val params = (descriptor as? CallableDescriptor)?.let {
-    it.valueParameters.joinToString(separator = "\n") {
-      "(declare-fun ${it.name} () $VALUE_TYPE)"
+  val params = (descriptor as? CallableDescriptor)?.let { function ->
+    function.valueParameters.joinToString(separator = "\n") { param ->
+      "(declare-fun ${param.name} () $VALUE_TYPE)"
     }
   } ?: ""
   // build the dependencies
@@ -301,98 +356,60 @@ internal fun CompilerContext.finalizeConstraintsCollection(
     module.declarationsWithConstraints().forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace.bindingContext)
     }
+    solverState.introduceFieldNamesInSolver()
     solverState.collectionEnds()
     AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
   } else null
 }
 
 /**
- * returns true if [this] resolved call is calling [arrow.refinement.pre]
+ * Transform a [KtExpression] into a [Formula]
  */
-internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre")
-
-/**
- * returns true if [this] resolved call is calling [arrow.refinement.post]
- */
-internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
-
-/**
- * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
- */
-private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
-  preCall() || postCall()
-
-/**
- * returns true if [this] resolved call is calling [arrow.refinement.invariant]
- */
-internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
-
-/**
- * returns true if [this] resolved call is calling
- * [arrow.refinement.pre] or [arrow.refinement.post] or [arrow.refinement.invariant]
- */
-private fun ResolvedCall<out CallableDescriptor>.preOrPostOrInvariantCall(): Boolean =
-  preCall() || postCall() || invariantCall()
-
-/**
- * Translates a [resolvedCall] into an smt [BooleanFormula]
- * Ex.
- * ```kotlin
- * x > 2
- * ```
- * ```smt
- * (x > 2)
- * ```
- */
-internal fun Solver.formula(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
-  bindingContext: BindingContext,
-): Pair<ResolvedCall<out CallableDescriptor>, BooleanFormula>? =
-  ints {
-    val callable = resolvedCall.resultingDescriptor
-    val call = callable.builtIns.run {
-      call(resolvedCall, bindingContext)
-    }
-    when (call) {
-      is BooleanFormula -> resolvedCall to call
-      else -> null // TODO: report error
-    }
-  }
-
-/**
- * Recursively resolves all symbols in [resolvedCall] translating it into
- * an smt [Formula]
- */
-private fun Solver.call(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
-  bindingContext: BindingContext,
+internal fun Solver.expressionToFormula(
+  ex: KtExpression?,
+  bindingContext: BindingContext
 ): Formula? {
-  val args = argsFormulae(bindingContext, resolvedCall.call.callElement)
-  val descriptor = resolvedCall.resultingDescriptor
-  return formulaWithArgs(descriptor, args, resolvedCall)
+  val argCall = ex?.getResolvedCall(bindingContext)
+  return when {
+    ex is KtLambdaExpression ->
+      expressionToFormula(ex.bodyExpression, bindingContext)
+    ex is KtBlockExpression ->
+      ex.statements
+        .mapNotNull { expressionToFormula(it, bindingContext) as? BooleanFormula }
+        .let { conditions -> boolAndList(conditions) }
+    ex is KtConstantExpression ->
+      ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
+    ex is KtThisExpression -> // reference to this
+      makeObjectVariable("this")
+    ex is KtNameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
+      makeObjectVariable(formulaVariableName(ex, bindingContext))
+    argCall != null -> { // fall-through case
+      val args = argCall.allArgumentExpressions()
+      val descriptor = argCall.resultingDescriptor
+      if (descriptor.isProperty()) {
+        // create a field, the 'this' may be missing
+        val thisExpression = (args.getOrNull(0) as? ObjectFormula) ?: makeObjectVariable("this")
+        field(descriptor.fqNameSafe.asString(), thisExpression)
+      } else {
+        // look in one of the well-known functions
+        val expressionArgs = args.map { (_, ty, e) -> Pair(ty, expressionToFormula(e, bindingContext)) }
+        when {
+          expressionArgs.all { it.second != null } -> {
+            val finalArgs = expressionArgs.map { (ty, e) -> wrap(e!!, ty) }
+            specialFormula(argCall, finalArgs)
+          }
+          else -> null
+        }
+      }
+    }
+    else -> null
+  }
 }
 
-/**
- * Given a list of [args] and a [resolvedCall] whose
- * resulting descriptor points to a supported operation
- * we translate that supported operation such as [Int.plus] into a [Formula]
- */
-private fun Solver.formulaWithArgs(
-  descriptor: CallableDescriptor,
-  args: List<Formula>,
-  resolvedCall: ResolvedCall<out CallableDescriptor>
-): Formula? = when (descriptor.fqNameSafe) {
-  FqName("arrow.refinement.pre") -> {
-    // recursion ends here
-    args[0] // TODO apparently we don't get called for composed predicates with && or ||
-  }
-  FqName("arrow.refinement.post") -> {
-    // recursion ends here
-    args[0] // TODO apparently we don't get called for composed predicates with && or ||
-  }
+private fun Solver.specialFormula(
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  args: List<Formula>
+): Formula? = when (resolvedCall.resultingDescriptor.fqNameSafe) {
   FqName("kotlin.Int.equals") -> {
     val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
     when (op) {
@@ -418,147 +435,19 @@ private fun Solver.formulaWithArgs(
   else -> null
 }
 
-/**
- * Given an [element] and [bindingContext] we traverse all
- * element subexpression resolving the [element] nested calls
- * and recursively transforming them into a list of smt [Formula]
- */
-internal fun Solver.argsFormulae(
-  bindingContext: BindingContext,
-  element: KtElement
-): List<Formula> {
-  val results = arrayListOf<Formula>()
-  val visitor = expressionRecursiveVisitor {
-    val resolvedCall = it.getResolvedCall(bindingContext)
-    if (resolvedCall != null && !resolvedCall.preOrPostOrInvariantCall()) { // not match on the parent call
-      val args = argsFormulae(resolvedCall, bindingContext)
-      val descriptor = resolvedCall.resultingDescriptor
-      val expressionFormula = formulaWithArgs(descriptor, args, resolvedCall)
-      expressionFormula?.also { results.add(it) }
-    }
+private fun Solver.wrap(
+  formula: Formula,
+  type: KotlinType
+): Formula = when {
+  // only wrap variables and 'field(name, thing)'
+  !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
+  formula is ObjectFormula -> when {
+    type.isInt() || type.isLong() -> intValue(formula)
+    type.isBoolean() -> boolValue(formula)
+    type.isFloat() || type.isDouble() -> decimalValue(formula)
+    else -> formula
   }
-  element.accept(visitor)
-  return results.distinct()
-}
-
-/**
- * Given a [resolvedCall] and [bindingContext] we traverse all
- * arguments subexpressions
- * and recursively get their [Formula] and associated name and type information
- */
-private fun <D : CallableDescriptor> Solver.argsFormulae(
-  resolvedCall: ResolvedCall<D>,
-  bindingContext: BindingContext,
-): List<Formula> =
-  ints {
-    booleans {
-      val argsExpressions = resolvedCall.allArgumentExpressions()
-      argsExpressions.mapNotNull { (name, type, maybeEx) ->
-        expressionToFormulae(maybeEx, type, name, bindingContext)
-      }
-    }
-  }
-
-/**
- * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
- * value arguments
- */
-internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
-  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
-    valueArguments.flatMap { (param, resolvedArg) ->
-      val containingType =
-        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
-          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
-            ?: param.builtIns.nothingType
-        else param.type
-      resolvedArg.arguments.mapIndexed { n, it ->
-        Triple(param.name.asString(), containingType, it.getArgumentExpression())
-      }
-    }
-
-internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
-  argumentName: String
-): KtExpression? =
-  this.allArgumentExpressions().find { it.first == argumentName }?.third
-
-internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
-  argumentName: String
-): ResolvedValueArgument? =
-  this.valueArguments.toList().find { it ->
-    it.first.name.asString() == argumentName
-  }?.second
-
-/**
- * Transform a [KtExpression] into a [Formula]
- */
-private fun Solver.expressionToFormulae(
-  maybeEx: KtExpression?,
-  type: KotlinType,
-  name: String,
-  bindingContext: BindingContext
-): Formula? =
-  // change also `it` or whatever named first lambda argument of post condition gets renamed to `result`)
-  when (val ex = maybeEx) {
-    is KtConstantExpression ->
-      makeConstant(type, ex)
-    is KtNameReferenceExpression -> makeVariable(ex, type, bindingContext)
-    is KtElement -> {
-      makeExpression(ex, bindingContext)
-    }
-    else -> null
-  }
-
-internal fun Solver.isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
-  val parent =
-    ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
-  return if (parent != null && (parent.postCall() || parent.invariantCall())) {
-    val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
-    val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
-    val params =
-      lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
-      listOf("it")
-    ex.text in params.distinct()
-  } else {
-    false
-  }
-}
-
-/**
- * Uses the same resolution infra in [argsFormulae] to turn a complex
- * [KtExpression] into a [Formula] by resolving its nested calls
- * recursively
- */
-private fun Solver.makeExpression(
-  ex: KtExpression?,
-  bindingContext: BindingContext
-): Formula? {
-  val argCall = ex.getResolvedCall(bindingContext)
-  val expResCall = argCall?.let { argsFormulae(it, bindingContext) }
-  val descriptor = argCall?.resultingDescriptor
-  return descriptor?.let { formulaWithArgs(it, expResCall.orEmpty(), argCall) }
-}
-
-/**
- * Turns a named referenced expression into a smt [Formula]
- * represented as a variable declared in the correct theory
- * given this [type].
- *
- * For example if [type] refers to [Int] the variable will have as
- * formula type [FormulaType.IntegerType]
- */
-private fun Solver.makeVariable(
-  ex: KtNameReferenceExpression,
-  type: KotlinType,
-  bindingContext: BindingContext
-): Formula? {
-  val variableName = formulaVariableName(ex, bindingContext)
-  return when {
-    type.isInt() ->
-      makeIntegerObjectVariable(variableName)
-    type.isBoolean() ->
-      makeBooleanObjectVariable(variableName)
-    else -> makeObjectVariable(variableName)
-  }
+  else -> formula
 }
 
 /**
@@ -581,5 +470,65 @@ private fun Solver.makeConstant(
     else -> null
   }
 
-internal fun Solver.formulaVariableName(ex: KtNameReferenceExpression, bindingContext: BindingContext): String =
+/**
+ * Use the special name $result for references to the result.
+ */
+internal fun formulaVariableName(
+  ex: KtNameReferenceExpression,
+  bindingContext: BindingContext
+): String =
   if (isResultReference(ex, bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
+
+/**
+ * Should we treat a node as a property and create 'field(name, x)'?
+ */
+private fun CallableDescriptor.isProperty(): Boolean = when (this) {
+  is PropertyDescriptor -> true
+  is FunctionDescriptor ->
+    extensionReceiverParameter != null && valueParameters.size == 0
+  else -> false
+}
+
+/**
+ * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
+ * value arguments
+ */
+internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
+    valueArguments.flatMap { (param, resolvedArg) ->
+      val containingType =
+        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
+          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
+            ?: param.builtIns.nothingType
+        else param.type
+      resolvedArg.arguments.map {
+        Triple(param.name.asString(), containingType, it.getArgumentExpression())
+      }
+    }
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
+  argumentName: String
+): KtExpression? =
+  this.allArgumentExpressions().find { it.first == argumentName }?.third
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
+  argumentName: String
+): ResolvedValueArgument? =
+  this.valueArguments.toList().find {
+    it.first.name.asString() == argumentName
+  }?.second
+
+internal fun isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
+  val parent =
+    ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
+  return if (parent != null && (parent.postCall() || parent.invariantCall())) {
+    val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
+    val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
+    val params =
+      lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
+      listOf("it")
+    ex.text in params.distinct()
+  } else {
+    false
+  }
+}

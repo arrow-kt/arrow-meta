@@ -231,6 +231,24 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  @Disabled
+  fun `safe get`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(ix: Int): A {
+        pre("index non-negative") { ix >= 0 }
+        pre("index smaller than size") { ix < size }
+        return get(ix)
+      }
+      """(
+      withPlugin = { failsWith { it.contains("inconsistent pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

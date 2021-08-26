@@ -1,7 +1,6 @@
-package arrow.meta.plugins.liquid.phases.solver.collector
+package arrow.meta.plugins.liquid.smt
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.DeclarationConstraints
-import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FunctionDeclaration
@@ -45,8 +44,8 @@ fun Solver.renameDeclarationConstraints(
     decl.post.map { rename(it, mapping) }
   )
 
-fun FormulaManager.fieldNames(f: Formula): List<String> {
-  val names = mutableListOf<String>()
+fun FormulaManager.fieldNames(f: Formula): Set<String> {
+  val names = mutableSetOf<String>()
   val visitor = object : DefaultFormulaVisitor<TraversalProcess>() {
     override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
     override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
@@ -60,4 +59,24 @@ fun FormulaManager.fieldNames(f: Formula): List<String> {
   }
   visitRecursively(f, visitor)
   return names
+}
+
+fun FormulaManager.fieldNames(f: Iterable<Formula>): Set<String> =
+  f.flatMap { fieldNames(it) }.toSet()
+
+fun FormulaManager.isSingleVariable(f: Formula): Boolean {
+  val visitor = object : DefaultFormulaVisitor<Boolean>() {
+    override fun visitDefault(f: Formula?): Boolean = false
+    override fun visitFreeVariable(f: Formula?, name: String?): Boolean = true
+  }
+  return visit(f, visitor)
+}
+
+fun Solver.isFieldCall(f: Formula): Boolean {
+  val visitor = object : DefaultFormulaVisitor<Boolean>() {
+    override fun visitDefault(f: Formula?): Boolean = false
+    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, functionDeclaration: FunctionDeclaration<*>?): Boolean
+      = functionDeclaration?.name == Solver.FIELD_FUNCTION_NAME
+  }
+  return visit(f, visitor)
 }

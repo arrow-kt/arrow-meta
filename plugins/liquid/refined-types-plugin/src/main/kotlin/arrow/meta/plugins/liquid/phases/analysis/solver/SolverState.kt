@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.continuations.ContSeq
+import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -49,6 +50,23 @@ data class SolverState(
   fun addConstraint(formula: BooleanFormula) {
     prover.addConstraint(formula)
     solverTrace.add(formula.toString())
+  }
+
+  /**
+   * Introduces the field names as constants.
+   * Do not forget to call
+   */
+  fun introduceFieldNamesInSolver() {
+    solver.formulae {
+      callableConstraints.flatMap {
+        fieldNames(it.pre + it.post)
+      }.toSet().forEachIndexed { fieldIndex, fieldName ->
+        val constraint = solver.ints {
+          equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong()))
+        }
+        addConstraint(constraint)
+      }
+    }
   }
 
   companion object {
