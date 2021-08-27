@@ -260,7 +260,6 @@ private fun getReturnedExpressionWithoutPostcondition(
 //  ((descriptor.findPsi() as? KtFunction)?.body()
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
 
-
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
   annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Pre") }
 
