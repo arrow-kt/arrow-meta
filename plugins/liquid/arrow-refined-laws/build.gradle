@@ -22,13 +22,15 @@ kotlin {
     }
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
-        freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
-                             "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
-    }
-}
+//Disabled until java_smt releases with https://github.com/sosy-lab/java-smt/pull/247
+
+//tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+//    kotlinOptions {
+//        println("${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar")
+//        freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/liquid/refined-types-plugin/build/libs/arrow-refined-types-plugin-1.5.10-SNAPSHOT.jar",
+//                             "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
+//    }
+//}
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
