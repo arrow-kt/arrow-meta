@@ -23,16 +23,16 @@ dependencies {
 
  //   implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
     // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
-    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'so'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dylib'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dylib'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dll'
-    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dll'
+//    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'so'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dylib'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dylib'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dll'
+//    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dll'
 
     // Tell implementation config to use the JavaSMT + dependencies from our dependencies folder
-    implementation fileTree(dir: 'build/libs', include: '*.jar')
+    // implementation fileTree(dir: 'build/libs', include: '*.jar')
 
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
@@ -40,7 +40,7 @@ dependencies {
     testRuntimeOnly project(':arrow-meta')
     testRuntimeOnly project(':arrow-refined-types')
     testRuntimeOnly project(':prelude')
-    //testRuntimeOnly project(':refined-types-plugin')
+    testRuntimeOnly project(':refined-types-plugin')
 }
 
 tasks.withType(KotlinCompile).configureEach {
@@ -76,10 +76,10 @@ tasks.withType(Test) {
 }
 
 //// Copy the JavaSMT dependencies before using them in run and test
-test.dependsOn copyDependencies
+// test.dependsOn copyDependencies
 //
 //// When clean is called we want to delete our copied JavaSMT files
-clean.dependsOn cleanDownloadedDependencies
+// clean.dependsOn cleanDownloadedDependencies
 
 //jar {
 //    from {
