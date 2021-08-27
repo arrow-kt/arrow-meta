@@ -482,7 +482,7 @@ internal fun formulaVariableName(
 /**
  * Should we treat a node as a property and create 'field(name, x)'?
  */
-private fun CallableDescriptor.isProperty(): Boolean = when (this) {
+internal fun CallableDescriptor.isProperty(): Boolean = when (this) {
   is PropertyDescriptor -> true
   is FunctionDescriptor ->
     extensionReceiverParameter != null && valueParameters.size == 0

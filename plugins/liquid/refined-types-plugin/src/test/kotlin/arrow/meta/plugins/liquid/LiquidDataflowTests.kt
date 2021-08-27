@@ -243,6 +243,12 @@ class LiquidDataflowTests {
         pre("index smaller than size") { ix < size }
         return get(ix)
       }
+      
+      @Law
+      fun <A> emptyListIsEmpty(): List<A> =
+        emptyList().post("is empty") { size == 0 }
+       
+      val wrong = emptyList().get(0)
       """(
       withPlugin = { compiles },
       withoutPlugin = { compiles }

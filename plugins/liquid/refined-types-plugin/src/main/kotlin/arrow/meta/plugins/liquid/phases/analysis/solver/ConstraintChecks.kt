@@ -239,17 +239,18 @@ private fun SolverState.checkExpressionConstraints(
         fallThrough(associatedVarName, expression, data)
       }
     }
-    else -> {
+    is KtExpression ->
       fallThrough(associatedVarName, expression, data)
-    }
+    else ->
+      cont { NoReturn }
   }
 
-private fun SolverState.fallThrough(associatedVarName: String, expression: KtExpression?, data: CheckData): ContSeq<Return> {
+private fun SolverState.fallThrough(associatedVarName: String, expression: KtExpression, data: CheckData): ContSeq<Return> {
   // fall-through case
   // try to treat it as a function call (for +, -, and so on)
-  val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
+  val resolvedCall = expression.getResolvedCall(data.context.trace.bindingContext)
   return doOnlyWhen(resolvedCall != null, NoReturn) {
-    checkCallExpression(associatedVarName, expression!!, resolvedCall!!, data)
+    checkCallExpression(associatedVarName, expression, resolvedCall!!, data)
   }
 }
 
@@ -358,9 +359,20 @@ private fun SolverState.checkCallExpression(
               }
               // check pre-conditions and post-conditions
               checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
+              // add a constraint for fields: result == field(name, value)
+              val descriptor = resolvedCall.resultingDescriptor
+              if (descriptor.isProperty()) {
+                val fieldConstraint = solver.ints {
+                  equal(
+                    solver.makeObjectVariable(associatedVarName),
+                    solver.field(descriptor.fqNameSafe.asString(), solver.makeObjectVariable(argVars[0].second))
+                  )
+                }
+                addConstraint(fieldConstraint)
+              }
+              // there's no point in continuing if we are in an inconsistent position
               val inconsistentPostConditions =
                 checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
-              // there's no point in continuing if we are in an inconsistent position
               ensure(!inconsistentPostConditions)
               // and we continue as normal
               NoReturn
