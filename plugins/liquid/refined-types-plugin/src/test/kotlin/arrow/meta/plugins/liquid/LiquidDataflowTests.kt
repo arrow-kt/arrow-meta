@@ -15,7 +15,7 @@ class LiquidDataflowTests {
   fun `bad predicate`() {
     """
       ${imports()}
-      fun bar(x: Int): Int {
+      fun bar(): Int {
         pre("wrong") { "a" == "b" }
         return 1
       }
@@ -160,7 +160,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // fails in Z3
   fun `pre-conditions are satisfied in call`() {
     """
       ${imports()}
@@ -272,7 +271,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // fails in Z3
   fun `isEmpty is size == 0`() {
     """
       ${imports()}
@@ -286,7 +284,7 @@ class LiquidDataflowTests {
       
       @Law
       fun <A> List<A>.refinedIsEmpty(): Boolean =
-        isEmpty().post("equivalent to size 0") { it == (size == 0) }
+        isEmpty().post("equivalent to size 0") { it == (size <= 0) }
        
       fun ok(x: List<String>): String {
         pre("non-empty") { !x.isEmpty() }

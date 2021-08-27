@@ -3,7 +3,6 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
-import arrow.meta.plugins.liquid.smt.substituteVariable
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -68,13 +67,10 @@ data class SolverState(
    */
   fun introduceFieldNamesInSolver() {
     solver.formulae {
-      callableConstraints.flatMap {
-        val myself =
-          if (it.descriptor.isField())
-            setOf(it.descriptor.fqNameSafe.asString())
-          else
-            emptySet()
-        myself + fieldNames(it.pre + it.post)
+      callableConstraints.flatMap { decl ->
+        val descriptor = decl.descriptor
+        val myself = if (descriptor.isField()) setOf(descriptor.fqNameSafe.asString()) else emptySet()
+        myself + fieldNames(decl.pre + decl.post).map { it.first }
       }.toSet().forEachIndexed { fieldIndex, fieldName ->
         val constraint = solver.ints {
           equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong()))
@@ -84,6 +80,9 @@ data class SolverState(
     }
   }
 
+  /* This will be useful if we manager to use a solver
+     with support for quantification, such as Z3 */
+  /*
   fun introduceFieldAxiomsInSolver() {
     try {
       callableConstraints
@@ -104,7 +103,7 @@ data class SolverState(
       // solver does not support quantified formulae
       // we just get worst reasoning
     }
-  }
+  } */
 
   companion object {
 

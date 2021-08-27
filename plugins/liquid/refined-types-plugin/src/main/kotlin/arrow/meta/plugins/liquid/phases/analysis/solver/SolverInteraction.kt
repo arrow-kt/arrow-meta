@@ -1,12 +1,17 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.smt.ObjectFormula
+import arrow.meta.plugins.liquid.smt.fieldNames
+import arrow.meta.plugins.liquid.smt.substituteVariable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -20,6 +25,7 @@ internal fun SolverState.addAndCheckConsistency(
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
   constraints.forEach { addConstraint(it) }
+  additionalFieldConstraints(constraints).forEach { addConstraint(it) }
   val unsat = prover.isUnsat
   if (unsat) {
     message(prover.unsatCore)
@@ -34,12 +40,30 @@ internal fun SolverState.checkImplicationOf(
 ): Boolean =
   bracket {
     solver.booleans { addConstraint(not(constraint)) }
+    additionalFieldConstraints(listOf(constraint)).forEach { addConstraint(it) }
     val unsat = prover.isUnsat
     if (!unsat) {
       message(prover.model)
       solverTrace.add("SAT! (not implied)")
     }
     !unsat
+  }
+
+internal fun SolverState.additionalFieldConstraints(
+  constraints: Iterable<BooleanFormula>
+): Set<BooleanFormula> =
+  solver.formulaManager.fieldNames(constraints).flatMap<Pair<String, ObjectFormula>, BooleanFormula> { (fieldName, appliedTo) ->
+    val constraints = constraintsFromFqName(FqName(fieldName))
+    return if (constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
+      setOf(solver.substituteVariable(constraints.post[0], mapOf(RESULT_VAR_NAME to solver.field(fieldName, appliedTo), "this" to appliedTo)))
+    } else {
+      emptySet<BooleanFormula>()
+    }
+  }.toSet()
+
+internal fun SolverState.constraintsFromFqName(name: FqName): DeclarationConstraints? =
+  callableConstraints.firstOrNull {
+    name == it.descriptor.fqNameSafe
   }
 
 // PRODUCE ERRORS FROM INTERACTION

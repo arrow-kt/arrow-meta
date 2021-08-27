@@ -33,14 +33,15 @@ fun Solver.renameDeclarationConstraints(
     decl.post.map { renameObjectVariables(it, mapping) }
   )
 
-fun FormulaManager.fieldNames(f: Formula): Set<String> {
-  val names = mutableSetOf<String>()
+fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {
+  val names = mutableSetOf<Pair<String, ObjectFormula>>()
   val visitor = object : DefaultFormulaVisitor<TraversalProcess>() {
     override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
     override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
-      if (fn?.name == "field") {
-        args?.get(0)?.let {
-          names.addAll(extractVariables(it).keys)
+      val secondArg = args?.getOrNull(1) as? ObjectFormula
+      if (fn?.name == "field" && secondArg != null) {
+        args.getOrNull(0)?.let { fieldNames ->
+          names.addAll(extractVariables(fieldNames).keys.map { Pair(it, secondArg) })
         }
       }
       return TraversalProcess.CONTINUE
@@ -50,7 +51,7 @@ fun FormulaManager.fieldNames(f: Formula): Set<String> {
   return names
 }
 
-fun FormulaManager.fieldNames(f: Iterable<Formula>): Set<String> =
+fun FormulaManager.fieldNames(f: Iterable<Formula>): Set<Pair<String, ObjectFormula>> =
   f.flatMap { fieldNames(it) }.toSet()
 
 fun FormulaManager.isSingleVariable(f: Formula): Boolean {

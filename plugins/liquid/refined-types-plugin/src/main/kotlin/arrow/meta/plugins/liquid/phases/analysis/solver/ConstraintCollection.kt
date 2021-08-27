@@ -398,7 +398,7 @@ internal fun CompilerContext.finalizeConstraintsCollection(
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace.bindingContext)
     }
     solverState.introduceFieldNamesInSolver()
-    solverState.introduceFieldAxiomsInSolver()
+    // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
     solverState.collectionEnds()
     return if (!solverState.hadParseErrors()) {
       AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())

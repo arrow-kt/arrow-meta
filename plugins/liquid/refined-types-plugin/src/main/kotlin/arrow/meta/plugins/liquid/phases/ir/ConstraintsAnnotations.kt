@@ -54,11 +54,11 @@ private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructor
 
 private fun IrUtils.preAnnotation(formulae: List<BooleanFormula>, manager: FormulaManager): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/refinement/Pre"),
-    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it) })
+    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it).map { it.first }.toSet() })
 
 private fun IrUtils.postAnnotation(formulae: List<BooleanFormula>, manager: FormulaManager): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/refinement/Post"),
-    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it) })
+    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it).map { it.first }.toSet() })
 
 private fun IrUtils.lawSubjectAnnotation(descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
   lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/refinement/Subject"), descriptor)

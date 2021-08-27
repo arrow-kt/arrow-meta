@@ -100,7 +100,7 @@ class Solver(context: SolverContext) :
   companion object {
 
     operator fun invoke(log: (String) -> Unit): Solver =
-      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.Z3))
+      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL))
 
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"
