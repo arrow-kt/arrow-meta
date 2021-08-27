@@ -2,6 +2,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
+import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.solver.collector.boolAndList
 import arrow.meta.plugins.liquid.smt.isSingleVariable
 import arrow.meta.plugins.liquid.smt.ObjectFormula
@@ -102,8 +103,7 @@ internal fun CompilerContext.collectDeclarationsConstraints(
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
   if (solverState != null && (solverState.isIn(SolverState.Stage.Init) || solverState.isIn(SolverState.Stage.CollectConstraints))) {
     solverState.collecting()
-    val solver = solverState.solver
-    val constraints = declaration.constraints(solver, context.trace.bindingContext)
+    val constraints = declaration.constraints(solverState, context)
     solverState.addConstraintsToSolverState(constraints, descriptor, context.trace.bindingContext)
   }
 }
@@ -115,14 +115,23 @@ internal fun CompilerContext.collectDeclarationsConstraints(
  * - Annotated declarations in compiled third party dependency modules TODO
  */
 internal fun KtDeclaration.constraints(
-  solver: Solver,
-  context: BindingContext
+  solverState: SolverState,
+  context: DeclarationCheckerContext
 ): List<Pair<ResolvedCall<*>, BooleanFormula>> =
   constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull { element ->
-    val call = element.getResolvedCall(context)
+    val bindingCtx = context.trace.bindingContext
+    val call = element.getResolvedCall(bindingCtx)
     if (call?.preOrPostCall() == true) {
-      val e = solver.expressionToFormula(call.arg("predicate"), context)
-      (e as? BooleanFormula)?.let { result -> call to result }
+      val result = solverState.solver.expressionToFormula(call.arg("predicate"), bindingCtx) as? BooleanFormula
+      if (result == null) {
+        context.trace.report(
+          MetaErrors.ErrorParsingPredicate.on(element)
+        )
+        solverState.signalParseErrors()
+        null
+      } else {
+        call to result
+      }
     } else {
       null
     }
@@ -358,7 +367,9 @@ internal fun CompilerContext.finalizeConstraintsCollection(
     }
     solverState.introduceFieldNamesInSolver()
     solverState.collectionEnds()
-    AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
+    return if (!solverState.hadParseErrors()) {
+      AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
+    } else null
   } else null
 }
 
@@ -386,7 +397,7 @@ internal fun Solver.expressionToFormula(
     argCall != null -> { // fall-through case
       val args = argCall.allArgumentExpressions()
       val descriptor = argCall.resultingDescriptor
-      if (descriptor.isProperty()) {
+      if (descriptor.isField()) {
         // create a field, the 'this' may be missing
         val thisExpression = (args.getOrNull(0) as? ObjectFormula) ?: makeObjectVariable("this")
         field(descriptor.fqNameSafe.asString(), thisExpression)
@@ -480,9 +491,9 @@ internal fun formulaVariableName(
   if (isResultReference(ex, bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
 
 /**
- * Should we treat a node as a property and create 'field(name, x)'?
+ * Should we treat a node as a field and create 'field(name, x)'?
  */
-internal fun CallableDescriptor.isProperty(): Boolean = when (this) {
+internal fun CallableDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor -> true
   is FunctionDescriptor ->
     extensionReceiverParameter != null && valueParameters.size == 0

@@ -85,8 +85,9 @@ internal fun CompilerContext.checkDeclarationConstraints(
   descriptor: DeclarationDescriptor
 ) {
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  val constraints = solverState?.constraintsFromSolverState(descriptor)
-  if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
+  if (solverState != null && solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()) {
+    // bring the constraints in (if there are any)
+    val constraints = solverState.constraintsFromSolverState(descriptor)
     // choose a good name for the result
     // should we change it for 'val' declarations?
     val resultVarName = RESULT_VAR_NAME
@@ -361,7 +362,7 @@ private fun SolverState.checkCallExpression(
               checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
               // add a constraint for fields: result == field(name, value)
               val descriptor = resolvedCall.resultingDescriptor
-              if (descriptor.isProperty()) {
+              if (descriptor.isField()) {
                 val fieldConstraint = solver.ints {
                   equal(
                     solver.makeObjectVariable(associatedVarName),

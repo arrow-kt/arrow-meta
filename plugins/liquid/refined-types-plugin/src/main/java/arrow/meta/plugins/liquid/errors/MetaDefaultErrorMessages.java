@@ -38,6 +38,8 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(UnsatInvariants,
                 "invariants are not satisfied: {0}",
                 FormulaRendererKt.RenderFormula);
+        MAP.put(ErrorParsingPredicate,
+                "could not parse this predicate");
     }
 }
 

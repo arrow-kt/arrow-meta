@@ -11,6 +11,21 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
+  @Disabled
+  fun `bad predicate`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre("wrong") { "a" == "b" }
+        return 1
+      }
+      """(
+      withPlugin = { failsWith { it.contains("could not parse this predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}

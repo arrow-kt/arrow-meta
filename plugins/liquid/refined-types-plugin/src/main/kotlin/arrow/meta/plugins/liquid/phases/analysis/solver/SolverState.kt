@@ -33,6 +33,14 @@ data class SolverState(
     stage = Stage.Prove
   }
 
+  private var parseErrors = false
+
+  fun signalParseErrors(): Unit {
+    parseErrors = true
+  }
+
+  fun hadParseErrors(): Boolean = parseErrors
+
   inline fun <A> bracket(f: () -> A): A {
     solverTrace.add("PUSH")
     prover.push()

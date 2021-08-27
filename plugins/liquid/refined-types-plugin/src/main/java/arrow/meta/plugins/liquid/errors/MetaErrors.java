@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.errors;
 
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement;
+import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
@@ -20,6 +21,7 @@ public interface MetaErrors {
     DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> InconsistentCallPost = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<PsiElement, List<Formula>> InconsistentConditions = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, List<Formula>> UnsatInvariants = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<PsiElement> ErrorParsingPredicate = DiagnosticFactory0.create(ERROR);
 
     /**
      * needed to prevent NPE in
