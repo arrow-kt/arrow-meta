@@ -3,8 +3,11 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
+import arrow.meta.plugins.liquid.smt.rename
+import arrow.meta.plugins.liquid.smt.substituteVariable
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
@@ -62,18 +65,43 @@ data class SolverState(
 
   /**
    * Introduces the field names as constants.
-   * Do not forget to call
+   * Do not forget to call before starting the check.
    */
   fun introduceFieldNamesInSolver() {
     solver.formulae {
       callableConstraints.flatMap {
-        fieldNames(it.pre + it.post)
+        val myself =
+          if (it.descriptor.isField())
+            setOf(it.descriptor.fqNameSafe.asString())
+          else
+            emptySet()
+        myself + fieldNames(it.pre + it.post)
       }.toSet().forEachIndexed { fieldIndex, fieldName ->
         val constraint = solver.ints {
           equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong()))
         }
         addConstraint(constraint)
       }
+    }
+  }
+
+  fun introduceFieldAxiomsInSolver() {
+    try {
+      callableConstraints
+        .filter { it.descriptor.isField() && it.pre.isEmpty() && it.post.size == 1 }
+        .forEach {
+          solver.quantified {
+            solver.ints {
+              val name = it.descriptor.fqNameSafe.asString()
+              val x = solver.makeIntegerObjectVariable("x")
+              val post = solver.substituteVariable(it.post[0], mapOf(RESULT_VAR_NAME to solver.field(name, x)))
+              addConstraint(forall(x, post))
+            }
+          }
+        }
+    } catch (e: UnsupportedOperationException) {
+      // solver does not support quantified formulae
+      // we just get worst reasoning
     }
   }
 

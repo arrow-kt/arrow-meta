@@ -3,7 +3,11 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.solver.collector.boolAnd
 import arrow.meta.plugins.liquid.phases.solver.collector.boolAndList
+import arrow.meta.plugins.liquid.phases.solver.collector.boolEquivalence
+import arrow.meta.plugins.liquid.phases.solver.collector.boolNot
+import arrow.meta.plugins.liquid.phases.solver.collector.boolOr
 import arrow.meta.plugins.liquid.smt.isSingleVariable
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
@@ -394,6 +398,7 @@ internal fun CompilerContext.finalizeConstraintsCollection(
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace.bindingContext)
     }
     solverState.introduceFieldNamesInSolver()
+    solverState.introduceFieldAxiomsInSolver()
     solverState.collectionEnds()
     return if (!solverState.hadParseErrors()) {
       AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
@@ -423,24 +428,22 @@ internal fun Solver.expressionToFormula(
     ex is KtNameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
       makeObjectVariable(formulaVariableName(ex, bindingContext))
     argCall != null -> { // fall-through case
-      val args = argCall.allArgumentExpressions()
       val descriptor = argCall.resultingDescriptor
-      if (descriptor.isField()) {
-        // create a field, the 'this' may be missing
-        val thisExpression =
-          (expressionToFormula(args.getOrNull(0)?.third, bindingContext) as? ObjectFormula)
-            ?: makeObjectVariable("this")
-        field(descriptor.fqNameSafe.asString(), thisExpression)
-      } else {
-        // look in one of the well-known functions
-        val expressionArgs = args.map { (_, ty, e) -> Pair(ty, expressionToFormula(e, bindingContext)) }
-        when {
-          expressionArgs.all { it.second != null } -> {
-            val finalArgs = expressionArgs.map { (ty, e) -> wrap(e!!, ty) }
-            specialFormula(argCall, finalArgs)
-          }
-          else -> null
+      val args = argCall.allArgumentExpressions().map { (_, ty, e) -> Pair(ty, expressionToFormula(e, bindingContext)) }
+      // is it one of our well-known functions?
+      val special = when {
+        args.all { it.second != null } -> specialFormula(argCall, args.map { (ty, e) -> wrap(e!!, ty) })
+        else -> null
+      }
+      when {
+        special != null -> special
+        descriptor.isField() -> {
+          // create a field, the 'this' may be missing
+          val thisExpression =
+            (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
+          field(descriptor.fqNameSafe.asString(), thisExpression)
         }
+        else -> null
       }
     }
     else -> null
@@ -473,6 +476,17 @@ private fun Solver.specialFormula(
       else -> null
     }
   }
+  FqName("kotlin.Boolean.equals") -> {
+    val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+    when (op) {
+      "==" -> boolEquivalence(args)
+      "!=" -> boolEquivalence(args)?.let { not(it) }
+      else -> null
+    }
+  }
+  FqName("kotlin.Boolean.not") -> boolNot(args)
+  FqName("kotlin.Boolean.and") -> boolAnd(args)
+  FqName("kotlin.Boolean.or") -> boolOr(args)
   else -> null
 }
 
@@ -523,10 +537,12 @@ internal fun formulaVariableName(
 /**
  * Should we treat a node as a field and create 'field(name, x)'?
  */
-internal fun CallableDescriptor.isField(): Boolean = when (this) {
+internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor -> true
   is FunctionDescriptor ->
-    extensionReceiverParameter != null && valueParameters.size == 0
+    valueParameters.size == 0
+      && ( (extensionReceiverParameter != null && dispatchReceiverParameter == null)
+        || (extensionReceiverParameter == null && dispatchReceiverParameter != null) )
   else -> false
 }
 

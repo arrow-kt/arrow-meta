@@ -269,6 +269,33 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  @Disabled // requires Z3
+  fun `isEmpty is size == 0`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre("index non-negative") { index >= 0 }
+        pre("index smaller than size") { index < size }
+        return get(index)
+      }
+      
+      @Law
+      fun <A> List<A>.refinedIsEmpty(): Boolean =
+        isEmpty().post("equivalent to size 0") { it == (size == 0) }
+       
+      fun ok(x: List<String>): String {
+        pre("non-empty") { !x.isEmpty() }
+        return x.get(0)
+      }
+      """(
+      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
