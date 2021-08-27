@@ -540,9 +540,9 @@ internal fun formulaVariableName(
 internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor -> true
   is FunctionDescriptor ->
-    valueParameters.size == 0
-      && ( (extensionReceiverParameter != null && dispatchReceiverParameter == null)
-        || (extensionReceiverParameter == null && dispatchReceiverParameter != null) )
+    valueParameters.size == 0 &&
+      ((extensionReceiverParameter != null && dispatchReceiverParameter == null) ||
+        (extensionReceiverParameter == null && dispatchReceiverParameter != null))
   else -> false
 }
 

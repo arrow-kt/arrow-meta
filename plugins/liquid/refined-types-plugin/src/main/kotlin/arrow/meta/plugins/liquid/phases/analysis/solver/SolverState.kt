@@ -3,7 +3,6 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
-import arrow.meta.plugins.liquid.smt.rename
 import arrow.meta.plugins.liquid.smt.substituteVariable
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
