@@ -92,8 +92,10 @@ data class SolverState(
           solver.quantified {
             solver.ints {
               val name = it.descriptor.fqNameSafe.asString()
-              val x = solver.makeIntegerObjectVariable("x")
-              val post = solver.substituteVariable(it.post[0], mapOf(RESULT_VAR_NAME to solver.field(name, x)))
+              val x = solver.makeObjectVariable("x")
+              val post = solver.substituteVariable(
+                it.post[0],
+                mapOf(RESULT_VAR_NAME to solver.field(name, x), "this" to x))
               addConstraint(forall(x, post))
             }
           }

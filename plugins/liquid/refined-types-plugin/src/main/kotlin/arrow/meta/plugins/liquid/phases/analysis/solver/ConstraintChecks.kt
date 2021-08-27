@@ -12,7 +12,7 @@ import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
-import arrow.meta.plugins.liquid.smt.rename
+import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -93,7 +93,7 @@ internal fun CompilerContext.checkDeclarationConstraints(
     // should we change it for 'val' declarations?
     val resultVarName = RESULT_VAR_NAME
     // clear the solverTrace (for debugging purposes only)
-    solverState.solverTrace.clear()
+    solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
     declaration.stableBody()?.let { body ->
       solverState.checkDeclarationWithBody(
@@ -521,7 +521,7 @@ private fun SolverState.checkMutableAssignment(
   data: CheckData
 ): ContSeq<Return> {
   val newName = names.newName(declName)
-  val newInvariant = invariant?.let { solver.rename(it, mapOf(RESULT_VAR_NAME to newName)) }
+  val newInvariant = invariant?.let { solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName)) }
   return checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
     .flatMap { r -> bracketMutableVars(data).map { r } }
     .onEach { data.mutableVariables[declName] = MutableVarInfo(invariant, newName) }
