@@ -3,11 +3,11 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
-import arrow.meta.plugins.liquid.phases.solver.collector.boolAnd
-import arrow.meta.plugins.liquid.phases.solver.collector.boolAndList
-import arrow.meta.plugins.liquid.phases.solver.collector.boolEquivalence
-import arrow.meta.plugins.liquid.phases.solver.collector.boolNot
-import arrow.meta.plugins.liquid.phases.solver.collector.boolOr
+import arrow.meta.plugins.liquid.smt.boolAnd
+import arrow.meta.plugins.liquid.smt.boolAndList
+import arrow.meta.plugins.liquid.smt.boolEquivalence
+import arrow.meta.plugins.liquid.smt.boolNot
+import arrow.meta.plugins.liquid.smt.boolOr
 import arrow.meta.plugins.liquid.smt.isSingleVariable
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver

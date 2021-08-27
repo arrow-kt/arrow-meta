@@ -1,6 +1,5 @@
-package arrow.meta.plugins.liquid.phases.solver.collector
+package arrow.meta.plugins.liquid.smt
 
-import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 
