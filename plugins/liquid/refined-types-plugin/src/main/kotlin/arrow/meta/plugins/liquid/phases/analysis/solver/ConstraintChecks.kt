@@ -188,9 +188,6 @@ private fun SolverState.checkDeclarationWithBody(
     }
   }
 
-fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
-  annotations.hasAnnotation(FqName("arrow.refinement.Law"))
-
 // 2.2: expressions
 // ----------------
 

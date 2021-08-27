@@ -178,6 +178,12 @@ internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
 
 /**
+ * returns true if we have declared something with a @Law
+ */
+fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
+  annotations.hasAnnotation(FqName("arrow.refinement.Law"))
+
+/**
  * Adds gathered [constraints] as an association to this [descriptor]
  * in the [SolverState]
  */
@@ -219,8 +225,9 @@ private fun SolverState.addConstraints(
       } else null
     }
   val targetDescriptorFromLocalLaw =
-    ((descriptor.findPsi() as? KtFunction)?.body()
-      ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
+    if (descriptor.hasLawAnnotation()) {
+      getReturnedExpressionWithoutPostcondition(descriptor, bindingContext)?.resultingDescriptor
+    } else null
   val lawSubject = remoteDescriptorFromRemoteLaw ?: targetDescriptorFromLocalLaw
   if (lawSubject != null) {
     callableConstraints.add(
@@ -231,6 +238,28 @@ private fun SolverState.addConstraints(
     DeclarationConstraints(descriptor, preConstraints, postConstraints)
   )
 }
+
+private fun getReturnedExpressionWithoutPostcondition(
+  descriptor: DeclarationDescriptor,
+  bindingContext: BindingContext
+): ResolvedCall<out CallableDescriptor>? {
+  val lastElement = (descriptor.findPsi() as? KtFunction)?.body()?.lastBlockStatementOrThis()
+  val lastElementWithoutReturn = when (lastElement) {
+    is KtReturnExpression -> lastElement.returnedExpression
+    else -> lastElement
+  }
+  // remove outer layer of postcondition
+  return lastElementWithoutReturn?.getResolvedCall(bindingContext)?.let {
+    if (it.postCall()) {
+      it.arg("this")?.getResolvedCall(bindingContext)
+    } else {
+      it
+    }
+  }
+}
+//  ((descriptor.findPsi() as? KtFunction)?.body()
+//    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
+
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
   annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Pre") }
@@ -399,7 +428,9 @@ internal fun Solver.expressionToFormula(
       val descriptor = argCall.resultingDescriptor
       if (descriptor.isField()) {
         // create a field, the 'this' may be missing
-        val thisExpression = (args.getOrNull(0) as? ObjectFormula) ?: makeObjectVariable("this")
+        val thisExpression =
+          (expressionToFormula(args.getOrNull(0)?.third, bindingContext) as? ObjectFormula)
+            ?: makeObjectVariable("this")
         field(descriptor.fqNameSafe.asString(), thisExpression)
       } else {
         // look in one of the well-known functions

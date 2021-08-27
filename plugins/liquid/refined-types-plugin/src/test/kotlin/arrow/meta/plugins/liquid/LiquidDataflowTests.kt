@@ -253,19 +253,19 @@ class LiquidDataflowTests {
       ${imports()}
       
       @Law
-      fun <A> List<A>.safeGet(ix: Int): A {
-        pre("index non-negative") { ix >= 0 }
-        pre("index smaller than size") { ix < size }
-        return get(ix)
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre("index non-negative") { index >= 0 }
+        pre("index smaller than size") { index < size }
+        return get(index)
       }
       
       @Law
       fun <A> emptyListIsEmpty(): List<A> =
-        emptyList().post("is empty") { size == 0 }
+        emptyList<A>().post("is empty") { it.size == 0 }
        
-      val wrong = emptyList().get(0)
+      val wrong: String = emptyList<String>().get(0)
       """(
-      withPlugin = { compiles },
+      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy its pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }
