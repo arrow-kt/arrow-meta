@@ -292,7 +292,7 @@ class LiquidDataflowTests {
         return x.get(0)
       }
       """(
-      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy its pre-conditions") } },
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }
