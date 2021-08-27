@@ -7,6 +7,7 @@ import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.asContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
+import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
@@ -243,14 +244,16 @@ private fun SolverState.checkExpressionConstraints(
       cont { NoReturn }
   }
 
-private fun SolverState.fallThrough(associatedVarName: String, expression: KtExpression, data: CheckData): ContSeq<Return> {
+private fun SolverState.fallThrough(
+  associatedVarName: String,
+  expression: KtExpression,
+  data: CheckData
+): ContSeq<Return> =
   // fall-through case
   // try to treat it as a function call (for +, -, and so on)
-  val resolvedCall = expression.getResolvedCall(data.context.trace.bindingContext)
-  return doOnlyWhen(resolvedCall != null, NoReturn) {
-    checkCallExpression(associatedVarName, expression, resolvedCall!!, data)
+  doOnlyWhenNotNull(expression.getResolvedCall(data.context.trace.bindingContext), NoReturn) { resolvedCall ->
+    checkCallExpression(associatedVarName, expression, resolvedCall, data)
   }
-}
 
 private fun KtDeclaration.isVar(): Boolean = when (this) {
   is KtVariableDeclaration -> this.isVar

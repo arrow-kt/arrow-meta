@@ -129,6 +129,11 @@ inline fun doOnlyWhen(condition: Boolean, crossinline f: () -> ContSeq<Unit>): C
 inline fun <A> doOnlyWhen(condition: Boolean, value: A, crossinline f: () -> ContSeq<A>): ContSeq<A> =
   if (condition) f() else cont { value }
 
+/** Execute a side effect only when some condition holds. */
+inline fun <T, A> doOnlyWhenNotNull(thing: T?, value: A, crossinline f: (T) -> ContSeq<A>): ContSeq<A> {
+  return if (thing != null) f(thing) else cont { value }
+}
+
 /**
  * [ContSyntax] exposes [abort] which allows for interruption of the computation,
  * meaning that when `abort` is encountered the `Cont` will be interrupted and will not yield a value.
