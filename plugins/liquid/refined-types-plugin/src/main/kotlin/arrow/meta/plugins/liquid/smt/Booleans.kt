@@ -1,10 +1,17 @@
-package arrow.meta.plugins.liquid.phases.solver.collector
+package arrow.meta.plugins.liquid.smt
 
-import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 
-internal fun Solver.boolEquivalence(args: List<Formula>): Formula? =
+internal fun Solver.boolNot(args: List<Formula>): BooleanFormula? =
+  booleans {
+    if (args.size == 1 && args[0] is BooleanFormula) {
+      val theOne = args[0] as BooleanFormula
+      not(theOne)
+    } else null
+  }
+
+internal fun Solver.boolEquivalence(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
       val (left, right) = args
@@ -14,7 +21,7 @@ internal fun Solver.boolEquivalence(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.boolImplication(args: List<Formula>): Formula? =
+internal fun Solver.boolImplication(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
       val (left, right) = args
@@ -32,6 +39,13 @@ internal fun Solver.boolAnd(args: List<Formula>): BooleanFormula? =
         and(left, right)
       } else null
     } else null
+  }
+
+internal fun Solver.boolAndList(args: List<BooleanFormula>): BooleanFormula? =
+  when (args.size) {
+    0 -> null
+    1 -> args[0]
+    else -> booleans { and(args) }
   }
 
 internal fun Solver.implication(args: List<Formula>): BooleanFormula? =

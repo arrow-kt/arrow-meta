@@ -11,6 +11,21 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
+  @Disabled
+  fun `bad predicate`() {
+    """
+      ${imports()}
+      fun bar(): Int {
+        pre("wrong") { "a" == "b" }
+        return 1
+      }
+      """(
+      withPlugin = { failsWith { it.contains("could not parse this predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}
@@ -166,7 +181,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      
@@ -182,7 +197,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"])
+      @Pre(formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      
@@ -228,6 +243,55 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `safe get`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre("index non-negative") { index >= 0 }
+        pre("index smaller than size") { index < size }
+        return get(index)
+      }
+      
+      @Law
+      fun <A> emptyListIsEmpty(): List<A> =
+        emptyList<A>().post("is empty") { it.size == 0 }
+       
+      val wrong: String = emptyList<String>().get(0)
+      """(
+      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy its pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `isEmpty is size == 0`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre("index non-negative") { index >= 0 }
+        pre("index smaller than size") { index < size }
+        return get(index)
+      }
+      
+      @Law
+      fun <A> List<A>.refinedIsEmpty(): Boolean =
+        isEmpty().post("equivalent to size 0") { it == (size <= 0) }
+       
+      fun ok(x: List<String>): String {
+        pre("non-empty") { !x.isEmpty() }
+        return x.get(0)
+      }
+      """(
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }

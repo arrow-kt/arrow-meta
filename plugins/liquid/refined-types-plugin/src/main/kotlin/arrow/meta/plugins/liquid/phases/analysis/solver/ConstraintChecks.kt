@@ -7,12 +7,13 @@ import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.asContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
+import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
-import arrow.meta.plugins.liquid.phases.solver.collector.rename
-import arrow.meta.plugins.liquid.phases.solver.collector.renameDeclarationConstraints
+import arrow.meta.plugins.liquid.smt.renameObjectVariables
+import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -85,17 +86,18 @@ internal fun CompilerContext.checkDeclarationConstraints(
   descriptor: DeclarationDescriptor
 ) {
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  val constraints = solverState?.constraintsFromSolverState(descriptor)
-  if (solverState != null && solverState.isIn(SolverState.Stage.Prove)) {
+  if (solverState != null && solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()) {
+    // bring the constraints in (if there are any)
+    val constraints = solverState.constraintsFromSolverState(descriptor)
     // choose a good name for the result
     // should we change it for 'val' declarations?
     val resultVarName = RESULT_VAR_NAME
     // clear the solverTrace (for debugging purposes only)
-    solverState.solverTrace.clear()
+    solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
     declaration.stableBody()?.let { body ->
       solverState.checkDeclarationWithBody(
-        constraints, context,
+        constraints, context, descriptor,
         resultVarName, declaration, body
       ).drain()
     }
@@ -168,6 +170,7 @@ data class ExplicitReturn(val returnPoint: String) : Return()
 private fun SolverState.checkDeclarationWithBody(
   constraints: DeclarationConstraints?,
   context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor,
   resultVarName: String,
   declaration: KtDeclaration,
   body: KtExpression?
@@ -177,10 +180,13 @@ private fun SolverState.checkDeclarationWithBody(
       checkPreconditionsInconsistencies(constraints, context, declaration)
     ensure(!inconsistentPreconditions)
   }.flatMap {
-    val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), mutableMapOf())
-    checkExpressionConstraints(resultVarName, body, data)
-  }.onEach {
-    checkPostConditionsImplication(constraints, context, declaration)
+    // only check body when we are not in a @Law
+    doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
+      val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), mutableMapOf())
+      checkExpressionConstraints(resultVarName, body, data).onEach {
+        checkPostConditionsImplication(constraints, context, declaration)
+      }
+    }
   }
 
 // 2.2: expressions
@@ -232,19 +238,22 @@ private fun SolverState.checkExpressionConstraints(
         fallThrough(associatedVarName, expression, data)
       }
     }
-    else -> {
+    is KtExpression ->
       fallThrough(associatedVarName, expression, data)
-    }
+    else ->
+      cont { NoReturn }
   }
 
-private fun SolverState.fallThrough(associatedVarName: String, expression: KtExpression?, data: CheckData): ContSeq<Return> {
+private fun SolverState.fallThrough(
+  associatedVarName: String,
+  expression: KtExpression,
+  data: CheckData
+): ContSeq<Return> =
   // fall-through case
   // try to treat it as a function call (for +, -, and so on)
-  val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
-  return doOnlyWhen(resolvedCall != null, NoReturn) {
-    checkCallExpression(associatedVarName, expression!!, resolvedCall!!, data)
+  doOnlyWhenNotNull(expression.getResolvedCall(data.context.trace.bindingContext), NoReturn) { resolvedCall ->
+    checkCallExpression(associatedVarName, expression, resolvedCall, data)
   }
-}
 
 private fun KtDeclaration.isVar(): Boolean = when (this) {
   is KtVariableDeclaration -> this.isVar
@@ -332,7 +341,7 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   data: CheckData
 ): ContSeq<Return> =
-  when (val specialCase = specialCasingForResolvedCalls(resolvedCall)) {
+  when (val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)) {
     null -> when (resolvedCall.resultingDescriptor.fqNameSafe) {
       FqName("arrow.refinement.pre") -> // ignore calls to 'pre'
         cont { NoReturn }
@@ -351,9 +360,20 @@ private fun SolverState.checkCallExpression(
               }
               // check pre-conditions and post-conditions
               checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
+              // add a constraint for fields: result == field(name, value)
+              val descriptor = resolvedCall.resultingDescriptor
+              if (descriptor.isField()) {
+                val fieldConstraint = solver.ints {
+                  equal(
+                    solver.makeObjectVariable(associatedVarName),
+                    solver.field(descriptor.fqNameSafe.asString(), solver.makeObjectVariable(argVars[0].second))
+                  )
+                }
+                addConstraint(fieldConstraint)
+              }
+              // there's no point in continuing if we are in an inconsistent position
               val inconsistentPostConditions =
                 checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
-              // there's no point in continuing if we are in an inconsistent position
               ensure(!inconsistentPostConditions)
               // and we continue as normal
               NoReturn
@@ -411,7 +431,7 @@ private fun SolverState.checkCallArguments(
           { argsUpToNow ->
             val (name, _, expr) = current
             val argUniqueName =
-              if (expr != null && solver.isResultReference(expr, data.context.trace.bindingContext)) {
+              if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
                 RESULT_VAR_NAME
               } else {
                 names.newName(name)
@@ -501,7 +521,7 @@ private fun SolverState.checkMutableAssignment(
   data: CheckData
 ): ContSeq<Return> {
   val newName = names.newName(declName)
-  val newInvariant = invariant?.let { solver.rename(it, mapOf(RESULT_VAR_NAME to newName)) }
+  val newInvariant = invariant?.let { solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName)) }
   return checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
     .flatMap { r -> bracketMutableVars(data).map { r } }
     .onEach { data.mutableVariables[declName] = MutableVarInfo(invariant, newName) }
@@ -528,8 +548,7 @@ private fun SolverState.obtainInvariant(
   val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
   return if (resolvedCall != null && resolvedCall.invariantCall()) {
     resolvedCall.arg("predicate")?.let {
-      val formulae = solver.argsFormulae(data.context.trace.bindingContext, it)
-      formulae[0] as? BooleanFormula
+      solver.expressionToFormula(it, data.context.trace.bindingContext) as? BooleanFormula
     }
   } else {
     null
