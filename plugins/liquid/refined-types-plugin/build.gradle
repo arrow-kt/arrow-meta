@@ -21,7 +21,7 @@ dependencies {
     /* solver deps */
     implementation 'org.sosy-lab:java-smt:3.10.0'
 
- //   implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
+    implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
     // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
 //    implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
 //    javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
@@ -70,10 +70,10 @@ task cleanDownloadedDependencies(type: Delete) {
     delete fileTree('build/libs')
 }
 
-tasks.withType(Test) {
-    environment "DYLD_LIBRARY_PATH", projectDir.absolutePath + "/build/libs"
-    systemProperty "java.library.path", projectDir.absolutePath + "/build/libs"
-}
+//tasks.withType(Test) {
+//    environment "DYLD_LIBRARY_PATH", projectDir.absolutePath + "/build/libs"
+//    systemProperty "java.library.path", projectDir.absolutePath + "/build/libs"
+//}
 
 //// Copy the JavaSMT dependencies before using them in run and test
 // test.dependsOn copyDependencies

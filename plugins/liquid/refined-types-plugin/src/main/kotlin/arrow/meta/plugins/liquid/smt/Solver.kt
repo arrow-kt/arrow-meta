@@ -1,5 +1,10 @@
 package arrow.meta.plugins.liquid.smt
 
+import org.sosy_lab.common.ShutdownManager
+import org.sosy_lab.common.ShutdownNotifier
+import org.sosy_lab.common.configuration.Configuration
+import org.sosy_lab.common.log.BasicLogManager
+import org.sosy_lab.common.log.LogManager
 import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.ArrayFormulaManager
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager
@@ -16,6 +21,7 @@ import org.sosy_lab.java_smt.api.RationalFormulaManager
 import org.sosy_lab.java_smt.api.SLFormulaManager
 import org.sosy_lab.java_smt.api.SolverContext
 import org.sosy_lab.java_smt.api.UFManager
+
 
 typealias ObjectFormula = NumeralFormula.IntegerFormula
 typealias FieldFormula = NumeralFormula.IntegerFormula
@@ -99,8 +105,15 @@ class Solver(context: SolverContext) :
 
   companion object {
 
-    operator fun invoke(log: (String) -> Unit): Solver =
-      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL))
+    operator fun invoke(log: (String) -> Unit): Solver {
+      val config = Configuration.defaultConfiguration()
+      val logger: LogManager = BasicLogManager.create(config)
+      val shutdown = ShutdownNotifier.createDummy()
+      return Solver(SolverContextFactory
+        .createSolverContext(config, logger, shutdown, SolverContextFactory.Solvers.Z3) {
+          //no op loading native libs
+        })
+    }
 
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"
