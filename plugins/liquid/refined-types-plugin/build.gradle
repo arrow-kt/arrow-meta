@@ -19,7 +19,7 @@ dependencies {
 
 
     /* solver deps */
-    implementation 'org.sosy-lab:java-smt:3.9.0-1-g304079c2'
+    implementation 'org.sosy-lab:java-smt:3.10.0'
 
  //   implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
     // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
