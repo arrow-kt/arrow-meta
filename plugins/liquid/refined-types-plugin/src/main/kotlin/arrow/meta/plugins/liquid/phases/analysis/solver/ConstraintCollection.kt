@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -343,6 +344,7 @@ private fun SolverState.parseFormula(
 ): Pair<String, List<BooleanFormula>>? {
   fun getArg(arg: String) =
     (annotation.argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }
+
   val dependencies = getArg("dependencies") ?: emptyList()
   return getArg("formulae")?.map {
     parseFormula(descriptor, it, dependencies)
@@ -580,10 +582,12 @@ internal fun isResultReference(ex: KtElement, bindingContext: BindingContext): B
     ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
   return if (parent != null && (parent.postCall() || parent.invariantCall())) {
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
-    val lambdaArg = expArg?.valueArgument as? KtLambdaArgument
+    val lambdaArg =
+      (expArg?.valueArgument as? KtLambdaArgument)?.getLambdaExpression()
+        ?: (expArg?.valueArgument as? KtValueArgument)?.getArgumentExpression() as? KtLambdaExpression
     val params =
-      lambdaArg?.getLambdaExpression()?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
-      listOf("it")
+      lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
+        listOf("it")
     ex.text in params.distinct()
   } else {
     false

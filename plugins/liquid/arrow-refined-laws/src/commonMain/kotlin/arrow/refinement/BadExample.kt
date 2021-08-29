@@ -5,7 +5,7 @@ import arrow.refinement.pre
 
 @Law
 fun Int.safeDiv(other: Int): Int {
-  pre("other is not zero") { other != 0 }
+  pre(other != 0) { "other is not zero" }
   return this / other
 }
 

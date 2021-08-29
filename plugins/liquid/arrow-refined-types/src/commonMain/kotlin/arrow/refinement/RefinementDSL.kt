@@ -1,13 +1,5 @@
 package arrow.refinement
 
-inline fun pre(msg: String, predicate: () -> Boolean): Unit =
-  require(predicate()) { msg }
-
-inline fun <A> A.post(msg: String, predicate: (A) -> Boolean): A {
-  require(predicate(this)) { msg }
-  return this
-}
-
 inline fun pre(predicate: Boolean, msg: () -> String): Unit =
   require(predicate) { msg() }
 
