@@ -35,6 +35,9 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(InconsistentConditions,
                 "unreachable code due to conflicting conditions: {0}",
                 FormulaRendererKt.RenderFormula);
+        MAP.put(InconsistentInvariants,
+                "invariants are inconsistent: {0}",
+                FormulaRendererKt.RenderFormula);
         MAP.put(UnsatInvariants,
                 "invariants are not satisfied: {0}",
                 FormulaRendererKt.RenderFormula);

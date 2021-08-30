@@ -155,6 +155,17 @@ internal fun SolverState.checkConditionsInconsistencies(
     )
   }
 
+internal fun SolverState.checkInvariantConsistency(
+  formula: BooleanFormula,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Boolean =
+  addAndCheckConsistency(listOf(formula)) {
+    context.trace.report(
+      MetaErrors.InconsistentInvariants.on(expression.psiOrParent, listOf(formula))
+    )
+  }
+
 internal fun SolverState.checkInvariant(
   formula: BooleanFormula,
   context: DeclarationCheckerContext,

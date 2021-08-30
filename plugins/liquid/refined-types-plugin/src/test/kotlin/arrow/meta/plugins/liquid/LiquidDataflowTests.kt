@@ -67,36 +67,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `post-conditions and variables, 1`() {
-    """
-      ${imports()}
-      fun bar(x: Int): Int {
-        var z = 0
-        z = 2
-        return z.post("greater than 0") { it > 0 }
-      }
-      """(
-      withPlugin = { compiles },
-      withoutPlugin = { compiles }
-    )
-  }
-
-  @Test
-  fun `post-conditions and variables, 2`() {
-    """
-      ${imports()}
-      fun bar(x: Int): Int {
-        var z = 2
-        z = 0
-        return z.post("greater than 0") { it > 0 }
-      }
-      """(
-      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
-      withoutPlugin = { compiles }
-    )
-  }
-
-  @Test
   fun `invariants in variables`() {
     """
       ${imports()}
@@ -107,6 +77,36 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { failsWith { it.contains("invariants are not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `var only knows the invariant, 1`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        var z = 2
+        z = 3
+        return z.post("greater than 0") { it > 0 }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `var only knows the invariant, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        var z = 2 invariant { it > 0 }
+        z = 3
+        return z.post("greater or equal to 0") { it >= 0 }
+      }
+      """(
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }
