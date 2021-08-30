@@ -17,10 +17,10 @@ import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.fir.lightTree.converter.nameAsSafeName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
@@ -30,13 +30,16 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamed
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -86,7 +89,11 @@ internal fun CompilerContext.checkDeclarationConstraints(
   descriptor: DeclarationDescriptor
 ) {
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null && solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()) {
+  if (solverState != null &&
+    solverState.isIn(SolverState.Stage.Prove) &&
+    !solverState.hadParseErrors() &&
+    declaration.shouldBeAnalyzed()
+  ) {
     // bring the constraints in (if there are any)
     val constraints = solverState.constraintsFromSolverState(descriptor)
     // choose a good name for the result
@@ -104,59 +111,101 @@ internal fun CompilerContext.checkDeclarationConstraints(
   }
 }
 
+/**
+ * Only elements which are not inside another "callable declaration"
+ * (function, property, etc) should be analyzed
+ */
+fun KtDeclaration.shouldBeAnalyzed() =
+  !(this.parents.any { it is KtCallableDeclaration })
+
 // 2.0: data for the checks
 // ------------------------
 
 data class CheckData(
   val context: DeclarationCheckerContext,
   val returnPoints: ReturnPoints,
-  val mutableVariables: MutableMap<String, MutableVarInfo>
+  val varInfo: CurrentVarInfo
 ) {
-  fun addReturnPoint(returnPoint: String, variableName: String) =
-    CheckData(context, returnPoints.add(returnPoint, variableName), mutableVariables)
+  fun addReturnPoint(scope: String, variableName: String) =
+    CheckData(context, returnPoints.addAndReplaceTopMost(scope, variableName), varInfo)
 }
 
 /**
  * Maps return points to the SMT variables representing that place.
  */
 data class ReturnPoints(
-  val topMostReturnPointVariableName: String,
+  val topMostReturnPointVariableName: Pair<String?, String>,
   val namedReturnPointVariableNames: Map<String, String>
 ) {
 
-  // fun replaceTopMost(newVariableName: String) =
-  //   ReturnPoints(newVariableName, namedReturnPointVariableNames)
+  fun addAndReplaceTopMost(newScopeName: String, newVariableName: String) =
+    this
+      .replaceTopMost(newScopeName, newVariableName)
+      .add(newScopeName, newVariableName)
 
-  fun add(returnPoint: String, variableName: String) =
+  private fun replaceTopMost(newScopeName: String, newVariableName: String) =
+    ReturnPoints(Pair(newScopeName, newVariableName), namedReturnPointVariableNames)
+
+  private fun add(returnPoint: String, variableName: String) =
     ReturnPoints(
       topMostReturnPointVariableName,
       namedReturnPointVariableNames + (returnPoint to variableName)
     )
+
+  companion object {
+    fun new(scope: String?, variableName: String): ReturnPoints =
+      when (scope) {
+        null -> ReturnPoints(Pair(scope, variableName), emptyMap())
+        else -> ReturnPoints(Pair(scope, variableName), mapOf(scope to variableName))
+      }
+
+    fun new(scope: KtElement, variableName: String): ReturnPoints =
+      when (scope) {
+        is KtNamed -> new(scope.nameAsName!!.asString(), variableName)
+        else -> new(null, variableName)
+      }
+  }
+}
+
+data class CurrentVarInfo(val varInfo: MutableList<VarInfo>) {
+
+  fun get(name: String): VarInfo? =
+    varInfo.firstOrNull { it.name == name }
+
+  fun get(name: FqName): VarInfo? =
+    this.get(name.asString())
+
+  fun add(name: String, smtName: String, origin: KtElement, invariant: BooleanFormula?) {
+    varInfo.add(0, VarInfo(name, smtName, origin, invariant))
+  }
+
+  fun bracket(): ContSeq<Unit> = ContSeq {
+    val currentVarInfo = varInfo.toList()
+    yield(Unit)
+    varInfo.clear()
+    varInfo.addAll(currentVarInfo)
+  }
 }
 
 /**
- * For each mutable variable, we keep two pieces of data:
+ * For each variable, we keep two pieces of data:
+ * - the name it was declared with
+ * - the element it came from
  * - invariants which may have been declared
- * - the "current" internal name for it
  */
-data class MutableVarInfo(
-  val invariant: BooleanFormula?,
-  val currentName: String
+data class VarInfo(
+  val name: String,
+  val smtName: String,
+  val origin: KtElement,
+  val invariant: BooleanFormula? = null
 )
-
-fun bracketMutableVars(data: CheckData): ContSeq<Unit> = ContSeq {
-  val currentMap = data.mutableVariables.toMap()
-  yield(Unit)
-  data.mutableVariables.clear()
-  data.mutableVariables.putAll(currentMap)
-}
 
 /**
  * Ways to return from a block.
  */
 sealed class Return
 object NoReturn : Return()
-data class ExplicitReturn(val returnPoint: String) : Return()
+data class ExplicitReturn(val returnPoint: String?) : Return()
 
 // 2.1: declarations
 // -----------------
@@ -182,12 +231,35 @@ private fun SolverState.checkDeclarationWithBody(
   }.flatMap {
     // only check body when we are not in a @Law
     doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
-      val data = CheckData(context, ReturnPoints(resultVarName, emptyMap()), mutableMapOf())
+      val data = CheckData(context, ReturnPoints.new(declaration, resultVarName), initializeVarInfo(declaration))
       checkExpressionConstraints(resultVarName, body, data).onEach {
         checkPostConditionsImplication(constraints, context, declaration)
       }
     }
   }
+
+/**
+ * Initialize the names of the variables,
+ * the SMT name is initialized to themselves.
+ */
+fun initializeVarInfo(declaration: KtDeclaration): CurrentVarInfo {
+  val initialVarInfo = mutableListOf<VarInfo>()
+  initialVarInfo.add(VarInfo("this", "this", declaration))
+  if (declaration is KtNamedDeclaration) {
+    // Add 'this@functionName'
+    declaration.name?.let { name ->
+      initialVarInfo.add(VarInfo("this@$name", "this", declaration))
+    }
+  }
+  if (declaration is KtDeclarationWithBody) {
+    declaration.valueParameters.forEach { param ->
+      param.name?.let { name ->
+        initialVarInfo.add(VarInfo(name, name, param))
+      }
+    }
+  }
+  return CurrentVarInfo(initialVarInfo)
+}
 
 // 2.2: expressions
 // ----------------
@@ -205,13 +277,18 @@ private fun SolverState.checkExpressionConstraints(
     is KtParenthesizedExpression ->
       checkExpressionConstraints(associatedVarName, expression.expression, data)
     is KtBlockExpression ->
-      checkBlockExpression(associatedVarName, expression.statements, data)
+      data.varInfo.bracket().flatMap { // new variables are local to that block
+        checkBlockExpression(associatedVarName, expression.statements, data)
+      }
     is KtReturnExpression ->
       checkReturnConstraints(expression, data)
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
+    is KtThisExpression ->
+      // both 'this' and 'this@name' are available in the variable info
+      checkNameExpression(associatedVarName, expression.text, data)
     is KtSimpleNameExpression ->
-      checkNameExpression(associatedVarName, expression, data)
+      checkNameExpression(associatedVarName, expression.getReferencedName(), data)
     is KtLabeledExpression ->
       checkLabeledExpression(associatedVarName, expression, data)
     is KtDeclaration ->
@@ -227,15 +304,18 @@ private fun SolverState.checkExpressionConstraints(
     is KtBinaryExpression -> {
       val operator = expression.operationToken.toString()
       val left = expression.left
-      if (operator == "EQ" && left is KtNameReferenceExpression) {
-        // we are updating a mutable variable
-        left.getReferencedName().let { name ->
-          data.mutableVariables[name]?.let {
-            checkMutableAssignment(expression, name, it.invariant, expression.right, data)
-          }
-        } ?: cont { NoReturn } // <- this case should not happen
-      } else {
-        fallThrough(associatedVarName, expression, data)
+      when {
+        // this is an assignment to a mutable variable
+        operator == "EQ" && left is KtNameReferenceExpression -> {
+          // we introduce a new name because we don't want to introduce
+          // any additional information about the variable,
+          // we should only have that declared in the invariant
+          val newName = names.newName(left.getReferencedName())
+          val invariant = data.varInfo.get(left.getReferencedName())?.invariant
+          checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data)
+            .map { it.second } // forget about the temporary name
+        }
+        else -> fallThrough(associatedVarName, expression, data)
       }
     }
     is KtExpression ->
@@ -249,7 +329,7 @@ private fun SolverState.fallThrough(
   expression: KtExpression,
   data: CheckData
 ): ContSeq<Return> =
-  // fall-through case
+// fall-through case
   // try to treat it as a function call (for +, -, and so on)
   doOnlyWhenNotNull(expression.getResolvedCall(data.context.trace.bindingContext), NoReturn) { resolvedCall ->
     checkCallExpression(associatedVarName, expression, resolvedCall, data)
@@ -322,12 +402,13 @@ private fun SolverState.checkReturnConstraints(
   // figure out the right variable to assign
   // - if 'return@label', find the label in the recorded return points
   // - otherwise, it should be the top-most one
-  val returnVarName = expression.getLabelName()?.let {
+  val label = expression.getLabelName()
+  val returnVarName = label.let {
     data.returnPoints.namedReturnPointVariableNames[it]
-  } ?: data.returnPoints.topMostReturnPointVariableName
+  } ?: data.returnPoints.topMostReturnPointVariableName.second
   // assign it, and signal that we explicitly return
   return checkExpressionConstraints(returnVarName, expression.returnedExpression, data)
-    .map { ExplicitReturn(returnVarName) }
+    .map { ExplicitReturn(label) }
 }
 
 /**
@@ -414,7 +495,7 @@ private fun SolverState.checkCallArguments(
   data: CheckData
 ): ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>> {
   // why is this so complicated?
-  //   in theory we just need to run checkExpressionConstraints over each argument
+  //   in theory, we just need to run checkExpressionConstraints over each argument
   //   (in fact, the original implementation just did that, and then called .sequence())
   //   alas, Kotlin allows arguments to include 'return' (yes, really!)
   //   so we need to check after each step whether a ExplicitReturn has been generated
@@ -426,25 +507,25 @@ private fun SolverState.checkCallArguments(
     current: Triple<String, A, KtExpression?>
   ): ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>> =
     upToNow.flatMap {
-        it.fold(
-          { r -> cont { r.left() } },
-          { argsUpToNow ->
-            val (name, _, expr) = current
-            val argUniqueName =
-              if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
-                RESULT_VAR_NAME
-              } else {
-                names.newName(name)
-              }
-            checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
-              when (returnInfo) {
-                is ExplicitReturn -> returnInfo.left() // stop
-                else -> (argsUpToNow + listOf(name to argUniqueName)).right()
-              }
+      it.fold(
+        { r -> cont { r.left() } },
+        { argsUpToNow ->
+          val (name, _, expr) = current
+          val argUniqueName =
+            if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
+              RESULT_VAR_NAME
+            } else {
+              names.newName(name)
+            }
+          checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
+            when (returnInfo) {
+              is ExplicitReturn -> returnInfo.left() // stop
+              else -> (argsUpToNow + listOf(name to argUniqueName)).right()
             }
           }
-        )
-      }
+        }
+      )
+    }
   return resolvedCall.allArgumentExpressions()
     .fold(cont { emptyList<Pair<String, String>>().right() }, ::acc)
 }
@@ -500,60 +581,73 @@ private fun SolverState.checkDeclarationExpression(
     is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
     else -> names.newName("decl")
   }
+  // if we are shadowing the name,
+  // we need to create a new one
+  val smtName = when (data.varInfo.get(declName)) {
+    null -> declName
+    else -> names.newName(declName)
+  }
+  // find out whether we have an invariant
   val body = declaration.stableBody()
   val invariant = obtainInvariant(body, data)
-  return if (declaration.isVar()) {
-    checkMutableAssignment(declaration, declName, invariant, body, data)
-  } else {
-    checkDeclarationExpressionWorker(declaration, declName, invariant, body, data)
+  // assert the invariant if found and check its consistency
+  return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
+    ContSeq.unit.map {
+      val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
+      val inconsistentInvariant = checkInvariantConsistency(renamed, data.context, invBody)
+      ensure(!inconsistentInvariant)
+    }
+  }.flatMap {
+    // this gives back a new temporary name for the body
+    checkBodyAgainstInvariants(declaration, declName, invariant?.second, body, data)
+  }.map { (newVarName, r) ->
+    // if it's not a var, we state it's equal to the one
+    // we've introduced while checking the invariants
+    // this means the solver can use everything it may
+    // gather about it
+    if (!declaration.isVar()) {
+      solver.objects {
+        addConstraint(equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName)))
+      }
+    }
+    // update the list of variables in scope
+    data.varInfo.add(declName, smtName, declaration, invariant?.second)
+    // and then keep going
+    r
   }
-}
-
-/**
- * Updates mutable variable information, either when the variable
- * is assigned or when it's first created.
- */
-private fun SolverState.checkMutableAssignment(
-  element: KtElement,
-  declName: String,
-  invariant: BooleanFormula?,
-  body: KtExpression?,
-  data: CheckData
-): ContSeq<Return> {
-  val newName = names.newName(declName)
-  val newInvariant = invariant?.let { solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName)) }
-  return checkDeclarationExpressionWorker(element, newName, newInvariant, body, data)
-    .flatMap { r -> bracketMutableVars(data).map { r } }
-    .onEach { data.mutableVariables[declName] = MutableVarInfo(invariant, newName) }
 }
 
 /**
  * Checks the possible invariants of a declaration, and its body.
  */
-private fun SolverState.checkDeclarationExpressionWorker(
+private fun SolverState.checkBodyAgainstInvariants(
   element: KtElement,
   declName: String,
   invariant: BooleanFormula?,
   body: KtExpression?,
   data: CheckData
-): ContSeq<Return> =
-  checkExpressionConstraints(declName, body, data).onEach {
-    invariant?.let { checkInvariant(it, data.context, element) }
-  }
+): ContSeq<Pair<String, Return>> {
+  val newName = names.newName(declName)
+  return checkExpressionConstraints(newName, body, data).onEach {
+    invariant?.let {
+      val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
+      checkInvariant(renamed, data.context, element)
+    }
+  }.map { r -> Pair(newName, r) }
+}
 
 private fun SolverState.obtainInvariant(
   expression: KtExpression?,
   data: CheckData
-): BooleanFormula? {
-  val resolvedCall = expression?.getResolvedCall(data.context.trace.bindingContext)
-  return if (resolvedCall != null && resolvedCall.invariantCall()) {
-    resolvedCall.arg("predicate")?.let {
-      solver.expressionToFormula(it, data.context.trace.bindingContext) as? BooleanFormula
+): Pair<KtExpression, BooleanFormula>? =
+  expression?.getResolvedCall(data.context.trace.bindingContext)
+    ?.takeIf { it.invariantCall() }
+    ?.arg("predicate")
+    ?.let { expr: KtExpression ->
+      solver.expressionToFormula(expr, data.context.trace.bindingContext)
+        ?.let { it as? BooleanFormula }
+        ?.let { formula -> expr to formula }
     }
-  } else {
-    null
-  }
-}
 
 /**
  * This function produces a continuation that makes the desired variable name
@@ -562,17 +656,18 @@ private fun SolverState.obtainInvariant(
  */
 private fun SolverState.checkNameExpression(
   associatedVarName: String,
-  expression: KtSimpleNameExpression,
+  referencedName: String,
   data: CheckData
 ): ContSeq<Return> = cont {
-  // FIX: add only things in scope
-  val referencedName = expression.getReferencedName().nameAsSafeName().asString()
-  // for mutable variables we must use the current one
-  val actualName = data.mutableVariables[referencedName]?.currentName ?: referencedName
-  // create the actual equality
-  solver.objects {
-    equal(solver.makeObjectVariable(associatedVarName), solver.makeObjectVariable(actualName))
-  }.let(::addConstraint)
+  // use the SMT name recorded in the variable info
+  data.varInfo.get(referencedName)?.let {
+    val constraint = solver.objects {
+      equal(
+        solver.makeObjectVariable(associatedVarName),
+        solver.makeObjectVariable(it.smtName))
+    }
+    addConstraint(constraint)
+  }
   NoReturn
 }
 
@@ -670,9 +765,7 @@ private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pa
 }
 
 /**
- * TODO I believe here instead of trying to see which fields represent a body we just need to recursively
- * visit the declaration as we do in [argsFormulae] where it uses an expression recursive visitor.
- * That will recursively visit all body element as well and there we can match just in those we care.
+ * Find the corresponding "body" of a declaration
  */
 private fun KtDeclaration.stableBody(): KtExpression? = when (this) {
   is KtVariableDeclaration -> initializer
