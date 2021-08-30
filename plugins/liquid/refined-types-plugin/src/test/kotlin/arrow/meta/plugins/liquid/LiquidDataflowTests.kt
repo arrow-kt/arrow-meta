@@ -67,6 +67,21 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `scopes work well`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        val x = 0
+        { val x = 2 }
+        return x.post("greater than 0") { r -> r > 0 } 
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `invariants in variables`() {
     """
       ${imports()}
