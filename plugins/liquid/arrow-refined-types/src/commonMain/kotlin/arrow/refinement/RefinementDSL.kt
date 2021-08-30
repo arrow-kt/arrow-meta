@@ -16,12 +16,12 @@ inline infix fun <A> A.invariant(predicate: (A) -> Boolean): A {
 @Target(
   AnnotationTarget.FUNCTION
 )
-annotation class Pre(val formulae: Array<String>, val dependencies: Array<String>)
+annotation class Pre(val messages: Array<String>, val formulae: Array<String>, val dependencies: Array<String>)
 
 @Target(
   AnnotationTarget.FUNCTION
 )
-annotation class Post(val formulae: Array<String>, val dependencies: Array<String>)
+annotation class Post(val messages: Array<String>, val formulae: Array<String>, val dependencies: Array<String>)
 
 /**
  * Annotation to flag ad-hoc refinements over third party functions

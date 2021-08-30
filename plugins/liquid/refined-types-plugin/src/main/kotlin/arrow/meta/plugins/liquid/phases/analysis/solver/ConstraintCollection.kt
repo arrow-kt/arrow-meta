@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
+import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
@@ -62,6 +63,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -122,12 +124,13 @@ internal fun CompilerContext.collectDeclarationsConstraints(
 internal fun KtDeclaration.constraints(
   solverState: SolverState,
   context: DeclarationCheckerContext
-): List<Pair<ResolvedCall<*>, BooleanFormula>> =
+): List<Pair<ResolvedCall<*>, NamedConstraint>> =
   constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull { element ->
     val bindingCtx = context.trace.bindingContext
     val call = element.getResolvedCall(bindingCtx)
     if (call?.preOrPostCall() == true) {
-      val result = solverState.solver.expressionToFormula(call.arg("predicate"), bindingCtx) as? BooleanFormula
+      val predicateArg = call.arg("predicate")
+      val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
       if (result == null) {
         context.trace.report(
           MetaErrors.ErrorParsingPredicate.on(element)
@@ -135,7 +138,8 @@ internal fun KtDeclaration.constraints(
         solverState.signalParseErrors()
         null
       } else {
-        call to result
+        val msg = call.arg("msg")?.text ?: predicateArg?.text
+        msg?.let { call to NamedConstraint(it, result) }
       }
     } else {
       null
@@ -193,13 +197,13 @@ fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
  * in the [SolverState]
  */
 private fun SolverState.addConstraintsToSolverState(
-  constraints: List<Pair<ResolvedCall<*>, BooleanFormula>>,
+  constraints: List<Pair<ResolvedCall<*>, NamedConstraint>>,
   descriptor: DeclarationDescriptor,
   bindingContext: BindingContext
 ) {
   if (constraints.isNotEmpty()) {
-    val preConstraints = arrayListOf<BooleanFormula>()
-    val postConstraints = arrayListOf<BooleanFormula>()
+    val preConstraints = arrayListOf<NamedConstraint>()
+    val postConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
       if (call.preCall()) preConstraints.add(formula)
       if (call.postCall()) postConstraints.add(formula)
@@ -216,8 +220,8 @@ private fun SolverState.addConstraintsToSolverState(
  */
 private fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
-  preConstraints: ArrayList<BooleanFormula>,
-  postConstraints: ArrayList<BooleanFormula>,
+  preConstraints: ArrayList<NamedConstraint>,
+  postConstraints: ArrayList<NamedConstraint>,
   bindingContext: BindingContext
 ) {
   val remoteDescriptorFromRemoteLaw =
@@ -324,8 +328,8 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
     }?.let { element -> parseFormula(element, ann, descriptor) }
   }
   if (constraints.isNotEmpty()) {
-    val preConstraints = arrayListOf<BooleanFormula>()
-    val postConstraints = arrayListOf<BooleanFormula>()
+    val preConstraints = arrayListOf<NamedConstraint>()
+    val postConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
       if (call == "pre") preConstraints.addAll(formula)
       if (call == "post") postConstraints.addAll(formula)
@@ -341,15 +345,24 @@ private fun SolverState.parseFormula(
   element: String,
   annotation: AnnotationDescriptor,
   descriptor: DeclarationDescriptor
-): Pair<String, List<BooleanFormula>>? {
+): Pair<String, List<NamedConstraint>> {
   fun getArg(arg: String) =
     (annotation.argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }
 
   val dependencies = getArg("dependencies") ?: emptyList()
-  return getArg("formulae")?.map {
-    parseFormula(descriptor, it, dependencies)
-  }?.let { element to it }
+  val formulae = getArg("formulae") ?: emptyList()
+  val messages = getArg("messages") ?: emptyList()
+  return element to messages.zip(formulae).map { (msg, formula) ->
+    NamedConstraint(msg, parseFormula(descriptor, formula, dependencies))
+  }
 }
+
+private fun AnnotationDescriptor.getArgAsStringArray(arg: String): List<String> =
+  (argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }.orEmpty()
+
+private inline fun <reified T> AnnotationDescriptor.getArgAsEnumArray(arg: String): List<T> =
+  (argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<EnumValue>()?.mapNotNull { it.value as? T }.orEmpty()
+
 
 /**
  * Parse constraints from annotations.

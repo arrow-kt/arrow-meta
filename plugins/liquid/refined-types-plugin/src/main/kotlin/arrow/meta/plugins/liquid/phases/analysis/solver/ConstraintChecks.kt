@@ -445,9 +445,14 @@ private fun SolverState.checkCallExpression(
               val descriptor = resolvedCall.resultingDescriptor
               if (descriptor.isField()) {
                 val fieldConstraint = solver.ints {
-                  equal(
-                    solver.makeObjectVariable(associatedVarName),
-                    solver.field(descriptor.fqNameSafe.asString(), solver.makeObjectVariable(argVars[0].second))
+                  val typeName = descriptor.fqNameSafe.asString()
+                  val argName = argVars[0].second
+                  NamedConstraint(
+                    "$associatedVarName == $typeName($argName)",
+                    equal(
+                      solver.makeObjectVariable(associatedVarName),
+                      solver.field(typeName, solver.makeObjectVariable(argName))
+                    )
                   )
                 }
                 addConstraint(fieldConstraint)
@@ -474,7 +479,14 @@ private fun SolverState.checkCallExpression(
                 solver.makeIntegerObjectVariable(associatedVarName)
             val arg1 = solver.makeIntegerObjectVariable(argVars[0].second)
             val arg2 = solver.makeIntegerObjectVariable(argVars[1].second)
-            specialCase(result, arg1, arg2)?.let { formula -> addConstraint(formula) }
+            specialCase(result, arg1, arg2)?.let { formula ->
+              addConstraint(
+                NamedConstraint(
+                  "checkCallArguments(${resolvedCall.resultingDescriptor.fqNameSafe}) [$result, $arg1, $arg2]",
+                  formula
+                )
+              )
+            }
             NoReturn
           }
         )
@@ -563,7 +575,7 @@ private fun SolverState.checkConstantExpression(
       }
     else -> null
   }?.let {
-    addConstraint(it)
+    addConstraint(NamedConstraint("checkConstantExpression $associatedVarName ${expression.text}", it))
   }
   NoReturn
 }
@@ -594,7 +606,7 @@ private fun SolverState.checkDeclarationExpression(
   return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
     ContSeq.unit.map {
       val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(renamed, data.context, invBody)
+      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("${RESULT_VAR_NAME} renamed $smtName", renamed), data.context, invBody)
       ensure(!inconsistentInvariant)
     }
   }.flatMap {
@@ -607,7 +619,12 @@ private fun SolverState.checkDeclarationExpression(
     // gather about it
     if (!declaration.isVar()) {
       solver.objects {
-        addConstraint(equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName)))
+        addConstraint(
+          NamedConstraint(
+            "$smtName = $newVarName",
+            equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
+          )
+        )
       }
     }
     // update the list of variables in scope
@@ -631,7 +648,11 @@ private fun SolverState.checkBodyAgainstInvariants(
   return checkExpressionConstraints(newName, body, data).onEach {
     invariant?.let {
       val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
-      checkInvariant(renamed, data.context, element)
+      checkInvariant(
+        NamedConstraint("checkBodyInvariants: $RESULT_VAR_NAME renamed $newName", renamed),
+        data.context,
+        element
+      )
     }
   }.map { r -> Pair(newName, r) }
 }
@@ -664,9 +685,10 @@ private fun SolverState.checkNameExpression(
     val constraint = solver.objects {
       equal(
         solver.makeObjectVariable(associatedVarName),
-        solver.makeObjectVariable(it.smtName))
+        solver.makeObjectVariable(it.smtName)
+      )
     }
-    addConstraint(constraint)
+    addConstraint(NamedConstraint("$associatedVarName = ${it.smtName}", constraint))
   }
   NoReturn
 }
@@ -714,7 +736,12 @@ private fun SolverState.checkSimpleConditional(
       checkExpressionConstraints(conditionVar, it, data)
     } ?: cont {
       // if we have no condition, it's equivalent to true
-      addConstraint(solver.makeBooleanObjectVariable(conditionVar))
+      addConstraint(
+        NamedConstraint(
+          "check condition branch $conditionVar",
+          solver.makeBooleanObjectVariable(conditionVar)
+        )
+      )
       NoReturn
     }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
   }.sequence().flatMap { conditionInformation ->
@@ -749,15 +776,15 @@ private fun SolverState.checkSimpleConditional(
  * - not a, b
  * - not a, not b, c
  */
-private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pair<A, List<BooleanFormula>>> {
-  fun go(currents: List<Pair<A, String>>, acc: List<BooleanFormula>): List<Pair<A, List<BooleanFormula>>> =
+private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pair<A, List<NamedConstraint>>> {
+  fun go(currents: List<Pair<A, String>>, acc: List<NamedConstraint>): List<Pair<A, List<NamedConstraint>>> =
     if (currents.isEmpty()) {
       emptyList()
     } else {
       solver.booleans {
         val varName = solver.makeBooleanObjectVariable(currents[0].second)
-        val nextValue = acc + listOf(varName)
-        val nextAcc = acc + listOf(not(varName))
+        val nextValue = acc + listOf(NamedConstraint("$varName", varName))
+        val nextAcc = acc + listOf(NamedConstraint("!($varName)", not(varName)))
         listOf(Pair(currents[0].first, nextValue)) + go(currents.drop(1), nextAcc)
       }
     }

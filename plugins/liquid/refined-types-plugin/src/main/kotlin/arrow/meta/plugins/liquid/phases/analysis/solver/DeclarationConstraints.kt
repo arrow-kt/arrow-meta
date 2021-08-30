@@ -5,6 +5,11 @@ import org.sosy_lab.java_smt.api.BooleanFormula
 
 data class DeclarationConstraints(
   val descriptor: DeclarationDescriptor,
-  val pre: List<BooleanFormula>,
-  val post: List<BooleanFormula>
+  val pre: List<NamedConstraint>,
+  val post: List<NamedConstraint>
+)
+
+data class NamedConstraint(
+  val msg: String,
+  val formula: BooleanFormula
 )
