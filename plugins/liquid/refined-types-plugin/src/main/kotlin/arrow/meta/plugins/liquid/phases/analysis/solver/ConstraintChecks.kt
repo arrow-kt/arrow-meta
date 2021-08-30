@@ -448,7 +448,7 @@ private fun SolverState.checkCallExpression(
                   val typeName = descriptor.fqNameSafe.asString()
                   val argName = argVars[0].second
                   NamedConstraint(
-                    "$associatedVarName == $typeName($argName)",
+                    "${expression.text} == $typeName($argName)",
                     equal(
                       solver.makeObjectVariable(associatedVarName),
                       solver.field(typeName, solver.makeObjectVariable(argName))
@@ -482,7 +482,7 @@ private fun SolverState.checkCallExpression(
             specialCase(result, arg1, arg2)?.let { formula ->
               addConstraint(
                 NamedConstraint(
-                  "checkCallArguments(${resolvedCall.resultingDescriptor.fqNameSafe}) [$result, $arg1, $arg2]",
+                  "${expression.text}, checkCallArguments(${resolvedCall.resultingDescriptor.fqNameSafe}) [$result, $arg1, $arg2]",
                   formula
                 )
               )
@@ -575,7 +575,7 @@ private fun SolverState.checkConstantExpression(
       }
     else -> null
   }?.let {
-    addConstraint(NamedConstraint("checkConstantExpression $associatedVarName ${expression.text}", it))
+    addConstraint(NamedConstraint("${expression.text} checkConstantExpression $associatedVarName ${expression.text}", it))
   }
   NoReturn
 }
@@ -606,7 +606,7 @@ private fun SolverState.checkDeclarationExpression(
   return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
     ContSeq.unit.map {
       val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("$RESULT_VAR_NAME renamed $smtName", renamed), data.context, invBody)
+      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("$declName $RESULT_VAR_NAME renamed $smtName", renamed), data.context, invBody)
       ensure(!inconsistentInvariant)
     }
   }.flatMap {
@@ -621,7 +621,7 @@ private fun SolverState.checkDeclarationExpression(
       solver.objects {
         addConstraint(
           NamedConstraint(
-            "$smtName = $newVarName",
+            "$declName $smtName = $newVarName",
             equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
           )
         )

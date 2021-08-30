@@ -8,8 +8,8 @@ inline fun <A> A.post(predicate: (A) -> Boolean, msg: () -> String): A {
   return this
 }
 
-inline infix fun <A> A.invariant(predicate: (A) -> Boolean): A {
-  require(predicate(this)) { "invariant" }
+inline fun <A> A.invariant(predicate: (A) -> Boolean, msg: () -> String): A {
+  require(predicate(this)) { msg() }
   return this
 }
 

@@ -86,7 +86,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       fun bar(x: Int): Int {
-        var z = 2 invariant { it > 0 }
+        var z = 2.invariant({ it > 0 }) { "invariant it > 0" }
         z = 0
         return z
       }
@@ -116,7 +116,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       fun bar(x: Int): Int {
-        var z = 2 invariant { it > 0 }
+        var z = 2.invariant({ it > 0 }) { "invariant it > 0" }
         z = 3
         return z.post({ it >= 0 }) { "greater or equal to 0" }
       }
