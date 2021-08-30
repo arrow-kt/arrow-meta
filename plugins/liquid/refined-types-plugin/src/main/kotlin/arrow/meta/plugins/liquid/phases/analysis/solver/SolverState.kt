@@ -1,12 +1,11 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.continuations.ContSeq
-import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
+import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
