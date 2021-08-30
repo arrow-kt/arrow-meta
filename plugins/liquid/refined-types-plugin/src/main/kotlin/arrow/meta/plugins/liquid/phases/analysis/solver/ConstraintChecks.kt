@@ -606,7 +606,7 @@ private fun SolverState.checkDeclarationExpression(
   return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
     ContSeq.unit.map {
       val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("${RESULT_VAR_NAME} renamed $smtName", renamed), data.context, invBody)
+      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("$RESULT_VAR_NAME renamed $smtName", renamed), data.context, invBody)
       ensure(!inconsistentInvariant)
     }
   }.flatMap {

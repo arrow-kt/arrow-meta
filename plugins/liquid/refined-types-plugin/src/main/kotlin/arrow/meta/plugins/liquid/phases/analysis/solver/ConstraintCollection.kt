@@ -4,14 +4,13 @@ import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.smt.ObjectFormula
+import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd
 import arrow.meta.plugins.liquid.smt.boolAndList
 import arrow.meta.plugins.liquid.smt.boolEquivalence
 import arrow.meta.plugins.liquid.smt.boolNot
 import arrow.meta.plugins.liquid.smt.boolOr
-import arrow.meta.plugins.liquid.smt.isSingleVariable
-import arrow.meta.plugins.liquid.smt.ObjectFormula
-import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.intDivide
 import arrow.meta.plugins.liquid.smt.intEquals
 import arrow.meta.plugins.liquid.smt.intGreaterThan
@@ -22,6 +21,7 @@ import arrow.meta.plugins.liquid.smt.intMinus
 import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
 import arrow.meta.plugins.liquid.smt.isFieldCall
+import arrow.meta.plugins.liquid.smt.isSingleVariable
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -63,7 +63,6 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
-import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -356,13 +355,6 @@ private fun SolverState.parseFormula(
     NamedConstraint(msg, parseFormula(descriptor, formula, dependencies))
   }
 }
-
-private fun AnnotationDescriptor.getArgAsStringArray(arg: String): List<String> =
-  (argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }.orEmpty()
-
-private inline fun <reified T> AnnotationDescriptor.getArgAsEnumArray(arg: String): List<T> =
-  (argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<EnumValue>()?.mapNotNull { it.value as? T }.orEmpty()
-
 
 /**
  * Parse constraints from annotations.

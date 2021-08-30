@@ -1,7 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
-import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.substituteVariable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
