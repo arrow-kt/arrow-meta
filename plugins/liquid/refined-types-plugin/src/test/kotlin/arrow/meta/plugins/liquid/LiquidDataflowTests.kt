@@ -257,7 +257,7 @@ class LiquidDataflowTests {
         val result = 1 / x
       }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }

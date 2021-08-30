@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
@@ -38,6 +39,7 @@ import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -87,7 +89,11 @@ internal fun CompilerContext.checkDeclarationConstraints(
   descriptor: DeclarationDescriptor
 ) {
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null && solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()) {
+  if (solverState != null &&
+    solverState.isIn(SolverState.Stage.Prove) &&
+    !solverState.hadParseErrors() &&
+    declaration.shouldBeAnalyzed()
+  ) {
     // bring the constraints in (if there are any)
     val constraints = solverState.constraintsFromSolverState(descriptor)
     // choose a good name for the result
@@ -104,6 +110,13 @@ internal fun CompilerContext.checkDeclarationConstraints(
     }
   }
 }
+
+/**
+ * Only elements which are not inside another "callable declaration"
+ * (function, property, etc) should be analyzed
+ */
+fun KtDeclaration.shouldBeAnalyzed() =
+  !(this.parents.any { it is KtCallableDeclaration })
 
 // 2.0: data for the checks
 // ------------------------
@@ -316,7 +329,7 @@ private fun SolverState.fallThrough(
   expression: KtExpression,
   data: CheckData
 ): ContSeq<Return> =
-  // fall-through case
+// fall-through case
   // try to treat it as a function call (for +, -, and so on)
   doOnlyWhenNotNull(expression.getResolvedCall(data.context.trace.bindingContext), NoReturn) { resolvedCall ->
     checkCallExpression(associatedVarName, expression, resolvedCall, data)
@@ -494,25 +507,25 @@ private fun SolverState.checkCallArguments(
     current: Triple<String, A, KtExpression?>
   ): ContSeq<Either<ExplicitReturn, List<Pair<String, String>>>> =
     upToNow.flatMap {
-        it.fold(
-          { r -> cont { r.left() } },
-          { argsUpToNow ->
-            val (name, _, expr) = current
-            val argUniqueName =
-              if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
-                RESULT_VAR_NAME
-              } else {
-                names.newName(name)
-              }
-            checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
-              when (returnInfo) {
-                is ExplicitReturn -> returnInfo.left() // stop
-                else -> (argsUpToNow + listOf(name to argUniqueName)).right()
-              }
+      it.fold(
+        { r -> cont { r.left() } },
+        { argsUpToNow ->
+          val (name, _, expr) = current
+          val argUniqueName =
+            if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
+              RESULT_VAR_NAME
+            } else {
+              names.newName(name)
+            }
+          checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
+            when (returnInfo) {
+              is ExplicitReturn -> returnInfo.left() // stop
+              else -> (argsUpToNow + listOf(name to argUniqueName)).right()
             }
           }
-        )
-      }
+        }
+      )
+    }
   return resolvedCall.allArgumentExpressions()
     .fold(cont { emptyList<Pair<String, String>>().right() }, ::acc)
 }
