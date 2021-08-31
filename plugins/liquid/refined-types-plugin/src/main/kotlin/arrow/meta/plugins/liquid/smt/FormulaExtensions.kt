@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.smt
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.DeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FunctionDeclaration
@@ -29,8 +30,8 @@ fun Solver.renameDeclarationConstraints(
 ): DeclarationConstraints =
   DeclarationConstraints(
     decl.descriptor,
-    decl.pre.map { renameObjectVariables(it, mapping) },
-    decl.post.map { renameObjectVariables(it, mapping) }
+    decl.pre.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) },
+    decl.post.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) }
   )
 
 fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {

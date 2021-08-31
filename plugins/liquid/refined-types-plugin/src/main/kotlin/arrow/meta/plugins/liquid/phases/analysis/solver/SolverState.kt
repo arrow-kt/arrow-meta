@@ -1,12 +1,11 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.continuations.ContSeq
-import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.Solver
+import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
@@ -56,9 +55,9 @@ data class SolverState(
 
   fun isIn(that: Stage) = stage == that
 
-  fun addConstraint(formula: BooleanFormula) {
-    prover.addConstraint(formula)
-    solverTrace.add(formula.toString())
+  fun addConstraint(constraint: NamedConstraint) {
+    prover.addConstraint(constraint.formula)
+    solverTrace.add("${constraint.msg} : ${constraint.formula}")
   }
 
   /**
@@ -70,10 +69,10 @@ data class SolverState(
       callableConstraints.flatMap { decl ->
         val descriptor = decl.descriptor
         val myself = if (descriptor.isField()) setOf(descriptor.fqNameSafe.asString()) else emptySet()
-        myself + fieldNames(decl.pre + decl.post).map { it.first }
+        myself + fieldNames((decl.pre + decl.post).map { it.formula }).map { it.first }
       }.toSet().forEachIndexed { fieldIndex, fieldName ->
         val constraint = solver.ints {
-          equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong()))
+          NamedConstraint("[auto-generated] $fieldName == $fieldIndex", equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong())))
         }
         addConstraint(constraint)
       }

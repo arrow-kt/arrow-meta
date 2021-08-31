@@ -1,7 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
-import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.substituteVariable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -21,7 +20,7 @@ import org.sosy_lab.java_smt.api.Model
 // and report errors as desired
 
 internal fun SolverState.addAndCheckConsistency(
-  constraints: Iterable<BooleanFormula>,
+  constraints: Iterable<NamedConstraint>,
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
   constraints.forEach { addConstraint(it) }
@@ -35,11 +34,11 @@ internal fun SolverState.addAndCheckConsistency(
 }
 
 internal fun SolverState.checkImplicationOf(
-  constraint: BooleanFormula,
+  constraint: NamedConstraint,
   message: (model: Model) -> Unit
 ): Boolean =
   bracket {
-    solver.booleans { addConstraint(not(constraint)) }
+    solver.booleans { addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula))) }
     additionalFieldConstraints(listOf(constraint)).forEach { addConstraint(it) }
     val unsat = prover.isUnsat
     if (!unsat) {
@@ -50,16 +49,25 @@ internal fun SolverState.checkImplicationOf(
   }
 
 internal fun SolverState.additionalFieldConstraints(
-  constraints: Iterable<BooleanFormula>
-): Set<BooleanFormula> =
-  solver.formulaManager.fieldNames(constraints).flatMap<Pair<String, ObjectFormula>, BooleanFormula> { (fieldName, appliedTo) ->
-    val constraints = constraintsFromFqName(FqName(fieldName))
-    return if (constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
-      setOf(solver.substituteVariable(constraints.post[0], mapOf(RESULT_VAR_NAME to solver.field(fieldName, appliedTo), "this" to appliedTo)))
-    } else {
-      emptySet<BooleanFormula>()
-    }
-  }.toSet()
+  formulae: Iterable<NamedConstraint>
+): Set<NamedConstraint> =
+  solver.formulaManager.fieldNames(formulae.map { it.formula })
+    .flatMap { (fieldName, appliedTo) ->
+      val constraints = constraintsFromFqName(FqName(fieldName))
+      if (constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
+        setOf(
+          NamedConstraint(
+            constraints.post[0].msg,
+            solver.substituteVariable(
+              constraints.post[0].formula,
+              mapOf(RESULT_VAR_NAME to solver.field(fieldName, appliedTo), "this" to appliedTo)
+            )
+          )
+        )
+      } else {
+        emptySet()
+      }
+    }.toSet()
 
 internal fun SolverState.constraintsFromFqName(name: FqName): DeclarationConstraints? =
   callableConstraints.firstOrNull {
@@ -145,7 +153,7 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
  * Add the [formulae] to the set and checks that it remains consistent
  */
 internal fun SolverState.checkConditionsInconsistencies(
-  formulae: List<BooleanFormula>,
+  formulae: List<NamedConstraint>,
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
@@ -156,23 +164,23 @@ internal fun SolverState.checkConditionsInconsistencies(
   }
 
 internal fun SolverState.checkInvariantConsistency(
-  formula: BooleanFormula,
+  constraint: NamedConstraint,
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  addAndCheckConsistency(listOf(formula)) {
+  addAndCheckConsistency(listOf(constraint)) {
     context.trace.report(
-      MetaErrors.InconsistentInvariants.on(expression.psiOrParent, listOf(formula))
+      MetaErrors.InconsistentInvariants.on(expression.psiOrParent, listOf(constraint.formula))
     )
   }
 
 internal fun SolverState.checkInvariant(
-  formula: BooleanFormula,
+  constraint: NamedConstraint,
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  checkImplicationOf(formula) {
+  checkImplicationOf(constraint) {
     context.trace.report(
-      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(formula))
+      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(constraint))
     )
   }

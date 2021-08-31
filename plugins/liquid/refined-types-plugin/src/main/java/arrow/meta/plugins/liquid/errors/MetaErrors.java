@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.errors;
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint;
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
@@ -16,12 +17,12 @@ import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
 public interface MetaErrors {
     // type proofs
     DiagnosticFactory2<PsiElement, KtDeclaration, List<Formula>> InconsistentBodyPre = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, KtDeclaration, List<Formula>> UnsatBodyPost = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> UnsatCallPre = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, KtDeclaration, List<NamedConstraint>> UnsatBodyPost = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<NamedConstraint>> UnsatCallPre = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> InconsistentCallPost = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<PsiElement, List<Formula>> InconsistentConditions = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, List<Formula>> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, List<Formula>> UnsatInvariants = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, List<NamedConstraint>> UnsatInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<PsiElement> ErrorParsingPredicate = DiagnosticFactory0.create(ERROR);
 
     /**

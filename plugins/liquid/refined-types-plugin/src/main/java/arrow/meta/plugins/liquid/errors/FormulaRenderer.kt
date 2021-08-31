@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.errors
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer
 import org.jetbrains.kotlin.diagnostics.rendering.RenderingContext
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -11,6 +12,13 @@ val RenderFormula: DiagnosticParameterRenderer<List<Formula>> =
   object : DiagnosticParameterRenderer<List<Formula>> {
     override fun render(obj: List<Formula>, renderingContext: RenderingContext): String =
       obj.toString()
+  }
+
+@JvmField
+val RenderNamedConstraint: DiagnosticParameterRenderer<List<NamedConstraint>> =
+  object : DiagnosticParameterRenderer<List<NamedConstraint>> {
+    override fun render(obj: List<NamedConstraint>, renderingContext: RenderingContext): String =
+      obj.joinToString { "${it.msg} : ${it.formula}" }
   }
 
 @JvmField
