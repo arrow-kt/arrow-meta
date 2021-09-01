@@ -10,14 +10,13 @@ import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
 data class SolverState(
-  val log: (String) -> Unit,
-  val solver: Solver = Solver(log),
+  val names: NameProvider = NameProvider(),
+  val solver: Solver = Solver(names),
   val prover: ProverEnvironment = solver.newProverEnvironment(
     SolverContext.ProverOptions.GENERATE_MODELS,
     SolverContext.ProverOptions.GENERATE_UNSAT_CORE
   ),
   val callableConstraints: MutableList<DeclarationConstraints> = mutableListOf(),
-  val names: NameProvider = NameProvider(),
   val solverTrace: MutableList<String> = mutableListOf()
 ) {
 

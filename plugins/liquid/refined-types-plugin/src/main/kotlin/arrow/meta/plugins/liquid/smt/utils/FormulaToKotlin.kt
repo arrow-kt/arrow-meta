@@ -10,21 +10,25 @@ interface KotlinPrinter {
   fun Formula.dumpKotlinLike(): String
 }
 
-internal class DefaultKotlinPrinter(private val fmgr: FormulaManager) : KotlinPrinter {
+internal class DefaultKotlinPrinter(
+  private val fmgr: FormulaManager,
+  private val nameProvider: NameProvider
+) : KotlinPrinter {
 
   override fun Formula.dumpKotlinLike(): String {
     val str = StringBuilder()
-    fmgr.visit(this, KotlinPrintVisitor(fmgr, str))
+    fmgr.visit(this, KotlinPrintVisitor(fmgr, str, nameProvider))
     return str.toString()
   }
 
   private class KotlinPrintVisitor(
     private val fmgr: FormulaManager,
-    private val out: StringBuilder
+    private val out: StringBuilder,
+    private val nameProvider: NameProvider
   ) : DefaultFormulaVisitor<Void?>() {
 
     override fun visitDefault(pF: Formula): Void? {
-      out.append(pF)
+      out.append(nameProvider.kotlinName(pF.toString()))
       return null
     }
 
