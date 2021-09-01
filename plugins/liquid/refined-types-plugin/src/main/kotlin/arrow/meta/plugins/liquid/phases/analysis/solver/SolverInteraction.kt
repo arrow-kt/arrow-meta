@@ -93,8 +93,7 @@ internal fun SolverState.checkPreconditionsInconsistencies(
   solver.run {
     constraints?.pre?.let {
       addAndCheckConsistency(it) { unsatCore ->
-        val unsatMsg = unsatCore.joinToString { it.dumpKotlinLike() }
-        val msg = "${declaration.name} has inconsistent pre-conditions: $unsatMsg"
+        val msg = errorInconsistentBodyPre(declaration, unsatCore)
         context.trace.report(
           MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, msg)
         )
@@ -114,8 +113,7 @@ internal fun SolverState.checkPostConditionsImplication(
   solver.run {
     constraints?.post?.forEach { postCondition ->
       checkImplicationOf(postCondition) {
-        val postConditionMsgs = postCondition.formula.dumpKotlinLike()
-        val msg = "declaration `${declaration.name}` fails to satisfy the post-condition: $postConditionMsgs"
+        val msg = errorUnsatBodyPost(declaration, postCondition)
         context.trace.report(
           MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, msg)
         )
@@ -136,19 +134,13 @@ internal fun SolverState.checkCallPreConditionsImplication(
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
       checkImplicationOf(callPreCondition) { model ->
-        val modelMsg = model.template()
-        val ctx = callPreCondition.formula.dumpKotlinLike()
-        val msg = "call to `${resolvedCall.call.callElement.text}` resulting in `$modelMsg` fails to satisfy pre-conditions: $ctx"
+        val msg = errorUnsatCallPre(callPreCondition, resolvedCall, model)
         context.trace.report(
           MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
         )
       }
     }
   }
-
-private fun Model.template(): String = filter { it.argumentsInterpretation.isNotEmpty() }.joinToString { valueAssignment ->
-  valueAssignment.argumentsInterpretation.joinToString { it.toString() }
-}
 
 /**
  * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
@@ -162,8 +154,7 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
   solver.run {
     callConstraints?.post?.let {
       addAndCheckConsistency(it) { unsatCore ->
-        val ctx = unsatCore.map { it.dumpKotlinLike() }
-        val msg = "unreachable code due to post-conditions: $ctx"
+        val msg = errorInconsistentCallPost(unsatCore)
         context.trace.report(
           MetaErrors.InconsistentCallPost.on(expression.psiOrParent, msg)
         )
@@ -181,8 +172,7 @@ internal fun SolverState.checkConditionsInconsistencies(
 ): Boolean =
   solver.run {
     addAndCheckConsistency(formulae) { unsatCore ->
-      val ctx = unsatCore.joinToString { it.dumpKotlinLike() }
-      val msg = "unreachable code due to conflicting conditions: $ctx"
+      val msg = errorInconsistentConditions(unsatCore)
       context.trace.report(
         MetaErrors.InconsistentConditions.on(expression.psiOrParent, msg)
       )
@@ -196,8 +186,7 @@ internal fun SolverState.checkInvariantConsistency(
 ): Boolean =
   solver.run {
     addAndCheckConsistency(listOf(constraint)) {
-      val ctx = it.joinToString { it.dumpKotlinLike() }
-      val msg = "invariants are inconsistent: $ctx"
+      val msg = errorInconsistentInvariants(it)
       context.trace.report(
         MetaErrors.InconsistentInvariants.on(expression.psiOrParent, msg)
       )
@@ -211,9 +200,7 @@ internal fun SolverState.checkInvariant(
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
-      val ctxConstraintMsg = constraint.formula.dumpKotlinLike()
-      val ctxModelMsg = model.template()
-      val msg = "`${expression.text}` invariants are not satisfied: $ctxConstraintMsg in model: $ctxModelMsg"
+      val msg = errorUnsatInvariants(expression, constraint, model)
       context.trace.report(
         MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
       )
