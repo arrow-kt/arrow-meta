@@ -284,7 +284,7 @@ class LiquidDataflowTests {
        
       val wrong: String = emptyList<String>().get(0)
       """(
-      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }

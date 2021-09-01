@@ -135,15 +135,20 @@ internal fun SolverState.checkCallPreConditionsImplication(
 ) =
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
-      checkImplicationOf(callPreCondition) {
+      checkImplicationOf(callPreCondition) { model ->
+        val modelMsg = model.template()
         val ctx = callPreCondition.formula.dumpKotlinLike()
-        val msg = "call to `${resolvedCall.call.callElement.text}` fails to satisfy pre-conditions: $ctx"
+        val msg = "call to `${resolvedCall.call.callElement.text}` resulting in `$modelMsg` fails to satisfy pre-conditions: $ctx"
         context.trace.report(
           MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
         )
       }
     }
   }
+
+private fun Model.template(): String = filter { it.argumentsInterpretation.isNotEmpty() }.joinToString { valueAssignment ->
+  valueAssignment.argumentsInterpretation.joinToString { it.toString() }
+}
 
 /**
  * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
@@ -205,11 +210,9 @@ internal fun SolverState.checkInvariant(
   expression: KtElement
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) {
+    checkImplicationOf(constraint) { model ->
       val ctxConstraintMsg = constraint.formula.dumpKotlinLike()
-      val ctxModelMsg = it.joinToString {
-        it.value.toString()
-      }
+      val ctxModelMsg = model.template()
       val msg = "`${expression.text}` invariants are not satisfied: $ctxConstraintMsg in model: $ctxModelMsg"
       context.trace.report(
         MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
