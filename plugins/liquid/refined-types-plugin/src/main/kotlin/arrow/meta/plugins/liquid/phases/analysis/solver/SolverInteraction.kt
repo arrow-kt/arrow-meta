@@ -1,6 +1,13 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentBodyPre
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentCallPost
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentConditions
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentInvariants
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatBodyPost
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatCallPre
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.substituteVariable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -93,7 +100,7 @@ internal fun SolverState.checkPreconditionsInconsistencies(
   solver.run {
     constraints?.pre?.let {
       addAndCheckConsistency(it) { unsatCore ->
-        val msg = errorInconsistentBodyPre(declaration, unsatCore)
+        val msg = inconsistentBodyPre(declaration, unsatCore)
         context.trace.report(
           MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, msg)
         )
@@ -113,7 +120,7 @@ internal fun SolverState.checkPostConditionsImplication(
   solver.run {
     constraints?.post?.forEach { postCondition ->
       checkImplicationOf(postCondition) {
-        val msg = errorUnsatBodyPost(declaration, postCondition)
+        val msg = unsatBodyPost(declaration, postCondition)
         context.trace.report(
           MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, msg)
         )
@@ -134,7 +141,7 @@ internal fun SolverState.checkCallPreConditionsImplication(
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
       checkImplicationOf(callPreCondition) { model ->
-        val msg = errorUnsatCallPre(callPreCondition, resolvedCall, model)
+        val msg = unsatCallPre(callPreCondition, resolvedCall, model)
         context.trace.report(
           MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
         )
@@ -154,7 +161,7 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
   solver.run {
     callConstraints?.post?.let {
       addAndCheckConsistency(it) { unsatCore ->
-        val msg = errorInconsistentCallPost(unsatCore)
+        val msg = inconsistentCallPost(unsatCore)
         context.trace.report(
           MetaErrors.InconsistentCallPost.on(expression.psiOrParent, msg)
         )
@@ -172,7 +179,7 @@ internal fun SolverState.checkConditionsInconsistencies(
 ): Boolean =
   solver.run {
     addAndCheckConsistency(formulae) { unsatCore ->
-      val msg = errorInconsistentConditions(unsatCore)
+      val msg = inconsistentConditions(unsatCore)
       context.trace.report(
         MetaErrors.InconsistentConditions.on(expression.psiOrParent, msg)
       )
@@ -186,7 +193,7 @@ internal fun SolverState.checkInvariantConsistency(
 ): Boolean =
   solver.run {
     addAndCheckConsistency(listOf(constraint)) {
-      val msg = errorInconsistentInvariants(it)
+      val msg = inconsistentInvariants(it)
       context.trace.report(
         MetaErrors.InconsistentInvariants.on(expression.psiOrParent, msg)
       )
@@ -200,7 +207,7 @@ internal fun SolverState.checkInvariant(
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
-      val msg = errorUnsatInvariants(expression, constraint, model)
+      val msg = unsatInvariants(expression, constraint, model)
       context.trace.report(
         MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
       )

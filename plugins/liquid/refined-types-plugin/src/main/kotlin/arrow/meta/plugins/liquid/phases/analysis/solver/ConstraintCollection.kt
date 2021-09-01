@@ -4,6 +4,7 @@ import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd
@@ -132,7 +133,7 @@ internal fun KtDeclaration.constraints(
       val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
       if (result == null) {
         context.trace.report(
-          MetaErrors.ErrorParsingPredicate.on(element, "Could not parse predicate: ${predicateArg?.text}")
+          MetaErrors.ErrorParsingPredicate.on(element, ErrorMessages.Parsing.errorParsingPredicate(predicateArg))
         )
         solverState.signalParseErrors()
         null
