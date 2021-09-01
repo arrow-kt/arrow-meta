@@ -16,6 +16,21 @@ import org.sosy_lab.java_smt.api.Model
  * There are broadly three kinds of errors that may arise from Arrow Analysis.
  * This files gives an overview of the information tracked in each case,
  * which shall form the basis for top-quality error messages.
+ *
+ * Additional information
+ *
+ * During the analysis, a different SMT variable name is assigned to each subexpression.
+ *
+ * For example, we may have:
+ * ```kotlin
+ * f(g(2), h())
+ * // a -> 2
+ * // b -> g(2)
+ * // c -> h()
+ * // d -> f(g(2), h())
+ * ```
+ * We can leverage this information to write better error messages.
+ * If we have a constraint which states b > 0, we can replace it with g(2) > 0.
  */
 object ErrorMessages {
 
@@ -126,6 +141,17 @@ object ErrorMessages {
    * we may end up in this situation."
    * Usually this means that the code is somehow unreachable.
    * There are four cases in which this may arise.
+   *
+   * ## Information available
+   *
+   * See [arrow.meta.plugins.liquid.phases.analysis.solver.addAndCheckConsistency] for the code which produces the errors.
+   *
+   * The last set of constraints which was added to the SMT solver.
+   * This is not very useful when considering the next item.
+   * An unsatisfiable core, which is a subset of the formulas added to the solver
+   * since the beginning of the process, and which summarize the incompatibility.
+   * During the whole analysis of i lots of constraints are added,
+   * but the real problem is between x > 0 and x == 0.
    */
   object Inconsistency {
 
@@ -188,7 +214,7 @@ object ErrorMessages {
      *  ```kotlin
      *  fun j(x: Int): Int {
      *    pre({ x > 0 }) { "greater than 0" }
-     *    var v = 3 invariant { v > x && v < 0 }
+     *    var v = 3.invariant ({ v > x && v < 0 }) { "v > x && v < 0" }
      *  }
      *  ```
      */
