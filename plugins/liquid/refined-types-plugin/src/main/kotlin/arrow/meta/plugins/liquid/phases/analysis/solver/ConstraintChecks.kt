@@ -12,8 +12,8 @@ import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
-import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
+import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -575,7 +575,12 @@ private fun SolverState.checkConstantExpression(
       }
     else -> null
   }?.let {
-    addConstraint(NamedConstraint("${expression.text} checkConstantExpression $associatedVarName ${expression.text}", it))
+    addConstraint(
+      NamedConstraint(
+        "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
+        it
+      )
+    )
   }
   NoReturn
 }
@@ -606,7 +611,11 @@ private fun SolverState.checkDeclarationExpression(
   return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
     ContSeq.unit.map {
       val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("$declName $RESULT_VAR_NAME renamed $smtName", renamed), data.context, invBody)
+      val inconsistentInvariant = checkInvariantConsistency(
+        NamedConstraint("$declName $RESULT_VAR_NAME renamed $smtName", renamed),
+        data.context,
+        invBody
+      )
       ensure(!inconsistentInvariant)
     }
   }.flatMap {

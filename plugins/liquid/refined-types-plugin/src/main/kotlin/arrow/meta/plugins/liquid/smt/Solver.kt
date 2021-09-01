@@ -1,5 +1,7 @@
 package arrow.meta.plugins.liquid.smt
 
+import arrow.meta.plugins.liquid.smt.utils.DefaultKotlinPrinter
+import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
 import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.ArrayFormulaManager
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager
@@ -26,7 +28,8 @@ val FieldFormulaType = FormulaType.IntegerType
 class Solver(context: SolverContext) :
   SolverContext by context,
   FormulaManager by context.formulaManager,
-  BooleanFormulaManager by context.formulaManager.booleanFormulaManager {
+  BooleanFormulaManager by context.formulaManager.booleanFormulaManager,
+  KotlinPrinter by DefaultKotlinPrinter(context.formulaManager) {
 
   fun <A> ints(f: IntegerFormulaManager.() -> A): A =
     f(integerFormulaManager)

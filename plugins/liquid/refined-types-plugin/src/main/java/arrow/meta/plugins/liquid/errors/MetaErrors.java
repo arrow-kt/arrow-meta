@@ -16,14 +16,14 @@ import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
 
 public interface MetaErrors {
     // type proofs
-    DiagnosticFactory2<PsiElement, KtDeclaration, List<Formula>> InconsistentBodyPre = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, KtDeclaration, List<NamedConstraint>> UnsatBodyPost = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<NamedConstraint>> UnsatCallPre = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory2<PsiElement, ResolvedCall<?>, List<Formula>> InconsistentCallPost = DiagnosticFactory2.create(ERROR);
-    DiagnosticFactory1<PsiElement, List<Formula>> InconsistentConditions = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, List<Formula>> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, List<NamedConstraint>> UnsatInvariants = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory0<PsiElement> ErrorParsingPredicate = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> InconsistentBodyPre = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> UnsatBodyPost = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> UnsatCallPre = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> InconsistentCallPost = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> InconsistentConditions = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> UnsatInvariants = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(ERROR);
 
     /**
      * needed to prevent NPE in

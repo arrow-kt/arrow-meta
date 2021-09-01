@@ -90,13 +90,17 @@ internal fun SolverState.checkPreconditionsInconsistencies(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
 ): Boolean =
-  constraints?.pre?.let {
-    addAndCheckConsistency(it) { unsatCore ->
-      context.trace.report(
-        MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore)
-      )
-    }
-  } ?: false // if there are no preconditions, they are consistent
+  solver.run {
+    constraints?.pre?.let {
+      addAndCheckConsistency(it) { unsatCore ->
+        val unsatMsg = unsatCore.joinToString { it.dumpKotlinLike() }
+        val msg = "${declaration.name} has inconsistent pre-conditions: $unsatMsg"
+        context.trace.report(
+          MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, msg)
+        )
+      }
+    } ?: false // if there are no preconditions, they are consistent
+  }
 
 /**
  * Checks that this [declaration] constraints post conditions hold
@@ -107,11 +111,15 @@ internal fun SolverState.checkPostConditionsImplication(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
 ) {
-  constraints?.post?.forEach { postCondition ->
-    checkImplicationOf(postCondition) {
-      context.trace.report(
-        MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, declaration, listOf(postCondition))
-      )
+  solver.run {
+    constraints?.post?.forEach { postCondition ->
+      checkImplicationOf(postCondition) {
+        val postConditionMsgs = postCondition.formula.dumpKotlinLike()
+        val msg = "declaration `${declaration.name}` fails to satisfy the post-condition: $postConditionMsgs"
+        context.trace.report(
+          MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, msg)
+        )
+      }
     }
   }
 }
@@ -124,13 +132,18 @@ internal fun SolverState.checkCallPreConditionsImplication(
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-) = callConstraints?.pre?.forEach { callPreCondition ->
-  checkImplicationOf(callPreCondition) {
-    context.trace.report(
-      MetaErrors.UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
-    )
+) =
+  solver.run {
+    callConstraints?.pre?.forEach { callPreCondition ->
+      checkImplicationOf(callPreCondition) {
+        val ctx = callPreCondition.formula.dumpKotlinLike()
+        val msg = "call to `${resolvedCall.call.callElement.text}` fails to satisfy pre-conditions: $ctx"
+        context.trace.report(
+          MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
+        )
+      }
+    }
   }
-}
 
 /**
  * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
@@ -141,13 +154,17 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
 ): Boolean =
-  callConstraints?.post?.let {
-    addAndCheckConsistency(it) { unsatCore ->
-      context.trace.report(
-        MetaErrors.InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
-      )
-    }
-  } ?: false
+  solver.run {
+    callConstraints?.post?.let {
+      addAndCheckConsistency(it) { unsatCore ->
+        val ctx = unsatCore.map { it.dumpKotlinLike() }
+        val msg = "unreachable code due to post-conditions: $ctx"
+        context.trace.report(
+          MetaErrors.InconsistentCallPost.on(expression.psiOrParent, msg)
+        )
+      }
+    } ?: false
+  }
 
 /**
  * Add the [formulae] to the set and checks that it remains consistent
@@ -157,10 +174,14 @@ internal fun SolverState.checkConditionsInconsistencies(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  addAndCheckConsistency(formulae) { unsatCore ->
-    context.trace.report(
-      MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
-    )
+  solver.run {
+    addAndCheckConsistency(formulae) { unsatCore ->
+      val ctx = unsatCore.joinToString { it.dumpKotlinLike() }
+      val msg = "unreachable code due to conflicting conditions: $ctx"
+      context.trace.report(
+        MetaErrors.InconsistentConditions.on(expression.psiOrParent, msg)
+      )
+    }
   }
 
 internal fun SolverState.checkInvariantConsistency(
@@ -168,10 +189,14 @@ internal fun SolverState.checkInvariantConsistency(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  addAndCheckConsistency(listOf(constraint)) {
-    context.trace.report(
-      MetaErrors.InconsistentInvariants.on(expression.psiOrParent, listOf(constraint.formula))
-    )
+  solver.run {
+    addAndCheckConsistency(listOf(constraint)) {
+      val ctx = it.joinToString { it.dumpKotlinLike() }
+      val msg = "invariants are inconsistent: $ctx"
+      context.trace.report(
+        MetaErrors.InconsistentInvariants.on(expression.psiOrParent, msg)
+      )
+    }
   }
 
 internal fun SolverState.checkInvariant(
@@ -179,8 +204,15 @@ internal fun SolverState.checkInvariant(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  checkImplicationOf(constraint) {
-    context.trace.report(
-      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(constraint))
-    )
+  solver.run {
+    checkImplicationOf(constraint) {
+      val ctxConstraintMsg = constraint.formula.dumpKotlinLike()
+      val ctxModelMsg = it.joinToString {
+        it.value.toString()
+      }
+      val msg = "`${expression.text}` invariants are not satisfied: $ctxConstraintMsg in model: $ctxModelMsg"
+      context.trace.report(
+        MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
+      )
+    }
   }

@@ -132,7 +132,7 @@ internal fun KtDeclaration.constraints(
       val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
       if (result == null) {
         context.trace.report(
-          MetaErrors.ErrorParsingPredicate.on(element)
+          MetaErrors.ErrorParsingPredicate.on(element, "Could not parse predicate: ${predicateArg?.text}")
         )
         solverState.signalParseErrors()
         null
