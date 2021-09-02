@@ -422,13 +422,13 @@ internal fun Solver.expressionToFormula(
       ex.statements
         .mapNotNull { expressionToFormula(it, bindingContext) as? BooleanFormula }
         .let { conditions -> boolAndList(conditions) }
-    ex is KtBinaryExpression
-      && ex.operationToken.toString() == "EQEQ"
-      && ex.right is KtConstantExpression && ex.right?.text == "null" ->
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "EQEQ" &&
+      ex.right is KtConstantExpression && ex.right?.text == "null" ->
       ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNull(it) }
-    ex is KtBinaryExpression
-      && ex.operationToken.toString() == "EXCLEQ"
-      && ex.right is KtConstantExpression && ex.right?.text == "null" ->
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "EXCLEQ" &&
+      ex.right is KtConstantExpression && ex.right?.text == "null" ->
       ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNotNull(it) }
     ex is KtConstantExpression ->
       ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
