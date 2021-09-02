@@ -339,8 +339,24 @@ class LiquidDataflowTests {
   fun `nullability, 1`() {
     """
       ${imports()}
-      fun isNull(x: Int?): Boolean =
-        x != null
+      fun nully1(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`nully` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, 2`() {
+    """
+      ${imports()}
+      fun nully2(x: Int?): Int {
+        val y = if (x == null) 1 else 2
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
       """(
       withPlugin = { compiles },
       withoutPlugin = { compiles }
