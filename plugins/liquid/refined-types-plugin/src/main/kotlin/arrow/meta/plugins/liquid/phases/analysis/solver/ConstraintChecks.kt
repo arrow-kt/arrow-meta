@@ -311,7 +311,7 @@ private fun SolverState.checkExpressionConstraints(
           // we introduce a new name because we don't want to introduce
           // any additional information about the variable,
           // we should only have that declared in the invariant
-          val newName = names.newName(left.getReferencedName())
+          val newName = names.newName(left.getReferencedName(), left)
           val invariant = data.varInfo.get(left.getReferencedName())?.invariant
           checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data)
             .map { it.second } // forget about the temporary name
@@ -358,7 +358,7 @@ private fun SolverState.checkBlockExpression(
     else -> {
       val first = expressions[0]
       val remainder = expressions.drop(1)
-      val inventedName = names.newName("stmt")
+      val inventedName = names.newName("stmt", first)
       checkExpressionConstraints(inventedName, first, data).flatMap { r ->
         when (r) {
           // stop the block after an explicit return
@@ -530,10 +530,10 @@ private fun SolverState.checkControlFlowFunctionCall(
 ): ContSeq<Return> {
   val thisName = when (info.returnBehavior) {
     ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> associatedVarName
-    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> names.newName("this")
+    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> names.newName("this", info.target)
   }
   val returnName = when (info.returnBehavior) {
-    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret")
+    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret", info.target)
     ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> associatedVarName
   }
   return checkExpressionConstraints(thisName, info.target, data).flatMap { r ->
@@ -544,7 +544,7 @@ private fun SolverState.checkControlFlowFunctionCall(
         // being careful not overriding any existing name
         val smtName = when (data.varInfo.get(info.argumentName)) {
           null -> info.argumentName
-          else -> names.newName(info.argumentName)
+          else -> names.newName(info.argumentName, info.target)
         }
         data.varInfo.add(info.argumentName, smtName, info.target, null)
         // add the constraint to make the parameter equal
@@ -635,7 +635,7 @@ private fun SolverState.checkCallArguments(
             if (expr != null && isResultReference(expr, data.context.trace.bindingContext)) {
               RESULT_VAR_NAME
             } else {
-              names.newName(name)
+              names.newName(name, expr)
             }
           checkExpressionConstraints(argUniqueName, expr, data).map { returnInfo ->
             when (returnInfo) {
@@ -704,13 +704,13 @@ private fun SolverState.checkDeclarationExpression(
   val declName = when (declaration) {
     // use the given name if available
     is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
-    else -> names.newName("decl")
+    else -> names.newName("decl", declaration)
   }
   // if we are shadowing the name,
   // we need to create a new one
   val smtName = when (data.varInfo.get(declName)) {
     null -> declName
-    else -> names.newName(declName)
+    else -> names.newName(declName, declaration)
   }
   // find out whether we have an invariant
   val body = declaration.stableBody()
@@ -761,7 +761,7 @@ private fun SolverState.checkBodyAgainstInvariants(
   body: KtExpression?,
   data: CheckData
 ): ContSeq<Pair<String, Return>> {
-  val newName = names.newName(declName)
+  val newName = names.newName(declName, element)
   return checkExpressionConstraints(newName, body, data).onEach {
     invariant?.let {
       val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
@@ -847,7 +847,7 @@ private fun SolverState.checkSimpleConditional(
   data: CheckData
 ): ContSeq<Return> =
   branches.map { cond ->
-    val conditionVar = names.newName("cond")
+    val conditionVar = names.newName("cond", cond.condition)
     // introduce the condition
     (cond.condition?.let {
       checkExpressionConstraints(conditionVar, it, data)

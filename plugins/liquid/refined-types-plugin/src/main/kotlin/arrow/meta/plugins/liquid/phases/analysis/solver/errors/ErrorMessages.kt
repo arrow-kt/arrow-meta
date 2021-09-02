@@ -1,6 +1,7 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.errors
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
+import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -84,12 +85,12 @@ object ErrorMessages {
      *   val wrong = 1 / 0  // does not satisfy '0 != 0' in Int.div law
      * ```
      */
-    internal fun KotlinPrinter.unsatCallPre(
+    internal fun Solver.unsatCallPre(
       callPreCondition: NamedConstraint,
       resolvedCall: ResolvedCall<out CallableDescriptor>,
       model: Model
     ): String =
-      "call to `${resolvedCall.call.callElement.text}` resulting in `${model.template()}` fails to satisfy pre-conditions: ${callPreCondition.formula.dumpKotlinLike()}"
+      "call to `${resolvedCall.call.callElement.text}` resulting in `${model.template(extractVariables(callPreCondition.formula).keys, this)}` fails to satisfy pre-conditions: ${callPreCondition.formula.dumpKotlinLike()}"
 
     /**
      * (attached to the return value)
@@ -128,12 +129,12 @@ object ErrorMessages {
      *  ```
      *
      */
-    internal fun KotlinPrinter.unsatInvariants(
+    internal fun Solver.unsatInvariants(
       expression: KtElement,
       constraint: NamedConstraint,
       model: Model
     ): String =
-      "`${expression.text}` invariants are not satisfied: ${constraint.formula.dumpKotlinLike()} counter examples: ${model.template()}"
+      "`${expression.text}` invariants are not satisfied: ${constraint.formula.dumpKotlinLike()} counter examples: ${model.template(extractVariables(constraint.formula).keys, this)}"
   }
 
   /**
@@ -222,8 +223,13 @@ object ErrorMessages {
       "invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}"
   }
 
-  internal fun Model.template(): String =
-    filter { it.argumentsInterpretation.isNotEmpty() }.joinToString { valueAssignment ->
-      valueAssignment.argumentsInterpretation.joinToString { it.toString() }
+  internal fun Model.template(showVariables: Set<String>, solver: Solver): String = solver.run {
+    filter {
+      solver.formulaManager.extractVariables(it.assignmentAsFormula).any {
+        it.key in showVariables
+      }
+    }.joinToString { valueAssignment ->
+      valueAssignment.assignmentAsFormula.dumpKotlinLike()
     }
+  }
 }

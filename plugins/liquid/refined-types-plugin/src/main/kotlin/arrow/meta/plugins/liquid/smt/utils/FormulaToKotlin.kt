@@ -29,7 +29,9 @@ internal class DefaultKotlinPrinter(
   ) : DefaultFormulaVisitor<Void?>() {
 
     override fun visitDefault(pF: Formula): Void? {
-      out.append(nameProvider.kotlinName(pF.toString()))
+      nameProvider.mirroredElement(pF.toString())?.let {
+        out.append(it.text)
+      } ?: out.append(pF)
       return null
     }
 
