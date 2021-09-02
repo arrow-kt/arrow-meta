@@ -366,12 +366,6 @@ internal fun SolverState.parseFormula(
 ): BooleanFormula {
   val VALUE_TYPE = "Int"
   val FIELD_TYPE = "Int"
-  // build the UFs environment
-  val basicUFs = """
-    (declare-fun int  ($VALUE_TYPE) Int)
-    (declare-fun bool ($VALUE_TYPE) Bool)
-    (declare-fun dec  ($VALUE_TYPE) Real)
-  """.trimIndent()
   // build the parameters environment
   val params = (descriptor as? CallableDescriptor)?.let { function ->
     function.valueParameters.joinToString(separator = "\n") { param ->
@@ -387,7 +381,7 @@ internal fun SolverState.parseFormula(
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
   """.trimIndent()
-  val fullString = "$basicUFs\n$params\n$deps\n$rest\n(assert $formula)"
+  val fullString = "$params\n$deps\n$rest\n(assert $formula)"
   return solver.parse(fullString)
 }
 
@@ -428,6 +422,14 @@ internal fun Solver.expressionToFormula(
       ex.statements
         .mapNotNull { expressionToFormula(it, bindingContext) as? BooleanFormula }
         .let { conditions -> boolAndList(conditions) }
+    ex is KtBinaryExpression
+      && ex.operationToken.toString() == "EQEQ"
+      && ex.right is KtConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNull(it) }
+    ex is KtBinaryExpression
+      && ex.operationToken.toString() == "EXCLEQ"
+      && ex.right is KtConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNotNull(it) }
     ex is KtConstantExpression ->
       ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
     ex is KtThisExpression -> // reference to this
@@ -559,6 +561,9 @@ internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
  */
 internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
+    valueArgumentExpressions()
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.valueArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
     valueArguments.flatMap { (param, resolvedArg) ->
       val containingType =
         if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())

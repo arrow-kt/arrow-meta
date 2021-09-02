@@ -310,6 +310,18 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `nullability, 1`() {
+    """
+      ${imports()}
+      fun isNull(x: Int?): Boolean =
+        x != null
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
