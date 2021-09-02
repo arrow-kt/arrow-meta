@@ -29,7 +29,6 @@ internal class DefaultKotlinPrinter(
   ) : DefaultFormulaVisitor<Void?>() {
 
     override fun visitDefault(pF: Formula): Void? {
-      println("visitDefault: $pF")
       out.append(nameProvider.kotlinName(pF.toString()))
       return null
     }
@@ -93,7 +92,8 @@ internal class DefaultKotlinPrinter(
         }
         Render.Field -> {
           fmgr.visit(pArgs[1], this)
-          out.append(pArgs[0].toString().substringBeforeLast("."))
+          out.append(".")
+          out.append(pArgs[0].toString().substringAfterLast("."))
         }
       }
       if (notUF) {
