@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamed
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
@@ -421,53 +422,20 @@ private fun SolverState.checkCallExpression(
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   data: CheckData
-): ContSeq<Return> =
-  when (val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)) {
-    null -> when (resolvedCall.resultingDescriptor.fqNameSafe) {
-      FqName("arrow.refinement.pre") -> // ignore calls to 'pre'
-        cont { NoReturn }
-      FqName("arrow.refinement.post") -> // ignore post arguments
-        checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
-      FqName("arrow.refinement.invariant") -> // ignore invariant arguments
-        checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
-      else ->
-        checkCallArguments(resolvedCall, data).map {
-          it.fold(
-            { r -> r },
-            { argVars ->
-              val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
-                val completeRenaming = argVars.toMap() + (RESULT_VAR_NAME to associatedVarName)
-                solver.renameDeclarationConstraints(declInfo, completeRenaming)
-              }
-              // check pre-conditions and post-conditions
-              checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
-              // add a constraint for fields: result == field(name, value)
-              val descriptor = resolvedCall.resultingDescriptor
-              if (descriptor.isField()) {
-                val fieldConstraint = solver.ints {
-                  val typeName = descriptor.fqNameSafe.asString()
-                  val argName = argVars[0].second
-                  NamedConstraint(
-                    "${expression.text} == $typeName($argName)",
-                    equal(
-                      solver.makeObjectVariable(associatedVarName),
-                      solver.field(typeName, solver.makeObjectVariable(argName))
-                    )
-                  )
-                }
-                addConstraint(fieldConstraint)
-              }
-              // there's no point in continuing if we are in an inconsistent position
-              val inconsistentPostConditions =
-                checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
-              ensure(!inconsistentPostConditions)
-              // and we continue as normal
-              NoReturn
-            }
-          )
-        }
-    }
-    else ->
+): ContSeq<Return> {
+  val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)
+  val specialControlFlow = controlFlowAnyFunction(resolvedCall)
+  val fqName = resolvedCall.resultingDescriptor.fqNameSafe
+  return when {
+    fqName == FqName("arrow.refinement.pre") -> // ignore calls to 'pre'
+      cont { NoReturn }
+    fqName == FqName("arrow.refinement.post") -> // ignore post arguments
+      checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+    fqName == FqName("arrow.refinement.invariant") -> // ignore invariant arguments
+      checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+    specialControlFlow != null ->
+      checkControlFlowFunctionCall(associatedVarName, specialControlFlow, data)
+    specialCase != null -> // this should eventually go away
       checkCallArguments(resolvedCall, data).map {
         it.fold(
           { r -> r },
@@ -491,7 +459,147 @@ private fun SolverState.checkCallExpression(
           }
         )
       }
+    else -> checkRegularFunctionCall(associatedVarName, resolvedCall, expression, data)
   }
+}
+
+/**
+ * Describes the characteristics of a call to special control flow functions
+ * namely [also], [apply], [let], and [run]
+ */
+data class ControlFlowFn(
+  val target: KtExpression,
+  val body: KtExpression,
+  val argumentName: String,
+  val returnBehavior: ReturnBehavior
+) {
+  /**
+   * Describes whether functions return their argument
+   * or whatever is done in a block
+   */
+  enum class ReturnBehavior {
+    /**
+     * Return what was given as argument, usually after applying a function T -> Unit
+     */
+    RETURNS_ARGUMENT,
+
+    /**
+     * Return whatever the enclosing block returns
+     */
+    RETURNS_BLOCK_RESULT
+  }
+}
+
+/**
+ * Special treatment for special control flow functions ([also], [apply], [let], [run])
+ */
+private fun controlFlowAnyFunction(
+  resolvedCall: ResolvedCall<out CallableDescriptor>
+): ControlFlowFn? {
+  val thisElement = resolvedCall.arg("this")
+  val blockElement = resolvedCall.arg("block") as? KtLambdaExpression
+  val bodyElement = blockElement?.bodyExpression
+  return if (thisElement != null && blockElement != null && bodyElement != null) {
+    when (resolvedCall.resultingDescriptor.fqNameSafe) {
+      FqName("kotlin.also") -> {
+        val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
+        ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
+      }
+      FqName("kotlin.apply") ->
+        ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
+      FqName("kotlin.let") -> {
+        val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
+        ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+      }
+      FqName("kotlin.run") ->
+        ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+      else -> null
+    }
+  } else {
+    null
+  }
+}
+
+/**
+ * Checks special control flow functions ([also], [apply], [let], [run])
+ */
+private fun SolverState.checkControlFlowFunctionCall(
+  associatedVarName: String,
+  info: ControlFlowFn,
+  data: CheckData
+): ContSeq<Return> {
+  val thisName = when (info.returnBehavior) {
+    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> associatedVarName
+    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> names.newName("this")
+  }
+  val returnName = when (info.returnBehavior) {
+    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret")
+    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> associatedVarName
+  }
+  return checkExpressionConstraints(thisName, info.target, data).flatMap { r ->
+    when (r) {
+      is ExplicitReturn -> cont { r }
+      else -> data.varInfo.bracket().flatMap {
+        // add the name to the context,
+        // being careful not overriding any existing name
+        val smtName = when (data.varInfo.get(info.argumentName)) {
+          null -> info.argumentName
+          else -> names.newName(info.argumentName)
+        }
+        data.varInfo.add(info.argumentName, smtName, info.target, null)
+        // add the constraint to make the parameter equal
+        val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
+        addConstraint(NamedConstraint("introduce argument for lambda", formula))
+        // check the body in this new context
+        checkExpressionConstraints(returnName, info.body, data)
+      }
+    }
+  }
+}
+
+/**
+ * Checks any function call which is not a special case
+ */
+private fun SolverState.checkRegularFunctionCall(
+  associatedVarName: String,
+  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  expression: KtExpression,
+  data: CheckData
+): ContSeq<Return> = checkCallArguments(resolvedCall, data).map {
+  it.fold(
+    { r -> r },
+    { argVars ->
+      val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
+        val completeRenaming = argVars.toMap() + (RESULT_VAR_NAME to associatedVarName)
+        solver.renameDeclarationConstraints(declInfo, completeRenaming)
+      }
+      // check pre-conditions and post-conditions
+      checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
+      // add a constraint for fields: result == field(name, value)
+      val descriptor = resolvedCall.resultingDescriptor
+      if (descriptor.isField()) {
+        val fieldConstraint = solver.ints {
+          val typeName = descriptor.fqNameSafe.asString()
+          val argName = argVars[0].second
+          NamedConstraint(
+            "${expression.text} == $typeName($argName)",
+            equal(
+              solver.makeObjectVariable(associatedVarName),
+              solver.field(typeName, solver.makeObjectVariable(argName))
+            )
+          )
+        }
+        addConstraint(fieldConstraint)
+      }
+      // there's no point in continuing if we are in an inconsistent position
+      val inconsistentPostConditions =
+        checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
+      ensure(!inconsistentPostConditions)
+      // and we continue as normal
+      NoReturn
+    }
+  )
+}
 
 /**
  * Recursively perform check on arguments,
