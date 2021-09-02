@@ -67,6 +67,30 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `checks special functions, 1`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int =
+        0.let { it + 1 }.post({ it > 0 }) { "greater than 0" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `checks special functions, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int =
+        1.run { this - 1 }.post({ it > 0 }) { "greater than 0" }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `scopes work well`() {
     """
       ${imports()}
