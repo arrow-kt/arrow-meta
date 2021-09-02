@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.smt.utils
 
+import arrow.meta.plugins.liquid.smt.Solver
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FunctionDeclaration
@@ -28,14 +29,15 @@ internal class DefaultKotlinPrinter(
   ) : DefaultFormulaVisitor<Void?>() {
 
     override fun visitDefault(pF: Formula): Void? {
+      println("visitDefault: $pF")
       out.append(nameProvider.kotlinName(pF.toString()))
       return null
     }
 
-    private enum class Render { Unary, Binary, Unsupported }
+    private enum class Render { Unary, Binary, Hidden, Field, Unsupported }
 
-    private fun FunctionDeclarationKind.toKotlin(): Pair<Render, String> =
-      when (this) {
+    private fun FunctionDeclaration<*>.toKotlin(): Pair<Render, String> =
+      when (kind) {
         FunctionDeclarationKind.AND -> Render.Binary to " && "
         FunctionDeclarationKind.NOT -> Render.Unary to " ! "
         FunctionDeclarationKind.OR -> Render.Binary to " || "
@@ -48,6 +50,14 @@ internal class DefaultKotlinPrinter(
         FunctionDeclarationKind.GT -> Render.Binary to " > "
         FunctionDeclarationKind.GTE -> Render.Binary to " >= "
         FunctionDeclarationKind.EQ -> Render.Binary to " == "
+        FunctionDeclarationKind.UF ->
+          when (name) {
+            Solver.INT_VALUE_NAME -> Render.Hidden to ""
+            Solver.BOOL_VALUE_NAME -> Render.Hidden to ""
+            Solver.DECIMAL_VALUE_NAME -> Render.Hidden to ""
+            Solver.FIELD_FUNCTION_NAME -> Render.Field to name
+            else -> Render.Unsupported to "[unsupported UF: $name]"
+          }
         else -> Render.Unsupported to "[unsupported: $this]"
       }
 
@@ -56,7 +66,7 @@ internal class DefaultKotlinPrinter(
       pArgs: List<Formula>,
       pFunctionDeclaration: FunctionDeclaration<*>
     ): Void? {
-      val (render, name) = pFunctionDeclaration.kind.toKotlin()
+      val (render, name) = pFunctionDeclaration.toKotlin()
       val notUF = pFunctionDeclaration.kind != FunctionDeclarationKind.UF
       if (notUF) {
         out.append("(")
@@ -75,6 +85,15 @@ internal class DefaultKotlinPrinter(
           pArgs.forEach { arg ->
             fmgr.visit(arg, this)
           }
+        }
+        Render.Hidden -> {
+          pArgs.forEach { arg ->
+            fmgr.visit(arg, this)
+          }
+        }
+        Render.Field -> {
+          fmgr.visit(pArgs[1], this)
+          out.append(pArgs[0].toString().substringBeforeLast("."))
         }
       }
       if (notUF) {
