@@ -1,6 +1,13 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentBodyPre
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentCallPost
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentConditions
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentInvariants
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatBodyPost
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatCallPre
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.substituteVariable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -90,13 +97,16 @@ internal fun SolverState.checkPreconditionsInconsistencies(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
 ): Boolean =
-  constraints?.pre?.let {
-    addAndCheckConsistency(it) { unsatCore ->
-      context.trace.report(
-        MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, declaration, unsatCore)
-      )
-    }
-  } ?: false // if there are no preconditions, they are consistent
+  solver.run {
+    constraints?.pre?.let {
+      addAndCheckConsistency(it) { unsatCore ->
+        val msg = inconsistentBodyPre(declaration, unsatCore)
+        context.trace.report(
+          MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, msg)
+        )
+      }
+    } ?: false // if there are no preconditions, they are consistent
+  }
 
 /**
  * Checks that this [declaration] constraints post conditions hold
@@ -107,11 +117,14 @@ internal fun SolverState.checkPostConditionsImplication(
   context: DeclarationCheckerContext,
   declaration: KtDeclaration
 ) {
-  constraints?.post?.forEach { postCondition ->
-    checkImplicationOf(postCondition) {
-      context.trace.report(
-        MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, declaration, listOf(postCondition))
-      )
+  solver.run {
+    constraints?.post?.forEach { postCondition ->
+      checkImplicationOf(postCondition) {
+        val msg = unsatBodyPost(declaration, postCondition)
+        context.trace.report(
+          MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, msg)
+        )
+      }
     }
   }
 }
@@ -124,13 +137,17 @@ internal fun SolverState.checkCallPreConditionsImplication(
   context: DeclarationCheckerContext,
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
-) = callConstraints?.pre?.forEach { callPreCondition ->
-  checkImplicationOf(callPreCondition) {
-    context.trace.report(
-      MetaErrors.UnsatCallPre.on(expression.psiOrParent, resolvedCall, listOf(callPreCondition))
-    )
+) =
+  solver.run {
+    callConstraints?.pre?.forEach { callPreCondition ->
+      checkImplicationOf(callPreCondition) { model ->
+        val msg = unsatCallPre(callPreCondition, resolvedCall, model)
+        context.trace.report(
+          MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
+        )
+      }
+    }
   }
-}
 
 /**
  * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
@@ -141,13 +158,16 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
   expression: KtExpression,
   resolvedCall: ResolvedCall<out CallableDescriptor>
 ): Boolean =
-  callConstraints?.post?.let {
-    addAndCheckConsistency(it) { unsatCore ->
-      context.trace.report(
-        MetaErrors.InconsistentCallPost.on(expression.psiOrParent, resolvedCall, unsatCore)
-      )
-    }
-  } ?: false
+  solver.run {
+    callConstraints?.post?.let {
+      addAndCheckConsistency(it) { unsatCore ->
+        val msg = inconsistentCallPost(unsatCore)
+        context.trace.report(
+          MetaErrors.InconsistentCallPost.on(expression.psiOrParent, msg)
+        )
+      }
+    } ?: false
+  }
 
 /**
  * Add the [formulae] to the set and checks that it remains consistent
@@ -157,10 +177,13 @@ internal fun SolverState.checkConditionsInconsistencies(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  addAndCheckConsistency(formulae) { unsatCore ->
-    context.trace.report(
-      MetaErrors.InconsistentConditions.on(expression.psiOrParent, unsatCore)
-    )
+  solver.run {
+    addAndCheckConsistency(formulae) { unsatCore ->
+      val msg = inconsistentConditions(unsatCore)
+      context.trace.report(
+        MetaErrors.InconsistentConditions.on(expression.psiOrParent, msg)
+      )
+    }
   }
 
 internal fun SolverState.checkInvariantConsistency(
@@ -168,10 +191,13 @@ internal fun SolverState.checkInvariantConsistency(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  addAndCheckConsistency(listOf(constraint)) {
-    context.trace.report(
-      MetaErrors.InconsistentInvariants.on(expression.psiOrParent, listOf(constraint.formula))
-    )
+  solver.run {
+    addAndCheckConsistency(listOf(constraint)) {
+      val msg = inconsistentInvariants(it)
+      context.trace.report(
+        MetaErrors.InconsistentInvariants.on(expression.psiOrParent, msg)
+      )
+    }
   }
 
 internal fun SolverState.checkInvariant(
@@ -179,8 +205,11 @@ internal fun SolverState.checkInvariant(
   context: DeclarationCheckerContext,
   expression: KtElement
 ): Boolean =
-  checkImplicationOf(constraint) {
-    context.trace.report(
-      MetaErrors.UnsatInvariants.on(expression.psiOrParent, listOf(constraint))
-    )
+  solver.run {
+    checkImplicationOf(constraint) { model ->
+      val msg = unsatInvariants(expression, constraint, model)
+      context.trace.report(
+        MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
+      )
+    }
   }

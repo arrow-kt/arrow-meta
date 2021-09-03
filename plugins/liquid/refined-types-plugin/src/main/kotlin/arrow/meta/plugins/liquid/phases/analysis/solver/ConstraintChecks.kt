@@ -12,9 +12,9 @@ import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
-import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
+import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -328,14 +328,14 @@ private fun SolverState.checkExpressionConstraints(
           // we introduce a new name because we don't want to introduce
           // any additional information about the variable,
           // we should only have that declared in the invariant
-          val newName = names.newName(left.getReferencedName())
+          val newName = names.newName(left.getReferencedName(), left)
           val invariant = data.varInfo.get(left.getReferencedName())?.invariant
           checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data)
             .map { it.second } // forget about the temporary name
         }
         // this is x == null, or x != null
         (operator == "EQEQ" || operator == "EXCLEQ") && right is KtConstantExpression && right.text == "null" -> {
-          val newName = names.newName("checkNull")
+          val newName = names.newName("checkNull", left)
           checkExpressionConstraints(newName, left, data).map {
             when (operator) {
               "EQEQ" -> solver.isNull(solver.makeObjectVariable(newName))
@@ -390,9 +390,9 @@ private fun SolverState.checkBlockExpression(
     else -> {
       val first = expressions[0]
       val remainder = expressions.drop(1)
-      val inventedName = names.newName("stmt")
-      checkExpressionConstraints(inventedName, first, data).checkReturnInfo {
-        checkBlockExpression(associatedVarName, remainder, data)
+      val inventedName = names.newName("stmt", first)
+        checkExpressionConstraints(inventedName, first, data).checkReturnInfo {
+          checkBlockExpression(associatedVarName, remainder, data)
       }
     }
   }
@@ -464,8 +464,9 @@ private fun SolverState.checkCallExpression(
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, specialControlFlow, data)
     specialCase != null -> { // this should eventually go away
-      val receiverName = names.newName("this")
-      checkExpressionConstraints(receiverName, resolvedCall.getReceiverExpression(), data).checkReturnInfo {
+      val receiverExpr = resolvedCall.getReceiverExpression()
+      val receiverName = names.newName("this", receiverExpr)
+      checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
         checkCallArguments(resolvedCall, data).map {
           it.fold(
             { r -> r },
@@ -563,10 +564,10 @@ private fun SolverState.checkControlFlowFunctionCall(
 ): ContSeq<Return> {
   val thisName = when (info.returnBehavior) {
     ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> associatedVarName
-    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> names.newName("this")
+    ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> names.newName("this", info.target)
   }
   val returnName = when (info.returnBehavior) {
-    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret")
+    ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret", info.target)
     ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> associatedVarName
   }
   return checkExpressionConstraints(thisName, info.target, data).flatMap { r ->
@@ -577,7 +578,7 @@ private fun SolverState.checkControlFlowFunctionCall(
         // being careful not overriding any existing name
         val smtName = when (data.varInfo.get(info.argumentName)) {
           null -> info.argumentName
-          else -> names.newName(info.argumentName)
+          else -> names.newName(info.argumentName, info.target)
         }
         data.varInfo.add(info.argumentName, smtName, info.target, null)
         // add the constraint to make the parameter equal
@@ -599,8 +600,9 @@ private fun SolverState.checkRegularFunctionCall(
   expression: KtExpression,
   data: CheckData
 ): ContSeq<Return> {
-  val receiverName = names.newName("this")
-  return checkExpressionConstraints(receiverName, resolvedCall.getReceiverExpression(), data).checkReturnInfo {
+  val receiverExpr = resolvedCall.getReceiverExpression()
+  val receiverName = names.newName("this", receiverExpr)
+  return checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
     ContSeq {
       if (expression is KtSafeQualifiedExpression)
         yield(false)
@@ -608,7 +610,6 @@ private fun SolverState.checkRegularFunctionCall(
     }.flatMap { r ->
       continuationBracket.map { r }
     }.flatMap { definitelyNotNull ->
-      val receiverExpr = resolvedCall.getReceiverExpression()
       if (!definitelyNotNull) { // the null case of ?.
         ContSeq.unit.map {
           val nullReceiver = NamedConstraint("$receiverName is null", solver.isNull(solver.makeObjectVariable(receiverName)))
@@ -703,7 +704,7 @@ private fun SolverState.checkCallArguments(
         { r -> cont { r.left() } },
         { argsUpToNow ->
           val (name, _, expr) = current
-          val argUniqueName = names.newName(name)
+          val argUniqueName = names.newName(name, expr)
           checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r -> r.left() }) {
             cont { (argsUpToNow + listOf(name to argUniqueName)).right() }
           }
@@ -751,9 +752,18 @@ private fun SolverState.checkConstantExpression(
         }
       else -> null
     }?.let {
-      addConstraint(NamedConstraint("${expression.text} checkConstantExpression $associatedVarName ${expression.text}", it))
-      val notNullFormula = solver.isNotNull(solver.makeObjectVariable(associatedVarName))
-      addConstraint(NamedConstraint("$associatedVarName is not null", notNullFormula))
+      addConstraint(
+        NamedConstraint(
+          "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
+          it
+        )
+      )
+      addConstraint(
+        NamedConstraint(
+          "${expression.text} is not null",
+          solver.isNotNull(solver.makeObjectVariable(associatedVarName))
+        )
+      )
     }
   }
   NoReturn
@@ -770,13 +780,13 @@ private fun SolverState.checkDeclarationExpression(
   val declName = when (declaration) {
     // use the given name if available
     is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
-    else -> names.newName("decl")
+    else -> names.newName("decl", declaration)
   }
   // if we are shadowing the name,
   // we need to create a new one
   val smtName = when (data.varInfo.get(declName)) {
     null -> declName
-    else -> names.newName(declName)
+    else -> names.newName(declName, declaration)
   }
   // find out whether we have an invariant
   val body = declaration.stableBody()
@@ -785,7 +795,11 @@ private fun SolverState.checkDeclarationExpression(
   return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
     ContSeq.unit.map {
       val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(NamedConstraint("$declName $RESULT_VAR_NAME renamed $smtName", renamed), data.context, invBody)
+      val inconsistentInvariant = checkInvariantConsistency(
+        NamedConstraint("$declName $RESULT_VAR_NAME renamed $smtName", renamed),
+        data.context,
+        invBody
+      )
       ensure(!inconsistentInvariant)
     }
   }.flatMap {
@@ -823,7 +837,7 @@ private fun SolverState.checkBodyAgainstInvariants(
   body: KtExpression?,
   data: CheckData
 ): ContSeq<Pair<String, Return>> {
-  val newName = names.newName(declName)
+  val newName = names.newName(declName, element)
   return checkExpressionConstraints(newName, body, data).onEach {
     invariant?.let {
       val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
@@ -909,7 +923,7 @@ private fun SolverState.checkSimpleConditional(
   data: CheckData
 ): ContSeq<Return> =
   branches.map { cond ->
-    val conditionVar = names.newName("cond")
+    val conditionVar = names.newName("cond", cond.condition)
     // introduce the condition
     (cond.condition?.let {
       checkExpressionConstraints(conditionVar, it, data)

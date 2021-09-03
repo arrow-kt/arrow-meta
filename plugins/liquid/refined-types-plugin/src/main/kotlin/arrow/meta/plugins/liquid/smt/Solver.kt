@@ -1,5 +1,8 @@
 package arrow.meta.plugins.liquid.smt
 
+import arrow.meta.plugins.liquid.smt.utils.DefaultKotlinPrinter
+import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
+import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.sosy_lab.java_smt.SolverContextFactory
 import org.sosy_lab.java_smt.api.ArrayFormulaManager
 import org.sosy_lab.java_smt.api.BitvectorFormulaManager
@@ -23,10 +26,11 @@ typealias FieldFormula = NumeralFormula.IntegerFormula
 val ObjectFormulaType = FormulaType.IntegerType
 val FieldFormulaType = FormulaType.IntegerType
 
-class Solver(context: SolverContext) :
+class Solver(context: SolverContext, nameProvider: NameProvider) :
   SolverContext by context,
   FormulaManager by context.formulaManager,
-  BooleanFormulaManager by context.formulaManager.booleanFormulaManager {
+  BooleanFormulaManager by context.formulaManager.booleanFormulaManager,
+  KotlinPrinter by DefaultKotlinPrinter(context.formulaManager, nameProvider) {
 
   fun <A> ints(f: IntegerFormulaManager.() -> A): A =
     f(integerFormulaManager)
@@ -108,8 +112,8 @@ class Solver(context: SolverContext) :
 
   companion object {
 
-    operator fun invoke(log: (String) -> Unit): Solver =
-      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL))
+    operator fun invoke(nameProvider: NameProvider): Solver =
+      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL), nameProvider)
 
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"

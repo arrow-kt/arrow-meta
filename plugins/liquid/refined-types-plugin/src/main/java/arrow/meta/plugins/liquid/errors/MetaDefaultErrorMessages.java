@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages;
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 
 import static arrow.meta.plugins.liquid.errors.MetaErrors.*;
+import static arrow.meta.plugins.liquid.phases.errors.FormulaRendererKt.RenderString;
 
 public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension {
     @NotNull
@@ -20,29 +21,14 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
 
 
     static {
-        MAP.put(InconsistentBodyPre,
-                "{0} has inconsistent pre-conditions: {1}",
-                FormulaRendererKt.RenderDeclaration, FormulaRendererKt.RenderFormula);
-        MAP.put(UnsatBodyPost,
-                "{0} fails to satisfy the post-condition: {1}",
-                FormulaRendererKt.RenderDeclaration, FormulaRendererKt.RenderNamedConstraint);
-        MAP.put(UnsatCallPre,
-                "call to {0} fails to satisfy its pre-conditions: {1}",
-                FormulaRendererKt.RenderCall, FormulaRendererKt.RenderNamedConstraint);
-        MAP.put(InconsistentCallPost,
-                "unreachable code due to post-conditions: {1}",
-                FormulaRendererKt.RenderCall, FormulaRendererKt.RenderFormula);
-        MAP.put(InconsistentConditions,
-                "unreachable code due to conflicting conditions: {0}",
-                FormulaRendererKt.RenderFormula);
-        MAP.put(InconsistentInvariants,
-                "invariants are inconsistent: {0}",
-                FormulaRendererKt.RenderFormula);
-        MAP.put(UnsatInvariants,
-                "invariants are not satisfied: {0}",
-                FormulaRendererKt.RenderNamedConstraint);
-        MAP.put(ErrorParsingPredicate,
-                "could not parse this predicate");
+        MAP.put(InconsistentBodyPre, "{0}", RenderString);
+        MAP.put(UnsatBodyPost, "{0}", RenderString);
+        MAP.put(UnsatCallPre, "{0}", RenderString);
+        MAP.put(InconsistentCallPost, "{0}", RenderString);
+        MAP.put(InconsistentConditions, "{0}", RenderString);
+        MAP.put(InconsistentInvariants, "{0}", RenderString);
+        MAP.put(UnsatInvariants, "{0}", RenderString);
+        MAP.put(ErrorParsingPredicate, "{0}", RenderString);
     }
 }
 
