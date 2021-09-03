@@ -3,6 +3,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
+import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.liquid.smt.ObjectFormula
@@ -506,11 +507,14 @@ private fun Solver.wrap(
 ): Formula = when {
   // only wrap variables and 'field(name, thing)'
   !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
-  formula is ObjectFormula -> when {
-    type.isInt() || type.isLong() -> intValue(formula)
-    type.isBoolean() -> boolValue(formula)
-    type.isFloat() || type.isDouble() -> decimalValue(formula)
-    else -> formula
+  formula is ObjectFormula -> {
+    val unwrapped = if (type.isMarkedNullable) type.unwrappedNotNullableType else type
+    when {
+      unwrapped.isInt() || unwrapped.isLong() -> intValue(formula)
+      unwrapped.isBoolean() -> boolValue(formula)
+      unwrapped.isFloat() || unwrapped.isDouble() -> decimalValue(formula)
+      else -> formula
+    }
   }
   else -> formula
 }

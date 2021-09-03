@@ -462,7 +462,7 @@ private fun SolverState.checkCallExpression(
     fqName == FqName("arrow.refinement.invariant") -> // ignore invariant arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
     specialControlFlow != null ->
-      checkControlFlowFunctionCall(associatedVarName, specialControlFlow, data)
+      checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)
     specialCase != null -> { // this should eventually go away
       val receiverExpr = resolvedCall.getReceiverExpression()
       val receiverName = names.newName("this", receiverExpr)
@@ -559,6 +559,7 @@ private fun controlFlowAnyFunction(
  */
 private fun SolverState.checkControlFlowFunctionCall(
   associatedVarName: String,
+  wholeExpr: KtExpression,
   info: ControlFlowFn,
   data: CheckData
 ): ContSeq<Return> {
@@ -570,23 +571,20 @@ private fun SolverState.checkControlFlowFunctionCall(
     ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT -> names.newName("ret", info.target)
     ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT -> associatedVarName
   }
-  return checkExpressionConstraints(thisName, info.target, data).flatMap { r ->
-    when (r) {
-      is ExplicitReturn -> cont { r }
-      else -> data.varInfo.bracket().flatMap {
-        // add the name to the context,
-        // being careful not overriding any existing name
-        val smtName = when (data.varInfo.get(info.argumentName)) {
-          null -> info.argumentName
-          else -> names.newName(info.argumentName, info.target)
-        }
-        data.varInfo.add(info.argumentName, smtName, info.target, null)
-        // add the constraint to make the parameter equal
-        val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
-        addConstraint(NamedConstraint("introduce argument for lambda", formula))
-        // check the body in this new context
-        checkExpressionConstraints(returnName, info.body, data)
+  return checkReceiverWithPossibleSafeDot(associatedVarName, wholeExpr, thisName, info.target, data) {
+    data.varInfo.bracket().flatMap {
+      // add the name to the context,
+      // being careful not overriding any existing name
+      val smtName = when (data.varInfo.get(info.argumentName)) {
+        null -> info.argumentName
+        else -> names.newName(info.argumentName, info.target)
       }
+      data.varInfo.add(info.argumentName, smtName, info.target, null)
+      // add the constraint to make the parameter equal
+      val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
+      addConstraint(NamedConstraint("introduce argument for lambda", formula))
+      // check the body in this new context
+      checkExpressionConstraints(returnName, info.body, data)
     }
   }
 }
@@ -602,9 +600,65 @@ private fun SolverState.checkRegularFunctionCall(
 ): ContSeq<Return> {
   val receiverExpr = resolvedCall.getReceiverExpression()
   val receiverName = names.newName("this", receiverExpr)
-  return checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
+  return checkReceiverWithPossibleSafeDot(associatedVarName, expression, receiverName, receiverExpr, data) {
+    checkCallArguments(resolvedCall, data).map {
+      it.fold(
+        { r -> r },
+        { argVars ->
+          val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
+            val completeRenaming = argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + ("this" to receiverName)
+            solver.renameDeclarationConstraints(declInfo, completeRenaming)
+          }
+          // check pre-conditions and post-conditions
+          checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
+          // add a constraint for fields: result == field(name, value)
+          val descriptor = resolvedCall.resultingDescriptor
+          if (descriptor.isField()) {
+            val fieldConstraint = solver.ints {
+              val typeName = descriptor.fqNameSafe.asString()
+              val argName = argVars[0].second
+              NamedConstraint(
+                "${expression.text} == $typeName($argName)",
+                equal(
+                  solver.makeObjectVariable(associatedVarName),
+                  solver.field(typeName, solver.makeObjectVariable(argName))
+                )
+              )
+            }
+            addConstraint(fieldConstraint)
+          }
+          // if the result is not null
+          if (!resolvedCall.getReturnType().isMarkedNullable) {
+            addConstraint(NamedConstraint(
+              "$associatedVarName is not null",
+              solver.isNotNull(solver.makeObjectVariable(associatedVarName))))
+          }
+          // there's no point in continuing if we are in an inconsistent position
+          val inconsistentPostConditions =
+            checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
+          ensure(!inconsistentPostConditions)
+          // and we continue as normal
+          NoReturn
+        }
+      )
+    }
+  }
+}
+
+/**
+ * Handles the possibility of a function call being done with ?.
+ */
+private fun SolverState.checkReceiverWithPossibleSafeDot(
+  associatedVarName: String,
+  wholeExpr: KtExpression,
+  receiverName: String,
+  receiverExpr: KtExpression?,
+  data: CheckData,
+  block: () -> ContSeq<Return>
+): ContSeq<Return> =
+  checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
     ContSeq {
-      if (expression is KtSafeQualifiedExpression)
+      if (wholeExpr is KtSafeQualifiedExpression)
         yield(false)
       yield(true)
     }.flatMap { r ->
@@ -626,53 +680,10 @@ private fun SolverState.checkRegularFunctionCall(
             ensure(!inconsistent)
             NoReturn
           }
-        }.flatMap {
-          checkCallArguments(resolvedCall, data).map {
-            it.fold(
-              { r -> r },
-              { argVars ->
-                val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
-                  val completeRenaming = argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + ("this" to receiverName)
-                  solver.renameDeclarationConstraints(declInfo, completeRenaming)
-                }
-                // check pre-conditions and post-conditions
-                checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
-                // add a constraint for fields: result == field(name, value)
-                val descriptor = resolvedCall.resultingDescriptor
-                if (descriptor.isField()) {
-                  val fieldConstraint = solver.ints {
-                    val typeName = descriptor.fqNameSafe.asString()
-                    val argName = argVars[0].second
-                    NamedConstraint(
-                      "${expression.text} == $typeName($argName)",
-                      equal(
-                        solver.makeObjectVariable(associatedVarName),
-                        solver.field(typeName, solver.makeObjectVariable(argName))
-                      )
-                    )
-                  }
-                  addConstraint(fieldConstraint)
-                }
-                // if the result is not null
-                if (!resolvedCall.getReturnType().isMarkedNullable) {
-                  addConstraint(NamedConstraint(
-                    "$associatedVarName is not null",
-                    solver.isNotNull(solver.makeObjectVariable(associatedVarName))))
-                }
-                // there's no point in continuing if we are in an inconsistent position
-                val inconsistentPostConditions =
-                  checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
-                ensure(!inconsistentPostConditions)
-                // and we continue as normal
-                NoReturn
-              }
-            )
-          }
-        }
+        }.flatMap { block() }
       }
     }
   }
-}
 
 /**
  * Recursively perform check on arguments,
