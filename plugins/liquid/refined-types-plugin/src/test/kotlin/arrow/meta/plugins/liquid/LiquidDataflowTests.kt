@@ -368,6 +368,21 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `nullability, 3`() {
+    """
+      ${imports()}
+      fun nully3(x: Int?): Int {
+        val y = x ?: 1
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      // it seems that Kotlin's warning overrides ours
+      withPlugin = { failsWith { it.contains("`nully3` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
