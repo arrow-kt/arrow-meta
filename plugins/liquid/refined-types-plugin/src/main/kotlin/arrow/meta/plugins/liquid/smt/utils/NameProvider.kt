@@ -1,12 +1,22 @@
 package arrow.meta.plugins.liquid.smt.utils
 
+import org.jetbrains.kotlin.psi.KtElement
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 class NameProvider {
   private val counter = AtomicReference(0)
 
-  fun newName(prefix: String): String {
+  private val assignedNames: ConcurrentHashMap<String, KtElement?> = ConcurrentHashMap()
+
+  fun mirroredElement(assignedName: String): KtElement? =
+    assignedNames[assignedName]
+
+  fun newName(prefix: String, mirroredElement: KtElement?): String {
     val n = counter.getAndUpdate { it + 1 }
-    return "${prefix}$n"
+    val newName = "${prefix}$n"
+    if (mirroredElement != null)
+      assignedNames[newName] = mirroredElement
+    return newName
   }
 }

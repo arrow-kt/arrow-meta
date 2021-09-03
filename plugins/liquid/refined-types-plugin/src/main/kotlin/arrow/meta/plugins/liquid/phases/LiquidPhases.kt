@@ -9,7 +9,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.checkDeclarationConstrai
 import arrow.meta.plugins.liquid.phases.analysis.solver.collectDeclarationsConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.finalizeConstraintsCollection
 import arrow.meta.plugins.liquid.phases.ir.annotateWithConstraints
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
@@ -81,10 +81,7 @@ internal fun CompilerContext.ensureSolverStateInitialization(
 ) {
   val solverState = get<SolverState>(SolverState.key(module))
   if (solverState == null) {
-    val log: (String) -> Unit = {
-      messageCollector?.report(CompilerMessageSeverity.ERROR, it)
-    }
-    val state = SolverState(log)
+    val state = SolverState(NameProvider())
     set(SolverState.key(module), state)
   }
 }

@@ -61,7 +61,11 @@ class LiquidDataflowTests {
       fun bar(x: Int): Int =
         3.post({ it < 0 }) { "smaller than 0" }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withPlugin = {
+        failsWith {
+          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result < 0)")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -100,7 +104,7 @@ class LiquidDataflowTests {
         return x.post({ r -> r > 0 }) { "greater than 0" } 
       }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withPlugin = { failsWith { it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") } },
       withoutPlugin = { compiles }
     )
   }
@@ -115,7 +119,7 @@ class LiquidDataflowTests {
         return z
       }
       """(
-      withPlugin = { failsWith { it.contains("invariants are not satisfied") } },
+      withPlugin = { failsWith { it.contains("`z = 0` invariants are not satisfied") } },
       withoutPlugin = { compiles }
     )
   }
@@ -130,7 +134,7 @@ class LiquidDataflowTests {
         return z.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withPlugin = { failsWith { it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") } },
       withoutPlugin = { compiles }
     )
   }
@@ -193,7 +197,7 @@ class LiquidDataflowTests {
       }
       val result = bar(1)
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }
@@ -242,7 +246,7 @@ class LiquidDataflowTests {
      
       val result = bar(30)
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }
@@ -260,7 +264,7 @@ class LiquidDataflowTests {
      
       val result = 1 / 0
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy its pre-conditions") } },
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }
@@ -304,7 +308,7 @@ class LiquidDataflowTests {
        
       val wrong: String = emptyList<String>().get(0)
       """(
-      withPlugin = { failsWith { it.contains("call to `get(0)` fails to satisfy its pre-conditions") } },
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
       withoutPlugin = { compiles }
     )
   }
