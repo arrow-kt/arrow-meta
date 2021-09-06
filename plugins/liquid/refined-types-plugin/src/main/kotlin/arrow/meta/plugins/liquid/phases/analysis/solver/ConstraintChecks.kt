@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -318,6 +319,8 @@ private fun SolverState.checkExpressionConstraints(
       } else {
         checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
       }
+    is KtIsExpression ->
+      checkIsExpression(associatedVarName, expression, data)
     is KtBinaryExpression ->
       checkBinaryExpression(associatedVarName, expression, data)
     is KtExpression ->
@@ -360,8 +363,8 @@ private fun SolverState.checkBlockExpression(
       val first = expressions[0]
       val remainder = expressions.drop(1)
       val inventedName = names.newName("stmt", first)
-        checkExpressionConstraints(inventedName, first, data).checkReturnInfo {
-          checkBlockExpression(associatedVarName, remainder, data)
+      checkExpressionConstraints(inventedName, first, data).checkReturnInfo {
+        checkBlockExpression(associatedVarName, remainder, data)
       }
     }
   }
@@ -832,19 +835,51 @@ private fun SolverState.checkBinaryExpression(
     // this is x == null, or x != null
     (operator == "EQEQ" || operator == "EXCLEQ") && right is KtConstantExpression && right.text == "null" -> {
       val newName = names.newName("checkNull", left)
-      checkExpressionConstraints(newName, left, data).map {
-        when (operator) {
-          "EQEQ" -> solver.isNull(solver.makeObjectVariable(newName))
-          "EXCLEQ" -> solver.isNotNull(solver.makeObjectVariable(newName))
-          else -> null
-        }?.let {
-          val cstr = solver.booleans { equivalence(solver.makeBooleanObjectVariable(associatedVarName), it) }
-          addConstraint(NamedConstraint("$associatedVarName is null?", cstr))
+      checkExpressionConstraints(newName, left, data).checkReturnInfo {
+        cont {
+          when (operator) {
+            "EQEQ" -> solver.isNull(solver.makeObjectVariable(newName))
+            "EXCLEQ" -> solver.isNotNull(solver.makeObjectVariable(newName))
+            else -> null
+          }?.let {
+            val cstr = solver.booleans { equivalence(solver.makeBooleanObjectVariable(associatedVarName), it) }
+            addConstraint(NamedConstraint("$associatedVarName is null?", cstr))
+          }
+          NoReturn
         }
-        NoReturn
       }
     }
     else -> fallThrough(associatedVarName, expression, data)
+  }
+}
+
+/**
+ * Checks (x is Something) expressions
+ * We do not track types, so in theory this should not affect our analysis
+ * However, in the specific case in which 'Something' is not nullable
+ * we can also ensure that 'x' is not null
+ * This is different from 'x != null' in that we do not generate
+ *   associatedVarName <=> not (null x)
+ * But rather
+ *   associatedVarName ==> not (null x)
+ */
+private fun SolverState.checkIsExpression(
+  associatedVarName: String,
+  expression: KtIsExpression,
+  data: CheckData
+): ContSeq<Return> = doOnlyWhen(!expression.isNegated, NoReturn) {
+  val newName = names.newName("is", expression.leftHandSide)
+  checkExpressionConstraints(newName, expression.leftHandSide, data).checkReturnInfo {
+    cont {
+      val cstr = solver.booleans {
+        implication(
+          solver.makeBooleanObjectVariable(associatedVarName),
+          solver.isNotNull(solver.makeObjectVariable(newName))
+        )
+      }
+      addConstraint(NamedConstraint("$associatedVarName => not null", cstr))
+      NoReturn
+    }
   }
 }
 

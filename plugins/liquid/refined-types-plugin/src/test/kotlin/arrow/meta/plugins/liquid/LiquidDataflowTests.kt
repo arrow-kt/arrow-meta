@@ -406,6 +406,20 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `nullability, 4`() {
+    """
+      ${imports()}
+      fun nully4(x: Int?): Int {
+        val y = if (x is Int) 1 else 2
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
