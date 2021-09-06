@@ -314,6 +314,29 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `safe indexing`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre( index >= 0 ) { "index non-negative" }
+        pre( index < size ) { "index smaller than size" }
+        return get(index)
+      }
+      
+      @Law
+      fun <A> emptyListIsEmpty(): List<A> =
+        emptyList<A>().post({ it.size == 0 }) { "is empty" }
+       
+      val wrong: String = emptyList<String>()[0]
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `isEmpty is size == 0`() {
     """
       ${imports()}
