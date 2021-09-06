@@ -3,6 +3,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
+import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.liquid.smt.ObjectFormula
@@ -367,12 +368,6 @@ internal fun SolverState.parseFormula(
 ): BooleanFormula {
   val VALUE_TYPE = "Int"
   val FIELD_TYPE = "Int"
-  // build the UFs environment
-  val basicUFs = """
-    (declare-fun int  ($VALUE_TYPE) Int)
-    (declare-fun bool ($VALUE_TYPE) Bool)
-    (declare-fun dec  ($VALUE_TYPE) Real)
-  """.trimIndent()
   // build the parameters environment
   val params = (descriptor as? CallableDescriptor)?.let { function ->
     function.valueParameters.joinToString(separator = "\n") { param ->
@@ -388,7 +383,7 @@ internal fun SolverState.parseFormula(
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
   """.trimIndent()
-  val fullString = "$basicUFs\n$params\n$deps\n$rest\n(assert $formula)"
+  val fullString = "$params\n$deps\n$rest\n(assert $formula)"
   return solver.parse(fullString)
 }
 
@@ -429,6 +424,14 @@ internal fun Solver.expressionToFormula(
       ex.statements
         .mapNotNull { expressionToFormula(it, bindingContext) as? BooleanFormula }
         .let { conditions -> boolAndList(conditions) }
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "EQEQ" &&
+      ex.right is KtConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNull(it) }
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "EXCLEQ" &&
+      ex.right is KtConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNotNull(it) }
     ex is KtConstantExpression ->
       ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
     ex is KtThisExpression -> // reference to this
@@ -504,11 +507,14 @@ private fun Solver.wrap(
 ): Formula = when {
   // only wrap variables and 'field(name, thing)'
   !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
-  formula is ObjectFormula -> when {
-    type.isInt() || type.isLong() -> intValue(formula)
-    type.isBoolean() -> boolValue(formula)
-    type.isFloat() || type.isDouble() -> decimalValue(formula)
-    else -> formula
+  formula is ObjectFormula -> {
+    val unwrapped = if (type.isMarkedNullable) type.unwrappedNotNullableType else type
+    when {
+      unwrapped.isInt() || unwrapped.isLong() -> intValue(formula)
+      unwrapped.isBoolean() -> boolValue(formula)
+      unwrapped.isFloat() || unwrapped.isDouble() -> decimalValue(formula)
+      else -> formula
+    }
   }
   else -> formula
 }
@@ -560,6 +566,9 @@ internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
  */
 internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
+    valueArgumentExpressions()
+
+internal fun <D : CallableDescriptor> ResolvedCall<D>.valueArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
     valueArguments.flatMap { (param, resolvedArg) ->
       val containingType =
         if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
