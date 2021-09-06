@@ -119,7 +119,7 @@ class LiquidDataflowTests {
         return z
       }
       """(
-      withPlugin = { failsWith { it.contains("`z = 0` invariants are not satisfied") } },
+      withPlugin = { failsWith { it.contains("invariants are not satisfied in `z = 0`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -197,7 +197,7 @@ class LiquidDataflowTests {
       }
       val result = bar(1)
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `x is 42` is not satisfied in `bar(1)`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -234,7 +234,7 @@ class LiquidDataflowTests {
         return 2
       }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)") } },
       withoutPlugin = { compiles }
     )
   }
@@ -254,7 +254,7 @@ class LiquidDataflowTests {
         return 2
       }
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -264,7 +264,7 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(messages = ["(< (int x) 10)", "(> (int x) 0)"], formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
+      @Pre(messages = ["x less than 10", "x less than 0"], formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      
@@ -280,13 +280,13 @@ class LiquidDataflowTests {
     """
       ${imports()}
       
-      @Pre(messages = ["(< (int x) 10)", "(> (int x) 0)"], formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
+      @Pre(messages = ["x less than 10", "x less than 0"], formulae = ["(< (int x) 10)", "(> (int x) 0)"], dependencies = [])
       fun bar(x: Int): Int =
         x + 2
      
       val result = bar(30)
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `x less than 10` is not satisfied in `bar(30)`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -304,7 +304,7 @@ class LiquidDataflowTests {
      
       val result = 1 / 0
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -348,7 +348,7 @@ class LiquidDataflowTests {
        
       val wrong: String = emptyList<String>().get(0)
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `index smaller than size` is not satisfied in `get(0)`") } },
       withoutPlugin = { compiles }
     )
   }
@@ -371,7 +371,7 @@ class LiquidDataflowTests {
        
       val wrong: String = emptyList<String>()[0]
       """(
-      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withPlugin = { failsWith { it.contains("pre-condition `index smaller than size` is not satisfied in `emptyList<String>()[0]`") } },
       withoutPlugin = { compiles }
     )
   }

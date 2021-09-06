@@ -139,7 +139,9 @@ internal fun KtDeclaration.constraints(
         solverState.signalParseErrors()
         null
       } else {
-        val msg = call.arg("msg")?.text ?: predicateArg?.text
+        val msgBody = call.arg("msg")
+        val msg = if (msgBody is KtLambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
+        else msgBody?.text ?: predicateArg?.text
         msg?.let { call to NamedConstraint(it, result) }
       }
     } else {
