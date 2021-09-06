@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
@@ -320,8 +321,11 @@ private fun SolverState.checkExpressionConstraints(
   data: CheckData
 ): ContSeq<Return> =
   when (expression) {
+    // these two simply recur into their underlying expressions
     is KtParenthesizedExpression ->
       checkExpressionConstraints(associatedVarName, expression.expression, data)
+    is KtAnnotatedExpression ->
+      checkExpressionConstraints(associatedVarName, expression.baseExpression, data)
     is KtBlockExpression ->
       data.varInfo.bracket().flatMap { // new variables are local to that block
         checkBlockExpression(associatedVarName, expression.statements, data)
@@ -341,8 +345,6 @@ private fun SolverState.checkExpressionConstraints(
       checkNameExpression(associatedVarName, expression.getReferencedName(), data)
     is KtLabeledExpression ->
       checkLabeledExpression(associatedVarName, expression, data)
-    is KtDeclaration ->
-      checkDeclarationExpression(expression, data)
     is KtIfExpression ->
       checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
     is KtWhenExpression ->
@@ -357,6 +359,8 @@ private fun SolverState.checkExpressionConstraints(
       checkIsExpression(associatedVarName, expression, data)
     is KtBinaryExpression ->
       checkBinaryExpression(associatedVarName, expression, data)
+    is KtDeclaration ->
+      checkDeclarationExpression(expression, data)
     is KtExpression ->
       fallThrough(associatedVarName, expression, data)
     else ->
@@ -511,10 +515,11 @@ private fun SolverState.checkCallExpression(
 
 /**
  * Describes the characteristics of a call to special control flow functions
- * namely [also], [apply], [let], and [run]
+ * namely [also], [apply], [let], [run], [with]
+ * https://kotlinlang.org/docs/scope-functions.html#function-selection
  */
 data class ControlFlowFn(
-  val target: KtExpression,
+  val target: KtExpression?,
   val body: KtExpression,
   val argumentName: String,
   val returnBehavior: ReturnBehavior
@@ -537,29 +542,42 @@ data class ControlFlowFn(
 }
 
 /**
- * Special treatment for special control flow functions ([also], [apply], [let], [run])
+ * Special treatment for special control flow functions ([also], [apply], [let], [run], [with])
+ * https://kotlinlang.org/docs/scope-functions.html#function-selection
  */
 private fun controlFlowAnyFunction(
   resolvedCall: ResolvedCall<out CallableDescriptor>
 ): ControlFlowFn? {
-  val thisElement = resolvedCall.arg("this")
+  val thisElement = resolvedCall.arg("this") ?: resolvedCall.arg("receiver")
   val blockElement = resolvedCall.arg("block") as? KtLambdaExpression
   val bodyElement = blockElement?.bodyExpression
-  return if (thisElement != null && blockElement != null && bodyElement != null) {
-    when (resolvedCall.resultingDescriptor.fqNameSafe) {
-      FqName("kotlin.also") -> {
-        val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
-        ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
+  return if (blockElement != null && bodyElement != null) {
+    if (thisElement != null) {
+      when (resolvedCall.resultingDescriptor.fqNameSafe) {
+        FqName("kotlin.also") -> {
+          val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
+          ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
+        }
+        FqName("kotlin.apply") ->
+          ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
+        FqName("kotlin.let") -> {
+          val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
+          ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+        }
+        FqName("kotlin.run") ->
+          ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+        FqName("kotlin.with") ->
+          ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+        else -> null
       }
-      FqName("kotlin.apply") ->
-        ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT)
-      FqName("kotlin.let") -> {
-        val argumentName = blockElement.valueParameters.getOrNull(0)?.name ?: "it"
-        ControlFlowFn(thisElement, bodyElement, argumentName, ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+    } else {
+      when (resolvedCall.resultingDescriptor.fqNameSafe) {
+        // 'run' can also be called without a receiver
+        // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run.html
+        FqName("kotlin.run") ->
+          ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
+        else -> null
       }
-      FqName("kotlin.run") ->
-        ControlFlowFn(thisElement, bodyElement, "this", ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT)
-      else -> null
     }
   } else {
     null
@@ -587,11 +605,13 @@ private fun SolverState.checkControlFlowFunctionCall(
     data.varInfo.bracket().flatMap {
       // add the name to the context,
       // being careful not overriding any existing name
-      val smtName = names.newName(info.argumentName, info.target)
-      data.varInfo.add(info.argumentName, smtName, info.target, null)
-      // add the constraint to make the parameter equal
-      val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
-      addConstraint(NamedConstraint("introduce argument for lambda", formula))
+      info.target?.let {
+        val smtName = names.newName(info.argumentName, info.target)
+        data.varInfo.add(info.argumentName, smtName, info.target, null)
+        // add the constraint to make the parameter equal
+        val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
+        addConstraint(NamedConstraint("introduce argument for lambda", formula))
+      }
       // check the body in this new context
       checkExpressionConstraints(returnName, info.body, data)
     }
