@@ -591,7 +591,10 @@ private fun SolverState.checkRegularFunctionCall(
           if (descriptor.isField()) {
             val fieldConstraint = solver.ints {
               val typeName = descriptor.fqNameSafe.asString()
-              val argName = argVars[0].second
+              val argName = when (receiverExpr) {
+                null -> argVars[0].second
+                else -> receiverName
+              }
               NamedConstraint(
                 "${expression.text} == $typeName($argName)",
                 equal(
