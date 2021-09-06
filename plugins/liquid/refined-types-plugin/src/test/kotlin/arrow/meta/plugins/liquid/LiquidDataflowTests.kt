@@ -220,6 +220,46 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `pre-conditions are not satisfied in loop, while`() {
+    """
+      ${imports()}
+      @Pre(messages = ["(< (int x) 0)"], formulae = ["(< (int x) 0)"], dependencies = [])
+      fun bar(x: Int): Int =
+        x + 2
+        
+      fun loopy1(t: Int): Int {
+        while (t > 0) {
+          bar(1)
+        }
+        return 2
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in loop, for`() {
+    """
+      ${imports()}
+      @Pre(messages = ["(< (int x) 0)"], formulae = ["(< (int x) 0)"], dependencies = [])
+      fun bar(x: Int): Int =
+        x + 2
+        
+      fun loopy1(t: List<Int>): Int {
+        for (elt in t) {
+          bar(1)
+        }
+        return 2
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `annotated pre-conditions are satisfied in call`() {
     """
       ${imports()}

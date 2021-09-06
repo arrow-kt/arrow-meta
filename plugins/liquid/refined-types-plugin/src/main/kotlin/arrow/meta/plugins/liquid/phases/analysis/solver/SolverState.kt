@@ -49,6 +49,10 @@ data class SolverState(
     return result
   }
 
+  /**
+   * This signals that the rest of the computation
+   * happens inside a push/pop bracket
+   */
   val continuationBracket: ContSeq<Unit> =
     ContSeq { bracket { yield(Unit) } }
 
