@@ -22,20 +22,27 @@ import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
+import org.jetbrains.kotlin.psi.KtDoWhileExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtExpressionWithLabel
+import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtLoopExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamed
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
@@ -44,6 +51,7 @@ import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
+import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -206,11 +214,31 @@ data class VarInfo(
 )
 
 /**
- * Ways to return from a block.
+ * Ways to return from a block
  */
-sealed class Return
-object NoReturn : Return()
-data class ExplicitReturn(val returnPoint: String?) : Return()
+sealed interface Return
+
+/**
+ * The block exited via its last statement,
+ * or has not exited yet
+ */
+object NoReturn : Return
+
+/**
+ * This encompasses all possible was to exit a block:
+ * 'return', 'break', 'continue'
+ */
+sealed interface ExplicitReturn : Return
+
+/**
+ * Explicit 'return', maybe with a name
+ */
+data class ExplicitBlockReturn(val returnPoint: String?) : ExplicitReturn
+
+/**
+ * 'break' or 'continue' inside a loop
+ */
+data class ExplicitLoopReturn(val returnPoint: String?) : ExplicitReturn
 
 // 2.1: declarations
 // -----------------
@@ -300,6 +328,10 @@ private fun SolverState.checkExpressionConstraints(
       }
     is KtReturnExpression ->
       checkReturnConstraints(expression, data)
+    is KtBreakExpression, is KtContinueExpression -> {
+      val withLabel = expression as KtExpressionWithLabel
+      cont { ExplicitLoopReturn(withLabel.getLabelName()) }
+    }
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
     is KtThisExpression ->
@@ -319,6 +351,8 @@ private fun SolverState.checkExpressionConstraints(
       } else {
         checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
       }
+    is KtLoopExpression ->
+      checkLoopExpression(expression, data)
     is KtIsExpression ->
       checkIsExpression(associatedVarName, expression, data)
     is KtBinaryExpression ->
@@ -383,7 +417,7 @@ private fun SolverState.checkLabeledExpression(
   return checkExpressionConstraints(associatedVarName, expression.baseExpression, updatedData).map { r ->
     // if we have reached the point where the label was introduced,
     // then we are done with the block, and we can keep going
-    if (r is ExplicitReturn && r.returnPoint == labelName) {
+    if (r is ExplicitBlockReturn && r.returnPoint == labelName) {
       NoReturn
     } else {
       r
@@ -409,7 +443,7 @@ private fun SolverState.checkReturnConstraints(
   } ?: data.returnPoints.topMostReturnPointVariableName.second
   // assign it, and signal that we explicitly return
   return checkExpressionConstraints(returnVarName, expression.returnedExpression, data)
-    .map { ExplicitReturn(label) }
+    .map { ExplicitBlockReturn(label) }
 }
 
 /**
@@ -553,10 +587,7 @@ private fun SolverState.checkControlFlowFunctionCall(
     data.varInfo.bracket().flatMap {
       // add the name to the context,
       // being careful not overriding any existing name
-      val smtName = when (data.varInfo.get(info.argumentName)) {
-        null -> info.argumentName
-        else -> names.newName(info.argumentName, info.target)
-      }
+      val smtName = names.newName(info.argumentName, info.target)
       data.varInfo.add(info.argumentName, smtName, info.target, null)
       // add the constraint to make the parameter equal
       val formula = solver.objects { equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(thisName)) }
@@ -896,12 +927,8 @@ private fun SolverState.checkDeclarationExpression(
     is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
     else -> names.newName("decl", declaration)
   }
-  // if we are shadowing the name,
-  // we need to create a new one
-  val smtName = when (data.varInfo.get(declName)) {
-    null -> declName
-    else -> names.newName(declName, declaration)
-  }
+  // we need to create a new one to prevent shadowing
+  val smtName = names.newName(declName, declaration)
   // find out whether we have an invariant
   val body = declaration.stableBody()
   val invariant = obtainInvariant(body, data)
@@ -1096,6 +1123,116 @@ private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pa
       }
     }
   return go(conditionVars, emptyList())
+}
+
+enum class LoopPlace {
+  INSIDE_LOOP, AFTER_LOOP
+}
+
+private fun SolverState.checkLoopExpression(
+  expression: KtLoopExpression,
+  data: CheckData
+): ContSeq<Return> = when (expression) {
+  is KtForExpression ->
+    checkForExpression(expression.loopParameter, expression.body, data)
+  is KtWhileExpression ->
+    doOnlyWhenNotNull(expression.condition, NoReturn) {
+      checkWhileExpression(it, expression.body, data)
+    }
+  is KtDoWhileExpression -> {
+    // remember that do { t } while (condition)
+    // is equivalent to { t }; while (condition) { t }
+    val uselessName = names.newName("firstIter", null)
+    checkExpressionConstraints(uselessName, expression.body, data).flatMap {
+      doOnlyWhenNotNull(expression.condition, NoReturn) {
+        checkWhileExpression(it, expression.body, data)
+      }
+    }
+  }
+  else -> ContSeq.unit.map { NoReturn } // this should not happen
+}
+
+private fun SolverState.checkForExpression(
+  loopParameter: KtParameter?,
+  body: KtExpression?,
+  data: CheckData
+): ContSeq<Return> = ContSeq {
+  yield(LoopPlace.INSIDE_LOOP)
+  yield(LoopPlace.AFTER_LOOP)
+}.flatMap {
+  when (it) {
+    LoopPlace.INSIDE_LOOP ->
+      continuationBracket.flatMap {
+        data.varInfo.bracket()
+      }.map {
+        val paramName = loopParameter?.name
+        if (loopParameter != null && paramName != null) {
+          val smtName = names.newName(paramName, loopParameter)
+          data.varInfo.add(paramName, smtName, loopParameter, null)
+        }
+      }.flatMap {
+        checkLoopBody(body, data)
+      }
+    // in this case we know nothing
+    // after the loop finishes
+    LoopPlace.AFTER_LOOP ->
+      cont { NoReturn }
+  }
+}
+
+private fun SolverState.checkWhileExpression(
+  condition: KtExpression,
+  body: KtExpression?,
+  data: CheckData
+): ContSeq<Return> {
+  val condName = names.newName("cond", condition)
+  // TODO: check the return info, just in case
+  return checkExpressionConstraints(condName, body, data).flatMap {
+    ContSeq {
+      yield(LoopPlace.INSIDE_LOOP)
+      yield(LoopPlace.AFTER_LOOP)
+    }
+  }.flatMap {
+    when (it) {
+      LoopPlace.INSIDE_LOOP ->
+        continuationBracket.flatMap {
+          data.varInfo.bracket()
+        }.onEach {
+          // inside the loop the condition is true
+          checkConditionsInconsistencies(listOf(
+            NamedConstraint("inside the loop, condition is tue",
+              solver.makeBooleanObjectVariable(condName))
+          ), data.context, condition)
+        }.flatMap {
+          checkLoopBody(body, data)
+        }
+      // after the loop the condition is false
+      LoopPlace.AFTER_LOOP -> cont {
+        checkConditionsInconsistencies(listOf(
+          NamedConstraint("loop is finished, condition is false",
+            solver.booleans { not(solver.makeBooleanObjectVariable(condName)) })
+        ), data.context, condition)
+        NoReturn
+      }
+    }
+  }
+}
+
+private fun SolverState.checkLoopBody(
+  body: KtExpression?,
+  data: CheckData
+): ContSeq<Return> {
+  val uselessName = names.newName("loop", null)
+  return checkExpressionConstraints(uselessName, body, data).map { returnInfo ->
+    // only keep working on this branch
+    // if we had a 'return' inside
+    // otherwise the other branch is enough
+    when (returnInfo) {
+      is ExplicitLoopReturn -> abort()
+      is ExplicitBlockReturn -> returnInfo
+      else -> abort()
+    }
+  }
 }
 
 /**
