@@ -55,12 +55,14 @@ private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructor
 private fun IrUtils.preAnnotation(formulae: List<NamedConstraint>, manager: FormulaManager): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/refinement/Pre"),
     formulae.map { it.msg },
-    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
+    formulae.map { it.formula.toString() },
+    formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
 
 private fun IrUtils.postAnnotation(formulae: List<NamedConstraint>, manager: FormulaManager): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/refinement/Post"),
     formulae.map { it.msg },
-    formulae.map { it.toString() }, formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
+    formulae.map { it.formula.toString() },
+    formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
 
 private fun IrUtils.lawSubjectAnnotation(descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
   lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/refinement/Subject"), descriptor)
