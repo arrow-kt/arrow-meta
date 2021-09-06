@@ -314,6 +314,29 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `safe indexing`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun <A> List<A>.safeGet(index: Int): A {
+        pre( index >= 0 ) { "index non-negative" }
+        pre( index < size ) { "index smaller than size" }
+        return get(index)
+      }
+      
+      @Law
+      fun <A> emptyListIsEmpty(): List<A> =
+        emptyList<A>().post({ it.size == 0 }) { "is empty" }
+       
+      val wrong: String = emptyList<String>()[0]
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy pre-conditions") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `isEmpty is size == 0`() {
     """
       ${imports()}
@@ -332,6 +355,65 @@ class LiquidDataflowTests {
       fun ok(x: List<String>): String {
         pre( !x.isEmpty() ) { "non-empty" }
         return x.get(0)
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  @Disabled
+  fun `nullability, 1`() {
+    """
+      ${imports()}
+      fun nully1(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      // it seems that Kotlin's warning overrides ours
+      withPlugin = { failsWith { it.contains("`nully1` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, 2`() {
+    """
+      ${imports()}
+      fun nully2(x: Int?): Int {
+        val y = if (x == null) 1 else 2
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, 3`() {
+    """
+      ${imports()}
+      fun nully3(x: Int?): Int {
+        val y = x ?: 1
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      // it seems that Kotlin's warning overrides ours
+      withPlugin = { failsWith { it.contains("`nully3` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, 4`() {
+    """
+      ${imports()}
+      fun nully4(x: Int?): Int {
+        val y = if (x is Int) 1 else 2
+        return y.post({ it > 0 }) { "greater than 0" }
       }
       """(
       withPlugin = { compiles },
