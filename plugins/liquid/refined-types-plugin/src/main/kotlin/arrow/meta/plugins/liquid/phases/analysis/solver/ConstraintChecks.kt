@@ -20,14 +20,17 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtBreakExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
 import org.jetbrains.kotlin.psi.KtDoWhileExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtExpressionWithLabel
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtLabeledExpression
@@ -207,11 +210,31 @@ data class VarInfo(
 )
 
 /**
- * Ways to return from a block.
+ * Ways to return from a block
  */
-sealed class Return
-object NoReturn : Return()
-data class ExplicitReturn(val returnPoint: String?) : Return()
+sealed interface Return
+
+/**
+ * The block exited via its last statement,
+ * or has not exited yet
+ */
+object NoReturn : Return
+
+/**
+ * This encompasses all possible was to exit a block:
+ * 'return', 'break', 'continue'
+ */
+sealed interface ExplicitReturn : Return
+
+/**
+ * Explicit 'return', maybe with a name
+ */
+data class ExplicitBlockReturn(val returnPoint: String?) : ExplicitReturn
+
+/**
+ * 'break' or 'continue' inside a loop
+ */
+data class ExplicitLoopReturn(val returnPoint: String?) : ExplicitReturn
 
 // 2.1: declarations
 // -----------------
@@ -288,6 +311,10 @@ private fun SolverState.checkExpressionConstraints(
       }
     is KtReturnExpression ->
       checkReturnConstraints(expression, data)
+    is KtBreakExpression, is KtContinueExpression -> {
+      val withLabel = expression as KtExpressionWithLabel
+      cont { ExplicitLoopReturn(withLabel.getLabelName()) }
+    }
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
     is KtThisExpression ->
@@ -308,7 +335,7 @@ private fun SolverState.checkExpressionConstraints(
         checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
       }
     is KtLoopExpression ->
-      checkLoopExpression(associatedVarName, expression, data)
+      checkLoopExpression(expression, data)
     is KtBinaryExpression -> {
       val operator = expression.operationToken.toString()
       val left = expression.left
@@ -390,7 +417,7 @@ private fun SolverState.checkLabeledExpression(
   return checkExpressionConstraints(associatedVarName, expression.baseExpression, updatedData).map { r ->
     // if we have reached the point where the label was introduced,
     // then we are done with the block, and we can keep going
-    if (r is ExplicitReturn && r.returnPoint == labelName) {
+    if (r is ExplicitBlockReturn && r.returnPoint == labelName) {
       NoReturn
     } else {
       r
@@ -416,7 +443,7 @@ private fun SolverState.checkReturnConstraints(
   } ?: data.returnPoints.topMostReturnPointVariableName.second
   // assign it, and signal that we explicitly return
   return checkExpressionConstraints(returnVarName, expression.returnedExpression, data)
-    .map { ExplicitReturn(label) }
+    .map { ExplicitBlockReturn(label) }
 }
 
 /**
@@ -913,7 +940,6 @@ enum class LoopPlace {
 }
 
 private fun SolverState.checkLoopExpression(
-  associatedVarName: String,
   expression: KtLoopExpression,
   data: CheckData
 ): ContSeq<Return> = when (expression) {
@@ -955,16 +981,7 @@ private fun SolverState.checkForExpression(
           data.varInfo.add(paramName, smtName, loopParameter, null)
         }
       }.flatMap {
-        val uselessName = names.newName("loop", null)
-        checkExpressionConstraints(uselessName, body, data)
-      }.map { returnInfo ->
-        // only keep working on this branch
-        // if we had a 'return' inside
-        // otherwise the other branch is enough
-        when (returnInfo) {
-          is ExplicitReturn -> returnInfo
-          else -> abort()
-        }
+        checkLoopBody(body, data)
       }
     // in this case we know nothing
     // after the loop finishes
@@ -997,16 +1014,7 @@ private fun SolverState.checkWhileExpression(
               solver.makeBooleanObjectVariable(condName))
           ), data.context, condition)
         }.flatMap {
-          val uselessName = names.newName("loop", null)
-          checkExpressionConstraints(uselessName, body, data)
-        }.map { returnInfo ->
-          // only keep working on this branch
-          // if we had a 'return' inside
-          // otherwise the other branch is enough
-          when (returnInfo) {
-            is ExplicitReturn -> returnInfo
-            else -> abort()
-          }
+          checkLoopBody(body, data)
         }
       // after the loop the condition is false
       LoopPlace.AFTER_LOOP -> cont {
@@ -1020,6 +1028,22 @@ private fun SolverState.checkWhileExpression(
   }
 }
 
+private fun SolverState.checkLoopBody(
+  body: KtExpression?,
+  data: CheckData
+): ContSeq<Return> {
+  val uselessName = names.newName("loop", null)
+  return checkExpressionConstraints(uselessName, body, data).map { returnInfo ->
+    // only keep working on this branch
+    // if we had a 'return' inside
+    // otherwise the other branch is enough
+    when (returnInfo) {
+      is ExplicitLoopReturn -> abort()
+      is ExplicitBlockReturn -> returnInfo
+      else -> abort()
+    }
+  }
+}
 
 /**
  * Find the corresponding "body" of a declaration
