@@ -77,6 +77,9 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   val fieldFun: FunctionDeclaration<ObjectFormula> =
     ufManager.declareUF(FIELD_FUNCTION_NAME, ObjectFormulaType, FieldFormulaType, ObjectFormulaType)
 
+  val isNullFn: FunctionDeclaration<BooleanFormula> =
+    ufManager.declareUF(IS_NULL_FUNCTION_NAME, FormulaType.BooleanType, ObjectFormulaType)
+
   fun intValue(formula: ObjectFormula): NumeralFormula.IntegerFormula =
     uninterpretedFunctions { callUF(intValueFun, formula) }
 
@@ -91,6 +94,12 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
 
   fun field(fieldName: String, formula: ObjectFormula): ObjectFormula =
     field(integerFormulaManager.makeVariable(fieldName), formula)
+
+  fun isNull(formula: ObjectFormula): BooleanFormula =
+    uninterpretedFunctions { callUF(isNullFn, formula) }
+
+  fun isNotNull(formula: ObjectFormula): BooleanFormula =
+    booleans { not(isNull(formula)) }
 
   fun makeObjectVariable(varName: String): ObjectFormula =
     objects { this.makeVariable(varName) }
@@ -110,6 +119,7 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
     val BOOL_VALUE_NAME = "bool"
     val DECIMAL_VALUE_NAME = "dec"
     val FIELD_FUNCTION_NAME = "field"
+    val IS_NULL_FUNCTION_NAME = "null"
   }
 }
 
