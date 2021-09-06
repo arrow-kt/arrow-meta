@@ -1,4 +1,4 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver
+package arrow.meta.plugins.liquid.phases.analysis.solver.check
 
 import arrow.core.Either
 import arrow.core.left
@@ -10,22 +10,41 @@ import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
-import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CheckData
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Condition
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ControlFlowFn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitBlockReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitLoopReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Return
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.arg
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPreConditionsImplication
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkConditionsInconsistencies
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariant
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariantConsistency
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.specialCasingForResolvedCalls
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import arrow.meta.plugins.liquid.smt.utils.ReferencedElement
-import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
-import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -42,7 +61,6 @@ import org.jetbrains.kotlin.psi.KtLabeledExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLoopExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.KtNamed
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
@@ -54,260 +72,12 @@ import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
-import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.sosy_lab.java_smt.api.BooleanFormula
-
-// PHASE 2: CHECKING OF CONSTRAINTS
-// ================================
-
-/* [NOTE: which do we use continuations?]
- * It might look odd that we create continuations when checking
- * the body, instead of simply performing the steps.
- *
- * The reason to do so is to have the ability to decide whether
- * and how to execute the "remainder of the analysis". For example:
- * - if we find a `return`, we ought to stop, since no further
- *   statement is executed;
- * - if we are in a condition, the "remainder of the analysis"
- *   ought to be executed more than once; in fact once per possible
- *   execution flow.
- *
- * What makes the problem complicated, and brings in continuations,
- * is that these decisions may have to be made within an argument:
- *
- * ```
- * f(if (x > 0) 3 else 2)
- * ```
- *
- * yet they must affect the global ongoing computations. Continuations
- * allow us to do so by saying that checking `if (x > 0) 3 else 2`
- * is the current computation, and checking `f(...)` the "remainder".
- * Thus, the conditional `if` can duplicate the check of the "remainder".
- */
-
-internal const val RESULT_VAR_NAME = "${'$'}result"
-
-// 2.0: entry point
-/**
- * When the solver is in the prover state
- * check this [declaration] body constraints
- */
-internal fun CompilerContext.checkDeclarationConstraints(
-  context: DeclarationCheckerContext,
-  declaration: KtDeclaration,
-  descriptor: DeclarationDescriptor
-) {
-  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null &&
-    solverState.isIn(SolverState.Stage.Prove) &&
-    !solverState.hadParseErrors() &&
-    declaration.shouldBeAnalyzed()
-  ) {
-    // bring the constraints in (if there are any)
-    val constraints = solverState.constraintsFromSolverState(descriptor)
-    // choose a good name for the result
-    // should we change it for 'val' declarations?
-    val resultVarName = RESULT_VAR_NAME
-    // trace
-    solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
-    // now go on and check the body
-    solverState.checkTopLevelDeclaration(
-      constraints, context, descriptor,
-      resultVarName, declaration
-    ).drain()
-    // trace
-    solverState.solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
-  }
-}
-
-/**
- * Only elements which are not inside another "callable declaration"
- * (function, property, etc) should be analyzed
- */
-fun KtDeclaration.shouldBeAnalyzed() =
-  !(this.parents.any { it is KtCallableDeclaration })
-
-// 2.0: data for the checks
-// ------------------------
-
-data class CheckData(
-  val context: DeclarationCheckerContext,
-  val returnPoints: ReturnPoints,
-  val varInfo: CurrentVarInfo
-) {
-  fun addReturnPoint(scope: String, variableName: String) =
-    CheckData(context, returnPoints.addAndReplaceTopMost(scope, variableName), varInfo)
-}
-
-/**
- * Maps return points to the SMT variables representing that place.
- */
-data class ReturnPoints(
-  val topMostReturnPointVariableName: Pair<String?, String>,
-  val namedReturnPointVariableNames: Map<String, String>
-) {
-
-  fun addAndReplaceTopMost(newScopeName: String, newVariableName: String) =
-    this
-      .replaceTopMost(newScopeName, newVariableName)
-      .add(newScopeName, newVariableName)
-
-  private fun replaceTopMost(newScopeName: String, newVariableName: String) =
-    ReturnPoints(Pair(newScopeName, newVariableName), namedReturnPointVariableNames)
-
-  private fun add(returnPoint: String, variableName: String) =
-    ReturnPoints(
-      topMostReturnPointVariableName,
-      namedReturnPointVariableNames + (returnPoint to variableName)
-    )
-
-  companion object {
-    private fun new(scope: String?, variableName: String): ReturnPoints =
-      when (scope) {
-        null -> ReturnPoints(Pair(scope, variableName), emptyMap())
-        else -> ReturnPoints(Pair(scope, variableName), mapOf(scope to variableName))
-      }
-
-    fun new(scope: KtElement, variableName: String): ReturnPoints =
-      when (scope) {
-        is KtNamed -> new(scope.nameAsName!!.asString(), variableName)
-        else -> new(null, variableName)
-      }
-  }
-}
-
-data class CurrentVarInfo(val varInfo: MutableList<VarInfo>) {
-
-  fun get(name: String): VarInfo? =
-    varInfo.firstOrNull { it.name == name }
-
-  fun get(name: FqName): VarInfo? =
-    this.get(name.asString())
-
-  fun add(name: String, smtName: String, origin: KtElement, invariant: BooleanFormula?) {
-    varInfo.add(0, VarInfo(name, smtName, origin, invariant))
-  }
-
-  fun bracket(): ContSeq<Unit> = ContSeq {
-    val currentVarInfo = varInfo.toList()
-    yield(Unit)
-    varInfo.clear()
-    varInfo.addAll(currentVarInfo)
-  }
-}
-
-/**
- * For each variable, we keep two pieces of data:
- * - the name it was declared with
- * - the element it came from
- * - invariants which may have been declared
- */
-data class VarInfo(
-  val name: String,
-  val smtName: String,
-  val origin: KtElement,
-  val invariant: BooleanFormula? = null
-)
-
-/**
- * Ways to return from a block
- */
-sealed interface Return
-
-/**
- * The block exited via its last statement,
- * or has not exited yet
- */
-object NoReturn : Return
-
-/**
- * This encompasses all possible was to exit a block:
- * 'return', 'break', 'continue'
- */
-sealed interface ExplicitReturn : Return
-
-/**
- * Explicit 'return', maybe with a name
- */
-data class ExplicitBlockReturn(val returnPoint: String?) : ExplicitReturn
-
-/**
- * 'break' or 'continue' inside a loop
- */
-data class ExplicitLoopReturn(val returnPoint: String?) : ExplicitReturn
-
-// 2.1: declarations
-// -----------------
-/**
- * When the solver is in the prover state
- * check this [declaration] body and constraints for
- * - pre-condition inconsistencies,
- * - whether the body satisfy all the pre-conditions in calls,
- * - whether the post-condition really holds.
- */
-private fun SolverState.checkTopLevelDeclaration(
-  constraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  descriptor: DeclarationDescriptor,
-  resultVarName: String,
-  declaration: KtDeclaration
-): ContSeq<Return> {
-  val maybeBody = declaration.stableBody()
-  return doOnlyWhenNotNull(maybeBody, NoReturn) { body ->
-    continuationBracket.map {
-      // introduce non-nullability of parameters
-      if (descriptor is CallableDescriptor) {
-        descriptor.allParameters.forEach { param ->
-          if (!param.type.isMarkedNullable) {
-            val paramName = param.name.asString()
-            val notNullFormula = solver.isNotNull(solver.makeObjectVariable(paramName))
-            addConstraint(NamedConstraint("$paramName is not null", notNullFormula))
-          }
-        }
-      }
-      val inconsistentPreconditions =
-        checkPreconditionsInconsistencies(constraints, context, declaration)
-      ensure(!inconsistentPreconditions)
-    }.flatMap {
-      // only check body when we are not in a @Law
-      doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
-        val data = CheckData(context, ReturnPoints.new(declaration, resultVarName), initializeVarInfo(declaration))
-        checkExpressionConstraints(resultVarName, body, data).onEach {
-          checkPostConditionsImplication(constraints, context, declaration)
-        }
-      }
-    }
-  }
-}
-
-/**
- * Initialize the names of the variables,
- * the SMT name is initialized to themselves.
- */
-fun initializeVarInfo(declaration: KtDeclaration): CurrentVarInfo {
-  val initialVarInfo = mutableListOf<VarInfo>()
-  initialVarInfo.add(VarInfo("this", "this", declaration))
-  if (declaration is KtNamedDeclaration) {
-    // Add 'this@functionName'
-    declaration.name?.let { name ->
-      initialVarInfo.add(VarInfo("this@$name", "this", declaration))
-    }
-  }
-  if (declaration is KtDeclarationWithBody) {
-    declaration.valueParameters.forEach { param ->
-      param.name?.let { name ->
-        initialVarInfo.add(VarInfo(name, name, param))
-      }
-    }
-  }
-  return CurrentVarInfo(initialVarInfo)
-}
 
 // 2.2: expressions
 // ----------------
@@ -316,7 +86,7 @@ fun initializeVarInfo(declaration: KtDeclaration): CurrentVarInfo {
  * Produces a continuation that when invoked
  * recursively checks an [expression] set of constraints
  */
-private fun SolverState.checkExpressionConstraints(
+internal fun SolverState.checkExpressionConstraints(
   associatedVarName: String,
   expression: KtExpression?,
   data: CheckData
@@ -524,34 +294,6 @@ private fun ResolvedCall<out CallableDescriptor>.referencedArg(
 }?.let { arg?.let { a -> ReferencedElement(a, it) }}
 
 /**
- * Describes the characteristics of a call to special control flow functions
- * namely [also], [apply], [let], [run], [with]
- * https://kotlinlang.org/docs/scope-functions.html#function-selection
- */
-data class ControlFlowFn(
-  val target: KtExpression?,
-  val body: KtExpression,
-  val argumentName: String,
-  val returnBehavior: ReturnBehavior
-) {
-  /**
-   * Describes whether functions return their argument
-   * or whatever is done in a block
-   */
-  enum class ReturnBehavior {
-    /**
-     * Return what was given as argument, usually after applying a function T -> Unit
-     */
-    RETURNS_ARGUMENT,
-
-    /**
-     * Return whatever the enclosing block returns
-     */
-    RETURNS_BLOCK_RESULT
-  }
-}
-
-/**
  * Special treatment for special control flow functions ([also], [apply], [let], [run], [with])
  * https://kotlinlang.org/docs/scope-functions.html#function-selection
  */
@@ -673,9 +415,11 @@ private fun SolverState.checkRegularFunctionCall(
           }
           // if the result is not null
           if (!resolvedCall.getReturnType().isMarkedNullable) {
-            addConstraint(NamedConstraint(
+            addConstraint(
+              NamedConstraint(
               "$associatedVarName is not null",
-              solver.isNotNull(solver.makeObjectVariable(associatedVarName))))
+              solver.isNotNull(solver.makeObjectVariable(associatedVarName)))
+            )
           }
           // there's no point in continuing if we are in an inconsistent position
           val inconsistentPostConditions =
@@ -1064,11 +808,6 @@ private fun SolverState.checkNameExpression(
   NoReturn
 }
 
-/**
- * Data type used to handle `if` and `when` without subject uniformly.
- */
-data class Condition(val condition: KtExpression?, val body: KtExpression, val whole: KtElement)
-
 private fun KtExpression.computeSimpleConditions(): List<Condition> = when (this) {
   is KtIfExpression ->
     listOf(
@@ -1161,10 +900,6 @@ private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pa
       }
     }
   return go(conditionVars, emptyList())
-}
-
-enum class LoopPlace {
-  INSIDE_LOOP, AFTER_LOOP
 }
 
 private fun SolverState.checkLoopExpression(
@@ -1278,7 +1013,7 @@ private fun SolverState.checkLoopBody(
 /**
  * Find the corresponding "body" of a declaration
  */
-private fun KtDeclaration.stableBody(): KtExpression? = when (this) {
+internal fun KtDeclaration.stableBody(): KtExpression? = when (this) {
   is KtVariableDeclaration -> initializer
   is KtDeclarationWithBody -> body()
   is KtDeclarationWithInitializer -> initializer

@@ -1,6 +1,9 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver
+package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentBodyPre
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentCallPost
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentConditions

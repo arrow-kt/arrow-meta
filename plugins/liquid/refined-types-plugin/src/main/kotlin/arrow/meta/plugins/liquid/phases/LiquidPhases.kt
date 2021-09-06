@@ -4,10 +4,10 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.plugins.liquid.phases.analysis.solver.SolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.checkDeclarationConstraints
-import arrow.meta.plugins.liquid.phases.analysis.solver.collectDeclarationsConstraints
-import arrow.meta.plugins.liquid.phases.analysis.solver.finalizeConstraintsCollection
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.checkDeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.collectDeclarationsConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.finalizeConstraintsCollection
 import arrow.meta.plugins.liquid.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor

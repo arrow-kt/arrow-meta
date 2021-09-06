@@ -1,16 +1,8 @@
 package arrow.meta.plugins.liquid.errors;
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint;
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement;
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
-import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2;
 import org.jetbrains.kotlin.diagnostics.Errors;
-import org.jetbrains.kotlin.psi.KtDeclaration;
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
-import org.sosy_lab.java_smt.api.Formula;
-
-import java.util.List;
 
 import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
 

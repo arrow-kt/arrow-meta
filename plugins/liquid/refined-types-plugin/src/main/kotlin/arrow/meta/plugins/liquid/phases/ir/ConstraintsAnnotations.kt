@@ -1,9 +1,9 @@
 package arrow.meta.plugins.liquid.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
-import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
-import arrow.meta.plugins.liquid.phases.analysis.solver.SolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.constraintsFromSolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.liquid.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor

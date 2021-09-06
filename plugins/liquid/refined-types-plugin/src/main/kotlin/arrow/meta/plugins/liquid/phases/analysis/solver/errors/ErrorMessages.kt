@@ -1,6 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.errors
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
