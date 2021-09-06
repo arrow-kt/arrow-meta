@@ -1,7 +1,6 @@
 package arrow.meta.plugins.liquid.smt.utils
 
 import arrow.meta.plugins.liquid.smt.Solver
-import org.jetbrains.kotlin.psi.KtElement
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FunctionDeclaration
