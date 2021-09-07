@@ -9,12 +9,16 @@ import org.sosy_lab.java_smt.api.visitors.DefaultFormulaVisitor
 
 interface KotlinPrinter {
   fun Formula.dumpKotlinLike(): String
+  fun mirroredElement(name: String): ReferencedElement?
 }
 
 internal class DefaultKotlinPrinter(
   private val fmgr: FormulaManager,
   private val nameProvider: NameProvider
 ) : KotlinPrinter {
+
+  override fun mirroredElement(name: String): ReferencedElement? =
+    nameProvider.mirroredElement(name)
 
   override fun Formula.dumpKotlinLike(): String {
     val str = StringBuilder()
@@ -30,7 +34,7 @@ internal class DefaultKotlinPrinter(
 
     override fun visitDefault(pF: Formula): Void? {
       nameProvider.mirroredElement(pF.toString())?.let {
-        out.append(it.text)
+        out.append(it.element.text)
       } ?: out.append(pF)
       return null
     }

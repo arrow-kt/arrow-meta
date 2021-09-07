@@ -3,11 +3,15 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.errors
 import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -90,7 +94,10 @@ object ErrorMessages {
       resolvedCall: ResolvedCall<out CallableDescriptor>,
       model: Model
     ): String =
-      "call to `${resolvedCall.call.callElement.text}` resulting in `${model.template(extractVariables(callPreCondition.formula).keys, this)}` fails to satisfy pre-conditions: ${callPreCondition.formula.dumpKotlinLike()}"
+      """|pre-condition `${callPreCondition.msg}` is not satisfied in `${resolvedCall.call.callElement.text}`
+         |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
+         |  -> ${template(callPreCondition, this)}          `
+      """.trimMargin()
 
     /**
      * (attached to the return value)
@@ -134,7 +141,9 @@ object ErrorMessages {
       constraint: NamedConstraint,
       model: Model
     ): String =
-      "`${expression.text}` invariants are not satisfied: ${constraint.formula.dumpKotlinLike()} counter examples: ${model.template(extractVariables(constraint.formula).keys, this)}"
+      """|invariants are not satisfied in `${expression.text}`
+         |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`       `
+      """.trimMargin()
   }
 
   /**
@@ -223,13 +232,20 @@ object ErrorMessages {
       "invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}"
   }
 
-  internal fun Model.template(showVariables: Set<String>, solver: Solver): String = solver.run {
-    filter {
-      solver.formulaManager.extractVariables(it.assignmentAsFormula).any {
-        it.key in showVariables
-      }
-    }.joinToString { valueAssignment ->
-      valueAssignment.assignmentAsFormula.dumpKotlinLike()
+  internal fun template(constraint: NamedConstraint, solver: Solver): String = solver.run {
+    val showVariables = extractVariables(constraint.formula)
+    val elements = showVariables.mapNotNull { mirroredElement(it.key) }
+    elements.joinToString(System.lineSeparator()) { referencedElement ->
+      val el = referencedElement.element
+      val argsMapping = referencedElement.reference
+      argsMapping?.let { (param, resolvedArg) ->
+        val paramPsi = param.findPsi()
+        val location = paramPsi?.let { MessageUtil.psiElementToMessageLocation(paramPsi) }
+        "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration.fqNameSafe}` ${location?.link() ?: ""}"
+      } ?: ""
     }
   }
+
+  private fun CompilerMessageSourceLocation.link(): String =
+    "at $path: ($line, $column):"
 }
