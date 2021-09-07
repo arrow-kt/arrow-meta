@@ -1,6 +1,9 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver
+package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.continuations.ContSeq
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider

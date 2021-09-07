@@ -1,11 +1,15 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver
+package arrow.meta.plugins.liquid.phases.analysis.solver.collect
 
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
 import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd

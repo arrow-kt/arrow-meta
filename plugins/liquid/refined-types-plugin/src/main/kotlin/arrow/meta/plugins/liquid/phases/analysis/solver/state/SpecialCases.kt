@@ -1,4 +1,4 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver
+package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.plugins.liquid.smt.Solver
 import org.jetbrains.kotlin.descriptors.CallableDescriptor

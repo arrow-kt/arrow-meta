@@ -1,7 +1,7 @@
 package arrow.meta.plugins.liquid.smt
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.DeclarationConstraints
-import arrow.meta.plugins.liquid.phases.analysis.solver.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FunctionDeclaration
