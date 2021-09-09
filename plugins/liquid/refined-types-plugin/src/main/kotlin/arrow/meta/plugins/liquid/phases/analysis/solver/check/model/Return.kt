@@ -1,5 +1,7 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check.model
 
+import org.jetbrains.kotlin.types.KotlinType
+
 /**
  * Ways to return from a block
  */
@@ -29,3 +31,8 @@ data class ExplicitBlockReturn(val returnPoint: String?) : ExplicitReturn
  * 'break' or 'continue' inside a loop
  */
 data class ExplicitLoopReturn(val returnPoint: String?) : ExplicitReturn
+
+/**
+ * 'throw'
+ */
+data class ExplicitThrowReturn(val exceptionType: KotlinType?) : ExplicitReturn

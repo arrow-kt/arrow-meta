@@ -460,6 +460,34 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `try, 1`() {
+    """
+      ${imports()}
+      fun try1(x: Int): Int {
+        val y = try { 1 } catch (e: Exception) { 2 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `try, 2`() {
+    """
+      ${imports()}
+      fun try2(x: Int): Int {
+        val y = try { 1 } catch (e: Exception) { 0 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`try2` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
