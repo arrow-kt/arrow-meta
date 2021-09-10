@@ -121,6 +121,8 @@ internal fun SolverState.immediateConstraintsFromSolverState(descriptor: Declara
 internal fun SolverState.overriddenConstraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
   descriptor.overriddenDescriptors()?.mapNotNull { overriddenDescriptor ->
     constraintsFromSolverState(overriddenDescriptor)
+  }?.takeIf {
+    it.isNotEmpty()
   }?.map {
     // rename the argument names and similar things
     solver.renameConditions(it, descriptor)
