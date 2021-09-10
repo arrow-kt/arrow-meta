@@ -232,6 +232,18 @@ object ErrorMessages {
       "invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}"
   }
 
+  object Liskov {
+    internal fun KotlinPrinter.notWeakerPrecondition(constraint: NamedConstraint): String =
+      """|pre-condition `${constraint.msg}` is not weaker than those from overridden members
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+      """.trimMargin()
+
+    internal fun KotlinPrinter.notStrongerPostcondition(constraint: NamedConstraint): String =
+      """|post-condition `${constraint.msg}` from overridden member is not satisfied
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+      """.trimMargin()
+  }
+
   internal fun template(constraint: NamedConstraint, solver: Solver): String = solver.run {
     val showVariables = extractVariables(constraint.formula)
     val elements = showVariables.mapNotNull { mirroredElement(it.key) }

@@ -8,6 +8,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inc
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentCallPost
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentConditions
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentInvariants
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Liskov.notStrongerPostcondition
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Liskov.notWeakerPrecondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatBodyPost
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatCallPre
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
@@ -213,6 +215,34 @@ internal fun SolverState.checkInvariant(
       val msg = unsatInvariants(expression, constraint, model)
       context.trace.report(
         MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
+      )
+    }
+  }
+
+internal fun SolverState.checkLiskovWeakerPrecondition(
+  constraint: NamedConstraint,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Boolean =
+  solver.run {
+    checkImplicationOf(constraint) { model ->
+      val msg = notWeakerPrecondition(constraint)
+      context.trace.report(
+        MetaErrors.LiskovProblem.on(expression.psiOrParent, msg)
+      )
+    }
+  }
+
+internal fun SolverState.checkLiskovStrongerPostcondition(
+  constraint: NamedConstraint,
+  context: DeclarationCheckerContext,
+  expression: KtElement
+): Boolean =
+  solver.run {
+    checkImplicationOf(constraint) { model ->
+      val msg = notStrongerPostcondition(constraint)
+      context.trace.report(
+        MetaErrors.LiskovProblem.on(expression.psiOrParent, msg)
       )
     }
   }
