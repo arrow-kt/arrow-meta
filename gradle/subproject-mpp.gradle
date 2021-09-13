@@ -1,42 +1,4 @@
 kotlin {
-    sourceSets {
-        commonMain {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib-common:$KOTLIN_VERSION"
-            }
-        }
-        commonTest {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib-common:$KOTLIN_VERSION"
-                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-framework-api:$KOTEST_VERSION"
-            }
-        }
-        jvmMain {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-            }
-        }
-        jvmTest {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
-                implementation "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
-                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
-            }
-        }
-        jsMain {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib-js:$KOTLIN_VERSION"
-            }
-        }
-        jsTest {
-            dependencies {
-                compileOnly "org.jetbrains.kotlin:kotlin-stdlib-js:$KOTLIN_VERSION"
-            }
-        }
-    }
     jvm {
         compilations.all {
             kotlinOptions {
@@ -46,9 +8,83 @@ kotlin {
         }
     }
 
-    js {
+    js(IR) {
         browser()
         nodejs()
+    }
+    linuxX64()
+
+    mingwX64()
+
+    macosX64()
+    tvos()
+
+    watchosArm32()
+    watchosArm64()
+    watchosX86()
+    watchosX64()
+
+    iosX64()
+    iosArm64()
+    iosArm32()
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib-common:$KOTLIN_VERSION"
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib-common:$KOTLIN_VERSION"
+                implementation "io.kotest:kotest-property:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-framework-engine:$KOTEST_VERSION"
+                implementation "io.kotest:kotest-assertions-core:$KOTEST_VERSION"
+            }
+        }
+        jvmMain {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
+            }
+        }
+        jvmTest {
+            dependencies {
+                runtimeOnly "io.kotest:kotest-runner-junit5:$KOTEST_VERSION"
+            }
+        }
+        jsMain {
+            dependencies {
+                compileOnly "org.jetbrains.kotlin:kotlin-stdlib-js:$KOTLIN_VERSION"
+            }
+        }
+        nativeMain {
+            dependsOn(commonMain)
+            macosX64Main.dependsOn(it)
+            mingwX64Main.dependsOn(it)
+            linuxX64Main.dependsOn(it)
+            iosX64Main.dependsOn(it)
+            iosArm64Main.dependsOn(it)
+            iosArm32Main.dependsOn(it)
+            watchosX86Main.dependsOn(it)
+            watchosArm32Main.dependsOn(it)
+            watchosArm64Main.dependsOn(it)
+            watchosX64Main.dependsOn(it)
+            tvosMain.dependsOn(it)
+        }
+        nativeTest {
+            dependsOn(commonTest)
+            macosX64Test.dependsOn(it)
+            mingwX64Test.dependsOn(it)
+            linuxX64Test.dependsOn(it)
+            iosX64Test.dependsOn(it)
+            iosArm64Test.dependsOn(it)
+            iosArm32Test.dependsOn(it)
+            watchosX86Test.dependsOn(it)
+            watchosArm32Test.dependsOn(it)
+            watchosArm64Test.dependsOn(it)
+            watchosX64Test.dependsOn(it)
+            tvosTest.dependsOn(it)
+        }
     }
 }
 
