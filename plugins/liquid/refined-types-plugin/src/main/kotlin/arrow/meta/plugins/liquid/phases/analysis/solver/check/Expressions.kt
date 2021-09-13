@@ -17,6 +17,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ControlFlowF
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitBlockReturn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitLoopReturn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitThrowReturn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
@@ -45,6 +46,7 @@ import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBreakExpression
+import org.jetbrains.kotlin.psi.KtCatchClause
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtContinueExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -68,6 +70,8 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
+import org.jetbrains.kotlin.psi.KtThrowExpression
+import org.jetbrains.kotlin.psi.KtTryExpression
 import org.jetbrains.kotlin.psi.KtVariableDeclaration
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
@@ -76,7 +80,9 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
+import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 // 2.2: expressions
@@ -107,6 +113,8 @@ internal fun SolverState.checkExpressionConstraints(
       val withLabel = expression as KtExpressionWithLabel
       cont { ExplicitLoopReturn(withLabel.getLabelName()) }
     }
+    is KtThrowExpression ->
+      checkThrowConstraints(expression, data)
     is KtConstantExpression ->
       checkConstantExpression(associatedVarName, expression)
     is KtThisExpression ->
@@ -126,6 +134,8 @@ internal fun SolverState.checkExpressionConstraints(
       }
     is KtLoopExpression ->
       checkLoopExpression(expression, data)
+    is KtTryExpression ->
+      checkTryExpression(associatedVarName, expression, data)
     is KtIsExpression ->
       checkIsExpression(associatedVarName, expression, data)
     is KtBinaryExpression ->
@@ -219,6 +229,19 @@ private fun SolverState.checkReturnConstraints(
   // assign it, and signal that we explicitly return
   return checkExpressionConstraints(returnVarName, expression.returnedExpression, data)
     .map { ExplicitBlockReturn(label) }
+}
+
+private fun SolverState.checkThrowConstraints(
+  expression: KtThrowExpression,
+  data: CheckData
+): ContSeq<Return> {
+  val throwName = names.newName("throw", ReferencedElement(expression, null))
+  return checkExpressionConstraints(throwName, expression.thrownExpression, data)
+    .map {
+      expression.thrownExpression?.kotlinType(data.context.trace.bindingContext)?.let { ty ->
+        ExplicitThrowReturn(ty)
+      } ?: ExplicitThrowReturn(null)
+    }
 }
 
 /**
@@ -1007,6 +1030,80 @@ private fun SolverState.checkLoopBody(
       is ExplicitBlockReturn -> returnInfo
       else -> abort()
     }
+  }
+}
+
+/**
+ * Check try/catch/finally blocks
+ * This is a very rough check,
+ * in which we assume the worst-case scenario:
+ * - when you get to a 'catch' you have *no* information about
+ *   the 'try' at all
+ * - all the 'catch' blocks may potentially execute
+ */
+private fun SolverState.checkTryExpression(
+  associatedVarName: String,
+  expression: KtTryExpression,
+  data: CheckData
+): ContSeq<Return> =
+  ContSeq {
+    yield(expression.tryBlock)
+    yieldAll(expression.catchClauses)
+  }.flatMap { r ->
+    continuationBracket.flatMap { data.varInfo.bracket() }.map { r }
+  }.flatMap<Return> {
+    when (it) {
+      is KtBlockExpression -> // the try
+        checkExpressionConstraints(associatedVarName, it, data).flatMap { returnInfo ->
+          when (returnInfo) {
+            // if we had a throw, this will eventually end in a catch
+            is ExplicitThrowReturn ->
+              // is the thrown exception something in our own catch?
+              if (doesAnyCatchMatch(returnInfo.exceptionType, expression.catchClauses, data))
+                ContSeq { abort() } // then there's no point in keep looking here
+              else
+                cont { returnInfo } // otherwise, bubble up the exception
+            else -> cont { returnInfo }
+          }
+        }
+      is KtCatchClause -> { // the catch
+        doOnlyWhenNotNull(it.catchParameter, NoReturn) { param ->
+          doOnlyWhenNotNull(param.name, NoReturn) { paramName ->
+            // introduce the name of the parameter, which is never null
+            val smtName = names.newName(paramName, ReferencedElement(param, null))
+            data.varInfo.add(paramName, smtName, param, null)
+            addConstraint(NamedConstraint(
+              "$paramName (from catch) is not null", solver.isNotNull(solver.makeObjectVariable(smtName))
+            ))
+            // and then go on and check the body
+            checkExpressionConstraints(associatedVarName, it.catchBody, data)
+          }
+        }
+      }
+      else -> ContSeq { abort() }
+    }
+  }.onEach { returnInfo ->
+    doOnlyWhenNotNull(expression.finallyBlock, returnInfo) { finally ->
+      val finallyName = names.newName("finally", ReferencedElement(finally, null))
+      // override the return of the finally with the return of the try or catch
+      checkExpressionConstraints(finallyName, finally.finalExpression, data).map { returnInfo }
+    }
+  }
+
+/**
+ * Checks whether the type obtain from an explicit 'throw'
+ * matches any of the types in the 'catch' clauses
+ */
+fun doesAnyCatchMatch(
+  throwType: KotlinType?,
+  clauses: List<KtCatchClause>,
+  data: CheckData
+): Boolean = clauses.any { clause ->
+  val catchType = clause.catchParameter?.kotlinType(data.context.trace.bindingContext)
+  if (throwType != null && catchType != null) {
+    throwType.isSubtypeOf(catchType)
+  } else {
+    false
   }
 }
 

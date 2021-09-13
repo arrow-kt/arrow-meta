@@ -34,7 +34,7 @@ data class ReturnPoints(
 
     fun new(scope: KtElement, variableName: String): ReturnPoints =
       when (scope) {
-        is KtNamed -> new(scope.nameAsName!!.asString(), variableName)
+        is KtNamed -> new(scope.nameAsName?.asString(), variableName)
         else -> new(null, variableName)
       }
   }
