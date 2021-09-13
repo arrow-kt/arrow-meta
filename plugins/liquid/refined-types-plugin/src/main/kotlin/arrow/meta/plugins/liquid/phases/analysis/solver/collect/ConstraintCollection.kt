@@ -47,7 +47,10 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtDeclarationWithBody
+import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
@@ -58,6 +61,7 @@ import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
+import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -186,29 +190,36 @@ internal fun CompilerContext.collectDeclarationsConstraints(
 internal fun KtDeclaration.constraints(
   solverState: SolverState,
   context: DeclarationCheckerContext
+): List<Pair<ResolvedCall<*>, NamedConstraint>> = when(this) {
+  is KtConstructor<*> ->
+    constraintsFromConstructor(solverState, context)
+  is KtDeclarationWithBody, is KtDeclarationWithInitializer ->
+    constraintsFromFunctionLike(solverState, context)
+  else -> emptyList()
+}
+
+internal fun KtDeclaration.constraintsFromFunctionLike(
+  solverState: SolverState,
+  context: DeclarationCheckerContext
 ): List<Pair<ResolvedCall<*>, NamedConstraint>> =
-  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull { element ->
-    val bindingCtx = context.trace.bindingContext
-    val call = element.getResolvedCall(bindingCtx)
-    if (call?.preOrPostCall() == true) {
-      val predicateArg = call.arg("predicate")
-      val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
-      if (result == null) {
-        context.trace.report(
-          MetaErrors.ErrorParsingPredicate.on(element, ErrorMessages.Parsing.errorParsingPredicate(predicateArg))
-        )
-        solverState.signalParseErrors()
-        null
-      } else {
-        val msgBody = call.arg("msg")
-        val msg = if (msgBody is KtLambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
-        else msgBody?.text ?: predicateArg?.text
-        msg?.let { call to NamedConstraint(it, result) }
-      }
-    } else {
-      null
-    }
+  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
+    it.elementToConstraint(solverState, context)
   }
+
+/**
+ * Constructors have some additional requirements,
+ * namely the pre- and post-conditions of init blocks
+ * should be added to their own list
+ */
+internal fun <A: KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
+  solverState: SolverState,
+  context: DeclarationCheckerContext
+): List<Pair<ResolvedCall<*>, NamedConstraint>> =
+  this.containingClassOrObject?.let { klass ->
+    (klass.getAnonymousInitializers() + listOf(this)).flatMap {
+      it.constraintsFromFunctionLike(solverState, context)
+    }
+  } ?: emptyList()
 
 /**
  * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]
@@ -224,6 +235,32 @@ private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   accept(visitor)
   acceptChildren(visitor)
   return results
+}
+
+private fun KtElement.elementToConstraint(
+  solverState: SolverState,
+  context: DeclarationCheckerContext
+): Pair<ResolvedCall<*>, NamedConstraint>? {
+  val bindingCtx = context.trace.bindingContext
+  val call = getResolvedCall(bindingCtx)
+  return if (call?.preOrPostCall() == true) {
+    val predicateArg = call.arg("predicate")
+    val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
+    if (result == null) {
+      context.trace.report(
+        MetaErrors.ErrorParsingPredicate.on(this, ErrorMessages.Parsing.errorParsingPredicate(predicateArg))
+      )
+      solverState.signalParseErrors()
+      null
+    } else {
+      val msgBody = call.arg("msg")
+      val msg = if (msgBody is KtLambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
+      else msgBody?.text ?: predicateArg?.text
+      msg?.let { call to NamedConstraint(it, result) }
+    }
+  } else {
+    null
+  }
 }
 
 /**

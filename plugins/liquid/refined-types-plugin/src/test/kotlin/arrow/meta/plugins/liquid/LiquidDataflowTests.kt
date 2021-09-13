@@ -568,6 +568,27 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `class with init block`() {
+    """
+      ${imports()}
+      data class A(val n: Int) {
+        init {
+          pre(n > 0) { "n must be positive" }
+        }
+        
+        init {
+          post({ it.n > 0 }) { "n must be positive" }
+        }
+        
+        fun f(x: Int) = x
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
