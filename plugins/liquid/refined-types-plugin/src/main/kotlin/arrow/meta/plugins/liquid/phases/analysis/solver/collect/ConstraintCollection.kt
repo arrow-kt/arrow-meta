@@ -161,9 +161,9 @@ internal fun Solver.renameConditions(
  */
 private fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
   when (this) {
-      is CallableMemberDescriptor -> this.overriddenDescriptors
-      else -> null
-    }
+    is CallableMemberDescriptor -> this.overriddenDescriptors
+    else -> null
+  }
 
 /**
  * Collects constraints from all declarations and adds them to the solver state
@@ -190,7 +190,7 @@ internal fun CompilerContext.collectDeclarationsConstraints(
 internal fun KtDeclaration.constraints(
   solverState: SolverState,
   context: DeclarationCheckerContext
-): List<Pair<ResolvedCall<*>, NamedConstraint>> = when(this) {
+): List<Pair<ResolvedCall<*>, NamedConstraint>> = when (this) {
   is KtConstructor<*> ->
     constraintsFromConstructor(solverState, context)
   is KtDeclarationWithBody, is KtDeclarationWithInitializer ->
@@ -211,7 +211,7 @@ internal fun KtDeclaration.constraintsFromFunctionLike(
  * namely the pre- and post-conditions of init blocks
  * should be added to their own list
  */
-internal fun <A: KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
+internal fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
   solverState: SolverState,
   context: DeclarationCheckerContext
 ): List<Pair<ResolvedCall<*>, NamedConstraint>> =
@@ -669,16 +669,16 @@ internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): 
     valueArgumentExpressions()
 
 internal fun <D : CallableDescriptor> ResolvedCall<D>.valueArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
-    valueArguments.flatMap { (param, resolvedArg) ->
-      val containingType =
-        if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
-          (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
-            ?: param.builtIns.nothingType
-        else param.type
-      resolvedArg.arguments.map {
-        Triple(param.name.asString(), containingType, it.getArgumentExpression())
-      }
+  valueArguments.flatMap { (param, resolvedArg) ->
+    val containingType =
+      if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
+        (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
+          ?: param.builtIns.nothingType
+      else param.type
+    resolvedArg.arguments.map {
+      Triple(param.name.asString(), containingType, it.getArgumentExpression())
     }
+  }
 
 internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
   argumentName: String
