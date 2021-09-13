@@ -519,6 +519,27 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `subtyping, Liskov Substitution Principle, interface`() {
+    """
+      ${imports()}
+      interface A {
+        fun f(): Int 
+        
+        @Law
+        fun f_Law(): Int =
+          f().post({ it > 0 }) { "greater than 0" }
+      }
+      
+      class B(): A {
+        override fun f(): Int = 0
+      }
+      """(
+      withPlugin = { failsWith { it.contains("declaration `f` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
