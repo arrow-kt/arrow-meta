@@ -469,7 +469,7 @@ class LiquidDataflowTests {
         val y = try { 1 } catch (e: Exception) { 2 }
         return y.post({ it > 0 }) { "greater than 0" }
       }
-      """(
+    """(
       withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
@@ -485,6 +485,86 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { failsWith { it.contains("`try2` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `subtyping, pre- and post-conditions are checked in overridden functions`() {
+    """
+      ${imports()}
+      open class A() {
+        open fun f(): Int = 2.post({ it > 0 }) { "greater than 0" }
+      }
+      
+      class B(): A() {
+        override fun f(): Int = 0
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`f` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `subtyping, Liskov Substitution Principle, 1`() {
+    """
+      ${imports()}
+      open class A() {
+        open fun f(): Int = 2.post({ it > 0 }) { "greater than 0" }
+      }
+      
+      class B(): A() {
+        override fun f(): Int = 1.post({ it >= 0 }) { "non-negative" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("post-condition `greater than 0` from overridden member is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `subtyping, Liskov Substitution Principle, 2`() {
+    """
+      ${imports()}
+      open class A() {
+        open fun f(x: Int): Int {
+          pre(x > 0) { "greater than 0" }
+          val y = x + 1
+          return y.post({ it > 0 }) { "greater than 0" }
+        }
+      }
+      
+      class B(): A() {
+        override fun f(x: Int): Int {
+          pre(x >= 0) { "greater or equal to 0" }
+          val y = x + 1000
+          return y.post({ it > 1 }) { "greater than 1" }
+        }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `subtyping, Liskov Substitution Principle, interface`() {
+    """
+      ${imports()}
+      interface A {
+        fun f(): Int 
+        
+        @Law
+        fun f_Law(): Int =
+          f().post({ it > 0 }) { "greater than 0" }
+      }
+      
+      class B(): A {
+        override fun f(): Int = 0
+      }
+      """(
+      withPlugin = { failsWith { it.contains("declaration `f` fails to satisfy the post-condition") } },
       withoutPlugin = { compiles }
     )
   }
