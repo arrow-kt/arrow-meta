@@ -329,7 +329,10 @@ private fun FormulaManager.extractSingleVariable(
 private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   val results = hashSetOf<PsiElement>()
   val visitor = callExpressionRecursiveVisitor {
-    if (it.calleeExpression?.text == "pre" || it.calleeExpression?.text == "post") {
+    if (it.calleeExpression?.text == "pre"
+      || it.calleeExpression?.text == "post"
+      || it.calleeExpression?.text == "require"
+    ) {
       results.add(it)
     }
   }
@@ -345,7 +348,7 @@ private fun KtElement.elementToConstraint(
   val bindingCtx = context.trace.bindingContext
   val call = getResolvedCall(bindingCtx)
   return if (call?.preOrPostCall() == true) {
-    val predicateArg = call.arg("predicate")
+    val predicateArg = call.arg("predicate") ?: call.arg("value")
     val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
     if (result == null) {
       context.trace.report(
@@ -354,7 +357,7 @@ private fun KtElement.elementToConstraint(
       solverState.signalParseErrors()
       null
     } else {
-      val msgBody = call.arg("msg")
+      val msgBody = call.arg("msg") ?: call.arg("lazyMessage")
       val msg = if (msgBody is KtLambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
       else msgBody?.text ?: predicateArg?.text
       msg?.let { call to NamedConstraint(it, result) }
