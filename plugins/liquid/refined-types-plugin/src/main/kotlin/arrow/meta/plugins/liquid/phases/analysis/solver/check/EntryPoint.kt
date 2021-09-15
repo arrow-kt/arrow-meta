@@ -2,9 +2,9 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.check
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
@@ -51,31 +51,28 @@ internal fun CompilerContext.checkDeclarationConstraints(
   descriptor: DeclarationDescriptor
 ) {
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null &&
+  if ((solverState != null) &&
     solverState.isIn(SolverState.Stage.Prove) &&
     !solverState.hadParseErrors() &&
     declaration.shouldBeAnalyzed()
   ) {
-    // bring the constraints in (if there are any)
-    val constraints = solverState.constraintsFromSolverState(descriptor)
-    // choose a good name for the result
-    // should we change it for 'val' declarations?
-    val resultVarName = RESULT_VAR_NAME
     // trace
     solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
-    solverState.checkTopLevelDeclaration(
-      constraints, context, descriptor,
-      resultVarName, declaration
-    ).drain()
+    when (declaration) {
+      is KtConstructor<*> -> solverState.checkConstructor(context, declaration)
+      else -> solverState.checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+    }.drain()
     // trace
     solverState.solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
   }
 }
 
 /**
- * Only elements which are not inside another "callable declaration"
- * (function, property, etc) should be analyzed
+ * Only elements which are not
+ * - inside another "callable declaration" (function, property, etc)
+ *   (b/c this is not yet supported)
+ * - or constructors (b/c they are handled at the level of class)
  */
 private fun KtDeclaration.shouldBeAnalyzed() =
   !(this.parents.any { it is KtCallableDeclaration })
