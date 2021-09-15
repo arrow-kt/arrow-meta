@@ -329,9 +329,9 @@ private fun FormulaManager.extractSingleVariable(
 private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
   val results = hashSetOf<PsiElement>()
   val visitor = callExpressionRecursiveVisitor {
-    if (it.calleeExpression?.text == "pre"
-      || it.calleeExpression?.text == "post"
-      || it.calleeExpression?.text == "require"
+    if (it.calleeExpression?.text == "pre" ||
+      it.calleeExpression?.text == "post" ||
+      it.calleeExpression?.text == "require"
     ) {
       results.add(it)
     }
