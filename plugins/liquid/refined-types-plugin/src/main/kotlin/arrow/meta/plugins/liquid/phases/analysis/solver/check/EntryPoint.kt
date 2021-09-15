@@ -4,8 +4,9 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -60,8 +61,12 @@ internal fun CompilerContext.checkDeclarationConstraints(
     solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
     when (declaration) {
-      is KtConstructor<*> -> solverState.checkConstructor(context, declaration)
-      else -> solverState.checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+      is KtPrimaryConstructor ->
+        solverState.checkPrimaryConstructor(context, descriptor, declaration)
+      is KtSecondaryConstructor ->
+        solverState.checkSecondaryConstructor(context, descriptor, declaration)
+      else ->
+        solverState.checkTopLevelDeclarationWithBody(context, descriptor, declaration)
     }.drain()
     // trace
     solverState.solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
@@ -70,7 +75,7 @@ internal fun CompilerContext.checkDeclarationConstraints(
 
 /**
  * Only elements which are not
- * - inside another "callable declaration" (function, property, etc)
+ * - inside another "callable declaration" (function, property, etc.)
  *   (b/c this is not yet supported)
  * - or constructors (b/c they are handled at the level of class)
  */

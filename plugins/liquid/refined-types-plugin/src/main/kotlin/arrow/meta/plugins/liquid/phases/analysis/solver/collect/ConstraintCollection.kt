@@ -29,11 +29,9 @@ import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
 import arrow.meta.plugins.liquid.smt.isFieldCall
 import arrow.meta.plugins.liquid.smt.isSingleVariable
-import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -99,77 +97,6 @@ import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
 // ==================================
 
 /**
- * Looks up in the solver state previously collected constraints and
- * returns the constraints associated to this [resolvedCall] resulting descriptor if any
- */
-internal fun SolverState.constraintsFromSolverState(resolvedCall: ResolvedCall<*>): DeclarationConstraints? =
-  constraintsFromSolverState(resolvedCall.resultingDescriptor)
-
-/**
- * Looks up in the solver state previously collected constraints and
- * returns the constraints associated to this [descriptor],
- * or any of the declaration it has overridden, if any
- */
-internal fun SolverState.constraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor) ?: overriddenConstraintsFromSolverState(descriptor)
-
-/**
- * Looks up in the solver state previously collected constraints
- * for the given [descriptor], but not for their possible parents
- */
-internal fun SolverState.immediateConstraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
-  callableConstraints.firstOrNull {
-    descriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }
-
-/**
- * Looks up in the solver state previously collected constraints
- * for every declaration the [descriptor] may have overridden
- */
-internal fun SolverState.overriddenConstraintsFromSolverState(descriptor: DeclarationDescriptor): DeclarationConstraints? =
-  descriptor.overriddenDescriptors()?.mapNotNull { overriddenDescriptor ->
-    constraintsFromSolverState(overriddenDescriptor)
-  }?.takeIf {
-    it.isNotEmpty()
-  }?.map {
-    // rename the argument names and similar things
-    solver.renameConditions(it, descriptor)
-  }?.let { overriddenConstraints ->
-    // and finally put all the pre- and post-conditions together
-    DeclarationConstraints(
-      descriptor,
-      overriddenConstraints.flatMap { it.pre },
-      overriddenConstraints.flatMap { it.post })
-  }
-
-/**
- * Rename the conditions from one descriptor
- * to the names of another
- */
-internal fun Solver.renameConditions(
-  constraints: DeclarationConstraints,
-  to: DeclarationDescriptor
-): DeclarationConstraints {
-  val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.asString() }
-  val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.asString() }
-  return if (fromParams != null && toParams != null) {
-    renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
-  } else {
-    constraints
-  }
-}
-
-/**
- * Obtain the descriptors which have been overridden by a declaration,
- * if they exist
- */
-private fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
-  when (this) {
-    is CallableMemberDescriptor -> this.overriddenDescriptors
-    else -> null
-  }
-
-/**
  * Collects constraints from all declarations and adds them to the solver state
  */
 internal fun CompilerContext.collectDeclarationsConstraints(
@@ -194,48 +121,25 @@ internal fun KtDeclaration.constraints(
   solverState: SolverState,
   context: DeclarationCheckerContext,
   descriptor: DeclarationDescriptor
-) {
-  when (this) {
-    is KtConstructor<*> -> {
-      val constraints = constraintsFromConstructor(solverState, context)
-      Pair(arrayListOf<NamedConstraint>(), arrayListOf<NamedConstraint>())
-      val preConstraints = arrayListOf<NamedConstraint>()
-      val postConstraints = arrayListOf<NamedConstraint>()
-      // rewrite formulae from constructors
-      constraints.forEach { (call, formula) ->
-        if (call.preCall()) {
-          val rewritten = rewritePrecondition(solverState, context, call, formula.formula)
-          preConstraints.add(NamedConstraint(formula.msg, rewritten))
-        }
-        // in constructors 'require' has a double duty
-        if (call.postCall() || call.requireCall()) {
-          val rewritten = rewritePostcondition(solverState, formula.formula)
-          postConstraints.add(NamedConstraint(formula.msg, rewritten))
-        }
-      }
-      Pair(preConstraints, postConstraints)
-    }
-    is KtDeclarationWithBody, is KtDeclarationWithInitializer -> {
-      val constraints = constraintsFromFunctionLike(solverState, context)
-      val preConstraints = arrayListOf<NamedConstraint>()
-      val postConstraints = arrayListOf<NamedConstraint>()
-      constraints.forEach { (call, formula) ->
-        if (call.preCall()) preConstraints.add(formula)
-        if (call.postCall()) postConstraints.add(formula)
-      }
-      Pair(preConstraints, postConstraints)
-    }
-    else -> Pair(arrayListOf(), arrayListOf())
-  }.let { (preConstraints, postConstraints) ->
-    if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
-      solverState.addConstraints(
-        descriptor, preConstraints, postConstraints,
-        context.trace.bindingContext)
-    }
+) = when (this) {
+  is KtConstructor<*> ->
+    constraintsFromConstructor(solverState, context)
+  is KtDeclarationWithBody, is KtDeclarationWithInitializer ->
+    constraintsFromFunctionLike(solverState, context)
+  else -> Pair(arrayListOf(), arrayListOf())
+}.let { (preConstraints, postConstraints) ->
+  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
+    solverState.addConstraints(
+      descriptor, preConstraints, postConstraints,
+      context.trace.bindingContext)
   }
 }
 
-internal fun KtDeclaration.constraintsFromFunctionLike(
+/**
+ * Obtaint all the function calls and corresponding formulae
+ * to 'pre', 'post', and 'require'
+ */
+private fun KtDeclaration.constraintsFromDeclaration(
   solverState: SolverState,
   context: DeclarationCheckerContext
 ): List<Pair<ResolvedCall<*>, NamedConstraint>> =
@@ -244,19 +148,49 @@ internal fun KtDeclaration.constraintsFromFunctionLike(
   }
 
 /**
+ * Gather constraints for anything which is not a constructor
+ */
+private fun KtDeclaration.constraintsFromFunctionLike(
+  solverState: SolverState,
+  context: DeclarationCheckerContext
+): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+  val preConstraints = arrayListOf<NamedConstraint>()
+  val postConstraints = arrayListOf<NamedConstraint>()
+  constraintsFromDeclaration(solverState, context).forEach { (call, formula) ->
+    if (call.preCall()) preConstraints.add(formula)
+    if (call.postCall()) postConstraints.add(formula)
+  }
+  return Pair(preConstraints, postConstraints)
+}
+
+/**
  * Constructors have some additional requirements,
  * namely the pre- and post-conditions of init blocks
  * should be added to their own list
  */
-internal fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
+private fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
   solverState: SolverState,
   context: DeclarationCheckerContext
-): List<Pair<ResolvedCall<*>, NamedConstraint>> =
-  this.containingClassOrObject?.let { klass ->
+): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+  val preConstraints = arrayListOf<NamedConstraint>()
+  val postConstraints = arrayListOf<NamedConstraint>()
+  (this.containingClassOrObject?.let { klass ->
     (klass.getAnonymousInitializers() + listOf(this)).flatMap {
-      it.constraintsFromFunctionLike(solverState, context)
+      it.constraintsFromDeclaration(solverState, context)
     }
-  } ?: emptyList()
+  } ?: emptyList()).forEach { (call, formula) ->
+    if (call.preCall()) {
+      val rewritten = rewritePrecondition(solverState, context, call, formula.formula)
+      preConstraints.add(NamedConstraint(formula.msg, rewritten))
+    }
+    // in constructors 'require' has a double duty
+    if (call.postCall() || call.requireCall()) {
+      val rewritten = rewritePostcondition(solverState, formula.formula)
+      postConstraints.add(NamedConstraint(formula.msg, rewritten))
+    }
+  }
+  return Pair(preConstraints, postConstraints)
+}
 
 /**
  * Turn references to 'field(x, this)'

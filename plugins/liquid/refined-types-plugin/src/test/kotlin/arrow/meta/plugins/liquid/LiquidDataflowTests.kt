@@ -591,6 +591,25 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `class with two (wrong) init blocks`() {
+    """
+      ${imports()}
+      data class A(val n: Int) {
+        init {
+          pre(n > 0) { "n must be positive" }
+        }
+        init {
+          post({ n < 0 }) { "n must be negative" }
+        }
+        fun f(x: Int) = x
+      }
+      """(
+      withPlugin = { failsWith { it.contains("declaration `A` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `class with require`() {
     """
       ${imports()}
@@ -602,6 +621,23 @@ class LiquidDataflowTests {
       }
       
       val wrong = B(0)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, secondary constructor`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        constructor() : this(0) { }
+        fun f(x: Int) = x
+      }
       """(
       withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
       withoutPlugin = { compiles }

@@ -4,6 +4,7 @@ import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.doOnlyWhenNotNull
+import arrow.meta.continuations.sequence
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CheckData
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CurrentVarInfo
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
@@ -20,13 +21,21 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.immediateConstra
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkLiskovStrongerPostcondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkLiskovWeakerPrecondition
+import arrow.meta.plugins.liquid.smt.ObjectFormula
+import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.psi.KtAnonymousInitializer
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
 // 2.1: declarations
@@ -38,17 +47,23 @@ import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
  * - whether the body satisfy all the pre-conditions in calls,
  * - whether the post-condition really holds.
  */
-internal fun SolverState.checkTopLevelDeclarationWithBody(
+internal fun <A> SolverState.checkTopLevel(
   context: DeclarationCheckerContext,
   descriptor: DeclarationDescriptor,
-  declaration: KtDeclaration
-): ContSeq<Return> {
+  declaration: KtDeclaration,
+  bodyCheck: (checkPost: () -> Unit) -> ContSeq<A>
+): ContSeq<A> {
   // bring the constraints in (if there are any)
-  val constraints = constraintsFromSolverState(descriptor)
-  // choose a good name for the result
-  // should we change it for 'val' declarations?
-  val resultVarName = RESULT_VAR_NAME
-  // perform the actual check
+  val constraints =
+    constraintsFromSolverState(descriptor)?.let {
+      when (declaration) {
+        // special case for constructors: instead of $result we use this
+        is KtConstructor<*> ->
+          solver.renameDeclarationConstraints(it, mapOf(RESULT_VAR_NAME to "this"))
+        else -> it
+      }
+    }
+  // perform the checks
   return continuationBracket.map {
     // introduce non-nullability of parameters
     if (descriptor is CallableDescriptor) {
@@ -69,24 +84,119 @@ internal fun SolverState.checkTopLevelDeclarationWithBody(
     val liskovOk = checkLiskovConditions(declaration, descriptor, context)
     ensure(liskovOk)
   }.flatMap {
-    // only check body when we are not in a @Law
-    doOnlyWhenNotNull(declaration.stableBody(), NoReturn) { body ->
-      doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
-        val data = CheckData(context, ReturnPoints.new(declaration, resultVarName), initializeVarInfo(declaration))
-        checkExpressionConstraints(resultVarName, body, data).onEach {
-          checkPostConditionsImplication(constraints, context, declaration)
-        }
-      }
+    // check the body
+    bodyCheck {
+      // and finally check the postconditions
+      checkPostConditionsImplication(constraints, context, declaration)
     }
   }
 }
 
-internal fun <A : KtConstructor<A>> SolverState.checkConstructor(
+internal fun SolverState.checkTopLevelDeclarationWithBody(
   context: DeclarationCheckerContext,
-  declaration: KtConstructor<A>
-): ContSeq<Return> = cont {
+  descriptor: DeclarationDescriptor,
+  declaration: KtDeclaration
+): ContSeq<Return> =
+  checkTopLevel(context, descriptor, declaration) { checkPost ->
+    // only check body when we are not in a @Law
+    doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
+      val result = solver.makeObjectVariable(RESULT_VAR_NAME)
+      val data = CheckData(context, ReturnPoints.new(declaration, result), initializeVarInfo(declaration))
+      checkExpressionConstraints(result, declaration.stableBody(), data).onEach {
+        checkPost()
+      }
+    }
+  }
+
+internal fun SolverState.checkPrimaryConstructor(
+  context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor,
+  declaration: KtPrimaryConstructor
+): ContSeq<Return> =
+  checkTopLevel(context, descriptor, declaration) { checkPost ->
+    val klass = declaration.getContainingClassOrObject()
+    val thisRef = solver.makeObjectVariable("this")
+    val data = CheckData(context, ReturnPoints.new(declaration, thisRef), initializeVarInfo(declaration))
+    ContSeq.unit.flatMap {
+      introduceImplicitProperties(thisRef, klass)
+    }.flatMap {
+      checkExpressionConstraints(thisRef, declaration.bodyExpression, data)
+    }.flatMap {
+      checkClassDeclarationInConstructorContext(thisRef, klass, data)
+    }.map {
+      checkPost() // but we need to replace $RESULT with 'this'!
+      NoReturn
+    }
+  }
+
+private fun SolverState.introduceImplicitProperties(
+  thisRef: ObjectFormula,
+  klass: KtClassOrObject
+): ContSeq<Unit> = cont {
+  // if we have 'var' or 'var' in the parameters,
+  // we need to assign them to fields
+  // when the constructor is primary
+  klass.primaryConstructorParameters
+    .filter { it.hasValOrVar() }
+    .forEach { param ->
+      val paramName = param.name ?: "this"
+      val fieldName = klass.fqName?.let { "$it.$paramName" } ?: "this"
+      addConstraint(NamedConstraint(
+        "definition of property $paramName",
+        solver.objects {
+          equal(
+            solver.makeObjectVariable(paramName),
+            solver.field(fieldName, thisRef)
+          )
+        }
+      ))
+    }
   NoReturn
 }
+
+private fun SolverState.checkClassDeclarationInConstructorContext(
+  thisRef: ObjectFormula,
+  klass: KtClassOrObject,
+  data: CheckData
+) = klass.declarations.map { decl ->
+  when (decl) {
+    is KtConstructor<*> ->
+      cont { NoReturn } // do not check any other constructor
+    is KtAnonymousInitializer ->
+      checkExpressionConstraints(thisRef, decl.body, data)
+    is KtProperty ->
+      doOnlyWhenNotNull(decl.fqName?.asString(), NoReturn) { fieldName ->
+        val result = solver.field(fieldName, solver.makeObjectVariable("this"))
+        checkExpressionConstraints(result, decl.stableBody(), data)
+      }
+    else -> cont { NoReturn }
+  }
+}.sequence()
+
+internal fun SolverState.checkSecondaryConstructor(
+  context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor,
+  declaration: KtSecondaryConstructor
+): ContSeq<Return> =
+  checkTopLevel(context, descriptor, declaration) { checkPost ->
+    val thisRef = solver.makeObjectVariable("this")
+    val data = CheckData(context, ReturnPoints.new(declaration, thisRef), initializeVarInfo(declaration))
+    ContSeq.unit.flatMap {
+      // delegate into the primary constructor, if available
+      doOnlyWhenNotNull(declaration.getDelegationCallOrNull(), NoReturn) { delegation ->
+        doOnlyWhenNotNull(delegation.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
+          doOnlyWhenNotNull(delegation.calleeExpression, NoReturn) { calleeExpression ->
+            checkRegularFunctionCall(thisRef, call, calleeExpression, data)
+          }
+        }
+      }
+    }.flatMap {
+      checkExpressionConstraints(thisRef, declaration.bodyExpression, data)
+    }.map {
+      checkPost() // but we need to replace $RESULT with 'this'!
+      NoReturn
+    }
+  }
 
 /**
  * Check that the constraints respect subtyping,
