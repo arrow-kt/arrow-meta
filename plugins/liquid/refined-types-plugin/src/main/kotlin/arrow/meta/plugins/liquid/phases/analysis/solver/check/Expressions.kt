@@ -33,6 +33,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromS
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.postCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.specialCasingForResolvedCalls
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
@@ -259,11 +261,11 @@ private fun SolverState.checkCallExpression(
   val specialControlFlow = controlFlowAnyFunction(resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
-    fqName == FqName("arrow.refinement.pre") -> // ignore calls to 'pre'
+    resolvedCall.preCall() -> // ignore calls to 'pre'
       cont { NoReturn }
-    fqName == FqName("arrow.refinement.post") -> // ignore post arguments
+    resolvedCall.postCall() -> // ignore post arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
-    fqName == FqName("arrow.refinement.invariant") -> // ignore invariant arguments
+    resolvedCall.invariantCall() -> // ignore invariant arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)

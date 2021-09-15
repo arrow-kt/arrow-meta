@@ -9,6 +9,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unexpectedFieldInitBlock
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
@@ -89,7 +90,10 @@ import org.jetbrains.kotlin.types.typeUtil.isLong
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
+import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FormulaType
+import org.sosy_lab.java_smt.api.FunctionDeclaration
+import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
 
 // PHASE 1: COLLECTION OF CONSTRAINTS
 // ==================================
@@ -156,7 +160,7 @@ internal fun Solver.renameConditions(
 }
 
 /**
- * Obtain the descriptors which have been overriden by a declaration,
+ * Obtain the descriptors which have been overridden by a declaration,
  * if they exist
  */
 private fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
@@ -176,8 +180,7 @@ internal fun CompilerContext.collectDeclarationsConstraints(
   val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
   if (solverState != null && (solverState.isIn(SolverState.Stage.Init) || solverState.isIn(SolverState.Stage.CollectConstraints))) {
     solverState.collecting()
-    val constraints = declaration.constraints(solverState, context)
-    solverState.addConstraintsToSolverState(constraints, descriptor, context.trace.bindingContext)
+    declaration.constraints(solverState, context, descriptor)
   }
 }
 
@@ -189,13 +192,47 @@ internal fun CompilerContext.collectDeclarationsConstraints(
  */
 internal fun KtDeclaration.constraints(
   solverState: SolverState,
-  context: DeclarationCheckerContext
-): List<Pair<ResolvedCall<*>, NamedConstraint>> = when (this) {
-  is KtConstructor<*> ->
-    constraintsFromConstructor(solverState, context)
-  is KtDeclarationWithBody, is KtDeclarationWithInitializer ->
-    constraintsFromFunctionLike(solverState, context)
-  else -> emptyList()
+  context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor
+) {
+  when (this) {
+    is KtConstructor<*> -> {
+      val constraints = constraintsFromConstructor(solverState, context)
+      Pair(arrayListOf<NamedConstraint>(), arrayListOf<NamedConstraint>())
+      val preConstraints = arrayListOf<NamedConstraint>()
+      val postConstraints = arrayListOf<NamedConstraint>()
+      // rewrite formulae from constructors
+      constraints.forEach { (call, formula) ->
+        if (call.preCall()) {
+          val rewritten = rewritePrecondition(solverState, context, call, formula.formula)
+          preConstraints.add(NamedConstraint(formula.msg, rewritten))
+        }
+        // in constructors 'require' has a double duty
+        if (call.postCall() || call.requireCall()) {
+          val rewritten = rewritePostcondition(solverState, formula.formula)
+          postConstraints.add(NamedConstraint(formula.msg, rewritten))
+        }
+      }
+      Pair(preConstraints, postConstraints)
+    }
+    is KtDeclarationWithBody, is KtDeclarationWithInitializer -> {
+      val constraints = constraintsFromFunctionLike(solverState, context)
+      val preConstraints = arrayListOf<NamedConstraint>()
+      val postConstraints = arrayListOf<NamedConstraint>()
+      constraints.forEach { (call, formula) ->
+        if (call.preCall()) preConstraints.add(formula)
+        if (call.postCall()) postConstraints.add(formula)
+      }
+      Pair(preConstraints, postConstraints)
+    }
+    else -> Pair(arrayListOf(), arrayListOf())
+  }.let { (preConstraints, postConstraints) ->
+    if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
+      solverState.addConstraints(
+        descriptor, preConstraints, postConstraints,
+        context.trace.bindingContext)
+    }
+  }
 }
 
 internal fun KtDeclaration.constraintsFromFunctionLike(
@@ -220,6 +257,70 @@ internal fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
       it.constraintsFromFunctionLike(solverState, context)
     }
   } ?: emptyList()
+
+/**
+ * Turn references to 'field(x, this)'
+ * into references to parameter 'x'
+ */
+private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
+  solverState: SolverState,
+  context: DeclarationCheckerContext,
+  call: ResolvedCall<*>,
+  formula: BooleanFormula
+): BooleanFormula {
+  val mgr = solverState.solver.formulaManager
+  return mgr.transformRecursively(
+    formula,
+    object : FormulaTransformationVisitor(mgr) {
+      override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): Formula =
+        if (fn?.name == Solver.FIELD_FUNCTION_NAME) {
+          val fieldName = args?.getOrNull(0)?.let { mgr.extractSingleVariable(it) }
+          val thisName = args?.getOrNull(1)?.let { mgr.extractSingleVariable(it) }
+          val paramName = this@rewritePrecondition.valueParameters.firstOrNull { param ->
+            fieldName?.endsWith(".${param.name}") ?: (param.name == fieldName)
+          }?.name
+          if (fieldName != null && thisName == "this" && paramName != null) {
+            solverState.solver.makeObjectVariable(paramName)
+          } else {
+            val msg = unexpectedFieldInitBlock(fieldName)
+            context.trace.report(
+              MetaErrors.UnsatCallPre.on(call.call.callElement, msg)
+            )
+            super.visitFunction(f, args, fn)
+          }
+        } else {
+          super.visitFunction(f, args, fn)
+        }
+    })
+}
+
+/**
+ * Turn references to 'this'
+ * into references to '$result'
+ */
+private fun rewritePostcondition(
+  solverState: SolverState,
+  formula: BooleanFormula
+): BooleanFormula {
+  val mgr = solverState.solver.formulaManager
+  return mgr.transformRecursively(
+    formula,
+    object : FormulaTransformationVisitor(mgr) {
+      override fun visitFreeVariable(f: Formula?, name: String?): Formula =
+        if (name == "this") {
+          solverState.solver.makeObjectVariable(RESULT_VAR_NAME)
+        } else {
+          super.visitFreeVariable(f, name)
+        }
+    })
+}
+
+private fun FormulaManager.extractSingleVariable(
+  formula: Formula
+): String? =
+  extractVariables(formula)
+    .takeIf { it.size == 1 }
+    ?.toList()?.getOrNull(0)?.first
 
 /**
  * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]
@@ -267,13 +368,20 @@ private fun KtElement.elementToConstraint(
  * returns true if [this] resolved call is calling [arrow.refinement.pre]
  */
 internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre")
+  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre") ||
+    requireCall() // require is taken as precondition
 
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.post]
  */
 internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
+
+/**
+ * returns true if [this] resolved call is calling [kotlin.require]
+ */
+internal fun ResolvedCall<out CallableDescriptor>.requireCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("kotlin.require")
 
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
@@ -292,26 +400,6 @@ internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
  */
 fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
   annotations.hasAnnotation(FqName("arrow.refinement.Law"))
-
-/**
- * Adds gathered [constraints] as an association to this [descriptor]
- * in the [SolverState]
- */
-private fun SolverState.addConstraintsToSolverState(
-  constraints: List<Pair<ResolvedCall<*>, NamedConstraint>>,
-  descriptor: DeclarationDescriptor,
-  bindingContext: BindingContext
-) {
-  if (constraints.isNotEmpty()) {
-    val preConstraints = arrayListOf<NamedConstraint>()
-    val postConstraints = arrayListOf<NamedConstraint>()
-    constraints.forEach { (call, formula) ->
-      if (call.preCall()) preConstraints.add(formula)
-      if (call.postCall()) postConstraints.add(formula)
-    }
-    addConstraints(descriptor, preConstraints, postConstraints, bindingContext)
-  }
-}
 
 /**
  * Depending on the source of the [descriptor] we might
@@ -489,7 +577,8 @@ internal fun SolverState.parseFormula(
 
 /**
  * Instructs the compiler analysis phase that we have finished collecting constraints
- * and its time to Rewind analysis for phase 2 [arrow.meta.plugins.liquid.phases.analysis.solver.checkDeclarationConstraints]
+ * and its time to Rewind analysis for phase 2
+ * [arrow.meta.plugins.liquid.phases.analysis.solver.check.checkDeclarationConstraints]
  */
 internal fun CompilerContext.finalizeConstraintsCollection(
   module: ModuleDescriptor,

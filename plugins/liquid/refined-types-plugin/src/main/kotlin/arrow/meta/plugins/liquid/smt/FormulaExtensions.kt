@@ -40,7 +40,7 @@ fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {
     override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
     override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
       val secondArg = args?.getOrNull(1) as? ObjectFormula
-      if (fn?.name == "field" && secondArg != null) {
+      if (fn?.name == Solver.FIELD_FUNCTION_NAME && secondArg != null) {
         args.getOrNull(0)?.let { fieldNames ->
           names.addAll(extractVariables(fieldNames).keys.map { Pair(it, secondArg) })
         }

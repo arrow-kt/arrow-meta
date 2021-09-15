@@ -60,6 +60,13 @@ object ErrorMessages {
   object Parsing {
     internal fun errorParsingPredicate(predicateArg: KtExpression?): String =
       "Could not parse predicate: ${predicateArg?.text}"
+
+    internal fun unexpectedFieldInitBlock(fieldName: String?): String =
+      if (fieldName == null) {
+        "Unexpected field name in init block"
+      } else {
+        "Unexpected field name in init block: $fieldName"
+      }
   }
 
   /**
