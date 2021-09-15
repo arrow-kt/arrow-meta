@@ -643,6 +643,24 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `class with require, two classes`() {
+    """
+      ${imports()}
+      open class A(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        fun f(x: Int) = x
+      }
+      
+      class B(): A(0) { }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

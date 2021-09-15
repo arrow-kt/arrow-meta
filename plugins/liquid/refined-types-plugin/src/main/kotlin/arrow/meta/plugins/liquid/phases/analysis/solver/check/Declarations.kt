@@ -31,10 +31,12 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
+import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
@@ -118,7 +120,22 @@ internal fun SolverState.checkPrimaryConstructor(
     val thisRef = solver.makeObjectVariable("this")
     val data = CheckData(context, ReturnPoints.new(declaration, thisRef), initializeVarInfo(declaration))
     ContSeq.unit.flatMap {
+      // introduce 'val' and 'var' from the constructor
       introduceImplicitProperties(thisRef, klass)
+    }.flatMap {
+      // call the superclass constructors
+      // (this will ultimately check the Liskov for classes)
+      klass.superTypeListEntries.mapNotNull { entry ->
+        when (entry) {
+          is KtDelegatedSuperTypeEntry -> entry.delegateExpression
+          is KtSuperTypeCallEntry -> entry.calleeExpression
+          else -> null
+        }
+      }.map { expr ->
+        doOnlyWhenNotNull(expr.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
+          checkRegularFunctionCall(thisRef, call, expr, data)
+        }
+      }.sequence()
     }.flatMap {
       checkExpressionConstraints(thisRef, declaration.bodyExpression, data)
     }.flatMap {
