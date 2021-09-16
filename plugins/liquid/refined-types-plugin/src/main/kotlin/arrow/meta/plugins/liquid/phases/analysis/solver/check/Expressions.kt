@@ -286,13 +286,13 @@ private fun SolverState.checkCallExpression(
     specialCase != null -> { // this should eventually go away
       val receiverExpr = resolvedCall.getReceiverExpression()
       val referencedArg = resolvedCall.referencedArg(receiverExpr)
-      val receiverName = solver.makeObjectVariable(names.newName("this", referencedArg))
+      val receiverName = solver.makeObjectVariable(names.newName(THIS_VAR_NAME, referencedArg))
       checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
         checkCallArguments(resolvedCall, data).map {
           it.fold(
             { r -> r },
             { valueArgVars ->
-              val argVars = listOf("this" to receiverName) + valueArgVars
+              val argVars = listOf(THIS_VAR_NAME to receiverName) + valueArgVars
               val result =
                 if (expression.kotlinType(data.context.trace.bindingContext)?.isBoolean() == true)
                   solver.boolValue(associatedVarName)
@@ -383,7 +383,7 @@ private fun SolverState.checkControlFlowFunctionCall(
     ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT ->
       associatedVarName
     ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT ->
-      solver.makeObjectVariable(names.newName("this", referencedElement))
+      solver.makeObjectVariable(names.newName(THIS_VAR_NAME, referencedElement))
   }
   val returnName = when (info.returnBehavior) {
     ControlFlowFn.ReturnBehavior.RETURNS_ARGUMENT ->
@@ -421,14 +421,15 @@ internal fun SolverState.checkRegularFunctionCall(
 ): ContSeq<Return> {
   val receiverExpr = resolvedCall.getReceiverExpression()
   val referencedElement = resolvedCall.referencedArg(receiverExpr)
-  val receiverName = solver.makeObjectVariable(names.newName("this", referencedElement))
+  val receiverName = solver.makeObjectVariable(names.newName(THIS_VAR_NAME, referencedElement))
   return checkReceiverWithPossibleSafeDot(associatedVarName, expression, receiverName, receiverExpr, data) {
     checkCallArguments(resolvedCall, data).map {
       it.fold(
         { r -> r },
         { argVars ->
           val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
-            val completeRenaming = argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + ("this" to receiverName)
+            val completeRenaming =
+              argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
           }
           // check pre-conditions and post-conditions

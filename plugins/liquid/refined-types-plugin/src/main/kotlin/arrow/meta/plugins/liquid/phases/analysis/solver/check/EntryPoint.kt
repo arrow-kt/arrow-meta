@@ -1,9 +1,14 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check
 
+import arrow.meta.continuations.cont
+import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.phases.CompilerContext
+import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unsupportedImplicitPrimaryConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -40,6 +45,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
  */
 
 internal const val RESULT_VAR_NAME = "${'$'}result"
+internal const val THIS_VAR_NAME = "this"
 
 // 2.0: entry point
 /**
@@ -65,6 +71,13 @@ internal fun CompilerContext.checkDeclarationConstraints(
         solverState.checkPrimaryConstructor(context, descriptor, declaration)
       is KtSecondaryConstructor ->
         solverState.checkSecondaryConstructor(context, descriptor, declaration)
+      is KtClassOrObject ->
+        doOnlyWhen(declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
+          cont {
+            val msg = unsupportedImplicitPrimaryConstructor(declaration)
+            context.trace.report(MetaErrors.ErrorParsingPredicate.on(declaration, msg))
+          }
+        }
       else ->
         solverState.checkTopLevelDeclarationWithBody(context, descriptor, declaration)
     }.drain()

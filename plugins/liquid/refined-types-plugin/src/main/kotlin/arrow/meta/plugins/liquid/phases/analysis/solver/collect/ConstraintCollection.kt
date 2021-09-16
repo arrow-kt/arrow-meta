@@ -180,13 +180,15 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
     }
   } ?: emptyList()).forEach { (call, formula) ->
     if (call.preCall()) {
-      val rewritten = rewritePrecondition(solverState, context, call, formula.formula)
-      preConstraints.add(NamedConstraint(formula.msg, rewritten))
+      rewritePrecondition(solverState, context, !call.requireCall(), call, formula.formula)?.let {
+        preConstraints.add(NamedConstraint(formula.msg, it))
+      }
     }
     // in constructors 'require' has a double duty
     if (call.postCall() || call.requireCall()) {
-      val rewritten = rewritePostcondition(solverState, formula.formula)
-      postConstraints.add(NamedConstraint(formula.msg, rewritten))
+      rewritePostcondition(solverState, formula.formula).let {
+        postConstraints.add(NamedConstraint(formula.msg, it))
+      }
     }
   }
   return Pair(preConstraints, postConstraints)
@@ -199,11 +201,13 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
 private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
   solverState: SolverState,
   context: DeclarationCheckerContext,
+  raiseErrorWhenUnexpected: Boolean,
   call: ResolvedCall<*>,
   formula: BooleanFormula
-): BooleanFormula {
+): BooleanFormula? {
   val mgr = solverState.solver.formulaManager
-  return mgr.transformRecursively(
+  var errorSignaled = false
+  val result = mgr.transformRecursively(
     formula,
     object : FormulaTransformationVisitor(mgr) {
       override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): Formula =
@@ -213,19 +217,29 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
           val paramName = this@rewritePrecondition.valueParameters.firstOrNull { param ->
             fieldName?.endsWith(".${param.name}") ?: (param.name == fieldName)
           }?.name
-          if (fieldName != null && thisName == "this" && paramName != null) {
-            solverState.solver.makeObjectVariable(paramName)
+          if (fieldName != null && thisName == "this") {
+            if (paramName != null) {
+              solverState.solver.makeObjectVariable(paramName)
+            } else {
+              // error case, we have a reference to a field
+              // which is not coming from an argument
+              errorSignaled = true
+              if (raiseErrorWhenUnexpected) {
+                val msg = unexpectedFieldInitBlock(fieldName)
+                context.trace.report(
+                  MetaErrors.UnsatCallPre.on(call.call.callElement, msg)
+                )
+              }
+              super.visitFunction(f, args, fn)
+            }
           } else {
-            val msg = unexpectedFieldInitBlock(fieldName)
-            context.trace.report(
-              MetaErrors.UnsatCallPre.on(call.call.callElement, msg)
-            )
             super.visitFunction(f, args, fn)
           }
         } else {
           super.visitFunction(f, args, fn)
         }
     })
+  return result.takeIf { !errorSignaled }
 }
 
 /**

@@ -661,6 +661,24 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `class with require on field, implicit constructor`() {
+    """
+      ${imports()}
+      class A {
+        val n = 0
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+      }
+      
+      val x = A()
+      """(
+      withPlugin = { failsWith { it.contains("Implicit primary constructors are (not yet) supported") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
