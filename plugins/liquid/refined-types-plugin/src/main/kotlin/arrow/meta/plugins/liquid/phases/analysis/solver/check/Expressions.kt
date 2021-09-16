@@ -288,6 +288,8 @@ private fun SolverState.checkCallExpression(
   val specialControlFlow = controlFlowAnyFunction(resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
+    resolvedCall.isOldRefinedCall() -> // ignore calls to old Refined
+      cont { NoReturn }
     resolvedCall.preCall() -> // ignore calls to 'pre'
       cont { NoReturn }
     resolvedCall.postCall() -> // ignore post arguments
@@ -343,6 +345,14 @@ private fun ResolvedCall<out CallableDescriptor>.referencedArg(
   resolvedArg.arguments.any { valueArg ->
     valueArg.getArgumentExpression() == arg
   }
+}
+
+private fun ResolvedCall<out CallableDescriptor>.isOldRefinedCall(): Boolean {
+  val name = resultingDescriptor.fqNameSafe
+  return name == FqName("arrow.refinement.ensure") ||
+    name == FqName("arrow.refinement.ensureA") ||
+    name == FqName("arrow.refinement.require") ||
+    name == FqName("arrow.refinement.constraints")
 }
 
 /**
@@ -499,6 +509,9 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
   data: CheckData,
   block: () -> ContSeq<Return>
 ): ContSeq<Return> = when {
+  (receiverExpr != null) && (receiverExpr == wholeExpr) ->
+    // this happens in some weird cases, just keep going
+    block()
   (receiverExpr == null) && (resolvedCall?.hasReceiver() == true) ->
     // special case, no receiver, but implicitly it's 'this'
     checkNameExpression(receiverName, "this", data)

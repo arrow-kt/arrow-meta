@@ -96,6 +96,7 @@ private val interpreter: (CompilerTest) -> Unit = {
       Assert.Empty -> println("Assertions not found")
       Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
       Assert.CompilationResult.Fails -> assertFails(compilationResult)
+      is Assert.CompilesWith -> assertCompilesWith(compilationResult, singleAssert.f)
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
       is Assert.QuoteOutputMatches -> assertQuoteOutputMatches(compilationResult, singleAssert.source)
       is Assert.EvalsTo -> assertEvalsTo(compilationResult, singleAssert.source, singleAssert.output, singleAssert.onError)
@@ -150,6 +151,11 @@ private fun assertEvalsTo(compilationResult: Result, source: Code.Source, output
 
 private fun assertCompiles(compilationResult: Result): Unit {
   assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
+}
+
+private fun assertCompilesWith(compilationResult: Result, check: (String) -> Boolean): Unit {
+  assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
+  assertThat(check(compilationResult.messages)).isTrue
 }
 
 private fun assertFails(compilationResult: Result): Unit {

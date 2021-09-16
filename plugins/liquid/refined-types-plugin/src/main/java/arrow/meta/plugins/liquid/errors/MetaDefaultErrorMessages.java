@@ -1,6 +1,5 @@
 package arrow.meta.plugins.liquid.errors;
 
-import arrow.meta.plugins.liquid.phases.errors.FormulaRendererKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages;
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap;

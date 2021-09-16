@@ -715,7 +715,7 @@ class LiquidDataflowTests {
       
       val x = A()
       """(
-      withPlugin = { failsWith { it.contains("Implicit primary constructors are (not yet) supported") } },
+      withPlugin = { compilesWith { it.contains("Implicit primary constructors are (not yet) supported") } },
       withoutPlugin = { compiles }
     )
   }

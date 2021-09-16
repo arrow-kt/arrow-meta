@@ -692,13 +692,14 @@ internal fun formulaVariableName(
  * Should we treat a node as a field and create 'field(name, x)'?
  */
 internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
-  is PropertyDescriptor -> true
-  is FunctionDescriptor ->
-    valueParameters.size == 0 &&
-      ((extensionReceiverParameter != null && dispatchReceiverParameter == null) ||
-        (extensionReceiverParameter == null && dispatchReceiverParameter != null))
+  is PropertyDescriptor -> hasOneReceiver()
+  is FunctionDescriptor -> valueParameters.size == 0 && hasOneReceiver()
   else -> false
 }
+
+private fun CallableDescriptor.hasOneReceiver(): Boolean =
+  (extensionReceiverParameter != null && dispatchReceiverParameter == null) ||
+    (extensionReceiverParameter == null && dispatchReceiverParameter != null)
 
 /**
  * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
