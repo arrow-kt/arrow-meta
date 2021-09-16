@@ -4,11 +4,20 @@ import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
+import arrow.meta.plugins.liquid.smt.utils.ReferencedElement
+import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
+import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.isNullable
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
@@ -64,6 +73,27 @@ data class SolverState(
   fun addConstraint(constraint: NamedConstraint) {
     prover.addConstraint(constraint.formula)
     solverTrace.add("${constraint.msg} : ${constraint.formula}")
+  }
+
+  fun newName(
+    context: DeclarationCheckerContext,
+    prefix: String,
+    element: KtElement?
+  ): String = newName(context, prefix, element, null)
+
+  fun newName(
+    context: DeclarationCheckerContext,
+    prefix: String,
+    element: KtElement?,
+    reference: Pair<ValueParameterDescriptor, ResolvedValueArgument>?
+  ): String {
+    val type = (element as? KtExpression)?.kotlinType(context.trace.bindingContext)
+    val info = element?.let { ReferencedElement(it, reference, type) }
+    val newName = names.recordNewName(prefix, info)
+    if (type != null && !type.isNullable()) {
+      typeInvariants(type, newName)?.forEach { addConstraint(it) }
+    }
+    return newName
   }
 
   /**

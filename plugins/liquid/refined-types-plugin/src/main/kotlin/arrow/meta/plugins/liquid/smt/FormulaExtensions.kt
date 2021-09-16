@@ -16,7 +16,7 @@ fun <T : Formula> Solver.substituteVariable(formula: T, mapping: Map<String, For
     substitute(formula, subst)
   }
 
-fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, String>): T =
+internal fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, String>): T =
   formulae {
     val subst = mapping.map { (k, v) ->
       Pair(makeObjectVariable(k), makeObjectVariable(v))
@@ -24,7 +24,7 @@ fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, 
     substitute(formula, subst)
   }
 
-fun <T : Formula> Solver.substituteObjectVariables(formula: T, mapping: Map<String, ObjectFormula>): T =
+internal fun <T : Formula> Solver.substituteObjectVariables(formula: T, mapping: Map<String, ObjectFormula>): T =
   formulae {
     val subst = mapping.map { (k, v) ->
       Pair(makeObjectVariable(k), v)

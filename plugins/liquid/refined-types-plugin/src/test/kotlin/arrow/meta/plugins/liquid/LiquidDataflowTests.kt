@@ -628,6 +628,46 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `class with require, field knows about invariant, 1`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        fun f(x: Int): Int {
+          pre(x > 0) { "x is positive" }
+          val y = x
+          return (y + n).post({it > 0}) { "result is positive" }
+        }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, field knows about invariant, 2`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+      }
+      
+      fun f(b: B, x: Int): Int {
+        pre(x > 0) { "x is positive" }
+        return (x + b.n).post({it > 0}) { "result is positive" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `class with require, secondary constructor`() {
     """
       ${imports()}
