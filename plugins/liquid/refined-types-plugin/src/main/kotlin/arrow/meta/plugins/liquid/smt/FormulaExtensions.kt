@@ -16,10 +16,18 @@ fun <T : Formula> Solver.substituteVariable(formula: T, mapping: Map<String, For
     substitute(formula, subst)
   }
 
-fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, String>): T =
+internal fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, String>): T =
   formulae {
     val subst = mapping.map { (k, v) ->
       Pair(makeObjectVariable(k), makeObjectVariable(v))
+    }.toMap()
+    substitute(formula, subst)
+  }
+
+internal fun <T : Formula> Solver.substituteObjectVariables(formula: T, mapping: Map<String, ObjectFormula>): T =
+  formulae {
+    val subst = mapping.map { (k, v) ->
+      Pair(makeObjectVariable(k), v)
     }.toMap()
     substitute(formula, subst)
   }
@@ -34,13 +42,23 @@ fun Solver.renameDeclarationConstraints(
     decl.post.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) }
   )
 
+fun Solver.substituteDeclarationConstraints(
+  decl: DeclarationConstraints,
+  mapping: Map<String, ObjectFormula>
+): DeclarationConstraints =
+  DeclarationConstraints(
+    decl.descriptor,
+    decl.pre.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) },
+    decl.post.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) }
+  )
+
 fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {
   val names = mutableSetOf<Pair<String, ObjectFormula>>()
   val visitor = object : DefaultFormulaVisitor<TraversalProcess>() {
     override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
     override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
       val secondArg = args?.getOrNull(1) as? ObjectFormula
-      if (fn?.name == "field" && secondArg != null) {
+      if (fn?.name == Solver.FIELD_FUNCTION_NAME && secondArg != null) {
         args.getOrNull(0)?.let { fieldNames ->
           names.addAll(extractVariables(fieldNames).keys.map { Pair(it, secondArg) })
         }

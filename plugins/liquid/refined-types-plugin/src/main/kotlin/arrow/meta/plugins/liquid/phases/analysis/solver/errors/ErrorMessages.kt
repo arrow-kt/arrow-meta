@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -60,6 +61,16 @@ object ErrorMessages {
   object Parsing {
     internal fun errorParsingPredicate(predicateArg: KtExpression?): String =
       "Could not parse predicate: ${predicateArg?.text}"
+
+    internal fun unexpectedFieldInitBlock(fieldName: String?): String =
+      if (fieldName == null) {
+        "Unexpected field name in init block"
+      } else {
+        "Unexpected field name in init block: $fieldName"
+      }
+
+    internal fun unsupportedImplicitPrimaryConstructor(klass: KtClassOrObject): String =
+      "Implicit primary constructors are (not yet) supported: `${klass.name}`"
   }
 
   /**
