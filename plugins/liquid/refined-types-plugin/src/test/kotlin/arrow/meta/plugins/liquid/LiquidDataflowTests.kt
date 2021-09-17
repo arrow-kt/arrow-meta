@@ -719,6 +719,46 @@ class LiquidDataflowTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `enumerations, init blocks ok`() {
+    """
+      ${imports()}
+      enum class Color(val rgb: Int) {
+        RED(0xFF0000),
+        GREEN(0x00FF00),
+        BLUE(0x0000FF);
+    
+        init {
+          require(rgb != 0) { "no zero color" }
+        }
+      }
+      
+      val result: Int = Color.RED.rgb.post({ it != 0 }) { "check this" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `enumerations, init blocks wrong`() {
+    """
+      ${imports()}
+      enum class Cosa(val x: Int) {
+        Esto(0),
+        Eso(1),
+        Aquello(2);
+    
+        init {
+          require(x > 0) { "positive" }
+        }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

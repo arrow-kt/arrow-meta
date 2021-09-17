@@ -25,6 +25,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkLiskovWeakerP
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.substituteDeclarationConstraints
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -32,11 +33,13 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
+import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
+import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
@@ -73,6 +76,11 @@ internal fun <A> SolverState.checkTopLevel(
       }
       descriptor.valueParameters.forEach { param ->
         typeInvariants(param.type, param.name.asString()).forEach { addConstraint(it) }
+      }
+      val returnType = descriptor.returnType
+      if (returnType != null && descriptor !is ConstructorDescriptor) {
+        // introduce $result too
+        typeInvariants(returnType, RESULT_VAR_NAME).forEach { addConstraint(it) }
       }
     }
     // check consistency of pre-conditions
@@ -119,21 +127,11 @@ internal fun SolverState.checkPrimaryConstructor(
     }.flatMap {
       // call the superclass constructors
       // (this will ultimately check the Liskov for classes)
-      klass.superTypeListEntries.mapNotNull { entry ->
-        when (entry) {
-          is KtDelegatedSuperTypeEntry -> entry.delegateExpression
-          is KtSuperTypeCallEntry -> entry.calleeExpression
-          else -> null
-        }
-      }.map { expr ->
-        doOnlyWhenNotNull(expr.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
-          checkRegularFunctionCall(solver.thisVariable, call, expr, data)
-        }
-      }.sequence()
+      checkSuperTypeEntries(context, klass.superTypeListEntries, data)
     }.flatMap {
       checkExpressionConstraints(solver.thisVariable, declaration.bodyExpression, data)
     }.flatMap {
-      checkClassDeclarationInConstructorContext(solver.thisVariable, klass, data)
+      checkClassDeclarationInConstructorContext(solver.thisVariable, klass.declarations, data)
     }.map {
       checkPost()
       NoReturn
@@ -164,11 +162,28 @@ private fun SolverState.introduceImplicitProperties(
   NoReturn
 }
 
+private fun SolverState.checkSuperTypeEntries(
+  context: DeclarationCheckerContext,
+  superTypeListEntries: List<KtSuperTypeListEntry>,
+  data: CheckData
+): ContSeq<List<Return>> =
+  superTypeListEntries.mapNotNull { entry ->
+    when (entry) {
+      is KtDelegatedSuperTypeEntry -> entry.delegateExpression
+      is KtSuperTypeCallEntry -> entry.calleeExpression
+      else -> null
+    }
+  }.map { expr ->
+    doOnlyWhenNotNull(expr.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
+      checkRegularFunctionCall(solver.thisVariable, call, expr, data)
+    }
+  }.sequence()
+
 private fun SolverState.checkClassDeclarationInConstructorContext(
   thisRef: ObjectFormula,
-  klass: KtClassOrObject,
+  declarations: List<KtDeclaration>,
   data: CheckData
-) = klass.declarations.map { decl ->
+): ContSeq<List<Return>> = declarations.map { decl ->
   when (decl) {
     is KtConstructor<*> ->
       cont { NoReturn } // do not check any other constructor
@@ -200,6 +215,23 @@ internal fun SolverState.checkSecondaryConstructor(
       }
     }.flatMap {
       checkExpressionConstraints(solver.thisVariable, declaration.bodyExpression, data)
+    }.map {
+      checkPost()
+      NoReturn
+    }
+  }
+
+internal fun SolverState.checkEnumEntry(
+  context: DeclarationCheckerContext,
+  descriptor: DeclarationDescriptor,
+  entry: KtEnumEntry
+): ContSeq<Return> =
+  checkTopLevel(context, descriptor, entry, solver.thisVariable) { data, checkPost ->
+    ContSeq.unit.flatMap {
+      // the supertype entries in an enumeration is the enum itself
+      checkSuperTypeEntries(context, entry.superTypeListEntries, data)
+    }.flatMap {
+      checkClassDeclarationInConstructorContext(solver.thisVariable, entry.declarations, data)
     }.map {
       checkPost()
       NoReturn

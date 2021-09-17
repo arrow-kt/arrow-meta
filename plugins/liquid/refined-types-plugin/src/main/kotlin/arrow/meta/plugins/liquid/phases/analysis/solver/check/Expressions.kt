@@ -93,6 +93,8 @@ import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.sosy_lab.java_smt.api.BooleanFormula
+import java.math.BigDecimal
+import java.math.BigInteger
 
 // 2.2: expressions
 // ----------------
@@ -656,8 +658,8 @@ private fun SolverState.checkConstantExpression(
     addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
   } else {
     val mayBoolean = expression.text.toBooleanStrictOrNull()
-    val mayInteger = expression.text.toBigIntegerOrNull()
-    val mayRational = expression.text.toBigDecimalOrNull()
+    val mayInteger = expression.text.asIntegerLiteral()
+    val mayRational = expression.text.asFloatingLiteral()
     when {
       mayBoolean == true ->
         solver.boolValue(associatedVarName)
@@ -695,6 +697,32 @@ private fun SolverState.checkConstantExpression(
   }
   NoReturn
 }
+
+/**
+ * Parse integer literal according to Kotlin's grammar
+ * https://kotlinlang.org/docs/reference/grammar.html#literalConstant
+ */
+private fun String.asIntegerLiteral(): BigInteger? =
+  replace("_", "")
+    .trimEnd('u', 'U', 'l', 'L')
+    .run {
+      when {
+        startsWith("0x", ignoreCase = true) ->
+          drop(2).toBigIntegerOrNull(16)
+        startsWith("0b", ignoreCase = true) ->
+          drop(2).toBigIntegerOrNull(2)
+        else -> toBigIntegerOrNull()
+      }
+    }
+
+/**
+ * Parse floating literal according to Kotlin's grammar
+ * https://kotlinlang.org/docs/reference/grammar.html#RealLiteral
+ */
+private fun String.asFloatingLiteral(): BigDecimal? =
+  replace("_", "")
+    .trimEnd('f', 'F')
+    .toBigDecimalOrNull()
 
 /**
  * Check special binary cases, and make the other fall-through
