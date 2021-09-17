@@ -212,6 +212,21 @@ interface AssertSyntax {
   val compiles: Assert.SingleAssert
 
   /**
+   * Checks that code snippet compiles successfully
+   * and (possible) warning message has a certain
+   * property.
+   *
+   * For instance:
+   *
+   * ```
+   * compilesWith { it.contains("Unsafe operation") }
+   * ```
+   *
+   * @param f function that must return true from the warning message as an input.
+   */
+  fun compilesWith(f: (String) -> Boolean): Assert.SingleAssert = Assert.CompilesWith(f)
+
+  /**
    * Checks that code snippet fails.
    */
   val fails: Assert.SingleAssert
@@ -296,6 +311,7 @@ sealed class Assert {
   internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: Path) : SingleAssert()
   internal data class EvalsTo(val source: Code.Source, val output: Any?, val onError: (Throwable) -> Any?) : SingleAssert()
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
+  internal data class CompilesWith(val f: (String) -> Boolean) : SingleAssert()
   internal sealed class CompilationResult : SingleAssert() {
     object Compiles : CompilationResult()
     object Fails : CompilationResult()

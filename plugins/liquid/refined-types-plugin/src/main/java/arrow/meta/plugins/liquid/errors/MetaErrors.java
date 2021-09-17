@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.diagnostics.Errors;
 
 import static org.jetbrains.kotlin.diagnostics.Severity.ERROR;
+import static org.jetbrains.kotlin.diagnostics.Severity.WARNING;
 
 public interface MetaErrors {
     // type proofs
@@ -15,8 +16,8 @@ public interface MetaErrors {
     DiagnosticFactory1<PsiElement, String> InconsistentConditions = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsatInvariants = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> LiskovProblem = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(WARNING);
 
     /**
      * needed to prevent NPE in
