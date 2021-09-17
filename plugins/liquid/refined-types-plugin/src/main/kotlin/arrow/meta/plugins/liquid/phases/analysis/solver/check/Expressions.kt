@@ -93,6 +93,7 @@ import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.sosy_lab.java_smt.api.BooleanFormula
+import java.math.BigInteger
 
 // 2.2: expressions
 // ----------------
@@ -656,7 +657,7 @@ private fun SolverState.checkConstantExpression(
     addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
   } else {
     val mayBoolean = expression.text.toBooleanStrictOrNull()
-    val mayInteger = expression.text.toBigIntegerOrNull()
+    val mayInteger = expression.text.toBigIntegerSeveralAttempts()
     val mayRational = expression.text.toBigDecimalOrNull()
     when {
       mayBoolean == true ->
@@ -695,6 +696,13 @@ private fun SolverState.checkConstantExpression(
   }
   NoReturn
 }
+
+private fun String.toBigIntegerSeveralAttempts(): BigInteger? =
+  when {
+    startsWith("0x", ignoreCase = true) ->
+      drop(2).toBigIntegerOrNull(16)
+    else -> toBigIntegerOrNull()
+  }
 
 /**
  * Check special binary cases, and make the other fall-through

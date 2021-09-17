@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.psiUtil.parents
@@ -57,20 +58,21 @@ internal fun CompilerContext.checkDeclarationConstraints(
   declaration: KtDeclaration,
   descriptor: DeclarationDescriptor
 ) {
-  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if ((solverState != null) &&
-    solverState.isIn(SolverState.Stage.Prove) &&
-    !solverState.hadParseErrors() &&
+  get<SolverState>(SolverState.key(context.moduleDescriptor))?.takeIf { solverState ->
+    solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()
+  }?.takeIf {
     declaration.shouldBeAnalyzed()
-  ) {
+  }?.run {
     // trace
-    solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
     when (declaration) {
       is KtPrimaryConstructor ->
-        solverState.checkPrimaryConstructor(context, descriptor, declaration)
+        checkPrimaryConstructor(context, descriptor, declaration)
       is KtSecondaryConstructor ->
-        solverState.checkSecondaryConstructor(context, descriptor, declaration)
+        checkSecondaryConstructor(context, descriptor, declaration)
+      is KtEnumEntry ->
+        checkEnumEntry(context, descriptor, declaration)
       is KtClassOrObject ->
         doOnlyWhen(declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
           cont {
@@ -79,10 +81,10 @@ internal fun CompilerContext.checkDeclarationConstraints(
           }
         }
       else ->
-        solverState.checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+        checkTopLevelDeclarationWithBody(context, descriptor, declaration)
     }.drain()
     // trace
-    solverState.solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
   }
 }
 
