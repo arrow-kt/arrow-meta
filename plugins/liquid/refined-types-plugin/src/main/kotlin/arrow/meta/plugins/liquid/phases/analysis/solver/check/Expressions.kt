@@ -812,394 +812,394 @@ private fun SolverState.checkIsExpression(
 private fun SolverState.checkDeclarationExpression(
   declaration: KtDeclaration,
   data: CheckData
-): ContSeq<Return> {
-  val declName = when (declaration) {
-    // use the given name if available
-    is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
-    else -> newName(data.context, "decl", declaration)
-  }
-  // we need to create a new one to prevent shadowing
-  val smtName = newName(data.context, declName, declaration)
-  // find out whether we have an invariant
-  val body = declaration.stableBody()
-  val invariant = obtainInvariant(body, data)
-  // assert the invariant if found and check its consistency
-  return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
-    ContSeq.unit.map {
-      val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(
-        NamedConstraint("invariant in $declName", renamed),
-        data.context,
-        invBody
-      )
-      ensure(!inconsistentInvariant)
+): ContSeq<Return> =
+  doOnlyWhenNotNull(declaration.stableBody(), NoReturn) { body ->
+    val declName = when (declaration) {
+      // use the given name if available
+      is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
+      else -> newName(data.context, "decl", body)
     }
-  }.flatMap {
-    // this gives back a new temporary name for the body
-    checkBodyAgainstInvariants(declaration, declName, invariant?.second, body, data)
-  }.map { (newVarName, r) ->
-    // if it's not a var, we state it's equal to the one
-    // we've introduced while checking the invariants
-    // this means the solver can use everything it may
-    // gather about it
-    if (!declaration.isVar()) {
-      solver.objects {
-        addConstraint(
-          NamedConstraint(
-            "$declName $smtName = $newVarName",
-            equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
+    // we need to create a new one to prevent shadowing
+    val smtName = newName(data.context, declName, body)
+    // find out whether we have an invariant
+    val invariant = obtainInvariant(body, data)
+    // assert the invariant if found and check its consistency
+    doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
+      ContSeq.unit.map {
+        val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
+        val inconsistentInvariant = checkInvariantConsistency(
+          NamedConstraint("invariant in $declName", renamed),
+          data.context,
+          invBody
+        )
+        ensure(!inconsistentInvariant)
+      }
+    }.flatMap {
+      // this gives back a new temporary name for the body
+      checkBodyAgainstInvariants(declaration, declName, invariant?.second, body, data)
+    }.map { (newVarName, r) ->
+      // if it's not a var, we state it's equal to the one
+      // we've introduced while checking the invariants
+      // this means the solver can use everything it may
+      // gather about it
+      if (!declaration.isVar()) {
+        solver.objects {
+          addConstraint(
+            NamedConstraint(
+              "$declName $smtName = $newVarName",
+              equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
+            )
           )
+        }
+      }
+      // update the list of variables in scope
+      data.varInfo.add(declName, smtName, declaration, invariant?.second)
+      // and then keep going
+      r
+    }
+  }
+
+  /**
+   * Checks the possible invariants of a declaration, and its body.
+   */
+  private fun SolverState.checkBodyAgainstInvariants(
+    element: KtElement,
+    declName: String,
+    invariant: BooleanFormula?,
+    body: KtExpression?,
+    data: CheckData
+  ): ContSeq<Pair<String, Return>> {
+    val newName = newName(data.context, declName, body)
+    return checkExpressionConstraints(newName, body, data).onEach {
+      invariant?.let {
+        val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
+        checkInvariant(
+          NamedConstraint("assignment to `${element.text}`", renamed),
+          data.context,
+          element
         )
       }
-    }
-    // update the list of variables in scope
-    data.varInfo.add(declName, smtName, declaration, invariant?.second)
-    // and then keep going
-    r
+    }.map { r -> Pair(newName, r) }
   }
-}
 
-/**
- * Checks the possible invariants of a declaration, and its body.
- */
-private fun SolverState.checkBodyAgainstInvariants(
-  element: KtElement,
-  declName: String,
-  invariant: BooleanFormula?,
-  body: KtExpression?,
-  data: CheckData
-): ContSeq<Pair<String, Return>> {
-  val newName = newName(data.context, declName, element)
-  return checkExpressionConstraints(newName, body, data).onEach {
-    invariant?.let {
-      val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
-      checkInvariant(
-        NamedConstraint("assignment to `${element.text}`", renamed),
-        data.context,
-        element
+  private fun SolverState.obtainInvariant(
+    expression: KtExpression,
+    data: CheckData
+  ): Pair<KtExpression, BooleanFormula>? =
+    expression.getResolvedCall(data.context.trace.bindingContext)
+      ?.takeIf { it.invariantCall() }
+      ?.arg("predicate")
+      ?.let { expr: KtExpression ->
+        solver.expressionToFormula(expr, data.context.trace.bindingContext)
+          ?.let { it as? BooleanFormula }
+          ?.let { formula -> expr to formula }
+      }
+
+  /**
+   * This function produces a continuation that makes the desired variable name
+   * equal to the value encoded in the named expression and adds the resulting boolean formula
+   * to the [SolverState.prover] constraints.
+   */
+  private fun SolverState.checkNameExpression(
+    associatedVarName: ObjectFormula,
+    referencedName: String,
+    data: CheckData
+  ): ContSeq<Return> = cont {
+    // use the SMT name recorded in the variable info
+    data.varInfo.get(referencedName)?.let {
+      val constraint = solver.objects {
+        equal(associatedVarName, solver.makeObjectVariable(it.smtName))
+      }
+      addConstraint(NamedConstraint("$associatedVarName = ${it.smtName}", constraint))
+    }
+    NoReturn
+  }
+
+  private fun KtExpression.computeSimpleConditions(): List<Condition> = when (this) {
+    is KtIfExpression ->
+      listOf(
+        Condition(condition!!, then!!, then!!),
+        Condition(null, `else`!!, `else`!!)
       )
-    }
-  }.map { r -> Pair(newName, r) }
-}
-
-private fun SolverState.obtainInvariant(
-  expression: KtExpression?,
-  data: CheckData
-): Pair<KtExpression, BooleanFormula>? =
-  expression?.getResolvedCall(data.context.trace.bindingContext)
-    ?.takeIf { it.invariantCall() }
-    ?.arg("predicate")
-    ?.let { expr: KtExpression ->
-      solver.expressionToFormula(expr, data.context.trace.bindingContext)
-        ?.let { it as? BooleanFormula }
-        ?.let { formula -> expr to formula }
-    }
-
-/**
- * This function produces a continuation that makes the desired variable name
- * equal to the value encoded in the named expression and adds the resulting boolean formula
- * to the [SolverState.prover] constraints.
- */
-private fun SolverState.checkNameExpression(
-  associatedVarName: ObjectFormula,
-  referencedName: String,
-  data: CheckData
-): ContSeq<Return> = cont {
-  // use the SMT name recorded in the variable info
-  data.varInfo.get(referencedName)?.let {
-    val constraint = solver.objects {
-      equal(associatedVarName, solver.makeObjectVariable(it.smtName))
-    }
-    addConstraint(NamedConstraint("$associatedVarName = ${it.smtName}", constraint))
-  }
-  NoReturn
-}
-
-private fun KtExpression.computeSimpleConditions(): List<Condition> = when (this) {
-  is KtIfExpression ->
-    listOf(
-      Condition(condition!!, then!!, then!!),
-      Condition(null, `else`!!, `else`!!)
-    )
-  is KtWhenExpression ->
-    entries.flatMap { entry ->
-      if (entry.conditions.isEmpty()) {
-        listOf(Condition(null, entry.expression!!, entry))
-      } else {
-        entry.conditions.toList().mapNotNull { cond ->
-          when (cond) {
-            is KtWhenConditionWithExpression ->
-              Condition(cond.expression!!, entry.expression!!, entry)
-            else -> null
+    is KtWhenExpression ->
+      entries.flatMap { entry ->
+        if (entry.conditions.isEmpty()) {
+          listOf(Condition(null, entry.expression!!, entry))
+        } else {
+          entry.conditions.toList().mapNotNull { cond ->
+            when (cond) {
+              is KtWhenConditionWithExpression ->
+                Condition(cond.expression!!, entry.expression!!, entry)
+              else -> null
+            }
           }
         }
       }
-    }
-  else -> emptyList()
-}
-
-/**
- * Check `if` and `when` expressions without subject.
- */
-private fun SolverState.checkSimpleConditional(
-  associatedVarName: ObjectFormula,
-  branches: List<Condition>,
-  data: CheckData
-): ContSeq<Return> =
-  branches.map { cond ->
-    val conditionVar = newName(data.context, "cond", cond.condition)
-    // introduce the condition
-    (cond.condition?.let {
-      checkExpressionConstraints(conditionVar, it, data)
-    } ?: cont {
-      // if we have no condition, it's equivalent to true
-      addConstraint(
-        NamedConstraint(
-          "check condition branch $conditionVar",
-          solver.makeBooleanObjectVariable(conditionVar)
-        )
-      )
-      NoReturn
-    }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
-  }.sequence().flatMap { conditionInformation ->
-    yesNo(conditionInformation)
-      .asContSeq()
-      .flatMap { (returnAndCond, correspondingVars) ->
-        val (returnInfo, cond) = returnAndCond
-        when (returnInfo) {
-          is ExplicitReturn -> // weird case: a return in a condition
-            cont { returnInfo }
-          else ->
-            continuationBracket.map {
-              // assert the variables and check that we are consistent
-              val inconsistentEnvironment =
-                checkConditionsInconsistencies(correspondingVars, data.context, cond.whole)
-              // it only makes sense to continue if we are not consistent
-              ensure(!inconsistentEnvironment)
-            }.flatMap {
-              // check the body
-              checkExpressionConstraints(associatedVarName, cond.body, data)
-            }
-        }
-      }
+    else -> emptyList()
   }
 
-/**
- * Given a list of names for condition variables,
- * create the boolean conditions for each branch.
- *
- * For example, given [a, b, c], it generates:
- * - a
- * - not a, b
- * - not a, not b, c
- */
-private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pair<A, List<NamedConstraint>>> {
-  fun go(currents: List<Pair<A, String>>, acc: List<NamedConstraint>): List<Pair<A, List<NamedConstraint>>> =
-    if (currents.isEmpty()) {
-      emptyList()
-    } else {
-      solver.booleans {
-        val varName = solver.makeBooleanObjectVariable(currents[0].second)
-        val nextValue = acc + listOf(NamedConstraint("$varName", varName))
-        val nextAcc = acc + listOf(NamedConstraint("!($varName)", not(varName)))
-        listOf(Pair(currents[0].first, nextValue)) + go(currents.drop(1), nextAcc)
-      }
+  /**
+   * Check `if` and `when` expressions without subject.
+   */
+  private fun SolverState.checkSimpleConditional(
+    associatedVarName: ObjectFormula,
+    branches: List<Condition>,
+    data: CheckData
+  ): ContSeq<Return> =
+    branches.map { cond ->
+      val conditionVar = newName(data.context, "cond", cond.condition)
+      // introduce the condition
+      (cond.condition?.let {
+        checkExpressionConstraints(conditionVar, it, data)
+      } ?: cont {
+        // if we have no condition, it's equivalent to true
+        addConstraint(
+          NamedConstraint(
+            "check condition branch $conditionVar",
+            solver.makeBooleanObjectVariable(conditionVar)
+          )
+        )
+        NoReturn
+      }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
+    }.sequence().flatMap { conditionInformation ->
+      yesNo(conditionInformation)
+        .asContSeq()
+        .flatMap { (returnAndCond, correspondingVars) ->
+          val (returnInfo, cond) = returnAndCond
+          when (returnInfo) {
+            is ExplicitReturn -> // weird case: a return in a condition
+              cont { returnInfo }
+            else ->
+              continuationBracket.map {
+                // assert the variables and check that we are consistent
+                val inconsistentEnvironment =
+                  checkConditionsInconsistencies(correspondingVars, data.context, cond.whole)
+                // it only makes sense to continue if we are not consistent
+                ensure(!inconsistentEnvironment)
+              }.flatMap {
+                // check the body
+                checkExpressionConstraints(associatedVarName, cond.body, data)
+              }
+          }
+        }
     }
-  return go(conditionVars, emptyList())
-}
 
-private fun SolverState.checkLoopExpression(
-  expression: KtLoopExpression,
-  data: CheckData
-): ContSeq<Return> = when (expression) {
-  is KtForExpression ->
-    checkForExpression(expression.loopParameter, expression.body, data)
-  is KtWhileExpression ->
-    doOnlyWhenNotNull(expression.condition, NoReturn) {
-      checkWhileExpression(it, expression.body, data)
-    }
-  is KtDoWhileExpression -> {
-    // remember that do { t } while (condition)
-    // is equivalent to { t }; while (condition) { t }
-    checkExpressionConstraintsWithNewName("firstIter", expression.body, data).flatMap {
+  /**
+   * Given a list of names for condition variables,
+   * create the boolean conditions for each branch.
+   *
+   * For example, given [a, b, c], it generates:
+   * - a
+   * - not a, b
+   * - not a, not b, c
+   */
+  private fun <A> SolverState.yesNo(conditionVars: List<Pair<A, String>>): List<Pair<A, List<NamedConstraint>>> {
+    fun go(currents: List<Pair<A, String>>, acc: List<NamedConstraint>): List<Pair<A, List<NamedConstraint>>> =
+      if (currents.isEmpty()) {
+        emptyList()
+      } else {
+        solver.booleans {
+          val varName = solver.makeBooleanObjectVariable(currents[0].second)
+          val nextValue = acc + listOf(NamedConstraint("$varName", varName))
+          val nextAcc = acc + listOf(NamedConstraint("!($varName)", not(varName)))
+          listOf(Pair(currents[0].first, nextValue)) + go(currents.drop(1), nextAcc)
+        }
+      }
+    return go(conditionVars, emptyList())
+  }
+
+  private fun SolverState.checkLoopExpression(
+    expression: KtLoopExpression,
+    data: CheckData
+  ): ContSeq<Return> = when (expression) {
+    is KtForExpression ->
+      checkForExpression(expression.loopParameter, expression.body, data)
+    is KtWhileExpression ->
       doOnlyWhenNotNull(expression.condition, NoReturn) {
         checkWhileExpression(it, expression.body, data)
       }
-    }
-  }
-  else -> ContSeq.unit.map { NoReturn } // this should not happen
-}
-
-private fun SolverState.checkForExpression(
-  loopParameter: KtParameter?,
-  body: KtExpression?,
-  data: CheckData
-): ContSeq<Return> = ContSeq {
-  yield(LoopPlace.INSIDE_LOOP)
-  yield(LoopPlace.AFTER_LOOP)
-}.flatMap {
-  when (it) {
-    LoopPlace.INSIDE_LOOP ->
-      continuationBracket.flatMap {
-        data.varInfo.bracket()
-      }.map {
-        val paramName = loopParameter?.name
-        if (loopParameter != null && paramName != null) {
-          val smtName = newName(data.context, paramName, loopParameter)
-          data.varInfo.add(paramName, smtName, loopParameter, null)
+    is KtDoWhileExpression -> {
+      // remember that do { t } while (condition)
+      // is equivalent to { t }; while (condition) { t }
+      checkExpressionConstraintsWithNewName("firstIter", expression.body, data).flatMap {
+        doOnlyWhenNotNull(expression.condition, NoReturn) {
+          checkWhileExpression(it, expression.body, data)
         }
-      }.flatMap {
-        checkLoopBody(body, data)
       }
-    // in this case we know nothing
-    // after the loop finishes
-    LoopPlace.AFTER_LOOP ->
-      cont { NoReturn }
-  }
-}
-
-private fun SolverState.checkWhileExpression(
-  condition: KtExpression,
-  body: KtExpression?,
-  data: CheckData
-): ContSeq<Return> {
-  val condName = newName(data.context, "cond", condition)
-  // TODO: check the return info, just in case
-  return checkExpressionConstraints(condName, body, data).flatMap {
-    ContSeq {
-      yield(LoopPlace.INSIDE_LOOP)
-      yield(LoopPlace.AFTER_LOOP)
     }
+    else -> ContSeq.unit.map { NoReturn } // this should not happen
+  }
+
+  private fun SolverState.checkForExpression(
+    loopParameter: KtParameter?,
+    body: KtExpression?,
+    data: CheckData
+  ): ContSeq<Return> = ContSeq {
+    yield(LoopPlace.INSIDE_LOOP)
+    yield(LoopPlace.AFTER_LOOP)
   }.flatMap {
     when (it) {
       LoopPlace.INSIDE_LOOP ->
         continuationBracket.flatMap {
           data.varInfo.bracket()
-        }.onEach {
-          // inside the loop the condition is true
-          checkConditionsInconsistencies(listOf(
-            NamedConstraint("inside the loop, condition is tue",
-              solver.makeBooleanObjectVariable(condName))
-          ), data.context, condition)
+        }.map {
+          val paramName = loopParameter?.name
+          if (loopParameter != null && paramName != null) {
+            val smtName = newName(data.context, paramName, loopParameter)
+            data.varInfo.add(paramName, smtName, loopParameter, null)
+          }
         }.flatMap {
           checkLoopBody(body, data)
         }
-      // after the loop the condition is false
-      LoopPlace.AFTER_LOOP -> cont {
-        checkConditionsInconsistencies(listOf(
-          NamedConstraint("loop is finished, condition is false",
-            solver.booleans { not(solver.makeBooleanObjectVariable(condName)) })
-        ), data.context, condition)
-        NoReturn
+      // in this case we know nothing
+      // after the loop finishes
+      LoopPlace.AFTER_LOOP ->
+        cont { NoReturn }
+    }
+  }
+
+  private fun SolverState.checkWhileExpression(
+    condition: KtExpression,
+    body: KtExpression?,
+    data: CheckData
+  ): ContSeq<Return> {
+    val condName = newName(data.context, "cond", condition)
+    // TODO: check the return info, just in case
+    return checkExpressionConstraints(condName, body, data).flatMap {
+      ContSeq {
+        yield(LoopPlace.INSIDE_LOOP)
+        yield(LoopPlace.AFTER_LOOP)
+      }
+    }.flatMap {
+      when (it) {
+        LoopPlace.INSIDE_LOOP ->
+          continuationBracket.flatMap {
+            data.varInfo.bracket()
+          }.onEach {
+            // inside the loop the condition is true
+            checkConditionsInconsistencies(listOf(
+              NamedConstraint("inside the loop, condition is tue",
+                solver.makeBooleanObjectVariable(condName))
+            ), data.context, condition)
+          }.flatMap {
+            checkLoopBody(body, data)
+          }
+        // after the loop the condition is false
+        LoopPlace.AFTER_LOOP -> cont {
+          checkConditionsInconsistencies(listOf(
+            NamedConstraint("loop is finished, condition is false",
+              solver.booleans { not(solver.makeBooleanObjectVariable(condName)) })
+          ), data.context, condition)
+          NoReturn
+        }
+      }
+    }
+  }
+
+  private fun SolverState.checkLoopBody(
+    body: KtExpression?,
+    data: CheckData
+  ): ContSeq<Return> {
+    return checkExpressionConstraintsWithNewName("loop", body, data).map { returnInfo ->
+      // only keep working on this branch
+      // if we had a 'return' inside
+      // otherwise the other branch is enough
+      when (returnInfo) {
+        is ExplicitLoopReturn -> abort()
+        is ExplicitBlockReturn -> returnInfo
+        else -> abort()
       }
     }
   }
-}
 
-private fun SolverState.checkLoopBody(
-  body: KtExpression?,
-  data: CheckData
-): ContSeq<Return> {
-  return checkExpressionConstraintsWithNewName("loop", body, data).map { returnInfo ->
-    // only keep working on this branch
-    // if we had a 'return' inside
-    // otherwise the other branch is enough
-    when (returnInfo) {
-      is ExplicitLoopReturn -> abort()
-      is ExplicitBlockReturn -> returnInfo
-      else -> abort()
-    }
-  }
-}
-
-/**
- * Check try/catch/finally blocks
- * This is a very rough check,
- * in which we assume the worst-case scenario:
- * - when you get to a 'catch' you have *no* information about
- *   the 'try' at all
- * - all the 'catch' blocks may potentially execute
- */
-private fun SolverState.checkTryExpression(
-  associatedVarName: ObjectFormula,
-  expression: KtTryExpression,
-  data: CheckData
-): ContSeq<Return> =
-  ContSeq {
-    yield(expression.tryBlock)
-    yieldAll(expression.catchClauses)
-  }.flatMap { r ->
-    continuationBracket.flatMap { data.varInfo.bracket() }.map { r }
-  }.flatMap {
-    when (it) {
-      is KtBlockExpression -> // the try
-        checkExpressionConstraints(associatedVarName, it, data).flatMap { returnInfo ->
-          when (returnInfo) {
-            // if we had a throw, this will eventually end in a catch
-            is ExplicitThrowReturn ->
-              // is the thrown exception something in our own catch?
-              if (doesAnyCatchMatch(returnInfo.exceptionType, expression.catchClauses, data))
-                ContSeq { abort() } // then there's no point in keep looking here
-              else
-                cont { returnInfo } // otherwise, bubble up the exception
-            else -> cont { returnInfo }
+  /**
+   * Check try/catch/finally blocks
+   * This is a very rough check,
+   * in which we assume the worst-case scenario:
+   * - when you get to a 'catch' you have *no* information about
+   *   the 'try' at all
+   * - all the 'catch' blocks may potentially execute
+   */
+  private fun SolverState.checkTryExpression(
+    associatedVarName: ObjectFormula,
+    expression: KtTryExpression,
+    data: CheckData
+  ): ContSeq<Return> =
+    ContSeq {
+      yield(expression.tryBlock)
+      yieldAll(expression.catchClauses)
+    }.flatMap { r ->
+      continuationBracket.flatMap { data.varInfo.bracket() }.map { r }
+    }.flatMap {
+      when (it) {
+        is KtBlockExpression -> // the try
+          checkExpressionConstraints(associatedVarName, it, data).flatMap { returnInfo ->
+            when (returnInfo) {
+              // if we had a throw, this will eventually end in a catch
+              is ExplicitThrowReturn ->
+                // is the thrown exception something in our own catch?
+                if (doesAnyCatchMatch(returnInfo.exceptionType, expression.catchClauses, data))
+                  ContSeq { abort() } // then there's no point in keep looking here
+                else
+                  cont { returnInfo } // otherwise, bubble up the exception
+              else -> cont { returnInfo }
+            }
+          }
+        is KtCatchClause -> { // the catch
+          doOnlyWhenNotNull(it.catchParameter, NoReturn) { param ->
+            doOnlyWhenNotNull(param.name, NoReturn) { paramName ->
+              // introduce the name of the parameter
+              val smtName = newName(data.context, paramName, param)
+              data.varInfo.add(paramName, smtName, param, null)
+              // and then go on and check the body
+              checkExpressionConstraints(associatedVarName, it.catchBody, data)
+            }
           }
         }
-      is KtCatchClause -> { // the catch
-        doOnlyWhenNotNull(it.catchParameter, NoReturn) { param ->
-          doOnlyWhenNotNull(param.name, NoReturn) { paramName ->
-            // introduce the name of the parameter
-            val smtName = newName(data.context, paramName, param)
-            data.varInfo.add(paramName, smtName, param, null)
-            // and then go on and check the body
-            checkExpressionConstraints(associatedVarName, it.catchBody, data)
-          }
-        }
+        else -> ContSeq { abort() }
       }
-      else -> ContSeq { abort() }
+    }.onEach { returnInfo ->
+      doOnlyWhenNotNull(expression.finallyBlock, returnInfo) { finally ->
+        // override the return of the finally with the return of the try or catch
+        checkExpressionConstraintsWithNewName("finally", finally.finalExpression, data)
+          .map { returnInfo }
+      }
     }
-  }.onEach { returnInfo ->
-    doOnlyWhenNotNull(expression.finallyBlock, returnInfo) { finally ->
-      // override the return of the finally with the return of the try or catch
-      checkExpressionConstraintsWithNewName("finally", finally.finalExpression, data)
-        .map { returnInfo }
-    }
-  }
 
-/**
- * Checks whether the type obtain from an explicit 'throw'
- * matches any of the types in the 'catch' clauses
- */
-fun doesAnyCatchMatch(
-  throwType: KotlinType?,
-  clauses: List<KtCatchClause>,
-  data: CheckData
-): Boolean = clauses.any { clause ->
-  val catchType = clause.catchParameter?.kotlinType(data.context.trace.bindingContext)
-  if (throwType != null && catchType != null) {
-    throwType.isSubtypeOf(catchType)
-  } else {
-    false
-  }
-}
-
-/**
- * Find the corresponding "body" of a declaration
- */
-internal fun KtDeclaration.stableBody(): KtExpression? = when (this) {
-  is KtVariableDeclaration -> initializer
-  is KtDeclarationWithBody -> body()
-  is KtDeclarationWithInitializer -> initializer
-  else -> null
-}
-
-private fun <A> ContSeq<Return>.checkReturnInfo(r: (r: ExplicitReturn) -> A, f: () -> ContSeq<A>): ContSeq<A> =
-  this.flatMap { returnInfo ->
-    when (returnInfo) {
-      is ExplicitReturn -> cont { r(returnInfo) }
-      else -> f()
+  /**
+   * Checks whether the type obtain from an explicit 'throw'
+   * matches any of the types in the 'catch' clauses
+   */
+  fun doesAnyCatchMatch(
+    throwType: KotlinType?,
+    clauses: List<KtCatchClause>,
+    data: CheckData
+  ): Boolean = clauses.any { clause ->
+    val catchType = clause.catchParameter?.kotlinType(data.context.trace.bindingContext)
+    if (throwType != null && catchType != null) {
+      throwType.isSubtypeOf(catchType)
+    } else {
+      false
     }
   }
 
-private fun ContSeq<Return>.checkReturnInfo(f: () -> ContSeq<Return>): ContSeq<Return> =
-  checkReturnInfo({ it }, f)
+  /**
+   * Find the corresponding "body" of a declaration
+   */
+  internal fun KtDeclaration.stableBody(): KtExpression? = when (this) {
+    is KtVariableDeclaration -> initializer
+    is KtDeclarationWithBody -> body()
+    is KtDeclarationWithInitializer -> initializer
+    else -> null
+  }
+
+  private fun <A> ContSeq<Return>.checkReturnInfo(r: (r: ExplicitReturn) -> A, f: () -> ContSeq<A>): ContSeq<A> =
+    this.flatMap { returnInfo ->
+      when (returnInfo) {
+        is ExplicitReturn -> cont { r(returnInfo) }
+        else -> f()
+      }
+    }
+
+  private fun ContSeq<Return>.checkReturnInfo(f: () -> ContSeq<Return>): ContSeq<Return> =
+    checkReturnInfo({ it }, f)

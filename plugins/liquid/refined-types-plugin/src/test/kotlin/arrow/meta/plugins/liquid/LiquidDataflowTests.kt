@@ -403,23 +403,56 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled
-  fun `nullability, 1`() {
+  fun `nullability, predicate with null, 1`() {
     """
       ${imports()}
-      fun nully1(x: Int?): Int? {
+      fun nully1a(x: Int?): Int? {
         val y = x?.let { 1 }
-        return y.post({ it > 0 }) { "greater than 0" }
+        return y.post({ 
+          if (x == null) { it == null } 
+          else { (it != null) && (it > 0) } 
+        }) { "greater than 0" }
       }
       """(
-      // it seems that Kotlin's warning overrides ours
-      withPlugin = { failsWith { it.contains("`nully1` fails to satisfy the post-condition") } },
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }
 
   @Test
-  fun `nullability, 2`() {
+  fun `nullability, predicate with null, 2`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ 
+          if (x == null) { it == null }
+          else { (it != null) && (it < 0) }
+        }) { "smaller than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`nully1b` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, null check in pre`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        pre((x == null) || (x > 0)) { "x is null or positive" }
+        val y = x?.let { it + 1 }
+        return y.post({ (it == null) || (it > 1) }) { "greater than 1" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, branches are followed on null check`() {
     """
       ${imports()}
       fun nully2(x: Int?): Int {
@@ -433,7 +466,7 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `nullability, 3`() {
+  fun `nullability, Elvis operator`() {
     """
       ${imports()}
       fun nully3(x: Int?): Int {
@@ -441,14 +474,13 @@ class LiquidDataflowTests {
         return y.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      // it seems that Kotlin's warning overrides ours
       withPlugin = { failsWith { it.contains("`nully3` fails to satisfy the post-condition") } },
       withoutPlugin = { compiles }
     )
   }
 
   @Test
-  fun `nullability, 4`() {
+  fun `nullability, is implies non-nullability`() {
     """
       ${imports()}
       fun nully4(x: Int?): Int {
