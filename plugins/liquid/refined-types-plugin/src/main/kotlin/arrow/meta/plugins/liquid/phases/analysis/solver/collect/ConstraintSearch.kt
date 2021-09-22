@@ -146,8 +146,14 @@ internal fun Solver.renameConditions(
  * Obtain the descriptors which have been overridden by a declaration,
  * if they exist
  */
-private fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
+internal fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
   when (this) {
     is CallableMemberDescriptor -> this.overriddenDescriptors
     else -> null
   }
+
+internal fun DeclarationDescriptor.topmostDescriptor() =
+  overriddenDescriptors()?.firstOrNull {
+    val overridden = it.overriddenDescriptors()
+    overridden == null || overridden.isEmpty()
+  } ?: this

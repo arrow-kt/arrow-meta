@@ -35,6 +35,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.postCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.topmostDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.specialCasingForResolvedCalls
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
@@ -468,7 +469,7 @@ internal fun SolverState.checkRegularFunctionCall(
           val descriptor = resolvedCall.resultingDescriptor
           if (descriptor.isField()) {
             val fieldConstraint = solver.ints {
-              val typeName = descriptor.fqNameSafe.asString()
+              val typeName = descriptor.topmostDescriptor().fqNameSafe.asString()
               val argName = if (resolvedCall.hasReceiver()) receiverName else argVars[0].second
               NamedConstraint(
                 "${expression.text} == $typeName($argName)",

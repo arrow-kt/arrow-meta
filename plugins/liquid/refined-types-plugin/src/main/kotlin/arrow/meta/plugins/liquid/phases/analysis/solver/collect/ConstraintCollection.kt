@@ -131,7 +131,7 @@ internal fun KtDeclaration.constraints(
     constraintsFromFunctionLike(solverState, context)
   else -> Pair(arrayListOf(), arrayListOf())
 }.let { (preConstraints, postConstraints) ->
-  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
+  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty() || descriptor.isField()) {
     solverState.addConstraints(
       descriptor, preConstraints, postConstraints,
       context.trace.bindingContext)
@@ -452,7 +452,7 @@ internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
       val allPackageDescriptors = topLevelDescriptors + memberDescriptors
       val packagedProofs = allPackageDescriptors
         .filter {
-          it.preAnnotation() != null || it.postAnnotation() != null
+          it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
         }
       val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
       declarationsWithConstraints(acc + packagedProofs.asSequence(), remaining)
@@ -623,7 +623,7 @@ internal fun Solver.expressionToFormula(
           // create a field, the 'this' may be missing
           val thisExpression =
             (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
-          field(descriptor.fqNameSafe.asString(), thisExpression)
+          field(descriptor.topmostDescriptor().fqNameSafe.asString(), thisExpression)
         }
         else -> null
       }
