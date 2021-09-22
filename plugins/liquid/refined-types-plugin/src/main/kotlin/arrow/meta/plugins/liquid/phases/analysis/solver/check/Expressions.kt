@@ -812,52 +812,52 @@ private fun SolverState.checkIsExpression(
 private fun SolverState.checkDeclarationExpression(
   declaration: KtDeclaration,
   data: CheckData
-): ContSeq<Return> {
-  val declName = when (declaration) {
-    // use the given name if available
-    is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
-    else -> newName(data.context, "decl", declaration)
-  }
-  // we need to create a new one to prevent shadowing
-  val smtName = newName(data.context, declName, declaration)
-  // find out whether we have an invariant
-  val body = declaration.stableBody()
-  val invariant = obtainInvariant(body, data)
-  // assert the invariant if found and check its consistency
-  return doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
-    ContSeq.unit.map {
-      val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
-      val inconsistentInvariant = checkInvariantConsistency(
-        NamedConstraint("invariant in $declName", renamed),
-        data.context,
-        invBody
-      )
-      ensure(!inconsistentInvariant)
+): ContSeq<Return> =
+  doOnlyWhenNotNull(declaration.stableBody(), NoReturn) { body ->
+    val declName = when (declaration) {
+      // use the given name if available
+      is KtNamedDeclaration -> declaration.nameAsSafeName.asString()
+      else -> newName(data.context, "decl", body)
     }
-  }.flatMap {
-    // this gives back a new temporary name for the body
-    checkBodyAgainstInvariants(declaration, declName, invariant?.second, body, data)
-  }.map { (newVarName, r) ->
-    // if it's not a var, we state it's equal to the one
-    // we've introduced while checking the invariants
-    // this means the solver can use everything it may
-    // gather about it
-    if (!declaration.isVar()) {
-      solver.objects {
-        addConstraint(
-          NamedConstraint(
-            "$declName $smtName = $newVarName",
-            equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
-          )
+    // we need to create a new one to prevent shadowing
+    val smtName = newName(data.context, declName, body)
+    // find out whether we have an invariant
+    val invariant = obtainInvariant(body, data)
+    // assert the invariant if found and check its consistency
+    doOnlyWhenNotNull(invariant, Unit) { (invBody, invFormula: BooleanFormula) ->
+      ContSeq.unit.map {
+        val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
+        val inconsistentInvariant = checkInvariantConsistency(
+          NamedConstraint("invariant in $declName", renamed),
+          data.context,
+          invBody
         )
+        ensure(!inconsistentInvariant)
       }
+    }.flatMap {
+      // this gives back a new temporary name for the body
+      checkBodyAgainstInvariants(declaration, declName, invariant?.second, body, data)
+    }.map { (newVarName, r) ->
+      // if it's not a var, we state it's equal to the one
+      // we've introduced while checking the invariants
+      // this means the solver can use everything it may
+      // gather about it
+      if (!declaration.isVar()) {
+        solver.objects {
+          addConstraint(
+            NamedConstraint(
+              "$declName $smtName = $newVarName",
+              equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
+            )
+          )
+        }
+      }
+      // update the list of variables in scope
+      data.varInfo.add(declName, smtName, declaration, invariant?.second)
+      // and then keep going
+      r
     }
-    // update the list of variables in scope
-    data.varInfo.add(declName, smtName, declaration, invariant?.second)
-    // and then keep going
-    r
   }
-}
 
 /**
  * Checks the possible invariants of a declaration, and its body.
@@ -869,7 +869,7 @@ private fun SolverState.checkBodyAgainstInvariants(
   body: KtExpression?,
   data: CheckData
 ): ContSeq<Pair<String, Return>> {
-  val newName = newName(data.context, declName, element)
+  val newName = newName(data.context, declName, body)
   return checkExpressionConstraints(newName, body, data).onEach {
     invariant?.let {
       val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
@@ -883,10 +883,10 @@ private fun SolverState.checkBodyAgainstInvariants(
 }
 
 private fun SolverState.obtainInvariant(
-  expression: KtExpression?,
+  expression: KtExpression,
   data: CheckData
 ): Pair<KtExpression, BooleanFormula>? =
-  expression?.getResolvedCall(data.context.trace.bindingContext)
+  expression.getResolvedCall(data.context.trace.bindingContext)
     ?.takeIf { it.invariantCall() }
     ?.arg("predicate")
     ?.let { expr: KtExpression ->

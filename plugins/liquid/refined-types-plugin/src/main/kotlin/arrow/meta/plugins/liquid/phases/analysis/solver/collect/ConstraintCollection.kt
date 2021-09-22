@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.fir.builder.toFirOperation
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -53,19 +54,21 @@ import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
-import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
@@ -136,7 +139,7 @@ internal fun KtDeclaration.constraints(
 }
 
 /**
- * Obtaint all the function calls and corresponding formulae
+ * Obtain all the function calls and corresponding formulae
  * to 'pre', 'post', and 'require'
  */
 private fun KtDeclaration.constraintsFromDeclaration(
@@ -558,6 +561,10 @@ internal fun Solver.expressionToFormula(
 ): Formula? {
   val argCall = ex?.getResolvedCall(bindingContext)
   return when {
+    ex is KtParenthesizedExpression ->
+      expressionToFormula(ex.expression, bindingContext)
+    ex is KtAnnotatedExpression ->
+      expressionToFormula(ex.baseExpression, bindingContext)
     ex is KtLambdaExpression ->
       expressionToFormula(ex.bodyExpression, bindingContext)
     ex is KtBlockExpression ->
@@ -572,12 +579,36 @@ internal fun Solver.expressionToFormula(
       ex.operationToken.toString() == "EXCLEQ" &&
       ex.right is KtConstantExpression && ex.right?.text == "null" ->
       ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNotNull(it) }
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "ANDAND" ->
+      expressionToFormula(ex.left, bindingContext)?.let { leftFormula ->
+        expressionToFormula(ex.right, bindingContext)?.let { rightFormula ->
+          boolAnd(listOf(leftFormula, rightFormula))
+        }
+      }
+    ex is KtBinaryExpression &&
+      ex.operationToken.toString() == "OROR" ->
+      expressionToFormula(ex.left, bindingContext)?.let { leftFormula ->
+        expressionToFormula(ex.right, bindingContext)?.let { rightFormula ->
+          boolOr(listOf(leftFormula, rightFormula))
+        }
+      }
     ex is KtConstantExpression ->
       ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
     ex is KtThisExpression -> // reference to this
       makeObjectVariable("this")
     ex is KtNameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
       makeObjectVariable(formulaVariableName(ex, bindingContext))
+    ex is KtIfExpression -> {
+      val cond = expressionToFormula(ex.condition, bindingContext) as? BooleanFormula
+      val thenBranch = expressionToFormula(ex.then, bindingContext)
+      val elseBranch = expressionToFormula(ex.`else`, bindingContext)
+      if (cond != null && thenBranch != null && elseBranch != null) {
+        ifThenElse(cond, thenBranch, elseBranch)
+      } else {
+        null
+      }
+    }
     argCall != null -> { // fall-through case
       val descriptor = argCall.resultingDescriptor
       val args = argCall.allArgumentExpressions().map { (_, ty, e) -> Pair(ty, expressionToFormula(e, bindingContext)) }
@@ -686,7 +717,7 @@ internal fun formulaVariableName(
   ex: KtNameReferenceExpression,
   bindingContext: BindingContext
 ): String =
-  if (isResultReference(ex, bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
+  if (ex.isResultReference(bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
 
 /**
  * Should we treat a node as a field and create 'field(name, x)'?
@@ -733,10 +764,8 @@ internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
     it.first.name.asString() == argumentName
   }?.second
 
-internal fun isResultReference(ex: KtElement, bindingContext: BindingContext): Boolean {
-  val parent =
-    ex.getParentResolvedCall(bindingContext)?.call?.callElement.getParentResolvedCall(bindingContext)
-  return if (parent != null && (parent.postCall() || parent.invariantCall())) {
+internal fun KtElement.isResultReference(bindingContext: BindingContext): Boolean =
+  getPostOrInvariantParent(bindingContext)?.let { parent ->
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
       (expArg?.valueArgument as? KtLambdaArgument)?.getLambdaExpression()
@@ -744,8 +773,14 @@ internal fun isResultReference(ex: KtElement, bindingContext: BindingContext): B
     val params =
       lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
         listOf("it")
-    ex.text in params.distinct()
-  } else {
-    false
+    this.text in params.distinct()
+  } ?: false
+
+internal fun KtElement.getPostOrInvariantParent(
+  bindingContext: BindingContext
+): ResolvedCall<out CallableDescriptor>? =
+  this.parents.filterIsInstance<KtElement>().mapNotNull {
+    it.getResolvedCall(bindingContext)
+  }.firstOrNull { call ->
+    call.postCall() || call.invariantCall()
   }
-}
