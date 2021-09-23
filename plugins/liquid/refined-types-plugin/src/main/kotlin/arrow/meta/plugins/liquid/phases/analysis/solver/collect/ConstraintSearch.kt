@@ -36,7 +36,7 @@ internal fun SolverState.constraintsFromSolverState(
 internal fun SolverState.constraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor)
+  immediateConstraintsFromSolverState(descriptor)?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
     ?: overriddenConstraintsFromSolverState(descriptor)
 
 /**
@@ -151,9 +151,3 @@ internal fun DeclarationDescriptor.overriddenDescriptors(): Collection<Declarati
     is CallableMemberDescriptor -> this.overriddenDescriptors
     else -> null
   }
-
-internal fun DeclarationDescriptor.topmostDescriptor() =
-  overriddenDescriptors()?.firstOrNull {
-    val overridden = it.overriddenDescriptors()
-    overridden == null || overridden.isEmpty()
-  } ?: this

@@ -382,13 +382,23 @@ private fun SolverState.addConstraints(
     } else null
   val lawSubject = remoteDescriptorFromRemoteLaw ?: targetDescriptorFromLocalLaw
   if (lawSubject != null) {
-    callableConstraints.add(
-      DeclarationConstraints(lawSubject, preConstraints, postConstraints)
-    )
+    callableConstraints.add(lawSubject, preConstraints, postConstraints)
   }
-  callableConstraints.add(
-    DeclarationConstraints(descriptor, preConstraints, postConstraints)
-  )
+  callableConstraints.add(descriptor, preConstraints, postConstraints)
+}
+
+private fun MutableList<DeclarationConstraints>.add(
+  descriptor: DeclarationDescriptor,
+  pre: ArrayList<NamedConstraint>,
+  post: ArrayList<NamedConstraint>
+) {
+  val previous = this.firstOrNull { it.descriptor == descriptor }
+  if (previous == null) {
+    this.add(DeclarationConstraints(descriptor, pre, post))
+  } else {
+    this.remove(previous)
+    this.add(DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post))
+  }
 }
 
 private fun getReturnedExpressionWithoutPostcondition(
@@ -623,7 +633,7 @@ internal fun Solver.expressionToFormula(
           // create a field, the 'this' may be missing
           val thisExpression =
             (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
-          field(descriptor.topmostDescriptor().fqNameSafe.asString(), thisExpression)
+          field(descriptor.fqNameSafe.asString(), thisExpression)
         }
         else -> null
       }
