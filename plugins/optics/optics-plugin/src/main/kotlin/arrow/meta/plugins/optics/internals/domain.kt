@@ -2,12 +2,13 @@ package arrow.meta.plugins.optics.internals
 
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
+import java.util.Locale
 
 data class ADT(val pckg: FqName, val el: KtClass, val targets: List<Target>) {
   val sourceClassName = el.fqName?.asString() ?: el.name!!
-  val sourceName = el.name!!.decapitalize()
+  val sourceName = el.name!!.replaceFirstChar { it.lowercase(Locale.getDefault()) }
   val simpleName = el.name!!
-  val packageName = if (pckg !== null) pckg.asString() else "`unnamed package`"
+  val packageName = pckg.asString()
 
   operator fun Snippet.plus(snippet: Snippet): Snippet = copy(
     imports = imports + snippet.imports,

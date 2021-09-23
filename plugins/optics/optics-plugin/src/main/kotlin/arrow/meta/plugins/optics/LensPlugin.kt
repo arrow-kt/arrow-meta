@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.psi.KtClassBody
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import java.util.Locale
 
 val Meta.lenses: CliPlugin
   get() =
@@ -61,7 +62,7 @@ private fun ElementScope.lenses(classScope: ClassDeclaration): ScopedList<KtProp
   classScope.run {
     ScopedList(
       separator = "\n",
-      value = `(params)`.value.mapNotNull { param: KtParameter ->
+      value = `(params)`.value.map { param: KtParameter ->
         lens(source = value, focus = param).value
       }
     )
@@ -69,8 +70,8 @@ private fun ElementScope.lenses(classScope: ClassDeclaration): ScopedList<KtProp
 
 private fun ElementScope.lens(source: KtClass, focus: KtParameter): Property =
   """|val ${focus.name}: arrow.optics.Lens<${source.name}, ${focus.typeReference!!.text}> = arrow.optics.Lens(
-     |  get = { ${source.name!!.toLowerCase()} -> ${source.name!!.toLowerCase()}.${focus.name} },
-     |  set = { ${source.name!!.toLowerCase()}, ${focus.name} -> ${source.name!!.toLowerCase()}.copy(${focus.name} = ${focus.name}) }
+     |  get = { ${source.name!!.lowercase(Locale.getDefault())} -> ${source.name!!.lowercase(Locale.getDefault())}.${focus.name} },
+     |  set = { ${source.name!!.lowercase(Locale.getDefault())}, ${focus.name} -> ${source.name!!.lowercase(Locale.getDefault())}.copy(${focus.name} = ${focus.name}) }
      |)""".property(null)
 
 private fun ElementScope.iso(classScope: ClassDeclaration): Property =
