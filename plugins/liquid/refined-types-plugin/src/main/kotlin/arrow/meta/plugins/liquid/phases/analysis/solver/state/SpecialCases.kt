@@ -1,19 +1,16 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BinaryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.liquid.smt.Solver
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.fir.builder.toFirOperation
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.NumeralFormula
 
 // TODO: remove when we can obtain the laws
 internal fun Solver.specialCasingForResolvedCalls(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  resolvedCall: ResolvedCall,
 ): ((result: Formula, arg1: Formula, arg2: Formula) -> BooleanFormula?)? =
   ints {
     booleans {
@@ -46,7 +43,7 @@ internal fun Solver.specialCasingForResolvedCalls(
 //          equal(result as NumeralFormula.IntegerFormula, divide(arg1 as NumeralFormula.IntegerFormula, arg2 as NumeralFormula.IntegerFormula))
 //        }
         FqName("kotlin.Int.compareTo") -> {
-          when ((resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator) {
+          when ((resolvedCall.callElement as? BinaryExpression)?.operationToken) {
             ">" -> { result, arg1, arg2 ->
               equivalence(
                 result as BooleanFormula,

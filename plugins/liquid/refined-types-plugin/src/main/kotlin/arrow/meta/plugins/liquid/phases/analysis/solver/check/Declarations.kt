@@ -24,24 +24,23 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkLiskovStronge
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkLiskovWeakerPrecondition
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.substituteDeclarationConstraints
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.psi.KtAnonymousInitializer
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtConstructor
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
-import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
-import org.jetbrains.kotlin.psi.KtEnumEntry
-import org.jetbrains.kotlin.psi.KtNamedDeclaration
-import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
-import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.AnonymousInitializer
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ClassOrObject
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Constructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.DeclarationWithBody
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.DelegatedSuperTypeEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.EnumEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NamedDeclaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.PrimaryConstructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Property
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SuperTypeCallEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SuperTypeListEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 
 // 2.1: declarations
 // -----------------
@@ -53,9 +52,9 @@ import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
  * - whether the post-condition really holds.
  */
 internal fun <A> SolverState.checkTopLevel(
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  declaration: KtDeclaration,
+  declaration: Declaration,
   resultName: ObjectFormula,
   bodyCheck: (data: CheckData, checkPost: () -> Unit) -> ContSeq<A>
 ): ContSeq<A> {
@@ -72,15 +71,15 @@ internal fun <A> SolverState.checkTopLevel(
     // introduce non-nullability and invariants of parameters
     if (descriptor is CallableDescriptor) {
       (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let { thisParam ->
-        typeInvariants(thisParam.type, THIS_VAR_NAME).forEach { addConstraint(it) }
+        typeInvariants(data.context, thisParam.type, THIS_VAR_NAME).forEach { addConstraint(it) }
       }
       descriptor.valueParameters.forEach { param ->
-        typeInvariants(param.type, param.name.asString()).forEach { addConstraint(it) }
+        typeInvariants(data.context, param.type, param.name.value).forEach { addConstraint(it) }
       }
       val returnType = descriptor.returnType
       if (returnType != null && descriptor !is ConstructorDescriptor) {
         // introduce $result too
-        typeInvariants(returnType, RESULT_VAR_NAME).forEach { addConstraint(it) }
+        typeInvariants(data.context, returnType, RESULT_VAR_NAME).forEach { addConstraint(it) }
       }
     }
     // check consistency of pre-conditions
@@ -101,9 +100,9 @@ internal fun <A> SolverState.checkTopLevel(
 }
 
 internal fun SolverState.checkTopLevelDeclarationWithBody(
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  declaration: KtDeclaration
+  declaration: Declaration
 ): ContSeq<Return> =
   checkTopLevel(context, descriptor, declaration, solver.resultVariable) { data, checkPost ->
     // only check body when we are not in a @Law
@@ -114,10 +113,11 @@ internal fun SolverState.checkTopLevelDeclarationWithBody(
     }
   }
 
+
 internal fun SolverState.checkPrimaryConstructor(
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  declaration: KtPrimaryConstructor
+  declaration: PrimaryConstructor
 ): ContSeq<Return> =
   checkTopLevel(context, descriptor, declaration, solver.thisVariable) { data, checkPost ->
     val klass = declaration.getContainingClassOrObject()
@@ -131,7 +131,7 @@ internal fun SolverState.checkPrimaryConstructor(
     }.flatMap {
       checkExpressionConstraints(solver.thisVariable, declaration.bodyExpression, data)
     }.flatMap {
-      checkClassDeclarationInConstructorContext(solver.thisVariable, klass.declarations, data)
+      checkClassDeclarationInConstructorContext(context, solver.thisVariable, klass.declarations, data)
     }.map {
       checkPost()
       NoReturn
@@ -139,7 +139,7 @@ internal fun SolverState.checkPrimaryConstructor(
   }
 
 private fun SolverState.introduceImplicitProperties(
-  klass: KtClassOrObject
+  klass: ClassOrObject
 ): ContSeq<Unit> = cont {
   // if we have 'var' or 'var' in the parameters,
   // we need to assign them to fields
@@ -147,7 +147,7 @@ private fun SolverState.introduceImplicitProperties(
   klass.primaryConstructorParameters
     .filter { it.hasValOrVar() }
     .forEach { param ->
-      val paramName = param.name ?: THIS_VAR_NAME
+      val paramName = param.nameAsName?.value ?: THIS_VAR_NAME
       val fieldName = klass.fqName?.let { "$it.$paramName" } ?: THIS_VAR_NAME
       addConstraint(NamedConstraint(
         "definition of property $paramName",
@@ -163,34 +163,35 @@ private fun SolverState.introduceImplicitProperties(
 }
 
 private fun SolverState.checkSuperTypeEntries(
-  context: DeclarationCheckerContext,
-  superTypeListEntries: List<KtSuperTypeListEntry>,
+  context: ResolutionContext,
+  superTypeListEntries: List<SuperTypeListEntry>,
   data: CheckData
 ): ContSeq<List<Return>> =
   superTypeListEntries.mapNotNull { entry ->
     when (entry) {
-      is KtDelegatedSuperTypeEntry -> entry.delegateExpression
-      is KtSuperTypeCallEntry -> entry.calleeExpression
+      is DelegatedSuperTypeEntry -> entry.delegateExpression
+      is SuperTypeCallEntry -> entry.calleeExpression
       else -> null
     }
   }.map { expr ->
-    doOnlyWhenNotNull(expr.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
+    doOnlyWhenNotNull(expr.getResolvedCall(context), NoReturn) { call ->
       checkRegularFunctionCall(solver.thisVariable, call, expr, data)
     }
   }.sequence()
 
 private fun SolverState.checkClassDeclarationInConstructorContext(
+  context: ResolutionContext,
   thisRef: ObjectFormula,
-  declarations: List<KtDeclaration>,
+  declarations: List<Declaration>,
   data: CheckData
 ): ContSeq<List<Return>> = declarations.map { decl ->
   when (decl) {
-    is KtConstructor<*> ->
+    is Constructor<*> ->
       cont { NoReturn } // do not check any other constructor
-    is KtAnonymousInitializer ->
+    is AnonymousInitializer ->
       checkExpressionConstraints(thisRef, decl.body, data)
-    is KtProperty ->
-      doOnlyWhenNotNull(decl.fqName?.asString(), NoReturn) { fieldName ->
+    is Property ->
+      doOnlyWhenNotNull(decl.fqName?.name, NoReturn) { fieldName ->
         val result = solver.field(fieldName, solver.makeObjectVariable(THIS_VAR_NAME))
         checkExpressionConstraints(result, decl.stableBody(), data)
       }
@@ -199,15 +200,15 @@ private fun SolverState.checkClassDeclarationInConstructorContext(
 }.sequence()
 
 internal fun SolverState.checkSecondaryConstructor(
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  declaration: KtSecondaryConstructor
+  declaration: SecondaryConstructor
 ): ContSeq<Return> =
   checkTopLevel(context, descriptor, declaration, solver.thisVariable) { data, checkPost ->
     ContSeq.unit.flatMap {
       // delegate into the primary constructor, if available
-      doOnlyWhenNotNull(declaration.getDelegationCallOrNull(), NoReturn) { delegation ->
-        doOnlyWhenNotNull(delegation.getResolvedCall(context.trace.bindingContext), NoReturn) { call ->
+      doOnlyWhenNotNull(declaration.getDelegationCall(), NoReturn) { delegation ->
+        doOnlyWhenNotNull(delegation.getResolvedCall(context), NoReturn) { call ->
           doOnlyWhenNotNull(delegation.calleeExpression, NoReturn) { calleeExpression ->
             checkRegularFunctionCall(solver.thisVariable, call, calleeExpression, data)
           }
@@ -222,16 +223,16 @@ internal fun SolverState.checkSecondaryConstructor(
   }
 
 internal fun SolverState.checkEnumEntry(
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  entry: KtEnumEntry
+  entry: EnumEntry
 ): ContSeq<Return> =
   checkTopLevel(context, descriptor, entry, solver.thisVariable) { data, checkPost ->
     ContSeq.unit.flatMap {
       // the supertype entries in an enumeration is the enum itself
       checkSuperTypeEntries(context, entry.superTypeListEntries, data)
     }.flatMap {
-      checkClassDeclarationInConstructorContext(solver.thisVariable, entry.declarations, data)
+      checkClassDeclarationInConstructorContext(context, solver.thisVariable, entry.declarations, data)
     }.map {
       checkPost()
       NoReturn
@@ -243,9 +244,9 @@ internal fun SolverState.checkEnumEntry(
  * in particular the Liskov Substitution Principle
  */
 private fun SolverState.checkLiskovConditions(
-  declaration: KtDeclaration,
+  declaration: Declaration,
   descriptor: DeclarationDescriptor,
-  context: DeclarationCheckerContext
+  context: ResolutionContext
 ): Boolean {
   val immediateConstraints = immediateConstraintsFromSolverState(descriptor)
   val overriddenConstraints = overriddenConstraintsFromSolverState(descriptor)
@@ -277,19 +278,19 @@ private fun SolverState.checkLiskovConditions(
  * Initialize the names of the variables,
  * the SMT name is initialized to themselves.
  */
-private fun initializeVarInfo(declaration: KtDeclaration): CurrentVarInfo {
+private fun initializeVarInfo(declaration: Declaration): CurrentVarInfo {
   val initialVarInfo = mutableListOf<VarInfo>()
   initialVarInfo.add(VarInfo(THIS_VAR_NAME, THIS_VAR_NAME, declaration))
-  if (declaration is KtNamedDeclaration) {
+  if (declaration is NamedDeclaration) {
     // Add 'this@functionName'
-    declaration.name?.let { name ->
+    declaration.nameAsName?.let { name ->
       initialVarInfo.add(VarInfo("this@$name", THIS_VAR_NAME, declaration))
     }
   }
-  if (declaration is KtDeclarationWithBody) {
+  if (declaration is DeclarationWithBody) {
     declaration.valueParameters.forEach { param ->
-      param.name?.let { name ->
-        initialVarInfo.add(VarInfo(name, name, param))
+      param?.nameAsName?.let { name ->
+        initialVarInfo.add(VarInfo(name.value, name.value, param))
       }
     }
   }

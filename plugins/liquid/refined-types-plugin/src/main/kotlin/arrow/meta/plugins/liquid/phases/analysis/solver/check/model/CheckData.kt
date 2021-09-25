@@ -1,10 +1,10 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check.model
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.liquid.smt.ObjectFormula
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
 data class CheckData(
-  val context: DeclarationCheckerContext,
+  val context: ResolutionContext,
   val returnPoints: ReturnPoints,
   val varInfo: CurrentVarInfo
 ) {

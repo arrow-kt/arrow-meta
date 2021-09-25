@@ -4,36 +4,52 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnalysisResult
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.KotlinResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.collectDeclarationsConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.finalizeConstraintsCollection
 import arrow.meta.plugins.liquid.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.calls.components.isVararg
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.psi.KtDeclaration
 
 internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
   Composite(
     listOf(
       analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-          ensureSolverStateInitialization(module)
+          val kotlinModule = KotlinModuleDescriptor { module }
+          ensureSolverStateInitialization(kotlinModule)
           null
         },
         analysisCompleted = { project, module, bindingTrace, files ->
-          // module.lawScaffoldGenerationForPackage(FqName("kotlin.math"))
-          finalizeConstraintsCollection(module, bindingTrace)
+          val kotlinModule = KotlinModuleDescriptor { module }
+          val context = KotlinResolutionContext(bindingTrace, module)
+          when (finalizeConstraintsCollection(kotlinModule, context)) {
+            AnalysisResult.Retry ->
+              org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
+                bindingTrace.bindingContext, module, emptyList(), emptyList()
+              )
+            AnalysisResult.Completed -> null
+          }
         },
       ),
       declarationChecker { declaration, descriptor, context ->
-        collectDeclarationsConstraints(context, declaration, descriptor)
+        val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
+        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let {
+          collectDeclarationsConstraints(kotlinContext, it, descriptor.model())
+        }
       },
       declarationChecker { declaration, descriptor, context ->
-        checkDeclarationConstraints(context, declaration, descriptor)
+        val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
+        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let {
+          checkDeclarationConstraints(kotlinContext, it, descriptor.model())
+        }
       },
       irFunction { fn ->
         annotateWithConstraints(fn)
@@ -42,39 +58,6 @@ internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
       irDumpKotlinLike()
     )
   )
-
-private fun ModuleDescriptor.lawScaffoldGenerationForPackage(pck: FqName) {
-  getPackage(FqName("kotlin.math")).memberScope.getContributedDescriptors { true }
-    .filterIsInstance<SimpleFunctionDescriptor>().filter {
-      it.visibility.isPublicAPI && !it.annotations.hasAnnotation(FqName("kotlin.Deprecated"))
-    }.forEach {
-      val rendered = it.toString()
-        .substringBeforeLast("defined in")
-        .replace("(@.*?) ".toRegex(), "")
-        .replace("operator", "")
-        .replace("kotlin.", "")
-        .replace("collections.", "")
-        .replace(" = ...", "")
-        .replace(
-          it.name.asString(),
-          it.name.asString() + "Law"
-        )
-      println(
-        """
-                  
-                @Law  
-                @JvmName("${it.name}Law${it.valueParameters.joinToString("") { it.type.toString() }}${it.returnType?.toString()}")
-                $rendered {
-                  pre(true) { "${it.fqNameSafe} pre-conditions" }
-                  return ${it.name}(${it.valueParameters.joinToString { if (it.isVararg) "*" + it.name.asString() else it.name.asString() }})
-                    .post({ true }, { "${it.fqNameSafe} post-conditions" })
-                }
-                """.trimIndent()
-      )
-    }
-
-  TODO("stop")
-}
 
 internal fun CompilerContext.ensureSolverStateInitialization(
   module: ModuleDescriptor

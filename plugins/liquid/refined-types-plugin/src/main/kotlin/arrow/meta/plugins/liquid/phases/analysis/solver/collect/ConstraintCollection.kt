@@ -2,9 +2,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.collect
 
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.body
-import arrow.meta.phases.resolve.unwrappedNotNullableType
-import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
@@ -29,66 +27,39 @@ import arrow.meta.plugins.liquid.smt.intMultiply
 import arrow.meta.plugins.liquid.smt.intPlus
 import arrow.meta.plugins.liquid.smt.isFieldCall
 import arrow.meta.plugins.liquid.smt.isSingleVariable
-import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.ParameterDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.Annotated
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.fir.builder.toFirOperation
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtAnnotatedExpression
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtConstantExpression
-import org.jetbrains.kotlin.psi.KtConstructor
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
-import org.jetbrains.kotlin.psi.KtDeclarationWithInitializer
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtLambdaArgument
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.KtParenthesizedExpression
-import org.jetbrains.kotlin.psi.KtReturnExpression
-import org.jetbrains.kotlin.psi.KtThisExpression
-import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
-import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
-import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
-import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.annotations.argumentValue
-import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
-import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import org.jetbrains.kotlin.resolve.constants.ArrayValue
-import org.jetbrains.kotlin.resolve.constants.StringValue
-import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
-import org.jetbrains.kotlin.types.typeUtil.isBoolean
-import org.jetbrains.kotlin.types.typeUtil.isDouble
-import org.jetbrains.kotlin.types.typeUtil.isFloat
-import org.jetbrains.kotlin.types.typeUtil.isInt
-import org.jetbrains.kotlin.types.typeUtil.isLong
-import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.AnnotatedExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BinaryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ConstantExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Constructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.DeclarationWithBody
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.DeclarationWithInitializer
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Function
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.IfExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionLambdaArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.LambdaExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NameReferenceExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ParenthesizedExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ReturnExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThisExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnalysisResult
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.Annotated
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
@@ -103,11 +74,11 @@ import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
  * Collects constraints from all declarations and adds them to the solver state
  */
 internal fun CompilerContext.collectDeclarationsConstraints(
-  context: DeclarationCheckerContext,
-  declaration: KtDeclaration,
+  context: ResolutionContext,
+  declaration: Declaration,
   descriptor: DeclarationDescriptor
 ) {
-  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
+  val solverState = get<SolverState>(SolverState.key(context.module))
   if (solverState != null && (solverState.isIn(SolverState.Stage.Init) || solverState.isIn(SolverState.Stage.CollectConstraints))) {
     solverState.collecting()
     declaration.constraints(solverState, context, descriptor)
@@ -120,21 +91,22 @@ internal fun CompilerContext.collectDeclarationsConstraints(
  * - Ad-hoc constraints over third party types TODO
  * - Annotated declarations in compiled third party dependency modules TODO
  */
-internal fun KtDeclaration.constraints(
+internal fun Declaration.constraints(
   solverState: SolverState,
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   descriptor: DeclarationDescriptor
 ) = when (this) {
-  is KtConstructor<*> ->
+  is Constructor<*> ->
     constraintsFromConstructor(solverState, context)
-  is KtDeclarationWithBody, is KtDeclarationWithInitializer ->
+  is DeclarationWithBody, is DeclarationWithInitializer ->
     constraintsFromFunctionLike(solverState, context)
   else -> Pair(arrayListOf(), arrayListOf())
 }.let { (preConstraints, postConstraints) ->
   if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
     solverState.addConstraints(
       descriptor, preConstraints, postConstraints,
-      context.trace.bindingContext)
+      context
+    )
   }
 }
 
@@ -142,20 +114,21 @@ internal fun KtDeclaration.constraints(
  * Obtain all the function calls and corresponding formulae
  * to 'pre', 'post', and 'require'
  */
-private fun KtDeclaration.constraintsFromDeclaration(
+private fun Declaration.constraintsFromDeclaration(
   solverState: SolverState,
-  context: DeclarationCheckerContext
-): List<Pair<ResolvedCall<*>, NamedConstraint>> =
-  constraintsDSLElements().filterIsInstance<KtElement>().mapNotNull {
+  context: ResolutionContext
+): List<Pair<ResolvedCall, NamedConstraint>> = context.run {
+  constraintsDSLElements().toList().mapNotNull {
     it.elementToConstraint(solverState, context)
   }
+}
 
 /**
  * Gather constraints for anything which is not a constructor
  */
-private fun KtDeclaration.constraintsFromFunctionLike(
+private fun Declaration.constraintsFromFunctionLike(
   solverState: SolverState,
-  context: DeclarationCheckerContext
+  context: ResolutionContext
 ): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
@@ -171,13 +144,13 @@ private fun KtDeclaration.constraintsFromFunctionLike(
  * namely the pre- and post-conditions of init blocks
  * should be added to their own list
  */
-private fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
+private fun <A : Constructor<A>> Constructor<A>.constraintsFromConstructor(
   solverState: SolverState,
-  context: DeclarationCheckerContext
+  context: ResolutionContext
 ): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
-  (this.containingClassOrObject?.let { klass ->
+  (this.getContainingClassOrObject()?.let { klass ->
     (klass.getAnonymousInitializers() + listOf(this)).flatMap {
       it.constraintsFromDeclaration(solverState, context)
     }
@@ -201,11 +174,11 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.constraintsFromConstructor(
  * Turn references to 'field(x, this)'
  * into references to parameter 'x'
  */
-private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
+private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
   solverState: SolverState,
-  context: DeclarationCheckerContext,
+  context: ResolutionContext,
   raiseErrorWhenUnexpected: Boolean,
-  call: ResolvedCall<*>,
+  call: ResolvedCall,
   formula: BooleanFormula
 ): BooleanFormula? {
   val mgr = solverState.solver.formulaManager
@@ -218,8 +191,8 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
           val fieldName = args?.getOrNull(0)?.let { mgr.extractSingleVariable(it) }
           val thisName = args?.getOrNull(1)?.let { mgr.extractSingleVariable(it) }
           val paramName = this@rewritePrecondition.valueParameters.firstOrNull { param ->
-            fieldName?.endsWith(".${param.name}") ?: (param.name == fieldName)
-          }?.name
+            fieldName?.endsWith(".${param.nameAsName?.value}") ?: (param.nameAsName?.value == fieldName)
+          }?.nameAsName?.value
           if (fieldName != null && thisName == "this") {
             if (paramName != null) {
               solverState.solver.makeObjectVariable(paramName)
@@ -229,9 +202,7 @@ private fun <A : KtConstructor<A>> KtConstructor<A>.rewritePrecondition(
               errorSignaled = true
               if (raiseErrorWhenUnexpected) {
                 val msg = unexpectedFieldInitBlock(fieldName)
-                context.trace.report(
-                  MetaErrors.UnsatCallPre.on(call.call.callElement, msg)
-                )
+                context.reportUnsatCallPre(call.callElement, msg)
               }
               super.visitFunction(f, args, fn)
             }
@@ -273,43 +244,22 @@ private fun FormulaManager.extractSingleVariable(
     .takeIf { it.size == 1 }
     ?.toList()?.getOrNull(0)?.first
 
-/**
- * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]
- * that hold preconditions
- */
-private fun KtElement.constraintsDSLElements(): Set<PsiElement> {
-  val results = hashSetOf<PsiElement>()
-  val visitor = callExpressionRecursiveVisitor {
-    if (it.calleeExpression?.text == "pre" ||
-      it.calleeExpression?.text == "post" ||
-      it.calleeExpression?.text == "require"
-    ) {
-      results.add(it)
-    }
-  }
-  accept(visitor)
-  acceptChildren(visitor)
-  return results
-}
-
-private fun KtElement.elementToConstraint(
+private fun Element.elementToConstraint(
   solverState: SolverState,
-  context: DeclarationCheckerContext
-): Pair<ResolvedCall<*>, NamedConstraint>? {
-  val bindingCtx = context.trace.bindingContext
-  val call = getResolvedCall(bindingCtx)
+  context: ResolutionContext
+): Pair<ResolvedCall, NamedConstraint>? {
+  val call = getResolvedCall(context)
   return if (call?.preOrPostCall() == true) {
-    val predicateArg = call.arg("predicate") ?: call.arg("value")
-    val result = solverState.solver.expressionToFormula(predicateArg, bindingCtx) as? BooleanFormula
+    val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
+    val result = solverState.solver.expressionToFormula(predicateArg, context) as? BooleanFormula
     if (result == null) {
-      context.trace.report(
-        MetaErrors.ErrorParsingPredicate.on(this, ErrorMessages.Parsing.errorParsingPredicate(predicateArg))
-      )
+      val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
+      context.reportErrorsParsingPredicate(this, msg)
       solverState.signalParseErrors()
       null
     } else {
-      val msgBody = call.arg("msg") ?: call.arg("lazyMessage")
-      val msg = if (msgBody is KtLambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
+      val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)
+      val msg = if (msgBody is LambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
       else msgBody?.text ?: predicateArg?.text
       msg?.let { call to NamedConstraint(it, result) }
     }
@@ -321,32 +271,32 @@ private fun KtElement.elementToConstraint(
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.pre]
  */
-internal fun ResolvedCall<out CallableDescriptor>.preCall(): Boolean =
+internal fun ResolvedCall.preCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre") ||
     requireCall() // require is taken as precondition
 
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.post]
  */
-internal fun ResolvedCall<out CallableDescriptor>.postCall(): Boolean =
+internal fun ResolvedCall.postCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
 
 /**
  * returns true if [this] resolved call is calling [kotlin.require]
  */
-internal fun ResolvedCall<out CallableDescriptor>.requireCall(): Boolean =
+internal fun ResolvedCall.requireCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("kotlin.require")
 
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
  */
-private fun ResolvedCall<out CallableDescriptor>.preOrPostCall(): Boolean =
+private fun ResolvedCall.preOrPostCall(): Boolean =
   preCall() || postCall()
 
 /**
  * returns true if [this] resolved call is calling [arrow.refinement.invariant]
  */
-internal fun ResolvedCall<out CallableDescriptor>.invariantCall(): Boolean =
+internal fun ResolvedCall.invariantCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
 
 /**
@@ -365,15 +315,15 @@ private fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
   preConstraints: ArrayList<NamedConstraint>,
   postConstraints: ArrayList<NamedConstraint>,
-  bindingContext: BindingContext
+  bindingContext: ResolutionContext
 ) {
   val remoteDescriptorFromRemoteLaw =
     descriptor.annotations.findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
-      val subjectFqName = (lawSubject.argumentValue("fqName") as? StringValue)?.value?.let { FqName(it) }
+      val subjectFqName = (lawSubject.argumentValueAsString("fqName"))?.let { FqName(it) }
       if (subjectFqName != null) {
-        val pck = subjectFqName.parent()
-        val fn = subjectFqName.pathSegments().lastOrNull()
-        descriptor.module.getPackage(pck).memberScope.getContributedDescriptors { it == fn }.firstOrNull()
+        val pck = subjectFqName.name.substringBeforeLast(".")
+        val fn = subjectFqName.name.split(".").lastOrNull()
+        descriptor.module.getPackage(pck)?.memberScope?.getContributedDescriptors { it == fn }?.firstOrNull()
       } else null
     }
   val targetDescriptorFromLocalLaw =
@@ -393,17 +343,17 @@ private fun SolverState.addConstraints(
 
 private fun getReturnedExpressionWithoutPostcondition(
   descriptor: DeclarationDescriptor,
-  bindingContext: BindingContext
-): ResolvedCall<out CallableDescriptor>? {
-  val lastElement = (descriptor.findPsi() as? KtFunction)?.body()?.lastBlockStatementOrThis()
+  bindingContext: ResolutionContext
+): ResolvedCall? {
+  val lastElement = (descriptor.element() as? Function)?.body()?.lastBlockStatementOrThis()
   val lastElementWithoutReturn = when (lastElement) {
-    is KtReturnExpression -> lastElement.returnedExpression
+    is ReturnExpression -> lastElement.returnedExpression
     else -> lastElement
   }
   // remove outer layer of postcondition
   return lastElementWithoutReturn?.getResolvedCall(bindingContext)?.let {
     if (it.postCall()) {
-      it.arg("this")?.getResolvedCall(bindingContext)
+      it.arg("this", bindingContext)?.getResolvedCall(bindingContext)
     } else {
       it
     }
@@ -413,10 +363,10 @@ private fun getReturnedExpressionWithoutPostcondition(
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
-  annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Pre") }
+  annotations.findAnnotation(FqName("arrow.refinement.Pre"))
 
 private fun Annotated.postAnnotation(): AnnotationDescriptor? =
-  annotations.firstOrNull { it.fqName == FqName("arrow.refinement.Post") }
+  annotations.findAnnotation(FqName("arrow.refinement.Post"))
 
 private val skipPackages = setOf(
   FqName("com.apple"),
@@ -438,14 +388,14 @@ private val skipPackages = setOf(
  */
 internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
   acc: List<DeclarationDescriptor> = emptyList(),
-  packages: List<FqName> = listOf(FqName.ROOT),
+  packages: List<FqName> = listOf(FqName("")),
   skipPacks: Set<FqName> = skipPackages
 ): List<DeclarationDescriptor> =
   when {
     packages.isEmpty() -> acc
     else -> {
       val current = packages.first()
-      val topLevelDescriptors = getPackage(current).memberScope.getContributedDescriptors { true }.toList()
+      val topLevelDescriptors = getPackage(current.name)?.memberScope?.getContributedDescriptors { true }?.toList().orEmpty()
       val memberDescriptors = topLevelDescriptors.filterIsInstance<ClassDescriptor>().flatMap {
         it.unsubstitutedMemberScope.getContributedDescriptors { true }.toList()
       }
@@ -454,14 +404,14 @@ internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
         .filter {
           it.preAnnotation() != null || it.postAnnotation() != null
         }
-      val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
+      val remaining = (getSubPackagesOf(current) + packages.drop(1)).filter { it !in skipPacks }
       declarationsWithConstraints(acc + packagedProofs.asSequence(), remaining)
     }
   }
 
 internal fun SolverState.addClassPathConstraintsToSolverState(
   descriptor: DeclarationDescriptor,
-  bindingContext: BindingContext
+  bindingContext: ResolutionContext
 ) {
   val constraints = descriptor.annotations.mapNotNull { ann ->
     when (ann.fqName) {
@@ -489,14 +439,13 @@ private fun SolverState.parseFormula(
   annotation: AnnotationDescriptor,
   descriptor: DeclarationDescriptor
 ): Pair<String, List<NamedConstraint>> {
-  fun getArg(arg: String) =
-    (annotation.argumentValue(arg) as? ArrayValue)?.value?.filterIsInstance<StringValue>()?.map { it.value }
+  fun getArg(arg: String) = annotation.argumentValueAsArrayOfString(arg)
 
-  val dependencies = getArg("dependencies") ?: emptyList()
-  val formulae = getArg("formulae") ?: emptyList()
-  val messages = getArg("messages") ?: emptyList()
+  val dependencies = getArg("dependencies")
+  val formulae = getArg("formulae")
+  val messages = getArg("messages")
   return element to messages.zip(formulae).map { (msg, formula) ->
-    NamedConstraint(msg, parseFormula(descriptor, formula, dependencies))
+    NamedConstraint(msg, parseFormula(descriptor, formula, dependencies.toList()))
   }
 }
 
@@ -536,73 +485,73 @@ internal fun SolverState.parseFormula(
  */
 internal fun CompilerContext.finalizeConstraintsCollection(
   module: ModuleDescriptor,
-  bindingTrace: BindingTrace
-): AnalysisResult? {
+  bindingTrace: ResolutionContext
+): AnalysisResult {
   val solverState = get<SolverState>(SolverState.key(module))
   return if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
     module.declarationsWithConstraints().forEach {
-      solverState.addClassPathConstraintsToSolverState(it, bindingTrace.bindingContext)
+      solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
     solverState.introduceFieldNamesInSolver()
     // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
     solverState.collectionEnds()
     return if (!solverState.hadParseErrors()) {
-      AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
-    } else null
-  } else null
+      AnalysisResult.Retry
+    } else AnalysisResult.Completed
+  } else AnalysisResult.Completed
 }
 
 /**
- * Transform a [KtExpression] into a [Formula]
+ * Transform a [Expression] into a [Formula]
  */
 internal fun Solver.expressionToFormula(
-  ex: KtExpression?,
-  bindingContext: BindingContext
+  ex: Expression?,
+  context: ResolutionContext
 ): Formula? {
-  val argCall = ex?.getResolvedCall(bindingContext)
+  val argCall = ex?.getResolvedCall(context)
   return when {
-    ex is KtParenthesizedExpression ->
-      expressionToFormula(ex.expression, bindingContext)
-    ex is KtAnnotatedExpression ->
-      expressionToFormula(ex.baseExpression, bindingContext)
-    ex is KtLambdaExpression ->
-      expressionToFormula(ex.bodyExpression, bindingContext)
-    ex is KtBlockExpression ->
+    ex is ParenthesizedExpression ->
+      expressionToFormula(ex.expression, context)
+    ex is AnnotatedExpression ->
+      expressionToFormula(ex.baseExpression, context)
+    ex is LambdaExpression ->
+      expressionToFormula(ex.bodyExpression, context)
+    ex is BlockExpression ->
       ex.statements
-        .mapNotNull { expressionToFormula(it, bindingContext) as? BooleanFormula }
+        .mapNotNull { expressionToFormula(it, context) as? BooleanFormula }
         .let { conditions -> boolAndList(conditions) }
-    ex is KtBinaryExpression &&
+    ex is BinaryExpression &&
       ex.operationToken.toString() == "EQEQ" &&
-      ex.right is KtConstantExpression && ex.right?.text == "null" ->
-      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNull(it) }
-    ex is KtBinaryExpression &&
+      ex.right is ConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNull(it) }
+    ex is BinaryExpression &&
       ex.operationToken.toString() == "EXCLEQ" &&
-      ex.right is KtConstantExpression && ex.right?.text == "null" ->
-      ex.left?.let { expressionToFormula(it, bindingContext) as? ObjectFormula }?.let { isNotNull(it) }
-    ex is KtBinaryExpression &&
+      ex.right is ConstantExpression && ex.right?.text == "null" ->
+      ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNotNull(it) }
+    ex is BinaryExpression &&
       ex.operationToken.toString() == "ANDAND" ->
-      expressionToFormula(ex.left, bindingContext)?.let { leftFormula ->
-        expressionToFormula(ex.right, bindingContext)?.let { rightFormula ->
+      expressionToFormula(ex.left, context)?.let { leftFormula ->
+        expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolAnd(listOf(leftFormula, rightFormula))
         }
       }
-    ex is KtBinaryExpression &&
+    ex is BinaryExpression &&
       ex.operationToken.toString() == "OROR" ->
-      expressionToFormula(ex.left, bindingContext)?.let { leftFormula ->
-        expressionToFormula(ex.right, bindingContext)?.let { rightFormula ->
+      expressionToFormula(ex.left, context)?.let { leftFormula ->
+        expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolOr(listOf(leftFormula, rightFormula))
         }
       }
-    ex is KtConstantExpression ->
-      ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
-    ex is KtThisExpression -> // reference to this
+    ex is ConstantExpression ->
+      ex.type(context)?.let { ty -> makeConstant(ty, ex) }
+    ex is ThisExpression -> // reference to this
       makeObjectVariable("this")
-    ex is KtNameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
-      makeObjectVariable(formulaVariableName(ex, bindingContext))
-    ex is KtIfExpression -> {
-      val cond = expressionToFormula(ex.condition, bindingContext) as? BooleanFormula
-      val thenBranch = expressionToFormula(ex.then, bindingContext)
-      val elseBranch = expressionToFormula(ex.`else`, bindingContext)
+    ex is NameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
+      makeObjectVariable(formulaVariableName(ex, context))
+    ex is IfExpression -> {
+      val cond = expressionToFormula(ex.condition, context) as? BooleanFormula
+      val thenBranch = expressionToFormula(ex.thenExpression, context)
+      val elseBranch = expressionToFormula(ex.elseExpression, context)
       if (cond != null && thenBranch != null && elseBranch != null) {
         ifThenElse(cond, thenBranch, elseBranch)
       } else {
@@ -611,7 +560,7 @@ internal fun Solver.expressionToFormula(
     }
     argCall != null -> { // fall-through case
       val descriptor = argCall.resultingDescriptor
-      val args = argCall.allArgumentExpressions().map { (_, ty, e) -> Pair(ty, expressionToFormula(e, bindingContext)) }
+      val args = argCall.allArgumentExpressions(context).map { (_, ty, e) -> Pair(ty, expressionToFormula(e, context)) }
       // is it one of our well-known functions?
       val special = when {
         args.all { it.second != null } -> specialFormula(argCall, args.map { (ty, e) -> wrap(e!!, ty) })
@@ -623,7 +572,7 @@ internal fun Solver.expressionToFormula(
           // create a field, the 'this' may be missing
           val thisExpression =
             (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
-          field(descriptor.fqNameSafe.asString(), thisExpression)
+          field(descriptor.fqNameSafe.name, thisExpression)
         }
         else -> null
       }
@@ -633,11 +582,11 @@ internal fun Solver.expressionToFormula(
 }
 
 private fun Solver.specialFormula(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  resolvedCall: ResolvedCall,
   args: List<Formula>
 ): Formula? = when (resolvedCall.resultingDescriptor.fqNameSafe) {
   FqName("kotlin.Int.equals") -> {
-    val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+    val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
     when (op) {
       "==" -> intEquals(args)
       "!=" -> intEquals(args)?.let { not(it) }
@@ -649,7 +598,7 @@ private fun Solver.specialFormula(
   FqName("kotlin.Int.times") -> intMultiply(args)
   FqName("kotlin.Int.div") -> intDivide(args)
   FqName("kotlin.Int.compareTo") -> {
-    val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+    val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
     when (op) {
       ">" -> intGreaterThan(args)
       ">=" -> intGreaterThanOrEquals(args)
@@ -659,7 +608,7 @@ private fun Solver.specialFormula(
     }
   }
   FqName("kotlin.Boolean.equals") -> {
-    val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+    val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
     when (op) {
       "==" -> boolEquivalence(args)
       "!=" -> boolEquivalence(args)?.let { not(it) }
@@ -674,7 +623,7 @@ private fun Solver.specialFormula(
 
 private fun Solver.wrap(
   formula: Formula,
-  type: KotlinType
+  type: Type
 ): Formula = when {
   // only wrap variables and 'field(name, thing)'
   !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
@@ -699,8 +648,8 @@ private fun Solver.wrap(
  * formula type [FormulaType.IntegerType]
  */
 private fun Solver.makeConstant(
-  type: KotlinType,
-  ex: KtConstantExpression
+  type: Type,
+  ex: ConstantExpression
 ): Formula? =
   when {
     type.isInt() ->
@@ -714,8 +663,8 @@ private fun Solver.makeConstant(
  * Use the special name $result for references to the result.
  */
 internal fun formulaVariableName(
-  ex: KtNameReferenceExpression,
-  bindingContext: BindingContext
+  ex: NameReferenceExpression,
+  bindingContext: ResolutionContext
 ): String =
   if (ex.isResultReference(bindingContext)) RESULT_VAR_NAME else ex.getReferencedName()
 
@@ -736,50 +685,51 @@ private fun CallableDescriptor.hasOneReceiver(): Boolean =
  * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
  * value arguments
  */
-internal fun <D : CallableDescriptor> ResolvedCall<D>.allArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+internal fun ResolvedCall.allArgumentExpressions(context: ResolutionContext): List<Triple<String, Type, Expression?>> =
   listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
-    valueArgumentExpressions()
+    valueArgumentExpressions(context)
 
-internal fun <D : CallableDescriptor> ResolvedCall<D>.valueArgumentExpressions(): List<Triple<String, KotlinType, KtExpression?>> =
+internal fun ResolvedCall.valueArgumentExpressions(context: ResolutionContext): List<Triple<String, Type, Expression?>> =
   valueArguments.flatMap { (param, resolvedArg) ->
     val containingType =
       if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
-        (param.containingDeclaration.containingDeclaration as? ClassDescriptor)?.defaultType
-          ?: param.builtIns.nothingType
+        (param.containingDeclaration?.containingDeclaration as? ClassDescriptor)?.defaultType
+          ?: context.types.nothingType
       else param.type
     resolvedArg.arguments.map {
-      Triple(param.name.asString(), containingType, it.getArgumentExpression())
+      Triple(param.name.value, containingType, it.argumentExpression)
     }
   }
 
-internal fun <D : CallableDescriptor> ResolvedCall<D>.arg(
-  argumentName: String
-): KtExpression? =
-  this.allArgumentExpressions().find { it.first == argumentName }?.third
+internal fun ResolvedCall.arg(
+  argumentName: String,
+  context: ResolutionContext
+): Expression? =
+  this.allArgumentExpressions(context).find { it.first == argumentName }?.third
 
-internal fun <D : CallableDescriptor> ResolvedCall<D>.resolvedArg(
+internal fun ResolvedCall.resolvedArg(
   argumentName: String
 ): ResolvedValueArgument? =
   this.valueArguments.toList().find {
-    it.first.name.asString() == argumentName
+    it.first.name.value == argumentName
   }?.second
 
-internal fun KtElement.isResultReference(bindingContext: BindingContext): Boolean =
+internal fun Element.isResultReference(bindingContext: ResolutionContext): Boolean =
   getPostOrInvariantParent(bindingContext)?.let { parent ->
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
-      (expArg?.valueArgument as? KtLambdaArgument)?.getLambdaExpression()
-        ?: (expArg?.valueArgument as? KtValueArgument)?.getArgumentExpression() as? KtLambdaExpression
+      (expArg?.valueArgument as? ExpressionLambdaArgument)?.getLambdaExpression()
+        ?: (expArg?.valueArgument as? arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionValueArgument)?.argumentExpression as? LambdaExpression
     val params =
       lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
         listOf("it")
     this.text in params.distinct()
   } ?: false
 
-internal fun KtElement.getPostOrInvariantParent(
-  bindingContext: BindingContext
-): ResolvedCall<out CallableDescriptor>? =
-  this.parents.filterIsInstance<KtElement>().mapNotNull {
+internal fun Element.getPostOrInvariantParent(
+  bindingContext:  ResolutionContext
+): ResolvedCall? =
+  this.parents().mapNotNull {
     it.getResolvedCall(bindingContext)
   }.firstOrNull { call ->
     call.postCall() || call.invariantCall()

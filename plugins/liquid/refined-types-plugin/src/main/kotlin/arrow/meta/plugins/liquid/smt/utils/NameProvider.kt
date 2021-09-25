@@ -1,16 +1,16 @@
 package arrow.meta.plugins.liquid.smt.utils
 
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
-import org.jetbrains.kotlin.types.KotlinType
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 data class ReferencedElement(
-  val element: KtElement,
+  val element: Element,
   val reference: Pair<ValueParameterDescriptor, ResolvedValueArgument>?,
-  val type: KotlinType?
+  val type: Type?
 )
 
 class NameProvider {
