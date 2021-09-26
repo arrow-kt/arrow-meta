@@ -1,3 +1,8 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
-interface KotlinWhenCondition : KotlinElement
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenCondition
+import org.jetbrains.kotlin.psi.KtWhenCondition
+
+fun interface KotlinWhenCondition : WhenCondition, KotlinElement {
+  override fun impl(): KtWhenCondition
+}

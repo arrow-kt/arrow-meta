@@ -20,5 +20,5 @@ fun interface KotlinClassifierDescriptorWithTypeParameters :
     get() = impl().declaredTypeParameters.map { it.model() }
 
   override val visibility: Visibility
-    get() = KotlinVisibility(impl().visibility.delegate)
+    get() = KotlinVisibility { impl().visibility.delegate }
 }

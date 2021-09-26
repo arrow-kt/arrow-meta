@@ -1,5 +1,12 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
-interface KotlinDelegatedSuperTypeEntry : KotlinSuperTypeListEntry {
-  val delegateExpression: KotlinExpression?
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.DelegatedSuperTypeEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
+import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
+
+fun interface KotlinDelegatedSuperTypeEntry : DelegatedSuperTypeEntry, KotlinSuperTypeListEntry {
+  override fun impl(): KtDelegatedSuperTypeEntry
+  override val delegateExpression: Expression?
+    get() = impl().delegateExpression?.model()
 }

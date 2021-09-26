@@ -9,7 +9,11 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Name
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.*
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 fun interface KotlinCallableMemberDescriptor :
@@ -27,19 +31,17 @@ fun interface KotlinCallableMemberDescriptor :
       SYNTHESIZED -> CallableMemberDescriptor.Kind.SYNTHESIZED
     }
 
-  override val annotations: Annotations
-    get() = KotlinAnnotations { impl().annotations }
+  override fun annotations(): Annotations = KotlinAnnotations (impl().annotations)
   override val module: ModuleDescriptor
     get() = KotlinModuleDescriptor { impl().module }
   override val containingDeclaration: DeclarationDescriptor?
-    get() = TODO("Not yet implemented")
+    get() = impl().containingDeclaration.model()
 
-  override fun element(): Element? {
-    TODO("Not yet implemented")
-  }
+  override fun element(): Element? =
+    (impl().findPsi() as? KtElement)?.model()
 
   override val fqNameSafe: FqName
-    get() = TODO("Not yet implemented")
+    get() = FqName(impl().fqNameSafe.asString())
   override val name: Name
-    get() = TODO("Not yet implemented")
+    get() = Name(impl().name.asString())
 }

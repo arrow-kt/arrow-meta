@@ -4,23 +4,21 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 
-fun interface KotlinAnnotations : Annotations {
+class KotlinAnnotations(override val impl: org.jetbrains.kotlin.descriptors.annotations.Annotations) : Annotations {
 
-  fun impl(): org.jetbrains.kotlin.descriptors.annotations.Annotations
-
-  override fun iterator(): Iterator<AnnotationDescriptor> =
-    iterator {
-      yieldAll(impl().map { KotlinAnnotationDescriptor { it } })
-    }
+  override fun iterable(): Iterable<AnnotationDescriptor> =
+    impl.map { KotlinAnnotationDescriptor { it } }
 
   override fun isEmpty(): Boolean =
-    impl().isEmpty()
+    impl.isEmpty()
 
   override fun findAnnotation(fqName: FqName): AnnotationDescriptor? =
-    impl().findAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))?.let { KotlinAnnotationDescriptor { it } }
+    impl.findAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))?.let { KotlinAnnotationDescriptor { it } }
 
   override fun hasAnnotation(fqName: FqName): Boolean =
-    impl().hasAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))
+    impl.hasAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))
+
+
 }
 
 

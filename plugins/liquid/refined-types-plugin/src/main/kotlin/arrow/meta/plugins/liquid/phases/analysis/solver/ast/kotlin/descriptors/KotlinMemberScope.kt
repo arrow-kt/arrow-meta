@@ -7,18 +7,21 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 
 
-internal class KotlinMemberScope(private val impl: org.jetbrains.kotlin.resolve.scopes.MemberScope) : MemberScope {
+fun interface KotlinMemberScope : MemberScope {
+
+  fun impl(): org.jetbrains.kotlin.resolve.scopes.MemberScope
+
   override fun getClassifierNames(): Set<Name> =
-    impl.getClassifierNames()?.map { Name(it.asString()) }.orEmpty().toSet()
+    impl().getClassifierNames()?.map { Name(it.asString()) }.orEmpty().toSet()
 
   override fun getFunctionNames(): Set<Name> =
-    impl.getFunctionNames().map { Name(it.asString()) }.toSet()
+    impl().getFunctionNames().map { Name(it.asString()) }.toSet()
 
   override fun getVariableNames(): Set<Name> =
-    impl.getVariableNames().map { Name(it.asString()) }.toSet()
+    impl().getVariableNames().map { Name(it.asString()) }.toSet()
 
   override fun getContributedDescriptors(filter: (name: String) -> Boolean): List<DeclarationDescriptor> =
-    impl.getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map { it.model() }
+    impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map { it.model() }
 }
 
 

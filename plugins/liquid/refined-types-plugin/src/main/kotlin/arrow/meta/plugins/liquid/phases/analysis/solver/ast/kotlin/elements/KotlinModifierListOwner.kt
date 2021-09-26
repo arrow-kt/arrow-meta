@@ -5,7 +5,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Mod
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 
-interface KotlinModifierListOwner : ModifierListOwner, KotlinAnnotated {
+fun interface KotlinModifierListOwner : ModifierListOwner, KotlinAnnotated {
   override fun impl(): KtModifierListOwner
 
   override val modifierList: ModifierList?

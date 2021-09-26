@@ -5,6 +5,5 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 
 fun interface KotlinAnnotated : Annotated {
   fun impl(): org.jetbrains.kotlin.descriptors.annotations.Annotated
-  override val annotations: Annotations
-    get() = KotlinAnnotations { impl().annotations }
+  override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
 }

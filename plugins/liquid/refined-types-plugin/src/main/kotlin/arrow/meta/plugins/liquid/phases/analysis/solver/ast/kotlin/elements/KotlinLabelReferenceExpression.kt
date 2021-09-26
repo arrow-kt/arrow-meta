@@ -1,3 +1,8 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
-interface KotlinLabelReferenceExpression : KotlinSimpleNameExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.LabelReferenceExpression
+import org.jetbrains.kotlin.psi.KtLabelReferenceExpression
+
+fun interface KotlinLabelReferenceExpression : LabelReferenceExpression, KotlinSimpleNameExpression {
+  override fun impl(): KtLabelReferenceExpression
+}

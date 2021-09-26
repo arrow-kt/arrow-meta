@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 
 
-fun interface KotlinConstructorDescriptor : ConstructorDescriptor, KotlinFunctionDescriptor {
-  override fun impl(): org.jetbrains.kotlin.descriptors.ConstructorDescriptor
+class KotlinConstructorDescriptor(override val impl: org.jetbrains.kotlin.descriptors.ConstructorDescriptor) : ConstructorDescriptor, KotlinFunctionDescriptor(impl) {
+  override fun impl(): org.jetbrains.kotlin.descriptors.ConstructorDescriptor = impl
 
   override val constructedClass: ClassDescriptor
     get() = impl().constructedClass.model()

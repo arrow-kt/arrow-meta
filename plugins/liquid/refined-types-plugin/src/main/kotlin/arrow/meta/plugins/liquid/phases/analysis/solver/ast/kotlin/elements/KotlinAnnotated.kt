@@ -10,8 +10,7 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 fun interface KotlinAnnotated : Annotated, KotlinElement {
  override fun impl(): KtAnnotated
 
-  override val annotations: List<Annotation>
-    get() = impl().annotations.map { it.model() }
+  override fun getAnnotations(): List<Annotation> = impl().annotations.map { it.model() }
 
   override val annotationEntries: List<AnnotationEntry>
     get() = impl().annotationEntries.map { it.model() }

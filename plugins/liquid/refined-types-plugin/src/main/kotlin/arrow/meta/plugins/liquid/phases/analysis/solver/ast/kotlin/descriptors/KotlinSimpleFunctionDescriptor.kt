@@ -2,9 +2,10 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.*
 
-abstract class KotlinFunctionDescriptor(open val impl: org.jetbrains.kotlin.descriptors.FunctionDescriptor) : FunctionDescriptor, KotlinCallableMemberDescriptor {
+class KotlinSimpleFunctionDescriptor(override val impl: org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor) : SimpleFunctionDescriptor, KotlinFunctionDescriptor(impl) {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.FunctionDescriptor = impl
 

@@ -303,7 +303,7 @@ internal fun ResolvedCall.invariantCall(): Boolean =
  * returns true if we have declared something with a @Law
  */
 fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
-  annotations.hasAnnotation(FqName("arrow.refinement.Law"))
+  annotations().hasAnnotation(FqName("arrow.refinement.Law"))
 
 /**
  * Depending on the source of the [descriptor] we might
@@ -318,12 +318,12 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val remoteDescriptorFromRemoteLaw =
-    descriptor.annotations.findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
+    descriptor.annotations().findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
       val subjectFqName = (lawSubject.argumentValueAsString("fqName"))?.let { FqName(it) }
       if (subjectFqName != null) {
         val pck = subjectFqName.name.substringBeforeLast(".")
         val fn = subjectFqName.name.split(".").lastOrNull()
-        descriptor.module.getPackage(pck)?.memberScope?.getContributedDescriptors { it == fn }?.firstOrNull()
+        descriptor.module.getPackage(pck)?.getMemberScope()?.getContributedDescriptors { it == fn }?.firstOrNull()
       } else null
     }
   val targetDescriptorFromLocalLaw =
@@ -363,10 +363,10 @@ private fun getReturnedExpressionWithoutPostcondition(
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
-  annotations.findAnnotation(FqName("arrow.refinement.Pre"))
+  annotations().findAnnotation(FqName("arrow.refinement.Pre"))
 
 private fun Annotated.postAnnotation(): AnnotationDescriptor? =
-  annotations.findAnnotation(FqName("arrow.refinement.Post"))
+  annotations().findAnnotation(FqName("arrow.refinement.Post"))
 
 private val skipPackages = setOf(
   FqName("com.apple"),
@@ -395,9 +395,9 @@ internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
     packages.isEmpty() -> acc
     else -> {
       val current = packages.first()
-      val topLevelDescriptors = getPackage(current.name)?.memberScope?.getContributedDescriptors { true }?.toList().orEmpty()
+      val topLevelDescriptors = getPackage(current.name)?.getMemberScope()?.getContributedDescriptors { true }?.toList().orEmpty()
       val memberDescriptors = topLevelDescriptors.filterIsInstance<ClassDescriptor>().flatMap {
-        it.unsubstitutedMemberScope.getContributedDescriptors { true }.toList()
+        it.getUnsubstitutedMemberScope().getContributedDescriptors { true }.toList()
       }
       val allPackageDescriptors = topLevelDescriptors + memberDescriptors
       val packagedProofs = allPackageDescriptors
@@ -413,7 +413,7 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ) {
-  val constraints = descriptor.annotations.mapNotNull { ann ->
+  val constraints = descriptor.annotations().iterable().mapNotNull { ann ->
     when (ann.fqName) {
       FqName("arrow.refinement.Pre") -> "pre"
       FqName("arrow.refinement.Post") -> "post"

@@ -2,6 +2,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements
 
 interface Annotated : Element {
-  val annotations: List<Annotation>
+  fun getAnnotations(): List<Annotation>
   val annotationEntries: List<AnnotationEntry>
 }

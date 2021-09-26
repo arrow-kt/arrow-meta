@@ -6,7 +6,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Dec
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 
 fun interface KotlinDeclarationWithBody : DeclarationWithBody, KotlinDeclaration {

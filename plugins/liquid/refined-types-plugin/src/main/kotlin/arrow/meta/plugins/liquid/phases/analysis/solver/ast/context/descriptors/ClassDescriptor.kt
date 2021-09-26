@@ -3,7 +3,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors
 
 interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeParameters {
 
-  val unsubstitutedMemberScope: MemberScope
+  fun getUnsubstitutedMemberScope(): MemberScope
   val constructors: Collection<ConstructorDescriptor>
   val companionObjectDescriptor: ClassDescriptor?
   val kind: ClassKind

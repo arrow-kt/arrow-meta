@@ -6,6 +6,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Mod
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
 fun interface KotlinDeclaration : Declaration, KotlinExpression, KotlinModifierListOwner {
@@ -13,5 +14,5 @@ fun interface KotlinDeclaration : Declaration, KotlinExpression, KotlinModifierL
   override val name: String?
     get() = impl().name
   override val parents: List<Element>
-    get() = impl().parents.filterIsInstance<KtElement>().toList().map { it.model() }
+    get() = impl().parents.filter { it !is KtFile }.filterIsInstance<KtElement>().toList().map { it.model() }
 }

@@ -1,7 +1,18 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
-interface KotlinWhenEntry : KotlinElement {
-  val isElse: Boolean
-  val expression: KotlinExpression?
-  val conditions: List<KotlinWhenCondition>
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenCondition
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtWhenEntry
+
+fun interface KotlinWhenEntry : WhenEntry, KotlinElement {
+  override fun impl(): KtWhenEntry
+  override val isElse: Boolean
+    get() = impl().isElse
+  override val expression: Expression?
+    get() = impl().expression?.model()
+  override val conditions: List<WhenCondition>
+    get() = impl().conditions.map { it.model() }
 }

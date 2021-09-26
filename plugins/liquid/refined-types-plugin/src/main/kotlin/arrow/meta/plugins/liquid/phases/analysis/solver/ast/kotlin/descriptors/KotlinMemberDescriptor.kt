@@ -19,8 +19,9 @@ fun interface KotlinMemberDescriptor : MemberDescriptor, KotlinDeclarationDescri
       OPEN -> Modality.OPEN
       ABSTRACT -> Modality.ABSTRACT
     }
+
   override val visibility: Visibility
-    get() = KotlinVisibility(impl().visibility.delegate)
+    get() = KotlinVisibility { impl().visibility.delegate }
 
   override val isExpect: Boolean
     get() = impl().isExpect

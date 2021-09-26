@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 
 fun interface KotlinElement : Element {
-  fun impl(): KtElement
+  override fun impl(): KtElement
 
   override val text: String
     get() = impl().text

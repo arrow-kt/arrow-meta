@@ -1,7 +1,19 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
-interface KotlinTryExpression : KotlinExpression {
-  val tryBlock: KotlinBlockExpression
-  val catchClauses: List<KotlinCatchClause>
-  val finallyBlock: KotlinFinallySection?
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CatchClause
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FinallySection
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtTryExpression
+
+fun interface KotlinTryExpression : TryExpression, KotlinExpression {
+  override fun impl(): KtTryExpression
+  override val tryBlock: BlockExpression
+    get() = impl().tryBlock.model()
+  override val catchClauses: List<CatchClause>
+    get() = impl().catchClauses.map { it.model() }
+  override val finallyBlock: FinallySection?
+    get() = impl().finallyBlock?.model()
 }
