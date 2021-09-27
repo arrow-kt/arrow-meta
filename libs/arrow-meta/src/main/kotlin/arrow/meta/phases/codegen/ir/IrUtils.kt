@@ -33,10 +33,9 @@ import arrow.meta.phases.codegen.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.IrTypeCheckerContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
+import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.util.ConstantValueGenerator
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
@@ -47,9 +46,9 @@ import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -58,25 +57,17 @@ class IrUtils(
   val compilerContext: CompilerContext,
   val moduleFragment: IrModuleFragment
 ) : ReferenceSymbolTable by pluginContext.symbols.externalSymbolTable,
-  IrTypeSystemContext by IrTypeCheckerContext(pluginContext.irBuiltIns),
+  IrTypeSystemContext by IrTypeSystemContextImpl(pluginContext.irBuiltIns),
   IrFactory by pluginContext.irFactory {
 
   internal val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
 
   val typeTranslator: TypeTranslator =
-    TypeTranslator(
+    TypeTranslatorImpl(
       symbolTable = pluginContext.symbols.externalSymbolTable,
       languageVersionSettings = pluginContext.languageVersionSettings,
-      builtIns = pluginContext.irBuiltIns.builtIns
-    ).apply translator@{
-      constantValueGenerator =
-        ConstantValueGenerator(
-          moduleDescriptor = pluginContext.irBuiltIns.builtIns.builtInsModule.module,
-          symbolTable = pluginContext.symbols.externalSymbolTable
-        ).apply {
-          this.typeTranslator = this@translator
-        }
-    }
+      moduleDescriptor = moduleFragment.descriptor
+    )
 
   fun interpretFunction(originalCall: IrCall, typeName: Name, value: IrConst<*>): IrExpression {
     val fnName = "require${typeName.asString()}"
@@ -197,8 +188,8 @@ class IrUtils(
 
   fun <A> IrFunction.transform(data: A, f: IrFunction.(a: A) -> Unit = Noop.effect2): IrStatement =
     transform(object : IrElementTransformer<A> {
-      override fun visitFunction(declaration: IrFunction, a: A): IrStatement {
-        f(declaration, a)
+      override fun visitFunction(declaration: IrFunction, data: A): IrStatement {
+        f(declaration, data)
         return super.visitFunction(declaration, data)
       }
     }, data) as IrStatement
@@ -273,7 +264,7 @@ private fun IrSimpleFunction.substitutedValueParameters(call: IrCall): List<Pair
   valueParameters
     .map {
       val type = it.type
-      it to (type.takeIf { t -> !t!!.isTypeParameter() }
+      it to (type.takeIf { t -> !t.isTypeParameter() }
         ?: typeParameters
           .firstOrNull { typeParam -> typeParam.defaultType == type }
           ?.let { typeParam ->
