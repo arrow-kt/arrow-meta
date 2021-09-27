@@ -36,7 +36,9 @@ internal fun compile(data: CompilationData): Result =
 
 private fun classpathOf(dependency: String): File {
   val regex = Regex(".*${dependency.replace(':', '-')}.*")
-  val file = ClassGraph().classpathFiles.firstOrNull { classpath -> classpath.name.matches(regex) }
+  // multiplatform libraries follow a different convention
+  val regexJvm = Regex(".*${dependency.replace(":", "-jvm\\/")}.*")
+  val file = ClassGraph().classpathFiles.firstOrNull { classpath -> classpath.name.matches(regex) || classpath.absolutePath.matches(regexJvm) }
   println("classpath: ${ClassGraph().classpathFiles}")
   assertThat(file).`as`("$dependency not found in test runtime. Check your build configuration.").isNotNull
   return file!!

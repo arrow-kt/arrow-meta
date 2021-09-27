@@ -115,7 +115,7 @@ internal fun <T> IrConst<T>.toPrimitive(): Primitive<T> {
 internal fun IrAnnotationContainer.getEvaluateIntrinsicValue(): String? {
   if (this is IrClass && this.fqNameWhenAvailable?.startsWith(Name.identifier("java")) == true) return this.fqNameWhenAvailable?.asString()
   if (!this.hasAnnotation(evaluateIntrinsicAnnotation)) return null
-  return (this.getAnnotation(evaluateIntrinsicAnnotation)?.getValueArgument(0) as IrConst<*>).value.toString()
+  return (this.getAnnotation(evaluateIntrinsicAnnotation).getValueArgument(0) as IrConst<*>).value.toString()
 }
 
 internal fun getPrimitiveClass(irType: IrType, asObject: Boolean = false): Class<*>? =

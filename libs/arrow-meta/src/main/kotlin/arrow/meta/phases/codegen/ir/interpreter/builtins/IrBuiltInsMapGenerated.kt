@@ -1,10 +1,6 @@
 package arrow.meta.phases.codegen.ir.interpreter.builtins
 
 import arrow.meta.phases.codegen.ir.interpreter.state.ExceptionState
-import org.jetbrains.kotlin.ir.interpreter.builtins.CompileTimeFunction
-import org.jetbrains.kotlin.ir.interpreter.builtins.binaryFunctions
-import org.jetbrains.kotlin.ir.interpreter.builtins.ternaryFunctions
-import org.jetbrains.kotlin.ir.interpreter.builtins.unaryFunctions
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
