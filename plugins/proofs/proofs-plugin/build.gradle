@@ -13,9 +13,7 @@ dependencies {
     testRuntimeOnly project(':arrow-meta')
     testRuntimeOnly project(':prelude')
     testRuntimeOnly project(':proofs-plugin')
-    testRuntimeOnly("io.arrow-kt:arrow-core:$ARROW_VERSION") {
-        exclude group: "org.jetbrains.kotlin"
-    }
+    testRuntimeOnly("io.arrow-kt:arrow-core:$ARROW_VERSION")
 }
 
 apply from: file("${rootDir}/${SUBPROJECT}")

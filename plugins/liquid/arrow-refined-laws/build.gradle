@@ -33,7 +33,7 @@ kotlin {
 //}
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
     kotlinCompilerClasspath project(':refined-types-plugin')
 }
 

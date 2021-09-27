@@ -3,6 +3,8 @@ package arrow.meta.plugins.proofs.phases.resolve.scopes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
+import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
@@ -52,7 +54,10 @@ class ProofsScopeTower(
   ) // .addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = SyntheticScopes.Empty
-  override val typeApproximator: TypeApproximator = TypeApproximator(module.builtIns)
+  override val typeApproximator: TypeApproximator = TypeApproximator(
+    module.builtIns,
+    compilerContext.configuration?.languageVersionSettings ?: LanguageVersionSettingsImpl.DEFAULT
+  )
   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
   override fun interceptFunctionCandidates(
     resolutionScope: ResolutionScope,

@@ -58,7 +58,7 @@ internal fun Solver.implication(args: List<Formula>): BooleanFormula? =
     } else null
   }
 
-internal fun Solver.boolOr(args: List<Formula>): Formula? =
+internal fun Solver.boolOr(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
       val (left, right) = args
@@ -68,7 +68,14 @@ internal fun Solver.boolOr(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.boolXor(args: List<Formula>): Formula? =
+internal fun Solver.boolOrList(args: List<BooleanFormula>): BooleanFormula =
+  when (args.size) {
+    0 -> booleanFormulaManager.makeFalse()
+    1 -> args[0]
+    else -> booleans { or(args) }
+  }
+
+internal fun Solver.boolXor(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
       val (left, right) = args
