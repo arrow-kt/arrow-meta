@@ -7,8 +7,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtWhenEntry
 
-fun interface KotlinWhenEntry : WhenEntry, KotlinElement {
-  override fun impl(): KtWhenEntry
+class KotlinWhenEntry(val impl: KtWhenEntry) : WhenEntry, KotlinElement {
+  override fun impl(): KtWhenEntry = impl
   override val isElse: Boolean
     get() = impl().isElse
   override val expression: Expression?

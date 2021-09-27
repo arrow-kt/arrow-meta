@@ -5,16 +5,21 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinClassDescriptor
+import arrow.meta.plugins.liquid.types.PrimitiveType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
+import org.jetbrains.kotlin.types.typeUtil.isByte
+import org.jetbrains.kotlin.types.typeUtil.isChar
 import org.jetbrains.kotlin.types.typeUtil.isDouble
 import org.jetbrains.kotlin.types.typeUtil.isFloat
 import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.jetbrains.kotlin.types.typeUtil.isLong
+import org.jetbrains.kotlin.types.typeUtil.isShort
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
+import org.jetbrains.kotlin.types.typeUtil.isUnsignedNumberType
 
 internal open class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Type {
   override val descriptor: ClassDescriptor?
@@ -50,4 +55,16 @@ internal open class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) 
 
   override fun isAnyOrNullableAny(): Boolean =
     impl.isAnyOrNullableAny()
+
+  override fun isByte(): Boolean =
+    impl.isByte()
+
+  override fun isShort(): Boolean =
+    impl.isShort()
+
+  override fun isUnsignedNumberType(): Boolean =
+    impl.isUnsignedNumberType()
+
+  override fun isChar(): Boolean =
+    impl.isChar()
 }

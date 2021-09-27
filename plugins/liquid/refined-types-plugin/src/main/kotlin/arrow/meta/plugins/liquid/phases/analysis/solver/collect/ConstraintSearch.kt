@@ -23,11 +23,6 @@ import arrow.meta.plugins.liquid.smt.substituteObjectVariables
 import arrow.meta.plugins.liquid.types.PrimitiveType
 import arrow.meta.plugins.liquid.types.primitiveType
 import arrow.meta.plugins.liquid.types.unwrapIfNullable
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.NumeralFormula
@@ -142,7 +137,8 @@ internal fun SolverState.overriddenConstraintsFromSolverState(
   }
 
 internal fun SolverState.primitiveConstraints(
-  call: ResolvedCall<out CallableDescriptor>,
+  context: ResolutionContext,
+  call: ResolvedCall,
 ): DeclarationConstraints? {
   val descriptor = call.resultingDescriptor
   val returnTy =
@@ -157,7 +153,7 @@ internal fun SolverState.primitiveConstraints(
       }
   val argTys = dispatch + descriptor.valueParameters.map { param ->
     param.type.unwrapIfNullable().primitiveType()?.let { ty ->
-      Pair(param.name.asString(), ty)
+      Pair(param.name.value, ty)
     }
   }
   return if (returnTy == null || argTys.any { it == null }) {
@@ -172,7 +168,7 @@ internal fun SolverState.primitiveConstraints(
         else -> solver.makeObjectVariable(name)
       }
     }
-    solver.primitiveFormula(call, innerArgs)?.let { formula ->
+    solver.primitiveFormula(context, call, innerArgs)?.let { formula ->
       when (returnTy) {
         PrimitiveType.BOOLEAN ->
           solver.booleans {

@@ -57,6 +57,9 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
@@ -519,45 +522,45 @@ internal fun Solver.expressionToFormula(
   return when {
     // just recur
     ex is ParenthesizedExpression ->
-      expressionToFormula(ex.expression, bindingContext)
+      expressionToFormula(ex.expression, context)
     ex is AnnotatedExpression ->
-      expressionToFormula(ex.baseExpression, bindingContext)
+      expressionToFormula(ex.baseExpression, context)
     ex is LambdaExpression ->
-      expressionToFormula(ex.bodyExpression, bindingContext)
+      expressionToFormula(ex.bodyExpression, context)
     // basic blocks
     ex is BlockExpression ->
       ex.statements
         .mapNotNull { expressionToFormula(it, context) as? BooleanFormula }
         .let { conditions -> boolAndList(conditions) }
     ex is ConstantExpression ->
-      ex.getType(bindingContext)?.let { ty -> makeConstant(ty, ex) }
+      ex.type(context)?.let { ty -> makeConstant(ty, ex) }
     ex is ThisExpression -> // reference to this
       makeObjectVariable("this")
     ex is NameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
-      makeObjectVariable(formulaVariableName(ex, bindingContext))
+      makeObjectVariable(formulaVariableName(ex, context))
     ex is IfExpression -> {
-      val cond = expressionToFormula(ex.condition, bindingContext) as? BooleanFormula
-      val thenBranch = expressionToFormula(ex.then, bindingContext)
-      val elseBranch = expressionToFormula(ex.`else`, bindingContext)
+      val cond = expressionToFormula(ex.condition, context) as? BooleanFormula
+      val thenBranch = expressionToFormula(ex.thenExpression, context)
+      val elseBranch = expressionToFormula(ex.elseExpression, context)
       if (cond != null && thenBranch != null && elseBranch != null) {
         ifThenElse(cond, thenBranch, elseBranch)
       } else {
         null
       }
     }
-    ex is KtWhenExpression && ex.subjectExpression == null ->
-      ex.entries.foldRight<KtWhenEntry, Formula?>(null) { entry, acc ->
+    ex is WhenExpression && ex.subjectExpression == null ->
+      ex.entries.foldRight<WhenEntry, Formula?>(null) { entry, acc ->
         val conditions: List<BooleanFormula?> = when {
           entry.isElse -> listOf(booleanFormulaManager.makeTrue())
           else -> entry.conditions.map { cond ->
             when (cond) {
-              is KtWhenConditionWithExpression ->
-                expressionToFormula(cond.expression, bindingContext) as? BooleanFormula
+              is WhenConditionWithExpression ->
+                expressionToFormula(cond.expression, context) as? BooleanFormula
               else -> null
             }
           }
         }
-        val body = expressionToFormula(entry.expression, bindingContext)
+        val body = expressionToFormula(entry.expression, context)
         when {
           body == null || conditions.any { it == null } ->
             return@foldRight null // error case
@@ -567,23 +570,23 @@ internal fun Solver.expressionToFormula(
         }
       }
     // special cases which do not always resolve well
-    ex is KtBinaryExpression &&
-      ex.operationToken.toString() == "EQEQ" &&
+    ex is BinaryExpression &&
+      ex.operationTokenRpr == "EQEQ" &&
       ex.right is ConstantExpression && ex.right?.text == "null" ->
       ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNull(it) }
     ex is BinaryExpression &&
-      ex.operationToken.toString() == "EXCLEQ" &&
+      ex.operationTokenRpr == "EXCLEQ" &&
       ex.right is ConstantExpression && ex.right?.text == "null" ->
       ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNotNull(it) }
     ex is BinaryExpression &&
-      ex.operationToken.toString() == "ANDAND" ->
+      ex.operationTokenRpr == "ANDAND" ->
       expressionToFormula(ex.left, context)?.let { leftFormula ->
         expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolAnd(listOf(leftFormula, rightFormula))
         }
       }
     ex is BinaryExpression &&
-      ex.operationToken.toString() == "OROR" ->
+      ex.operationTokenRpr == "OROR" ->
       expressionToFormula(ex.left, context)?.let { leftFormula ->
         expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolOr(listOf(leftFormula, rightFormula))
@@ -591,13 +594,13 @@ internal fun Solver.expressionToFormula(
       }
     // fall-through case
     argCall != null -> {
-      val args = argCall.allArgumentExpressions().map { (_, ty, e) ->
-        Pair(ty, expressionToFormula(e, bindingContext))
+      val args = argCall.allArgumentExpressions(context).map { (_, ty, e) ->
+        Pair(ty, expressionToFormula(e, context))
       }
       val wrappedArgs =
         args.takeIf { args.all { it.second != null } }
           ?.map { (ty, e) -> wrap(e!!, ty) }
-      wrappedArgs?.let { primitiveFormula(argCall, it) }
+      wrappedArgs?.let { primitiveFormula(context, argCall, it) }
         ?: fieldFormula(argCall.resultingDescriptor, args)
     }
     else -> null
@@ -624,12 +627,12 @@ private fun Solver.wrap(
 
 private fun Solver.fieldFormula(
   descriptor: CallableDescriptor,
-  args: List<Pair<KotlinType, Formula?>>
+  args: List<Pair<Type, Formula?>>
 ): ObjectFormula? = descriptor.takeIf { it.isField() }?.let {
     // create a field, the 'this' may be missing
     val thisExpression =
       (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
-    field(descriptor.fqNameSafe.asString(), thisExpression)
+    field(descriptor.fqNameSafe.name, thisExpression)
   }
 
 /**
@@ -641,8 +644,8 @@ private fun Solver.fieldFormula(
  * formula type [FormulaType.IntegerType]
  */
 private fun Solver.makeConstant(
-  type: KotlinType,
-  ex: KtConstantExpression
+  type: Type,
+  ex: ConstantExpression
 ): Formula? = when (type.unwrapIfNullable().primitiveType()) {
   PrimitiveType.INTEGRAL ->
     ex.text.asIntegerLiteral()?.let { integerFormulaManager.makeNumber(it) }

@@ -45,6 +45,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Par
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SimpleNameExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.VariableDeclaration
@@ -278,7 +279,7 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall,
   data: CheckData
 ): ContSeq<Return> {
-  val specialControlFlow = controlFlowAnyFunction(resolvedCall)
+  val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
     resolvedCall.isOldRefinedCall() -> // ignore calls to old Refined
@@ -418,7 +419,7 @@ internal fun SolverState.checkRegularFunctionCall(
       it.fold(
         { r -> r },
         { argVars ->
-          val callConstraints = (constraintsFromSolverState(resolvedCall) ?: primitiveConstraints(resolvedCall))?.let { declInfo ->
+          val callConstraints = (constraintsFromSolverState(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall))?.let { declInfo ->
             val completeRenaming =
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
@@ -619,7 +620,7 @@ private fun SolverState.checkConstantExpression(
   if (expression.text == "null") {
     addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
   } else {
-    val type = expression.kotlinType(data.context.trace.bindingContext)?.unwrapIfNullable()
+    val type = expression.type(data.context)?.unwrapIfNullable()
     when (type?.primitiveType()) {
       PrimitiveType.BOOLEAN ->
         expression.text.toBooleanStrictOrNull()?.let {
@@ -673,7 +674,7 @@ private fun SolverState.checkBinaryExpression(
   expression: BinaryExpression,
   data: CheckData
 ): ContSeq<Return> {
-  val operator = expression.operationToken
+  val operator = expression.operationTokenRpr
   val left = expression.left
   val right = expression.right
   return when {

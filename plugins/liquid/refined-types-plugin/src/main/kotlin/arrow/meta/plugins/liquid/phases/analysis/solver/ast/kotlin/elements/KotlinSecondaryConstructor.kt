@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Sec
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 
-fun interface KotlinSecondaryConstructor : SecondaryConstructor, KotlinConstructor<SecondaryConstructor> {
-  override fun impl(): KtSecondaryConstructor
+class KotlinSecondaryConstructor(val impl: KtSecondaryConstructor) : SecondaryConstructor, KotlinConstructor<SecondaryConstructor> {
+  override fun impl(): KtSecondaryConstructor = impl
   override fun getDelegationCall(): ConstructorDelegationCall? =
     impl().getDelegationCallOrNull()?.model()
 }

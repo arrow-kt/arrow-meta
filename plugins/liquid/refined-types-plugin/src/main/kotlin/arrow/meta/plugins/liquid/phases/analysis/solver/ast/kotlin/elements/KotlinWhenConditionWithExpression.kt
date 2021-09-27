@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Whe
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 
-fun interface KotlinWhenConditionWithExpression : WhenConditionWithExpression, KotlinWhenCondition {
-  override fun impl(): KtWhenConditionWithExpression
+class KotlinWhenConditionWithExpression(val impl: KtWhenConditionWithExpression) : WhenConditionWithExpression, KotlinWhenCondition {
+  override fun impl(): KtWhenConditionWithExpression = impl
   override val expression: Expression?
     get() = impl().expression?.model()
 }

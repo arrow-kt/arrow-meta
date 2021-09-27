@@ -1,29 +1,18 @@
 package arrow.meta.plugins.liquid.types
 
-import arrow.meta.phases.resolve.unwrappedNotNullableType
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.isNullable
-import org.jetbrains.kotlin.types.typeUtil.isBoolean
-import org.jetbrains.kotlin.types.typeUtil.isByte
-import org.jetbrains.kotlin.types.typeUtil.isChar
-import org.jetbrains.kotlin.types.typeUtil.isDouble
-import org.jetbrains.kotlin.types.typeUtil.isFloat
-import org.jetbrains.kotlin.types.typeUtil.isInt
-import org.jetbrains.kotlin.types.typeUtil.isLong
-import org.jetbrains.kotlin.types.typeUtil.isShort
-import org.jetbrains.kotlin.types.typeUtil.isUnsignedNumberType
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 
 enum class PrimitiveType {
   BOOLEAN, INTEGRAL, RATIONAL, CHAR
 }
 
-fun KotlinType.unwrapIfNullable(): KotlinType =
+fun Type.unwrapIfNullable(): Type =
   if (isMarkedNullable || isNullable())
     unwrappedNotNullableType
   else
     this
 
-fun KotlinType.primitiveType(): PrimitiveType? =
+fun Type.primitiveType(): PrimitiveType? =
   when {
     isBoolean() -> PrimitiveType.BOOLEAN
     isByte() -> PrimitiveType.INTEGRAL

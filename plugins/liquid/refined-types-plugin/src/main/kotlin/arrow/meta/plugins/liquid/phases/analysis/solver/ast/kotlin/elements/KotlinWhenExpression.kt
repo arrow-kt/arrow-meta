@@ -8,8 +8,12 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
-fun interface KotlinWhenExpression : WhenExpression, KotlinExpression {
-  override fun impl(): KtWhenExpression
+class KotlinWhenExpression(
+  val impl: KtWhenExpression
+) : WhenExpression, KotlinExpression {
+
+  override fun impl(): KtWhenExpression = impl
+
   override val entries: List<WhenEntry>
     get() = impl().entries.map { it.model() }
   override val subjectVariable: Property?

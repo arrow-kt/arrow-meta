@@ -7,13 +7,13 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqN
 class KotlinAnnotations(override val impl: org.jetbrains.kotlin.descriptors.annotations.Annotations) : Annotations {
 
   override fun iterable(): Iterable<AnnotationDescriptor> =
-    impl.map { KotlinAnnotationDescriptor { it } }
+    impl.map { KotlinAnnotationDescriptor(it) }
 
   override fun isEmpty(): Boolean =
     impl.isEmpty()
 
   override fun findAnnotation(fqName: FqName): AnnotationDescriptor? =
-    impl.findAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))?.let { KotlinAnnotationDescriptor { it } }
+    impl.findAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))?.let { KotlinAnnotationDescriptor(it) }
 
   override fun hasAnnotation(fqName: FqName): Boolean =
     impl.hasAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))

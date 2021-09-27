@@ -5,6 +5,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
@@ -13,6 +14,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqN
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
+import org.jetbrains.kotlin.backend.common.descriptors.allParameters
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -50,4 +52,7 @@ fun interface KotlinCallableDescriptor :
     get() = impl().valueParameters.map { it.model() }
   override val overriddenDescriptors: Collection<CallableDescriptor>
     get() = impl().overriddenDescriptors.map { it.model() }
+
+  override val allParameters: List<ParameterDescriptor>
+    get() = impl().allParameters.map { it.model() }
 }

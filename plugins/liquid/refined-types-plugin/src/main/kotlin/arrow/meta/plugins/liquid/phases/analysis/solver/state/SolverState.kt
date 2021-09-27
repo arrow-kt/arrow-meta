@@ -2,6 +2,7 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
@@ -10,11 +11,13 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Exp
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.overriddenDescriptors
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import arrow.meta.plugins.liquid.smt.utils.ReferencedElement
+import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
@@ -102,13 +105,13 @@ data class SolverState(
     val overriddenNames = mutableMapOf<String, List<String>>()
 
     fun doOne(descriptor: DeclarationDescriptor) {
-      val name = descriptor.fqNameSafe.asString()
+      val name = descriptor.fqNameSafe.name
       val overridden = descriptor.overriddenDescriptors()
       if (overridden == null || overridden.isEmpty()) {
         basicNames.add(name)
       } else {
         overridden.forEach(::doOne)
-        overriddenNames[name] = overridden.map { it.fqNameSafe.asString() }
+        overriddenNames[name] = overridden.map { it.fqNameSafe.name }
       }
     }
 

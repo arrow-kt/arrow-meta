@@ -78,6 +78,12 @@ fun <A : KtElement,
     is KtWhileExpression -> KotlinWhileExpression(this).repr()
     is KtArrayAccessExpression -> KotlinArrayAccessExpression(this).repr()
     is KtForExpression -> KotlinForExpression(this).repr()
+    is KtWhenExpression -> KotlinWhenExpression(this).repr()
+    is KtWhenEntry -> KotlinWhenEntry(this).repr()
+    is KtWhenConditionWithExpression -> KotlinWhenConditionWithExpression(this).repr()
+    is KtSecondaryConstructor -> KotlinSecondaryConstructor(this).repr()
+    is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
+    is KtConstructorDelegationReferenceExpression -> KotlinConstructorDelegationReferenceExpression(this).repr()
    // is KtFile -> KotlinFile(this).repr()
     else -> TODO("Missing impl for $this")
   }

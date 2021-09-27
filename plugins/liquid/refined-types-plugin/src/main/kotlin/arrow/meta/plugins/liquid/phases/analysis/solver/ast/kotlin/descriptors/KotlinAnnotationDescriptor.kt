@@ -6,11 +6,15 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
+import org.jetbrains.kotlin.resolve.constants.ArrayValue
+import org.jetbrains.kotlin.resolve.constants.StringValue
 
-fun interface KotlinAnnotationDescriptor :
+class KotlinAnnotationDescriptor(
+  val impl: org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+) :
   AnnotationDescriptor {
 
-  fun impl(): org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+  fun impl(): org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor = impl
 
   override val allValueArguments: Map<Name, Any?>
     get() =
@@ -20,7 +24,7 @@ fun interface KotlinAnnotationDescriptor :
     impl().argumentValue(argName)?.value as? String
 
   override fun argumentValueAsArrayOfString(argName: String): List<String> =
-    (impl().argumentValue(argName)?.value as? Array<*>)?.filterIsInstance<String>().orEmpty()
+    (impl().argumentValue(argName)?.value as? List<*>)?.filterIsInstance<StringValue>()?.map { it.value }.orEmpty()
 
   override val fqName: FqName?
     get() = impl().fqName?.let { FqName(it.asString()) }
