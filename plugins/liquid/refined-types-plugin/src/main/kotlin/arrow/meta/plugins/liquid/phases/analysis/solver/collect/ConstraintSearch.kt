@@ -1,14 +1,21 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.collect
 
+import arrow.meta.internal.filterNotNull
 import arrow.meta.internal.mapNotNull
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.isComparison
+import arrow.meta.plugins.liquid.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.renameDeclarationConstraints
 import arrow.meta.plugins.liquid.smt.substituteObjectVariables
+import arrow.meta.plugins.liquid.types.PrimitiveType
+import arrow.meta.plugins.liquid.types.primitiveType
+import arrow.meta.plugins.liquid.types.unwrapIfNullable
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -18,6 +25,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.isNullable
+import org.sosy_lab.java_smt.api.BooleanFormula
+import org.sosy_lab.java_smt.api.NumeralFormula
 
 /**
  * Looks up in the solver state previously collected constraints and
@@ -124,6 +133,73 @@ internal fun SolverState.overriddenConstraintsFromSolverState(
       overriddenConstraints.flatMap { it.pre },
       overriddenConstraints.flatMap { it.post })
   }
+
+internal fun SolverState.primitiveConstraints(
+  call: ResolvedCall<out CallableDescriptor>,
+): DeclarationConstraints? {
+  val descriptor = call.resultingDescriptor
+  val returnTy =
+    if (descriptor.isComparison()) PrimitiveType.BOOLEAN
+    else descriptor.returnType?.unwrapIfNullable()?.primitiveType()
+  val dispatch =
+    listOf(descriptor.extensionReceiverParameter, descriptor.dispatchReceiverParameter)
+      .filterNotNull().map { param ->
+        param.type.unwrapIfNullable().primitiveType()?.let { ty ->
+          Pair(THIS_VAR_NAME, ty)
+        }
+      }
+  val argTys = dispatch + descriptor.valueParameters.map { param ->
+    param.type.unwrapIfNullable().primitiveType()?.let { ty ->
+      Pair(param.name.asString(), ty)
+    }
+  }
+  return if (returnTy == null || argTys.any { it == null }) {
+    null
+  } else {
+    val innerArgs = argTys.map {
+      val name = it!!.first
+      when (it.second) {
+        PrimitiveType.BOOLEAN -> solver.makeBooleanObjectVariable(name)
+        PrimitiveType.INTEGRAL -> solver.makeIntegerObjectVariable(name)
+        PrimitiveType.RATIONAL -> solver.makeDecimalObjectVariable(name)
+        else -> solver.makeObjectVariable(name)
+      }
+    }
+    solver.primitiveFormula(call, innerArgs)?.let { formula ->
+      when (returnTy) {
+        PrimitiveType.BOOLEAN ->
+          solver.booleans {
+            equivalence(
+              solver.makeBooleanObjectVariable(RESULT_VAR_NAME),
+              formula as BooleanFormula
+            )
+          }
+        PrimitiveType.INTEGRAL ->
+          solver.ints {
+            equal(
+              solver.makeIntegerObjectVariable(RESULT_VAR_NAME),
+              formula as NumeralFormula.IntegerFormula
+            )
+          }
+        PrimitiveType.RATIONAL ->
+          solver.rationals {
+            equal(
+              solver.makeIntegerObjectVariable(RESULT_VAR_NAME),
+              formula as NumeralFormula.RationalFormula
+            )
+          }
+        else ->
+          solver.objects {
+            equal(solver.resultVariable, formula as ObjectFormula)
+          }
+      }?.let {
+        val named = NamedConstraint(
+          "checkCallArguments(${descriptor.fqNameSafe})", it)
+        DeclarationConstraints(descriptor, emptyList(), listOf(named))
+      }
+    }
+  }
+}
 
 /**
  * Rename the conditions from one descriptor

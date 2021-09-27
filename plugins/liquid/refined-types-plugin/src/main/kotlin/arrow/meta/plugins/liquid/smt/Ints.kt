@@ -15,7 +15,7 @@ internal fun Solver.intEquals(args: List<Formula>): BooleanFormula? =
     } else null
   }
 
-internal fun Solver.intPlus(args: List<Formula>): Formula? =
+internal fun Solver.intPlus(args: List<Formula>): NumeralFormula.IntegerFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -23,14 +23,14 @@ internal fun Solver.intPlus(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intNegate(args: List<Formula>): Formula? =
+internal fun Solver.intNegate(args: List<Formula>): NumeralFormula.IntegerFormula? =
   ints {
     if (args.size == 1) {
       negate(args.numeric().first())
     } else null
   }
 
-internal fun Solver.intMinus(args: List<Formula>): Formula? =
+internal fun Solver.intMinus(args: List<Formula>): NumeralFormula.IntegerFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -38,7 +38,7 @@ internal fun Solver.intMinus(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intDivide(args: List<Formula>): Formula? =
+internal fun Solver.intDivide(args: List<Formula>): NumeralFormula.IntegerFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -46,7 +46,7 @@ internal fun Solver.intDivide(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intMultiply(args: List<Formula>): Formula? =
+internal fun Solver.intMultiply(args: List<Formula>): NumeralFormula.IntegerFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -54,7 +54,7 @@ internal fun Solver.intMultiply(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intGreaterThan(args: List<Formula>): Formula? =
+internal fun Solver.intGreaterThan(args: List<Formula>): BooleanFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -62,7 +62,7 @@ internal fun Solver.intGreaterThan(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intGreaterThanOrEquals(args: List<Formula>): Formula? =
+internal fun Solver.intGreaterThanOrEquals(args: List<Formula>): BooleanFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -70,7 +70,7 @@ internal fun Solver.intGreaterThanOrEquals(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intLessThan(args: List<Formula>): Formula? =
+internal fun Solver.intLessThan(args: List<Formula>): BooleanFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
@@ -78,7 +78,7 @@ internal fun Solver.intLessThan(args: List<Formula>): Formula? =
     } else null
   }
 
-internal fun Solver.intLessThanOrEquals(args: List<Formula>): Formula? =
+internal fun Solver.intLessThanOrEquals(args: List<Formula>): BooleanFormula? =
   ints {
     if (args.size == 2) {
       val (left, right) = args.numeric()
