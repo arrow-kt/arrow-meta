@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.collect
 
+import arrow.meta.internal.filterNotNull
 import arrow.meta.internal.mapNotNull
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.body
@@ -17,6 +18,7 @@ import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd
 import arrow.meta.plugins.liquid.smt.boolAndList
 import arrow.meta.plugins.liquid.smt.boolOr
+import arrow.meta.plugins.liquid.smt.boolOrList
 import arrow.meta.plugins.liquid.smt.isFieldCall
 import arrow.meta.plugins.liquid.smt.isSingleVariable
 import arrow.meta.plugins.liquid.types.PrimitiveType
@@ -56,6 +58,9 @@ import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
+import org.jetbrains.kotlin.psi.KtWhenEntry
+import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
@@ -578,6 +583,27 @@ internal fun Solver.expressionToFormula(
         null
       }
     }
+    ex is KtWhenExpression && ex.subjectExpression == null ->
+      ex.entries.foldRight<KtWhenEntry, Formula?>(null) { entry, acc ->
+        val conditions: List<BooleanFormula?> = when {
+          entry.isElse -> listOf(booleanFormulaManager.makeTrue())
+          else -> entry.conditions.map { cond ->
+            when (cond) {
+              is KtWhenConditionWithExpression ->
+                expressionToFormula(cond.expression, bindingContext) as? BooleanFormula
+              else -> null
+            }
+          }
+        }
+        val body = expressionToFormula(entry.expression, bindingContext)
+        when {
+          body == null || conditions.any { it == null } ->
+            return@foldRight null // error case
+          acc != null -> ifThenElse(boolOrList(conditions.filterNotNull()), body, acc)
+          entry.isElse -> body
+          else -> null
+        }
+      }
     // special cases which do not always resolve well
     ex is KtBinaryExpression &&
       ex.operationToken.toString() == "EQEQ" &&

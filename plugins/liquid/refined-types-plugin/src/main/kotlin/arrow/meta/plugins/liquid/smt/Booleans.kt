@@ -68,6 +68,13 @@ internal fun Solver.boolOr(args: List<Formula>): BooleanFormula? =
     } else null
   }
 
+internal fun Solver.boolOrList(args: List<BooleanFormula>): BooleanFormula =
+  when (args.size) {
+    0 -> booleanFormulaManager.makeFalse()
+    1 -> args[0]
+    else -> booleans { or(args) }
+  }
+
 internal fun Solver.boolXor(args: List<Formula>): BooleanFormula? =
   booleans {
     if (args.size == 2) {
