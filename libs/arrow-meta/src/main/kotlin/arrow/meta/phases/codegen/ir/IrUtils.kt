@@ -30,10 +30,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import arrow.meta.phases.codegen.ir.interpreter.IrInterpreter
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
-import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
@@ -192,8 +188,8 @@ class IrUtils(
 
   fun <A> IrFunction.transform(data: A, f: IrFunction.(a: A) -> Unit = Noop.effect2): IrStatement =
     transform(object : IrElementTransformer<A> {
-      override fun visitFunction(declaration: IrFunction, a: A): IrStatement {
-        f(declaration, a)
+      override fun visitFunction(declaration: IrFunction, data: A): IrStatement {
+        f(declaration, data)
         return super.visitFunction(declaration, data)
       }
     }, data) as IrStatement
@@ -268,7 +264,7 @@ private fun IrSimpleFunction.substitutedValueParameters(call: IrCall): List<Pair
   valueParameters
     .map {
       val type = it.type
-      it to (type.takeIf { t -> !t!!.isTypeParameter() }
+      it to (type.takeIf { t -> !t.isTypeParameter() }
         ?: typeParameters
           .firstOrNull { typeParam -> typeParam.defaultType == type }
           ?.let { typeParam ->
@@ -284,17 +280,3 @@ fun IrReturnTarget.returnType(irBuiltIns: IrBuiltIns) =
     is IrReturnableBlock -> type
     else -> error("Unknown ReturnTarget: $this")
   }
-
-// copied from org.jetbrains.kotlin.ir.interpreter
-fun IrClass.internalName(): String {
-  val internalName = StringBuilder(this.name.asString())
-  generateSequence(this as? IrDeclarationParent) { (it as? IrDeclaration)?.parent }
-    .drop(1)
-    .forEach {
-      when (it) {
-        is IrClass -> internalName.insert(0, it.name.asString() + "$")
-        is IrPackageFragment -> it.fqName.asString().takeIf { it.isNotEmpty() }?.let { internalName.insert(0, "$it.") }
-      }
-    }
-  return internalName.toString()
-}

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+@file:Suppress("UNUSED", "INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package arrow.meta.phases.codegen.ir.interpreter.builtins
 
-import arrow.meta.phases.codegen.ir.internalName
+import org.jetbrains.kotlin.ir.interpreter.internalName
 import arrow.meta.phases.codegen.ir.interpreter.state.ExceptionState
 import arrow.meta.phases.codegen.ir.interpreter.state.Lambda
 import arrow.meta.phases.codegen.ir.interpreter.state.State
