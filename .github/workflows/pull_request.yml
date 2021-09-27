@@ -3,7 +3,7 @@ name: pull_request
 on: pull_request
 
 env:
-  JAVA_OPTS: -Xms512m -Xmx1024m
+  JAVA_OPTS: -Xms1g -Xmx3g
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.configureondemand=true -Dorg.gradle.jvmargs=-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 
 
@@ -31,6 +31,11 @@ jobs:
           restore-keys: |
             build-documentation-gradle-
 
+      - name: "Set env"
+        run: |
+          echo "$JAVA_HOME_8_X64/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME_8_X64" >> $GITHUB_ENV
+
       - name: "Run KtLint"
         run: ./gradlew ktlintCheck
 
@@ -44,6 +49,7 @@ jobs:
           sudo gem install bundler
           bundle install --gemfile docs/Gemfile --path vendor/bundle
           BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/build/site -d docs/build/_site
+
   js_jvm_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -69,7 +75,7 @@ jobs:
 
       - uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temuring'
           java-version: '11'
 
       - name: Build with Gradle
@@ -85,6 +91,7 @@ jobs:
          with:
            name: error-report
            path: build-reports.zip
+
   macos-ios:
     runs-on: macos-latest
     timeout-minutes: 20
@@ -125,6 +132,7 @@ jobs:
         with:
           name: test-reports
           path: test-reports
+
   tvos_watchos:
     runs-on: macos-latest
     timeout-minutes: 20
@@ -165,6 +173,7 @@ jobs:
         with:
           name: test-reports
           path: test-reports
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 20
