@@ -18,6 +18,7 @@ dependencies {
   compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_VERSION"
   compileOnly "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$KOTLIN_VERSION"
   compileOnly "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
+  compileOnly "org.jetbrains.kotlin:kotlin-reflect:$KOTLIN_VERSION"
   compileOnly "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
 }
 
