@@ -7,8 +7,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Par
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtForExpression
 
-fun interface KotlinForExpression : ForExpression, KotlinLoopExpression {
-  override fun impl(): KtForExpression
+class KotlinForExpression(val impl: KtForExpression) : ForExpression, KotlinLoopExpression {
+  override fun impl(): KtForExpression = impl
   override val loopParameter: Parameter?
     get() = impl().loopParameter?.model()
   override val destructuringDeclaration: DestructuringDeclaration?

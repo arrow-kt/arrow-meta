@@ -3,8 +3,8 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.EnumEntry
 import org.jetbrains.kotlin.psi.KtEnumEntry
 
-fun interface KotlinEnumEntry : EnumEntry, KotlinClass {
-  override fun impl(): KtEnumEntry
+class KotlinEnumEntry(override val impl: KtEnumEntry) : EnumEntry, KotlinClass(impl) {
+  override fun impl(): KtEnumEntry = impl
   override fun hasInitializer(): Boolean =
     impl().hasInitializer()
 }

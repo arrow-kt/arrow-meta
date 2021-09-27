@@ -7,8 +7,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtIsExpression
 
-fun interface KotlinIsExpression : IsExpression, KotlinExpression, KotlinOperationExpression {
-  override fun impl(): KtIsExpression
+class KotlinIsExpression(val impl: KtIsExpression) : IsExpression, KotlinExpression, KotlinOperationExpression {
+  override fun impl(): KtIsExpression = impl
   override val leftHandSide: Expression
     get() = impl().leftHandSide.model()
   override val typeReference: TypeReference?

@@ -4,12 +4,11 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Nam
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SimpleNameExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ValueArgumentName
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.psi.KtValueArgumentName
 
-fun interface KotlinValueArgumentName: ValueArgumentName {
-  fun impl(): KtValueArgumentName
+class KotlinValueArgumentName(val impl: org.jetbrains.kotlin.psi.ValueArgumentName): ValueArgumentName {
+  fun impl(): org.jetbrains.kotlin.psi.ValueArgumentName = impl
   override val asName: Name
     get() = Name(impl().asName.asString())
   override val referenceExpression: SimpleNameExpression?
-    get() = impl().referenceExpression.model()
+    get() = impl().referenceExpression?.model()
 }

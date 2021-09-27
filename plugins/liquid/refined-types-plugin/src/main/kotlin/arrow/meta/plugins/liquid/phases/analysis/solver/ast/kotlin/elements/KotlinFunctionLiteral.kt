@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Fun
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
-fun interface KotlinFunctionLiteral : FunctionLiteral, KotlinFunction {
-  override fun impl(): KtFunctionLiteral
+class KotlinFunctionLiteral(val impl: KtFunctionLiteral) : FunctionLiteral, KotlinFunction {
+  override fun impl(): KtFunctionLiteral = impl
   override fun hasParameterSpecification(): Boolean =
     impl().hasParameterSpecification()
 

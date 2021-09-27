@@ -23,12 +23,12 @@ internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
     listOf(
       analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
-          val kotlinModule = KotlinModuleDescriptor { module }
+          val kotlinModule: KotlinModuleDescriptor = module.model()
           ensureSolverStateInitialization(kotlinModule)
           null
         },
         analysisCompleted = { project, module, bindingTrace, files ->
-          val kotlinModule = KotlinModuleDescriptor { module }
+          val kotlinModule: KotlinModuleDescriptor = module.model()
           val context = KotlinResolutionContext(bindingTrace, module)
           when (finalizeConstraintsCollection(kotlinModule, context)) {
             AnalysisResult.Retry ->

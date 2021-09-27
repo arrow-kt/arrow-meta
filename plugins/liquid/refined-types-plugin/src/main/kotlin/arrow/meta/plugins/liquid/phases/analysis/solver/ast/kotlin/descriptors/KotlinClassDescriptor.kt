@@ -45,13 +45,13 @@ class KotlinClassDescriptor(
   override val isValue: Boolean
     get() = impl().isValue
   override val thisAsReceiverParameter: ReceiverParameterDescriptor
-    get() = TODO("Not yet implemented")
+    get() = impl().thisAsReceiverParameter.model()
   override val unsubstitutedPrimaryConstructor: ConstructorDescriptor?
-    get() = TODO("Not yet implemented")
+    get() = impl().unsubstitutedPrimaryConstructor?.model()
   override val sealedSubclasses: Collection<ClassDescriptor>
-    get() = TODO("Not yet implemented")
+    get() = impl().sealedSubclasses.map { it.model() }
   override val isInner: Boolean
-    get() = TODO("Not yet implemented")
+    get() = impl.isInner
   override val declaredTypeParameters: List<TypeParameterDescriptor>
-    get() = TODO("Not yet implemented")
+    get() = impl().declaredTypeParameters.map { it.model() }
 }

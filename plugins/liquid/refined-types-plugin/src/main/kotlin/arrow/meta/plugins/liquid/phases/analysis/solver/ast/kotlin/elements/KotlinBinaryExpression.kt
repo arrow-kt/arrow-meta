@@ -5,12 +5,13 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Bin
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.fir.builder.toFirOperation
+import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 
-fun interface KotlinBinaryExpression: BinaryExpression, KotlinOperationExpression {
-  override fun impl(): KtBinaryExpression
+class KotlinBinaryExpression(val impl: KtBinaryExpression): BinaryExpression, KotlinOperationExpression {
+  override fun impl(): KtBinaryExpression = impl
   override val operationToken: String
-    get() = impl().operationToken.toFirOperation().operator
+    get() = (impl().operationToken as KtSingleValueToken).value
   override val left: Expression?
     get() = impl().left?.model()
   override val right: Expression?

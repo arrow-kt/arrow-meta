@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeReference
 
-fun interface KotlinTypeReference : TypeReference, KotlinAnnotated, KotlinAnnotationsContainer {
-  override fun impl(): KtTypeReference
+class KotlinTypeReference(val impl: KtTypeReference) : TypeReference, KotlinAnnotated, KotlinAnnotationsContainer {
+  override fun impl(): KtTypeReference = impl
   override val typeElement: TypeElement?
     get() = impl().typeElement?.model()
 }

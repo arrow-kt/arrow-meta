@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Lam
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 
-fun interface KotlinLambdaArgument : LambdaArgument, KotlinExpressionValueArgument {
-  override fun impl(): KtLambdaArgument
+open class KotlinLambdaArgument(override val impl: KtLambdaArgument) : LambdaArgument, KotlinExpressionValueArgument(impl) {
+  override fun impl(): KtLambdaArgument = impl
   override fun getLambdaExpression(): LambdaExpression? =
     impl().getLambdaExpression()?.model()
 }

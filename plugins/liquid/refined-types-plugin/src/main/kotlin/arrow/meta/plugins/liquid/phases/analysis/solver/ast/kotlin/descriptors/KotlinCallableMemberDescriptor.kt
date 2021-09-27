@@ -33,7 +33,7 @@ fun interface KotlinCallableMemberDescriptor :
 
   override fun annotations(): Annotations = KotlinAnnotations (impl().annotations)
   override val module: ModuleDescriptor
-    get() = KotlinModuleDescriptor { impl().module }
+    get() = impl().module.model()
   override val containingDeclaration: DeclarationDescriptor?
     get() = impl().containingDeclaration.model()
 

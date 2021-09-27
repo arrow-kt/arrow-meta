@@ -10,8 +10,10 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.callExpressionRecursiveVisitor
 import org.jetbrains.kotlin.resolve.BindingTrace
 
@@ -84,9 +86,8 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
     return results.filterIsInstance<KtElement>().map { it.model() }
   }
 
-  override fun type(typeReference: TypeReference?): Type? {
-    TODO("Not yet implemented")
-  }
+  override fun type(typeReference: TypeReference?): Type? =
+    typeReference?.let { (it.psiOrParent as? KtExpression)?.let { bindingContext.getType(it) } }?.let { KotlinType(it) }
 
   override fun reportErrorsParsingPredicate(element: Element, msg: String) {
     report(MetaErrors.ErrorParsingPredicate.on(element.element(), msg))
@@ -98,5 +99,5 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
     )
   }
 
-  override val module: ModuleDescriptor = KotlinModuleDescriptor { moduleImpl }
+  override val module: ModuleDescriptor = moduleImpl.model()
 }

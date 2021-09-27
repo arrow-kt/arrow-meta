@@ -6,8 +6,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtReturnExpression
 
-fun interface KotlinReturnExpression : ReturnExpression, KotlinExpressionWithLabel {
-  override fun impl(): KtReturnExpression
+class KotlinReturnExpression(val impl: KtReturnExpression) : ReturnExpression, KotlinExpressionWithLabel {
+  override fun impl(): KtReturnExpression = impl
   override val returnedExpression: Expression?
     get() = impl().returnedExpression?.model()
   override val labeledExpression: Expression?

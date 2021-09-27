@@ -8,8 +8,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
 
-fun interface KotlinTryExpression : TryExpression, KotlinExpression {
-  override fun impl(): KtTryExpression
+class KotlinTryExpression(val impl: KtTryExpression) : TryExpression, KotlinExpression {
+  override fun impl(): KtTryExpression = impl
   override val tryBlock: BlockExpression
     get() = impl().tryBlock.model()
   override val catchClauses: List<CatchClause>

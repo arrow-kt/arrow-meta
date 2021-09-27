@@ -5,8 +5,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.IfE
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtIfExpression
 
-fun interface KotlinIfExpression : IfExpression, KotlinExpression {
-  override fun impl(): KtIfExpression
+class KotlinIfExpression(val impl: KtIfExpression) : IfExpression, KotlinExpression {
+  override fun impl(): KtIfExpression = impl
   override val condition: Expression?
     get() = impl().condition?.model()
   override val thenExpression: Expression?

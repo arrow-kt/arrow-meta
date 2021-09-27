@@ -6,8 +6,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Pro
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtClass
 
-fun interface KotlinClass : Class, KotlinClassOrObject {
-  override fun impl(): KtClass
+open class KotlinClass(open val impl: KtClass) : Class, KotlinClassOrObject {
+  override fun impl(): KtClass = impl
 
   override fun getProperties(): List<Property> =
     impl().getProperties().map { it.model() }

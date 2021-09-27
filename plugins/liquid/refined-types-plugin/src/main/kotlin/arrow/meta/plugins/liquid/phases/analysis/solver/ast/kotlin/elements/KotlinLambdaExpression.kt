@@ -7,8 +7,10 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Par
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
-fun interface KotlinLambdaExpression : LambdaExpression, KotlinExpression {
-  override fun impl(): KtLambdaExpression
+class KotlinLambdaExpression(
+  val impl: KtLambdaExpression
+) : LambdaExpression, KotlinExpression {
+  override fun impl(): KtLambdaExpression = impl
   override val functionLiteral: FunctionLiteral
     get() = impl().functionLiteral.model()
   override val valueParameters: List<Parameter>

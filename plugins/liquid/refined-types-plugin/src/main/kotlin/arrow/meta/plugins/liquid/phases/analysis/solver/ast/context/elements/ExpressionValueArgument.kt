@@ -1,7 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements
 
-interface ExpressionValueArgument : Element {
+interface ExpressionResolvedValueArgument {
   val argumentExpression: Expression?
-  val argumentName: ExpressionValueArgumentName?
   val isSpread: Boolean
 }

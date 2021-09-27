@@ -719,7 +719,7 @@ internal fun Element.isResultReference(bindingContext: ResolutionContext): Boole
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
       (expArg?.valueArgument as? ExpressionLambdaArgument)?.getLambdaExpression()
-        ?: (expArg?.valueArgument as? arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionValueArgument)?.argumentExpression as? LambdaExpression
+        ?: (expArg?.valueArgument as? arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionResolvedValueArgument)?.argumentExpression as? LambdaExpression
     val params =
       lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
         listOf("it")

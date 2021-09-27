@@ -6,8 +6,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtConstructorCalleeExpression
 
-fun interface KotlinConstructorCalleeExpression: ConstructorCalleeExpression {
-  fun impl(): KtConstructorCalleeExpression
+class KotlinConstructorCalleeExpression(override val impl: KtConstructorCalleeExpression): ConstructorCalleeExpression, KotlinDefaultExpression(impl) {
+  override fun impl(): KtConstructorCalleeExpression = impl
   override val typeReference: TypeReference?
     get() = impl().typeReference?.model()
   override val constructorReferenceExpression: SimpleNameExpression?

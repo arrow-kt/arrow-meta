@@ -7,9 +7,10 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 
 interface ResolvedCall {
-  val callElement: CallElement
+  val callElement: Element
   fun getReceiverExpression(): Expression?
   fun getReturnType(): Type
   val dispatchReceiver: ReceiverValue?

@@ -9,8 +9,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Pro
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtClassBody
 
-fun interface KotlinClassBody : ClassBody, KotlinDeclarationContainer {
-  override fun impl(): KtClassBody
+class KotlinClassBody(val impl: KtClassBody) : ClassBody, KotlinDeclarationContainer, KotlinElement {
+  override fun impl(): KtClassBody = impl
   override val anonymousInitializers: List<AnonymousInitializer>
     get() = impl().anonymousInitializers.map { it.model() }
   override val properties: List<Property>

@@ -1,6 +1,7 @@
 package arrow.refinement.laws.kotlin.math
 
 import arrow.refinement.Law
+import arrow.refinement.Pre
 import arrow.refinement.pre
 import arrow.refinement.post
 import kotlin.jvm.JvmName

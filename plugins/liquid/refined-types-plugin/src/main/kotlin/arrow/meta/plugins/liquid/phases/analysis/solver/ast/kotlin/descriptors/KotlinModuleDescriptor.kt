@@ -6,11 +6,13 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqN
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 
-fun interface KotlinModuleDescriptor :
+class KotlinModuleDescriptor(
+  val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
+) :
   ModuleDescriptor,
   KotlinDeclarationDescriptor {
 
-  override fun impl(): org.jetbrains.kotlin.descriptors.ModuleDescriptor
+  override fun impl(): org.jetbrains.kotlin.descriptors.ModuleDescriptor = impl
 
   override fun getPackage(pck: String): PackageViewDescriptor? =
     impl().getPackage(org.jetbrains.kotlin.name.FqName(pck)).model()
