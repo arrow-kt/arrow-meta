@@ -131,7 +131,7 @@ internal fun KtDeclaration.constraints(
     constraintsFromFunctionLike(solverState, context)
   else -> Pair(arrayListOf(), arrayListOf())
 }.let { (preConstraints, postConstraints) ->
-  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
+  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty() || descriptor.isField()) {
     solverState.addConstraints(
       descriptor, preConstraints, postConstraints,
       context.trace.bindingContext)
@@ -382,13 +382,23 @@ private fun SolverState.addConstraints(
     } else null
   val lawSubject = remoteDescriptorFromRemoteLaw ?: targetDescriptorFromLocalLaw
   if (lawSubject != null) {
-    callableConstraints.add(
-      DeclarationConstraints(lawSubject, preConstraints, postConstraints)
-    )
+    callableConstraints.add(lawSubject, preConstraints, postConstraints)
   }
-  callableConstraints.add(
-    DeclarationConstraints(descriptor, preConstraints, postConstraints)
-  )
+  callableConstraints.add(descriptor, preConstraints, postConstraints)
+}
+
+private fun MutableList<DeclarationConstraints>.add(
+  descriptor: DeclarationDescriptor,
+  pre: ArrayList<NamedConstraint>,
+  post: ArrayList<NamedConstraint>
+) {
+  val previous = this.firstOrNull { it.descriptor == descriptor }
+  if (previous == null) {
+    this.add(DeclarationConstraints(descriptor, pre, post))
+  } else {
+    this.remove(previous)
+    this.add(DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post))
+  }
 }
 
 private fun getReturnedExpressionWithoutPostcondition(
@@ -452,7 +462,7 @@ internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
       val allPackageDescriptors = topLevelDescriptors + memberDescriptors
       val packagedProofs = allPackageDescriptors
         .filter {
-          it.preAnnotation() != null || it.postAnnotation() != null
+          it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
         }
       val remaining = (getSubPackagesOf(current) { true } + packages.drop(1)).filter { it !in skipPacks }
       declarationsWithConstraints(acc + packagedProofs.asSequence(), remaining)

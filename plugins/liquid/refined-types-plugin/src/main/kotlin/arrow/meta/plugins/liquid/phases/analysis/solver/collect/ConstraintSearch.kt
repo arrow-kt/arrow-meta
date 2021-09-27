@@ -36,7 +36,7 @@ internal fun SolverState.constraintsFromSolverState(
 internal fun SolverState.constraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor)
+  immediateConstraintsFromSolverState(descriptor)?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
     ?: overriddenConstraintsFromSolverState(descriptor)
 
 /**
@@ -146,7 +146,7 @@ internal fun Solver.renameConditions(
  * Obtain the descriptors which have been overridden by a declaration,
  * if they exist
  */
-private fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
+internal fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
   when (this) {
     is CallableMemberDescriptor -> this.overriddenDescriptors
     else -> null
