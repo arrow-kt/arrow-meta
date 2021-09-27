@@ -35,8 +35,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.postCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.primitiveConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.specialCasingForResolvedCalls
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.renameObjectVariables
@@ -95,7 +95,6 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isNullable
-import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.sosy_lab.java_smt.api.BooleanFormula
 
@@ -289,7 +288,6 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall<out CallableDescriptor>,
   data: CheckData
 ): ContSeq<Return> {
-  val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)
   val specialControlFlow = controlFlowAnyFunction(resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
@@ -309,37 +307,6 @@ private fun SolverState.checkCallExpression(
           checkElvisOperator(associatedVarName, left, right, data)
         }
       }
-    specialCase != null -> { // this should eventually go away
-      val receiverExpr = resolvedCall.getReceiverExpression()
-      val referencedArg = resolvedCall.referencedArg(receiverExpr)
-      val receiverName = solver.makeObjectVariable(newName(data.context, THIS_VAR_NAME, receiverExpr, referencedArg))
-      checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
-        checkCallArguments(resolvedCall, data).map {
-          it.fold(
-            { r -> r },
-            { valueArgVars ->
-              val argVars = listOf(THIS_VAR_NAME to receiverName) + valueArgVars
-              val result =
-                if (expression.kotlinType(data.context.trace.bindingContext)?.isBoolean() == true)
-                  solver.boolValue(associatedVarName)
-                else
-                  solver.intValue(associatedVarName)
-              val arg1 = solver.intValue(argVars[0].second)
-              val arg2 = solver.intValue(argVars[1].second)
-              specialCase(result, arg1, arg2)?.let { formula ->
-                addConstraint(
-                  NamedConstraint(
-                    "${expression.text}, checkCallArguments(${resolvedCall.resultingDescriptor.fqNameSafe}) [$result, $arg1, $arg2]",
-                    formula
-                  )
-                )
-              }
-              NoReturn
-            }
-          )
-        }
-      }
-    }
     else -> checkRegularFunctionCall(associatedVarName, resolvedCall, expression, data)
   }
 }
@@ -460,7 +427,7 @@ internal fun SolverState.checkRegularFunctionCall(
       it.fold(
         { r -> r },
         { argVars ->
-          val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
+          val callConstraints = (constraintsFromSolverState(resolvedCall) ?: primitiveConstraints(resolvedCall))?.let { declInfo ->
             val completeRenaming =
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)

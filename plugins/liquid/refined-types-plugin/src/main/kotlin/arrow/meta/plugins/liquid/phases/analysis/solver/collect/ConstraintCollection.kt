@@ -10,6 +10,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.Declaratio
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unexpectedFieldInitBlock
+import arrow.meta.plugins.liquid.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.Solver

@@ -1,5 +1,6 @@
-package arrow.meta.plugins.liquid.phases.analysis.solver.collect
+package arrow.meta.plugins.liquid.phases.analysis.solver
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.allArgumentExpressions
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd
 import arrow.meta.plugins.liquid.smt.boolEquivalence
@@ -65,7 +66,7 @@ fun Solver.primitiveFormula(
   }
 }
 
-private fun CallableDescriptor.isComparison() =
+internal fun CallableDescriptor.isComparison() =
   overriddenDescriptors.any {
     it.fqNameSafe == FqName("kotlin.Any.equals") ||
       it.fqNameSafe == FqName("kotlin.Comparable.equals") ||
