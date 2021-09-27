@@ -41,6 +41,11 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExp
 import arrow.meta.plugins.liquid.smt.ObjectFormula
 import arrow.meta.plugins.liquid.smt.renameObjectVariables
 import arrow.meta.plugins.liquid.smt.substituteDeclarationConstraints
+import arrow.meta.plugins.liquid.types.PrimitiveType
+import arrow.meta.plugins.liquid.types.asFloatingLiteral
+import arrow.meta.plugins.liquid.types.asIntegerLiteral
+import arrow.meta.plugins.liquid.types.primitiveType
+import arrow.meta.plugins.liquid.types.unwrapIfNullable
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
@@ -93,8 +98,6 @@ import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isBoolean
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.sosy_lab.java_smt.api.BooleanFormula
-import java.math.BigDecimal
-import java.math.BigInteger
 
 // 2.2: expressions
 // ----------------
@@ -141,7 +144,7 @@ internal fun SolverState.checkExpressionConstraints(
     is KtThrowExpression ->
       checkThrowConstraints(expression, data)
     is KtConstantExpression ->
-      checkConstantExpression(associatedVarName, expression)
+      checkConstantExpression(associatedVarName, expression, data)
     is KtThisExpression ->
       // both 'this' and 'this@name' are available in the variable info
       checkNameExpression(associatedVarName, expression.text, data)
@@ -652,32 +655,38 @@ private fun SolverState.checkCallArguments(
  */
 private fun SolverState.checkConstantExpression(
   associatedVarName: ObjectFormula,
-  expression: KtConstantExpression
+  expression: KtConstantExpression,
+  data: CheckData
 ): ContSeq<Return> = cont {
   if (expression.text == "null") {
     addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
   } else {
-    val mayBoolean = expression.text.toBooleanStrictOrNull()
-    val mayInteger = expression.text.asIntegerLiteral()
-    val mayRational = expression.text.asFloatingLiteral()
-    when {
-      mayBoolean == true ->
-        solver.boolValue(associatedVarName)
-      mayBoolean == false ->
-        solver.booleans { not(solver.boolValue(associatedVarName)) }
-      mayInteger != null ->
-        solver.ints {
-          equal(
-            solver.intValue(associatedVarName),
-            makeNumber(mayInteger)
-          )
+    val type = expression.kotlinType(data.context.trace.bindingContext)?.unwrapIfNullable()
+    when (type?.primitiveType()) {
+      PrimitiveType.BOOLEAN ->
+        expression.text.toBooleanStrictOrNull()?.let {
+          solver.booleans {
+            if (it) solver.boolValue(associatedVarName)
+            else not(solver.boolValue(associatedVarName))
+          }
         }
-      mayRational != null ->
-        solver.rationals {
-          equal(
-            solver.decimalValue(associatedVarName),
-            makeNumber(mayRational)
-          )
+      PrimitiveType.INTEGRAL ->
+        expression.text.asIntegerLiteral()?.let {
+          solver.ints {
+            equal(
+              solver.intValue(associatedVarName),
+              makeNumber(it)
+            )
+          }
+        }
+      PrimitiveType.RATIONAL ->
+        expression.text.asFloatingLiteral()?.let {
+          solver.rationals {
+            equal(
+              solver.decimalValue(associatedVarName),
+              makeNumber(it)
+            )
+          }
         }
       else -> null
     }?.let {
@@ -697,32 +706,6 @@ private fun SolverState.checkConstantExpression(
   }
   NoReturn
 }
-
-/**
- * Parse integer literal according to Kotlin's grammar
- * https://kotlinlang.org/docs/reference/grammar.html#literalConstant
- */
-private fun String.asIntegerLiteral(): BigInteger? =
-  replace("_", "")
-    .trimEnd('u', 'U', 'l', 'L')
-    .run {
-      when {
-        startsWith("0x", ignoreCase = true) ->
-          drop(2).toBigIntegerOrNull(16)
-        startsWith("0b", ignoreCase = true) ->
-          drop(2).toBigIntegerOrNull(2)
-        else -> toBigIntegerOrNull()
-      }
-    }
-
-/**
- * Parse floating literal according to Kotlin's grammar
- * https://kotlinlang.org/docs/reference/grammar.html#RealLiteral
- */
-private fun String.asFloatingLiteral(): BigDecimal? =
-  replace("_", "")
-    .trimEnd('f', 'F')
-    .toBigDecimalOrNull()
 
 /**
  * Check special binary cases, and make the other fall-through
