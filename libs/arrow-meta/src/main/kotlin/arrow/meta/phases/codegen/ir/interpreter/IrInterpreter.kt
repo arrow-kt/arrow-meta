@@ -10,7 +10,10 @@
 
 package arrow.meta.phases.codegen.ir.interpreter
 
+import arrow.meta.phases.codegen.ir.interpreter.builtins.CompileTimeFunction
 import arrow.meta.phases.codegen.ir.interpreter.builtins.compileTimeFunctions
+import arrow.meta.phases.codegen.ir.interpreter.exceptions.InterpreterMethodNotFoundException
+import arrow.meta.phases.codegen.ir.interpreter.exceptions.InterpreterTimeOutException
 import arrow.meta.phases.codegen.ir.interpreter.intrinsics.IntrinsicEvaluator
 import arrow.meta.phases.codegen.ir.interpreter.stack.StackImpl
 import arrow.meta.phases.codegen.ir.interpreter.stack.Variable
@@ -85,19 +88,7 @@ import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrErrorExpressionImpl
-import org.jetbrains.kotlin.ir.interpreter.BreakLoop
-import org.jetbrains.kotlin.ir.interpreter.BreakWhen
-import org.jetbrains.kotlin.ir.interpreter.Continue
-import org.jetbrains.kotlin.ir.interpreter.Exception
-import org.jetbrains.kotlin.ir.interpreter.ExecutionResult
-import org.jetbrains.kotlin.ir.interpreter.Next
-import org.jetbrains.kotlin.ir.interpreter.Return
-import org.jetbrains.kotlin.ir.interpreter.ReturnLabel
-import org.jetbrains.kotlin.ir.interpreter.builtins.CompileTimeFunction
-import org.jetbrains.kotlin.ir.interpreter.check
 import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterException
-import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterMethodNotFoundException
-import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterTimeOutException
 import org.jetbrains.kotlin.ir.interpreter.getVarargType
 import org.jetbrains.kotlin.ir.interpreter.toIrConst
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
@@ -288,7 +279,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
       val irExceptionClass =
         irExceptions.firstOrNull { it.name.asString() == exceptionName } ?: irBuiltIns.throwableClass.owner
       stack.pushReturnValue(ExceptionState(e, irExceptionClass, stack.getStackTrace()))
-      return org.jetbrains.kotlin.ir.interpreter.Exception
+      return Exception
     }
   }
 
@@ -297,7 +288,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
     if (irFunction.fileOrNull != null) stack.setCurrentFrameName(irFunction)
 
     if (irFunction.body is IrSyntheticBody) return handleIntrinsicMethods(irFunction)
-    return irFunction.body?.interpret() ?: throw InterpreterException("Ir function must be with body")
+    return irFunction.body?.interpret() ?: throw (object : InterpreterException("Ir function must be with body") {})
   }
 
   private fun MethodHandle?.invokeMethod(irFunction: IrFunction): ExecutionResult {
@@ -796,7 +787,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
       }
     } // restore to null
     return executionResult
-      ?: throw InterpreterException("Initializer at enum entry ${enumEntry.fqNameWhenAvailable} is null")
+      ?: throw (object : InterpreterException("Initializer at enum entry ${enumEntry.fqNameWhenAvailable} is null") {})
   }
 
   private fun interpretTypeOperatorCall(expression: IrTypeOperatorCall): ExecutionResult {
@@ -914,7 +905,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
       is Common -> stack.pushReturnValue(ExceptionState(exception, stack.getStackTrace()))
       is Wrapper -> stack.pushReturnValue(ExceptionState(exception, stack.getStackTrace()))
       is ExceptionState -> stack.pushReturnValue(exception)
-      else -> throw InterpreterException("${exception::class} cannot be used as exception state")
+      else -> throw (object : InterpreterException("${exception::class} cannot be used as exception state") {})
     }
     return Exception
   }
@@ -942,7 +933,7 @@ internal class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bod
         }
       }
       is Lambda -> state.toString()
-      else -> throw InterpreterException("${state::class.java} cannot be used in StringConcatenation expression")
+      else -> throw (object : InterpreterException("${state::class.java} cannot be used in StringConcatenation expression") {})
     }
     stack.pushReturnValue(result.toState(irBuiltIns.stringType))
     return Next
@@ -991,7 +982,7 @@ internal fun IrFunction.classLoadedFunction(): ((Array<out Any?>) -> Any?)? =
       try {
         f?.callBy(reflectionArgs)
       } catch (e: InvocationTargetException) {
-        throw InterpreterException(e.targetException.message ?: e.targetException.toString())
+        throw (object : InterpreterException(e.targetException.message ?: e.targetException.toString()) {})
       }
     }
     else null

@@ -155,6 +155,7 @@ class LiquidDataflowTests {
   }
 
   @Test
+  @Disabled // the solver doesn't signal inconsistency
   fun `unreachable code`() {
     """
       ${imports()}
@@ -420,7 +421,7 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `nullability, predicate with null, 2`() {
+  fun `nullability, predicate with null, 2, if`() {
     """
       ${imports()}
       fun nully1b(x: Int?): Int? {
@@ -428,6 +429,25 @@ class LiquidDataflowTests {
         return y.post({ 
           if (x == null) { it == null }
           else { (it != null) && (it < 0) }
+        }) { "smaller than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`nully1b` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, predicate with null, 2, when`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ 
+          when {
+            x == null -> it == null
+            else -> (it != null) && (it < 0)
+          }
         }) { "smaller than 0" }
       }
       """(

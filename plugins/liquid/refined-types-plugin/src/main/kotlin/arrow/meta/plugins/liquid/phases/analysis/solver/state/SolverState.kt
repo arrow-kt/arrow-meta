@@ -1,20 +1,20 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.continuations.ContSeq
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import arrow.meta.plugins.liquid.smt.utils.ReferencedElement
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
@@ -98,14 +98,40 @@ data class SolverState(
    * Do not forget to call before starting the check.
    */
   fun introduceFieldNamesInSolver() {
-    solver.formulae {
-      callableConstraints.flatMap { decl ->
-        val descriptor = decl.descriptor
-        val myself = if (descriptor.isField()) setOf(descriptor.fqNameSafe.name) else emptySet()
-        myself + fieldNames((decl.pre + decl.post).map { it.formula }).map { it.first }
-      }.toSet().forEachIndexed { fieldIndex, fieldName ->
+    val basicNames = mutableSetOf<String>()
+    val overriddenNames = mutableMapOf<String, List<String>>()
+
+    fun doOne(descriptor: DeclarationDescriptor) {
+      val name = descriptor.fqNameSafe.asString()
+      val overridden = descriptor.overriddenDescriptors()
+      if (overridden == null || overridden.isEmpty()) {
+        basicNames.add(name)
+      } else {
+        overridden.forEach(::doOne)
+        overriddenNames[name] = overridden.map { it.fqNameSafe.asString() }
+      }
+    }
+
+    callableConstraints.forEach { decl ->
+      val descriptor = decl.descriptor
+      // add this field and its parents
+      if (descriptor.isField()) doOne(descriptor)
+      // add any other fields which may be mentioned here
+      val cstrs: Iterable<Formula> = (decl.pre + decl.post).map { it.formula }
+      basicNames.addAll(solver.formulaManager.fieldNames(cstrs).map { it.first })
+    }
+
+    (basicNames - overriddenNames.keys).forEachIndexed { fieldIndex, fieldName ->
+      val constraint = solver.ints {
+        NamedConstraint("[auto-generated] $fieldName == $fieldIndex", equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong())))
+      }
+      addConstraint(constraint)
+    }
+
+    overriddenNames.forEach { (thisField, parentFields) ->
+      parentFields.forEach { parentField ->
         val constraint = solver.ints {
-          NamedConstraint("[auto-generated] $fieldName == $fieldIndex", equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong())))
+          NamedConstraint("[auto-generated] $thisField == $parentField", equal(makeVariable(thisField), makeVariable(parentField)))
         }
         addConstraint(constraint)
       }

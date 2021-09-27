@@ -112,6 +112,9 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   fun makeIntegerObjectVariable(varName: String): NumeralFormula.IntegerFormula =
     intValue(makeObjectVariable(varName))
 
+  fun makeDecimalObjectVariable(varName: String): NumeralFormula.RationalFormula =
+    decimalValue(makeObjectVariable(varName))
+
   val resultVariable = makeObjectVariable(RESULT_VAR_NAME)
   val thisVariable = makeObjectVariable(THIS_VAR_NAME)
 

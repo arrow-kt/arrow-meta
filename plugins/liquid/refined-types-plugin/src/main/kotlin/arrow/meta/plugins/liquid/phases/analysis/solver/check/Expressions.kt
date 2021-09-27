@@ -10,37 +10,13 @@ import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.internal.mapNotNull
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CheckData
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Condition
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ControlFlowFn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitBlockReturn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitLoopReturn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitReturn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitThrowReturn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
-import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Return
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.arg
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPreConditionsImplication
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkConditionsInconsistencies
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariant
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariantConsistency
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.postCall
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
-import arrow.meta.plugins.liquid.phases.analysis.solver.state.specialCasingForResolvedCalls
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
-import arrow.meta.plugins.liquid.smt.ObjectFormula
-import arrow.meta.plugins.liquid.smt.renameObjectVariables
-import arrow.meta.plugins.liquid.smt.substituteDeclarationConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.AnnotatedExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BlockExpression
@@ -56,6 +32,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Ele
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionWithLabel
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ForExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.IfExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.IsExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.LabeledExpression
@@ -68,23 +45,48 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Par
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SimpleNameExpression
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.VariableDeclaration
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhileExpression
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CheckData
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Condition
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ControlFlowFn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitBlockReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitLoopReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitThrowReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Return
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.arg
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.invariantCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.postCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.primitiveConstraints
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPreConditionsImplication
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkConditionsInconsistencies
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariant
+import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkInvariantConsistency
+import arrow.meta.plugins.liquid.smt.ObjectFormula
+import arrow.meta.plugins.liquid.smt.renameObjectVariables
+import arrow.meta.plugins.liquid.smt.substituteDeclarationConstraints
+import arrow.meta.plugins.liquid.types.PrimitiveType
+import arrow.meta.plugins.liquid.types.asFloatingLiteral
+import arrow.meta.plugins.liquid.types.asIntegerLiteral
+import arrow.meta.plugins.liquid.types.primitiveType
+import arrow.meta.plugins.liquid.types.unwrapIfNullable
 import org.sosy_lab.java_smt.api.BooleanFormula
-import java.math.BigDecimal
-import java.math.BigInteger
 
 // 2.2: expressions
 // ----------------
@@ -131,7 +133,7 @@ internal fun SolverState.checkExpressionConstraints(
     is ThrowExpression ->
       checkThrowConstraints(expression, data)
     is ConstantExpression ->
-      checkConstantExpression(associatedVarName, expression)
+      checkConstantExpression(associatedVarName, expression, data)
     is ThisExpression ->
       // both 'this' and 'this@name' are available in the variable info
       checkNameExpression(associatedVarName, expression.text, data)
@@ -276,8 +278,7 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall,
   data: CheckData
 ): ContSeq<Return> {
-  val specialCase = solver.specialCasingForResolvedCalls(resolvedCall)
-  val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
+  val specialControlFlow = controlFlowAnyFunction(resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
     resolvedCall.isOldRefinedCall() -> // ignore calls to old Refined
@@ -296,37 +297,6 @@ private fun SolverState.checkCallExpression(
           checkElvisOperator(associatedVarName, left, right, data)
         }
       }
-    specialCase != null -> { // this should eventually go away
-      val receiverExpr = resolvedCall.getReceiverExpression()
-      val referencedArg = resolvedCall.referencedArg(receiverExpr)
-      val receiverName = solver.makeObjectVariable(newName(data.context, THIS_VAR_NAME, receiverExpr, referencedArg))
-      checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo {
-        checkCallArguments(resolvedCall, data).map {
-          it.fold(
-            { r -> r },
-            { valueArgVars ->
-              val argVars = listOf(THIS_VAR_NAME to receiverName) + valueArgVars
-              val result =
-                if (expression.type(data.context)?.isBoolean() == true)
-                  solver.boolValue(associatedVarName)
-                else
-                  solver.intValue(associatedVarName)
-              val arg1 = solver.intValue(argVars[0].second)
-              val arg2 = solver.intValue(argVars[1].second)
-              specialCase(result, arg1, arg2)?.let { formula ->
-                addConstraint(
-                  NamedConstraint(
-                    "${expression.text}, checkCallArguments(${resolvedCall.resultingDescriptor.fqNameSafe}) [$result, $arg1, $arg2]",
-                    formula
-                  )
-                )
-              }
-              NoReturn
-            }
-          )
-        }
-      }
-    }
     else -> checkRegularFunctionCall(associatedVarName, resolvedCall, expression, data)
   }
 }
@@ -448,7 +418,7 @@ internal fun SolverState.checkRegularFunctionCall(
       it.fold(
         { r -> r },
         { argVars ->
-          val callConstraints = constraintsFromSolverState(resolvedCall)?.let { declInfo ->
+          val callConstraints = (constraintsFromSolverState(resolvedCall) ?: primitiveConstraints(resolvedCall))?.let { declInfo ->
             val completeRenaming =
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
@@ -643,32 +613,38 @@ private fun SolverState.checkCallArguments(
  */
 private fun SolverState.checkConstantExpression(
   associatedVarName: ObjectFormula,
-  expression: ConstantExpression
+  expression: ConstantExpression,
+  data: CheckData
 ): ContSeq<Return> = cont {
   if (expression.text == "null") {
     addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
   } else {
-    val mayBoolean = expression.text.toBooleanStrictOrNull()
-    val mayInteger = expression.text.asIntegerLiteral()
-    val mayRational = expression.text.asFloatingLiteral()
-    when {
-      mayBoolean == true ->
-        solver.boolValue(associatedVarName)
-      mayBoolean == false ->
-        solver.booleans { not(solver.boolValue(associatedVarName)) }
-      mayInteger != null ->
-        solver.ints {
-          equal(
-            solver.intValue(associatedVarName),
-            makeNumber(mayInteger)
-          )
+    val type = expression.kotlinType(data.context.trace.bindingContext)?.unwrapIfNullable()
+    when (type?.primitiveType()) {
+      PrimitiveType.BOOLEAN ->
+        expression.text.toBooleanStrictOrNull()?.let {
+          solver.booleans {
+            if (it) solver.boolValue(associatedVarName)
+            else not(solver.boolValue(associatedVarName))
+          }
         }
-      mayRational != null ->
-        solver.rationals {
-          equal(
-            solver.decimalValue(associatedVarName),
-            makeNumber(mayRational)
-          )
+      PrimitiveType.INTEGRAL ->
+        expression.text.asIntegerLiteral()?.let {
+          solver.ints {
+            equal(
+              solver.intValue(associatedVarName),
+              makeNumber(it)
+            )
+          }
+        }
+      PrimitiveType.RATIONAL ->
+        expression.text.asFloatingLiteral()?.let {
+          solver.rationals {
+            equal(
+              solver.decimalValue(associatedVarName),
+              makeNumber(it)
+            )
+          }
         }
       else -> null
     }?.let {
@@ -688,32 +664,6 @@ private fun SolverState.checkConstantExpression(
   }
   NoReturn
 }
-
-/**
- * Parse integer literal according to Kotlin's grammar
- * https://kotlinlang.org/docs/reference/grammar.html#literalConstant
- */
-private fun String.asIntegerLiteral(): BigInteger? =
-  replace("_", "")
-    .trimEnd('u', 'U', 'l', 'L')
-    .run {
-      when {
-        startsWith("0x", ignoreCase = true) ->
-          drop(2).toBigIntegerOrNull(16)
-        startsWith("0b", ignoreCase = true) ->
-          drop(2).toBigIntegerOrNull(2)
-        else -> toBigIntegerOrNull()
-      }
-    }
-
-/**
- * Parse floating literal according to Kotlin's grammar
- * https://kotlinlang.org/docs/reference/grammar.html#RealLiteral
- */
-private fun String.asFloatingLiteral(): BigDecimal? =
-  replace("_", "")
-    .trimEnd('f', 'F')
-    .toBigDecimalOrNull()
 
 /**
  * Check special binary cases, and make the other fall-through
