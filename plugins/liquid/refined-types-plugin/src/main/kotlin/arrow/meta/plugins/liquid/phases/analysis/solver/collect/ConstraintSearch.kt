@@ -44,7 +44,7 @@ internal fun SolverState.constraintsFromSolverState(
 internal fun SolverState.constraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor)?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
+  immediateConstraintsFromSolverState(descriptor)
     ?: overriddenConstraintsFromSolverState(descriptor)
 
 /**
@@ -56,7 +56,7 @@ internal fun SolverState.immediateConstraintsFromSolverState(
 ): DeclarationConstraints? =
   callableConstraints.firstOrNull {
     descriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }
+  }?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
 
 /**
  * This combinator allows us to use any of the previous

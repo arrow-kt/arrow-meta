@@ -342,7 +342,7 @@ private fun MutableList<DeclarationConstraints>.add(
   pre: ArrayList<NamedConstraint>,
   post: ArrayList<NamedConstraint>
 ) {
-  val previous = this.firstOrNull { it.descriptor == descriptor }
+  val previous = this.firstOrNull { it.descriptor.fqNameSafe == descriptor.fqNameSafe }
   if (previous == null) {
     this.add(DeclarationConstraints(descriptor, pre, post))
   } else {
@@ -724,7 +724,7 @@ internal fun Element.isResultReference(bindingContext: ResolutionContext): Boole
   } ?: false
 
 internal fun Element.getPostOrInvariantParent(
-  bindingContext:  ResolutionContext
+  bindingContext: ResolutionContext
 ): ResolvedCall? =
   this.parents().mapNotNull {
     it.getResolvedCall(bindingContext)
