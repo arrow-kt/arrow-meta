@@ -58,7 +58,7 @@ fun <A : KtElement,
     is KtBlockExpression -> KotlinBlockExpression(this).repr()
     is KtStringTemplateExpression -> KotlinDefaultExpression(this).repr()
     is KtReturnExpression -> KotlinReturnExpression(this).repr()
-    is KtParenthesizedExpression -> KotlinDefaultExpression(this).repr()
+    is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()
     is KtDotQualifiedExpression -> KotlinDotQualifiedExpression(this).repr()
     is KtPrefixExpression -> KotlinDefaultExpression(this).repr()
@@ -84,6 +84,7 @@ fun <A : KtElement,
     is KtSecondaryConstructor -> KotlinSecondaryConstructor(this).repr()
     is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
     is KtConstructorDelegationReferenceExpression -> KotlinConstructorDelegationReferenceExpression(this).repr()
+    is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
    // is KtFile -> KotlinFile(this).repr()
     else -> TODO("Missing impl for $this")
   }
