@@ -103,7 +103,7 @@ object ErrorMessages {
     ): String =
       """|pre-condition `${callPreCondition.msg}` is not satisfied in `${resolvedCall.callElement.text}`
          |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
-         |  -> ${template(callPreCondition, this)}          `
+         |  -> ${template(callPreCondition, this)}
       """.trimMargin()
 
     /**
@@ -149,7 +149,7 @@ object ErrorMessages {
       model: Model
     ): String =
       """|invariants are not satisfied in `${expression.text}`
-         |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`       `
+         |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
   }
 
@@ -242,27 +242,28 @@ object ErrorMessages {
   object Liskov {
     internal fun KotlinPrinter.notWeakerPrecondition(constraint: NamedConstraint): String =
       """|pre-condition `${constraint.msg}` is not weaker than those from overridden members
-         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
 
     internal fun KotlinPrinter.notStrongerPostcondition(constraint: NamedConstraint): String =
       """|post-condition `${constraint.msg}` from overridden member is not satisfied
-         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
   }
 
   internal fun template(constraint: NamedConstraint, solver: Solver): String = solver.run {
     val showVariables = extractVariables(constraint.formula)
-    val elements = showVariables.mapNotNull { mirroredElement(it.key) }
-    elements.joinToString(System.lineSeparator()) { referencedElement ->
-      val el = referencedElement.element
-      val argsMapping = referencedElement.reference
-      argsMapping?.let { (param, resolvedArg) ->
-        val paramPsi = param.element()
-        val location = paramPsi?.let { paramPsi.location() }
-        "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration?.fqNameSafe}` ${location?.link() ?: ""}"
-      } ?: ""
-    }
+    showVariables.mapNotNull { mirroredElement(it.key) }
+      .takeIf { it.isNotEmpty() }
+      ?.joinToString(System.lineSeparator()) { referencedElement ->
+        val el = referencedElement.element
+        val argsMapping = referencedElement.reference
+        argsMapping?.let { (param, resolvedArg) ->
+          val paramPsi = param.element()
+          val location = paramPsi?.let { paramPsi.location() }
+          "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration?.fqNameSafe}` ${location?.link() ?: ""}"
+        } ?: ""
+      }?.takeIf { it.isNotEmpty() } ?: "<no local variable involved>"
   }
 
   private fun CompilerMessageSourceLocation.link(): String =
