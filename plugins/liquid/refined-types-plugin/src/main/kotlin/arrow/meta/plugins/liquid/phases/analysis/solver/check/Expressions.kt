@@ -477,7 +477,7 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
   data: CheckData,
   block: () -> ContSeq<Return>
 ): ContSeq<Return> = when {
-  (receiverExpr != null) && (receiverExpr == wholeExpr) ->
+  (receiverExpr != null) && (receiverExpr.impl() != null) && (receiverExpr.impl() == wholeExpr.impl()) ->
     // this happens in some weird cases, just keep going
     block()
   (receiverExpr == null) && (resolvedCall?.hasReceiver() == true) ->
