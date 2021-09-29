@@ -84,17 +84,17 @@ internal fun <A> SolverState.checkTopLevel(
     }
     // check consistency of pre-conditions
     val inconsistentPreconditions =
-      checkPreconditionsInconsistencies(constraints, context, declaration)
+      checkPreconditionsInconsistencies(constraints, data.context, declaration)
     ensure(!inconsistentPreconditions)
   }.map {
     // check Liskov conditions
-    val liskovOk = checkLiskovConditions(declaration, descriptor, context)
+    val liskovOk = checkLiskovConditions(declaration, descriptor, data.context)
     ensure(liskovOk)
   }.flatMap {
     // check the body
     bodyCheck(data) {
       // and finally check the post-conditions
-      checkPostConditionsImplication(constraints, context, declaration)
+      checkPostConditionsImplication(constraints, data.context, declaration)
     }
   }
 }

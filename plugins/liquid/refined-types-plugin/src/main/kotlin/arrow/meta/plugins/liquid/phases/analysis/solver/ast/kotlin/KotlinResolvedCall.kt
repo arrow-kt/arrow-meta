@@ -11,11 +11,14 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Cal
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinExpressionValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinReceiverValue
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinResolvedValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
+import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
+import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
 
 class KotlinResolvedCall(
   val impl: org.jetbrains.kotlin.resolve.calls.model.ResolvedCall<out org.jetbrains.kotlin.descriptors.CallableDescriptor>
@@ -45,7 +48,11 @@ class KotlinResolvedCall(
   override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     get() = impl().valueArguments.map { (param, resolvedArg) ->
       val p : ValueParameterDescriptor = param.model()
-      val a : ResolvedValueArgument = KotlinResolvedValueArgument(resolvedArg)
+      val a : ResolvedValueArgument = when (resolvedArg) {
+        is ExpressionValueArgument -> KotlinExpressionValueArgument(resolvedArg)
+        is VarargValueArgument -> KotlinResolvedValueArgument(resolvedArg)
+        else -> TODO()
+      }
       p to a
     }.toMap()
 

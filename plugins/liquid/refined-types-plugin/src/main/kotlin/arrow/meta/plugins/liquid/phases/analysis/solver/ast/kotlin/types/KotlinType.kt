@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.isUnsignedNumberType
 
-internal open class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Type {
+internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Type {
   override val descriptor: ClassDescriptor?
     get() = TypeUtils.getClassDescriptor(impl)?.model()
   override val unwrappedNotNullableType: Type

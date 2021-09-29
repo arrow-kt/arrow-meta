@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ExpressionResolvedValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ValueArgument
@@ -9,7 +10,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements.Kotl
 
 open class KotlinExpressionValueArgument(
   override val impl: org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
-) : ValueArgument, ExpressionResolvedValueArgument, KotlinResolvedValueArgument(impl) {
+) : ValueArgument, ExpressionValueArgument, ExpressionResolvedValueArgument, KotlinResolvedValueArgument(impl) {
   override fun impl(): org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument = impl
   override val argumentExpression: Expression?
     get() = impl().valueArgument?.getArgumentExpression()?.model()
@@ -24,4 +25,7 @@ open class KotlinExpressionValueArgument(
 
   override fun isExternal(): Boolean =
     impl().valueArgument?.isExternal() == true
+
+  override val valueArgument: ValueArgument?
+    get() = impl().valueArgument?.let { KotlinValueArgument(it) }
 }
