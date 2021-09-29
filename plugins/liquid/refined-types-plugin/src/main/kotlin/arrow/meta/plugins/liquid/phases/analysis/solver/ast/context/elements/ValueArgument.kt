@@ -5,4 +5,3 @@ interface ValueArgument : ExpressionResolvedValueArgument {
   fun isNamed(): Boolean
   fun isExternal(): Boolean
 }
-

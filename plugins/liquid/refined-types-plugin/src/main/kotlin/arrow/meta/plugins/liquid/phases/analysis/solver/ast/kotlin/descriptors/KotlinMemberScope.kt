@@ -6,7 +6,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Nam
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 
-
 fun interface KotlinMemberScope : MemberScope {
 
   fun impl(): org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -23,5 +22,3 @@ fun interface KotlinMemberScope : MemberScope {
   override fun getContributedDescriptors(filter: (name: String) -> Boolean): List<DeclarationDescriptor> =
     impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map { it.model() }
 }
-
-

@@ -17,8 +17,4 @@ class KotlinAnnotations(override val impl: org.jetbrains.kotlin.descriptors.anno
 
   override fun hasAnnotation(fqName: FqName): Boolean =
     impl.hasAnnotation(org.jetbrains.kotlin.name.FqName(fqName.name))
-
-
 }
-
-

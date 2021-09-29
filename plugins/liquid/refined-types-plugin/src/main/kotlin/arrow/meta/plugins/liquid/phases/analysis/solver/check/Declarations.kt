@@ -113,7 +113,6 @@ internal fun SolverState.checkTopLevelDeclarationWithBody(
     }
   }
 
-
 internal fun SolverState.checkPrimaryConstructor(
   context: ResolutionContext,
   descriptor: DeclarationDescriptor,

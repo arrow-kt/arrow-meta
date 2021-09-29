@@ -6,5 +6,3 @@ enum class Modality {
   OPEN,
   ABSTRACT
 }
-
-

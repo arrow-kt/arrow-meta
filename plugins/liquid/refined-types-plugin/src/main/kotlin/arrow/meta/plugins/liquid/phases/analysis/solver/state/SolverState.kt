@@ -82,7 +82,7 @@ data class SolverState(
   ): String = newName(context, prefix, element, null)
 
   fun newName(
-    context:  ResolutionContext,
+    context: ResolutionContext,
     prefix: String,
     element: Element?,
     reference: Pair<ValueParameterDescriptor, ResolvedValueArgument>?

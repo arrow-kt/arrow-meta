@@ -6,7 +6,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeConstraint
 
-fun interface KotlinTypeConstraint: TypeConstraint {
+fun interface KotlinTypeConstraint : TypeConstraint {
   fun impl(): KtTypeConstraint
   override val subjectTypeParameterName: SimpleNameExpression?
     get() = impl().subjectTypeParameterName?.model()

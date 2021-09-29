@@ -7,7 +7,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CallElement
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
@@ -47,8 +46,8 @@ class KotlinResolvedCall(
 
   override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     get() = impl().valueArguments.map { (param, resolvedArg) ->
-      val p : ValueParameterDescriptor = param.model()
-      val a : ResolvedValueArgument = when (resolvedArg) {
+      val p: ValueParameterDescriptor = param.model()
+      val a: ResolvedValueArgument = when (resolvedArg) {
         is ExpressionValueArgument -> KotlinExpressionValueArgument(resolvedArg)
         is VarargValueArgument -> KotlinResolvedValueArgument(resolvedArg)
         else -> TODO()

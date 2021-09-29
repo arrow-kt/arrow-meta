@@ -4,4 +4,3 @@ interface AnonymousInitializer : Declaration {
   val containingDeclaration: Declaration
   val body: Expression?
 }
-

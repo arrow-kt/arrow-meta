@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.psi.KtConstructorDelegationReferenceExpression
 
 class KotlinConstructorDelegationReferenceExpression(
   val impl: KtConstructorDelegationReferenceExpression
-) :ConstructorDelegationReferenceExpression,  KotlinExpression, KotlinReferenceExpression {
+) : ConstructorDelegationReferenceExpression, KotlinExpression, KotlinReferenceExpression {
   override fun impl(): KtConstructorDelegationReferenceExpression = impl
   override val isThis: Boolean
     get() = impl().isThis

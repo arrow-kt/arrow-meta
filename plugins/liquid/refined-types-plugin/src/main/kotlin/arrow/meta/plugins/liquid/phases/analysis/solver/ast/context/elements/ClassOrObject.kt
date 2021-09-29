@@ -6,4 +6,3 @@ interface ClassOrObject : NamedDeclaration, PureClassOrObject {
   fun getPrimaryConstructorParameterList(): ParameterList? = primaryConstructor?.valueParameterList
   fun isAnnotation(): Boolean
 }
-

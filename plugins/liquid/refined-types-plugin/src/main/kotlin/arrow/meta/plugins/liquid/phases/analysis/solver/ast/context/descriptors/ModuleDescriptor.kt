@@ -9,5 +9,3 @@ interface ModuleDescriptor : DeclarationDescriptor {
 
   val stableName: Name?
 }
-
-

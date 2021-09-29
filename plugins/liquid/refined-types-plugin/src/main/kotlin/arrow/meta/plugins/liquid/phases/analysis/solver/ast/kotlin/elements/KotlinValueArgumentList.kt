@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 class KotlinValueArgumentList(
   val impl: KtValueArgumentList
-): ValueArgumentList, KotlinElement {
+) : ValueArgumentList, KotlinElement {
   override fun impl(): KtValueArgumentList = impl
   override val arguments: List<ValueArgument>
     get() = impl().arguments.map { it.model() }

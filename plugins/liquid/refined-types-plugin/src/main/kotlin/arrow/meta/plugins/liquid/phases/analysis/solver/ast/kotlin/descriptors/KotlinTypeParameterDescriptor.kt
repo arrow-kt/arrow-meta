@@ -4,7 +4,9 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Var
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.Variance.*
+import org.jetbrains.kotlin.types.Variance.INVARIANT
+import org.jetbrains.kotlin.types.Variance.IN_VARIANCE
+import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
 
 fun interface KotlinTypeParameterDescriptor :
   TypeParameterDescriptor, KotlinClassifierDescriptor {

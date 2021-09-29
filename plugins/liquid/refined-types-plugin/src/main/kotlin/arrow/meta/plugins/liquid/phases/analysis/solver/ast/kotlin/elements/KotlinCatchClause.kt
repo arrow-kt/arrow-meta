@@ -7,7 +7,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Par
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtCatchClause
 
-class KotlinCatchClause(val impl: KtCatchClause): CatchClause, KotlinElement {
+class KotlinCatchClause(val impl: KtCatchClause) : CatchClause, KotlinElement {
   override fun impl(): KtCatchClause = impl
   override val parameterList: ParameterList?
     get() = impl().parameterList?.model()

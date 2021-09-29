@@ -9,5 +9,3 @@ interface ValueParameterDescriptor : VariableDescriptor, ParameterDescriptor {
   val varargElementType: Type?
   fun declaresDefaultValue(): Boolean
 }
-
-

@@ -17,5 +17,3 @@ fun interface KotlinCompilerMessageSourceLocation : CompilerMessageSourceLocatio
   override val path: String
     get() = impl().path
 }
-
-

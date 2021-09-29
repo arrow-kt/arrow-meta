@@ -5,7 +5,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Pro
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
 class KotlinWhenExpression(

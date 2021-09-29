@@ -23,4 +23,3 @@ fun interface KotlinClassOrObject : ClassOrObject, KotlinNamedDeclaration, Kotli
   override val psiOrParent: Element
     get() = impl().psiOrParent.model()
 }
-

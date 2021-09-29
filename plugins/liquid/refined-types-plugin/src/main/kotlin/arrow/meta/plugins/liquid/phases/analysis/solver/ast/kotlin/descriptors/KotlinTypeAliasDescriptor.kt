@@ -8,7 +8,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 
 class KotlinTypeAliasDescriptor(
-  val impl : org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
+  val impl: org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 ) : TypeAliasDescriptor, KotlinClassifierDescriptorWithTypeParameters {
   override fun impl(): org.jetbrains.kotlin.descriptors.TypeAliasDescriptor = impl
   override val underlyingType: Type

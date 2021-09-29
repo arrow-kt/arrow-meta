@@ -8,5 +8,3 @@ interface CompilerMessageSourceLocation {
   val lineEnd: Int
   val path: String
 }
-
-

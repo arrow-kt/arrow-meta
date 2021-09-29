@@ -5,7 +5,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeConstraintList
 
-fun interface KotlinTypeConstraintList: TypeConstraintList {
+fun interface KotlinTypeConstraintList : TypeConstraintList {
  fun impl(): KtTypeConstraintList
   override val constraints: List<TypeConstraint>
     get() = impl().constraints.map { it.model() }

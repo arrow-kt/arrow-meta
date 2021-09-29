@@ -5,7 +5,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Ref
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtInstanceExpressionWithLabel
 
-fun interface KotlinInstanceExpressionWithLabel : InstanceExpressionWithLabel,  KotlinExpressionWithLabel {
+fun interface KotlinInstanceExpressionWithLabel : InstanceExpressionWithLabel, KotlinExpressionWithLabel {
   override fun impl(): KtInstanceExpressionWithLabel
   override val instanceReference: ReferenceExpression
     get() = impl().instanceReference.model()

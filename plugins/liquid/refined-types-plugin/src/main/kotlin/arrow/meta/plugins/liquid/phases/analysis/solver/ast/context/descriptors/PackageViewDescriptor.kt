@@ -6,4 +6,3 @@ interface PackageViewDescriptor : DeclarationDescriptor {
   fun getMemberScope(): MemberScope
   val fqName: FqName
 }
-

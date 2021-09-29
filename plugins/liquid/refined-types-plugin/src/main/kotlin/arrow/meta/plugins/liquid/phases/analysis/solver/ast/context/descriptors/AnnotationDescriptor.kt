@@ -4,7 +4,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqN
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 
-interface AnnotationDescriptor  {
+interface AnnotationDescriptor {
   val allValueArguments: Map<Name, Any?>
 
   fun argumentValueAsString(argName: String): String?
@@ -14,5 +14,3 @@ interface AnnotationDescriptor  {
 
   val type: Type
 }
-
-

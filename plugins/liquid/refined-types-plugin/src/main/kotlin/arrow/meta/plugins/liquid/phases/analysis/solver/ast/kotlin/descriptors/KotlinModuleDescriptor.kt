@@ -23,5 +23,3 @@ class KotlinModuleDescriptor(
   override val stableName: Name?
     get() = impl().stableName?.let { Name(it.asString()) }
 }
-
-

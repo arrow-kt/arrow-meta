@@ -33,7 +33,7 @@ fun interface KotlinPureClassOrObject : PureClassOrObject, KotlinDeclarationCont
   override val primaryConstructor: PrimaryConstructor?
     get() = impl().primaryConstructor?.model()
   override val primaryConstructorModifierList: ModifierList?
-    get() =  impl().primaryConstructorModifierList?.model()
+    get() = impl().primaryConstructorModifierList?.model()
   override val primaryConstructorParameters: List<Parameter>
     get() = impl().primaryConstructorParameters.map { it.model() }
   override val secondaryConstructors: List<SecondaryConstructor?>

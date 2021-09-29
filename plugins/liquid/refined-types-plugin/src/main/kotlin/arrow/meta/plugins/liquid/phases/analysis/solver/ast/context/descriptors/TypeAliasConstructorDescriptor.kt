@@ -4,5 +4,3 @@ interface TypeAliasConstructorDescriptor : ConstructorDescriptor {
   val underlyingConstructorDescriptor: ConstructorDescriptor
   fun getContainingDeclaration(): TypeAliasDescriptor
 }
-
-

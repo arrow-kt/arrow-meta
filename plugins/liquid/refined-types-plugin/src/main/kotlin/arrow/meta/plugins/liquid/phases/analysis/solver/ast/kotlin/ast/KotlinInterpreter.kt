@@ -1,5 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast
 
+/* ktlint-disable no-wildcard-imports */
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.*
@@ -8,7 +9,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.psi.*
-
+/* ktlint-enable no-wildcard-imports */
 
 private fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
   B : DeclarationDescriptor> A.repr(): B =
@@ -50,6 +51,7 @@ fun <A : KtElement,
     is KtNameReferenceExpression -> KotlinNameReferenceExpression(this).repr()
     is KtConstantExpression -> KotlinConstantExpression(this).repr()
     is KtCallExpression -> KotlinCallExpression(this).repr()
+    is KtEnumEntry -> KotlinEnumEntry(this).repr()
     is KtClass -> KotlinClass(this).repr()
     is KtClassBody -> KotlinClassBody(this).repr()
     is KtLambdaExpression -> KotlinLambdaExpression(this).repr()
@@ -92,4 +94,3 @@ fun <A : KtElement,
 fun <A : Element,
   B : KtElement> A.element(): B =
   impl() as B
-

@@ -4,7 +4,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Exp
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenCondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtWhenEntry
 
 class KotlinWhenEntry(val impl: KtWhenEntry) : WhenEntry, KotlinElement {

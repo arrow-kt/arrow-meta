@@ -11,4 +11,3 @@ fun interface KotlinFieldDescriptor : FieldDescriptor, KotlinAnnotated {
     get() =
       impl().correspondingProperty.model()
 }
-

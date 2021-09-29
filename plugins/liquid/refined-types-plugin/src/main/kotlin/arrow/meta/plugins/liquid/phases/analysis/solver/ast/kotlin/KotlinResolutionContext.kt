@@ -9,7 +9,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Types
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
@@ -63,8 +62,6 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
 
   override val types: Types
     get() = TODO("Not yet implemented")
-
-
 
   /**
    * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]

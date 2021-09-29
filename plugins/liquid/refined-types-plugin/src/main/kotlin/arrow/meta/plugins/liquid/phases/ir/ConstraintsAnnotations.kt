@@ -3,7 +3,6 @@ package arrow.meta.plugins.liquid.phases.ir
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState

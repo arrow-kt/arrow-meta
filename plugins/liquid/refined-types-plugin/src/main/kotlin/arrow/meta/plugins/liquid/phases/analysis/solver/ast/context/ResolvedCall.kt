@@ -1,6 +1,5 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CallElement
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ReceiverValue

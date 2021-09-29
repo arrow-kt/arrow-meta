@@ -11,4 +11,3 @@ enum class AnnotationUseSiteTarget {
   SETTER_PARAMETER,
   PROPERTY_DELEGATE_FIELD
 }
-

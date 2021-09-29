@@ -2,7 +2,6 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.elements
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ModifierList
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement

@@ -1,14 +1,8 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context
 
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TypeReference
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Name
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.Annotations
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 
 interface ResolutionContext {
   val types: Types

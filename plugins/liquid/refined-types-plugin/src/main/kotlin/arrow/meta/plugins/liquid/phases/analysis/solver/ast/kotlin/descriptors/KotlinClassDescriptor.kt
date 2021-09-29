@@ -8,8 +8,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.descriptors.ClassKind
-import org.jetbrains.kotlin.descriptors.ClassKind.*
-
 
 class KotlinClassDescriptor(
   val impl: org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -27,12 +25,12 @@ class KotlinClassDescriptor(
     get() = impl().companionObjectDescriptor?.model()
   override val kind: ClassDescriptor.ClassKind
     get() = when (impl().kind) {
-      CLASS -> ClassDescriptor.ClassKind.CLASS
-      INTERFACE -> ClassDescriptor.ClassKind.INTERFACE
-      ENUM_CLASS -> ClassDescriptor.ClassKind.ENUM_CLASS
-      ENUM_ENTRY -> ClassDescriptor.ClassKind.ENUM_ENTRY
-      ANNOTATION_CLASS -> ClassDescriptor.ClassKind.ANNOTATION_CLASS
-      OBJECT -> ClassDescriptor.ClassKind.OBJECT
+      ClassKind.CLASS -> ClassDescriptor.ClassKind.CLASS
+      ClassKind.INTERFACE -> ClassDescriptor.ClassKind.INTERFACE
+      ClassKind.ENUM_CLASS -> ClassDescriptor.ClassKind.ENUM_CLASS
+      ClassKind.ENUM_ENTRY -> ClassDescriptor.ClassKind.ENUM_ENTRY
+      ClassKind.ANNOTATION_CLASS -> ClassDescriptor.ClassKind.ANNOTATION_CLASS
+      ClassKind.OBJECT -> ClassDescriptor.ClassKind.OBJECT
     }
   override val isCompanionObject: Boolean
     get() = impl().isCompanionObject

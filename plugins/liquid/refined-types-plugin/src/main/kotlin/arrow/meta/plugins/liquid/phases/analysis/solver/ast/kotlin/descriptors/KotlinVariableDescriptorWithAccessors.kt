@@ -4,7 +4,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.VariableDescriptorWithAccessors
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 
-
 fun interface KotlinVariableDescriptorWithAccessors :
   VariableDescriptorWithAccessors,
   KotlinVariableDescriptor {
@@ -17,4 +16,3 @@ fun interface KotlinVariableDescriptorWithAccessors :
   override val setter: VariableAccessorDescriptor?
     get() = impl().setter?.model()
 }
-

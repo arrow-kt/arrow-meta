@@ -5,7 +5,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.TypeConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 
-fun interface KotlinClassifierDescriptor : ClassifierDescriptor  {
+fun interface KotlinClassifierDescriptor : ClassifierDescriptor {
   fun impl(): org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 
   override val typeConstructor: TypeConstructor

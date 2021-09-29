@@ -6,7 +6,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
-import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 
 class KotlinAnnotationDescriptor(

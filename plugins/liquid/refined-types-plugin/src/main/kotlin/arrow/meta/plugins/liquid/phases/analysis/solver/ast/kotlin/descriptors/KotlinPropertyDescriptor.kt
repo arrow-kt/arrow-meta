@@ -5,7 +5,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 
-
 class KotlinPropertyDescriptor(val impl: org.jetbrains.kotlin.descriptors.PropertyDescriptor) : PropertyDescriptor, KotlinVariableDescriptorWithAccessors, KotlinCallableMemberDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.PropertyDescriptor = impl
   override val isSetterProjectedOut: Boolean

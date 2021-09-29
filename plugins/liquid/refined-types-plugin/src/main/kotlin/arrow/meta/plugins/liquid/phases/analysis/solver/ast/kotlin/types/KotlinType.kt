@@ -4,8 +4,6 @@ import arrow.meta.phases.resolve.unwrappedNotNullableType
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.descriptors.KotlinClassDescriptor
-import arrow.meta.plugins.liquid.types.PrimitiveType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny

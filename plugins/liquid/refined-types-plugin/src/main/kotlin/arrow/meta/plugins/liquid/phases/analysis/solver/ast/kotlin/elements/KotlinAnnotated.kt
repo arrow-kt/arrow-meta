@@ -14,5 +14,4 @@ fun interface KotlinAnnotated : Annotated, KotlinElement {
 
   override val annotationEntries: List<AnnotationEntry>
     get() = impl().annotationEntries.map { it.model() }
-
 }

@@ -23,5 +23,3 @@ class KotlinValueParameterDescriptor(
   override fun declaresDefaultValue(): Boolean =
     impl().declaresDefaultValue()
 }
-
-

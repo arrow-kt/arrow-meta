@@ -1,7 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context
 
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
-import arrow.meta.plugins.liquid.types.PrimitiveType
 
 interface Type {
   val descriptor: ClassDescriptor?

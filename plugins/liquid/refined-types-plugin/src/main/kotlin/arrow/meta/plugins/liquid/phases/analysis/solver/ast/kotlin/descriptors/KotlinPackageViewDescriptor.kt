@@ -16,4 +16,3 @@ class KotlinPackageViewDescriptor(
   override val fqName: FqName
     get() = FqName(impl().fqName.asString())
 }
-

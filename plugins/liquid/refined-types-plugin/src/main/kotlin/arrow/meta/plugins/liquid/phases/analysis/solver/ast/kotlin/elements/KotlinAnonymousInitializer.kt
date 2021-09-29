@@ -13,4 +13,3 @@ fun interface KotlinAnonymousInitializer : AnonymousInitializer, KotlinDeclarati
   override val body: Expression?
     get() = impl().body?.model()
 }
-

@@ -1,6 +1,5 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors
 
-
 interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeParameters {
 
   fun getUnsubstitutedMemberScope(): MemberScope
@@ -19,5 +18,4 @@ interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeP
   enum class ClassKind {
     CLASS, INTERFACE, ENUM_CLASS, ENUM_ENTRY, ANNOTATION_CLASS, OBJECT
   }
-
 }

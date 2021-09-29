@@ -5,9 +5,11 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Typ
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Variance
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeParameter
-import org.jetbrains.kotlin.types.Variance.*
+import org.jetbrains.kotlin.types.Variance.INVARIANT
+import org.jetbrains.kotlin.types.Variance.IN_VARIANCE
+import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
 
-fun interface KotlinTypeParameter: TypeParameter {
+fun interface KotlinTypeParameter : TypeParameter {
   fun impl(): KtTypeParameter
   override val variance: Variance
     get() = when (impl().variance) {

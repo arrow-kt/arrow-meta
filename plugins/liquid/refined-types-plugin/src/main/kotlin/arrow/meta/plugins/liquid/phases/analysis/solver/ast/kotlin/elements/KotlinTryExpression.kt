@@ -5,7 +5,6 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Cat
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FinallySection
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 class KotlinTryExpression(val impl: KtTryExpression) : TryExpression, KotlinExpression {

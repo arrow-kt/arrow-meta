@@ -6,7 +6,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Ann
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtAnnotation
 
-fun interface KotlinAnnotation: Annotation {
+fun interface KotlinAnnotation : Annotation {
   fun impl(): KtAnnotation
   override val entries: List<AnnotationEntry>
     get() =
@@ -16,5 +16,4 @@ fun interface KotlinAnnotation: Annotation {
   override val useSiteTarget: AnnotationUseSiteTarget?
     get() =
       impl().useSiteTarget?.model()
-
 }

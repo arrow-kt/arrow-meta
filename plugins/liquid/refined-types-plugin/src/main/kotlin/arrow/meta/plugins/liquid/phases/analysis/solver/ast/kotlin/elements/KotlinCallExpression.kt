@@ -6,4 +6,3 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 class KotlinCallExpression(val impl: KtCallExpression) : CallExpression, KotlinCallElement, KotlinReferenceExpression {
   override fun impl(): KtCallExpression = impl
 }
-

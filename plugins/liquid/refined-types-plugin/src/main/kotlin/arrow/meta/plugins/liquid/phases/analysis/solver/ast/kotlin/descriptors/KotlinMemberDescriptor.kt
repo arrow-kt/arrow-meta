@@ -31,5 +31,4 @@ fun interface KotlinMemberDescriptor : MemberDescriptor, KotlinDeclarationDescri
 
   override val isExternal: Boolean
     get() = impl().isExternal
-
 }
