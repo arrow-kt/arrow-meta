@@ -773,6 +773,26 @@ class LiquidDataflowTests {
   }
 
   @Test
+  fun `larger example of invariant`() {
+    """
+      ${imports()}
+      class Positive(val n: Int) {
+        init { require(n >= 0) }
+      
+        operator fun minus(y: Positive): Positive {
+          pre(this.n >= y.n) { "ensure positive answer" }
+          return Positive(this.n - y.n)
+        }
+      }
+      
+      val p = Positive(1) - Positive(2)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `ensure positive answer` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `enumerations, init blocks ok`() {
     """
       ${imports()}
