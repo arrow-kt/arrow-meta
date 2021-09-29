@@ -57,6 +57,7 @@ fun <A : KtElement,
     is KtCallExpression -> KotlinCallExpression(this).repr()
     is KtEnumEntry -> KotlinEnumEntry(this).repr()
     is KtClass -> KotlinClass(this).repr()
+    is KtObjectDeclaration -> KotlinObjectDeclaration(this).repr()
     is KtClassBody -> KotlinClassBody(this).repr()
     is KtLambdaExpression -> KotlinLambdaExpression(this).repr()
     is KtValueArgument -> KotlinValueArgument(this).repr()
