@@ -1,18 +1,14 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.errors
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ClassOrObject
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -59,7 +55,7 @@ object ErrorMessages {
    * feature cannot be used in these blocks.
    */
   object Parsing {
-    internal fun errorParsingPredicate(predicateArg: KtExpression?): String =
+    internal fun errorParsingPredicate(predicateArg: Expression?): String =
       "Could not parse predicate: ${predicateArg?.text}"
 
     internal fun unexpectedFieldInitBlock(fieldName: String?): String =
@@ -69,7 +65,7 @@ object ErrorMessages {
         "Unexpected field name in init block: $fieldName"
       }
 
-    internal fun unsupportedImplicitPrimaryConstructor(klass: KtClassOrObject): String =
+    internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
       "Implicit primary constructors are (not yet) supported: `${klass.name}`"
   }
 
@@ -102,12 +98,12 @@ object ErrorMessages {
      */
     internal fun Solver.unsatCallPre(
       callPreCondition: NamedConstraint,
-      resolvedCall: ResolvedCall<out CallableDescriptor>,
+      resolvedCall: ResolvedCall,
       model: Model
     ): String =
-      """|pre-condition `${callPreCondition.msg}` is not satisfied in `${resolvedCall.call.callElement.text}`
+      """|pre-condition `${callPreCondition.msg}` is not satisfied in `${resolvedCall.callElement.text}`
          |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
-         |  -> ${template(callPreCondition, this)}          `
+         |  -> ${template(callPreCondition, this)}
       """.trimMargin()
 
     /**
@@ -127,7 +123,7 @@ object ErrorMessages {
      * ```
      */
     internal fun KotlinPrinter.unsatBodyPost(
-      declaration: KtDeclaration,
+      declaration: Declaration,
       postCondition: NamedConstraint
     ): String =
       "declaration `${declaration.name}` fails to satisfy the post-condition: ${postCondition.formula.dumpKotlinLike()}"
@@ -148,12 +144,12 @@ object ErrorMessages {
      *
      */
     internal fun Solver.unsatInvariants(
-      expression: KtElement,
+      expression: Element,
       constraint: NamedConstraint,
       model: Model
     ): String =
       """|invariants are not satisfied in `${expression.text}`
-         |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`       `
+         |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
   }
 
@@ -192,7 +188,7 @@ object ErrorMessages {
      *  ```
      */
     internal fun KotlinPrinter.inconsistentBodyPre(
-      declaration: KtDeclaration,
+      declaration: Declaration,
       unsatCore: List<BooleanFormula>
     ): String = "${declaration.name} has inconsistent pre-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
 
@@ -246,27 +242,28 @@ object ErrorMessages {
   object Liskov {
     internal fun KotlinPrinter.notWeakerPrecondition(constraint: NamedConstraint): String =
       """|pre-condition `${constraint.msg}` is not weaker than those from overridden members
-         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
 
     internal fun KotlinPrinter.notStrongerPostcondition(constraint: NamedConstraint): String =
       """|post-condition `${constraint.msg}` from overridden member is not satisfied
-         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`    `
+         |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
       """.trimMargin()
   }
 
   internal fun template(constraint: NamedConstraint, solver: Solver): String = solver.run {
     val showVariables = extractVariables(constraint.formula)
-    val elements = showVariables.mapNotNull { mirroredElement(it.key) }
-    elements.joinToString(System.lineSeparator()) { referencedElement ->
-      val el = referencedElement.element
-      val argsMapping = referencedElement.reference
-      argsMapping?.let { (param, resolvedArg) ->
-        val paramPsi = param.findPsi()
-        val location = paramPsi?.let { MessageUtil.psiElementToMessageLocation(paramPsi) }
-        "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration.fqNameSafe}` ${location?.link() ?: ""}"
-      } ?: ""
-    }
+    showVariables.mapNotNull { mirroredElement(it.key) }
+      .takeIf { it.isNotEmpty() }
+      ?.joinToString(System.lineSeparator()) { referencedElement ->
+        val el = referencedElement.element
+        val argsMapping = referencedElement.reference
+        argsMapping?.let { (param, resolvedArg) ->
+          val paramPsi = param.element()
+          val location = paramPsi?.let { paramPsi.location() }
+          "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration?.fqNameSafe}` ${location?.link() ?: ""}"
+        } ?: ""
+      }?.takeIf { it.isNotEmpty() } ?: "<no local variable involved>"
   }
 
   private fun CompilerMessageSourceLocation.link(): String =

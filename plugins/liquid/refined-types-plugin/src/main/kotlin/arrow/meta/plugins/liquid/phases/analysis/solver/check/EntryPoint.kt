@@ -3,19 +3,16 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.check
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.liquid.errors.MetaErrors
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unsupportedImplicitPrimaryConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtEnumEntry
-import org.jetbrains.kotlin.psi.KtPrimaryConstructor
-import org.jetbrains.kotlin.psi.KtSecondaryConstructor
-import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CallableDeclaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ClassOrObject
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.EnumEntry
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.PrimaryConstructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 
 // PHASE 2: CHECKING OF CONSTRAINTS
 // ================================
@@ -54,37 +51,37 @@ internal const val THIS_VAR_NAME = "this"
  * check this [declaration] body constraints
  */
 internal fun CompilerContext.checkDeclarationConstraints(
-  context: DeclarationCheckerContext,
-  declaration: KtDeclaration,
+  context: ResolutionContext,
+  declaration: Declaration,
   descriptor: DeclarationDescriptor
 ) {
-  get<SolverState>(SolverState.key(context.moduleDescriptor))?.takeIf { solverState ->
+  get<SolverState>(SolverState.key(context.module))?.takeIf { solverState ->
     solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()
   }?.takeIf {
     declaration.shouldBeAnalyzed()
   }?.run {
     // trace
-    solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body
     when (declaration) {
-      is KtPrimaryConstructor ->
+      is PrimaryConstructor ->
         checkPrimaryConstructor(context, descriptor, declaration)
-      is KtSecondaryConstructor ->
+      is SecondaryConstructor ->
         checkSecondaryConstructor(context, descriptor, declaration)
-      is KtEnumEntry ->
+      is EnumEntry ->
         checkEnumEntry(context, descriptor, declaration)
-      is KtClassOrObject ->
+      is ClassOrObject ->
         doOnlyWhen(declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
           cont {
             val msg = unsupportedImplicitPrimaryConstructor(declaration)
-            context.trace.report(MetaErrors.ErrorParsingPredicate.on(declaration, msg))
+            context.reportErrorsParsingPredicate(declaration, msg)
           }
         }
       else ->
         checkTopLevelDeclarationWithBody(context, descriptor, declaration)
     }.drain()
     // trace
-    solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
   }
 }
 
@@ -94,5 +91,5 @@ internal fun CompilerContext.checkDeclarationConstraints(
  *   (b/c this is not yet supported)
  * - or constructors (b/c they are handled at the level of class)
  */
-private fun KtDeclaration.shouldBeAnalyzed() =
-  !(this.parents.any { it is KtCallableDeclaration })
+private fun Declaration.shouldBeAnalyzed() =
+  !(this.parents.any { it is CallableDeclaration })

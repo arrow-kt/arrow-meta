@@ -1,8 +1,8 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check.model
 
 import arrow.meta.plugins.liquid.smt.ObjectFormula
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtNamed
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Named
 
 /**
  * Maps return points to the SMT variables representing that place.
@@ -33,9 +33,9 @@ data class ReturnPoints(
         else -> ReturnPoints(Pair(scope, variableName), mapOf(scope to variableName))
       }
 
-    fun new(scope: KtElement, variableName: ObjectFormula): ReturnPoints =
+    fun new(scope: Element, variableName: ObjectFormula): ReturnPoints =
       when (scope) {
-        is KtNamed -> new(scope.nameAsName?.asString(), variableName)
+        is Named -> new(scope.nameAsName?.value, variableName)
         else -> new(null, variableName)
       }
   }
