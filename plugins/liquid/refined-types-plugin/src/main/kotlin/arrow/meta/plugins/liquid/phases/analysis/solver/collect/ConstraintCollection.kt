@@ -57,6 +57,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
@@ -570,23 +571,17 @@ internal fun Solver.expressionToFormula(
         }
       }
     // special cases which do not always resolve well
-    ex is BinaryExpression &&
-      ex.operationTokenRpr == "EQEQ" &&
-      ex.right is ConstantExpression && ex.right?.text == "null" ->
+    ex is BinaryExpression && ex.operationTokenRpr == "EQEQ" && ex.right is NullExpression ->
       ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNull(it) }
-    ex is BinaryExpression &&
-      ex.operationTokenRpr == "EXCLEQ" &&
-      ex.right is ConstantExpression && ex.right?.text == "null" ->
+    ex is BinaryExpression && ex.operationTokenRpr == "EXCLEQ" && ex.right is NullExpression ->
       ex.left?.let { expressionToFormula(it, context) as? ObjectFormula }?.let { isNotNull(it) }
-    ex is BinaryExpression &&
-      ex.operationTokenRpr == "ANDAND" ->
+    ex is BinaryExpression && ex.operationTokenRpr == "ANDAND" ->
       expressionToFormula(ex.left, context)?.let { leftFormula ->
         expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolAnd(listOf(leftFormula, rightFormula))
         }
       }
-    ex is BinaryExpression &&
-      ex.operationTokenRpr == "OROR" ->
+    ex is BinaryExpression && ex.operationTokenRpr == "OROR" ->
       expressionToFormula(ex.left, context)?.let { leftFormula ->
         expressionToFormula(ex.right, context)?.let { rightFormula ->
           boolOr(listOf(leftFormula, rightFormula))

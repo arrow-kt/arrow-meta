@@ -40,6 +40,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Lam
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.LoopExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NameReferenceExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NamedDeclaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ParenthesizedExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ReturnExpression
@@ -133,6 +134,8 @@ internal fun SolverState.checkExpressionConstraints(
     }
     is ThrowExpression ->
       checkThrowConstraints(expression, data)
+    is NullExpression ->
+      checkNullExpression(associatedVarName)
     is ConstantExpression ->
       checkConstantExpression(associatedVarName, expression, data)
     is ThisExpression ->
@@ -419,7 +422,8 @@ internal fun SolverState.checkRegularFunctionCall(
       it.fold(
         { r -> r },
         { argVars ->
-          val callConstraints = (constraintsFromSolverState(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall))?.let { declInfo ->
+          val callConstraints = (constraintsFromSolverState(resolvedCall)
+            ?: primitiveConstraints(data.context, resolvedCall))?.let { declInfo ->
             val completeRenaming =
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
@@ -607,6 +611,13 @@ private fun SolverState.checkCallArguments(
     .fold(cont { emptyList<Pair<String, ObjectFormula>>().right() }, ::acc)
 }
 
+private fun SolverState.checkNullExpression(
+  associatedVarName: ObjectFormula
+): ContSeq<Return> = cont {
+  addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
+  NoReturn
+}
+
 /**
  * This function produces a constraint that makes the desired variable name
  * equal to the value encoded in the constant and adds it to the
@@ -617,51 +628,47 @@ private fun SolverState.checkConstantExpression(
   expression: ConstantExpression,
   data: CheckData
 ): ContSeq<Return> = cont {
-  if (expression.text == "null") {
-    addConstraint(NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName)))
-  } else {
-    val type = expression.type(data.context)?.unwrapIfNullable()
-    when (type?.primitiveType()) {
-      PrimitiveType.BOOLEAN ->
-        expression.text.toBooleanStrictOrNull()?.let {
-          solver.booleans {
-            if (it) solver.boolValue(associatedVarName)
-            else not(solver.boolValue(associatedVarName))
-          }
+  val type = expression.type(data.context)?.unwrapIfNullable()
+  when (type?.primitiveType()) {
+    PrimitiveType.BOOLEAN ->
+      expression.text.toBooleanStrictOrNull()?.let {
+        solver.booleans {
+          if (it) solver.boolValue(associatedVarName)
+          else not(solver.boolValue(associatedVarName))
         }
-      PrimitiveType.INTEGRAL ->
-        expression.text.asIntegerLiteral()?.let {
-          solver.ints {
-            equal(
-              solver.intValue(associatedVarName),
-              makeNumber(it)
-            )
-          }
+      }
+    PrimitiveType.INTEGRAL ->
+      expression.text.asIntegerLiteral()?.let {
+        solver.ints {
+          equal(
+            solver.intValue(associatedVarName),
+            makeNumber(it)
+          )
         }
-      PrimitiveType.RATIONAL ->
-        expression.text.asFloatingLiteral()?.let {
-          solver.rationals {
-            equal(
-              solver.decimalValue(associatedVarName),
-              makeNumber(it)
-            )
-          }
+      }
+    PrimitiveType.RATIONAL ->
+      expression.text.asFloatingLiteral()?.let {
+        solver.rationals {
+          equal(
+            solver.decimalValue(associatedVarName),
+            makeNumber(it)
+          )
         }
-      else -> null
-    }?.let {
-      addConstraint(
-        NamedConstraint(
-          "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
-          it
-        )
+      }
+    else -> null
+  }?.let {
+    addConstraint(
+      NamedConstraint(
+        "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
+        it
       )
-      addConstraint(
-        NamedConstraint(
-          "${expression.text} is not null",
-          solver.isNotNull(associatedVarName)
-        )
+    )
+    addConstraint(
+      NamedConstraint(
+        "${expression.text} is not null",
+        solver.isNotNull(associatedVarName)
       )
-    }
+    )
   }
   NoReturn
 }
@@ -689,7 +696,7 @@ private fun SolverState.checkBinaryExpression(
         .map { it.second } // forget about the temporary name
     }
     // this is x == null, or x != null
-    (operator == "EQEQ" || operator == "EXCLEQ") && right is ConstantExpression && right.text == "null" -> {
+    (operator == "EQEQ" || operator == "EXCLEQ") && right is NullExpression -> {
       val newName = solver.makeObjectVariable(newName(data.context, "checkNull", left))
       checkExpressionConstraints(newName, left, data).checkReturnInfo {
         cont {

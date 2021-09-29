@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.isNull
+
 /* ktlint-enable no-wildcard-imports */
 
 private fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
@@ -49,7 +51,9 @@ fun <A : KtElement,
     is KtParameter -> KotlinParameter(this).repr()
     is KtBinaryExpression -> KotlinBinaryExpression(this).repr()
     is KtNameReferenceExpression -> KotlinNameReferenceExpression(this).repr()
-    is KtConstantExpression -> KotlinConstantExpression(this).repr()
+    is KtConstantExpression ->
+      if (this.isNull()) KotlinNullExpression(this).repr()
+      else KotlinConstantExpression(this).repr()
     is KtCallExpression -> KotlinCallExpression(this).repr()
     is KtEnumEntry -> KotlinEnumEntry(this).repr()
     is KtClass -> KotlinClass(this).repr()
