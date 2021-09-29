@@ -17,11 +17,11 @@ buildscript {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
     dependencies {
-        classpath "io.arrow-kt:arrow-proofs-gradle-plugin:<snapshot-version>"
+        classpath "io.arrow-kt:arrow-refined-types-gradle-plugin:<snapshot-version>"
     }
 }
 
-apply plugin: "io.arrow-kt.proofs"
+apply plugin: "io.arrow-kt.refined-types"
 ```
 
 ### Optics Compiler Plugin
