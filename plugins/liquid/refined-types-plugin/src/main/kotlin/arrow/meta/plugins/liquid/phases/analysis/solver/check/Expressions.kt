@@ -49,11 +49,14 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Sim
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.VariableDeclaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionIsPattern
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhileExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.CheckData
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ComplexCondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Condition
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ControlFlowFn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitBlockReturn
@@ -63,6 +66,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitThro
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Return
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.SimpleCondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.arg
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
@@ -154,19 +158,15 @@ internal fun SolverState.checkExpressionConstraints(
     is LabeledExpression ->
       checkLabeledExpression(associatedVarName, expression, data)
     is IfExpression ->
-      checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
+      checkConditional(associatedVarName, expression.computeConditions(), data)
     is WhenExpression ->
-      if (expression.subjectExpression != null) {
-        cont { NoReturn } // TODO: handle `when` with subject
-      } else {
-        checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
-      }
+      checkConditional(associatedVarName, expression.computeConditions(), data)
     is LoopExpression ->
       checkLoopExpression(expression, data)
     is TryExpression ->
       checkTryExpression(associatedVarName, expression, data)
     is IsExpression ->
-      checkIsExpression(associatedVarName, expression, data)
+      checkIsExpression(associatedVarName, expression.isNegated, expression.typeReference, expression.leftHandSide, data)
     is BinaryExpression ->
       checkBinaryExpression(associatedVarName, expression, data)
     is Declaration ->
@@ -728,16 +728,18 @@ private fun SolverState.checkBinaryExpression(
  */
 private fun SolverState.checkIsExpression(
   associatedVarName: ObjectFormula,
-  expression: IsExpression,
+  isNegated: Boolean,
+  typeReference: TypeReference?,
+  subject: Expression?,
   data: CheckData
-): ContSeq<Return> = doOnlyWhen(!expression.isNegated, NoReturn) {
-  val newName = solver.makeObjectVariable(newName(data.context, "is", expression.leftHandSide))
+): ContSeq<Return> = doOnlyWhen(!isNegated, NoReturn) {
+  val newName = solver.makeObjectVariable(newName(data.context, "is", subject))
   val invariants =
-    (data.context.type(expression.typeReference)
+    (data.context.type(typeReference)
       ?.let { typeInvariants(data.context, it, newName) })
     // in the worst case, we know that it is not null
       ?: listOf(NamedConstraint("$associatedVarName is not null", solver.isNotNull(newName)))
-  checkExpressionConstraints(newName, expression.leftHandSide, data).checkReturnInfo {
+  checkExpressionConstraints(newName, subject, data).checkReturnInfo {
     cont {
       invariants.forEach { cstr ->
         val constraint = NamedConstraint(
@@ -864,33 +866,37 @@ private fun SolverState.checkNameExpression(
   NoReturn
 }
 
-private fun Expression.computeSimpleConditions(): List<Condition> = when (this) {
+private fun Expression.computeConditions(): List<Condition> = when (this) {
   is IfExpression ->
     listOf(
-      Condition(condition!!, thenExpression!!, thenExpression!!),
-      Condition(null, elseExpression!!, elseExpression!!)
+      SimpleCondition(condition!!, thenExpression!!, thenExpression!!),
+      SimpleCondition(null, elseExpression!!, elseExpression!!)
     )
-  is WhenExpression ->
+  is WhenExpression -> {
+    val subject = subjectExpression
     entries.flatMap { entry ->
       if (entry.conditions.isEmpty()) {
-        listOf(Condition(null, entry.expression!!, entry))
+        listOf(SimpleCondition(null, entry.expression!!, entry))
       } else {
         entry.conditions.toList().mapNotNull { cond ->
-          when (cond) {
-            is WhenConditionWithExpression ->
-              Condition(cond.expression!!, entry.expression!!, entry)
+          when {
+            subject != null ->
+              ComplexCondition(subject, cond, entry.expression!!, entry)
+            cond is WhenConditionWithExpression ->
+              SimpleCondition(cond.expression!!, entry.expression!!, entry)
             else -> null
           }
         }
       }
     }
+  }
   else -> emptyList()
 }
 
 /**
- * Check `if` and `when` expressions without subject.
+ * Check `if` and `when` expressions.
  */
-private fun SolverState.checkSimpleConditional(
+private fun SolverState.checkConditional(
   associatedVarName: ObjectFormula,
   branches: List<Condition>,
   data: CheckData
@@ -899,7 +905,7 @@ private fun SolverState.checkSimpleConditional(
     val conditionVar = newName(data.context, "cond", cond.condition)
     // introduce the condition
     (cond.condition?.let {
-      checkExpressionConstraints(conditionVar, it, data)
+      introduceCondition(solver.makeObjectVariable(conditionVar), cond, data)
     } ?: cont {
       // if we have no condition, it's equivalent to true
       addConstraint(
@@ -932,6 +938,45 @@ private fun SolverState.checkSimpleConditional(
         }
       }
   }
+
+private fun SolverState.introduceCondition(
+  conditionVar: ObjectFormula,
+  cond: Condition,
+  data: CheckData
+): ContSeq<Return> = when (cond) {
+  is SimpleCondition -> checkExpressionConstraints(conditionVar, cond.predicate, data)
+  is ComplexCondition -> when (val check = cond.check) {
+    is WhenConditionWithExpression -> {
+      val subjectName = newName(data.context, "subject", cond.subject)
+      val patternName = newName(data.context, "pattern", check.expression)
+      checkExpressionConstraints(subjectName, cond.subject, data).flatMap {
+        checkExpressionConstraints(patternName, check.expression, data).map {
+          when (check.expression?.type(data.context)?.primitiveType()) {
+            PrimitiveType.BOOLEAN -> solver.booleans {
+              equivalence(solver.makeBooleanObjectVariable(subjectName), solver.makeBooleanObjectVariable(patternName))
+            }
+            PrimitiveType.INTEGRAL -> solver.ints {
+              equal(solver.makeIntegerObjectVariable(subjectName), solver.makeIntegerObjectVariable(patternName))
+            }
+            PrimitiveType.RATIONAL -> solver.rationals {
+              equal(solver.makeDecimalObjectVariable(subjectName), solver.makeDecimalObjectVariable(patternName))
+            }
+            else -> null
+          }?.let {
+            val complete = solver.booleans {
+              equivalence(solver.boolValue(conditionVar), it)
+            }
+            addConstraint(NamedConstraint("$subjectName equals $patternName", complete))
+          }
+          NoReturn
+        }
+      }
+    }
+    is WhenConditionIsPattern ->
+      checkIsExpression(conditionVar, check.isNegated, check.typeReference, cond.subject, data)
+    else -> cont { NoReturn }
+  }
+}
 
 /**
  * Given a list of names for condition variables,

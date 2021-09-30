@@ -170,7 +170,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // does not work yet
   fun `when with patterns`() {
     """
       ${imports()}
