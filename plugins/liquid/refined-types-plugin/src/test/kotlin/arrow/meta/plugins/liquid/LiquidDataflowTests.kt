@@ -852,12 +852,12 @@ private fun imports() =
   """
 package test
 
-import arrow.refinement.invariant
-import arrow.refinement.pre
-import arrow.refinement.post
-import arrow.refinement.Pre
-import arrow.refinement.Post
-import arrow.refinement.Law
+import arrow.analysis.invariant
+import arrow.analysis.pre
+import arrow.analysis.post
+import arrow.analysis.Pre
+import arrow.analysis.Post
+import arrow.analysis.Law
 
  """
 

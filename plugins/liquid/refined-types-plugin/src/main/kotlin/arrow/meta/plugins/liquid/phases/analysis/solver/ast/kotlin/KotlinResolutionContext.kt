@@ -64,7 +64,7 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
     get() = TODO("Not yet implemented")
 
   /**
-   * Recursively walks [this] element for calls to [arrow.refinement.pre] and [arrow.refinement.post]
+   * Recursively walks [this] element for calls to [arrow.analysis.pre] and [arrow.analysis.post]
    * that hold preconditions
    */
   override fun Element.constraintsDSLElements(): List<Element> {
