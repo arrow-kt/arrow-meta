@@ -15,12 +15,14 @@ import io.kotest.property.arbitrary.list
 class CollectionTests :
   RefinedLaws<Iterable<*>>(
     Arb.list(Arb.int()),
-    "Contains.Element(0)" to Contains.Element(0),
-    "Count.N(0u)" to Count.N(0u),
-    "Empty" to Empty,
-    "First.Element(0)" to First.Element(0),
-    "MaxSize.N(0u)" to MaxSize.N(0u),
-    "MinSize.N(0u)" to MinSize.N(0u),
-    "NotEmpty" to NotEmpty,
-    "Tail.Elements(emptyList())" to Tail.Elements(emptyList())
+    listOf(
+      "Contains.Element(0)" to Contains.Element(0),
+      "Count.N(0u)" to Count.N(0u),
+      "Empty" to Empty,
+      "First.Element(0)" to First.Element(0),
+      "MaxSize.N(0u)" to MaxSize.N(0u),
+      "MinSize.N(0u)" to MinSize.N(0u),
+      "NotEmpty" to NotEmpty,
+      "Tail.Elements(emptyList())" to Tail.Elements(emptyList())
+    )
   )

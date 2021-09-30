@@ -11,9 +11,11 @@ import io.kotest.property.arbitrary.int
 class NetworkPortsTests :
   RefinedLaws<Int>(
     Arb.int(),
-    "DynamicPortNumber" to DynamicPortNumber,
-    "NonSystemPortNumber" to NonSystemPortNumber,
-    "PortNumber" to PortNumber,
-    "SystemPortNumber" to SystemPortNumber,
-    "UserPortNumber" to UserPortNumber
+    listOf(
+      "DynamicPortNumber" to DynamicPortNumber,
+      "NonSystemPortNumber" to NonSystemPortNumber,
+      "PortNumber" to PortNumber,
+      "SystemPortNumber" to SystemPortNumber,
+      "UserPortNumber" to UserPortNumber
+    )
   )

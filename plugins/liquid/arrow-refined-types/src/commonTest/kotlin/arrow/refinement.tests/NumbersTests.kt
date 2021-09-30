@@ -18,16 +18,18 @@ import io.kotest.property.arbitrary.int
 class NumbersTests :
   RefinedLaws<Int>(
     Arb.int(),
-    "DivisibleBy.N(2u)" to DivisibleBy.N(2u),
-    "Even" to Even,
-    "From.N(0u)" to From.N(0u),
-    "FromTo.N(0u, 10u)" to FromTo.N(0u, 10u),
-    "GreaterThan.N(0u)" to GreaterThan.N(0u),
-    "LessThan.N(0u)" to LessThan.N(0u),
-    "NegativeInt" to NegativeInt,
-    "NotZero" to NotZero,
-    "Odd" to Odd,
-    "PositiveInt" to PositiveInt,
-    "To.N(10u)" to To.N(10u),
-    "Zero" to Zero
+    listOf(
+      "DivisibleBy.N(2u)" to DivisibleBy.N(2u),
+      "Even" to Even,
+      "From.N(0u)" to From.N(0u),
+      "FromTo.N(0u, 10u)" to FromTo.N(0u, 10u),
+      "GreaterThan.N(0u)" to GreaterThan.N(0u),
+      "LessThan.N(0u)" to LessThan.N(0u),
+      "NegativeInt" to NegativeInt,
+      "NotZero" to NotZero,
+      "Odd" to Odd,
+      "PositiveInt" to PositiveInt,
+      "To.N(10u)" to To.N(10u),
+      "Zero" to Zero
+    )
   )

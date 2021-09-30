@@ -10,18 +10,18 @@ import io.kotest.property.forAll
 
 class BooleansTests : StringSpec({
   "And" {
-    forAll(refinedCharGen, refinedCharGen, Arb.char()) { left, right, c ->
+    forAll(Arb.refinedChar(), Arb.refinedChar(), Arb.char()) { left, right, c ->
       (left and right).isValid(c) == (left.isValid(c) && right.isValid(c))
     }
-    checkAll(refinedCharGen, refinedCharGen, Arb.char()) { left, right, c ->
+    checkAll(Arb.refinedChar(), Arb.refinedChar(), Arb.char()) { left, right, c ->
       checkLaw(left and right, c, this)
     }
   }
   "Or" {
-    forAll(refinedCharGen, refinedCharGen, Arb.char()) { left, right, c ->
+    forAll(Arb.refinedChar(), Arb.refinedChar(), Arb.char()) { left, right, c ->
       (left or right).isValid(c) == (left.isValid(c) || right.isValid(c))
     }
-    checkAll(refinedCharGen, refinedCharGen, Arb.char()) { left, right, c ->
+    checkAll(Arb.refinedChar(), Arb.refinedChar(), Arb.char()) { left, right, c ->
       checkLaw(left or right, c, this)
     }
   }

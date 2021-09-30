@@ -8,6 +8,8 @@ import io.kotest.property.arbitrary.string
 class JvmStringsTests :
   RefinedLaws<String>(
     Arb.string(),
-    "URI" to URI,
-    "URL" to URL
+    listOf(
+      "URI" to URI,
+      "URL" to URL
+    )
   )

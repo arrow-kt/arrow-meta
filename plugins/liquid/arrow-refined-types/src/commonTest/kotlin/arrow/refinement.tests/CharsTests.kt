@@ -12,10 +12,12 @@ import io.kotest.property.arbitrary.char
 class CharsTests :
   RefinedLaws<Char>(
     Arb.char(),
-    "Digit" to Digit,
-    "Letter" to Letter,
-    "LetterOrDigit" to LetterOrDigit,
-    "LowerCaseChar" to LowerCaseChar,
-    "UpperCaseChar" to UpperCaseChar,
-    "WhiteSpaceChar" to WhiteSpaceChar
+    listOf(
+      "Digit" to Digit,
+      "Letter" to Letter,
+      "LetterOrDigit" to LetterOrDigit,
+      "LowerCaseChar" to LowerCaseChar,
+      "UpperCaseChar" to UpperCaseChar,
+      "WhiteSpaceChar" to WhiteSpaceChar
+    )
   )

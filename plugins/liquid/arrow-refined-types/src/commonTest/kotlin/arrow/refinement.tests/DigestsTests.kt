@@ -12,10 +12,12 @@ import io.kotest.property.arbitrary.string
 class DigestsTests :
   RefinedLaws<String>(
     Arb.string(),
-    "MD5" to MD5,
-    "SHA1" to SHA1,
-    "SHA224" to SHA224,
-    "SHA256" to SHA256,
-    "SHA384" to SHA384,
-    "SHA512" to SHA512
+    listOf(
+      "MD5" to MD5,
+      "SHA1" to SHA1,
+      "SHA224" to SHA224,
+      "SHA256" to SHA256,
+      "SHA384" to SHA384,
+      "SHA512" to SHA512
+    )
   )
