@@ -961,29 +961,38 @@ private fun SolverState.introduceCondition(
 ): ContSeq<Return> = when (cond) {
   is SimpleCondition -> checkExpressionConstraints(conditionVar, cond.predicate, data)
   is SubjectCondition -> when (val check = cond.check) {
-    is WhenConditionWithExpression -> {
-      val patternName = newName(data.context, "pattern", check.expression)
-      checkExpressionConstraints(patternName, check.expression, data).map {
-        when (check.expression?.type(data.context)?.primitiveType()) {
-          PrimitiveType.BOOLEAN -> solver.booleans {
-            equivalence(solver.boolValue(subjectVar), solver.makeBooleanObjectVariable(patternName))
-          }
-          PrimitiveType.INTEGRAL -> solver.ints {
-            equal(solver.intValue(subjectVar), solver.makeIntegerObjectVariable(patternName))
-          }
-          PrimitiveType.RATIONAL -> solver.rationals {
-            equal(solver.decimalValue(subjectVar), solver.makeDecimalObjectVariable(patternName))
-          }
-          else -> null
-        }?.let {
+    is WhenConditionWithExpression ->
+      if (check.expression is NullExpression) {
+        cont {
           val complete = solver.booleans {
-            equivalence(solver.boolValue(conditionVar), it)
+            equivalence(solver.boolValue(conditionVar), solver.isNull(subjectVar))
           }
-          addConstraint(NamedConstraint("$subjectVar equals $patternName", complete))
+          addConstraint(NamedConstraint("$subjectVar is null", complete))
+          NoReturn
         }
-        NoReturn
+      } else {
+        val patternName = newName(data.context, "pattern", check.expression)
+        checkExpressionConstraints(patternName, check.expression, data).map {
+          when (check.expression?.type(data.context)?.primitiveType()) {
+            PrimitiveType.BOOLEAN -> solver.booleans {
+              equivalence(solver.boolValue(subjectVar), solver.makeBooleanObjectVariable(patternName))
+            }
+            PrimitiveType.INTEGRAL -> solver.ints {
+              equal(solver.intValue(subjectVar), solver.makeIntegerObjectVariable(patternName))
+            }
+            PrimitiveType.RATIONAL -> solver.rationals {
+              equal(solver.decimalValue(subjectVar), solver.makeDecimalObjectVariable(patternName))
+            }
+            else -> null
+          }?.let {
+            val complete = solver.booleans {
+              equivalence(solver.boolValue(conditionVar), it)
+            }
+            addConstraint(NamedConstraint("$subjectVar equals $patternName", complete))
+          }
+          NoReturn
+        }
       }
-    }
     is WhenConditionIsPattern ->
       checkIsExpression(conditionVar, check.isNegated, check.typeReference, subjectVar, data)
     else -> cont { NoReturn }
