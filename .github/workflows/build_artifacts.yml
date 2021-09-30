@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 30
 
     strategy:
+      fail-fast: false
       matrix:
         kotlin: ['1.5.31', '1.6.0-M1']
         jvm_target: ['1.8', '11']
