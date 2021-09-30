@@ -1,25 +1,22 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
 import arrow.meta.continuations.ContSeq
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.overriddenDescriptors
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
 import arrow.meta.plugins.liquid.smt.utils.ReferencedElement
-import org.jetbrains.kotlin.codegen.kotlinType
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedValueArgument
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.types.isNullable
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
@@ -79,22 +76,22 @@ data class SolverState(
   }
 
   fun newName(
-    context: DeclarationCheckerContext,
+    context: ResolutionContext,
     prefix: String,
-    element: KtElement?
+    element: Element?
   ): String = newName(context, prefix, element, null)
 
   fun newName(
-    context: DeclarationCheckerContext,
+    context: ResolutionContext,
     prefix: String,
-    element: KtElement?,
+    element: Element?,
     reference: Pair<ValueParameterDescriptor, ResolvedValueArgument>?
   ): String {
-    val type = (element as? KtExpression)?.kotlinType(context.trace.bindingContext)
+    val type = (element as? Expression)?.type(context)
     val info = element?.let { ReferencedElement(it, reference, type) }
     val newName = names.recordNewName(prefix, info)
     if (type != null && !type.isNullable()) {
-      typeInvariants(type, newName).forEach { addConstraint(it) }
+      typeInvariants(context, type, newName).forEach { addConstraint(it) }
     }
     return newName
   }
@@ -108,13 +105,13 @@ data class SolverState(
     val overriddenNames = mutableMapOf<String, List<String>>()
 
     fun doOne(descriptor: DeclarationDescriptor) {
-      val name = descriptor.fqNameSafe.asString()
+      val name = descriptor.fqNameSafe.name
       val overridden = descriptor.overriddenDescriptors()
       if (overridden == null || overridden.isEmpty()) {
         basicNames.add(name)
       } else {
         overridden.forEach(::doOne)
-        overriddenNames[name] = overridden.map { it.fqNameSafe.asString() }
+        overriddenNames[name] = overridden.map { it.fqNameSafe.name }
       }
     }
 

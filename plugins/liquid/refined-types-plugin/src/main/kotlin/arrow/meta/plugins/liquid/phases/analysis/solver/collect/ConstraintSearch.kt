@@ -2,6 +2,13 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.collect
 
 import arrow.meta.internal.filterNotNull
 import arrow.meta.internal.mapNotNull
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
@@ -16,15 +23,7 @@ import arrow.meta.plugins.liquid.smt.substituteObjectVariables
 import arrow.meta.plugins.liquid.types.PrimitiveType
 import arrow.meta.plugins.liquid.types.primitiveType
 import arrow.meta.plugins.liquid.types.unwrapIfNullable
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeUtils
-import org.jetbrains.kotlin.types.isNullable
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.NumeralFormula
 
@@ -33,7 +32,7 @@ import org.sosy_lab.java_smt.api.NumeralFormula
  * returns the constraints associated to this [resolvedCall] resulting descriptor if any
  */
 internal fun SolverState.constraintsFromSolverState(
-  resolvedCall: ResolvedCall<*>
+  resolvedCall: ResolvedCall
 ): DeclarationConstraints? =
   constraintsFromSolverState(resolvedCall.resultingDescriptor)
 
@@ -45,7 +44,7 @@ internal fun SolverState.constraintsFromSolverState(
 internal fun SolverState.constraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor)?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
+  immediateConstraintsFromSolverState(descriptor)
     ?: overriddenConstraintsFromSolverState(descriptor)
 
 /**
@@ -57,7 +56,7 @@ internal fun SolverState.immediateConstraintsFromSolverState(
 ): DeclarationConstraints? =
   callableConstraints.firstOrNull {
     descriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }
+  }?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
 
 /**
  * This combinator allows us to use any of the previous
@@ -75,25 +74,28 @@ internal fun <A> SolverState.overType(
  * from which we usually get post-conditions as invariants
  */
 internal fun <A> SolverState.overType(
+  context: ResolutionContext,
   f: SolverState.(DeclarationDescriptor) -> A?,
-  type: KotlinType
-): A? = TypeUtils.getClassDescriptor(type)?.let { overType(f, it) }
+  type: Type
+): A? = type.descriptor?.let { overType(f, it) }
 
 /**
  * Obtain the invariants associated with
  * a certain type
  */
 internal fun SolverState.typeInvariants(
-  type: KotlinType,
+  context: ResolutionContext,
+  type: Type,
   resultName: String
 ): List<NamedConstraint> =
-  typeInvariants(type, solver.makeObjectVariable(resultName))
+  typeInvariants(context, type, solver.makeObjectVariable(resultName))
 
 internal fun SolverState.typeInvariants(
-  type: KotlinType,
+  context: ResolutionContext,
+  type: Type,
   result: ObjectFormula
 ): List<NamedConstraint> {
-  val invariants = overType({ constraintsFromSolverState(it) }, type)?.post?.let { constraints ->
+  val invariants = overType(context, { constraintsFromSolverState(it) }, type)?.post?.let { constraints ->
     // replace $result by new name
     constraints.map {
       NamedConstraint(
@@ -135,7 +137,8 @@ internal fun SolverState.overriddenConstraintsFromSolverState(
   }
 
 internal fun SolverState.primitiveConstraints(
-  call: ResolvedCall<out CallableDescriptor>,
+  context: ResolutionContext,
+  call: ResolvedCall,
 ): DeclarationConstraints? {
   val descriptor = call.resultingDescriptor
   val returnTy =
@@ -150,7 +153,7 @@ internal fun SolverState.primitiveConstraints(
       }
   val argTys = dispatch + descriptor.valueParameters.map { param ->
     param.type.unwrapIfNullable().primitiveType()?.let { ty ->
-      Pair(param.name.asString(), ty)
+      Pair(param.name.value, ty)
     }
   }
   return if (returnTy == null || argTys.any { it == null }) {
@@ -165,7 +168,7 @@ internal fun SolverState.primitiveConstraints(
         else -> solver.makeObjectVariable(name)
       }
     }
-    solver.primitiveFormula(call, innerArgs)?.let { formula ->
+    solver.primitiveFormula(context, call, innerArgs)?.let { formula ->
       when (returnTy) {
         PrimitiveType.BOOLEAN ->
           solver.booleans {
@@ -209,8 +212,8 @@ internal fun Solver.renameConditions(
   constraints: DeclarationConstraints,
   to: DeclarationDescriptor
 ): DeclarationConstraints {
-  val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.asString() }
-  val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.asString() }
+  val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.value }
+  val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.value }
   return if (fromParams != null && toParams != null) {
     renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
   } else {

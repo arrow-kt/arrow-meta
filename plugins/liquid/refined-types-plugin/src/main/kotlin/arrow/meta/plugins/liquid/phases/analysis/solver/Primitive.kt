@@ -1,5 +1,10 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.BinaryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.allArgumentExpressions
 import arrow.meta.plugins.liquid.smt.Solver
 import arrow.meta.plugins.liquid.smt.boolAnd
@@ -30,13 +35,6 @@ import arrow.meta.plugins.liquid.smt.rationalPlus
 import arrow.meta.plugins.liquid.types.PrimitiveType
 import arrow.meta.plugins.liquid.types.primitiveType
 import arrow.meta.plugins.liquid.types.unwrapIfNullable
-import org.jetbrains.kotlin.backend.common.descriptors.allParameters
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.fir.builder.toFirOperation
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.NumeralFormula
@@ -47,7 +45,8 @@ import org.sosy_lab.java_smt.api.NumeralFormula
  */
 
 fun Solver.primitiveFormula(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  context: ResolutionContext,
+  resolvedCall: ResolvedCall,
   args: List<Formula>
 ): Formula? {
   val descriptor = resolvedCall.resultingDescriptor
@@ -55,7 +54,7 @@ fun Solver.primitiveFormula(
   val argTys = descriptor.allParameters.map { param -> param.type.primitiveType() }
   return when {
     descriptor.isComparison() ->
-      comparisonFormula(resolvedCall, args)
+      comparisonFormula(context, resolvedCall, args)
     returnTy == PrimitiveType.BOOLEAN && argTys.all { it == PrimitiveType.BOOLEAN } ->
       booleanFormula(descriptor, args)
     returnTy == PrimitiveType.INTEGRAL && argTys.all { it == PrimitiveType.INTEGRAL } ->
@@ -74,15 +73,16 @@ internal fun CallableDescriptor.isComparison() =
   }
 
 private fun Solver.comparisonFormula(
-  resolvedCall: ResolvedCall<out CallableDescriptor>,
+  context: ResolutionContext,
+  resolvedCall: ResolvedCall,
   args: List<Formula>
 ): BooleanFormula? =
-  resolvedCall.allArgumentExpressions()
+  resolvedCall.allArgumentExpressions(context)
     .takeIf { it.size == 2 }
     ?.let {
       val ty1 = it[0].second.unwrapIfNullable().primitiveType()
       val ty2 = it[1].second.unwrapIfNullable().primitiveType()
-      val op = (resolvedCall.call.callElement as? KtBinaryExpression)?.operationToken?.toFirOperation()?.operator
+      val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
       when {
         ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->
           when (op) {
@@ -128,7 +128,7 @@ private fun Solver.booleanFormula(
 private fun Solver.integralFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
-): NumeralFormula.IntegerFormula? = when (descriptor.name.asString()) {
+): NumeralFormula.IntegerFormula? = when (descriptor.name.value) {
   "plus" -> intPlus(args)
   "minus" -> intMinus(args)
   "times" -> intMultiply(args)
@@ -143,7 +143,7 @@ private fun Solver.integralFormula(
 private fun Solver.rationalFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
-): NumeralFormula.RationalFormula? = when (descriptor.name.asString()) {
+): NumeralFormula.RationalFormula? = when (descriptor.name.value) {
   "plus" -> rationalPlus(args)
   "minus" -> rationalMinus(args)
   "times" -> rationalMultiply(args)

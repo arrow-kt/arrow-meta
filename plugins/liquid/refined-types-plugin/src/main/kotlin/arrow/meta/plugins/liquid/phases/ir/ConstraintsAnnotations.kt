@@ -1,11 +1,14 @@
 package arrow.meta.plugins.liquid.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.liquid.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -27,9 +30,14 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.FormulaManager
 
 internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
-  val solverState = compilerContext.get<SolverState>(SolverState.key(moduleFragment.descriptor))
+  val kotlinModule: ModuleDescriptor = moduleFragment.descriptor.model()
+  val solverState = compilerContext.get<SolverState>(SolverState.key(kotlinModule))
   if (solverState != null) {
-    val declarationConstraints = solverState.constraintsFromSolverState(fn.toIrBasedDescriptor())
+    val declarationConstraints =
+      solverState.constraintsFromSolverState(
+        fn.toIrBasedDescriptor()
+          .model<FunctionDescriptor, arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor>()
+       )
     if (declarationConstraints != null) {
       solverState.solver.formulae {
         preAnnotation(declarationConstraints.pre, solverState.solver.formulaManager)

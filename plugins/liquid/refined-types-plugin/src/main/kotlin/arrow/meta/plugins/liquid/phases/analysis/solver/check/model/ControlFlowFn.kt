@@ -1,6 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check.model
 
-import org.jetbrains.kotlin.psi.KtExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
 
 /**
  * Describes the characteristics of a call to special control flow functions
@@ -8,8 +8,8 @@ import org.jetbrains.kotlin.psi.KtExpression
  * https://kotlinlang.org/docs/scope-functions.html#function-selection
  */
 data class ControlFlowFn(
-  val target: KtExpression?,
-  val body: KtExpression,
+  val target: Expression?,
+  val body: Expression,
   val argumentName: String,
   val returnBehavior: ReturnBehavior
 ) {

@@ -4,7 +4,7 @@ import arrow.refinement.Law
 import arrow.refinement.pre
 import arrow.refinement.post
 import kotlin.jvm.JvmName
-import kotlin.math.* // ktlint-disable no-wildcard-imports
+import kotlin.math.* // ktlint-disable
 
 @Law
 @JvmName("absLawDoubleDouble")

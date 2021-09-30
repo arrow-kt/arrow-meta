@@ -1,6 +1,6 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.state
 
-import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.model.NamedConstraint
@@ -15,14 +15,11 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Uns
 import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
 import arrow.meta.plugins.liquid.smt.fieldNames
 import arrow.meta.plugins.liquid.smt.substituteVariable
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolvedCall
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -99,16 +96,14 @@ internal fun SolverState.constraintsFromFqName(name: FqName): DeclarationConstra
  */
 internal fun SolverState.checkPreconditionsInconsistencies(
   constraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  declaration: KtDeclaration
+  context: ResolutionContext,
+  declaration: Declaration
 ): Boolean =
   solver.run {
     constraints?.pre?.let {
       addAndCheckConsistency(it) { unsatCore ->
         val msg = inconsistentBodyPre(declaration, unsatCore)
-        context.trace.report(
-          MetaErrors.InconsistentBodyPre.on(declaration.psiOrParent, msg)
-        )
+        context.reportInconsistentBodyPre(declaration, msg)
       }
     } ?: false // if there are no preconditions, they are consistent
   }
@@ -119,16 +114,14 @@ internal fun SolverState.checkPreconditionsInconsistencies(
  */
 internal fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  declaration: KtDeclaration
+  context: ResolutionContext,
+  declaration: Declaration
 ) {
   solver.run {
     constraints?.post?.forEach { postCondition ->
       checkImplicationOf(postCondition) {
         val msg = unsatBodyPost(declaration, postCondition)
-        context.trace.report(
-          MetaErrors.UnsatBodyPost.on(declaration.psiOrParent, msg)
-        )
+        context.reportUnsatBodyPost(declaration, msg)
       }
     }
   }
@@ -139,17 +132,15 @@ internal fun SolverState.checkPostConditionsImplication(
  */
 internal fun SolverState.checkCallPreConditionsImplication(
   callConstraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  expression: KtExpression,
-  resolvedCall: ResolvedCall<out CallableDescriptor>
+  context: ResolutionContext,
+  expression: Expression,
+  resolvedCall: ResolvedCall
 ) =
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
       checkImplicationOf(callPreCondition) { model ->
         val msg = unsatCallPre(callPreCondition, resolvedCall, model)
-        context.trace.report(
-          MetaErrors.UnsatCallPre.on(expression.psiOrParent, msg)
-        )
+        context.reportUnsatCallPre(expression, msg)
       }
     }
   }
@@ -159,17 +150,15 @@ internal fun SolverState.checkCallPreConditionsImplication(
  */
 internal fun SolverState.checkCallPostConditionsInconsistencies(
   callConstraints: DeclarationConstraints?,
-  context: DeclarationCheckerContext,
-  expression: KtExpression,
-  resolvedCall: ResolvedCall<out CallableDescriptor>
+  context: ResolutionContext,
+  expression: Expression,
+  resolvedCall: ResolvedCall
 ): Boolean =
   solver.run {
     callConstraints?.post?.let {
       addAndCheckConsistency(it) { unsatCore ->
         val msg = inconsistentCallPost(unsatCore)
-        context.trace.report(
-          MetaErrors.InconsistentCallPost.on(expression.psiOrParent, msg)
-        )
+        context.reportInconsistentCallPost(expression, msg)
       }
     } ?: false
   }
@@ -179,70 +168,60 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
  */
 internal fun SolverState.checkConditionsInconsistencies(
   formulae: List<NamedConstraint>,
-  context: DeclarationCheckerContext,
-  expression: KtElement
+  context: ResolutionContext,
+  expression: Element
 ): Boolean =
   solver.run {
     addAndCheckConsistency(formulae) { unsatCore ->
       val msg = inconsistentConditions(unsatCore)
-      context.trace.report(
-        MetaErrors.InconsistentConditions.on(expression.psiOrParent, msg)
-      )
+      context.reportInconsistentConditions(expression, msg)
     }
   }
 
 internal fun SolverState.checkInvariantConsistency(
   constraint: NamedConstraint,
-  context: DeclarationCheckerContext,
-  expression: KtElement
+  context: ResolutionContext,
+  expression: Element
 ): Boolean =
   solver.run {
     addAndCheckConsistency(listOf(constraint)) {
       val msg = inconsistentInvariants(it)
-      context.trace.report(
-        MetaErrors.InconsistentInvariants.on(expression.psiOrParent, msg)
-      )
+      context.reportInconsistentInvariants(expression, msg)
     }
   }
 
 internal fun SolverState.checkInvariant(
   constraint: NamedConstraint,
-  context: DeclarationCheckerContext,
-  expression: KtElement
+  context: ResolutionContext,
+  expression: Element
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
       val msg = unsatInvariants(expression, constraint, model)
-      context.trace.report(
-        MetaErrors.UnsatInvariants.on(expression.psiOrParent, msg)
-      )
+      context.reportUnsatInvariants(expression, msg)
     }
   }
 
 internal fun SolverState.checkLiskovWeakerPrecondition(
   constraint: NamedConstraint,
-  context: DeclarationCheckerContext,
-  expression: KtElement
+  context: ResolutionContext,
+  expression: Element
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
       val msg = notWeakerPrecondition(constraint)
-      context.trace.report(
-        MetaErrors.LiskovProblem.on(expression.psiOrParent, msg)
-      )
+      context.reportLiskovProblem(expression, msg)
     }
   }
 
 internal fun SolverState.checkLiskovStrongerPostcondition(
   constraint: NamedConstraint,
-  context: DeclarationCheckerContext,
-  expression: KtElement
+  context: ResolutionContext,
+  expression: Element
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
       val msg = notStrongerPostcondition(constraint)
-      context.trace.report(
-        MetaErrors.LiskovProblem.on(expression.psiOrParent, msg)
-      )
+      context.reportLiskovProblem(expression, msg)
     }
   }
