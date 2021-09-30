@@ -60,6 +60,12 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
     )
   }
 
+  override fun reportUnsupported(expression: Element, msg: String) {
+    report(
+      MetaErrors.UnsupportedElement.on(expression.element(), msg)
+    )
+  }
+
   override val types: Types
     get() = TODO("Not yet implemented")
 

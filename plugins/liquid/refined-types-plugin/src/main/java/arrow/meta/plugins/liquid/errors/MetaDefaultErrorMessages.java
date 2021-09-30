@@ -29,6 +29,7 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(UnsatInvariants, "{0}", RenderString);
         MAP.put(LiskovProblem, "{0}", RenderString);
         MAP.put(ErrorParsingPredicate, "{0}", RenderString);
+        MAP.put(UnsupportedElement, "{0}", RenderString);
     }
 }
 

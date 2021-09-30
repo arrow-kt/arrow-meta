@@ -74,6 +74,7 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.collect.preCall
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.primitiveConstraints
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.valueArgumentExpressions
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.checkCallPreConditionsImplication
@@ -181,12 +182,15 @@ private fun SolverState.fallThrough(
   associatedVarName: ObjectFormula,
   expression: Expression,
   data: CheckData
-): ContSeq<Return> =
-// fall-through case
-  // try to treat it as a function call (for +, -, and so on)
-  doOnlyWhenNotNull(expression.getResolvedCall(data.context), NoReturn) { resolvedCall ->
-    checkCallExpression(associatedVarName, expression, resolvedCall, data)
+): ContSeq<Return> = when (val call = expression.getResolvedCall(data.context)) {
+  // fall-through: treat as a call
+  is ResolvedCall -> checkCallExpression(associatedVarName, expression, call, data)
+  // otherwise, report as unsupported
+  else -> cont {
+    data.context.reportUnsupported(expression, ErrorMessages.Unsupported.unsupportedExpression())
+    NoReturn
   }
+}
 
 private fun Declaration.isVar(): Boolean = when (this) {
   is VariableDeclaration -> this.isVar

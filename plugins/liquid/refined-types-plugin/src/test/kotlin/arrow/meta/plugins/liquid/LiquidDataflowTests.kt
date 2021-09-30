@@ -312,9 +312,9 @@ class LiquidDataflowTests {
       ${imports()}
       
       @Law
-      fun Int.safeDiv(other: Int): Int {
-        pre( other != 0 ) { "other is not zero" }
-        return this / other
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
       }
      
       val result = 1 / 0
@@ -330,9 +330,9 @@ class LiquidDataflowTests {
       ${imports()}
       
       @Law
-      fun Int.safeDiv(other: Int): Int {
-        pre( other != 0 ) { "other is not zero" }
-        return this / other
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
       }
      
       fun foo() {
@@ -341,6 +341,22 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `incorrect ad-hoc law`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return theOtherNumber / this
+      }
+      """(
+      withPlugin = { failsWith { it.contains("must use the arguments in order") } },
       withoutPlugin = { compiles }
     )
   }
@@ -781,7 +797,7 @@ class LiquidDataflowTests {
       
       val x = A()
       """(
-      withPlugin = { failsWith { it.contains("implicit primary constructors are (not yet) supported") } },
+      withPlugin = { compilesWith { it.contains("implicit primary constructors are (not yet) supported") } },
       withoutPlugin = { compiles }
     )
   }

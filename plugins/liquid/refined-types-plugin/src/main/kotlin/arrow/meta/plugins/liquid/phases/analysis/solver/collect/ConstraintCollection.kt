@@ -57,7 +57,9 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
@@ -324,24 +326,61 @@ private fun SolverState.addConstraints(
   postConstraints: ArrayList<NamedConstraint>,
   bindingContext: ResolutionContext
 ) {
-  val remoteDescriptorFromRemoteLaw =
-    descriptor.annotations().findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
-      val subjectFqName = (lawSubject.argumentValueAsString("fqName"))?.let { FqName(it) }
-      if (subjectFqName != null) {
+  val lawSubject = findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+  if (lawSubject != null) {
+    val renamed = solver.renameConditions(DeclarationConstraints(descriptor, preConstraints, postConstraints), lawSubject)
+    callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
+  }
+  callableConstraints.add(descriptor, preConstraints, postConstraints)
+}
+
+private fun findDescriptorFromRemoteLaw(descriptor: DeclarationDescriptor): DeclarationDescriptor? =
+  descriptor.annotations().findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
+    (lawSubject.argumentValueAsString("fqName"))
+      ?.let { FqName(it) }
+      ?.let { subjectFqName ->
         val pck = subjectFqName.name.substringBeforeLast(".")
         val fn = subjectFqName.name.split(".").lastOrNull()
         descriptor.module.getPackage(pck)?.getMemberScope()?.getContributedDescriptors { it == fn }?.firstOrNull()
-      } else null
-    }
-  val targetDescriptorFromLocalLaw =
-    if (descriptor.hasLawAnnotation()) {
-      getReturnedExpressionWithoutPostcondition(descriptor, bindingContext)?.resultingDescriptor
-    } else null
-  val lawSubject = remoteDescriptorFromRemoteLaw ?: targetDescriptorFromLocalLaw
-  if (lawSubject != null) {
-    callableConstraints.add(lawSubject, preConstraints, postConstraints)
+      }
   }
-  callableConstraints.add(descriptor, preConstraints, postConstraints)
+
+private fun SolverState.findDescriptorFromLocalLaw(
+  descriptor: DeclarationDescriptor,
+  bindingContext: ResolutionContext
+): DeclarationDescriptor? {
+  if (!descriptor.hasLawAnnotation())
+    return null
+
+  if (descriptor !is CallableDescriptor)
+    return null
+
+  val lawCall = getReturnedExpressionWithoutPostcondition(descriptor, bindingContext)
+  if (lawCall == null) {
+    descriptor.element()?.let { elt ->
+      val msg = ErrorMessages.Parsing.lawMustCallFunction()
+      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      signalParseErrors()
+    }
+    return null
+  }
+
+  val parameters = descriptor.allParameters
+  val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.third }
+  val check = parameters.zip(arguments).all { (param, arg) ->
+    (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
+      (param is ValueParameterDescriptor && arg is NameReferenceExpression && arg.getReferencedNameAsName() == param.name)
+  }
+  if (!check) {
+    descriptor.element()?.let { elt ->
+      val msg = ErrorMessages.Parsing.lawMustHaveParametersInOrder()
+      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      signalParseErrors()
+    }
+    return null
+  }
+
+  return lawCall.resultingDescriptor
 }
 
 private fun MutableList<DeclarationConstraints>.add(
