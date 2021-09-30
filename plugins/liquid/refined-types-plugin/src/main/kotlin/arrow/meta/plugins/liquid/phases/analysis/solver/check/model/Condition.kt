@@ -9,4 +9,4 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Whe
  */
 sealed class Condition(val condition: Element?, val body: Expression, val whole: Element)
 class SimpleCondition(val predicate: Expression?, body: Expression, whole: Element) : Condition(predicate, body, whole)
-class ComplexCondition(val subject: Expression, val check: WhenCondition?, body: Expression, whole: Element) : Condition(check, body, whole)
+class SubjectCondition(val check: WhenCondition?, body: Expression, whole: Element) : Condition(check, body, whole)
