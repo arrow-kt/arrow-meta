@@ -56,17 +56,17 @@ object ErrorMessages {
    */
   object Parsing {
     internal fun errorParsingPredicate(predicateArg: Expression?): String =
-      "Could not parse predicate: ${predicateArg?.text}"
+      "could not parse predicate: ${predicateArg?.text}"
 
     internal fun unexpectedFieldInitBlock(fieldName: String?): String =
       if (fieldName == null) {
-        "Unexpected field name in init block"
+        "unexpected field name in init block"
       } else {
-        "Unexpected field name in init block: $fieldName"
+        "unexpected field name in init block: $fieldName"
       }
 
     internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
-      "Implicit primary constructors are (not yet) supported: `${klass.name}`"
+      "implicit primary constructors are (not yet) supported: `${klass.name}`"
   }
 
   /**

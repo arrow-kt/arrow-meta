@@ -506,9 +506,11 @@ internal fun CompilerContext.finalizeConstraintsCollection(
     solverState.introduceFieldNamesInSolver()
     // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
     solverState.collectionEnds()
-    return if (!solverState.hadParseErrors()) {
+    return if (solverState.hadParseErrors()) {
+      AnalysisResult.ParsingError
+    } else {
       AnalysisResult.Retry
-    } else AnalysisResult.Completed
+    }
   } else AnalysisResult.Completed
 }
 
@@ -665,7 +667,7 @@ internal fun formulaVariableName(
  */
 internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor -> hasOneReceiver()
-  is FunctionDescriptor -> valueParameters.size == 0 && hasOneReceiver()
+  is FunctionDescriptor -> valueParameters.isEmpty() && hasOneReceiver()
   else -> false
 }
 

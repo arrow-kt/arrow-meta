@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
-  @Disabled
   fun `bad predicate`() {
     """
       ${imports()}
@@ -20,7 +19,7 @@ class LiquidDataflowTests {
         return 1
       }
       """(
-      withPlugin = { failsWith { it.contains("could not parse this predicate") } },
+      withPlugin = { failsWith { it.contains("not parse predicate") } },
       withoutPlugin = { compiles }
     )
   }
@@ -767,7 +766,7 @@ class LiquidDataflowTests {
       
       val x = A()
       """(
-      withPlugin = { compilesWith { it.contains("Implicit primary constructors are (not yet) supported") } },
+      withPlugin = { failsWith { it.contains("implicit primary constructors are (not yet) supported") } },
       withoutPlugin = { compiles }
     )
   }

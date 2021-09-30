@@ -35,6 +35,10 @@ internal fun Meta.liquidDataflowPhases(): ExtensionPhase =
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
                 bindingTrace.bindingContext, module, emptyList(), emptyList()
               )
+            AnalysisResult.ParsingError ->
+              org.jetbrains.kotlin.analyzer.AnalysisResult.compilationError(
+                bindingTrace.bindingContext
+              )
             AnalysisResult.Completed -> null
           }
         },
