@@ -270,17 +270,17 @@ private fun Element.elementToConstraint(
 }
 
 /**
- * returns true if [this] resolved call is calling [arrow.refinement.pre]
+ * returns true if [this] resolved call is calling [arrow.analysis.pre]
  */
 internal fun ResolvedCall.preCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.pre") ||
+  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.pre") ||
     requireCall() // require is taken as precondition
 
 /**
- * returns true if [this] resolved call is calling [arrow.refinement.post]
+ * returns true if [this] resolved call is calling [arrow.analysis.post]
  */
 internal fun ResolvedCall.postCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.post")
+  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.post")
 
 /**
  * returns true if [this] resolved call is calling [kotlin.require]
@@ -289,22 +289,22 @@ internal fun ResolvedCall.requireCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("kotlin.require")
 
 /**
- * returns true if [this] resolved call is calling [arrow.refinement.pre] or  [arrow.refinement.post]
+ * returns true if [this] resolved call is calling [arrow.analysis.pre] or  [arrow.analysis.post]
  */
 private fun ResolvedCall.preOrPostCall(): Boolean =
   preCall() || postCall()
 
 /**
- * returns true if [this] resolved call is calling [arrow.refinement.invariant]
+ * returns true if [this] resolved call is calling [arrow.analysis.invariant]
  */
 internal fun ResolvedCall.invariantCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.refinement.invariant")
+  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.invariant")
 
 /**
  * returns true if we have declared something with a @Law
  */
 fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
-  annotations().hasAnnotation(FqName("arrow.refinement.Law"))
+  annotations().hasAnnotation(FqName("arrow.analysis.Law"))
 
 /**
  * Depending on the source of the [descriptor] we might
@@ -319,7 +319,7 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val remoteDescriptorFromRemoteLaw =
-    descriptor.annotations().findAnnotation(FqName("arrow.refinement.Subject"))?.let { lawSubject ->
+    descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
       val subjectFqName = (lawSubject.argumentValueAsString("fqName"))?.let { FqName(it) }
       if (subjectFqName != null) {
         val pck = subjectFqName.name.substringBeforeLast(".")
@@ -374,10 +374,10 @@ private fun getReturnedExpressionWithoutPostcondition(
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
-  annotations().findAnnotation(FqName("arrow.refinement.Pre"))
+  annotations().findAnnotation(FqName("arrow.analysis.Pre"))
 
 private fun Annotated.postAnnotation(): AnnotationDescriptor? =
-  annotations().findAnnotation(FqName("arrow.refinement.Post"))
+  annotations().findAnnotation(FqName("arrow.analysis.Post"))
 
 private val skipPackages = setOf(
   FqName("com.apple"),
@@ -426,8 +426,8 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
 ) {
   val constraints = descriptor.annotations().iterable().mapNotNull { ann ->
     when (ann.fqName) {
-      FqName("arrow.refinement.Pre") -> "pre"
-      FqName("arrow.refinement.Post") -> "post"
+      FqName("arrow.analysis.Pre") -> "pre"
+      FqName("arrow.analysis.Post") -> "post"
       else -> null
     }?.let { element -> parseFormula(element, ann, descriptor) }
   }

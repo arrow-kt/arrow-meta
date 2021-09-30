@@ -29,8 +29,6 @@ import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
-import arrow.meta.phases.codegen.ir.interpreter.IrInterpreter
-import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
@@ -45,7 +43,6 @@ import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
@@ -60,39 +57,12 @@ class IrUtils(
   IrTypeSystemContext by IrTypeSystemContextImpl(pluginContext.irBuiltIns),
   IrFactory by pluginContext.irFactory {
 
-  internal val irInterpreter: IrInterpreter = IrInterpreter(moduleFragment)
-
   val typeTranslator: TypeTranslator =
     TypeTranslatorImpl(
       symbolTable = pluginContext.symbols.externalSymbolTable,
       languageVersionSettings = pluginContext.languageVersionSettings,
       moduleDescriptor = moduleFragment.descriptor
     )
-
-  fun interpretFunction(originalCall: IrCall, typeName: Name, value: IrConst<*>): IrExpression {
-    val fnName = "require${typeName.asString()}"
-    val fn = moduleFragment.files.flatMap { it.declarations }
-      .filterIsInstance<IrFunction>().firstOrNull {
-        it.name.asString() == fnName
-      }
-    val call = if (fn != null) {
-      IrCallImpl(
-        startOffset = UNDEFINED_OFFSET,
-        endOffset = UNDEFINED_OFFSET,
-        type = irBuiltIns.unitType,
-        symbol = fn.symbol as IrSimpleFunctionSymbol,
-        typeArgumentsCount = 0,
-        valueArgumentsCount = 1,
-        origin = null,
-        superQualifierSymbol = null
-      ).also {
-        it.putValueArgument(0, value)
-      }
-    } else null
-    return if (call != null)
-      irInterpreter.interpret(call)
-    else irInterpreter.interpret(originalCall)
-  }
 
   fun KotlinType.toIrType(): IrType =
     typeTranslator.translateType(this)
@@ -193,10 +163,6 @@ class IrUtils(
         return super.visitFunction(declaration, data)
       }
     }, data) as IrStatement
-
-  @ExperimentalStdlibApi
-  fun IrModuleFragment.interpret(expression: IrExpression): IrExpression =
-    IrInterpreter(this).interpret(expression)
 }
 
 inline fun <reified E, B> IrElement.filterMap(
