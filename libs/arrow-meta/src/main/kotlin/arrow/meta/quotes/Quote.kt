@@ -154,7 +154,7 @@ fun PackageViewDescriptor.declarations(): Collection<DeclarationDescriptor> =
   memberScope.getContributedDescriptors { true }
 
 fun DeclarationDescriptor.ktFile(): KtFile? =
-  findPsi()?.containingFile.safeAs()
+  findPsi()?.containingFile.safeAs<KtFile>()
 
 fun ClassDescriptor.ktClassOrObject(): KtClassOrObject? =
   findPsi() as? KtClassOrObject
