@@ -839,7 +839,7 @@ private fun SolverState.obtainInvariant(
     ?.takeIf { it.invariantCall() }
     ?.arg("predicate", data.context)
     ?.let { expr: Expression ->
-      solver.expressionToFormula(expr, data.context)
+      solver.expressionToFormula(expr, data.context, emptyList(), true)
         ?.let { it as? BooleanFormula }
         ?.let { formula -> expr to formula }
     }

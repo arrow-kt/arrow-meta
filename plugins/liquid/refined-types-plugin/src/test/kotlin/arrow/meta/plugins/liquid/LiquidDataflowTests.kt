@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
-  fun `bad predicate`() {
+  fun `bad predicate, could not parse predicate`() {
     """
       ${imports()}
       fun bar(): Int {
@@ -20,6 +20,21 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { failsWith { it.contains("not parse predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `bad predicate, refers to local variable`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre(x > 0) { "ok" }
+        val z = 2
+        return 1.post({ z > 0 }) { "wrong" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("unexpected reference") } },
       withoutPlugin = { compiles }
     )
   }

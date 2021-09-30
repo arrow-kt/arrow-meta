@@ -58,6 +58,9 @@ object ErrorMessages {
     internal fun errorParsingPredicate(predicateArg: Expression?): String =
       "could not parse predicate: ${predicateArg?.text}"
 
+    internal fun unexpectedReference(reference: String?): String =
+      "unexpected reference: $reference"
+
     internal fun unexpectedFieldInitBlock(fieldName: String?): String =
       if (fieldName == null) {
         "unexpected field name in init block"
