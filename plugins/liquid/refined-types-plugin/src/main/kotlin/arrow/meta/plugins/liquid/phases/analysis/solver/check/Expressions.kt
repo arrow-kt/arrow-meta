@@ -285,8 +285,6 @@ private fun SolverState.checkCallExpression(
   val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
-    resolvedCall.isOldRefinedCall() -> // ignore calls to old Refined
-      cont { NoReturn }
     resolvedCall.preCall() -> // ignore calls to 'pre'
       cont { NoReturn }
     resolvedCall.postCall() -> // ignore post arguments
@@ -311,14 +309,6 @@ private fun ResolvedCall.referencedArg(
   resolvedArg.arguments.any { valueArg ->
     valueArg.argumentExpression == arg
   }
-}
-
-private fun ResolvedCall.isOldRefinedCall(): Boolean {
-  val name = resultingDescriptor.fqNameSafe
-  return name == FqName("arrow.refinement.ensure") ||
-    name == FqName("arrow.refinement.ensureA") ||
-    name == FqName("arrow.refinement.require") ||
-    name == FqName("arrow.refinement.constraints")
 }
 
 /**
