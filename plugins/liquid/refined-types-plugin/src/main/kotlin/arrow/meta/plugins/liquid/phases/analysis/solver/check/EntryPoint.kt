@@ -1,11 +1,18 @@
 package arrow.meta.plugins.liquid.phases.analysis.solver.check
 
+import arrow.meta.continuations.cont
+import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.phases.CompilerContext
+import arrow.meta.plugins.liquid.errors.MetaErrors
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unsupportedImplicitPrimaryConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtEnumEntry
+import org.jetbrains.kotlin.psi.KtPrimaryConstructor
+import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -39,6 +46,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
  */
 
 internal const val RESULT_VAR_NAME = "${'$'}result"
+internal const val THIS_VAR_NAME = "this"
 
 // 2.0: entry point
 /**
@@ -50,32 +58,41 @@ internal fun CompilerContext.checkDeclarationConstraints(
   declaration: KtDeclaration,
   descriptor: DeclarationDescriptor
 ) {
-  val solverState = get<SolverState>(SolverState.key(context.moduleDescriptor))
-  if (solverState != null &&
-    solverState.isIn(SolverState.Stage.Prove) &&
-    !solverState.hadParseErrors() &&
+  get<SolverState>(SolverState.key(context.moduleDescriptor))?.takeIf { solverState ->
+    solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()
+  }?.takeIf {
     declaration.shouldBeAnalyzed()
-  ) {
-    // bring the constraints in (if there are any)
-    val constraints = solverState.constraintsFromSolverState(descriptor)
-    // choose a good name for the result
-    // should we change it for 'val' declarations?
-    val resultVarName = RESULT_VAR_NAME
+  }?.run {
     // trace
-    solverState.solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("CHECKING ${descriptor.fqNameSafe.asString()}")
     // now go on and check the body
-    solverState.checkTopLevelDeclaration(
-      constraints, context, descriptor,
-      resultVarName, declaration
-    ).drain()
+    when (declaration) {
+      is KtPrimaryConstructor ->
+        checkPrimaryConstructor(context, descriptor, declaration)
+      is KtSecondaryConstructor ->
+        checkSecondaryConstructor(context, descriptor, declaration)
+      is KtEnumEntry ->
+        checkEnumEntry(context, descriptor, declaration)
+      is KtClassOrObject ->
+        doOnlyWhen(declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
+          cont {
+            val msg = unsupportedImplicitPrimaryConstructor(declaration)
+            context.trace.report(MetaErrors.ErrorParsingPredicate.on(declaration, msg))
+          }
+        }
+      else ->
+        checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+    }.drain()
     // trace
-    solverState.solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
+    solverTrace.add("FINISH ${descriptor.fqNameSafe.asString()}")
   }
 }
 
 /**
- * Only elements which are not inside another "callable declaration"
- * (function, property, etc) should be analyzed
+ * Only elements which are not
+ * - inside another "callable declaration" (function, property, etc.)
+ *   (b/c this is not yet supported)
+ * - or constructors (b/c they are handled at the level of class)
  */
 private fun KtDeclaration.shouldBeAnalyzed() =
   !(this.parents.any { it is KtCallableDeclaration })

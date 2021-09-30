@@ -11,6 +11,10 @@ group = GROUP
 version = VERSION_NAME
 def pluginId = 'io.arrow-kt.proofs'
 
+processResources {
+  duplicatesStrategy 'warn'
+}
+
 dependencies {
   compileOnly project(":gradle-plugin-commons")
   runtimeOnly "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"

@@ -5,6 +5,10 @@
 
 package arrow.meta.phases.codegen.ir.interpreter.intrinsics
 
+import arrow.meta.phases.codegen.ir.interpreter.ExecutionResult
+import arrow.meta.phases.codegen.ir.interpreter.Next
+import arrow.meta.phases.codegen.ir.interpreter.ReturnLabel
+import arrow.meta.phases.codegen.ir.interpreter.check
 import arrow.meta.phases.codegen.ir.interpreter.extractNonLocalDeclarations
 import arrow.meta.phases.codegen.ir.interpreter.getArgsForMethodInvocation
 import arrow.meta.phases.codegen.ir.interpreter.stack.Stack
@@ -21,10 +25,6 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.interpreter.ExecutionResult
-import org.jetbrains.kotlin.ir.interpreter.Next
-import org.jetbrains.kotlin.ir.interpreter.ReturnLabel
-import org.jetbrains.kotlin.ir.interpreter.check
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
@@ -196,7 +196,7 @@ internal object ArrayConstructor : IntrinsicBase() {
                 stack.newFrame(
                     asSubFrame = initLambda.irFunction.isLocal || initLambda.irFunction.isInline,
                     initPool = nonLocalDeclarations + indexVar
-                ) { initLambda.irFunction.body!!.interpret() }.check(ReturnLabel.RETURN) { return it }
+                ) { initLambda.irFunction.body!!.interpret() }.check(ReturnLabel.RETURN) { return@check }
                 arrayValue[i] = stack.popReturnValue().let { (it as? Wrapper)?.value ?: (it as? Primitive<*>)?.value ?: it }
             }
         }

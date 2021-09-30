@@ -3,7 +3,7 @@ name: pull_request
 on: pull_request
 
 env:
-  JAVA_OPTS: -Xms512m -Xmx1024m
+  JAVA_OPTS: -Xms1g -Xmx3g
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.configureondemand=true -Dorg.gradle.jvmargs=-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 
 
@@ -31,6 +31,11 @@ jobs:
           restore-keys: |
             build-documentation-gradle-
 
+      - name: "Set env"
+        run: |
+          echo "$JAVA_HOME_8_X64/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME_8_X64" >> $GITHUB_ENV
+
       - name: "Run KtLint"
         run: ./gradlew ktlintCheck
 
@@ -44,6 +49,7 @@ jobs:
           sudo gem install bundler
           bundle install --gemfile docs/Gemfile --path vendor/bundle
           BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/build/site -d docs/build/_site
+
   js_jvm_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -69,11 +75,11 @@ jobs:
 
       - uses: actions/setup-java@v2
         with:
-          distribution: 'adopt'
+          distribution: 'temurin'
           java-version: '11'
 
       - name: Build with Gradle
-        run: ./gradlew jsTest linuxX64Test jvmTest --scan --stacktrace
+        run: ./gradlew linuxX64Test jvmTest jsTest
 
       -  name: Bundle the build report
          if: failure()
@@ -85,6 +91,7 @@ jobs:
          with:
            name: error-report
            path: build-reports.zip
+
   macos-ios:
     runs-on: macos-latest
     timeout-minutes: 20
@@ -107,8 +114,7 @@ jobs:
             macos-ios-gradle-
 
       - name: Build
-        working-directory: arrow-libs
-        run: ./gradlew macosX64Test iosX64Test
+        run: ./gradlew macosX64Test iosX64Test macosArm64Test iosSimulatorArm64Test iosArm64TestBinaries iosArm64TestKlibrary iosArm32TestBinaries
 
       - name: "Prepare test reports"
         if: ${{ always() }}
@@ -125,6 +131,7 @@ jobs:
         with:
           name: test-reports
           path: test-reports
+
   tvos_watchos:
     runs-on: macos-latest
     timeout-minutes: 20
@@ -147,8 +154,7 @@ jobs:
             tvos-watchos-gradle-
 
       - name: Build
-        working-directory: arrow-libs
-        run: ./gradlew tvosX64Test watchosX64Test
+        run: ./gradlew watchosX64Test watchosX86Test watchosSimulatorArm64Test watchosArm32TestBinaries watchosArm32TestKlibrary tvosX64Test tvosSimulatorArm64Test tvosArm64TestBinaries tvosArm64TestKlibrary
 
       - name: "Prepare test reports"
         if: ${{ always() }}
@@ -165,6 +171,7 @@ jobs:
         with:
           name: test-reports
           path: test-reports
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 20
@@ -187,5 +194,4 @@ jobs:
             windows-gradle-
 
       - name: Build
-        working-directory: arrow-libs
         run: ./gradlew mingwX64Test

@@ -1,5 +1,7 @@
 package arrow.meta.plugins.liquid.smt
 
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.RESULT_VAR_NAME
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.liquid.smt.utils.DefaultKotlinPrinter
 import arrow.meta.plugins.liquid.smt.utils.KotlinPrinter
 import arrow.meta.plugins.liquid.smt.utils.NameProvider
@@ -109,6 +111,12 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
 
   fun makeIntegerObjectVariable(varName: String): NumeralFormula.IntegerFormula =
     intValue(makeObjectVariable(varName))
+
+  fun makeDecimalObjectVariable(varName: String): NumeralFormula.RationalFormula =
+    decimalValue(makeObjectVariable(varName))
+
+  val resultVariable = makeObjectVariable(RESULT_VAR_NAME)
+  val thisVariable = makeObjectVariable(THIS_VAR_NAME)
 
   companion object {
 

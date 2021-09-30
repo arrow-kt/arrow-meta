@@ -3,8 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:Suppress("UNUSED", "INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package arrow.meta.phases.codegen.ir.interpreter.state
 
+import org.jetbrains.kotlin.ir.interpreter.internalName
 import arrow.meta.phases.codegen.ir.interpreter.builtins.evaluateIntrinsicAnnotation
 import arrow.meta.phases.codegen.ir.interpreter.getEvaluateIntrinsicValue
 import arrow.meta.phases.codegen.ir.interpreter.isThrowable
@@ -27,7 +30,6 @@ import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
 import org.jetbrains.kotlin.ir.interpreter.hasAnnotation
-import org.jetbrains.kotlin.ir.interpreter.internalName
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.isAny

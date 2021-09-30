@@ -155,6 +155,7 @@ class LiquidDataflowTests {
   }
 
   @Test
+  @Disabled // the solver doesn't signal inconsistency
   fun `unreachable code`() {
     """
       ${imports()}
@@ -403,23 +404,75 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled
-  fun `nullability, 1`() {
+  fun `nullability, predicate with null, 1`() {
     """
       ${imports()}
-      fun nully1(x: Int?): Int? {
+      fun nully1a(x: Int?): Int? {
         val y = x?.let { 1 }
-        return y.post({ it > 0 }) { "greater than 0" }
+        return y.post({ 
+          if (x == null) { it == null } 
+          else { (it != null) && (it > 0) } 
+        }) { "greater than 0" }
       }
       """(
-      // it seems that Kotlin's warning overrides ours
-      withPlugin = { failsWith { it.contains("`nully1` fails to satisfy the post-condition") } },
+      withPlugin = { compiles },
       withoutPlugin = { compiles }
     )
   }
 
   @Test
-  fun `nullability, 2`() {
+  fun `nullability, predicate with null, 2, if`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ 
+          if (x == null) { it == null }
+          else { (it != null) && (it < 0) }
+        }) { "smaller than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`nully1b` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, predicate with null, 2, when`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        val y = x?.let { 1 }
+        return y.post({ 
+          when {
+            x == null -> it == null
+            else -> (it != null) && (it < 0)
+          }
+        }) { "smaller than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`nully1b` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, null check in pre`() {
+    """
+      ${imports()}
+      fun nully1b(x: Int?): Int? {
+        pre((x == null) || (x > 0)) { "x is null or positive" }
+        val y = x?.let { it + 1 }
+        return y.post({ (it == null) || (it > 1) }) { "greater than 1" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `nullability, branches are followed on null check`() {
     """
       ${imports()}
       fun nully2(x: Int?): Int {
@@ -433,7 +486,7 @@ class LiquidDataflowTests {
   }
 
   @Test
-  fun `nullability, 3`() {
+  fun `nullability, Elvis operator`() {
     """
       ${imports()}
       fun nully3(x: Int?): Int {
@@ -441,14 +494,13 @@ class LiquidDataflowTests {
         return y.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      // it seems that Kotlin's warning overrides ours
       withPlugin = { failsWith { it.contains("`nully3` fails to satisfy the post-condition") } },
       withoutPlugin = { compiles }
     )
   }
 
   @Test
-  fun `nullability, 4`() {
+  fun `nullability, is implies non-nullability`() {
     """
       ${imports()}
       fun nully4(x: Int?): Int {
@@ -457,6 +509,34 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `try, 1`() {
+    """
+      ${imports()}
+      fun try1(x: Int): Int {
+        val y = try { 1 } catch (e: Exception) { 2 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+    """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `try, 2`() {
+    """
+      ${imports()}
+      fun try2(x: Int): Int {
+        val y = try { 1 } catch (e: Exception) { 0 }
+        return y.post({ it > 0 }) { "greater than 0" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("`try2` fails to satisfy the post-condition") } },
       withoutPlugin = { compiles }
     )
   }
@@ -537,6 +617,197 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { failsWith { it.contains("declaration `f` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with two init blocks`() {
+    """
+      ${imports()}
+      data class A(val n: Int) {
+        init {
+          pre(n > 0) { "n must be positive" }
+        }
+        init {
+          post({ n > 0 }) { "n must be positive" }
+        }
+        fun f(x: Int) = x
+      }
+      
+      val wrong = A(0)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with two (wrong) init blocks`() {
+    """
+      ${imports()}
+      data class A(val n: Int) {
+        init {
+          pre(n > 0) { "n must be positive" }
+        }
+        init {
+          post({ n < 0 }) { "n must be negative" }
+        }
+        fun f(x: Int) = x
+      }
+      """(
+      withPlugin = { failsWith { it.contains("declaration `A` fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        fun f(x: Int) = x
+      }
+      
+      val wrong = B(0)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, field knows about invariant, 1`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        fun f(x: Int): Int {
+          pre(x > 0) { "x is positive" }
+          val y = x
+          return (y + n).post({it > 0}) { "result is positive" }
+        }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, field knows about invariant, 2`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+      }
+      
+      fun f(b: B, x: Int): Int {
+        pre(x > 0) { "x is positive" }
+        return (x + b.n).post({it > 0}) { "result is positive" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, secondary constructor`() {
+    """
+      ${imports()}
+      data class B(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        constructor() : this(0) { }
+        fun f(x: Int) = x
+      }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require, two classes`() {
+    """
+      ${imports()}
+      open class A(val n: Int) {
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+        fun f(x: Int) = x
+      }
+      
+      class B(): A(0) { }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class with require on field, implicit constructor`() {
+    """
+      ${imports()}
+      class A {
+        val n = 0
+        init {
+          require(n > 0) { "n must be positive" }
+        }
+      }
+      
+      val x = A()
+      """(
+      withPlugin = { compilesWith { it.contains("Implicit primary constructors are (not yet) supported") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `enumerations, init blocks ok`() {
+    """
+      ${imports()}
+      enum class Color(val rgb: Int) {
+        RED(0xFF0000),
+        GREEN(0x00FF00),
+        BLUE(0x0000FF);
+    
+        init {
+          require(rgb != 0) { "no zero color" }
+        }
+      }
+      
+      val result: Int = Color.RED.rgb.post({ it != 0 }) { "check this" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `enumerations, init blocks wrong`() {
+    """
+      ${imports()}
+      enum class Cosa(val x: Int) {
+        Esto(0),
+        Eso(1),
+        Aquello(2);
+    
+        init {
+          require(x > 0) { "positive" }
+        }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `positive` is not satisfied") } },
       withoutPlugin = { compiles }
     )
   }
