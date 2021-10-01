@@ -184,7 +184,6 @@ class LiquidDataflowTests {
   }
 
   @Test
-  @Disabled // does not work yet
   fun `when with patterns`() {
     """
       ${imports()}
@@ -193,6 +192,22 @@ class LiquidDataflowTests {
         return (when (x) {
           0 -> 1
           else -> x
+        }).post({ it > 0 }) { "result is > 0" }
+      }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `when with val`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x >= 0 ) { "x is >= 0" }
+        return (when (val y = x + 1) {
+          else -> y
         }).post({ it > 0 }) { "result is > 0" }
       }
       """(
@@ -867,12 +882,12 @@ private fun imports() =
   """
 package test
 
-import arrow.refinement.invariant
-import arrow.refinement.pre
-import arrow.refinement.post
-import arrow.refinement.Pre
-import arrow.refinement.Post
-import arrow.refinement.Law
+import arrow.analysis.invariant
+import arrow.analysis.pre
+import arrow.analysis.post
+import arrow.analysis.Pre
+import arrow.analysis.Post
+import arrow.analysis.Law
 
  """
 

@@ -44,7 +44,7 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
           ?.let { fn.addAnnotation(it) }
         postAnnotation(declarationConstraints.post, solverState.solver.formulaManager)
           ?.let { fn.addAnnotation(it) }
-        if (fn.hasAnnotation(FqName("arrow.refinement.Law"))) {
+        if (fn.hasAnnotation(FqName("arrow.analysis.Law"))) {
           val callToSubject = (fn.body?.statements?.lastOrNull() as? IrReturn)?.value as? IrFunctionAccessExpression
           val fnDescriptor = callToSubject?.symbol?.owner?.toIrBasedDescriptor() as? SimpleFunctionDescriptor
           if (fnDescriptor != null) {
@@ -61,19 +61,19 @@ private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructor
 }
 
 private fun IrUtils.preAnnotation(formulae: List<NamedConstraint>, manager: FormulaManager): IrConstructorCall? =
-  annotationFromClassId(ClassId.fromString("arrow/refinement/Pre"),
+  annotationFromClassId(ClassId.fromString("arrow/analysis/Pre"),
     formulae.map { it.msg },
     formulae.map { it.formula.toString() },
     formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
 
 private fun IrUtils.postAnnotation(formulae: List<NamedConstraint>, manager: FormulaManager): IrConstructorCall? =
-  annotationFromClassId(ClassId.fromString("arrow/refinement/Post"),
+  annotationFromClassId(ClassId.fromString("arrow/analysis/Post"),
     formulae.map { it.msg },
     formulae.map { it.formula.toString() },
     formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
 
 private fun IrUtils.lawSubjectAnnotation(descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
-  lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/refinement/Subject"), descriptor)
+  lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/analysis/Subject"), descriptor)
 
 private fun IrUtils.annotationFromClassId(
   classId: ClassId,
