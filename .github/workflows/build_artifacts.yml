@@ -43,16 +43,21 @@ jobs:
           distribution: 'adopt'
           java-version: '11'
 
-      - name: Build with Gradle
+      - name: Build and test with Gradle
+        if: "contains(${{ matrix.kotlin }}, '1.5')"
         run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} build --scan --stacktrace
 
-      -  name: Bundle the build report
-         if: failure()
-         run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+      - name: Compile with Gradle
+        if: "contains(${{ matrix.kotlin }}, '1.6')"
+        run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} compileKotlin --scan --stacktrace
 
-      -  name: Upload the build report
-         if: failure()
-         uses: actions/upload-artifact@master
-         with:
-           name: error-report
-           path: build-reports.zip
+      - name: Bundle the build report
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+
+      - name: Upload the build report
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: error-report
+          path: build-reports.zip
