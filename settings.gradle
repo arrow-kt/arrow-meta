@@ -37,15 +37,14 @@ project(':optics-gradle-plugin').projectDir = new File('plugins/optics/optics-gr
 
 //Liquid
 
-include ':refined-types-plugin'
-project(':refined-types-plugin').projectDir = new File('plugins/liquid/refined-types-plugin')
+include ':analysis-types'
+project(':analysis-types').projectDir = new File('plugins/analysis/types')
 
+include ':analysis-laws'
+project(':analysis-laws').projectDir = new File('plugins/analysis/laws')
 
-include ':refined-types-gradle-plugin'
-project(':refined-types-gradle-plugin').projectDir = new File('plugins/liquid/refined-types-gradle-plugin')
+include ':analysis-kotlin-plugin'
+project(':analysis-kotlin-plugin').projectDir = new File('plugins/analysis/kotlin-plugin')
 
-include ':arrow-refined-types'
-project(':arrow-refined-types').projectDir = new File('plugins/liquid/arrow-refined-types')
-
-include ':arrow-refined-laws'
-project(':arrow-refined-laws').projectDir = new File('plugins/liquid/arrow-refined-laws')
+include ':analysis-gradle-plugin'
+project(':analysis-gradle-plugin').projectDir = new File('plugins/analysis/gradle-plugin')

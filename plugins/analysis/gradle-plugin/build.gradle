@@ -1,0 +1,61 @@
+import java.nio.file.Paths
+
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+  id 'java-gradle-plugin'
+  id 'com.gradle.plugin-publish' version "$GRADLE_PLUGIN_PUBLISH_VERSION"
+  id "org.jlleitschuh.gradle.ktlint"
+}
+
+group = GROUP
+version = VERSION_NAME
+def pluginId = 'io.arrow-kt.analysis'
+
+processResources {
+  duplicatesStrategy 'warn'
+}
+
+dependencies {
+  compileOnly project(":gradle-plugin-commons")
+  runtimeOnly "io.github.classgraph:classgraph:$CLASS_GRAPH_VERSION"
+
+  // Necessary during plugin execution to be found and added for compilation
+  api project(':arrow-meta')
+  api project(':analysis-kotlin-plugin')
+}
+
+apply from: file("${rootDir}/${SUBPROJECT}")
+
+gradlePlugin {
+  plugins {
+    arrow {
+      id = pluginId
+      implementationClass = "arrow.meta.plugin.gradle.AnalysisGradlePlugin"
+    }
+  }
+}
+
+pluginBundle {
+  website = "https://arrow-kt.io/docs/meta"
+  vcsUrl = "https://github.com/arrow-kt/arrow-meta"
+  description = "Functional companion to Kotlin's Compiler"
+  tags = ["kotlin", "compiler", "arrow", "plugin", "meta"]
+
+  plugins {
+    arrow {
+      displayName = "Arrow Analysis Gradle Plugin"
+    }
+  }
+}
+
+tasks.whenTaskAdded { task ->
+  if (task.name.matches('.*Plugin.*MavenPublication.*')) { task.enabled = false }
+}
+
+jar {
+  from(
+      zipTree(sourceSets.main.compileClasspath.find {
+        it.absolutePath.contains(Paths.get("gradle-plugin-commons").toString())
+      })
+  )
+}

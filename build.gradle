@@ -34,7 +34,7 @@ configure(subprojects - project("docs")
 configure(subprojects -
         project(":docs") -
         project(":gradle-plugin-commons") -
-        project(":arrow-refined-types") // MPP subprojects
+        project(":analysis-types") // MPP subprojects
 ) {
     afterEvaluate {
         jar {
@@ -102,8 +102,8 @@ task buildMetaDoc {
 runValidation.mustRunAfter generateDoc
 
 // All KotlinCompile tasks depend on the fatJar task of the compiler plugin
-project("arrow-refined-laws").tasks.withType(KotlinCompile).configureEach {
-    dependsOn project("refined-types-plugin").tasks["jar"]
+project("analysis-laws").tasks.withType(KotlinCompile).configureEach {
+    dependsOn project("analysis-kotlin-plugin").tasks["jar"]
 }
 
 apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"
