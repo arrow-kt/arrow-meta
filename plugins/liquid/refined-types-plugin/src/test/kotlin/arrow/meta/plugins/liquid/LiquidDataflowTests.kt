@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Test
 class LiquidDataflowTests {
 
   @Test
-  @Disabled
-  fun `bad predicate`() {
+  fun `bad predicate, could not parse predicate`() {
     """
       ${imports()}
       fun bar(): Int {
@@ -20,7 +19,22 @@ class LiquidDataflowTests {
         return 1
       }
       """(
-      withPlugin = { failsWith { it.contains("could not parse this predicate") } },
+      withPlugin = { failsWith { it.contains("not parse predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `bad predicate, refers to local variable`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre(x > 0) { "ok" }
+        val z = 2
+        return 1.post({ z > 0 }) { "wrong" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("unexpected reference") } },
       withoutPlugin = { compiles }
     )
   }
@@ -313,9 +327,9 @@ class LiquidDataflowTests {
       ${imports()}
       
       @Law
-      fun Int.safeDiv(other: Int): Int {
-        pre( other != 0 ) { "other is not zero" }
-        return this / other
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
       }
      
       val result = 1 / 0
@@ -331,9 +345,9 @@ class LiquidDataflowTests {
       ${imports()}
       
       @Law
-      fun Int.safeDiv(other: Int): Int {
-        pre( other != 0 ) { "other is not zero" }
-        return this / other
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
       }
      
       fun foo() {
@@ -342,6 +356,22 @@ class LiquidDataflowTests {
       }
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `incorrect ad-hoc law`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return theOtherNumber / this
+      }
+      """(
+      withPlugin = { failsWith { it.contains("must use the arguments in order") } },
       withoutPlugin = { compiles }
     )
   }
@@ -782,7 +812,7 @@ class LiquidDataflowTests {
       
       val x = A()
       """(
-      withPlugin = { compilesWith { it.contains("Implicit primary constructors are (not yet) supported") } },
+      withPlugin = { compilesWith { it.contains("implicit primary constructors are (not yet) supported") } },
       withoutPlugin = { compiles }
     )
   }

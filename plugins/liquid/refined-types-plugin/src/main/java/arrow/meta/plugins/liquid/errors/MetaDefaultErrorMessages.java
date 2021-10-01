@@ -16,7 +16,7 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
 
     @NotNull
     public static final DiagnosticFactoryToRendererMap MAP =
-            new DiagnosticFactoryToRendererMap("Arrow Liquid Expressions");
+            new DiagnosticFactoryToRendererMap("Arrow Analysis Expressions");
 
 
     static {
@@ -27,8 +27,9 @@ public class MetaDefaultErrorMessages implements DefaultErrorMessages.Extension 
         MAP.put(InconsistentConditions, "{0}", RenderString);
         MAP.put(InconsistentInvariants, "{0}", RenderString);
         MAP.put(UnsatInvariants, "{0}", RenderString);
-        MAP.put(ErrorParsingPredicate, "{0}", RenderString);
         MAP.put(LiskovProblem, "{0}", RenderString);
+        MAP.put(ErrorParsingPredicate, "{0}", RenderString);
+        MAP.put(UnsupportedElement, "{0}", RenderString);
     }
 }
 

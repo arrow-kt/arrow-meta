@@ -17,7 +17,8 @@ public interface MetaErrors {
     DiagnosticFactory1<PsiElement, String> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsatInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> LiskovProblem = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> UnsupportedElement = DiagnosticFactory1.create(WARNING);
 
     /**
      * needed to prevent NPE in

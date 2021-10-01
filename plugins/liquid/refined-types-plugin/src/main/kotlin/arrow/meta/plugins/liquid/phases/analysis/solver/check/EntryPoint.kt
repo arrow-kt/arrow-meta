@@ -3,7 +3,6 @@ package arrow.meta.plugins.liquid.phases.analysis.solver.check
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.phases.CompilerContext
-import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages.Parsing.unsupportedImplicitPrimaryConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.CallableDeclaration
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ClassOrObject
@@ -13,6 +12,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Pri
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.SecondaryConstructor
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Class
+import arrow.meta.plugins.liquid.phases.analysis.solver.errors.ErrorMessages
 
 // PHASE 2: CHECKING OF CONSTRAINTS
 // ================================
@@ -71,10 +72,10 @@ internal fun CompilerContext.checkDeclarationConstraints(
       is EnumEntry ->
         checkEnumEntry(context, descriptor, declaration)
       is ClassOrObject ->
-        doOnlyWhen(declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
+        doOnlyWhen(!declaration.isInterfaceOrEnum() && declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
           cont {
-            val msg = unsupportedImplicitPrimaryConstructor(declaration)
-            context.reportErrorsParsingPredicate(declaration, msg)
+            val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
+            context.reportUnsupported(declaration, msg)
           }
         }
       else ->
@@ -83,6 +84,11 @@ internal fun CompilerContext.checkDeclarationConstraints(
     // trace
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
   }
+}
+
+private fun ClassOrObject.isInterfaceOrEnum(): Boolean = when (this) {
+  is Class -> this.isInterface() || this.isEnum()
+  else -> false
 }
 
 /**

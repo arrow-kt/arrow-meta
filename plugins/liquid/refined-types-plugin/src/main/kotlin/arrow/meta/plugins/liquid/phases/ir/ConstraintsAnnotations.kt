@@ -32,7 +32,7 @@ import org.sosy_lab.java_smt.api.FormulaManager
 internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
   val kotlinModule: ModuleDescriptor = moduleFragment.descriptor.model()
   val solverState = compilerContext.get<SolverState>(SolverState.key(kotlinModule))
-  if (solverState != null) {
+  if (solverState != null && !solverState.hadParseErrors()) {
     val declarationConstraints =
       solverState.constraintsFromSolverState(
         fn.toIrBasedDescriptor()

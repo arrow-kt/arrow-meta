@@ -56,17 +56,35 @@ object ErrorMessages {
    */
   object Parsing {
     internal fun errorParsingPredicate(predicateArg: Expression?): String =
-      "Could not parse predicate: ${predicateArg?.text}"
+      "could not parse predicate: ${predicateArg?.text}"
+
+    internal fun unexpectedReference(reference: String?): String =
+      "unexpected reference: $reference"
 
     internal fun unexpectedFieldInitBlock(fieldName: String?): String =
       if (fieldName == null) {
-        "Unexpected field name in init block"
+        "unexpected field name in init block"
       } else {
-        "Unexpected field name in init block: $fieldName"
+        "unexpected field name in init block: $fieldName"
       }
 
+    internal fun lawMustCallFunction(): String =
+      "a @Law must include a call to another function"
+
+    internal fun lawMustHaveParametersInOrder(): String =
+      "the call in a @Law must use the arguments in order"
+  }
+
+  /**
+   * These are warning which are attached to those elements which
+   * are not supported by the analysis (yet).
+   */
+  object Unsupported {
     internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
-      "Implicit primary constructors are (not yet) supported: `${klass.name}`"
+      "implicit primary constructors are (not yet) supported: `${klass.name}`"
+
+    internal fun unsupportedExpression(): String =
+      "unsupported expression"
   }
 
   /**
