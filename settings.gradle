@@ -43,6 +43,9 @@ project(':analysis-types').projectDir = new File('plugins/analysis/types')
 include ':analysis-laws'
 project(':analysis-laws').projectDir = new File('plugins/analysis/laws')
 
+include ':analysis-common'
+project(':analysis-common').projectDir = new File('plugins/analysis/common')
+
 include ':analysis-kotlin-plugin'
 project(':analysis-kotlin-plugin').projectDir = new File('plugins/analysis/kotlin-plugin')
 

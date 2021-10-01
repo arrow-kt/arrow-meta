@@ -1,0 +1,77 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+configurations {
+    // Use a custom config that inherits all dependencies from runtimeOnly and implementation.
+    // If you want to seperate your dependencies from the JavaSMT ones
+    // simply use it when pulling the dependencies.
+    javaSMTConfig //.extendsFrom(runtimeOnly, implementation)
+}
+
+dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    implementation project(':analysis-types')
+    // there should NOT be a dependency on arrow-meta at all!
+
+    /* solver deps */
+    implementation "org.sosy-lab:java-smt:$JAVA_SMT_VERSION"
+    // implementation 'io.github.tudo-aqua:z3-turnkey:4.8.10'
+    // Retrieve Z3 with Maven but without a pom.xml, just the artifacts
+    // implementation group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'com.microsoft.z3', ext: 'jar'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'so'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'so'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dylib'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dylib'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3java', ext: 'dll'
+    // javaSMTConfig group: 'org.sosy-lab', name: 'javasmt-solver-z3', version: '4.8.10', classifier: 'libz3', ext: 'dll'
+    // Tell implementation config to use the JavaSMT + dependencies from our dependencies folder
+    // implementation fileTree(dir: 'build/libs', include: '*.jar')
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
+}
+
+apply from: file("${rootDir}/${SUBPROJECT}")
+
+// Copy and rename all JavaSMT dependencies
+// This is necessary as Gradle renames the JavaSMT dependencies
+// AND they need to be in a specific location for JavaSMT to be found (the easiest ist the same folder)
+task copyDependencies(type: Copy) {
+    // Delete old dependencies as they might cause trouble
+    dependsOn 'cleanDownloadedDependencies'
+    from configurations.javaSMTConfig
+    into 'build/libs'
+    // Renames the dependencies
+
+    rename '.*(lib[^-]*)-?.*.so', '$1.so'
+    rename '.*(lib[^-]*)-?.*.dylib', '$1.dylib'
+    rename '.*(lib[^-]*)-?.*.dll', '$1.dll'
+    //rename 'libz3java.so', 'z3java.so'
+}
+
+// cleans the dependencies folder
+task cleanDownloadedDependencies(type: Delete) {
+    delete fileTree('build/libs')
+}
+
+tasks.withType(Test) {
+    environment "DYLD_LIBRARY_PATH", projectDir.absolutePath + "/build/libs"
+    systemProperty "java.library.path", projectDir.absolutePath + "/build/libs"
+}
+
+//// Copy the JavaSMT dependencies before using them in run and test
+// test.dependsOn copyDependencies
+//
+//// When clean is called we want to delete our copied JavaSMT files
+// clean.dependsOn cleanDownloadedDependencies
+
+//jar {
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+//}

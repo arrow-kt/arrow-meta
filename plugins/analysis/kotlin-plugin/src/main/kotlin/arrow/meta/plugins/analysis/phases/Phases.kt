@@ -17,6 +17,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.finalizeConstr
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
 internal fun Meta.analysisPhases(): ExtensionPhase =
   Composite(
@@ -30,7 +31,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         analysisCompleted = { project, module, bindingTrace, files ->
           val kotlinModule: KotlinModuleDescriptor = module.model()
           val context = KotlinResolutionContext(bindingTrace, module)
-          when (finalizeConstraintsCollection(kotlinModule, context)) {
+          when (finalizeConstraintsCollection(solverState(module), kotlinModule, context)) {
             AnalysisResult.Retry ->
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
                 bindingTrace.bindingContext, module, emptyList(), emptyList()
@@ -45,14 +46,14 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       ),
       declarationChecker { declaration, descriptor, context ->
         val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
-        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let {
-          collectDeclarationsConstraints(kotlinContext, it, descriptor.model())
+        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let { decl ->
+          collectDeclarationsConstraints(solverState(context), kotlinContext, decl, descriptor.model())
         }
       },
       declarationChecker { declaration, descriptor, context ->
         val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
-        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let {
-          checkDeclarationConstraints(kotlinContext, it, descriptor.model())
+        (declaration.model<KtDeclaration, Declaration>() as? Declaration)?.let { decl ->
+          checkDeclarationConstraints(solverState(context), kotlinContext, decl, descriptor.model())
         }
       },
       irFunction { fn ->
@@ -62,6 +63,14 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       irDumpKotlinLike()
     )
   )
+
+internal fun CompilerContext.solverState(
+  context: DeclarationCheckerContext
+): SolverState? = solverState(context.moduleDescriptor)
+
+internal fun CompilerContext.solverState(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
+): SolverState? = get<SolverState>(SolverState.key(KotlinModuleDescriptor(module)))
 
 internal fun CompilerContext.ensureSolverStateInitialization(
   module: ModuleDescriptor

@@ -9,7 +9,6 @@ import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
-import arrow.meta.internal.mapNotNull
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type

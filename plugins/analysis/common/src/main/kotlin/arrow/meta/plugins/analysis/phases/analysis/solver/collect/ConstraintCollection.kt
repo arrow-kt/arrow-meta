@@ -1,8 +1,5 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.collect
 
-import arrow.meta.internal.filterNotNull
-import arrow.meta.internal.mapNotNull
-import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
@@ -78,12 +75,12 @@ import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
 /**
  * Collects constraints from all declarations and adds them to the solver state
  */
-internal fun CompilerContext.collectDeclarationsConstraints(
+public fun collectDeclarationsConstraints(
+  solverState: SolverState?,
   context: ResolutionContext,
   declaration: Declaration,
   descriptor: DeclarationDescriptor
 ) {
-  val solverState = get<SolverState>(SolverState.key(context.module))
   if (solverState != null && (solverState.isIn(SolverState.Stage.Init) || solverState.isIn(SolverState.Stage.CollectConstraints))) {
     solverState.collecting()
     declaration.constraints(solverState, context, descriptor)
@@ -539,25 +536,24 @@ internal fun SolverState.parseFormula(
  * and its time to Rewind analysis for phase 2
  * [arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints]
  */
-internal fun CompilerContext.finalizeConstraintsCollection(
+public fun finalizeConstraintsCollection(
+  solverState: SolverState?,
   module: ModuleDescriptor,
   bindingTrace: ResolutionContext
-): AnalysisResult {
-  val solverState = get<SolverState>(SolverState.key(module))
-  return if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
+): AnalysisResult =
+  if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
     module.declarationsWithConstraints().forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
     solverState.introduceFieldNamesInSolver()
     // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
     solverState.collectionEnds()
-    return if (solverState.hadParseErrors()) {
+    if (solverState.hadParseErrors()) {
       AnalysisResult.ParsingError
     } else {
       AnalysisResult.Retry
     }
   } else AnalysisResult.Completed
-}
 
 /**
  * Transform a [Expression] into a [Formula]

@@ -2,7 +2,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.check
 
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
-import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
@@ -51,16 +50,13 @@ internal const val THIS_VAR_NAME = "this"
  * When the solver is in the prover state
  * check this [declaration] body constraints
  */
-internal fun CompilerContext.checkDeclarationConstraints(
+public fun checkDeclarationConstraints(
+  solverState: SolverState?,
   context: ResolutionContext,
   declaration: Declaration,
   descriptor: DeclarationDescriptor
-) {
-  get<SolverState>(SolverState.key(context.module))?.takeIf { solverState ->
-    solverState.isIn(SolverState.Stage.Prove) && !solverState.hadParseErrors()
-  }?.takeIf {
-    declaration.shouldBeAnalyzed()
-  }?.run {
+) = solverState?.run {
+  if (isIn(SolverState.Stage.Prove) && !hadParseErrors() && declaration.shouldBeAnalyzed()) {
     // trace
     solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body

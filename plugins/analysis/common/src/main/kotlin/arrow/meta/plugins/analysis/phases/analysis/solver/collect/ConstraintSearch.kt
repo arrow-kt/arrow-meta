@@ -1,7 +1,5 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.collect
 
-import arrow.meta.internal.filterNotNull
-import arrow.meta.internal.mapNotNull
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
@@ -30,7 +28,7 @@ import org.sosy_lab.java_smt.api.NumeralFormula
  * Looks up in the solver state previously collected constraints and
  * returns the constraints associated to this [resolvedCall] resulting descriptor if any
  */
-internal fun SolverState.constraintsFromSolverState(
+public fun SolverState.constraintsFromSolverState(
   resolvedCall: ResolvedCall
 ): DeclarationConstraints? =
   constraintsFromSolverState(resolvedCall.resultingDescriptor)
@@ -40,7 +38,7 @@ internal fun SolverState.constraintsFromSolverState(
  * returns the constraints associated to this [descriptor],
  * or any of the declaration it has overridden, if any
  */
-internal fun SolverState.constraintsFromSolverState(
+public fun SolverState.constraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
   immediateConstraintsFromSolverState(descriptor)
