@@ -18,7 +18,7 @@ internal class ProofsMemberScope(private val synthProofs: () -> List<CallableMem
   override fun getClassifierNames(): Set<Name>? = synthProofs().map { it.name }.toSet()
 
   override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-    synthProofs().firstOrNull { it.name == name }.safeAs()
+    synthProofs().firstOrNull { it.name == name }.safeAs<ClassifierDescriptor>()
 
   override fun getContributedDescriptors(
     kindFilter: DescriptorKindFilter,

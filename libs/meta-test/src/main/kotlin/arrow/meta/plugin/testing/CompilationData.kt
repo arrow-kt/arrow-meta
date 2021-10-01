@@ -14,7 +14,8 @@ internal data class CompilationData(
   val sources: List<Code.Source> = emptyList(),
   val arguments: List<String> = emptyList(),
   val commandLineProcessors: List<CommandLineProcessor> = emptyList(),
-  val pluginOptions: List<PluginOption> = emptyList()
+  val pluginOptions: List<PluginOption> = emptyList(),
+  val targetVersion: String? = null
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
@@ -25,7 +26,8 @@ internal data class CompilationData(
       sources = sources + other.sources,
       arguments = arguments + other.arguments,
       commandLineProcessors = commandLineProcessors + other.commandLineProcessors,
-      pluginOptions = pluginOptions + other.pluginOptions
+      pluginOptions = pluginOptions + other.pluginOptions,
+      targetVersion = targetVersion ?: other.targetVersion
     )
 
   companion object {

@@ -59,6 +59,7 @@ tasks.jvmTest {
         exceptionFormat 'full'
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
+    systemProperty "JVM_TARGET_VERSION", "$JVM_TARGET_VERSION"
 }
 
 ktlint {
