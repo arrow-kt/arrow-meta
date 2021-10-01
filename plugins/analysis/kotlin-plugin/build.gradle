@@ -1,0 +1,42 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id "org.jlleitschuh.gradle.ktlint"
+}
+
+configurations {
+    // Use a custom config that inherits all dependencies from runtimeOnly and implementation.
+    // If you want to seperate your dependencies from the JavaSMT ones
+    // simply use it when pulling the dependencies.
+    javaSMTConfig //.extendsFrom(runtimeOnly, implementation)
+}
+
+dependencies {
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    implementation project(':arrow-meta')
+    implementation project(':analysis-types')
+    implementation project(':analysis-common')
+
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$KOTLIN_VERSION"
+    testImplementation "org.junit.jupiter:junit-jupiter:$JUNIT_VERSION"
+    testImplementation project(":meta-test")
+    testRuntimeOnly project(':arrow-meta')
+    testRuntimeOnly project(':analysis-types')
+    testRuntimeOnly project(':prelude')
+    testRuntimeOnly project(':analysis-kotlin-plugin')
+
+    /* solver deps */
+    implementation "org.sosy-lab:java-smt:$JAVA_SMT_VERSION"
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(Test) {
+    environment "DYLD_LIBRARY_PATH", projectDir.absolutePath + "/build/libs"
+    systemProperty "java.library.path", projectDir.absolutePath + "/build/libs"
+}
+
+apply from: file("${rootDir}/${SUBPROJECT}")
