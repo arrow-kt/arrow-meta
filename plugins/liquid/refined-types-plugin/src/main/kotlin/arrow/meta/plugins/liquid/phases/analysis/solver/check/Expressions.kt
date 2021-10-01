@@ -49,7 +49,9 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.Sim
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TryExpression
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.VariableDeclaration
+import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionIsPattern
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.liquid.phases.analysis.solver.ast.context.elements.WhileExpression
@@ -63,6 +65,8 @@ import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.ExplicitThro
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.LoopPlace
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.NoReturn
 import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.Return
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.SimpleCondition
+import arrow.meta.plugins.liquid.phases.analysis.solver.check.model.SubjectCondition
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.arg
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.liquid.phases.analysis.solver.collect.expressionToFormula
@@ -154,23 +158,25 @@ internal fun SolverState.checkExpressionConstraints(
     is LabeledExpression ->
       checkLabeledExpression(associatedVarName, expression, data)
     is IfExpression ->
-      checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
+      checkConditional(associatedVarName, null, expression.computeConditions(), data)
     is WhenExpression ->
-      if (expression.subjectExpression != null) {
-        cont { NoReturn } // TODO: handle `when` with subject
-      } else {
-        checkSimpleConditional(associatedVarName, expression.computeSimpleConditions(), data)
-      }
+      checkConditional(associatedVarName, expression.subjectExpression, expression.computeConditions(), data)
     is LoopExpression ->
       checkLoopExpression(expression, data)
     is TryExpression ->
       checkTryExpression(associatedVarName, expression, data)
-    is IsExpression ->
-      checkIsExpression(associatedVarName, expression, data)
+    is IsExpression -> {
+      val subject = expression.leftHandSide
+      val subjectName = solver.makeObjectVariable(newName(data.context, "is", subject))
+      checkExpressionConstraints(subjectName, subject, data).checkReturnInfo {
+        checkIsExpression(associatedVarName, expression.isNegated, expression.typeReference, subjectName, data)
+      }
+    }
     is BinaryExpression ->
       checkBinaryExpression(associatedVarName, expression, data)
     is Declaration ->
-      checkDeclarationExpression(expression, data)
+      // we get additional info about the subject, but it's irrelevant here
+      checkDeclarationExpression(expression, data).map { it.second }
     is Expression ->
       fallThrough(associatedVarName, expression, data)
     else ->
@@ -467,7 +473,7 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
   data: CheckData,
   block: () -> ContSeq<Return>
 ): ContSeq<Return> = when {
-  (receiverExpr != null) && (receiverExpr.impl() != null) && (receiverExpr.impl() == wholeExpr.impl()) ->
+  (receiverExpr != null) && (receiverExpr.impl() == wholeExpr.impl()) ->
     // this happens in some weird cases, just keep going
     block()
   (receiverExpr == null) && (resolvedCall?.hasReceiver() == true) ->
@@ -718,29 +724,28 @@ private fun SolverState.checkBinaryExpression(
  */
 private fun SolverState.checkIsExpression(
   associatedVarName: ObjectFormula,
-  expression: IsExpression,
+  isNegated: Boolean,
+  typeReference: TypeReference?,
+  subjectName: ObjectFormula,
   data: CheckData
-): ContSeq<Return> = doOnlyWhen(!expression.isNegated, NoReturn) {
-  val newName = solver.makeObjectVariable(newName(data.context, "is", expression.leftHandSide))
-  val invariants =
-    (data.context.type(expression.typeReference)
-      ?.let { typeInvariants(data.context, it, newName) })
-    // in the worst case, we know that it is not null
-      ?: listOf(NamedConstraint("$associatedVarName is not null", solver.isNotNull(newName)))
-  checkExpressionConstraints(newName, expression.leftHandSide, data).checkReturnInfo {
-    cont {
-      invariants.forEach { cstr ->
-        val constraint = NamedConstraint(
-          "$associatedVarName => ${cstr.msg}",
-          solver.booleanFormulaManager.implication(
-            solver.boolValue(associatedVarName),
-            cstr.formula
-          )
+): ContSeq<Return> = doOnlyWhen(!isNegated, NoReturn) {
+  cont {
+    val invariants =
+      (data.context.type(typeReference)
+        ?.let { typeInvariants(data.context, it, subjectName) })
+      // in the worst case, we know that it is not null
+        ?: listOf(NamedConstraint("$associatedVarName is not null", solver.isNotNull(subjectName)))
+    invariants.forEach { cstr ->
+      val constraint = NamedConstraint(
+        "$associatedVarName => ${cstr.msg}",
+        solver.booleanFormulaManager.implication(
+          solver.boolValue(associatedVarName),
+          cstr.formula
         )
-        addConstraint(constraint)
-      }
-      NoReturn
+      )
+      addConstraint(constraint)
     }
+    NoReturn
   }
 }
 
@@ -751,8 +756,8 @@ private fun SolverState.checkIsExpression(
 private fun SolverState.checkDeclarationExpression(
   declaration: Declaration,
   data: CheckData
-): ContSeq<Return> =
-  doOnlyWhenNotNull(declaration.stableBody(), NoReturn) { body ->
+): ContSeq<Pair<String?, Return>> =
+  doOnlyWhenNotNull(declaration.stableBody(), Pair(null, NoReturn)) { body ->
     val declName = when (declaration) {
       // use the given name if available
       is NamedDeclaration -> declaration.nameAsSafeName.value
@@ -794,7 +799,7 @@ private fun SolverState.checkDeclarationExpression(
       // update the list of variables in scope
       data.varInfo.add(declName, smtName, declaration, invariant?.second)
       // and then keep going
-      r
+      Pair(newVarName, r)
     }
   }
 
@@ -854,53 +859,67 @@ private fun SolverState.checkNameExpression(
   NoReturn
 }
 
-private fun Expression.computeSimpleConditions(): List<Condition> = when (this) {
+private fun Expression.computeConditions(): List<Condition> = when (this) {
   is IfExpression ->
     listOf(
-      Condition(condition!!, thenExpression!!, thenExpression!!),
-      Condition(null, elseExpression!!, elseExpression!!)
+      SimpleCondition(condition!!, thenExpression!!, thenExpression!!),
+      SimpleCondition(null, elseExpression!!, elseExpression!!)
     )
-  is WhenExpression ->
+  is WhenExpression -> {
+    val subject = subjectExpression
     entries.flatMap { entry ->
       if (entry.conditions.isEmpty()) {
-        listOf(Condition(null, entry.expression!!, entry))
+        listOf(SimpleCondition(null, entry.expression!!, entry))
       } else {
         entry.conditions.toList().mapNotNull { cond ->
-          when (cond) {
-            is WhenConditionWithExpression ->
-              Condition(cond.expression!!, entry.expression!!, entry)
+          when {
+            subject != null ->
+              SubjectCondition(cond, entry.expression!!, entry)
+            cond is WhenConditionWithExpression ->
+              SimpleCondition(cond.expression!!, entry.expression!!, entry)
             else -> null
           }
         }
       }
     }
+  }
   else -> emptyList()
 }
 
 /**
- * Check `if` and `when` expressions without subject.
+ * Check `if` and `when` expressions.
  */
-private fun SolverState.checkSimpleConditional(
+private fun SolverState.checkConditional(
   associatedVarName: ObjectFormula,
+  subject: Expression?,
   branches: List<Condition>,
   data: CheckData
-): ContSeq<Return> =
-  branches.map { cond ->
-    val conditionVar = newName(data.context, "cond", cond.condition)
-    // introduce the condition
-    (cond.condition?.let {
-      checkExpressionConstraints(conditionVar, it, data)
-    } ?: cont {
-      // if we have no condition, it's equivalent to true
-      addConstraint(
-        NamedConstraint(
-          "check condition branch $conditionVar",
-          solver.makeBooleanObjectVariable(conditionVar)
+): ContSeq<Return> {
+  val newSubjectVar = solver.makeObjectVariable(newName(data.context, "subject", subject))
+  // this handles the cases of when with a subject, and with 'val x = subject'
+  return when (subject) {
+    is Declaration -> checkDeclarationExpression(subject, data).map { (actualSubjectVar, _) ->
+      actualSubjectVar?.let { solver.makeObjectVariable(it) } ?: newSubjectVar
+    }
+    else -> checkExpressionConstraints(newSubjectVar, subject, data).map { newSubjectVar }
+  }.flatMap { subjectVar ->
+    branches.map { cond ->
+      val conditionVar = newName(data.context, "cond", cond.condition)
+      // introduce the condition
+      (cond.condition?.let {
+        introduceCondition(solver.makeObjectVariable(conditionVar), subjectVar, cond, data)
+      } ?: cont {
+        // if we have no condition, it's equivalent to true
+        addConstraint(
+          NamedConstraint(
+            "check condition branch $conditionVar",
+            solver.makeBooleanObjectVariable(conditionVar)
+          )
         )
-      )
-      NoReturn
-    }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
-  }.sequence().flatMap { conditionInformation ->
+        NoReturn
+      }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
+    }.sequence()
+  }.flatMap { conditionInformation ->
     yesNo(conditionInformation)
       .asContSeq()
       .flatMap { (returnAndCond, correspondingVars) ->
@@ -922,6 +941,53 @@ private fun SolverState.checkSimpleConditional(
         }
       }
   }
+}
+
+private fun SolverState.introduceCondition(
+  conditionVar: ObjectFormula,
+  subjectVar: ObjectFormula,
+  cond: Condition,
+  data: CheckData
+): ContSeq<Return> = when (cond) {
+  is SimpleCondition -> checkExpressionConstraints(conditionVar, cond.predicate, data)
+  is SubjectCondition -> when (val check = cond.check) {
+    is WhenConditionWithExpression ->
+      if (check.expression is NullExpression) {
+        cont {
+          val complete = solver.booleans {
+            equivalence(solver.boolValue(conditionVar), solver.isNull(subjectVar))
+          }
+          addConstraint(NamedConstraint("$subjectVar is null", complete))
+          NoReturn
+        }
+      } else {
+        val patternName = newName(data.context, "pattern", check.expression)
+        checkExpressionConstraints(patternName, check.expression, data).map {
+          when (check.expression?.type(data.context)?.primitiveType()) {
+            PrimitiveType.BOOLEAN -> solver.booleans {
+              equivalence(solver.boolValue(subjectVar), solver.makeBooleanObjectVariable(patternName))
+            }
+            PrimitiveType.INTEGRAL -> solver.ints {
+              equal(solver.intValue(subjectVar), solver.makeIntegerObjectVariable(patternName))
+            }
+            PrimitiveType.RATIONAL -> solver.rationals {
+              equal(solver.decimalValue(subjectVar), solver.makeDecimalObjectVariable(patternName))
+            }
+            else -> null
+          }?.let {
+            val complete = solver.booleans {
+              equivalence(solver.boolValue(conditionVar), it)
+            }
+            addConstraint(NamedConstraint("$subjectVar equals $patternName", complete))
+          }
+          NoReturn
+        }
+      }
+    is WhenConditionIsPattern ->
+      checkIsExpression(conditionVar, check.isNegated, check.typeReference, subjectVar, data)
+    else -> cont { NoReturn }
+  }
+}
 
 /**
  * Given a list of names for condition variables,
