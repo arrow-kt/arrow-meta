@@ -21,6 +21,7 @@ test {
     }
     systemProperty "CURRENT_VERSION", "$VERSION_NAME"
     systemProperty "ARROW_VERSION", "$ARROW_VERSION"
+    systemProperty "JVM_TARGET_VERSION", "$JVM_TARGET_VERSION"
     jvmArgs '-Dkotlin.compiler.execution.strategy="in-process"'
 }
 

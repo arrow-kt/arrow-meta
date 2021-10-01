@@ -34,7 +34,7 @@ jobs:
             ~/.gradle/yarn
             ~/.gradle/nodejs
             ~/.konan
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ matrix.kotlin }}-${{ matrix.jvm_target }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 

@@ -17,6 +17,7 @@ internal fun compile(data: CompilationData): Result =
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
     compilerPlugins = data.metaPlugins
+    jvmTarget = obtainTarget(data)
     messageOutputStream = object : PrintStream(System.out) {
 
       private val kotlincErrorRegex = Regex("^e:")
@@ -33,6 +34,9 @@ internal fun compile(data: CompilationData): Result =
     commandLineProcessors = data.commandLineProcessors
     pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
   }.compile()
+
+private fun obtainTarget(data: CompilationData): String =
+  data.targetVersion ?: System.getProperty("JVM_TARGET_VERSION", "1.8")
 
 private fun classpathOf(dependency: String): File {
   val regex = Regex(".*${dependency.replace(':', '-')}.*")
