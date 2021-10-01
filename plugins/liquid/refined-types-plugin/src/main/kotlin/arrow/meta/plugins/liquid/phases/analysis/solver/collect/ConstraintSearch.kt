@@ -215,7 +215,8 @@ internal fun Solver.renameConditions(
   val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.value }
   val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.value }
   return if (fromParams != null && toParams != null) {
-    renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
+    val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
+    DeclarationConstraints(to, renamed.pre, renamed.post)
   } else {
     constraints
   }

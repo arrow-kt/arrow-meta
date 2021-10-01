@@ -512,11 +512,17 @@ interface InternalRegistry : ConfigSyntax {
           files: Collection<KtFile>
         ): AnalysisResult? = phase.run {
           popAnalysisPhase()
-          if (ctx.analysisCompleted(project, module, bindingTrace, files) is AnalysisResult.RetryWithAdditionalRoots) willRewind(true)
-          if (canRewind()) {
-            willRewind(false)
-            AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
-          } else null
+          val result = ctx.analysisCompleted(project, module, bindingTrace, files)
+          if (result is AnalysisResult.RetryWithAdditionalRoots) willRewind(true)
+          when {
+            result?.isError() == true ->
+              result
+            canRewind() -> {
+              willRewind(false)
+              AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
+            }
+            else -> null
+          }
         }
 
         override fun doAnalysis(

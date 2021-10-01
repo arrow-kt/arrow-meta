@@ -17,6 +17,7 @@ interface ResolutionContext {
   fun reportInconsistentInvariants(expression: Element, msg: String)
   fun reportUnsatInvariants(expression: Element, msg: String)
   fun reportLiskovProblem(expression: Element, msg: String)
+  fun reportUnsupported(expression: Element, msg: String)
 
   val module: ModuleDescriptor
 }

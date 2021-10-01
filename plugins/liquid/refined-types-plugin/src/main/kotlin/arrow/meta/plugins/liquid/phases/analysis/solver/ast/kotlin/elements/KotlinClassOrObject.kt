@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 
 fun interface KotlinClassOrObject : ClassOrObject, KotlinNamedDeclaration, KotlinPureClassOrObject {
   override fun impl(): KtClassOrObject
+
   override fun getAnonymousInitializers(): List<AnonymousInitializer> =
     impl().getAnonymousInitializers().map { it.model() }
 
