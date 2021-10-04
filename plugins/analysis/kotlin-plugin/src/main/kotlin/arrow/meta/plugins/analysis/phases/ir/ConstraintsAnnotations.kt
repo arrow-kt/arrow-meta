@@ -124,7 +124,7 @@ private fun IrUtils.lawSubjectAnnotation(fnDescriptor: SimpleFunctionDescriptor,
 private fun DeclarationDescriptor.getLawName(): String {
   val builder = StringBuilder()
 
-  tailrec fun go(descr: DeclarationDescriptor) {
+  tailrec fun DeclarationDescriptor.go() {
     val containing = containingDeclaration
     when {
       this is org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor ||
@@ -135,11 +135,11 @@ private fun DeclarationDescriptor.getLawName(): String {
       else -> {
         builder.insert(0, name.asString())
         builder.insert(0, '/')
-        go(containing)
+        containing.go()
       }
     }
   }
-  go(this)
+  go()
 
   return builder.toString()
 }
