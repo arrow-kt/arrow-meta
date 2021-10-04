@@ -5,6 +5,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.StrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
@@ -43,7 +44,8 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
     if (this.isTypeParameter() && other.isTypeParameter()) return true
 
     return isMarkedNullable == other.isMarkedNullable &&
-      StrictEqualityTypeChecker.strictEqualTypes(impl.unwrap(), other.impl.unwrap())
+      (NewKotlinTypeChecker.Default.equalTypes(impl.unwrap(), other.impl.unwrap()) ||
+        impl.unwrap().constructor == other.impl.unwrap().constructor)
   }
 
   override fun isInt(): Boolean =
