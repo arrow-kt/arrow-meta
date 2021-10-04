@@ -47,7 +47,7 @@ configure(subprojects -
             }
         }
     }
-    apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication.gradle"
+    apply from: "${rootDir}/gradle/publication.gradle"
 }
 
 allprojects {
@@ -106,4 +106,4 @@ project("analysis-laws").tasks.withType(KotlinCompile).configureEach {
     dependsOn project("analysis-kotlin-plugin").tasks["jar"]
 }
 
-apply from: "https://raw.githubusercontent.com/arrow-kt/arrow/main/arrow-libs/gradle/publication-mpp.gradle"
+apply from: "${rootDir}/gradle/publication.gradle"
