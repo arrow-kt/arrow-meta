@@ -40,7 +40,8 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is LazyClassReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
-    else -> TODO("Missing impl for $this")
+    is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
+    else -> TODO("Missing impl for $this (class ${this.javaClass})")
   }
 
 fun <A : KtElement,

@@ -20,4 +20,8 @@ interface Type {
   fun isShort(): Boolean
   fun isUnsignedNumberType(): Boolean
   fun isChar(): Boolean
+
+  fun isEqualTo(other: Type): Boolean =
+    (this.isTypeParameter() && other.isTypeParameter()) ||
+      (this.isSubtypeOf(other) && other.isSubtypeOf(this))
 }

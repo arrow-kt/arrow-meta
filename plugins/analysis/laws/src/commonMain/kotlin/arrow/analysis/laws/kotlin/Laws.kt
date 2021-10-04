@@ -10,6 +10,12 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
 @Law
+public fun Int.safeDiv(other: Int): Int {
+  pre(other != 0) { "other is not zero" }
+  return this / other
+}
+
+@Law
 public fun Throwable.addSuppressedLaw(exception: Throwable): Unit {
   pre(true) { "addSuppressed pre-conditions" }
   return addSuppressed(exception)
@@ -641,34 +647,6 @@ public inline fun errorLaw(message: Any): Nothing {
 }
 
 @Law
-public inline fun requireLaw(value: Boolean): Unit {
-  pre(true) { "require pre-conditions" }
-  return require(value)
-    .post({ true }, { "require post-conditions" })
-}
-
-@Law
-public inline fun requireLaw(value: Boolean, lazyMessage: () -> Any): Unit {
-  pre(true) { "require pre-conditions" }
-  return require(value, lazyMessage)
-    .post({ true }, { "require post-conditions" })
-}
-
-@Law
-public inline fun <T : Any> requireNotNullLaw(value: T?): T {
-  pre(true) { "requireNotNull pre-conditions" }
-  return requireNotNull(value)
-    .post({ true }, { "requireNotNull post-conditions" })
-}
-
-@Law
-public inline fun <T : Any> requireNotNullLaw(value: T?, lazyMessage: () -> Any): T {
-  pre(true) { "requireNotNull pre-conditions" }
-  return requireNotNull(value, lazyMessage)
-    .post({ true }, { "requireNotNull post-conditions" })
-}
-
-@Law
 public inline fun TODOLaw(): Nothing {
   pre(true) { "TODO pre-conditions" }
   return TODO()
@@ -701,34 +679,6 @@ public inline fun <T, R> withLaw(receiver: T, block: T.() -> R): R {
   pre(true) { "with pre-conditions" }
   return with(receiver, block)
     .post({ true }, { "with post-conditions" })
-}
-
-@Law
-public inline fun <T> T.alsoLaw(block: (T) -> Unit): T {
-  pre(true) { "also pre-conditions" }
-  return also(block)
-    .post({ this == it }, { "also post-conditions" })
-}
-
-@Law
-public inline fun <T> T.applyLaw(block: T.() -> Unit): T {
-  pre(true) { "apply pre-conditions" }
-  return apply(block)
-    .post({ this == it }, { "apply post-conditions" })
-}
-
-@Law
-public inline fun <T, R> T.letLaw(block: (T) -> R): R {
-  pre(true) { "let pre-conditions" }
-  return let(block)
-    .post({ true }, { "let post-conditions" })
-}
-
-@Law
-public inline fun <T, R> T.runLaw(block: T.() -> R): R {
-  pre(true) { "run pre-conditions" }
-  return run(block)
-    .post({ true }, { "run post-conditions" })
 }
 
 @Law
@@ -884,13 +834,6 @@ public inline fun <T, R> T.runCatchingLaw(block: T.() -> R): Result<R> {
   pre(true) { "runCatching pre-conditions" }
   return runCatching(block)
     .post({ true }, { "runCatching post-conditions" })
-}
-
-@Law
-public inline fun <R> suspendLaw(noinline block: suspend () -> R): suspend () -> R {
-  pre(true) { "suspend pre-conditions" }
-  return suspend { block() }
-    .post({ true }, { "suspend post-conditions" })
 }
 
 @Law

@@ -322,6 +322,21 @@ class AnalysisTests {
   }
 
   @Test
+  fun `pre-conditions for subjects`() {
+    """
+      ${imports()}
+      @Pre(messages = ["not zero divisor"], formulae = ["(not (= (int other) 0))"], dependencies = [])
+      @Subject(fqName = "kotlin/Int/div")
+      fun Int.divLaw(other: Int) = this / other
+        
+      val x: Int = 1 / 0
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not zero divisor` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}
@@ -888,6 +903,7 @@ import arrow.analysis.post
 import arrow.analysis.Pre
 import arrow.analysis.Post
 import arrow.analysis.Law
+import arrow.analysis.Subject
 
  """
 

@@ -5,7 +5,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
-import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Parsing.unexpectedFieldInitBlock
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.ObjectFormula
@@ -52,11 +51,14 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
@@ -206,7 +208,7 @@ private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
               // which is not coming from an argument
               errorSignaled = true
               if (raiseErrorWhenUnexpected) {
-                val msg = unexpectedFieldInitBlock(fieldName)
+                val msg = ErrorMessages.Parsing.unexpectedFieldInitBlock(fieldName)
                 context.reportErrorsParsingPredicate(call.callElement, msg)
               }
               super.visitFunction(f, args, fn)
@@ -323,7 +325,11 @@ private fun SolverState.addConstraints(
   postConstraints: ArrayList<NamedConstraint>,
   bindingContext: ResolutionContext
 ) {
-  val lawSubject = findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+  val lawSubject =
+    findDescriptorFromRemoteLaw(descriptor, bindingContext)
+    ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+  if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
+    throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
     val renamed = solver.renameConditions(DeclarationConstraints(descriptor, preConstraints, postConstraints), lawSubject)
     callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
@@ -331,16 +337,62 @@ private fun SolverState.addConstraints(
   callableConstraints.add(descriptor, preConstraints, postConstraints)
 }
 
-private fun findDescriptorFromRemoteLaw(descriptor: DeclarationDescriptor): DeclarationDescriptor? =
+private fun findDescriptorFromRemoteLaw(
+  descriptor: DeclarationDescriptor,
+  context: ResolutionContext
+): DeclarationDescriptor? =
   descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
-    (lawSubject.argumentValueAsString("fqName"))
-      ?.let { FqName(it) }
-      ?.let { subjectFqName ->
-        val pck = subjectFqName.name.substringBeforeLast(".")
-        val fn = subjectFqName.name.split(".").lastOrNull()
-        descriptor.module.getPackage(pck)?.getMemberScope()?.getContributedDescriptors { it == fn }?.firstOrNull()
+    val name = lawSubject.argumentValueAsString("fqName")
+    val result = name?.let {
+      descriptor.module.obtainDeclaration(FqName(it), descriptor)
+    }
+    result.also {
+      if (it == null) {
+        if (name == null)
+          throw Exception(ErrorMessages.Parsing.subjectWithoutName(descriptor.fqNameSafe.name))
+        else
+          throw Exception(ErrorMessages.Parsing.couldNotResolveSubject(name, descriptor.fqNameSafe.name))
+      }
+    }
+  }
+
+private fun ModuleDescriptor.obtainDeclaration(
+  fqName: FqName,
+  compatibleWith: DeclarationDescriptor
+): DeclarationDescriptor? {
+  val portions = fqName.name.split("/")
+
+  var current: DeclarationDescriptor? = getPackage(portions.first())
+  for (portion in portions.drop(1)) {
+    val memberScope = when (current) {
+      is PackageViewDescriptor -> current.getMemberScope()
+      is ClassDescriptor -> current.getUnsubstitutedMemberScope()
+      else -> null
+    }
+    current = memberScope?.let {
+      it.getContributedDescriptors { true }
+    }?.firstOrNull {
+      it.name.value == portion &&
+        it.isCompatibleWith(compatibleWith)
+    }
+  }
+
+  return current
+}
+
+private fun DeclarationDescriptor.isCompatibleWith(
+  other: DeclarationDescriptor
+): Boolean = when {
+  this is CallableDescriptor && other is CallableDescriptor -> {
+    val params1 = this.allParameters
+    val params2 = other.allParameters
+    params1.size == params2.size &&
+      params1.zip(params2).all { (p1, p2) ->
+        p1.type.isEqualTo(p2.type)
       }
   }
+  else -> true
+}
 
 private fun SolverState.findDescriptorFromLocalLaw(
   descriptor: DeclarationDescriptor,
@@ -404,13 +456,20 @@ private fun getReturnedExpressionWithoutPostcondition(
     else -> lastElement
   }
   // remove outer layer of postcondition
-  return lastElementWithoutReturn?.getResolvedCall(bindingContext)?.let {
-    if (it.postCall()) {
-      it.arg("this", bindingContext)?.getResolvedCall(bindingContext)
-    } else {
-      it
+  val veryLast = when (lastElementWithoutReturn) {
+    is DotQualifiedExpression -> {
+      val selector = lastElementWithoutReturn.selectorExpression
+      val callee = (selector as? CallExpression)?.calleeExpression
+      if (callee != null && callee.text == "post") {
+        lastElementWithoutReturn.receiverExpression
+      } else {
+        null
+      }
     }
-  }
+    else -> null
+  } ?: lastElementWithoutReturn
+
+  return veryLast?.getResolvedCall(bindingContext)
 }
 //  ((descriptor.findPsi() as? KtFunction)?.body()
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor

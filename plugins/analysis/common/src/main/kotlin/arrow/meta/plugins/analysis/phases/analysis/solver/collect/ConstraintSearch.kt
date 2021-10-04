@@ -215,7 +215,7 @@ internal fun Solver.renameConditions(
     val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
     DeclarationConstraints(to, renamed.pre, renamed.post)
   } else {
-    constraints
+    DeclarationConstraints(to, constraints.pre, constraints.post)
   }
 }
 

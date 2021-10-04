@@ -73,6 +73,12 @@ object ErrorMessages {
 
     internal fun lawMustHaveParametersInOrder(): String =
       "the call in a @Law must use the arguments in order"
+
+    internal fun subjectWithoutName(fqName: String) =
+      "the subject from law `$fqName` is missing"
+
+    internal fun couldNotResolveSubject(fqName: String, lawName: String) =
+      "could not resolve subject `$fqName` from law `$lawName`"
   }
 
   /**

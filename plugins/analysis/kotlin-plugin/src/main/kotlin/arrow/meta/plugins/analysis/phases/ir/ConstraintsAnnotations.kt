@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
@@ -37,7 +38,7 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
       solverState.constraintsFromSolverState(
         fn.toIrBasedDescriptor()
           .model<FunctionDescriptor, arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor>()
-       )
+      )
     if (declarationConstraints != null) {
       solverState.solver.formulae {
         preAnnotation(declarationConstraints.pre, solverState.solver.formulaManager)
@@ -95,8 +96,20 @@ private fun IrUtils.lawSubjectAnnotationFromClassId(classId: ClassId, descriptor
 
 private fun IrUtils.lawSubjectAnnotation(fnDescriptor: SimpleFunctionDescriptor, descriptor: ClassDescriptor): IrConstructorCall? =
   descriptor.irConstructorCall()?.also {
-    it.putValueArgument(0, constantValue(fnDescriptor.fqNameSafe.asString()))
+    it.putValueArgument(0, constantValue(fnDescriptor.getLawName()))
   }
+
+private fun DeclarationDescriptor.getLawName(): String {
+  val containing = containingDeclaration
+  return when {
+    this is org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor ||
+      this is org.jetbrains.kotlin.descriptors.PackageViewDescriptor ||
+      this is org.jetbrains.kotlin.descriptors.ModuleDescriptor ||
+      containing == null
+    -> fqNameSafe.asString()
+    else -> "${containing.getLawName()}/${name.asString()}"
+  }
+}
 
 private fun IrUtils.annotation(messages: List<String>, formulae: List<String>, dependencies: List<String>, descriptor: ClassDescriptor): IrConstructorCall? =
   descriptor.irConstructorCall()?.also {
