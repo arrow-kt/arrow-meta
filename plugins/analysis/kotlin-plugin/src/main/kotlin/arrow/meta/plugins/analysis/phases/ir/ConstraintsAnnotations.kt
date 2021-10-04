@@ -17,11 +17,9 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
@@ -124,15 +122,26 @@ private fun IrUtils.lawSubjectAnnotation(fnDescriptor: SimpleFunctionDescriptor,
   }
 
 private fun DeclarationDescriptor.getLawName(): String {
-  val containing = containingDeclaration
-  return when {
-    this is org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor ||
-      this is org.jetbrains.kotlin.descriptors.PackageViewDescriptor ||
-      this is org.jetbrains.kotlin.descriptors.ModuleDescriptor ||
-      containing == null
-    -> fqNameSafe.asString()
-    else -> "${containing.getLawName()}/${name.asString()}"
+  val builder = StringBuilder()
+
+  tailrec fun go(descr: DeclarationDescriptor) {
+    val containing = containingDeclaration
+    when {
+      this is org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor ||
+        this is org.jetbrains.kotlin.descriptors.PackageViewDescriptor ||
+        this is org.jetbrains.kotlin.descriptors.ModuleDescriptor ||
+        containing == null
+      -> builder.insert(0, fqNameSafe.asString())
+      else -> {
+        builder.insert(0, name.asString())
+        builder.insert(0, '/')
+        go(containing)
+      }
+    }
   }
+  go(this)
+
+  return builder.toString()
 }
 
 private fun IrUtils.annotation(messages: List<String>, formulae: List<String>, dependencies: List<String>, descriptor: ClassDescriptor): IrConstructorCall? =
