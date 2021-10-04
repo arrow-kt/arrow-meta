@@ -12,17 +12,21 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedDescriptor
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.ClassId
@@ -46,15 +50,35 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
         postAnnotation(declarationConstraints.post, solverState.solver.formulaManager)
           ?.let { fn.addAnnotation(it) }
         if (fn.hasAnnotation(FqName("arrow.analysis.Law"))) {
-          val callToSubject = (fn.body?.statements?.lastOrNull() as? IrReturn)?.value as? IrFunctionAccessExpression
-          val fnDescriptor = callToSubject?.symbol?.owner?.toIrBasedDescriptor() as? SimpleFunctionDescriptor
-          if (fnDescriptor != null) {
+          getIrReturnedExpressionWithoutPostcondition(fn)?.let { fnDescriptor ->
             lawSubjectAnnotation(fnDescriptor)?.let { fn.addAnnotation(it) }
           }
         }
       }
     }
   }
+}
+
+@OptIn(ObsoleteDescriptorBasedAPI::class)
+private fun getIrReturnedExpressionWithoutPostcondition(
+  function: IrFunction
+): SimpleFunctionDescriptor? {
+  val lastElement = function.body?.statements?.lastOrNull()
+  val lastElementWithoutReturn = when (lastElement) {
+    is IrReturn -> lastElement.value
+    else -> lastElement
+  }
+  // remove outer layer of postcondition
+  val veryLast = when (lastElementWithoutReturn) {
+    is IrMemberAccessExpression<*> -> {
+      val call = lastElementWithoutReturn.symbol.descriptor.fqNameSafe
+      lastElementWithoutReturn.extensionReceiver
+        .takeIf { call == FqName("arrow.analysis.post") }
+    }
+    else -> null
+  } ?: lastElementWithoutReturn
+  return (veryLast as? IrMemberAccessExpression<IrFunctionSymbol>)
+    ?.symbol?.owner?.toIrBasedDescriptor() as? SimpleFunctionDescriptor
 }
 
 private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructorCall) {

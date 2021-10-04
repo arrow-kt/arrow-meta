@@ -326,8 +326,7 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
-    findDescriptorFromRemoteLaw(descriptor, bindingContext)
-    ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+    findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
@@ -338,8 +337,7 @@ private fun SolverState.addConstraints(
 }
 
 private fun findDescriptorFromRemoteLaw(
-  descriptor: DeclarationDescriptor,
-  context: ResolutionContext
+  descriptor: DeclarationDescriptor
 ): DeclarationDescriptor? =
   descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
     val name = lawSubject.argumentValueAsString("fqName")
@@ -404,7 +402,9 @@ private fun SolverState.findDescriptorFromLocalLaw(
   if (descriptor !is CallableDescriptor)
     return null
 
-  val lawCall = getReturnedExpressionWithoutPostcondition(descriptor, bindingContext)
+  val lawCall =
+    (descriptor.element() as? Function)
+      ?.let { getReturnedExpressionWithoutPostcondition(it, bindingContext) }
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
@@ -447,10 +447,10 @@ private fun MutableList<DeclarationConstraints>.add(
 }
 
 private fun getReturnedExpressionWithoutPostcondition(
-  descriptor: DeclarationDescriptor,
+  function: Function,
   bindingContext: ResolutionContext
 ): ResolvedCall? {
-  val lastElement = (descriptor.element() as? Function)?.body()?.lastBlockStatementOrThis()
+  val lastElement = function.body()?.lastBlockStatementOrThis()
   val lastElementWithoutReturn = when (lastElement) {
     is ReturnExpression -> lastElement.returnedExpression
     else -> lastElement
