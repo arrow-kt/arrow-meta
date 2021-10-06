@@ -49,7 +49,7 @@ jobs:
 
       - name: Compile with Gradle
         if: contains(matrix.kotlin, '1.6')
-        run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} compileKotlin --scan --stacktrace
+        run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} compileKotlin compileKotlinJvm --scan --stacktrace
 
       - name: Bundle the build report
         if: failure()
