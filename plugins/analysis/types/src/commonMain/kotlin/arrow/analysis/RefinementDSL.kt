@@ -38,3 +38,17 @@ annotation class Law
   AnnotationTarget.FUNCTION
 )
 annotation class Subject(val fqName: String)
+
+/**
+ * This is used to mark an object as containing
+ * only laws. This way you do not have to write
+ * the annotation on every element, and you
+ * can group several of them together.
+ *
+ * ```
+ * object IntLaws : Laws {
+ *   fun Int.plusLaw { ... }
+ * }
+ * ```
+ */
+interface Laws

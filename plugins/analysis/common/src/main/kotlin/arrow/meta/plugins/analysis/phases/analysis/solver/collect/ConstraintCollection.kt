@@ -310,8 +310,16 @@ internal fun ResolvedCall.invariantCall(): Boolean =
 /**
  * returns true if we have declared something with a @Law
  */
-fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
-  annotations().hasAnnotation(FqName("arrow.analysis.Law"))
+fun DeclarationDescriptor.isALaw(): Boolean =
+  annotations().hasAnnotation(FqName("arrow.analysis.Law")) ||
+    containingDeclaration.isLawsType()
+
+fun DeclarationDescriptor?.isLawsType(): Boolean = when (this) {
+  is ClassDescriptor -> superTypes.any {
+    it.descriptor?.fqNameSafe == FqName("arrow.analysis.Laws")
+  }
+  else -> false
+}
 
 /**
  * Depending on the source of the [descriptor] we might
@@ -382,8 +390,13 @@ fun DeclarationDescriptor.isCompatibleWith(
   other: DeclarationDescriptor
 ): Boolean = when {
   this is CallableDescriptor && other is CallableDescriptor -> {
-    val params1 = this.allParameters
-    val params2 = other.allParameters
+    // we have to ignore the parameters which come from Laws
+    val params1 = this.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType()
+    }
+    val params2 = other.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType()
+    }
     params1.size == params2.size &&
       params1.zip(params2).all { (p1, p2) ->
         p1.type.isEqualTo(p2.type)
@@ -396,7 +409,7 @@ private fun SolverState.findDescriptorFromLocalLaw(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ): DeclarationDescriptor? {
-  if (!descriptor.hasLawAnnotation())
+  if (!descriptor.isALaw())
     return null
 
   if (descriptor !is CallableDescriptor)
@@ -414,7 +427,7 @@ private fun SolverState.findDescriptorFromLocalLaw(
     return null
   }
 
-  val parameters = descriptor.allParameters
+  val parameters = descriptor.allParameters.filter { !it.type.descriptor.isLawsType() }
   val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.third }
   val check = parameters.zip(arguments).all { (param, arg) ->
     (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||

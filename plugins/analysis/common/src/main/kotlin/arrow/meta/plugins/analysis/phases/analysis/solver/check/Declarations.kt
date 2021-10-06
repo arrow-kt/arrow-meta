@@ -16,7 +16,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPostConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPreconditionsInconsistencies
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.hasLawAnnotation
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.immediateConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
@@ -106,7 +106,7 @@ internal fun SolverState.checkTopLevelDeclarationWithBody(
 ): ContSeq<Return> =
   checkTopLevel(context, descriptor, declaration, solver.resultVariable) { data, checkPost ->
     // only check body when we are not in a @Law
-    doOnlyWhen(!descriptor.hasLawAnnotation(), NoReturn) {
+    doOnlyWhen(!descriptor.isALaw(), NoReturn) {
       checkExpressionConstraints(solver.resultVariable, declaration.stableBody(), data).onEach {
         checkPost()
       }

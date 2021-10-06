@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -25,7 +26,6 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -36,18 +36,16 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
   val kotlinModule: ModuleDescriptor = moduleFragment.descriptor.model()
   val solverState = compilerContext.get<SolverState>(SolverState.key(kotlinModule))
   if (solverState != null && !solverState.hadParseErrors()) {
-    val declarationConstraints =
-      solverState.constraintsFromSolverState(
-        fn.toIrBasedDescriptor()
-          .model<FunctionDescriptor, arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor>()
-      )
+    val model = fn.toIrBasedDescriptor()
+      .model<FunctionDescriptor, arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor>()
+    val declarationConstraints = solverState.constraintsFromSolverState(model)
     if (declarationConstraints != null) {
       solverState.solver.formulae {
         preAnnotation(declarationConstraints.pre, solverState.solver.formulaManager)
           ?.let { fn.addAnnotation(it) }
         postAnnotation(declarationConstraints.post, solverState.solver.formulaManager)
           ?.let { fn.addAnnotation(it) }
-        if (fn.hasAnnotation(FqName("arrow.analysis.Law"))) {
+        if (model.isALaw()) {
           getIrReturnedExpressionWithoutPostcondition(fn)?.let { fnDescriptor ->
             lawSubjectAnnotation(fnDescriptor)?.let { fn.addAnnotation(it) }
           }

@@ -376,6 +376,25 @@ class AnalysisTests {
   }
 
   @Test
+  fun `ad-hoc laws are checked in call, 3`() {
+    """
+      ${imports()}
+      
+      object IntLaws : Laws {
+        fun Int.safeDiv(theOtherNumber: Int): Int {
+          pre( theOtherNumber != 0 ) { "other is not zero" }
+          return this / theOtherNumber
+        }
+      }
+     
+      val result = 1 / 0
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `incorrect ad-hoc law`() {
     """
       ${imports()}
@@ -939,6 +958,7 @@ import arrow.analysis.post
 import arrow.analysis.Pre
 import arrow.analysis.Post
 import arrow.analysis.Law
+import arrow.analysis.Laws
 import arrow.analysis.Subject
 
  """

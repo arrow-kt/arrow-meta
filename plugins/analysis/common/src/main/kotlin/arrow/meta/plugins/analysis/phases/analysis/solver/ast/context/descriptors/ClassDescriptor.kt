@@ -1,5 +1,7 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors
 
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+
 interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeParameters {
 
   fun getUnsubstitutedMemberScope(): MemberScope
@@ -14,6 +16,7 @@ interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeP
   val thisAsReceiverParameter: ReceiverParameterDescriptor
   val unsubstitutedPrimaryConstructor: ConstructorDescriptor?
   val sealedSubclasses: Collection<ClassDescriptor>
+  val superTypes: Collection<Type>
 
   enum class ClassKind {
     CLASS, INTERFACE, ENUM_CLASS, ENUM_ENTRY, ANNOTATION_CLASS, OBJECT
