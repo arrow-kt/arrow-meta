@@ -891,6 +891,42 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `overloads work right, 1`() {
+    """
+      ${imports()}
+      fun f(x: Int): Int {
+        pre(x > 10) { "greater than ten" }
+        return 1
+      }
+      
+      fun f(x: List<Int>): Int = 1
+      
+      val result = f(1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `greater than ten` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `overloads work right, 2`() {
+    """
+      ${imports()}
+      fun f(x: Int): Int {
+        pre(x > 10) { "greater than ten" }
+        return 1
+      }
+      
+      fun f(x: List<Int>): Int = 1
+      
+      val result = f(emptyList<Int>())
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

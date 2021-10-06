@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
@@ -28,7 +29,7 @@ data class SolverState(
     SolverContext.ProverOptions.GENERATE_MODELS,
     SolverContext.ProverOptions.GENERATE_UNSAT_CORE
   ),
-  val callableConstraints: MutableList<DeclarationConstraints> = mutableListOf(),
+  val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf()
 ) {
 
@@ -115,13 +116,15 @@ data class SolverState(
       }
     }
 
-    callableConstraints.forEach { decl ->
-      val descriptor = decl.descriptor
-      // add this field and its parents
-      if (descriptor.isField()) doOne(descriptor)
-      // add any other fields which may be mentioned here
-      val cstrs: Iterable<Formula> = (decl.pre + decl.post).map { it.formula }
-      basicNames.addAll(solver.formulaManager.fieldNames(cstrs).map { it.first })
+    callableConstraints.forEach { (_, decls) ->
+      decls.forEach { decl ->
+        val descriptor = decl.descriptor
+        // add this field and its parents
+        if (descriptor.isField()) doOne(descriptor)
+        // add any other fields which may be mentioned here
+        val cstrs: Iterable<Formula> = (decl.pre + decl.post).map { it.formula }
+        basicNames.addAll(solver.formulaManager.fieldNames(cstrs).map { it.first })
+      }
     }
 
     (basicNames - overriddenNames.keys).forEachIndexed { fieldIndex, fieldName ->

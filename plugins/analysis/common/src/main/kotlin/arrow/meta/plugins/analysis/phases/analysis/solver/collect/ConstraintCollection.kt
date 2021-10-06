@@ -378,7 +378,7 @@ private fun ModuleDescriptor.obtainDeclaration(
   return current
 }
 
-private fun DeclarationDescriptor.isCompatibleWith(
+fun DeclarationDescriptor.isCompatibleWith(
   other: DeclarationDescriptor
 ): Boolean = when {
   this is CallableDescriptor && other is CallableDescriptor -> {
@@ -432,17 +432,22 @@ private fun SolverState.findDescriptorFromLocalLaw(
   return lawCall.resultingDescriptor
 }
 
-private fun MutableList<DeclarationConstraints>.add(
+private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   descriptor: DeclarationDescriptor,
   pre: ArrayList<NamedConstraint>,
   post: ArrayList<NamedConstraint>
 ) {
-  val previous = this.firstOrNull { it.descriptor.fqNameSafe == descriptor.fqNameSafe }
-  if (previous == null) {
-    this.add(DeclarationConstraints(descriptor, pre, post))
-  } else {
-    this.remove(previous)
-    this.add(DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post))
+  val fqName = descriptor.fqNameSafe
+  // create a new one if not existent
+  if (!containsKey(fqName)) this[fqName] = mutableListOf()
+  val list = this[fqName]!!
+  // see if there's any compatible
+  when (val ix = list.indexOfFirst { it.descriptor.isCompatibleWith(descriptor) }) {
+    -1 -> list.add(DeclarationConstraints(descriptor, pre, post))
+    else -> {
+      val previous = list[ix]
+      list[ix] = DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post)
+    }
   }
 }
 

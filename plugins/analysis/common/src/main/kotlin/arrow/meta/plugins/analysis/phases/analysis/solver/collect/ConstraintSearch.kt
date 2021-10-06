@@ -51,9 +51,9 @@ public fun SolverState.constraintsFromSolverState(
 internal fun SolverState.immediateConstraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  callableConstraints.firstOrNull {
-    descriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
+  callableConstraints[descriptor.fqNameSafe]
+    ?.firstOrNull { d -> d.descriptor.isCompatibleWith(descriptor) }
+    ?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
 
 /**
  * This combinator allows us to use any of the previous
