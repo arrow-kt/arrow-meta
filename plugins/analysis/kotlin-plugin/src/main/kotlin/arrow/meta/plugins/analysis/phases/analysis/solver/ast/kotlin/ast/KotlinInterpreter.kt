@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements.*
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
+import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.isNull
 
@@ -29,6 +30,8 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
   B : DeclarationDescriptor> A.model(): B =
   when (this) {
     is SimpleFunctionDescriptor -> KotlinSimpleFunctionDescriptor(this).repr()
+    is TypeAliasConstructorDescriptor -> KotlinTypeAliasConstructorDescriptor(this).repr()
+    is ConstructorDescriptor -> KotlinConstructorDescriptor(this).repr()
     is PropertyGetterDescriptor -> KotlinPropertyAccessorDescriptor(this).repr()
     is PropertyDescriptor -> KotlinPropertyDescriptor(this).repr()
     is PackageViewDescriptor -> KotlinPackageViewDescriptor(this).repr()

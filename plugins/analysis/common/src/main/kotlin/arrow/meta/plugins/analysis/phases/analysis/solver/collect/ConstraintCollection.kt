@@ -46,6 +46,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
@@ -56,6 +57,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
@@ -370,16 +372,27 @@ private fun ModuleDescriptor.obtainDeclaration(
 
   var current: DeclarationDescriptor? = getPackage(portions.first())
   for (portion in portions.drop(1)) {
-    val memberScope = when (current) {
-      is PackageViewDescriptor -> current.getMemberScope()
-      is ClassDescriptor -> current.getUnsubstitutedMemberScope()
-      else -> null
+    val elts = when (portion) {
+      "<init>" -> when (current) {
+        is ClassDescriptor -> current.constructors
+        is TypeAliasDescriptor -> current.constructors
+        else -> null
+      }
+      else -> {
+        when (current) {
+          is PackageViewDescriptor -> current.getMemberScope()
+          is ClassDescriptor -> current.getUnsubstitutedMemberScope()
+          is TypeAliasDescriptor -> current.classDescriptor?.getUnsubstitutedMemberScope()
+          else -> null
+        }?.let {
+          it.getContributedDescriptors { true }
+        }?.filter {
+          it.name.value == portion
+        }
+      }
     }
-    current = memberScope?.let {
-      it.getContributedDescriptors { true }
-    }?.firstOrNull {
-      it.name.value == portion &&
-        it.isCompatibleWith(compatibleWith)
+    current = elts?.firstOrNull {
+      it.isCompatibleWith(compatibleWith)
     }
   }
 
@@ -392,10 +405,12 @@ fun DeclarationDescriptor.isCompatibleWith(
   this is CallableDescriptor && other is CallableDescriptor -> {
     // we have to ignore the parameters which come from Laws
     val params1 = this.allParameters.filter { param ->
-      !param.type.descriptor.isLawsType()
+      !param.type.descriptor.isLawsType() &&
+        !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
     }
     val params2 = other.allParameters.filter { param ->
-      !param.type.descriptor.isLawsType()
+      !param.type.descriptor.isLawsType() &&
+        !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
     }
     params1.size == params2.size &&
       params1.zip(params2).all { (p1, p2) ->

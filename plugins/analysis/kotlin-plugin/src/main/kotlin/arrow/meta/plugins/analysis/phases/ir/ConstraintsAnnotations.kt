@@ -58,7 +58,7 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 private fun getIrReturnedExpressionWithoutPostcondition(
   function: IrFunction
-): SimpleFunctionDescriptor? {
+): FunctionDescriptor? {
   val lastElement = function.body?.statements?.lastOrNull()
   val lastElementWithoutReturn = when (lastElement) {
     is IrReturn -> lastElement.value
@@ -74,7 +74,7 @@ private fun getIrReturnedExpressionWithoutPostcondition(
     else -> null
   } ?: lastElementWithoutReturn
   return (veryLast as? IrMemberAccessExpression<IrFunctionSymbol>)
-    ?.symbol?.owner?.toIrBasedDescriptor() as? SimpleFunctionDescriptor
+    ?.symbol?.owner?.toIrBasedDescriptor()
 }
 
 private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructorCall) {
@@ -93,7 +93,7 @@ private fun IrUtils.postAnnotation(formulae: List<NamedConstraint>, manager: For
     formulae.map { it.formula.toString() },
     formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
 
-private fun IrUtils.lawSubjectAnnotation(descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
+private fun IrUtils.lawSubjectAnnotation(descriptor: FunctionDescriptor): IrConstructorCall? =
   lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/analysis/Subject"), descriptor)
 
 private fun IrUtils.annotationFromClassId(
@@ -109,12 +109,12 @@ private fun IrUtils.annotationFromClassId(
     }
   }
 
-private fun IrUtils.lawSubjectAnnotationFromClassId(classId: ClassId, descriptor: SimpleFunctionDescriptor): IrConstructorCall? =
+private fun IrUtils.lawSubjectAnnotationFromClassId(classId: ClassId, descriptor: FunctionDescriptor): IrConstructorCall? =
   moduleFragment.descriptor.findClassAcrossModuleDependencies(classId)?.let {
     lawSubjectAnnotation(descriptor, it)
   }
 
-private fun IrUtils.lawSubjectAnnotation(fnDescriptor: SimpleFunctionDescriptor, descriptor: ClassDescriptor): IrConstructorCall? =
+private fun IrUtils.lawSubjectAnnotation(fnDescriptor: FunctionDescriptor, descriptor: ClassDescriptor): IrConstructorCall? =
   descriptor.irConstructorCall()?.also {
     it.putValueArgument(0, constantValue(fnDescriptor.getLawName()))
   }

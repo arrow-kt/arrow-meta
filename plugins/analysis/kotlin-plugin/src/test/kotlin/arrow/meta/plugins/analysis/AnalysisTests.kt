@@ -395,6 +395,88 @@ class AnalysisTests {
   }
 
   @Test
+  fun `ad-hoc laws are checked in call, 4`() {
+    """
+      ${imports()}
+      
+      object IntLaws : Laws {
+        fun Int.safeDiv(theOtherNumber: Int): Int {
+          pre( theOtherNumber != 0 ) { "other is not zero" }
+          return this / theOtherNumber
+        }
+      }
+     
+      val result = 1 / 2
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 1`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      object ArrayListLaws : Laws {
+        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+          return ArrayList(initialCapacity)
+        }
+      }
+     
+      val result = ArrayList<Int>(-1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 2`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      object ArrayListLaws : Laws {
+        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+          return ArrayList(initialCapacity)
+        }
+      }
+     
+      val result = ArrayList<Int>(1)
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 3`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      @Pre(messages = ["initial capacity should be non-negative"], formulae = ["(>= (int initialCapacity) 0)"], dependencies = [])
+      @Subject(fqName = "kotlin.collections/ArrayList/<init>")
+      fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+        pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+        return ArrayList(initialCapacity)
+      }
+     
+      val result = ArrayList<Int>(-1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `incorrect ad-hoc law`() {
     """
       ${imports()}
