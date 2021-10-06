@@ -7,3 +7,22 @@ interface FunctionDescriptor : CallableMemberDescriptor {
   val isTailrec: Boolean
   val isSuspend: Boolean
 }
+
+/**
+ * Removes the indirection from type aliases in a descriptor.
+ */
+val DeclarationDescriptor.withAliasUnwrapped: DeclarationDescriptor
+  get() = when (this) {
+    is FunctionDescriptor -> this.withAliasUnwrapped
+    else -> this
+  }
+
+/**
+ * Removes the indirection from type aliases in a descriptor.
+ */
+val FunctionDescriptor.withAliasUnwrapped: FunctionDescriptor
+  get() = when (this) {
+    is TypeAliasConstructorDescriptor ->
+      this.underlyingConstructorDescriptor.withAliasUnwrapped
+    else -> this
+  }

@@ -1,7 +1,12 @@
 package arrow.meta.plugins.analysis.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageFragmentDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -9,8 +14,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFro
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -37,7 +40,7 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
   val solverState = compilerContext.get<SolverState>(SolverState.key(kotlinModule))
   if (solverState != null && !solverState.hadParseErrors()) {
     val model = fn.toIrBasedDescriptor()
-      .model<FunctionDescriptor, arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor>()
+      .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
     val declarationConstraints = solverState.constraintsFromSolverState(model)
     if (declarationConstraints != null) {
       solverState.solver.formulae {
@@ -47,7 +50,7 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
           ?.let { fn.addAnnotation(it) }
         if (model.isALaw()) {
           getIrReturnedExpressionWithoutPostcondition(fn)?.let { fnDescriptor ->
-            lawSubjectAnnotation(fnDescriptor)?.let { fn.addAnnotation(it) }
+            lawSubjectAnnotation(fnDescriptor.withAliasUnwrapped)?.let { fn.addAnnotation(it) }
           }
         }
       }
@@ -74,7 +77,7 @@ private fun getIrReturnedExpressionWithoutPostcondition(
     else -> null
   } ?: lastElementWithoutReturn
   return (veryLast as? IrMemberAccessExpression<IrFunctionSymbol>)
-    ?.symbol?.owner?.toIrBasedDescriptor()
+    ?.symbol?.owner?.toIrBasedDescriptor()?.model()
 }
 
 private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructorCall) {
@@ -85,13 +88,13 @@ private fun IrUtils.preAnnotation(formulae: List<NamedConstraint>, manager: Form
   annotationFromClassId(ClassId.fromString("arrow/analysis/Pre"),
     formulae.map { it.msg },
     formulae.map { it.formula.toString() },
-    formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
+    formulae.flatMap { manager.fieldNames(it.formula).map { fld -> fld.first }.toSet() })
 
 private fun IrUtils.postAnnotation(formulae: List<NamedConstraint>, manager: FormulaManager): IrConstructorCall? =
   annotationFromClassId(ClassId.fromString("arrow/analysis/Post"),
     formulae.map { it.msg },
     formulae.map { it.formula.toString() },
-    formulae.flatMap { manager.fieldNames(it.formula).map { it.first }.toSet() })
+    formulae.flatMap { manager.fieldNames(it.formula).map { fld -> fld.first }.toSet() })
 
 private fun IrUtils.lawSubjectAnnotation(descriptor: FunctionDescriptor): IrConstructorCall? =
   lawSubjectAnnotationFromClassId(ClassId.fromString("arrow/analysis/Subject"), descriptor)
@@ -125,13 +128,13 @@ private fun DeclarationDescriptor.getLawName(): String {
   tailrec fun DeclarationDescriptor.go() {
     val containing = containingDeclaration
     when {
-      this is org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor ||
-        this is org.jetbrains.kotlin.descriptors.PackageViewDescriptor ||
-        this is org.jetbrains.kotlin.descriptors.ModuleDescriptor ||
+      this is PackageFragmentDescriptor ||
+        this is PackageViewDescriptor ||
+        this is ModuleDescriptor ||
         containing == null
-      -> builder.insert(0, fqNameSafe.asString())
+      -> builder.insert(0, fqNameSafe.name)
       else -> {
-        builder.insert(0, name.asString())
+        builder.insert(0, name.value)
         builder.insert(0, '/')
         containing.go()
       }

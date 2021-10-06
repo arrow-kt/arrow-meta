@@ -59,6 +59,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
@@ -340,7 +341,9 @@ private fun SolverState.addConstraints(
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
-    val renamed = solver.renameConditions(DeclarationConstraints(descriptor, preConstraints, postConstraints), lawSubject)
+    val renamed = solver.renameConditions(
+      DeclarationConstraints(descriptor, preConstraints, postConstraints),
+      lawSubject.withAliasUnwrapped)
     callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
   }
   callableConstraints.add(descriptor, preConstraints, postConstraints)
