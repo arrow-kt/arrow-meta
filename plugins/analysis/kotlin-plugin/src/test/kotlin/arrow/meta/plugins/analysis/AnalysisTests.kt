@@ -85,6 +85,23 @@ class AnalysisTests {
   }
 
   @Test
+  fun `post-conditions are on if`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int =
+        (if (x > 0) 1 else -1).post({ it > 0 }) { "greater than 0" }
+      """(
+      withPlugin = {
+        failsWith {
+          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") &&
+            it.contains("in branch: ( ! x > 0)")
+        }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `checks special functions, 1`() {
     """
       ${imports()}
