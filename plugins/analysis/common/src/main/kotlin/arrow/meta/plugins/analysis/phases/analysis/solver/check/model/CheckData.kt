@@ -6,8 +6,9 @@ import arrow.meta.plugins.analysis.smt.ObjectFormula
 data class CheckData(
   val context: ResolutionContext,
   val returnPoints: ReturnPoints,
-  val varInfo: CurrentVarInfo
+  val varInfo: CurrentVarInfo,
+  val branch: CurrentBranch
 ) {
   fun addReturnPoint(scope: String, variableName: ObjectFormula) =
-    CheckData(context, returnPoints.addAndReplaceTopMost(scope, variableName), varInfo)
+    CheckData(context, returnPoints.addAndReplaceTopMost(scope, variableName), varInfo, branch)
 }

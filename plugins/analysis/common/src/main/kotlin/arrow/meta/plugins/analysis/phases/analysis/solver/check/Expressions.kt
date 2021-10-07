@@ -428,7 +428,7 @@ internal fun SolverState.checkRegularFunctionCall(
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
           }
           // check pre-conditions and post-conditions
-          checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall)
+          checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall, data.branch.get())
           // add a constraint for fields: result == field(name, value)
           val descriptor = resolvedCall.resultingDescriptor
           if (descriptor.isField()) {
@@ -454,7 +454,7 @@ internal fun SolverState.checkRegularFunctionCall(
           }
           // there's no point in continuing if we are in an inconsistent position
           val inconsistentPostConditions =
-            checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, resolvedCall)
+            checkCallPostConditionsInconsistencies(callConstraints, data.context, expression, data.branch.get())
           ensure(!inconsistentPostConditions)
           // and we continue as normal
           NoReturn
@@ -499,10 +499,10 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
         continuationBracket.map { r }
       }.flatMap { definitelyNotNull ->
         if (!definitelyNotNull) { // the null case of ?.
-          ContSeq.unit.map {
+          data.branch.introduce(solver.isNull(receiverName)).map {
             val nullReceiver = NamedConstraint("$receiverName is null", solver.isNull(receiverName))
             val nullResult = NamedConstraint("$associatedVarName is null", solver.isNull(associatedVarName))
-            val inconsistent = checkConditionsInconsistencies(listOf(nullReceiver, nullResult), data.context, receiverExpr!!)
+            val inconsistent = checkConditionsInconsistencies(listOf(nullReceiver, nullResult), data.context, receiverExpr!!, data.branch.get())
             ensure(!inconsistent)
             NoReturn
           }
@@ -510,7 +510,7 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
           doOnlyWhenNotNull(receiverExpr, NoReturn) { rcv ->
             ContSeq.unit.map {
               val notNullCstr = NamedConstraint("$receiverName is not null", solver.isNotNull(receiverName))
-              val inconsistent = checkConditionsInconsistencies(listOf(notNullCstr), data.context, rcv)
+              val inconsistent = checkConditionsInconsistencies(listOf(notNullCstr), data.context, rcv, data.branch.get())
               ensure(!inconsistent)
               NoReturn
             }
@@ -545,9 +545,9 @@ private fun SolverState.checkElvisOperator(
       continuationBracket.map { r }
     }.flatMap { definitelyNotNull ->
       if (!definitelyNotNull) { // the null case of ?:
-        ContSeq.unit.map {
+        data.branch.introduce(solver.isNull(left)).map {
           val nullLeft = NamedConstraint("$leftName is null", solver.isNull(left))
-          val inconsistent = checkConditionsInconsistencies(listOf(nullLeft), data.context, leftExpr)
+          val inconsistent = checkConditionsInconsistencies(listOf(nullLeft), data.context, leftExpr, data.branch.get())
           ensure(!inconsistent)
           NoReturn
         }.flatMap {
@@ -555,11 +555,11 @@ private fun SolverState.checkElvisOperator(
           checkExpressionConstraints(associatedVarName, rightExpr, data)
         }
       } else { // the non-null case of ?:
-        ContSeq.unit.map {
+        data.branch.introduce(solver.isNotNull(left)).map {
           val notNullLeft = NamedConstraint("$leftName is not null", solver.isNotNull(left))
           val resultIsLeft = NamedConstraint("$leftName is result of ?:",
             solver.objects { equal(left, associatedVarName) })
-          val inconsistent = checkConditionsInconsistencies(listOf(notNullLeft, resultIsLeft), data.context, leftExpr)
+          val inconsistent = checkConditionsInconsistencies(listOf(notNullLeft, resultIsLeft), data.context, leftExpr, data.branch.get())
           ensure(!inconsistent)
           NoReturn
         }
@@ -776,8 +776,7 @@ private fun SolverState.checkDeclarationExpression(
         val renamed = solver.renameObjectVariables(invFormula, mapOf(RESULT_VAR_NAME to smtName))
         val inconsistentInvariant = checkInvariantConsistency(
           NamedConstraint("invariant in $declName", renamed),
-          data.context,
-          invBody
+          data.context, invBody, data.branch.get()
         )
         ensure(!inconsistentInvariant)
       }
@@ -822,8 +821,7 @@ private fun SolverState.checkBodyAgainstInvariants(
       val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
       checkInvariant(
         NamedConstraint("assignment to `${element.text}`", renamed),
-        data.context,
-        element
+        data.context, element, data.branch.get()
       )
     }
   }.map { r -> Pair(newName, r) }
@@ -865,21 +863,21 @@ private fun SolverState.checkNameExpression(
 private fun Expression.computeConditions(): List<Condition> = when (this) {
   is IfExpression ->
     listOf(
-      SimpleCondition(condition!!, thenExpression!!, thenExpression!!),
-      SimpleCondition(null, elseExpression!!, elseExpression!!)
+      SimpleCondition(condition!!, false, thenExpression!!, thenExpression!!),
+      SimpleCondition(null, true, elseExpression!!, elseExpression!!)
     )
   is WhenExpression -> {
     val subject = subjectExpression
     entries.flatMap { entry ->
       if (entry.conditions.isEmpty()) {
-        listOf(SimpleCondition(null, entry.expression!!, entry))
+        listOf(SimpleCondition(null, entry.isElse, entry.expression!!, entry))
       } else {
         entry.conditions.toList().mapNotNull { cond ->
           when {
             subject != null ->
-              SubjectCondition(cond, entry.expression!!, entry)
+              SubjectCondition(cond, entry.isElse, entry.expression!!, entry)
             cond is WhenConditionWithExpression ->
-              SimpleCondition(cond.expression!!, entry.expression!!, entry)
+              SimpleCondition(cond.expression!!, entry.isElse, entry.expression!!, entry)
             else -> null
           }
         }
@@ -931,10 +929,12 @@ private fun SolverState.checkConditional(
           is ExplicitReturn -> // weird case: a return in a condition
             cont { returnInfo }
           else ->
-            continuationBracket.map {
+            continuationBracket.flatMap {
+              data.branch.introduce(correspondingVars.map { it.formula })
+            }.map {
               // assert the variables and check that we are consistent
               val inconsistentEnvironment =
-                checkConditionsInconsistencies(correspondingVars, data.context, cond.whole)
+                checkConditionsInconsistencies(correspondingVars, data.context, cond.whole, data.branch.get())
               // it only makes sense to continue if we are not consistent
               ensure(!inconsistentEnvironment)
             }.flatMap {
@@ -1072,33 +1072,35 @@ private fun SolverState.checkWhileExpression(
   data: CheckData
 ): ContSeq<Return> {
   val condName = newName(data.context, "cond", condition)
-  // TODO: check the return info, just in case
   return checkExpressionConstraints(condName, body, data).flatMap {
     ContSeq {
       yield(LoopPlace.INSIDE_LOOP)
       yield(LoopPlace.AFTER_LOOP)
     }
   }.flatMap {
+    val objVar = solver.makeBooleanObjectVariable(condName)
     when (it) {
       LoopPlace.INSIDE_LOOP ->
         continuationBracket.flatMap {
+          data.branch.introduce(objVar)
+        }.flatMap {
           data.varInfo.bracket()
         }.onEach {
           // inside the loop the condition is true
           checkConditionsInconsistencies(listOf(
-            NamedConstraint("inside the loop, condition is tue",
-              solver.makeBooleanObjectVariable(condName))
-          ), data.context, condition)
+            NamedConstraint("inside the loop, condition is true", objVar)
+          ), data.context, condition, data.branch.get())
         }.flatMap {
           checkLoopBody(body, data)
         }
       // after the loop the condition is false
-      LoopPlace.AFTER_LOOP -> cont {
-        checkConditionsInconsistencies(listOf(
-          NamedConstraint("loop is finished, condition is false",
-            solver.booleans { not(solver.makeBooleanObjectVariable(condName)) })
-        ), data.context, condition)
-        NoReturn
+      LoopPlace.AFTER_LOOP ->
+        data.branch.introduce(solver.booleanFormulaManager.not(objVar)).map {
+          checkConditionsInconsistencies(listOf(
+            NamedConstraint("loop is finished, condition is false",
+              solver.booleanFormulaManager.not(objVar))
+          ), data.context, condition, data.branch.get())
+          NoReturn
       }
     }
   }
@@ -1112,10 +1114,12 @@ private fun SolverState.checkLoopBody(
     // only keep working on this branch
     // if we had a 'return' inside
     // otherwise the other branch is enough
+    // if we decide to abort we need to 'pop',
+    // because the one from 'bracket' won't run
     when (returnInfo) {
-      is ExplicitLoopReturn -> abort()
+      is ExplicitLoopReturn -> { prover.pop() ; abort() }
       is ExplicitBlockReturn -> returnInfo
-      else -> abort()
+      else -> { prover.pop() ; abort() }
     }
   }
 }

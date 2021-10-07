@@ -9,6 +9,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.D
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -117,11 +118,13 @@ object ErrorMessages {
     internal fun Solver.unsatCallPre(
       callPreCondition: NamedConstraint,
       resolvedCall: ResolvedCall,
+      branch: Branch,
       model: Model
     ): String =
       """|pre-condition `${callPreCondition.msg}` is not satisfied in `${resolvedCall.callElement.text}`
          |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
          |  -> ${template(callPreCondition, this)}
+         |  -> ${branch(branch)}
       """.trimMargin()
 
     /**
@@ -142,9 +145,12 @@ object ErrorMessages {
      */
     internal fun KotlinPrinter.unsatBodyPost(
       declaration: Declaration,
-      postCondition: NamedConstraint
+      postCondition: NamedConstraint,
+      branch: Branch
     ): String =
-      "declaration `${declaration.name}` fails to satisfy the post-condition: ${postCondition.formula.dumpKotlinLike()}"
+      """|declaration `${declaration.name}` fails to satisfy the post-condition: ${postCondition.formula.dumpKotlinLike()}
+         |  -> ${branch(branch)}
+      """.trimMargin()
 
     /**
      * (attached to the new value): the invariant declared for a mutable variable
@@ -164,10 +170,12 @@ object ErrorMessages {
     internal fun Solver.unsatInvariants(
       expression: Element,
       constraint: NamedConstraint,
+      branch: Branch,
       model: Model
     ): String =
       """|invariants are not satisfied in `${expression.text}`
          |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`
+         |  -> ${branch(branch)}
       """.trimMargin()
   }
 
@@ -208,7 +216,8 @@ object ErrorMessages {
     internal fun KotlinPrinter.inconsistentBodyPre(
       declaration: Declaration,
       unsatCore: List<BooleanFormula>
-    ): String = "${declaration.name} has inconsistent pre-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
+    ): String =
+      "${declaration.name} has inconsistent pre-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
 
     /**
      * (attached to a particular condition):
@@ -229,16 +238,26 @@ object ErrorMessages {
      *   }
      *   ```
      */
-    internal fun KotlinPrinter.inconsistentConditions(unsatCore: List<BooleanFormula>): String =
-      "unreachable code due to conflicting conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
+    internal fun KotlinPrinter.inconsistentConditions(
+      unsatCore: List<BooleanFormula>,
+      branch: Branch
+    ): String =
+      """|unreachable code due to conflicting conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}
+         |  -> ${branch(branch)}
+      """.trimMargin()
 
     /**
      * (attached to the function call): the post-conditions gathered after calling
      * a function imply that this function could not be called at all.
      * _This is really uncommon in practice_.
      */
-    internal fun KotlinPrinter.inconsistentCallPost(unsatCore: List<BooleanFormula>): String =
-      "unreachable code due to post-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
+    internal fun KotlinPrinter.inconsistentCallPost(
+      unsatCore: List<BooleanFormula>,
+      branch: Branch
+    ): String =
+      """|unreachable code due to post-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}
+         |  -> ${branch(branch)}
+      """.trimMargin()
 
     /**
      * (attached to a local declaration):
@@ -253,8 +272,13 @@ object ErrorMessages {
      *  }
      *  ```
      */
-    internal fun KotlinPrinter.inconsistentInvariants(it: List<BooleanFormula>): String =
-      "invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}"
+    internal fun KotlinPrinter.inconsistentInvariants(
+      it: List<BooleanFormula>,
+      branch: Branch
+    ): String =
+      """|invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}
+         |  -> ${branch(branch)}
+      """.trimMargin()
   }
 
   object Liskov {
@@ -283,6 +307,12 @@ object ErrorMessages {
         } ?: ""
       }?.takeIf { it.isNotEmpty() } ?: "<no local variable involved>"
   }
+
+  internal fun KotlinPrinter.branch(conditions: Branch): String =
+    if (conditions.isEmpty())
+      "main function body"
+    else
+      "in branch: " + conditions.joinToString { it.dumpKotlinLike() }
 
   private fun CompilerMessageSourceLocation.link(): String =
     "at $path: ($line, $column):"
