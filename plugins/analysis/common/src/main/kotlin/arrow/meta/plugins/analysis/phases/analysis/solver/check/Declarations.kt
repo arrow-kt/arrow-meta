@@ -41,6 +41,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CurrentBranch
 
 // 2.1: declarations
 // -----------------
@@ -65,7 +66,7 @@ internal fun <A> SolverState.checkTopLevel(
     }
   // initialize the check data
   val varInfo = initializeVarInfo(declaration)
-  val data = CheckData(context, ReturnPoints.new(declaration, resultName), varInfo)
+  val data = CheckData(context, ReturnPoints.new(declaration, resultName), varInfo, CurrentBranch.new())
   // perform the checks
   return continuationBracket.map {
     // introduce non-nullability and invariants of parameters
@@ -94,7 +95,7 @@ internal fun <A> SolverState.checkTopLevel(
     // check the body
     bodyCheck(data) {
       // and finally check the post-conditions
-      checkPostConditionsImplication(constraints, data.context, declaration)
+      checkPostConditionsImplication(constraints, data.context, declaration, data.branch.get())
     }
   }
 }

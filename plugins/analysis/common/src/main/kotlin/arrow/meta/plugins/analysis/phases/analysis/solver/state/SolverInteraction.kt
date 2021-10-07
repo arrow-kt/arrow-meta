@@ -20,6 +20,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -119,12 +120,13 @@ internal fun SolverState.checkPreconditionsInconsistencies(
 internal fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
   context: ResolutionContext,
-  declaration: Declaration
+  declaration: Declaration,
+  branch: Branch
 ) {
   solver.run {
     constraints?.post?.forEach { postCondition ->
       checkImplicationOf(postCondition) {
-        val msg = unsatBodyPost(declaration, postCondition)
+        val msg = unsatBodyPost(declaration, postCondition, branch)
         context.reportUnsatBodyPost(declaration, msg)
       }
     }
@@ -138,12 +140,13 @@ internal fun SolverState.checkCallPreConditionsImplication(
   callConstraints: DeclarationConstraints?,
   context: ResolutionContext,
   expression: Expression,
-  resolvedCall: ResolvedCall
+  resolvedCall: ResolvedCall,
+  branch: Branch
 ) =
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
       checkImplicationOf(callPreCondition) { model ->
-        val msg = unsatCallPre(callPreCondition, resolvedCall, model)
+        val msg = unsatCallPre(callPreCondition, resolvedCall, branch, model)
         context.reportUnsatCallPre(expression, msg)
       }
     }
@@ -156,12 +159,12 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
   callConstraints: DeclarationConstraints?,
   context: ResolutionContext,
   expression: Expression,
-  resolvedCall: ResolvedCall
+  branch: Branch
 ): Boolean =
   solver.run {
     callConstraints?.post?.let {
       addAndCheckConsistency(it) { unsatCore ->
-        val msg = inconsistentCallPost(unsatCore)
+        val msg = inconsistentCallPost(unsatCore, branch)
         context.reportInconsistentCallPost(expression, msg)
       }
     } ?: false
@@ -173,11 +176,12 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
 internal fun SolverState.checkConditionsInconsistencies(
   formulae: List<NamedConstraint>,
   context: ResolutionContext,
-  expression: Element
+  expression: Element,
+  branch: Branch
 ): Boolean =
   solver.run {
     addAndCheckConsistency(formulae) { unsatCore ->
-      val msg = inconsistentConditions(unsatCore)
+      val msg = inconsistentConditions(unsatCore, branch)
       context.reportInconsistentConditions(expression, msg)
     }
   }
@@ -185,11 +189,12 @@ internal fun SolverState.checkConditionsInconsistencies(
 internal fun SolverState.checkInvariantConsistency(
   constraint: NamedConstraint,
   context: ResolutionContext,
-  expression: Element
+  expression: Element,
+  branch: Branch
 ): Boolean =
   solver.run {
     addAndCheckConsistency(listOf(constraint)) {
-      val msg = inconsistentInvariants(it)
+      val msg = inconsistentInvariants(it, branch)
       context.reportInconsistentInvariants(expression, msg)
     }
   }
@@ -197,11 +202,12 @@ internal fun SolverState.checkInvariantConsistency(
 internal fun SolverState.checkInvariant(
   constraint: NamedConstraint,
   context: ResolutionContext,
-  expression: Element
+  expression: Element,
+  branch: Branch
 ): Boolean =
   solver.run {
     checkImplicationOf(constraint) { model ->
-      val msg = unsatInvariants(expression, constraint, model)
+      val msg = unsatInvariants(expression, constraint, branch, model)
       context.reportUnsatInvariants(expression, msg)
     }
   }
@@ -212,7 +218,7 @@ internal fun SolverState.checkLiskovWeakerPrecondition(
   expression: Element
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) { model ->
+    checkImplicationOf(constraint) {
       val msg = notWeakerPrecondition(constraint)
       context.reportLiskovProblem(expression, msg)
     }
@@ -224,7 +230,7 @@ internal fun SolverState.checkLiskovStrongerPostcondition(
   expression: Element
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) { model ->
+    checkImplicationOf(constraint) {
       val msg = notStrongerPostcondition(constraint)
       context.reportLiskovProblem(expression, msg)
     }
