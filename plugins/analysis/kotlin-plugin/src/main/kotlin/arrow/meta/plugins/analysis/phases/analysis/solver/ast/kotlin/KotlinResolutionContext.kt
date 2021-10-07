@@ -66,8 +66,9 @@ class KotlinResolutionContext(impl: BindingTrace, moduleImpl: org.jetbrains.kotl
     )
   }
 
-  override val types: Types
-    get() = TODO("Not yet implemented")
+  override val types: Types = object : Types {
+    override val nothingType: Type = KotlinType(moduleImpl.builtIns.nothingType)
+  }
 
   /**
    * Recursively walks [this] element for calls to [arrow.analysis.pre] and [arrow.analysis.post]

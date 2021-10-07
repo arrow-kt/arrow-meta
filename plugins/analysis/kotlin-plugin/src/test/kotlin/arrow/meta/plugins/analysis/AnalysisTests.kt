@@ -339,6 +339,21 @@ class AnalysisTests {
   }
 
   @Test
+  fun `pre-conditions for subjects`() {
+    """
+      ${imports()}
+      @Pre(messages = ["not zero divisor"], formulae = ["(not (= (int other) 0))"], dependencies = [])
+      @Subject(fqName = "kotlin/Int/div")
+      fun Int.divLaw(other: Int) = this / other
+        
+      val x: Int = 1 / 0
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not zero divisor` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}
@@ -373,6 +388,107 @@ class AnalysisTests {
       }
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws are checked in call, 3`() {
+    """
+      ${imports()}
+      
+      object IntLaws : Laws {
+        fun Int.safeDiv(theOtherNumber: Int): Int {
+          pre( theOtherNumber != 0 ) { "other is not zero" }
+          return this / theOtherNumber
+        }
+      }
+     
+      val result = 1 / 0
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws are checked in call, 4`() {
+    """
+      ${imports()}
+      
+      object IntLaws : Laws {
+        fun Int.safeDiv(theOtherNumber: Int): Int {
+          pre( theOtherNumber != 0 ) { "other is not zero" }
+          return this / theOtherNumber
+        }
+      }
+     
+      val result = 1 / 2
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 1`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      object ArrayListLaws : Laws {
+        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+          return ArrayList(initialCapacity)
+        }
+      }
+     
+      val result = ArrayList<Int>(-1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 2`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      object ArrayListLaws : Laws {
+        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+          return ArrayList(initialCapacity)
+        }
+      }
+     
+      val result = ArrayList<Int>(1)
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws for constructors, 3`() {
+    """
+      ${imports()}
+      
+      import kotlin.collections.ArrayList
+      
+      @Pre(messages = ["initial capacity should be non-negative"], formulae = ["(>= (int initialCapacity) 0)"], dependencies = [])
+      @Subject(fqName = "kotlin.collections/ArrayList/<init>")
+      fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+        pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+        return ArrayList(initialCapacity)
+      }
+     
+      val result = ArrayList<Int>(-1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
       withoutPlugin = { compiles }
     )
   }
@@ -893,6 +1009,77 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `overloads work right, 1`() {
+    """
+      ${imports()}
+      fun f(x: Int): Int {
+        pre(x > 10) { "greater than ten" }
+        return 1
+      }
+      
+      fun f(x: List<Int>): Int = 1
+      
+      val result = f(1)
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `greater than ten` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `overloads work right, 2`() {
+    """
+      ${imports()}
+      fun f(x: Int): Int {
+        pre(x > 10) { "greater than ten" }
+        return 1
+      }
+      
+      fun f(x: List<Int>): Int = 1
+      
+      val result = f(emptyList<Int>())
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Result`() {
+    """
+      ${imports()}
+      
+      import kotlin.Result.Companion.success
+      import kotlin.Result.Companion.failure
+      
+      @Law
+      inline fun <T> successLaw(x: T): Result<T> =
+        success(x).post({ it.isSuccess == true }) { "create a success" }
+      
+      @Law
+      inline fun <T> failureLaw(e: Throwable): Result<T> =
+        failure<T>(e).post({ it.isFailure == true }) { "create a failure" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Lazy`() {
+    """
+      ${imports()}
+      
+      @Law
+      inline fun <T> lazyOfLaw(value: T): Lazy<T> =
+        lazyOf(value).post({ it.value == value }) { "lazy value is argument" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =
@@ -905,6 +1092,8 @@ import arrow.analysis.post
 import arrow.analysis.Pre
 import arrow.analysis.Post
 import arrow.analysis.Law
+import arrow.analysis.Laws
+import arrow.analysis.Subject
 
  """
 

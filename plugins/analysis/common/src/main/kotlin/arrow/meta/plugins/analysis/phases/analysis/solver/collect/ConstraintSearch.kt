@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
@@ -51,9 +52,9 @@ public fun SolverState.constraintsFromSolverState(
 internal fun SolverState.immediateConstraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  callableConstraints.firstOrNull {
-    descriptor.fqNameSafe == it.descriptor.fqNameSafe
-  }?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
+  callableConstraints[descriptor.withAliasUnwrapped.fqNameSafe]
+    ?.firstOrNull { d -> d.descriptor.isCompatibleWith(descriptor) }
+    ?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
 
 /**
  * This combinator allows us to use any of the previous
@@ -118,7 +119,8 @@ internal fun SolverState.typeInvariants(
 internal fun SolverState.overriddenConstraintsFromSolverState(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  descriptor.overriddenDescriptors()?.mapNotNull { overriddenDescriptor ->
+  descriptor.withAliasUnwrapped
+    .overriddenDescriptors()?.mapNotNull { overriddenDescriptor ->
     constraintsFromSolverState(overriddenDescriptor)
   }?.takeIf {
     it.isNotEmpty()
@@ -142,8 +144,8 @@ internal fun SolverState.primitiveConstraints(
     if (descriptor.isComparison()) PrimitiveType.BOOLEAN
     else descriptor.returnType?.unwrapIfNullable()?.primitiveType()
   val dispatch =
-    listOf(descriptor.extensionReceiverParameter, descriptor.dispatchReceiverParameter)
-      .filterNotNull().map { param ->
+    listOfNotNull(descriptor.extensionReceiverParameter, descriptor.dispatchReceiverParameter)
+      .map { param ->
         param.type.unwrapIfNullable().primitiveType()?.let { ty ->
           Pair(THIS_VAR_NAME, ty)
         }
@@ -215,7 +217,7 @@ internal fun Solver.renameConditions(
     val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
     DeclarationConstraints(to, renamed.pre, renamed.post)
   } else {
-    constraints
+    DeclarationConstraints(to, constraints.pre, constraints.post)
   }
 }
 

@@ -40,9 +40,6 @@ project(':optics-gradle-plugin').projectDir = new File('plugins/optics/optics-gr
 include ':analysis-types'
 project(':analysis-types').projectDir = new File('plugins/analysis/types')
 
-include ':analysis-laws'
-project(':analysis-laws').projectDir = new File('plugins/analysis/laws')
-
 include ':analysis-common'
 project(':analysis-common').projectDir = new File('plugins/analysis/common')
 
@@ -51,3 +48,9 @@ project(':analysis-kotlin-plugin').projectDir = new File('plugins/analysis/kotli
 
 include ':analysis-gradle-plugin'
 project(':analysis-gradle-plugin').projectDir = new File('plugins/analysis/gradle-plugin')
+
+include ':analysis-laws'
+project(':analysis-laws').projectDir = new File('plugins/analysis/laws')
+
+include ':analysis-example'
+project(':analysis-example').projectDir = new File('plugins/analysis/example')

@@ -10,6 +10,7 @@ interface Type {
   fun isBoolean(): Boolean
   fun isNullable(): Boolean
   fun isSubtypeOf(other: Type): Boolean
+  fun isEqualTo(other: Type): Boolean
   fun isInt(): Boolean
   fun isLong(): Boolean
   fun isFloat(): Boolean

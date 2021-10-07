@@ -63,7 +63,7 @@ internal fun SolverState.additionalFieldConstraints(
 ): Set<NamedConstraint> =
   solver.formulaManager.fieldNames(formulae.map { it.formula })
     .flatMap { (fieldName, appliedTo) ->
-      val constraints = constraintsFromFqName(FqName(fieldName))
+      val constraints = singleConstraintsFromFqName(FqName(fieldName))
       if (constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
         setOf(
           NamedConstraint(
@@ -79,10 +79,14 @@ internal fun SolverState.additionalFieldConstraints(
       }
     }.toSet()
 
-internal fun SolverState.constraintsFromFqName(name: FqName): DeclarationConstraints? =
-  callableConstraints.firstOrNull {
-    name == it.descriptor.fqNameSafe
-  }
+/**
+ * This obtains the *single* constraint related
+ * to a particular FqName
+ */
+internal fun SolverState.singleConstraintsFromFqName(
+  name: FqName
+): DeclarationConstraints? =
+  callableConstraints[name]?.takeIf { it.size == 1 }?.first()
 
 // PRODUCE ERRORS FROM INTERACTION
 // ===============================

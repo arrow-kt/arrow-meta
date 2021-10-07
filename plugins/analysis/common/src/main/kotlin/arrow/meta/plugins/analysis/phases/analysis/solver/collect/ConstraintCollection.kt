@@ -5,7 +5,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
-import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Parsing.unexpectedFieldInitBlock
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.ObjectFormula
@@ -47,16 +46,22 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
@@ -206,7 +211,7 @@ private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
               // which is not coming from an argument
               errorSignaled = true
               if (raiseErrorWhenUnexpected) {
-                val msg = unexpectedFieldInitBlock(fieldName)
+                val msg = ErrorMessages.Parsing.unexpectedFieldInitBlock(fieldName)
                 context.reportErrorsParsingPredicate(call.callElement, msg)
               }
               super.visitFunction(f, args, fn)
@@ -308,8 +313,16 @@ internal fun ResolvedCall.invariantCall(): Boolean =
 /**
  * returns true if we have declared something with a @Law
  */
-fun DeclarationDescriptor.hasLawAnnotation(): Boolean =
-  annotations().hasAnnotation(FqName("arrow.analysis.Law"))
+fun DeclarationDescriptor.isALaw(): Boolean =
+  annotations().hasAnnotation(FqName("arrow.analysis.Law")) ||
+    containingDeclaration.isLawsType()
+
+fun DeclarationDescriptor?.isLawsType(): Boolean = when (this) {
+  is ClassDescriptor -> superTypes.any {
+    it.descriptor?.fqNameSafe == FqName("arrow.analysis.Laws")
+  }
+  else -> false
+}
 
 /**
  * Depending on the source of the [descriptor] we might
@@ -323,36 +336,106 @@ private fun SolverState.addConstraints(
   postConstraints: ArrayList<NamedConstraint>,
   bindingContext: ResolutionContext
 ) {
-  val lawSubject = findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+  val lawSubject =
+    findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+  if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
+    throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
-    val renamed = solver.renameConditions(DeclarationConstraints(descriptor, preConstraints, postConstraints), lawSubject)
+    val renamed = solver.renameConditions(
+      DeclarationConstraints(descriptor, preConstraints, postConstraints),
+      lawSubject.withAliasUnwrapped)
     callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
   }
   callableConstraints.add(descriptor, preConstraints, postConstraints)
 }
 
-private fun findDescriptorFromRemoteLaw(descriptor: DeclarationDescriptor): DeclarationDescriptor? =
+private fun findDescriptorFromRemoteLaw(
+  descriptor: DeclarationDescriptor
+): DeclarationDescriptor? =
   descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
-    (lawSubject.argumentValueAsString("fqName"))
-      ?.let { FqName(it) }
-      ?.let { subjectFqName ->
-        val pck = subjectFqName.name.substringBeforeLast(".")
-        val fn = subjectFqName.name.split(".").lastOrNull()
-        descriptor.module.getPackage(pck)?.getMemberScope()?.getContributedDescriptors { it == fn }?.firstOrNull()
+    val name = lawSubject.argumentValueAsString("fqName")
+    val result = name?.let {
+      descriptor.module.obtainDeclaration(FqName(it), descriptor)
+    }
+    result.also {
+      if (it == null) {
+        if (name == null)
+          throw Exception(ErrorMessages.Parsing.subjectWithoutName(descriptor.fqNameSafe.name))
+        else
+          throw Exception(ErrorMessages.Parsing.couldNotResolveSubject(name, descriptor.fqNameSafe.name))
+      }
+    }
+  }
+
+private fun ModuleDescriptor.obtainDeclaration(
+  fqName: FqName,
+  compatibleWith: DeclarationDescriptor
+): DeclarationDescriptor? {
+  val portions = fqName.name.split("/")
+
+  var current: DeclarationDescriptor? = getPackage(portions.first())
+  for (portion in portions.drop(1)) {
+    val elts = when (portion) {
+      "<init>" -> when (current) {
+        is ClassDescriptor -> current.constructors
+        is TypeAliasDescriptor -> current.constructors
+        else -> null
+      }
+      else -> {
+        when (current) {
+          is PackageViewDescriptor -> current.getMemberScope()
+          is ClassDescriptor -> current.getUnsubstitutedMemberScope()
+          is TypeAliasDescriptor -> current.classDescriptor?.getUnsubstitutedMemberScope()
+          else -> null
+        }?.let {
+          it.getContributedDescriptors { true }
+        }?.filter {
+          it.name.value == portion
+        }
+      }
+    }
+    current = elts?.firstOrNull {
+      it.isCompatibleWith(compatibleWith)
+    }
+  }
+
+  return current
+}
+
+fun DeclarationDescriptor.isCompatibleWith(
+  other: DeclarationDescriptor
+): Boolean = when {
+  this is CallableDescriptor && other is CallableDescriptor -> {
+    // we have to ignore the parameters which come from Laws
+    val params1 = this.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType() &&
+        !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+    }
+    val params2 = other.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType() &&
+        !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+    }
+    params1.size == params2.size &&
+      params1.zip(params2).all { (p1, p2) ->
+        p1.type.isEqualTo(p2.type)
       }
   }
+  else -> true
+}
 
 private fun SolverState.findDescriptorFromLocalLaw(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ): DeclarationDescriptor? {
-  if (!descriptor.hasLawAnnotation())
+  if (!descriptor.isALaw())
     return null
 
   if (descriptor !is CallableDescriptor)
     return null
 
-  val lawCall = getReturnedExpressionWithoutPostcondition(descriptor, bindingContext)
+  val lawCall =
+    (descriptor.element() as? Function)
+      ?.let { getReturnedExpressionWithoutPostcondition(it, bindingContext) }
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
@@ -362,7 +445,7 @@ private fun SolverState.findDescriptorFromLocalLaw(
     return null
   }
 
-  val parameters = descriptor.allParameters
+  val parameters = descriptor.allParameters.filter { !it.type.descriptor.isLawsType() }
   val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.third }
   val check = parameters.zip(arguments).all { (param, arg) ->
     (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
@@ -380,37 +463,49 @@ private fun SolverState.findDescriptorFromLocalLaw(
   return lawCall.resultingDescriptor
 }
 
-private fun MutableList<DeclarationConstraints>.add(
+private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   descriptor: DeclarationDescriptor,
   pre: ArrayList<NamedConstraint>,
   post: ArrayList<NamedConstraint>
 ) {
-  val previous = this.firstOrNull { it.descriptor.fqNameSafe == descriptor.fqNameSafe }
-  if (previous == null) {
-    this.add(DeclarationConstraints(descriptor, pre, post))
-  } else {
-    this.remove(previous)
-    this.add(DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post))
+  val fqName = descriptor.fqNameSafe
+  // create a new one if not existent
+  if (!containsKey(fqName)) this[fqName] = mutableListOf()
+  val list = this[fqName]!!
+  // see if there's any compatible
+  when (val ix = list.indexOfFirst { it.descriptor.isCompatibleWith(descriptor) }) {
+    -1 -> list.add(DeclarationConstraints(descriptor, pre, post))
+    else -> {
+      val previous = list[ix]
+      list[ix] = DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post)
+    }
   }
 }
 
 private fun getReturnedExpressionWithoutPostcondition(
-  descriptor: DeclarationDescriptor,
+  function: Function,
   bindingContext: ResolutionContext
 ): ResolvedCall? {
-  val lastElement = (descriptor.element() as? Function)?.body()?.lastBlockStatementOrThis()
+  val lastElement = function.body()?.lastBlockStatementOrThis()
   val lastElementWithoutReturn = when (lastElement) {
     is ReturnExpression -> lastElement.returnedExpression
     else -> lastElement
   }
   // remove outer layer of postcondition
-  return lastElementWithoutReturn?.getResolvedCall(bindingContext)?.let {
-    if (it.postCall()) {
-      it.arg("this", bindingContext)?.getResolvedCall(bindingContext)
-    } else {
-      it
+  val veryLast = when (lastElementWithoutReturn) {
+    is DotQualifiedExpression -> {
+      val selector = lastElementWithoutReturn.selectorExpression
+      val callee = (selector as? CallExpression)?.calleeExpression
+      if (callee != null && callee.text == "post") {
+        lastElementWithoutReturn.receiverExpression
+      } else {
+        null
+      }
     }
-  }
+    else -> null
+  } ?: lastElementWithoutReturn
+
+  return veryLast?.getResolvedCall(bindingContext)
 }
 //  ((descriptor.findPsi() as? KtFunction)?.body()
 //    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor

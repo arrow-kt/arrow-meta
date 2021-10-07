@@ -1,5 +1,6 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
@@ -7,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.descriptors.ClassKind
 
 class KotlinClassDescriptor(
@@ -48,6 +50,8 @@ class KotlinClassDescriptor(
     get() = impl().unsubstitutedPrimaryConstructor?.model()
   override val sealedSubclasses: Collection<ClassDescriptor>
     get() = impl().sealedSubclasses.map { it.model() }
+  override val superTypes: Collection<Type>
+    get() = impl.defaultType.constructor.supertypes.map { KotlinType(it) }
   override val isInner: Boolean
     get() = impl.isInner
   override val declaredTypeParameters: List<TypeParameterDescriptor>

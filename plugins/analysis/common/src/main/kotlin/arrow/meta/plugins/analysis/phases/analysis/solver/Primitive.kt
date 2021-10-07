@@ -12,7 +12,6 @@ import arrow.meta.plugins.analysis.smt.boolEquivalence
 import arrow.meta.plugins.analysis.smt.boolNot
 import arrow.meta.plugins.analysis.smt.boolOr
 import arrow.meta.plugins.analysis.smt.boolXor
-import arrow.meta.plugins.analysis.smt.intDivide
 import arrow.meta.plugins.analysis.smt.intEquals
 import arrow.meta.plugins.analysis.smt.intGreaterThan
 import arrow.meta.plugins.analysis.smt.intGreaterThanOrEquals
@@ -22,7 +21,6 @@ import arrow.meta.plugins.analysis.smt.intMinus
 import arrow.meta.plugins.analysis.smt.intMultiply
 import arrow.meta.plugins.analysis.smt.intNegate
 import arrow.meta.plugins.analysis.smt.intPlus
-import arrow.meta.plugins.analysis.smt.rationalDivide
 import arrow.meta.plugins.analysis.smt.rationalEquals
 import arrow.meta.plugins.analysis.smt.rationalGreaterThan
 import arrow.meta.plugins.analysis.smt.rationalGreaterThanOrEquals
@@ -66,7 +64,7 @@ fun Solver.primitiveFormula(
 }
 
 internal fun CallableDescriptor.isComparison() =
-  overriddenDescriptors.any {
+  (listOf(this) + overriddenDescriptors).any {
     it.fqNameSafe == FqName("kotlin.Any.equals") ||
       it.fqNameSafe == FqName("kotlin.Comparable.equals") ||
       it.fqNameSafe == FqName("kotlin.Comparable.compareTo")
@@ -110,6 +108,11 @@ private fun Solver.comparisonFormula(
             "<=" -> rationalLessThanOrEquals(args)
             else -> null
           }
+        ty1 == null && ty2 == null -> // equality on objects
+          when (op) {
+            "==" -> intEquals(args)
+            else -> null
+          }
         else -> null
       }
     }
@@ -132,7 +135,7 @@ private fun Solver.integralFormula(
   "plus" -> intPlus(args)
   "minus" -> intMinus(args)
   "times" -> intMultiply(args)
-  "div" -> intDivide(args)
+  // "div" -> intDivide(args) // not all SMT solvers support div
   "inc" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
   "dec" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
   "unaryMinus" -> intNegate(args)
@@ -147,7 +150,7 @@ private fun Solver.rationalFormula(
   "plus" -> rationalPlus(args)
   "minus" -> rationalMinus(args)
   "times" -> rationalMultiply(args)
-  "div" -> rationalDivide(args)
+  // "div" -> rationalDivide(args) // not all SMT solvers support div
   "inc" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
   "dec" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
   "unaryMinus" -> rationalNegate(args)
