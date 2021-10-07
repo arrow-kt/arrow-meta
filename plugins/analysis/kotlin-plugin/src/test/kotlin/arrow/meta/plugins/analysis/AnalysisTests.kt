@@ -1028,6 +1028,41 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `parses predicates, Result`() {
+    """
+      ${imports()}
+      
+      import kotlin.Result.Companion.success
+      import kotlin.Result.Companion.failure
+      
+      @Law
+      inline fun <T> successLaw(x: T): Result<T> =
+        success(x).post({ it.isSuccess == true }) { "create a success" }
+      
+      @Law
+      inline fun <T> failureLaw(e: Throwable): Result<T> =
+        failure<T>(e).post({ it.isFailure == true }) { "create a failure" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Lazy`() {
+    """
+      ${imports()}
+      
+      @Law
+      inline fun <T> lazyOfLaw(value: T): Lazy<T> =
+        lazyOf(value).post({ it.value == value }) { "lazy value is argument" }
+      """(
+      withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private fun imports() =

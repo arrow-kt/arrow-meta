@@ -64,7 +64,7 @@ fun Solver.primitiveFormula(
 }
 
 internal fun CallableDescriptor.isComparison() =
-  overriddenDescriptors.any {
+  (listOf(this) + overriddenDescriptors).any {
     it.fqNameSafe == FqName("kotlin.Any.equals") ||
       it.fqNameSafe == FqName("kotlin.Comparable.equals") ||
       it.fqNameSafe == FqName("kotlin.Comparable.compareTo")
@@ -106,6 +106,11 @@ private fun Solver.comparisonFormula(
             ">=" -> rationalGreaterThanOrEquals(args)
             "<" -> rationalLessThan(args)
             "<=" -> rationalLessThanOrEquals(args)
+            else -> null
+          }
+        ty1 == null && ty2 == null -> // equality on objects
+          when (op) {
+            "==" -> intEquals(args)
             else -> null
           }
         else -> null

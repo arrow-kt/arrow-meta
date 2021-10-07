@@ -1,6 +1,7 @@
 package arrow.meta.plugins.analysis.types
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 
 enum class PrimitiveType {
   BOOLEAN, INTEGRAL, RATIONAL, CHAR
@@ -23,5 +24,9 @@ fun Type.primitiveType(): PrimitiveType? =
     isDouble() -> PrimitiveType.RATIONAL
     isFloat() -> PrimitiveType.RATIONAL
     isChar() -> PrimitiveType.CHAR
-    else -> null
+    else -> when (this.descriptor?.fqNameSafe) {
+      FqName("java.math.BigInteger") -> PrimitiveType.INTEGRAL
+      FqName("java.math.BigDecimal") -> PrimitiveType.RATIONAL
+      else -> null
+    }
   }
