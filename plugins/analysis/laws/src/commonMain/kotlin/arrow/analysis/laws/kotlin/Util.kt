@@ -10,13 +10,10 @@ import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
 /*
-We follow the layout from https://github.com/JetBrains/kotlin/tree/master/libraries/stdlib/src/kotlin/util
+We follow the layout from
+https://github.com/JetBrains/kotlin/tree/master/libraries/stdlib/src/kotlin/util
+except for functions related to numbers
  */
-
-// ** FloorDivMod.kt **
-
-// not really much we can say about mod (depends on the sign),
-// or floorDiv (we don't have division in the SMT solver)
 
 // ** HashCode.kt **
 
@@ -29,52 +26,6 @@ inline fun Any?.hashCodeLaw(): Int =
 @Law
 inline fun <T> lazyOfLaw(value: T): Lazy<T> =
   lazyOf(value).post({ it.value == value }) { "lazy value is argument" }
-
-// ** Numbers.kt **
-
-object ByteNumbersLaws : Laws {
-  inline fun Byte.countOneBitsLaw(): Int =
-    this.countOneBits().post({ it >= 0 }) { "number of ones is >= 0" }
-
-  inline fun Byte.countLeadingZeroBitsLaw(): Int =
-    this.countLeadingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-
-  inline fun Byte.countTrailingZeroBitsLaw(): Int =
-    this.countTrailingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-}
-
-object ShortNumbersLaws : Laws {
-  inline fun Short.countOneBitsLaw(): Int =
-    this.countOneBits().post({ it >= 0 }) { "number of ones is >= 0" }
-
-  inline fun Short.countLeadingZeroBitsLaw(): Int =
-    this.countLeadingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-
-  inline fun Short.countTrailingZeroBitsLaw(): Int =
-    this.countTrailingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-}
-
-object IntNumbersLaws : Laws {
-  inline fun Int.countOneBitsLaw(): Int =
-    this.countOneBits().post({ it >= 0 }) { "number of ones is >= 0" }
-
-  inline fun Int.countLeadingZeroBitsLaw(): Int =
-    this.countLeadingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-
-  inline fun Int.countTrailingZeroBitsLaw(): Int =
-    this.countTrailingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-}
-
-object LongNumbersLaws : Laws {
-  inline fun Long.countOneBitsLaw(): Int =
-    this.countOneBits().post({ it >= 0 }) { "number of ones is >= 0" }
-
-  inline fun Long.countLeadingZeroBitsLaw(): Int =
-    this.countLeadingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-
-  inline fun Long.countTrailingZeroBitsLaw(): Int =
-    this.countTrailingZeroBits().post({ it >= 0 }) { "number of zeros is >= 0" }
-}
 
 // ** Preconditions.kt **
 
