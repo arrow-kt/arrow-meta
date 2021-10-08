@@ -13,8 +13,8 @@ class CurrentBranch(private val branches: MutableList<BooleanFormula>) {
     branches.add(constraint)
   }
 
-  fun bracket(): ContSeq<Unit> = ContSeq {
-    val currentBranches = branches.toList()
+  private fun bracket(): ContSeq<Unit> = ContSeq {
+    val currentBranches = branches.toTypedArray()
     yield(Unit)
     branches.clear()
     branches.addAll(currentBranches)

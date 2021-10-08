@@ -17,7 +17,7 @@ data class ReturnPoints(
       .replaceTopMost(newScopeName, newVariableName)
       .add(newScopeName, newVariableName)
 
-  private fun replaceTopMost(newScopeName: String, newVariableName: ObjectFormula) =
+  fun replaceTopMost(newScopeName: String?, newVariableName: ObjectFormula) =
     ReturnPoints(Pair(newScopeName, newVariableName), namedReturnPointVariableNames)
 
   private fun add(returnPoint: String, variableName: ObjectFormula) =

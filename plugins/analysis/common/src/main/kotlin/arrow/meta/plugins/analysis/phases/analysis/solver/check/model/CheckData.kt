@@ -11,4 +11,7 @@ data class CheckData(
 ) {
   fun addReturnPoint(scope: String, variableName: ObjectFormula) =
     CheckData(context, returnPoints.addAndReplaceTopMost(scope, variableName), varInfo, branch)
+
+  fun replaceTopMostReturnPoint(scope: String?, variableName: ObjectFormula) =
+    CheckData(context, returnPoints.replaceTopMost(scope, variableName), varInfo, branch)
 }

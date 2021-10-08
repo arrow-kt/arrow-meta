@@ -12,14 +12,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.NoReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Return
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ReturnPoints
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPostConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPreconditionsInconsistencies
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.immediateConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovStrongerPostcondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovWeakerPrecondition
 import arrow.meta.plugins.analysis.smt.ObjectFormula
@@ -65,22 +63,31 @@ internal fun <A> SolverState.checkTopLevel(
       solver.substituteDeclarationConstraints(it, mapOf(RESULT_VAR_NAME to resultName))
     }
   // initialize the check data
-  val varInfo = initializeVarInfo(declaration)
-  val data = CheckData(context, ReturnPoints.new(declaration, resultName), varInfo, CurrentBranch.new())
+  val data = CheckData(
+    context, ReturnPoints.new(declaration, resultName),
+    CurrentVarInfo.new(), CurrentBranch.new())
   // perform the checks
   return continuationBracket.map {
-    // introduce non-nullability and invariants of parameters
     if (descriptor is CallableDescriptor) {
-      (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let { thisParam ->
-        typeInvariants(data.context, thisParam.type, THIS_VAR_NAME).forEach { addConstraint(it) }
+      val thisParam = (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)
+        ?.let { ParamInfo(THIS_VAR_NAME, THIS_VAR_NAME, it.type, declaration) }
+      val valueParams = descriptor.valueParameters.map { param ->
+        val element =
+          (declaration as? DeclarationWithBody)?.valueParameters
+            ?.firstOrNull { it?.name == param.name.value }
+        ParamInfo(param.name.value, param.name.value, param.type, element)
       }
-      descriptor.valueParameters.forEach { param ->
-        typeInvariants(data.context, param.type, param.name.value).forEach { addConstraint(it) }
-      }
-      val returnType = descriptor.returnType
-      if (returnType != null && descriptor !is ConstructorDescriptor) {
-        // introduce $result too
-        typeInvariants(data.context, returnType, RESULT_VAR_NAME).forEach { addConstraint(it) }
+      val returnParam = descriptor.returnType
+        ?.takeIf { it !is ConstructorDescriptor }
+        ?.let { ParamInfo(RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration) }
+      // introduce non-nullability and invariants of parameters
+      initializeParameters(thisParam, valueParams, returnParam, data)
+      // additional for 'this@info'
+      if (declaration is NamedDeclaration) {
+        // Add 'this@functionName'
+        declaration.nameAsName?.let { name ->
+          data.varInfo.add("this@$name", THIS_VAR_NAME, declaration)
+        }
       }
     }
     // check consistency of pre-conditions
@@ -131,7 +138,7 @@ internal fun SolverState.checkPrimaryConstructor(
     }.flatMap {
       checkExpressionConstraints(solver.thisVariable, declaration.bodyExpression, data)
     }.flatMap {
-      checkClassDeclarationInConstructorContext(context, solver.thisVariable, klass.declarations, data)
+      checkClassDeclarationInConstructorContext(solver.thisVariable, klass.declarations, data)
     }.map {
       checkPost()
       NoReturn
@@ -180,7 +187,6 @@ private fun SolverState.checkSuperTypeEntries(
   }.sequence()
 
 private fun SolverState.checkClassDeclarationInConstructorContext(
-  context: ResolutionContext,
   thisRef: ObjectFormula,
   declarations: List<Declaration>,
   data: CheckData
@@ -232,7 +238,7 @@ internal fun SolverState.checkEnumEntry(
       // the supertype entries in an enumeration is the enum itself
       checkSuperTypeEntries(context, entry.superTypeListEntries, data)
     }.flatMap {
-      checkClassDeclarationInConstructorContext(context, solver.thisVariable, entry.declarations, data)
+      checkClassDeclarationInConstructorContext(solver.thisVariable, entry.declarations, data)
     }.map {
       checkPost()
       NoReturn
@@ -272,27 +278,4 @@ private fun SolverState.checkLiskovConditions(
   } else {
     true
   }
-}
-
-/**
- * Initialize the names of the variables,
- * the SMT name is initialized to themselves.
- */
-private fun initializeVarInfo(declaration: Declaration): CurrentVarInfo {
-  val initialVarInfo = mutableListOf<VarInfo>()
-  initialVarInfo.add(VarInfo(THIS_VAR_NAME, THIS_VAR_NAME, declaration))
-  if (declaration is NamedDeclaration) {
-    // Add 'this@functionName'
-    declaration.nameAsName?.let { name ->
-      initialVarInfo.add(VarInfo("this@$name", THIS_VAR_NAME, declaration))
-    }
-  }
-  if (declaration is DeclarationWithBody) {
-    declaration.valueParameters.forEach { param ->
-      param?.nameAsName?.let { name ->
-        initialVarInfo.add(VarInfo(name.value, name.value, param))
-      }
-    }
-  }
-  return CurrentVarInfo(initialVarInfo)
 }

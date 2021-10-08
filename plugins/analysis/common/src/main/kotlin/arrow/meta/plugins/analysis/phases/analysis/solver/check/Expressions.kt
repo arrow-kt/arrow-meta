@@ -32,6 +32,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionWithLabel
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Function
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.IfExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.IsExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LabeledExpression
@@ -136,6 +137,8 @@ internal fun SolverState.checkExpressionConstraints(
       val withLabel = expression as ExpressionWithLabel
       cont { ExplicitLoopReturn(withLabel.getLabelName()) }
     }
+    is LambdaExpression ->
+      checkLambda(expression, data)
     is ThrowExpression ->
       checkThrowConstraints(expression, data)
     is NullExpression ->
@@ -174,9 +177,11 @@ internal fun SolverState.checkExpressionConstraints(
     }
     is BinaryExpression ->
       checkBinaryExpression(associatedVarName, expression, data)
+    is Function ->
+      checkFunctionDeclarationExpression(expression, data)
     is Declaration ->
       // we get additional info about the subject, but it's irrelevant here
-      checkDeclarationExpression(expression, data).map { it.second }
+      checkNonFunctionDeclarationExpression(expression, data).map { it.second }
     is Expression ->
       fallThrough(associatedVarName, expression, data)
     else ->
@@ -753,10 +758,74 @@ private fun SolverState.checkIsExpression(
 }
 
 /**
+ * Checks the body of a lambda expression,
+ * but does nothing in particular with it
+ */
+internal fun SolverState.checkLambda(
+  expr: LambdaExpression,
+  data: CheckData
+): ContSeq<Return> =
+  checkFunctionBody(expr,
+    null, expr.valueParameters, expr.functionLiteral.typeReference,
+    expr.bodyExpression, data)
+
+/**
+ * Checks the body of a local function,
+ * but does nothing in particular with it
+ */
+private fun SolverState.checkFunctionDeclarationExpression(
+  declaration: Function,
+  data: CheckData
+): ContSeq<Return> =
+  checkFunctionBody(declaration,
+    declaration.receiverTypeReference, declaration.valueParameters, declaration.typeReference,
+    declaration.stableBody(), data)
+
+/**
+ * Shared code between lambda expressions
+ * and local function declarations
+ */
+internal fun SolverState.checkFunctionBody(
+  wholeExpr: Expression,
+  receiverType: TypeReference?,
+  valueParameters: List<Parameter>,
+  resultType: TypeReference?,
+  body: Expression?,
+  data: CheckData
+): ContSeq<Return> =
+  // We need to introduce new arguments
+  // and a new return point
+  continuationBracket.flatMap {
+    data.varInfo.bracket()
+  }.flatMap {
+    // add information about parameters
+    val thisParam = receiverType?.let {
+      val thisSmtName = newName(data.context, THIS_VAR_NAME, wholeExpr)
+      ParamInfo(THIS_VAR_NAME, thisSmtName, data.context.type(it), wholeExpr)
+    }
+    val valueParams = valueParameters.mapNotNull { param ->
+      param.name?.let { name ->
+        val smtName = newName(data.context, name, param)
+        ParamInfo(name, smtName, param.type(data.context), param)
+      }
+    }
+    val resultSmtName = newName(data.context, RESULT_VAR_NAME, wholeExpr)
+    val resultParam = resultType?.let {
+      ParamInfo(RESULT_VAR_NAME, resultSmtName, data.context.type(it), wholeExpr)
+    }
+    initializeParameters(thisParam, valueParams, resultParam, data)
+    // add the new return point
+    val newData = data.replaceTopMostReturnPoint(null, solver.makeObjectVariable(resultSmtName))
+    // and now go and check the body
+    checkExpressionConstraints(resultSmtName, body, newData)
+  }
+
+
+/**
  * This function produces a continuation that makes the desired variable name
  * equal to the value encoded in the named expression.
  */
-private fun SolverState.checkDeclarationExpression(
+private fun SolverState.checkNonFunctionDeclarationExpression(
   declaration: Declaration,
   data: CheckData
 ): ContSeq<Pair<String?, Return>> =
@@ -899,7 +968,7 @@ private fun SolverState.checkConditional(
   val newSubjectVar = solver.makeObjectVariable(newName(data.context, "subject", subject))
   // this handles the cases of when with a subject, and with 'val x = subject'
   return when (subject) {
-    is Declaration -> checkDeclarationExpression(subject, data).map { (actualSubjectVar, _) ->
+    is Declaration -> checkNonFunctionDeclarationExpression(subject, data).map { (actualSubjectVar, _) ->
       actualSubjectVar?.let { solver.makeObjectVariable(it) } ?: newSubjectVar
     }
     else -> checkExpressionConstraints(newSubjectVar, subject, data).map { newSubjectVar }

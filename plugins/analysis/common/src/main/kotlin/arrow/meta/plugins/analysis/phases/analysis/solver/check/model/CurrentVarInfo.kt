@@ -9,14 +9,18 @@ data class CurrentVarInfo(val varInfo: MutableList<VarInfo>) {
   fun get(name: String): VarInfo? =
     varInfo.firstOrNull { it.name == name }
 
-  fun add(name: String, smtName: String, origin: Element, invariant: BooleanFormula?) {
+  fun add(name: String, smtName: String, origin: Element, invariant: BooleanFormula? = null) {
     varInfo.add(0, VarInfo(name, smtName, origin, invariant))
   }
 
   fun bracket(): ContSeq<Unit> = ContSeq {
-    val currentVarInfo = varInfo.toList()
+    val currentVarInfo = varInfo.toTypedArray()
     yield(Unit)
     varInfo.clear()
     varInfo.addAll(currentVarInfo)
+  }
+
+  companion object {
+    fun new(): CurrentVarInfo = CurrentVarInfo(mutableListOf())
   }
 }

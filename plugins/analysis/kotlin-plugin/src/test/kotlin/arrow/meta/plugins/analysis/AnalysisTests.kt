@@ -126,6 +126,7 @@ class AnalysisTests {
   }
 
   @Test
+  @Disabled
   fun `scopes work well`() {
     """
       ${imports()}
@@ -426,6 +427,42 @@ class AnalysisTests {
       val result = 1 / 2
       """(
       withPlugin = { compiles },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws are checked in lambda, 1`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
+      }
+     
+      val result = listOf(1, 0).map { n -> 1 / n }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `ad-hoc laws are checked in lambda, 2`() {
+    """
+      ${imports()}
+      
+      @Law
+      fun Int.safeDiv(theOtherNumber: Int): Int {
+        pre( theOtherNumber != 0 ) { "other is not zero" }
+        return this / theOtherNumber
+      }
+     
+      val result = listOf(1, 0).map { 1 / it }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied") } },
       withoutPlugin = { compiles }
     )
   }
