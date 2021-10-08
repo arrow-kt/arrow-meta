@@ -1,26 +1,20 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
 
-import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import org.sosy_lab.java_smt.api.BooleanFormula
 
-data class CurrentVarInfo(val varInfo: MutableList<VarInfo>) {
+data class CurrentVarInfo(private val varInfo: List<VarInfo>) {
 
   fun get(name: String): VarInfo? =
     varInfo.firstOrNull { it.name == name }
 
-  fun add(name: String, smtName: String, origin: Element, invariant: BooleanFormula? = null) {
-    varInfo.add(0, VarInfo(name, smtName, origin, invariant))
-  }
+  fun add(name: String, smtName: String, origin: Element, invariant: BooleanFormula? = null): CurrentVarInfo =
+    this.add(listOf(VarInfo(name, smtName, origin, invariant)))
 
-  fun bracket(): ContSeq<Unit> = ContSeq {
-    val currentVarInfo = varInfo.toTypedArray()
-    yield(Unit)
-    varInfo.clear()
-    varInfo.addAll(currentVarInfo)
-  }
+  fun add(vars: List<VarInfo>): CurrentVarInfo =
+    CurrentVarInfo(vars + varInfo)
 
   companion object {
-    fun new(): CurrentVarInfo = CurrentVarInfo(mutableListOf())
+    fun new(): CurrentVarInfo = CurrentVarInfo(emptyList())
   }
 }

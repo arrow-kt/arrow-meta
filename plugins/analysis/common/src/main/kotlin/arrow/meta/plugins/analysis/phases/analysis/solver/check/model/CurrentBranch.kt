@@ -1,32 +1,20 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
 
-import arrow.meta.continuations.ContSeq
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 typealias Branch = List<BooleanFormula>
 
-class CurrentBranch(private val branches: MutableList<BooleanFormula>) {
+class CurrentBranch(private val branches: List<BooleanFormula>) {
 
   fun get(): Branch = branches
 
-  fun add(constraint: BooleanFormula) {
-    branches.add(constraint)
-  }
+  fun add(constraint: BooleanFormula) =
+    CurrentBranch(branches + constraint)
 
-  private fun bracket(): ContSeq<Unit> = ContSeq {
-    val currentBranches = branches.toTypedArray()
-    yield(Unit)
-    branches.clear()
-    branches.addAll(currentBranches)
-  }
-
-  fun introduce(constraint: BooleanFormula): ContSeq<Unit> =
-    introduce(listOf(constraint))
-
-  fun introduce(constraints: List<BooleanFormula>): ContSeq<Unit> =
-    bracket().map { constraints.forEach { add(it) } }
+  fun add(constraints: List<BooleanFormula>) =
+    CurrentBranch(branches + constraints)
 
   companion object {
-    fun new(): CurrentBranch = CurrentBranch(mutableListOf())
+    fun new(): CurrentBranch = CurrentBranch(emptyList())
   }
 }

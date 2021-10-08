@@ -63,7 +63,7 @@ class AnalysisTests {
       fun bar(x: Int): Int =
         3.post({ it > 0 }) { "greater than 0" }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -108,7 +108,7 @@ class AnalysisTests {
       fun bar(x: Int): Int =
         0.let { it + 1 }.post({ it > 0 }) { "greater than 0" }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -126,7 +126,6 @@ class AnalysisTests {
   }
 
   @Test
-  @Disabled
   fun `scopes work well`() {
     """
       ${imports()}
@@ -181,7 +180,7 @@ class AnalysisTests {
         return z.post({ it >= 0 }) { "greater or equal to 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -213,7 +212,7 @@ class AnalysisTests {
         }).post({ it > 0 }) { "result is > 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -229,7 +228,7 @@ class AnalysisTests {
         }).post({ it > 0 }) { "result is > 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -262,7 +261,7 @@ class AnalysisTests {
       }
       val result = bar(1)
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -318,7 +317,7 @@ class AnalysisTests {
      
       val result = bar(1)
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -388,7 +387,7 @@ class AnalysisTests {
         val result = 1 / x
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -426,7 +425,7 @@ class AnalysisTests {
      
       val result = 1 / 2
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -504,7 +503,7 @@ class AnalysisTests {
      
       val result = ArrayList<Int>(1)
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -613,7 +612,7 @@ class AnalysisTests {
         return x.get(0)
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -630,7 +629,7 @@ class AnalysisTests {
         }) { "greater than 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -681,7 +680,7 @@ class AnalysisTests {
         return y.post({ (it == null) || (it > 1) }) { "greater than 1" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -695,7 +694,7 @@ class AnalysisTests {
         return y.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -723,7 +722,7 @@ class AnalysisTests {
         return y.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -737,7 +736,7 @@ class AnalysisTests {
         return y.post({ it > 0 }) { "greater than 0" }
       }
     """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -810,7 +809,7 @@ class AnalysisTests {
         }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -909,7 +908,7 @@ class AnalysisTests {
         }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -929,7 +928,7 @@ class AnalysisTests {
         return (x + b.n).post({it > 0}) { "result is positive" }
       }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1023,7 +1022,7 @@ class AnalysisTests {
       
       val result: Int = Color.RED.rgb.post({ it != 0 }) { "check this" }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1078,7 +1077,7 @@ class AnalysisTests {
       
       val result = f(emptyList<Int>())
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1099,7 +1098,7 @@ class AnalysisTests {
       inline fun <T> failureLaw(e: Throwable): Result<T> =
         failure<T>(e).post({ it.isFailure == true }) { "create a failure" }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1113,11 +1112,14 @@ class AnalysisTests {
       inline fun <T> lazyOfLaw(value: T): Lazy<T> =
         lazyOf(value).post({ it.value == value }) { "lazy value is argument" }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
 }
+
+private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
+  get() = compilesWith { !it.contains("unreachable code") }
 
 private fun imports() =
   """
