@@ -5,7 +5,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCa
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.allArgumentExpressions
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.boolAnd
 import arrow.meta.plugins.analysis.smt.boolEquivalence
@@ -78,8 +77,8 @@ private fun Solver.comparisonFormula(
   resolvedCall.allArgumentExpressions(context)
     .takeIf { it.size == 2 }
     ?.let {
-      val ty1 = it[0].second.unwrapIfNullable().primitiveType()
-      val ty2 = it[1].second.unwrapIfNullable().primitiveType()
+      val ty1 = it[0].type.unwrapIfNullable().primitiveType()
+      val ty2 = it[1].type.unwrapIfNullable().primitiveType()
       val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
       when {
         ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->

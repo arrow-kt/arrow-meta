@@ -8,13 +8,14 @@ import arrow.meta.continuations.asContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
+import arrow.meta.plugins.analysis.phases.analysis.solver.ArgumentExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
+import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
@@ -69,24 +70,23 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.StateAfter
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SubjectCondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.expressionToFormula
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.invariantCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.postCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.preCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.primitiveConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.valueArgumentExpressions
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
+import arrow.meta.plugins.analysis.phases.analysis.solver.referencedArg
+import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkCallPreConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkConditionsInconsistencies
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariant
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariantConsistency
+import arrow.meta.plugins.analysis.phases.analysis.solver.valueArgumentExpressions
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.renameObjectVariables
 import arrow.meta.plugins.analysis.smt.substituteDeclarationConstraints
@@ -315,14 +315,15 @@ private fun SolverState.checkCallExpression(
   resolvedCall: ResolvedCall,
   data: CheckData
 ): ContSeq<StateAfter> {
+  val specialKind = resolvedCall.specialKind
   val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
   val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
-    resolvedCall.preCall() -> // ignore calls to 'pre'
+    specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
       cont { data.noReturn() }
-    resolvedCall.postCall() -> // ignore post arguments
+    specialKind == SpecialKind.Post -> // ignore post arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
-    resolvedCall.invariantCall() -> // ignore invariant arguments
+    specialKind == SpecialKind.Invariant -> // ignore invariant arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)
@@ -333,14 +334,6 @@ private fun SolverState.checkCallExpression(
         }
       }
     else -> checkRegularFunctionCall(associatedVarName, resolvedCall, expression, data)
-  }
-}
-
-private fun ResolvedCall.referencedArg(
-  arg: Expression?
-): Pair<ValueParameterDescriptor, ResolvedValueArgument>? = valueArguments.toList().firstOrNull { (_, resolvedArg) ->
-  resolvedArg.arguments.any { valueArg ->
-    valueArg.argumentExpression == arg
   }
 }
 
@@ -458,7 +451,8 @@ internal fun SolverState.checkRegularFunctionCall(
           if (descriptor.isField()) {
             val fieldConstraint = solver.ints {
               val typeName = descriptor.fqNameSafe.name
-              val argName = if (resolvedCall.hasReceiver()) receiverName else argVars[0].second
+              val argName =
+                if (resolvedCall.hasReceiver()) receiverName else argVars[0].assignedSmtVariable
               NamedConstraint(
                 "${expression.text} == $typeName($argName)",
                 equal(
@@ -551,10 +545,6 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
   }
 }
 
-private fun ResolvedCall.hasReceiver() =
-  this.resultingDescriptor.dispatchReceiverParameter != null ||
-    this.resultingDescriptor.extensionReceiverParameter != null
-
 /**
  * Checks leftExpr ?: rightExpr
  * This is very similar to [checkReceiverWithPossibleSafeDot],
@@ -599,6 +589,24 @@ private fun SolverState.checkElvisOperator(
   }
 }
 
+data class CallArgumentsInfo(
+  val returnOrVariables: Either<ExplicitReturn, List<CallArgumentVariable>>,
+  val data: CheckData
+) {
+  companion object {
+    fun init(data: CheckData) =
+      CallArgumentsInfo(emptyList<CallArgumentVariable>().right(), data)
+  }
+}
+
+data class CallArgumentVariable(
+  val parameterName: String,
+  val assignedSmtVariable: ObjectFormula
+)
+
+private fun List<CallArgumentVariable>.toMap() =
+  associate { (name, smt) -> name to smt }
+
 /**
  * Recursively perform check on arguments,
  * including extension receiver and dispatch receiver
@@ -611,7 +619,7 @@ private fun SolverState.checkElvisOperator(
 private fun SolverState.checkCallArguments(
   resolvedCall: ResolvedCall,
   data: CheckData
-): ContSeq<Pair<Either<ExplicitReturn, List<Pair<String, ObjectFormula>>>, CheckData>> {
+): ContSeq<CallArgumentsInfo> {
   // why is this so complicated?
   //   in theory, we just need to run checkExpressionConstraints over each argument
   //   (in fact, the original implementation just did that, and then called .sequence())
@@ -620,25 +628,27 @@ private fun SolverState.checkCallArguments(
   //   and in that case we stop the check of any more arguments
   //   (stopping there is important, since introducing additional constraints from
   //    other arguments may not be right in the general case)
-  fun <A> acc(
-    upToNow: ContSeq<Pair<Either<ExplicitReturn, List<Pair<String, ObjectFormula>>>, CheckData>>,
-    current: Triple<String, A, Expression?>
-  ): ContSeq<Pair<Either<ExplicitReturn, List<Pair<String, ObjectFormula>>>, CheckData>> =
+  fun acc(
+    upToNow: ContSeq<CallArgumentsInfo>,
+    current: ArgumentExpression
+  ): ContSeq<CallArgumentsInfo> =
     upToNow.flatMap { (result, data) ->
       result.fold(
-        { r -> cont { r.left() to data } },
+        { r -> cont { CallArgumentsInfo(r.left(), data) } },
         { argsUpToNow ->
           val (name, _, expr) = current
           val referencedElement = resolvedCall.referencedArg(expr)
           val argUniqueName = solver.makeObjectVariable(newName(data.context, name, expr, referencedElement))
-          checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s -> r.left() to s.data }) { s ->
-            cont { (argsUpToNow + listOf(name to argUniqueName)).right() to s.data }
+          checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({
+              r, s -> CallArgumentsInfo(r.left(), s.data)
+          }) { s ->
+            cont { CallArgumentsInfo((argsUpToNow + listOf(CallArgumentVariable(name, argUniqueName))).right(), s.data) }
           }
         }
       )
     }
   return resolvedCall.valueArgumentExpressions(data.context)
-    .fold(cont { emptyList<Pair<String, ObjectFormula>>().right() to data }, ::acc)
+    .fold(cont { CallArgumentsInfo.init(data) }, ::acc)
 }
 
 private fun SolverState.checkNullExpression(
@@ -950,7 +960,7 @@ private fun SolverState.obtainInvariant(
   data: CheckData
 ): Pair<Expression, BooleanFormula>? =
   expression.getResolvedCall(data.context)
-    ?.takeIf { it.invariantCall() }
+    ?.takeIf { it.specialKind == SpecialKind.Invariant }
     ?.arg("predicate", data.context)
     ?.let { expr: Expression ->
       solver.expressionToFormula(expr, data.context, emptyList(), true)
