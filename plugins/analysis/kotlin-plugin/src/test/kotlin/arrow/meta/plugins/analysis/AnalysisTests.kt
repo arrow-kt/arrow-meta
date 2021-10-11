@@ -40,6 +40,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `boolean variable used as predicate`() {
+    """
+      ${imports()}
+      fun negate(x: Boolean): Boolean {
+        pre(x) { "x is true" }
+        return (!x).post({ !it }) { "returns false" }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}
