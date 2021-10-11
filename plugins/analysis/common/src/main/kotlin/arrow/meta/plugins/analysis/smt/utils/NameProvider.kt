@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.smt.utils
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import java.util.concurrent.ConcurrentHashMap

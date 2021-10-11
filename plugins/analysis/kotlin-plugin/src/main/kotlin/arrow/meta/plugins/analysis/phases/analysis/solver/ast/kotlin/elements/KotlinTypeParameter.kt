@@ -2,7 +2,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeParameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Variance
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Variance
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.types.Variance.INVARIANT

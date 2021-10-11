@@ -41,6 +41,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CurrentBranch
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkDefaultValueInconsistency
 
 // 2.1: declarations
 // -----------------
@@ -95,6 +96,8 @@ internal fun <A> SolverState.checkTopLevel(
     val inconsistentPreconditions =
       checkPreconditionsInconsistencies(constraints, data.context, declaration)
     ensure(!inconsistentPreconditions)
+  }.flatMap {
+    checkDefaultParameters(declaration, data)
   }.map {
     // check Liskov conditions
     val liskovOk = checkLiskovConditions(declaration, descriptor, data.context)
@@ -274,4 +277,29 @@ private fun SolverState.checkLiskovConditions(
   } else {
     true
   }
+}
+
+/**
+ * Check that the values of default parameters
+ * satisfy the preconditions
+ */
+private fun SolverState.checkDefaultParameters(
+  declaration: Declaration,
+  data: CheckData
+): ContSeq<Unit> = when (declaration) {
+  is DeclarationWithBody -> scopedBracket {
+    declaration.valueParameters.filterNotNull().mapNotNull { param ->
+      val name = param.name
+      val defaultValue = param.defaultValue
+      if (name != null && defaultValue != null) {
+        checkExpressionConstraints(name, defaultValue, data)
+      } else {
+        null
+      }
+    }.sequence().map {
+      val inconsistentDefaults = checkDefaultValueInconsistency(data.context, declaration)
+      ensure(!inconsistentDefaults)
+    }
+  }
+  else -> cont { }
 }

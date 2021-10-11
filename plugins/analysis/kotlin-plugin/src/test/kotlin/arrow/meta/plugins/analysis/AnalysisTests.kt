@@ -1083,6 +1083,51 @@ class AnalysisTests {
   }
 
   @Test
+  fun `optional arguments, 1`() {
+    """
+      ${imports()}
+      fun f(x: Int = 0): Int {
+        pre(x > 10) { "greater than ten" }
+        return 1
+      }
+      """(
+      withPlugin = { failsWith { it.contains("has inconsistent default values") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `optional arguments, 2`() {
+    """
+      ${imports()}
+      fun f(x: Int = 1): Int {
+        pre(x > 0) { "greater than ten" }
+        return 1
+      }
+      
+      val result1 = f()
+      val result2 = f(3)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `optional arguments, only knows pre`() {
+    """
+      ${imports()}
+      fun f(x: Int = 1): Int {
+        pre(x > 0) { "greater than ten" }
+        return x.post({ it == 1 }) { "is one" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `parses predicates, Result`() {
     """
       ${imports()}

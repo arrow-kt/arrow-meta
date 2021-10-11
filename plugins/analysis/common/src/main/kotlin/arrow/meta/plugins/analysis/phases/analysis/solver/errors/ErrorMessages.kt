@@ -226,6 +226,24 @@ object ErrorMessages {
       "${declaration.name} has inconsistent pre-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
 
     /**
+     *  The default values do not satisfy the pre-conditions.
+     *
+     *  For example:
+     *
+     *  ```kotlin
+     *  fun h(x: Int = 0): Int {
+     *    pre({ x > 0 }) { "greater than 0" }
+     *    ...
+     *  }
+     *  ```
+     */
+    internal fun KotlinPrinter.inconsistentDefaultValues(
+      declaration: Declaration,
+      unsatCore: List<BooleanFormula>
+    ): String =
+      "${declaration.name} has inconsistent default values: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
+
+    /**
      * (attached to a particular condition):
      *  the body of a branch is never executed, because the condition it hangs upon
      *  conflicts with the rest of the information about the function.

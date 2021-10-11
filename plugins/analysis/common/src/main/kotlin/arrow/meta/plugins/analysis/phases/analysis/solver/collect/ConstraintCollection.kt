@@ -1,5 +1,8 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.collect
 
+import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
+import arrow.meta.plugins.analysis.phases.analysis.solver.allArgumentExpressions
+import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
@@ -40,7 +43,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.R
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnalysisResult
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotated
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
@@ -56,17 +59,20 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.resolvedArg
+import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaManager
@@ -104,7 +110,7 @@ internal fun Declaration.constraints(
   descriptor: DeclarationDescriptor
 ) = when (this) {
   is Constructor<*> ->
-    constraintsFromConstructor(solverState, context, valueParameters.filterNotNull())
+    constraintsFromConstructor(solverState, context, valueParameters)
   is DeclarationWithBody ->
     constraintsFromFunctionLike(solverState, context, valueParameters.filterNotNull())
   is DeclarationWithInitializer ->
@@ -144,8 +150,11 @@ private fun Declaration.constraintsFromFunctionLike(
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
   constraintsFromDeclaration(solverState, context, parameters).forEach { (call, formula) ->
-    if (call.preCall()) preConstraints.add(formula)
-    if (call.postCall()) postConstraints.add(formula)
+    when (call.specialKind) {
+      SpecialKind.Pre -> preConstraints.add(formula)
+      SpecialKind.Post -> postConstraints.add(formula)
+      else -> { } // do nothing
+    }
   }
   return Pair(preConstraints, postConstraints)
 }
@@ -165,13 +174,13 @@ private fun <A : Constructor<A>> Constructor<A>.constraintsFromConstructor(
   (getContainingClassOrObject().getAnonymousInitializers() + listOf(this)).flatMap {
     it.constraintsFromDeclaration(solverState, context, parameters)
   }.forEach { (call, formula) ->
-    if (call.preCall()) {
-      rewritePrecondition(solverState, context, !call.requireCall(), call, formula.formula)?.let {
+    if (call.specialKind == SpecialKind.Pre) {
+      rewritePrecondition(solverState, context, !call.isRequireCall(), call, formula.formula)?.let {
         preConstraints.add(NamedConstraint(formula.msg, it))
       }
     }
     // in constructors 'require' has a double duty
-    if (call.postCall() || call.requireCall()) {
+    if (call.specialKind == SpecialKind.Post || call.isRequireCall()) {
       rewritePostcondition(solverState, formula.formula).let {
         postConstraints.add(NamedConstraint(formula.msg, it))
       }
@@ -260,7 +269,8 @@ private fun Element.elementToConstraint(
   parameters: List<Parameter>
 ): Pair<ResolvedCall, NamedConstraint>? {
   val call = getResolvedCall(context)
-  return if (call?.preOrPostCall() == true) {
+  val kind = call?.specialKind
+  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
     val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
     val result = solverState.solver.expressionToFormula(predicateArg, context, parameters, false) as? BooleanFormula
     if (result == null) {
@@ -278,37 +288,6 @@ private fun Element.elementToConstraint(
     null
   }
 }
-
-/**
- * returns true if [this] resolved call is calling [arrow.analysis.pre]
- */
-internal fun ResolvedCall.preCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.pre") ||
-    requireCall() // require is taken as precondition
-
-/**
- * returns true if [this] resolved call is calling [arrow.analysis.post]
- */
-internal fun ResolvedCall.postCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.post")
-
-/**
- * returns true if [this] resolved call is calling [kotlin.require]
- */
-internal fun ResolvedCall.requireCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("kotlin.require")
-
-/**
- * returns true if [this] resolved call is calling [arrow.analysis.pre] or  [arrow.analysis.post]
- */
-private fun ResolvedCall.preOrPostCall(): Boolean =
-  preCall() || postCall()
-
-/**
- * returns true if [this] resolved call is calling [arrow.analysis.invariant]
- */
-internal fun ResolvedCall.invariantCall(): Boolean =
-  resultingDescriptor.fqNameSafe == FqName("arrow.analysis.invariant")
 
 /**
  * returns true if we have declared something with a @Law
@@ -446,7 +425,7 @@ private fun SolverState.findDescriptorFromLocalLaw(
   }
 
   val parameters = descriptor.allParameters.filter { !it.type.descriptor.isLawsType() }
-  val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.third }
+  val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.expression }
   val check = parameters.zip(arguments).all { (param, arg) ->
     (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
       (param is ValueParameterDescriptor && arg is NameReferenceExpression && arg.getReferencedNameAsName() == param.name)
@@ -816,45 +795,12 @@ private fun CallableDescriptor.hasOneReceiver(): Boolean =
   (extensionReceiverParameter != null && dispatchReceiverParameter == null) ||
     (extensionReceiverParameter == null && dispatchReceiverParameter != null)
 
-/**
- * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and all
- * value arguments
- */
-internal fun ResolvedCall.allArgumentExpressions(context: ResolutionContext): List<Triple<String, Type, Expression?>> =
-  listOfNotNull((dispatchReceiver ?: extensionReceiver)?.type?.let { Triple("this", it, getReceiverExpression()) }) +
-    valueArgumentExpressions(context)
-
-internal fun ResolvedCall.valueArgumentExpressions(context: ResolutionContext): List<Triple<String, Type, Expression?>> =
-  valueArguments.flatMap { (param, resolvedArg) ->
-    val containingType =
-      if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
-        (param.containingDeclaration?.containingDeclaration as? ClassDescriptor)?.defaultType
-          ?: context.types.nothingType
-      else param.type
-    resolvedArg.arguments.map {
-      Triple(param.name.value, containingType, it.argumentExpression)
-    }
-  }
-
-internal fun ResolvedCall.arg(
-  argumentName: String,
-  context: ResolutionContext
-): Expression? =
-  this.allArgumentExpressions(context).find { it.first == argumentName }?.third
-
-internal fun ResolvedCall.resolvedArg(
-  argumentName: String
-): ResolvedValueArgument? =
-  this.valueArguments.toList().find {
-    it.first.name.value == argumentName
-  }?.second
-
 internal fun Element.isResultReference(bindingContext: ResolutionContext): Boolean =
   getPostOrInvariantParent(bindingContext)?.let { parent ->
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
       (expArg?.valueArgument as? ExpressionLambdaArgument)?.getLambdaExpression()
-        ?: (expArg?.valueArgument as? arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionResolvedValueArgument)?.argumentExpression as? LambdaExpression
+        ?: (expArg?.valueArgument as? ExpressionResolvedValueArgument)?.argumentExpression as? LambdaExpression
     val params =
       lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
         listOf("it")
@@ -867,5 +813,6 @@ internal fun Element.getPostOrInvariantParent(
   this.parents().mapNotNull {
     it.getResolvedCall(bindingContext)
   }.firstOrNull { call ->
-    call.postCall() || call.invariantCall()
+    val kind = call.specialKind
+    kind == SpecialKind.Post || kind == SpecialKind.Invariant
   }

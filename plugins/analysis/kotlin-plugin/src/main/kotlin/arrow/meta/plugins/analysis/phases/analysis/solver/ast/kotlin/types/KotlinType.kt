@@ -1,8 +1,9 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types
 
 import arrow.meta.phases.resolve.unwrappedNotNullableType
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.TypeProjection
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
@@ -27,6 +28,8 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
     get() = KotlinType(impl.unwrappedNotNullableType)
   override val isMarkedNullable: Boolean
     get() = impl.isMarkedNullable
+  override val arguments: List<TypeProjection>
+    get() = impl.arguments.map { KotlinTypeProjection(it) }
 
   override fun isBoolean(): Boolean =
     impl.isBoolean()

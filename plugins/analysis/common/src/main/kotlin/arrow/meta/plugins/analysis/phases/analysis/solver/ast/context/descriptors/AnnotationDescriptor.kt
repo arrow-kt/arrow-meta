@@ -2,7 +2,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descripto
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface AnnotationDescriptor {
   val allValueArguments: Map<Name, Any?>
