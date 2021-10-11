@@ -11,7 +11,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 enum class SpecialKind {
-  Pre, Post, Invariant
+  Pre, Post, Invariant, TrustMe
 }
 
 internal val ResolvedCall.specialKind: SpecialKind?
@@ -20,6 +20,7 @@ internal val ResolvedCall.specialKind: SpecialKind?
     FqName("kotlin.require") -> SpecialKind.Pre
     FqName("arrow.analysis.post") -> SpecialKind.Post
     FqName("arrow.analysis.invariant") -> SpecialKind.Invariant
+    FqName("arrow.analysis.trustMe") -> SpecialKind.TrustMe
     else -> null
   }
 
@@ -28,6 +29,12 @@ internal val ResolvedCall.specialKind: SpecialKind?
  */
 internal fun ResolvedCall.isRequireCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("kotlin.require")
+
+/**
+ * Returns 'true' if the resolved call represents `?:`
+ */
+internal fun ResolvedCall.isElvisOperator(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName("<SPECIAL-FUNCTION-FOR-ELVIS-RESOLVE>")
 
 /**
  * Returns `true` if the function has either

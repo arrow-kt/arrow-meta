@@ -78,6 +78,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.primitiveConst
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
+import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
 import arrow.meta.plugins.analysis.phases.analysis.solver.referencedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -317,7 +318,6 @@ private fun SolverState.checkCallExpression(
 ): ContSeq<StateAfter> {
   val specialKind = resolvedCall.specialKind
   val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
-  val fqName = resolvedCall.resultingDescriptor.fqNameSafe
   return when {
     specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
       cont { data.noReturn() }
@@ -325,9 +325,13 @@ private fun SolverState.checkCallExpression(
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
     specialKind == SpecialKind.Invariant -> // ignore invariant arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+    specialKind == SpecialKind.TrustMe ->
+      doOnlyWhenNotNull(resolvedCall.valueArgumentExpressions(data.context).getOrNull(0), data.noReturn()) { arg ->
+        checkExpressionConstraints(associatedVarName, arg.expression, data)
+      }
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)
-    fqName == FqName("<SPECIAL-FUNCTION-FOR-ELVIS-RESOLVE>") ->
+    resolvedCall.isElvisOperator() ->
       doOnlyWhenNotNull(resolvedCall.arg("left", data.context), data.noReturn()) { left ->
         doOnlyWhenNotNull(resolvedCall.arg("right", data.context), data.noReturn()) { right ->
           checkElvisOperator(associatedVarName, left, right, data)
@@ -444,8 +448,16 @@ internal fun SolverState.checkRegularFunctionCall(
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
           }
-          // check pre-conditions and post-conditions
-          checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall, data.branch.get())
+          // check pre-conditions, unless they should be trusted
+          // where does the 2 come from?
+          // - parent 0 -> ValueArgument
+          // - parent 1 -> ValueArgumentList
+          // - parent 2 -> potential CallExpression
+          val trustPreconditions =
+            expression.parents().getOrNull(2)?.getResolvedCall(data.context)?.specialKind == SpecialKind.TrustMe
+          if (!trustPreconditions) {
+            checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall, data.branch.get())
+          }
           // add a constraint for fields: result == field(name, value)
           val descriptor = resolvedCall.resultingDescriptor
           if (descriptor.isField()) {
