@@ -802,6 +802,10 @@ internal fun SolverState.checkLambda(
     expr.bodyExpression, data)
 }
 
+/**
+ * Checks whether we have a type
+ * (x: A) -> B, and returns the A
+ */
 internal fun Type.singleFunctionArgument() =
   this.takeIf { it.descriptor?.fqNameSafe == FqName("kotlin.Function1") }
     ?.arguments?.getOrNull(0)?.type

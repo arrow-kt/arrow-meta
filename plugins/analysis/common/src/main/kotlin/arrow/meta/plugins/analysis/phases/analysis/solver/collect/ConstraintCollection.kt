@@ -48,6 +48,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DefaultValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
@@ -831,9 +832,16 @@ internal fun ResolvedCall.valueArgumentExpressions(context: ResolutionContext): 
         (param.containingDeclaration?.containingDeclaration as? ClassDescriptor)?.defaultType
           ?: context.types.nothingType
       else param.type
-    resolvedArg.arguments.map {
-      Triple(param.name.value, containingType, it.argumentExpression)
+    when {
+      resolvedArg is DefaultValueArgument && resolvedArg.valueArgument == null ->
+        listOfNotNull(param.defaultValue?.let { defaultValue ->
+          Triple(param.name.value, containingType, defaultValue)
+        })
+      else -> resolvedArg.arguments.map {
+        Triple(param.name.value, containingType, it.argumentExpression)
+      }
     }
+
   }
 
 internal fun ResolvedCall.arg(

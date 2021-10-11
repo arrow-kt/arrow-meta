@@ -10,12 +10,14 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinDefaultValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinReceiverValue
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
+import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
 
@@ -48,8 +50,9 @@ class KotlinResolvedCall(
     get() = impl().valueArguments.map { (param, resolvedArg) ->
       val p: ValueParameterDescriptor = param.model()
       val a: ResolvedValueArgument = when (resolvedArg) {
-        is ExpressionValueArgument -> KotlinExpressionValueArgument(resolvedArg)
+        is DefaultValueArgument -> KotlinDefaultValueArgument(resolvedArg)
         is VarargValueArgument -> KotlinResolvedValueArgument(resolvedArg)
+        is ExpressionValueArgument -> KotlinExpressionValueArgument(resolvedArg)
         else -> TODO()
       }
       p to a
