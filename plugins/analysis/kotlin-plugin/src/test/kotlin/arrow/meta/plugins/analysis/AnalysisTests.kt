@@ -1114,6 +1114,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `optional arguments, only knows pre`() {
+    """
+      ${imports()}
+      fun f(x: Int = 1): Int {
+        pre(x > 0) { "greater than ten" }
+        return x.post({ it == 1 }) { "is one" }
+      }
+      """(
+      withPlugin = { failsWith { it.contains("fails to satisfy the post-condition") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `parses predicates, Result`() {
     """
       ${imports()}

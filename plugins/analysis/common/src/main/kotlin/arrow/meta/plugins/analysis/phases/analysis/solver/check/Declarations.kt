@@ -287,7 +287,7 @@ private fun SolverState.checkDefaultParameters(
   declaration: Declaration,
   data: CheckData
 ): ContSeq<Unit> = when (declaration) {
-  is DeclarationWithBody -> continuationBracket.flatMap {
+  is DeclarationWithBody -> scopedBracket {
     declaration.valueParameters.filterNotNull().mapNotNull { param ->
       val name = param.name
       val defaultValue = param.defaultValue

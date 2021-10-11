@@ -69,6 +69,21 @@ data class SolverState(
   val continuationBracket: ContSeq<Unit> =
     ContSeq { bracket { yield(Unit) } }
 
+  /**
+   * This signals that part of the computation
+   * happens inside a push/pop bracket
+   */
+  fun <A> scopedBracket(cont: () -> ContSeq<A>) =
+    ContSeq.unit.map {
+      solverTrace.add("PUSH (scoped)")
+      prover.push()
+    }.flatMap {
+      cont()
+    }.onEach {
+      prover.pop()
+      solverTrace.add("POP (scoped)")
+    }
+
   fun isIn(that: Stage) = stage == that
 
   fun addConstraint(constraint: NamedConstraint) {

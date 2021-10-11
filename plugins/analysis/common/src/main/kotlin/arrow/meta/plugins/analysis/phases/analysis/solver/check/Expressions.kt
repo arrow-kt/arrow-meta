@@ -841,7 +841,7 @@ internal fun SolverState.checkFunctionBody(
 // We need to introduce new arguments
   // and a new return point
   inScope(data) {
-    continuationBracket.flatMap {
+    scopedBracket {
       // add information about parameters
       val thisParam = receiverType?.let {
         val thisSmtName = newName(data.context, THIS_VAR_NAME, wholeExpr)
