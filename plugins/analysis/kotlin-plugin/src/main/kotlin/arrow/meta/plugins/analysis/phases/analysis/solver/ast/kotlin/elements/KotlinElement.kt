@@ -29,7 +29,7 @@ fun interface KotlinElement : Element {
 
   override fun location(): CompilerMessageSourceLocation? =
     MessageUtil.psiElementToMessageLocation(impl().psiOrParent)?.let {
-      KotlinCompilerMessageSourceLocation { it }
+      KotlinCompilerMessageSourceLocation(it)
     }
 
   override val psiOrParent: Element
