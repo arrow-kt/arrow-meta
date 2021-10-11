@@ -14,11 +14,30 @@ plugins {
 configure(subprojects - project("docs")
 ) {
     apply plugin: "org.jetbrains.dokka"
-    dokka {
-        outputFormat = 'jekyll'
-        outputDirectory = PATH_APIDOCS
-        configuration {
-            includes = ['README.md']
+    dokkaGfm {
+        outputDirectory = file(PATH_APIDOCS)
+        dokkaSourceSets {
+            if (file("src/main/kotlin").exists()) {
+                main {
+                    skipDeprecated.set(true)
+                    reportUndocumented.set(true)
+                    sourceLink {
+                        localDirectory.set(file("src/main/kotlin"))
+                        remoteUrl.set(uri("https://github.com/arrow-kt/arrow-meta/blob/main/${relativeProjectPath('src/main/kotlin')}").toURL())
+                        remoteLineSuffix.set("#L")
+                    }
+                }
+            } else if (file("src/commonMain/kotlin").exists()) {
+                main {
+                    skipDeprecated.set(true)
+                    reportUndocumented.set(true)
+                    sourceLink {
+                        localDirectory.set(file("src/commonMain/kotlin"))
+                        remoteUrl.set(uri("https://github.com/arrow-kt/arrow-meta/blob/main/${relativeProjectPath('src/commonMain/kotlin')}").toURL())
+                        remoteLineSuffix.set("#L")
+                    }
+                }
+            }
         }
     }
 }
@@ -85,7 +104,7 @@ allprojects {
 
 task generateDoc(type: Exec) {
     // Reason of commandLine: to avoid specifying the list of modules
-    commandLine "sh", "gradlew", "dokka"
+    commandLine "sh", "gradlew", "dokkaGfm"
 }
 
 task runValidation(type: Exec) {
