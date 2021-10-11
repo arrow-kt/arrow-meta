@@ -841,7 +841,6 @@ internal fun ResolvedCall.valueArgumentExpressions(context: ResolutionContext): 
         Triple(param.name.value, containingType, it.argumentExpression)
       }
     }
-
   }
 
 internal fun ResolvedCall.arg(

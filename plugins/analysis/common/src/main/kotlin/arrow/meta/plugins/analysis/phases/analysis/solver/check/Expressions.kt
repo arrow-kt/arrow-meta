@@ -833,7 +833,7 @@ internal fun SolverState.checkFunctionBody(
   wholeExpr: Expression,
   receiverType: TypeReference?,
   valueParameters: List<Parameter>,
-  itType : Type?,
+  itType: Type?,
   resultType: TypeReference?,
   body: Expression?,
   data: CheckData

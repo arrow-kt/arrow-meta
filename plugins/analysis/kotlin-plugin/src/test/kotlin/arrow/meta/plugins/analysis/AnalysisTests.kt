@@ -1091,7 +1091,7 @@ class AnalysisTests {
         return 1
       }
       """(
-      withPlugin = { compilesNoUnreachable },
+      withPlugin = { failsWith { it.contains("has inconsistent default values") } },
       withoutPlugin = { compiles }
     )
   }

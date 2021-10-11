@@ -21,6 +21,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentDefaultValues
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 
@@ -29,18 +30,24 @@ import org.sosy_lab.java_smt.api.Model
 // these two functions ultimately call the SMT solver,
 // and report errors as desired
 
-internal fun SolverState.addAndCheckConsistency(
-  constraints: Iterable<NamedConstraint>,
+internal fun SolverState.checkInconsistency(
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
-  constraints.forEach { addConstraint(it) }
-  additionalFieldConstraints(constraints).forEach { addConstraint(it) }
   val unsat = prover.isUnsat
   if (unsat) {
     message(prover.unsatCore)
     solverTrace.add("UNSAT! (inconsistent)")
   }
   return unsat
+}
+
+internal fun SolverState.addAndCheckConsistency(
+  constraints: Iterable<NamedConstraint>,
+  message: (unsatCore: List<BooleanFormula>) -> Unit
+): Boolean {
+  constraints.forEach { addConstraint(it) }
+  additionalFieldConstraints(constraints).forEach { addConstraint(it) }
+  return checkInconsistency(message)
 }
 
 internal fun SolverState.checkImplicationOf(
@@ -90,6 +97,16 @@ internal fun SolverState.singleConstraintsFromFqName(
 
 // PRODUCE ERRORS FROM INTERACTION
 // ===============================
+
+internal fun SolverState.checkDefaultValueInconsistency(
+  context: ResolutionContext,
+  declaration: Declaration
+): Boolean = solver.run {
+  checkInconsistency { unsatCore ->
+    val msg = inconsistentDefaultValues(declaration, unsatCore)
+    context.reportInconsistentBodyPre(declaration, msg)
+  }
+}
 
 /**
  * Checks that this [declaration] does not contain logical inconsistencies in its preconditions.
