@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Variance
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Variance
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance.INVARIANT

@@ -1,6 +1,6 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 /**
  * Ways to return from a block

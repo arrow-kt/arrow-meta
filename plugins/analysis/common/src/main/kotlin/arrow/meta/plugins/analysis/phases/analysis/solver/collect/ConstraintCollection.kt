@@ -40,7 +40,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.R
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnalysisResult
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotated
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor

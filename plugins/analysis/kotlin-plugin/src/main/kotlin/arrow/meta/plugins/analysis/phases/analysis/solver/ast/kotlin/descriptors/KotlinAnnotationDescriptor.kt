@@ -2,7 +2,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptor
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.resolve.annotations.argumentValue

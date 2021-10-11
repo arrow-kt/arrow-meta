@@ -10,7 +10,7 @@ import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
@@ -789,10 +789,22 @@ private fun SolverState.checkIsExpression(
 internal fun SolverState.checkLambda(
   expr: LambdaExpression,
   data: CheckData
-): ContSeq<StateAfter> =
-  checkFunctionBody(expr,
-    null, expr.valueParameters, expr.functionLiteral.typeReference,
+): ContSeq<StateAfter> {
+  val itParam =
+    expr.type(data.context)
+      ?.takeIf { expr.valueParameters.isEmpty() }
+      ?.singleFunctionArgument()
+  return checkFunctionBody(expr,
+    null,
+    expr.valueParameters,
+    itParam,
+    expr.functionLiteral.typeReference,
     expr.bodyExpression, data)
+}
+
+internal fun Type.singleFunctionArgument() =
+  this.takeIf { it.descriptor?.fqNameSafe == FqName("kotlin.Function1") }
+    ?.arguments?.getOrNull(0)?.type
 
 /**
  * Checks the body of a local function,
@@ -803,7 +815,10 @@ private fun SolverState.checkFunctionDeclarationExpression(
   data: CheckData
 ): ContSeq<StateAfter> =
   checkFunctionBody(declaration,
-    declaration.receiverTypeReference, declaration.valueParameters, declaration.typeReference,
+    declaration.receiverTypeReference,
+    declaration.valueParameters,
+    null,
+    declaration.typeReference,
     declaration.stableBody(), data)
 
 /**
@@ -814,6 +829,7 @@ internal fun SolverState.checkFunctionBody(
   wholeExpr: Expression,
   receiverType: TypeReference?,
   valueParameters: List<Parameter>,
+  itType : Type?,
   resultType: TypeReference?,
   body: Expression?,
   data: CheckData
@@ -827,12 +843,16 @@ internal fun SolverState.checkFunctionBody(
         val thisSmtName = newName(data.context, THIS_VAR_NAME, wholeExpr)
         ParamInfo(THIS_VAR_NAME, thisSmtName, data.context.type(it), wholeExpr)
       }
+      val itParam = itType?.let {
+        val smtName = newName(data.context, "it", wholeExpr)
+        ParamInfo("it", smtName, itType, wholeExpr)
+      }
       val valueParams = valueParameters.mapNotNull { param ->
         param.name?.let { name ->
           val smtName = newName(data.context, name, param)
           ParamInfo(name, smtName, param.type(data.context), param)
         }
-      }
+      } + listOfNotNull(itParam)
       val resultSmtName = newName(data.context, RESULT_VAR_NAME, wholeExpr)
       val resultParam = resultType?.let {
         ParamInfo(RESULT_VAR_NAME, resultSmtName, data.context.type(it), wholeExpr)

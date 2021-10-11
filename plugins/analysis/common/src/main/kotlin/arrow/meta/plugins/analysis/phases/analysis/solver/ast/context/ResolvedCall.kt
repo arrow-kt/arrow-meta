@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface ResolvedCall {
   val callElement: Element

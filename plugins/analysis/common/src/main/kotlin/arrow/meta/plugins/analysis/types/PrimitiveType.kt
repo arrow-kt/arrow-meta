@@ -1,6 +1,6 @@
 package arrow.meta.plugins.analysis.types
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 
 enum class PrimitiveType {

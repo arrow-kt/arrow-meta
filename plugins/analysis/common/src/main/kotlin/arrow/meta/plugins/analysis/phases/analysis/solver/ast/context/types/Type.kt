@@ -1,4 +1,4 @@
-package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context
+package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 
@@ -6,6 +6,7 @@ interface Type {
   val descriptor: ClassDescriptor?
   val unwrappedNotNullableType: Type
   val isMarkedNullable: Boolean
+  val arguments: List<TypeProjection>
 
   fun isBoolean(): Boolean
   fun isNullable(): Boolean

@@ -4,8 +4,8 @@ import arrow.meta.plugins.analysis.errors.MetaErrors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Types
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model

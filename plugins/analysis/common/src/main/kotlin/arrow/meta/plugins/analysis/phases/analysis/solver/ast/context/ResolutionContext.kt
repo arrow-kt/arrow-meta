@@ -3,6 +3,8 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
 
 interface ResolutionContext {
   val types: Types

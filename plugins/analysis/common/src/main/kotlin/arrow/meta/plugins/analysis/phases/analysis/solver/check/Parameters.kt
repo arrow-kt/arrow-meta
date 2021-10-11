@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants

@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Variance
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Variance
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface TypeParameterDescriptor : ClassifierDescriptor {
   val isReified: Boolean
