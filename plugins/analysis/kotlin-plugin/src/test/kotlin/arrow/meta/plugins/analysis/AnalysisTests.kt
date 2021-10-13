@@ -1223,6 +1223,32 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `parses predicates, Collection, 1`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+        
+      val problem = emptyList<Int>().map { it + 1 }.first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Collection, 2`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+        
+      val oki = emptyList<Int>().map { it + 1 }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1244,6 +1270,27 @@ import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
  """
+
+private fun collectionListLaws(): String =
+"""
+object CollectionLaws : Laws {
+  inline fun <E> Collection<E>.firstLaw(): E {
+    pre(size >= 1) { "not empty" }
+    return first()
+  }
+  inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
+    map(transform).post({ it.size == this.size }) { "size remains after map" }
+}
+
+object ListLaws : Laws {
+  inline fun <E> emptyListLaw(): List<E> =
+    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
+  inline fun <E> List<E>.firstLaw(): E {
+    pre(size >= 1) { "not empty" }
+    return first()
+  }
+}
+"""
 
 // TODO update arrow dependencies to latest to test validated support
 private operator fun String.invoke(
