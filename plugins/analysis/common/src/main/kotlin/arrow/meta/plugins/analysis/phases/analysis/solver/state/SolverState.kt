@@ -9,11 +9,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenDescriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
+import arrow.meta.plugins.analysis.phases.analysis.solver.isField
+import arrow.meta.plugins.analysis.phases.analysis.solver.overriddenDescriptors
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
@@ -91,6 +91,10 @@ data class SolverState(
     solverTrace.add("${constraint.msg} : ${constraint.formula}")
   }
 
+  fun addConstraintWithoutTrace(constraint: NamedConstraint) {
+    prover.addConstraint(constraint.formula)
+  }
+
   fun newName(
     context: ResolutionContext,
     prefix: String,
@@ -146,7 +150,7 @@ data class SolverState(
       val constraint = solver.ints {
         NamedConstraint("[auto-generated] $fieldName == $fieldIndex", equal(makeVariable(fieldName), makeNumber(fieldIndex.toLong())))
       }
-      addConstraint(constraint)
+      addConstraintWithoutTrace(constraint)
     }
 
     overriddenNames.forEach { (thisField, parentFields) ->
@@ -154,7 +158,7 @@ data class SolverState(
         val constraint = solver.ints {
           NamedConstraint("[auto-generated] $thisField == $parentField", equal(makeVariable(thisField), makeVariable(parentField)))
         }
-        addConstraint(constraint)
+        addConstraintWithoutTrace(constraint)
       }
     }
   }

@@ -49,15 +49,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnnotationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
@@ -70,12 +67,16 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
+import arrow.meta.plugins.analysis.phases.analysis.solver.isField
+import arrow.meta.plugins.analysis.phases.analysis.solver.isLawsType
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.resolvedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
+import arrow.meta.plugins.analysis.smt.extractSingleVariable
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Formula
-import org.sosy_lab.java_smt.api.FormulaManager
 import org.sosy_lab.java_smt.api.FormulaType
 import org.sosy_lab.java_smt.api.FunctionDeclaration
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
@@ -256,13 +257,6 @@ private fun rewritePostcondition(
     })
 }
 
-private fun FormulaManager.extractSingleVariable(
-  formula: Formula
-): String? =
-  extractVariables(formula)
-    .takeIf { it.size == 1 }
-    ?.toList()?.getOrNull(0)?.first
-
 private fun Element.elementToConstraint(
   solverState: SolverState,
   context: ResolutionContext,
@@ -287,20 +281,6 @@ private fun Element.elementToConstraint(
   } else {
     null
   }
-}
-
-/**
- * returns true if we have declared something with a @Law
- */
-fun DeclarationDescriptor.isALaw(): Boolean =
-  annotations().hasAnnotation(FqName("arrow.analysis.Law")) ||
-    containingDeclaration.isLawsType()
-
-fun DeclarationDescriptor?.isLawsType(): Boolean = when (this) {
-  is ClassDescriptor -> superTypes.any {
-    it.descriptor?.fqNameSafe == FqName("arrow.analysis.Laws")
-  }
-  else -> false
 }
 
 /**
@@ -379,27 +359,6 @@ private fun ModuleDescriptor.obtainDeclaration(
   }
 
   return current
-}
-
-fun DeclarationDescriptor.isCompatibleWith(
-  other: DeclarationDescriptor
-): Boolean = when {
-  this is CallableDescriptor && other is CallableDescriptor -> {
-    // we have to ignore the parameters which come from Laws
-    val params1 = this.allParameters.filter { param ->
-      !param.type.descriptor.isLawsType() &&
-        !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-    }
-    val params2 = other.allParameters.filter { param ->
-      !param.type.descriptor.isLawsType() &&
-        !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-    }
-    params1.size == params2.size &&
-      params1.zip(params2).all { (p1, p2) ->
-        p1.type.isEqualTo(p2.type)
-      }
-  }
-  else -> true
 }
 
 private fun SolverState.findDescriptorFromLocalLaw(
@@ -486,8 +445,6 @@ private fun getReturnedExpressionWithoutPostcondition(
 
   return veryLast?.getResolvedCall(bindingContext)
 }
-//  ((descriptor.findPsi() as? KtFunction)?.body()
-//    ?.lastBlockStatementOrThis() as? KtReturnExpression)?.returnedExpression?.getResolvedCall(bindingContext)?.resultingDescriptor
 
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
   annotations().findAnnotation(FqName("arrow.analysis.Pre"))
@@ -498,6 +455,7 @@ private fun Annotated.postAnnotation(): AnnotationDescriptor? =
 private val skipPackages = setOf(
   FqName("com.apple"),
   FqName("com.oracle"),
+  FqName("org.w3c"),
   FqName("org.omg"),
   FqName("com.sun"),
   FqName("META-INF"),
@@ -505,7 +463,7 @@ private val skipPackages = setOf(
   FqName("apple"),
   FqName("java"),
   FqName("javax"),
-  FqName("kotlin"),
+  // FqName("kotlin"), // we need the fields
   FqName("sun")
 )
 
@@ -547,7 +505,7 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
       else -> null
     }?.let { element -> parseFormula(element, ann, descriptor) }
   }
-  if (constraints.isNotEmpty()) {
+  if (constraints.isNotEmpty() || descriptor.isField()) {
     val preConstraints = arrayListOf<NamedConstraint>()
     val postConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
@@ -795,19 +753,6 @@ private fun Solver.makeConstant(
     booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict())
   else -> null
 }
-
-/**
- * Should we treat a node as a field and create 'field(name, x)'?
- */
-internal fun DeclarationDescriptor.isField(): Boolean = when (this) {
-  is PropertyDescriptor -> hasOneReceiver()
-  is FunctionDescriptor -> valueParameters.isEmpty() && hasOneReceiver()
-  else -> false
-}
-
-private fun CallableDescriptor.hasOneReceiver(): Boolean =
-  (extensionReceiverParameter != null && dispatchReceiverParameter == null) ||
-    (extensionReceiverParameter == null && dispatchReceiverParameter != null)
 
 internal fun Element.isResultReference(bindingContext: ResolutionContext): Boolean =
   getPostOrInvariantParent(bindingContext)?.let { parent ->

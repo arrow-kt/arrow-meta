@@ -11,7 +11,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor

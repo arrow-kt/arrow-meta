@@ -1249,6 +1249,28 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `parses predicates, Collection, using annotations`() {
+    """
+      ${imports()}
+      
+      object ListLaws : Laws {
+        @Post(messages = ["empty list is empty"], formulae = ["(= (int (field kotlin.collections.List.size ${'\\'}${'$'}result)) 0)"], dependencies = ["kotlin.collections.List.size"])
+        @Subject(fqName = "kotlin.collections/emptyList")
+        inline fun <E> emptyListLaw(): List<E> = emptyList<E>()
+
+        @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
+        @Subject(fqName = "kotlin.collections/first")
+        inline fun <E> List<E>.firstLaw(): E = first()
+      }
+        
+      val oki = emptyList<Int>().first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
