@@ -272,7 +272,7 @@ private fun Element.elementToConstraint(
   val kind = call?.specialKind
   return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
     val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
-    val result = solverState.solver.expressionToFormula(predicateArg, context, parameters, false) as? BooleanFormula
+    val result = solverState.solver.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
       context.reportErrorsParsingPredicate(this, msg)
@@ -629,10 +629,24 @@ public fun finalizeConstraintsCollection(
     }
   } else AnalysisResult.Completed
 
+internal fun Solver.topLevelExpressionToFormula(
+  ex: Expression?,
+  context: ResolutionContext,
+  parameters: List<Parameter>,
+  allowAnyReference: Boolean
+): BooleanFormula? =
+  expressionToFormula(ex, context, parameters, allowAnyReference)?.let {
+    when (it) {
+      is BooleanFormula -> it
+      is ObjectFormula -> boolValue(it)
+      else -> null
+    }
+  }
+
 /**
  * Transform a [Expression] into a [Formula]
  */
-internal fun Solver.expressionToFormula(
+private fun Solver.expressionToFormula(
   ex: Expression?,
   context: ResolutionContext,
   parameters: List<Parameter>,

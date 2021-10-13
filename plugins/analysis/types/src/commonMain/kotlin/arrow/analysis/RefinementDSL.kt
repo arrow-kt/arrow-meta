@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package arrow.analysis
 
 inline fun pre(predicate: Boolean, msg: () -> String): Unit =
@@ -52,3 +54,15 @@ annotation class Subject(val fqName: String)
  * ```
  */
 interface Laws
+
+/**
+ * Indicates that the preconditions for a call
+ * should not be checked.
+ */
+inline fun <A> unsafeCall(call: A): A = call
+
+/**
+ * Indicates that nothing in this block
+ * should be checked.
+ */
+inline fun <A> unsafeBlock(block: () -> A) = block()

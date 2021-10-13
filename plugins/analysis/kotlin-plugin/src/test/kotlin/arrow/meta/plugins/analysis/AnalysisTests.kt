@@ -40,6 +40,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `boolean variable used as predicate`() {
+    """
+      ${imports()}
+      fun negate(x: Boolean): Boolean {
+        pre(x) { "x is true" }
+        return (!x).post({ !it }) { "returns false" }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}
@@ -245,6 +259,54 @@ class AnalysisTests {
       val result = bar(1)
       """(
       withPlugin = { failsWith { it.contains("pre-condition `x is 42` is not satisfied in `bar(1)`") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in call, but trust me, 1`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x == 42 ) { "x is 42" }
+        val z = x + 2
+        return z
+      }
+      val result = unsafeCall(bar(1))
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in call, but trust me, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x == 42 ) { "x is 42" }
+        val z = x + 2
+        return z
+      }
+      val result = unsafeBlock { bar(1) }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in call, but trust me, 3`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x == 42 ) { "x is 42" }
+        val z = x + 2
+        return z
+      }
+      val result = unsafeBlock { bar(1) + 1 }
+      """(
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1178,6 +1240,8 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
+import arrow.analysis.unsafeBlock
+import arrow.analysis.unsafeCall
 
  """
 
