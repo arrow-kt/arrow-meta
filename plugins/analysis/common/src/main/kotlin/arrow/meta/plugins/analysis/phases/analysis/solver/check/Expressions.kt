@@ -78,6 +78,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpres
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
+import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
 import arrow.meta.plugins.analysis.phases.analysis.solver.referencedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
@@ -325,10 +326,10 @@ private fun SolverState.checkCallExpression(
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
     specialKind == SpecialKind.Invariant -> // ignore invariant arguments
       checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
-    specialKind == SpecialKind.TrustMe ->
-      doOnlyWhenNotNull(resolvedCall.valueArgumentExpressions(data.context).getOrNull(0), data.noReturn()) { arg ->
-        checkExpressionConstraints(associatedVarName, arg.expression, data)
-      }
+    specialKind == SpecialKind.TrustCall || specialKind == SpecialKind.TrustBlock -> {
+      val arg = resolvedCall.valueArgumentExpressions(data.context).getOrNull(0)
+      checkExpressionConstraints(associatedVarName, arg?.expression, data)
+    }
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)
     resolvedCall.isElvisOperator() ->
@@ -448,14 +449,7 @@ internal fun SolverState.checkRegularFunctionCall(
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
             solver.substituteDeclarationConstraints(declInfo, completeRenaming)
           }
-          // check pre-conditions, unless they should be trusted
-          // where does the 2 come from?
-          // - parent 0 -> ValueArgument
-          // - parent 1 -> ValueArgumentList
-          // - parent 2 -> potential CallExpression
-          val trustPreconditions =
-            expression.parents().getOrNull(2)?.getResolvedCall(data.context)?.specialKind == SpecialKind.TrustMe
-          if (!trustPreconditions) {
+          whenNotTrusted(expression, data) {
             checkCallPreConditionsImplication(callConstraints, data.context, expression, resolvedCall, data.branch.get())
           }
           // add a constraint for fields: result == field(name, value)
@@ -515,8 +509,7 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
     // special case, no receiver, but implicitly it's 'this'
     checkNameExpression(receiverName, "this", data)
       .flatMap { stateAfter -> block(stateAfter.data) }
-  else -> {
-    solverTrace.add("?. receiver")
+  else ->
     checkExpressionConstraints(receiverName, receiverExpr, data).checkReturnInfo { stateAfterReceiver ->
       val dataAfterReceiver = stateAfterReceiver.data
       // here comes a trick: when the method is access with the "safe dot" ?.
@@ -554,7 +547,6 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
         }
       }
     }
-  }
 }
 
 /**
@@ -957,12 +949,14 @@ private fun SolverState.checkBodyAgainstInvariants(
 ): ContSeq<Pair<String, StateAfter>> {
   val newName = newName(data.context, declName, body)
   return checkExpressionConstraints(newName, body, data).onEach {
-    invariant?.let {
-      val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
-      checkInvariant(
-        NamedConstraint("assignment to `${element.text}`", renamed),
-        data.context, element, data.branch.get()
-      )
+    whenNotTrusted(body, data) {
+      invariant?.let {
+        val renamed = solver.renameObjectVariables(it, mapOf(RESULT_VAR_NAME to newName))
+        checkInvariant(
+          NamedConstraint("assignment to `${element.text}`", renamed),
+          data.context, element, data.branch.get()
+        )
+      }
     }
   }.map { r -> Pair(newName, r) }
 }
@@ -1361,3 +1355,13 @@ private fun ContSeq<StateAfter>.checkReturnInfo(f: (StateAfter) -> ContSeq<State
 
 private fun inScope(data: CheckData, f: () -> ContSeq<StateAfter>): ContSeq<StateAfter> =
   f().map { it.withData(data) }
+
+private fun whenNotTrusted(
+  expression: Expression?,
+  data: CheckData,
+  toDo: () -> Unit
+) {
+  if (expression == null || !expression.inTrustedEnvironment(data.context)) {
+    toDo()
+  }
+}

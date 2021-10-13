@@ -11,7 +11,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 enum class SpecialKind {
-  Pre, Post, Invariant, TrustMe
+  Pre, Post, Invariant, TrustCall, TrustBlock
 }
 
 internal val ResolvedCall.specialKind: SpecialKind?
@@ -20,7 +20,8 @@ internal val ResolvedCall.specialKind: SpecialKind?
     FqName("kotlin.require") -> SpecialKind.Pre
     FqName("arrow.analysis.post") -> SpecialKind.Post
     FqName("arrow.analysis.invariant") -> SpecialKind.Invariant
-    FqName("arrow.analysis.trustMe") -> SpecialKind.TrustMe
+    FqName("arrow.analysis.unsafeCall") -> SpecialKind.TrustCall
+    FqName("arrow.analysis.unsafeBlock") -> SpecialKind.TrustBlock
     else -> null
   }
 
@@ -114,3 +115,21 @@ internal fun ResolvedCall.referencedArg(
       valueArg.argumentExpression?.impl() == arg?.impl()
     }
   }
+
+internal fun Expression.inTrustedEnvironment(
+  context: ResolutionContext
+): Boolean {
+  val parents = parents()
+  // where does the 2 come from?
+  // - parent 0 -> ValueArgument
+  // - parent 1 -> ValueArgumentList
+  // - parent 2 -> potential CallExpression
+  val trustCall =
+    parents.getOrNull(2)?.getResolvedCall(context)
+      ?.specialKind == SpecialKind.TrustCall
+  val trustBlock =
+    parents.any {
+      it.getResolvedCall(context)?.specialKind == SpecialKind.TrustBlock
+    }
+  return trustCall || trustBlock
+}

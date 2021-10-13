@@ -59,4 +59,10 @@ interface Laws
  * Indicates that the preconditions for a call
  * should not be checked.
  */
-inline fun <A> trustMe(call: A): A = call
+inline fun <A> unsafeCall(call: A): A = call
+
+/**
+ * Indicates that nothing in this block
+ * should be checked.
+ */
+inline fun <A> unsafeBlock(block: () -> A) = block()

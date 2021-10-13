@@ -264,7 +264,7 @@ class AnalysisTests {
   }
 
   @Test
-  fun `pre-conditions are not satisfied in call, but trust me`() {
+  fun `pre-conditions are not satisfied in call, but trust me, 1`() {
     """
       ${imports()}
       fun bar(x: Int): Int {
@@ -272,7 +272,39 @@ class AnalysisTests {
         val z = x + 2
         return z
       }
-      val result = trustMe(bar(1))
+      val result = unsafeCall(bar(1))
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in call, but trust me, 2`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x == 42 ) { "x is 42" }
+        val z = x + 2
+        return z
+      }
+      val result = unsafeBlock { bar(1) }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `pre-conditions are not satisfied in call, but trust me, 3`() {
+    """
+      ${imports()}
+      fun bar(x: Int): Int {
+        pre( x == 42 ) { "x is 42" }
+        val z = x + 2
+        return z
+      }
+      val result = unsafeBlock { bar(1) + 1 }
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
@@ -1208,7 +1240,8 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
-import arrow.analysis.trustMe
+import arrow.analysis.unsafeBlock
+import arrow.analysis.unsafeCall
 
  """
 
