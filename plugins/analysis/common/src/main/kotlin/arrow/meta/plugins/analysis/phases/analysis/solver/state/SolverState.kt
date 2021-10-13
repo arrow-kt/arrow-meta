@@ -122,16 +122,25 @@ data class SolverState(
    */
   fun introduceFieldNamesInSolver() {
     val basicNames = mutableSetOf<String>()
-    val overriddenNames = mutableMapOf<String, List<String>>()
+    val overriddenNames = mutableMapOf<String, String>()
 
     fun doOne(descriptor: DeclarationDescriptor) {
       val name = descriptor.fqNameSafe.name
       val overridden = descriptor.overriddenDescriptors()
-      if (overridden == null || overridden.isEmpty()) {
+      if (overridden.isNullOrEmpty()) {
         basicNames.add(name)
       } else {
         overridden.forEach(::doOne)
-        overriddenNames[name] = overridden.map { it.fqNameSafe.name }
+        val topOverriden = overridden.filter {
+          it.overriddenDescriptors().isNullOrEmpty()
+        }
+        when (topOverriden.size) {
+          0 -> basicNames.add(name)
+          1 -> overriddenNames[name] = topOverriden.get(0).fqNameSafe.name
+          // weird case, we have more than one "top most" elements
+          // in this case, we just override *none*
+          else -> basicNames.add(name)
+        }
       }
     }
 
@@ -153,13 +162,11 @@ data class SolverState(
       addConstraintWithoutTrace(constraint)
     }
 
-    overriddenNames.forEach { (thisField, parentFields) ->
-      parentFields.forEach { parentField ->
-        val constraint = solver.ints {
-          NamedConstraint("[auto-generated] $thisField == $parentField", equal(makeVariable(thisField), makeVariable(parentField)))
-        }
-        addConstraintWithoutTrace(constraint)
+    overriddenNames.forEach { (thisField, parentField) ->
+      val constraint = solver.ints {
+        NamedConstraint("[auto-generated] $thisField == $parentField", equal(makeVariable(thisField), makeVariable(parentField)))
       }
+      addConstraintWithoutTrace(constraint)
     }
   }
 
