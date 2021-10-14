@@ -438,7 +438,7 @@ class AnalysisTests {
       ${imports()}
       @Post(messages = ["example"], formulae = ["true"], dependencies = [])
       @Subject(fqName = "kotlin.collections/minus")
-      fun <E> Collection<E>.minusLaw(element: E) = minus(E)
+      fun <E> Collection<E>.minusLaw(element: E) = minus(element)
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
