@@ -433,6 +433,32 @@ class AnalysisTests {
   }
 
   @Test
+  fun `post-conditions for subjects, subtype`() {
+    """
+      ${imports()}
+      @Post(messages = ["example"], formulae = ["true"], dependencies = [])
+      @Subject(fqName = "kotlin.collections/minus")
+      fun <E> Collection<E>.minusLaw(element: E) = minus(E)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `post-conditions for subjects, function`() {
+    """
+      ${imports()}
+      @Pre(messages = {"not empty"}, formulae = {"(>= (int (field kotlin.collections.List.size this)) 1)"}, dependencies = {"kotlin.collections.List.size"})
+      @Subject(fqName = "kotlin.collections/first")
+      fun <E> List<E>.first(predicate: (x: E) -> Boolean) = first(predicate)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}

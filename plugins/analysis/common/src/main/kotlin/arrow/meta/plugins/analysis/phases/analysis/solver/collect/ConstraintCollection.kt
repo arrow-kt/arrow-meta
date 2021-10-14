@@ -73,6 +73,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.isLawsType
+import arrow.meta.plugins.analysis.phases.analysis.solver.isLooselyCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.resolvedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
@@ -82,7 +83,7 @@ import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
 import org.sosy_lab.java_smt.api.FunctionDeclaration
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
-import java.util.*
+import java.util.LinkedList
 import kotlin.collections.ArrayList
 
 // PHASE 1: COLLECTION OF CONSTRAINTS
@@ -300,8 +301,8 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
-    findDescriptorFromRemoteLaw(descriptor) ?:
-    findDescriptorFromLocalLaw(descriptor, bindingContext)
+    findDescriptorFromRemoteLaw(descriptor)
+    ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
@@ -347,24 +348,33 @@ private fun ModuleDescriptor.obtainDeclaration(
           else -> emptyList()
         }
       }
-      else -> current.flatMap {
-        val elts = when (it) {
-          is PackageViewDescriptor -> it.memberScope.getContributedDescriptors { true }
-          is ClassDescriptor -> it.completeUnsubstitutedScope.getContributedDescriptors { true }
-          is TypeAliasDescriptor -> it.classDescriptor?.completeUnsubstitutedScope?.getContributedDescriptors { true }
+      else -> current.flatMap { decl ->
+        when (decl) {
+          is PackageViewDescriptor -> decl.memberScope.getContributedDescriptors { true }
+          is ClassDescriptor -> decl.completeUnsubstitutedScope.getContributedDescriptors { true }
+          is TypeAliasDescriptor -> decl.classDescriptor?.completeUnsubstitutedScope?.getContributedDescriptors { true }
           else -> null
-        }.orEmpty().flatMap { decl ->
-          when (decl) {
-            is PropertyDescriptor -> listOfNotNull(decl, decl.getter, decl.setter)
-            else -> listOf(decl)
+        }.orEmpty().flatMap {
+          when (it) {
+            is PropertyDescriptor -> listOfNotNull(it, it.getter, it.setter)
+            else -> listOf(it)
           }
-        }
-        elts.filter { it.name.value == portion }
+        }.filter { it.name.value == portion }
       }
     }
   }
 
+  // the type either strictly checks
+  // or we need to look for the best match
   return current.firstOrNull { it.isCompatibleWith(compatibleWith) }
+    ?: current.filter { it.isLooselyCompatibleWith(compatibleWith) }
+      .minWithOrNull{ o1, o2 ->
+        when {
+          o1.isLooselyCompatibleWith(o2) -> -1
+          o2.isLooselyCompatibleWith(o1) -> 1
+          else -> 0
+        }
+      }
 }
 
 private fun SolverState.findDescriptorFromLocalLaw(
@@ -481,7 +491,7 @@ internal fun ModuleDescriptor.declarationsWithConstraints(
   skip: Set<FqName> = skipPackages
 ): List<DeclarationDescriptor> {
   // initialize worklists
-  val packagesWorklist = LinkedList<FqName>(listOf(FqName("")))
+  val packagesWorklist = LinkedList(listOf(FqName("")))
   val scopesWorklist = LinkedList<MemberScope>()
   // initialize place for results
   val result = mutableListOf<DeclarationDescriptor>()

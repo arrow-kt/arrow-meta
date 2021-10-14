@@ -2,7 +2,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
@@ -59,6 +58,32 @@ fun DeclarationDescriptor.isCompatibleWith(
     params1.size == params2.size &&
       params1.zip(params2).all { (p1, p2) ->
         p1.type.isEqualTo(p2.type)
+      }
+  }
+  else -> true
+}
+
+/**
+ * check if a descriptor is compatible with other,
+ * in the sense that the arguments are (possibly)
+ * supertypes
+ */
+fun DeclarationDescriptor.isLooselyCompatibleWith(
+  other: DeclarationDescriptor
+): Boolean = when {
+  this is CallableDescriptor && other is CallableDescriptor -> {
+    // we have to ignore the parameters which come from Laws
+    val params1 = this.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType() &&
+        !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+    }
+    val params2 = other.allParameters.filter { param ->
+      !param.type.descriptor.isLawsType() &&
+        !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+    }
+    params1.size == params2.size &&
+      params1.zip(params2).all { (p1, p2) ->
+        p2.type.isSubtypeOf(p1.type)
       }
   }
   else -> true

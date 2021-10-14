@@ -37,17 +37,29 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
   override fun isNullable(): Boolean =
     impl.isNullable()
 
-  override fun isSubtypeOf(other: Type): Boolean =
-    other is KotlinType && impl.isSubtypeOf(other.impl)
+  override fun isSubtypeOf(other: Type): Boolean {
+    if (this === other) return true
+    if (other !is KotlinType) return false
+    if (this.isTypeParameter() && other.isTypeParameter()) return true
+    if (isMarkedNullable != other.isMarkedNullable) return false
+    if (NewKotlinTypeChecker.Default.isSubtypeOf(impl.unwrap(), other.impl.unwrap())) return true
+
+    return impl.superTypesAndMe.any { possibleSuperType ->
+      possibleSuperType.constructor == other.impl.unwrap().constructor
+    }
+  }
+
+  private val org.jetbrains.kotlin.types.KotlinType.superTypesAndMe: List<org.jetbrains.kotlin.types.KotlinType>
+    get() = listOf(this) + this.unwrap().constructor.supertypes.flatMap { it.superTypesAndMe }
 
   override fun isEqualTo(other: Type): Boolean {
     if (this === other) return true
     if (other !is KotlinType) return false
     if (this.isTypeParameter() && other.isTypeParameter()) return true
+    if (isMarkedNullable != other.isMarkedNullable) return false
+    if (NewKotlinTypeChecker.Default.equalTypes(impl.unwrap(), other.impl.unwrap())) return true
 
-    return isMarkedNullable == other.isMarkedNullable &&
-      (NewKotlinTypeChecker.Default.equalTypes(impl.unwrap(), other.impl.unwrap()) ||
-        impl.unwrap().constructor == other.impl.unwrap().constructor)
+    return impl.unwrap().constructor == other.impl.unwrap().constructor
   }
 
   override fun isInt(): Boolean =

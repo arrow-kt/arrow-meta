@@ -48,7 +48,7 @@ import arrow.analysis.pre
     pre(size >= 1) { "not empty" }
     return first()
   }
-  @Law inline fun <E> Collection<E>.firstLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> Collection<E>.firstLawWithPredicate(predicate: (x: E) -> Boolean): E {
     pre(size >= 1) { "not empty" }
     return first(predicate)
   }
@@ -163,14 +163,14 @@ import arrow.analysis.pre
 
   @Law inline fun <E> Collection<E>.plusLaw(element: E): List<E> =
     plus(element).post({ it.size == this.size + 1 }) { "size increases by 1" }
-  @Law inline fun <E> Collection<E>.plusLaw(elements: Collection<E>): List<E> =
+  @Law inline fun <E> Collection<E>.plusLawWithElements(elements: Collection<E>): List<E> =
     plus(elements).post({ it.size == this.size + elements.size }) { "size increases by size of the collection" }
 
   @Law inline fun <E> Collection<E>.minusLaw(element: E): List<E> =
     minus(element).post({
       it.size >= this.size - 1 && it.size <= this.size
     }) { "size may decrease by 1" }
-  @Law inline fun <E> Collection<E>.minusLaw(elements: Collection<E>): List<E> =
+  @Law inline fun <E> Collection<E>.minusLawWithElements(elements: Collection<E>): List<E> =
     minus(elements).post({
       it.size >= this.size - elements.size && it.size <= this.size
     }) { "size may decrease by size of the removed elements" }
@@ -238,9 +238,9 @@ import arrow.analysis.pre
       (it == null) == (index < 0 && index >= size)
     }) { "null iff out of bounds" }
 
-  @Law inline fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> List<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
-    return first(predicate)
+    return first()
   }
   @Law inline fun <E> List<E>.firstOrNullLaw(): E? =
     firstOrNull().post({
@@ -417,16 +417,16 @@ object MapLaws {
 
   @Law inline fun <K, V> Map<out K, V>.plusLaw(pair: Pair<K, V>): Map<K, V> =
     plus(pair).post({ it.size <= this.size + 1 }) { "size may increase by 1" }
-  @Law inline fun <K, V> Map<out K, V>.plusLaw(pairs: Collection<Pair<K, V>>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.plusLawWithElements(pairs: Collection<Pair<K, V>>): Map<K, V> =
     plus(pairs).post({ it.size <= this.size + pairs.size }) { "size may increase by size of the collection" }
-  @Law inline fun <K, V> Map<out K, V>.plusLaw(map: Map<K, V>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.plusLawWithMap(map: Map<K, V>): Map<K, V> =
     plus(map).post({ it.size <= this.size + map.size }) { "size may increase by size of the map" }
 
   @Law inline fun <K, V> Map<out K, V>.minusLaw(key: K): Map<K, V> =
     minus(key).post({
       it.size <= this.size && it.size >= this.size - 1
     }) { "size may decrease by 1" }
-  @Law inline fun <K, V> Map<out K, V>.minusLaw(keys: Collection<K>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.minusLawWithElements(keys: Collection<K>): Map<K, V> =
     minus(keys).post({
       it.size <= this.size && it.size >= this.size - keys.size
     }) { "size may decrease by size of the collection" }
