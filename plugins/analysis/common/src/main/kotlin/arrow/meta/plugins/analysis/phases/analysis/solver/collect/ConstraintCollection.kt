@@ -56,6 +56,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
@@ -336,33 +337,34 @@ private fun ModuleDescriptor.obtainDeclaration(
 ): DeclarationDescriptor? {
   val portions = fqName.name.split("/")
 
-  var current: DeclarationDescriptor? = getPackage(portions.first())
+  var current: List<DeclarationDescriptor> = listOfNotNull(getPackage(portions.first()))
   for (portion in portions.drop(1)) {
-    val elts = when (portion) {
-      "<init>" -> when (current) {
-        is ClassDescriptor -> current.constructors
-        is TypeAliasDescriptor -> current.constructors
-        else -> null
-      }
-      else -> {
-        when (current) {
-          is PackageViewDescriptor -> current.memberScope
-          is ClassDescriptor -> current.completeUnsubstitutedScope
-          is TypeAliasDescriptor -> current.classDescriptor?.completeUnsubstitutedScope
-          else -> null
-        }?.let {
-          it.getContributedDescriptors { true }
-        }?.filter {
-          it.name.value == portion
+    current = when (portion) {
+      "<init>" -> current.flatMap {
+        when (it) {
+          is ClassDescriptor -> it.constructors
+          is TypeAliasDescriptor -> it.constructors
+          else -> emptyList()
         }
       }
-    }
-    current = elts?.firstOrNull {
-      it.isCompatibleWith(compatibleWith)
+      else -> current.flatMap {
+        val elts = when (it) {
+          is PackageViewDescriptor -> it.memberScope.getContributedDescriptors { true }
+          is ClassDescriptor -> it.completeUnsubstitutedScope.getContributedDescriptors { true }
+          is TypeAliasDescriptor -> it.classDescriptor?.completeUnsubstitutedScope?.getContributedDescriptors { true }
+          else -> null
+        }.orEmpty().flatMap { decl ->
+          when (decl) {
+            is PropertyDescriptor -> listOfNotNull(decl, decl.getter, decl.setter)
+            else -> listOf(decl)
+          }
+        }
+        elts.filter { it.name.value == portion }
+      }
     }
   }
 
-  return current
+  return current.firstOrNull { it.isCompatibleWith(compatibleWith) }
 }
 
 private fun SolverState.findDescriptorFromLocalLaw(

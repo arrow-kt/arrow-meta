@@ -416,6 +416,23 @@ class AnalysisTests {
   }
 
   @Test
+  fun `post-conditions for subjects`() {
+    """
+      ${imports()}
+      import kotlin.Result.Companion.success
+      
+      @Post(messages = ["create a success"], formulae = ["true"], dependencies = ["kotlin.Result.isSuccess"])
+      @Subject(fqName = "kotlin/Result/Companion/success")
+      fun <T> Result.Companion.successLaw(x: T): Result<T> = success(x)
+        
+      val x: Result<Int> = success(3)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}

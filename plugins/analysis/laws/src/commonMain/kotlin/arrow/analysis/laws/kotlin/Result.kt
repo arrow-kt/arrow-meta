@@ -6,8 +6,6 @@ package arrow.analysis.laws.kotlin
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.post
-import kotlin.Result.Companion.failure
-import kotlin.Result.Companion.success
 
 @Laws object ResultLaws {
   // we define isFailure in terms of isSuccess,
@@ -21,10 +19,10 @@ import kotlin.Result.Companion.success
       (this.isSuccess) xor (result == null)
     }) { "null if failure" }
 
-  @Law inline fun <T> successLaw(x: T): Result<T> =
+  @Law inline fun <T> Result.Companion.successLaw(x: T): Result<T> =
     success(x).post({ it.isSuccess == true }) { "create a success" }
 
-  @Law inline fun <T> failureLaw(e: Throwable): Result<T> =
+  @Law inline fun <T> Result.Companion.failureLaw(e: Throwable): Result<T> =
     failure<T>(e).post({ it.isFailure == true }) { "create a failure" }
 
   @Law inline fun <R, T> Result<T>.mapLaw(transform: (value: T) -> R): Result<R> =

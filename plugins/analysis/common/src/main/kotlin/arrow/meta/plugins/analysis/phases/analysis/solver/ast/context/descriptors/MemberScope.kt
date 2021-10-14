@@ -22,5 +22,5 @@ class CombinedMemberScope(private val scopes: Collection<MemberScope>): MemberSc
   override fun getContributedDescriptors(
     filter: (name: String) -> Boolean
   ): List<DeclarationDescriptor> =
-    scopes.flatMap { it.getContributedDescriptors(filter) }
+    scopes.flatMap { it.getContributedDescriptors(filter) }.distinctBy { it.impl() }
 }

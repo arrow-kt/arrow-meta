@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 fun interface KotlinCallableDescriptor :
   CallableDescriptor {
 
-  fun impl(): org.jetbrains.kotlin.descriptors.CallableDescriptor
+  override fun impl(): org.jetbrains.kotlin.descriptors.CallableDescriptor
 
   fun descriptor(): KotlinDeclarationDescriptor = KotlinDeclarationDescriptor({ impl() })
 

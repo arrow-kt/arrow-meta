@@ -8,4 +8,5 @@ interface DeclarationDescriptor : Named, Annotated {
   val containingDeclaration: DeclarationDescriptor?
   fun element(): Element?
   val fqNameSafe: FqName
+  fun impl(): Any
 }
