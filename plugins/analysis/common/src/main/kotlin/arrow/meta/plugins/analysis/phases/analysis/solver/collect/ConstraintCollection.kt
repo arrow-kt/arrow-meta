@@ -508,12 +508,13 @@ internal fun ModuleDescriptor.declarationsWithConstraints(
         it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
       })
       // 3. add all new member scopes to the worklist
-      scopesWorklist.addAll(descriptors.filterIsInstance<ClassDescriptor>().map {
-        it.completeUnsubstitutedScope
-      })
-      scopesWorklist.addAll(descriptors.filterIsInstance<TypeAliasDescriptor>().mapNotNull {
-        it.classDescriptor?.completeUnsubstitutedScope
-      })
+      scopesWorklist.addAll(descriptors
+        .filterIsInstance<ClassDescriptor>()
+        .filter { !it.isEnumEntry && !it.isException() }
+        .map { it.completeUnsubstitutedScope })
+      scopesWorklist.addAll(descriptors
+        .filterIsInstance<TypeAliasDescriptor>()
+        .mapNotNull { it.classDescriptor?.completeUnsubstitutedScope })
     } else if (packagesWorklist.isNotEmpty()) {
       // work to do in a package
       val pkg = packagesWorklist.remove()
@@ -528,6 +529,11 @@ internal fun ModuleDescriptor.declarationsWithConstraints(
 
   return result.toList()
 }
+
+internal fun ClassDescriptor.isException(): Boolean =
+  fqNameSafe == FqName("java.lang.Throwable") ||
+    fqNameSafe == FqName("kotlin.Throwable") ||
+    superTypes.any { ty -> ty.descriptor?.isException() == true }
 
 internal fun SolverState.addClassPathConstraintsToSolverState(
   descriptor: DeclarationDescriptor,

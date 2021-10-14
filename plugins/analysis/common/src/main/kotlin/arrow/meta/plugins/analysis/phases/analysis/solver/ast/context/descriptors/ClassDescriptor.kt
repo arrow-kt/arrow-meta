@@ -18,6 +18,7 @@ interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeP
   val isInline: Boolean
   val isFun: Boolean
   val isValue: Boolean
+  val isEnumEntry: Boolean
   val thisAsReceiverParameter: ReceiverParameterDescriptor
   val unsubstitutedPrimaryConstructor: ConstructorDescriptor?
   val sealedSubclasses: Collection<ClassDescriptor>

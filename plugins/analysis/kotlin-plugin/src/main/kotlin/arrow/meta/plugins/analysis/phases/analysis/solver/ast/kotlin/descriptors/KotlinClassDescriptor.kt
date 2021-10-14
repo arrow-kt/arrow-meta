@@ -51,6 +51,8 @@ class KotlinClassDescriptor(
     get() = impl().isFun
   override val isValue: Boolean
     get() = impl().isValue
+  override val isEnumEntry: Boolean
+    get() = impl().kind == ClassKind.ENUM_ENTRY
   override val thisAsReceiverParameter: ReceiverParameterDescriptor
     get() = impl().thisAsReceiverParameter.model()
   override val unsubstitutedPrimaryConstructor: ConstructorDescriptor?

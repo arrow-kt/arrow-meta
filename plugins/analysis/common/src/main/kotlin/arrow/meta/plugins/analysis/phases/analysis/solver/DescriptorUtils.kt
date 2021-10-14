@@ -2,6 +2,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
@@ -94,9 +95,11 @@ fun DeclarationDescriptor.isLooselyCompatibleWith(
  * should we treat a node as a field and create 'field(name, x)'?
  */
 fun DeclarationDescriptor.isField(): Boolean = when (this) {
-  is PropertyDescriptor -> hasOneReceiver()
+  is PropertyDescriptor ->
+    hasOneReceiver() && !(returnType?.descriptor?.isFun ?: false)
   is FunctionDescriptor ->
-    valueParameters.isEmpty() && hasOneReceiver() &&
+    (name.value.startsWith("is") || name.value.startsWith("get")) && // it's a getter
+      valueParameters.isEmpty() && hasOneReceiver() &&
       (returnType?.unwrappedNotNullableType?.primitiveType() != null)
   else -> false
 }
