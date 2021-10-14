@@ -52,6 +52,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
@@ -80,6 +81,8 @@ import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
 import org.sosy_lab.java_smt.api.FunctionDeclaration
 import org.sosy_lab.java_smt.api.visitors.FormulaTransformationVisitor
+import java.util.*
+import kotlin.collections.ArrayList
 
 // PHASE 1: COLLECTION OF CONSTRAINTS
 // ==================================
@@ -296,7 +299,8 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
-    findDescriptorFromRemoteLaw(descriptor) ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
+    findDescriptorFromRemoteLaw(descriptor) ?:
+    findDescriptorFromLocalLaw(descriptor, bindingContext)
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
@@ -342,9 +346,9 @@ private fun ModuleDescriptor.obtainDeclaration(
       }
       else -> {
         when (current) {
-          is PackageViewDescriptor -> current.getMemberScope()
-          is ClassDescriptor -> current.getUnsubstitutedMemberScope()
-          is TypeAliasDescriptor -> current.classDescriptor?.getUnsubstitutedMemberScope()
+          is PackageViewDescriptor -> current.memberScope
+          is ClassDescriptor -> current.completeUnsubstitutedScope
+          is TypeAliasDescriptor -> current.classDescriptor?.completeUnsubstitutedScope
           else -> null
         }?.let {
           it.getContributedDescriptors { true }
@@ -471,28 +475,47 @@ private val skipPackages = setOf(
  * Get all the pre- and post- conditions for declarations
  * in the CLASSPATH, by looking at the annotations.
  */
-internal tailrec fun ModuleDescriptor.declarationsWithConstraints(
-  acc: List<DeclarationDescriptor> = emptyList(),
-  packages: List<FqName> = listOf(FqName("")),
-  skipPacks: Set<FqName> = skipPackages
-): List<DeclarationDescriptor> =
-  when {
-    packages.isEmpty() -> acc
-    else -> {
-      val current = packages.first()
-      val topLevelDescriptors = getPackage(current.name)?.getMemberScope()?.getContributedDescriptors { true }?.toList().orEmpty()
-      val memberDescriptors = topLevelDescriptors.filterIsInstance<ClassDescriptor>().flatMap {
-        it.getUnsubstitutedMemberScope().getContributedDescriptors { true }.toList()
-      }
-      val allPackageDescriptors = topLevelDescriptors + memberDescriptors
-      val packagedProofs = allPackageDescriptors
-        .filter {
-          it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
-        }
-      val remaining = (getSubPackagesOf(current) + packages.drop(1)).filter { it !in skipPacks }
-      declarationsWithConstraints(acc + packagedProofs.asSequence(), remaining)
+internal fun ModuleDescriptor.declarationsWithConstraints(
+  skip: Set<FqName> = skipPackages
+): List<DeclarationDescriptor> {
+  // initialize worklists
+  val packagesWorklist = LinkedList<FqName>(listOf(FqName("")))
+  val scopesWorklist = LinkedList<MemberScope>()
+  // initialize place for results
+  val result = mutableListOf<DeclarationDescriptor>()
+
+  // the work
+  while (true) {
+    if (scopesWorklist.isNotEmpty()) {
+      // work to do in a member scope
+      val scope = scopesWorklist.remove()
+      // 1. get all descriptors
+      val descriptors = scope.getContributedDescriptors { true }
+      // 2. add the interesting ones to the result
+      result.addAll(descriptors.filter {
+        it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
+      })
+      // 3. add all new member scopes to the worklist
+      scopesWorklist.addAll(descriptors.filterIsInstance<ClassDescriptor>().map {
+        it.completeUnsubstitutedScope
+      })
+      scopesWorklist.addAll(descriptors.filterIsInstance<TypeAliasDescriptor>().mapNotNull {
+        it.classDescriptor?.completeUnsubstitutedScope
+      })
+    } else if (packagesWorklist.isNotEmpty()) {
+      // work to do in a package
+      val pkg = packagesWorklist.remove()
+      // 1. add the scope to the worklist
+      getPackage(pkg.name)?.memberScope?.let { scopesWorklist.add(it) }
+      // 2. add the subpackages to the worklist
+      packagesWorklist.addAll(getSubPackagesOf(pkg).subtract(skip))
+    } else {
+      break
     }
   }
+
+  return result.toList()
+}
 
 internal fun SolverState.addClassPathConstraintsToSolverState(
   descriptor: DeclarationDescriptor,

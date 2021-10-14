@@ -3,6 +3,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descripto
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 
 interface PackageViewDescriptor : DeclarationDescriptor {
-  fun getMemberScope(): MemberScope
+  val memberScope: MemberScope
   val fqName: FqName
 }

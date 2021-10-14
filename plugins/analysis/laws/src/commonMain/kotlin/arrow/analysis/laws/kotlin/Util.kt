@@ -6,6 +6,9 @@ package arrow.analysis.laws.kotlin
 import arrow.analysis.Law
 import arrow.analysis.post
 
+// run, with, apply, also, let
+// are treated in a special way by the analysis
+
 @Law
 inline fun Any?.hashCodeLaw(): Int =
   this.hashCode().post({ if (this == null) (it == 0) else true }) { "if null, hashcode is 0" }
@@ -21,11 +24,6 @@ inline fun TODOLaw(): Nothing =
 @Law
 inline fun TODOLaw(reason: String): Nothing =
   TODO(reason).post({ false }) { "nothing executes after TODO" }
-
-// run, with, apply, also, let
-// are treated in a special way by the analysis
-
-// ** Tuples.kt **
 
 @Law
 inline fun <A, B> A.toLaw(other: B): Pair<A, B> =

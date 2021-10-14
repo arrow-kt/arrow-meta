@@ -11,3 +11,16 @@ interface MemberScope {
 
   fun getContributedDescriptors(filter: (name: String) -> Boolean): List<DeclarationDescriptor>
 }
+
+class CombinedMemberScope(private val scopes: Collection<MemberScope>): MemberScope {
+  override fun getClassifierNames(): Set<Name> =
+    scopes.flatMap { it.getClassifierNames() }.toSet()
+  override fun getFunctionNames(): Set<Name> =
+    scopes.flatMap { it.getFunctionNames() }.toSet()
+  override fun getVariableNames(): Set<Name> =
+    scopes.flatMap { it.getVariableNames() }.toSet()
+  override fun getContributedDescriptors(
+    filter: (name: String) -> Boolean
+  ): List<DeclarationDescriptor> =
+    scopes.flatMap { it.getContributedDescriptors(filter) }
+}

@@ -459,7 +459,9 @@ class AnalysisTests {
     """
       ${imports()}
       
-      object IntLaws : Laws {
+      @Laws
+      object IntLaws {
+        @Law
         fun Int.safeDiv(theOtherNumber: Int): Int {
           pre( theOtherNumber != 0 ) { "other is not zero" }
           return this / theOtherNumber
@@ -478,7 +480,9 @@ class AnalysisTests {
     """
       ${imports()}
       
-      object IntLaws : Laws {
+      @Laws
+      object IntLaws {
+        @Law
         fun Int.safeDiv(theOtherNumber: Int): Int {
           pre( theOtherNumber != 0 ) { "other is not zero" }
           return this / theOtherNumber
@@ -532,15 +536,7 @@ class AnalysisTests {
   fun `ad-hoc laws for constructors, 1`() {
     """
       ${imports()}
-      
-      import kotlin.collections.ArrayList
-      
-      object ArrayListLaws : Laws {
-        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
-          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
-          return ArrayList(initialCapacity)
-        }
-      }
+      ${arrayListLaws()}
      
       val result = ArrayList<Int>(-1)
       """(
@@ -553,15 +549,7 @@ class AnalysisTests {
   fun `ad-hoc laws for constructors, 2`() {
     """
       ${imports()}
-      
-      import kotlin.collections.ArrayList
-      
-      object ArrayListLaws : Laws {
-        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
-          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
-          return ArrayList(initialCapacity)
-        }
-      }
+      ${arrayListLaws()}
      
       val result = ArrayList<Int>(1)
       """(
@@ -1255,11 +1243,14 @@ class AnalysisTests {
     """
       ${imports()}
       
-      object ListLaws : Laws {
+      @Laws
+      object ListLaws {
+        @Law
         @Post(messages = ["empty list is empty"], formulae = ["(= (int (field kotlin.collections.List.size ${'\\'}${'$'}result)) 0)"], dependencies = ["kotlin.collections.List.size"])
         @Subject(fqName = "kotlin.collections/emptyList")
         inline fun <E> emptyListLaw(): List<E> = emptyList<E>()
 
+        @Law
         @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
         @Subject(fqName = "kotlin.collections/first")
         inline fun <E> List<E>.firstLaw(): E = first()
@@ -1295,21 +1286,41 @@ import arrow.analysis.unsafeCall
 
 private fun collectionListLaws(): String =
 """
-object CollectionLaws : Laws {
+@Laws
+object CollectionLaws {
+  @Law
   inline fun <E> Collection<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
     return first()
   }
+  @Law
   inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
     map(transform).post({ it.size == this.size }) { "size remains after map" }
 }
 
-object ListLaws : Laws {
+@Laws
+object ListLaws {
+  @Law
   inline fun <E> emptyListLaw(): List<E> =
     emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
+  @Law
   inline fun <E> List<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
     return first()
+  }
+}
+"""
+
+private fun arrayListLaws(): String =
+"""
+import kotlin.collections.ArrayList
+      
+@Laws
+object ArrayListLaws {
+  @Law
+  fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+    pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+    return ArrayList(initialCapacity)
   }
 }
 """

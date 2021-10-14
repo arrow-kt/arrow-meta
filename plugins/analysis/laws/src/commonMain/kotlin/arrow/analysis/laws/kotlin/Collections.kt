@@ -3,6 +3,7 @@
 
 package arrow.analysis.laws.kotlin
 
+import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.post
 import arrow.analysis.pre
@@ -12,118 +13,118 @@ import arrow.analysis.pre
 //      and libraries/stdlib/common/src/generated/_Collections.kt
 // remember that laws are inherited by subclasses
 
-object CollectionLaws : Laws {
-  inline fun <E> Collection<E>.sizeLaw(): Int =
+@Laws object CollectionLaws {
+  @Law inline fun <E> Collection<E>.sizeLaw(): Int =
     size.post({ it >= 0 }) { "size is non-negative" }
-  inline fun <E> Collection<E>.countLaw(): Int =
+  @Law inline fun <E> Collection<E>.countLaw(): Int =
     count().post({ it == this.size }) { "count is size" }
-  inline fun <E> Collection<E>.countLaw(predicate: (E) -> Boolean): Int =
+  @Law inline fun <E> Collection<E>.countLaw(predicate: (E) -> Boolean): Int =
     count(predicate).post({ it <= this.size }) { "count bounded by size" }
 
-  inline fun <E> Collection<E>.isEmptyLaw(): Boolean =
+  @Law inline fun <E> Collection<E>.isEmptyLaw(): Boolean =
     isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
-  inline fun <E> Collection<E>.noneLaw(): Boolean =
+  @Law inline fun <E> Collection<E>.noneLaw(): Boolean =
     none().post({ it == (size <= 0) }) { "none when size is 0" }
-  inline fun <E> Collection<E>.isNotEmptyLaw(): Boolean =
+  @Law inline fun <E> Collection<E>.isNotEmptyLaw(): Boolean =
     isNotEmpty().post({ it == (size > 0) }) { "not empty when size is > 0" }
-  inline fun <E> Collection<E>?.isNullOrEmptyLaw(): Boolean =
+  @Law inline fun <E> Collection<E>?.isNullOrEmptyLaw(): Boolean =
     isNullOrEmpty().post({
       it == ((this == null) || (this.size <= 0))
     }) { "either null or size is 0" }
-  inline fun <E> Collection<E>?.orEmptyLaw(): Collection<E> =
+  @Law inline fun <E> Collection<E>?.orEmptyLaw(): Collection<E> =
     orEmpty().post({
       if (this == null) (it.size == 0) else (it.size == this.size)
     }) { "returns empty when this is null" }
 
-  inline fun <E> Collection<E>.elementAtLaw(index: Int): E {
+  @Law inline fun <E> Collection<E>.elementAtLaw(index: Int): E {
     pre(index >= 0 && index < size) { "index within bounds" }
     return elementAt(index)
   }
-  inline fun <E> Collection<E>.elementAtOrNullLaw(index: Int): E? =
+  @Law inline fun <E> Collection<E>.elementAtOrNullLaw(index: Int): E? =
     elementAtOrNull(index).post({
       (it == null) == (index < 0 && index >= size)
     }) { "null iff out of bounds" }
-  inline fun <E> Collection<E>.firstLaw(): E {
+  @Law inline fun <E> Collection<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
     return first()
   }
-  inline fun <E> Collection<E>.firstLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> Collection<E>.firstLaw(predicate: (x: E) -> Boolean): E {
     pre(size >= 1) { "not empty" }
     return first(predicate)
   }
-  inline fun <E> Collection<E>.firstOrNullLaw(): E? =
+  @Law inline fun <E> Collection<E>.firstOrNullLaw(): E? =
     firstOrNull().post({
       (it == null) == (this.size <= 0)
     }) { "null iff empty" }
-  inline fun <E> Collection<E>.lastLaw(): E {
+  @Law inline fun <E> Collection<E>.lastLaw(): E {
     pre(size >= 1) { "not empty" }
     return last()
   }
-  inline fun <E> Collection<E>.lastLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> Collection<E>.lastLaw(predicate: (x: E) -> Boolean): E {
     pre(size >= 1) { "not empty" }
     return last(predicate)
   }
-  inline fun <E> Collection<E>.lastOrNullLaw(): E? =
+  @Law inline fun <E> Collection<E>.lastOrNullLaw(): E? =
     lastOrNull().post({
       (it == null) == (this.size <= 0)
     }) { "null iff empty" }
 
-  inline fun <E> Collection<E>.singleLaw(): E {
+  @Law inline fun <E> Collection<E>.singleLaw(): E {
     pre(size == 1) { "size should be exactly 1" }
     return single()
   }
-  inline fun <E> Collection<E>.singleOrNullLaw(): E? =
+  @Law inline fun <E> Collection<E>.singleOrNullLaw(): E? =
     singleOrNull().post({
       (it == null) == (this.size != 1)
     }) { "null iff size is not 1" }
 
-  inline fun <E> Collection<E>.indexOfLaw(element: E): Int =
+  @Law inline fun <E> Collection<E>.indexOfLaw(element: E): Int =
     indexOf(element).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOf" }
-  inline fun <E> Collection<E>.lastIndexOfLaw(element: E): Int =
+  @Law inline fun <E> Collection<E>.lastIndexOfLaw(element: E): Int =
     lastIndexOf(element).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for lastIndexOf" }
-  inline fun <E> Collection<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
+  @Law inline fun <E> Collection<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
     indexOfFirst(predicate).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOfFirst" }
-  inline fun <E> Collection<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
+  @Law inline fun <E> Collection<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
     indexOfLast(predicate).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOfLast" }
 
-  inline fun <T> Collection<T>.randomLaw(): T {
+  @Law inline fun <T> Collection<T>.randomLaw(): T {
     pre(size > 0) { "not empty" }
     return random()
   }
-  inline fun <T> Collection<T>.randomOrNullLaw(): T? =
+  @Law inline fun <T> Collection<T>.randomOrNullLaw(): T? =
     randomOrNull().post({
       (it == null) == (this.size <= 0)
     }) { "null iff empty" }
 
   // zip and unzip
-  inline fun <T, R> Collection<Pair<T, R>>.unzipLaw(): Pair<List<T>, List<R>> =
+  @Law inline fun <T, R> Collection<Pair<T, R>>.unzipLaw(): Pair<List<T>, List<R>> =
     unzip().post({
       it.first.size == this.size && it.second.size == this.size
     }) { "size remains after unzip" }
-  inline fun <T, R> Collection<T>.zipLaw(other: Collection<R>): List<Pair<T, R>> =
+  @Law inline fun <T, R> Collection<T>.zipLaw(other: Collection<R>): List<Pair<T, R>> =
     zip(other).post({
       it.size <= this.size && it.size <= other.size
     }) { "size bounded by the smallest" }
-  inline fun <T, R, V> Collection<T>.zipLaw(
+  @Law inline fun <T, R, V> Collection<T>.zipLaw(
     other: Collection<R>,
     transform: (a: T, b: R) -> V
   ): List<V> =
     zip(other, transform).post({
       it.size <= this.size && it.size <= other.size
     }) { "size bounded by the smallest" }
-  inline fun <T> Collection<T>.zipWithNextLaw(): List<Pair<T, T>> =
+  @Law inline fun <T> Collection<T>.zipWithNextLaw(): List<Pair<T, T>> =
     zipWithNext().post({
       if (this.size == 0) (it.size == 0) else (it.size == this.size - 1)
     }) { "size is one less" }
-  inline fun <T, V> Collection<T>.zipWithNextLaw(
+  @Law inline fun <T, V> Collection<T>.zipWithNextLaw(
     transform: (a: T, b: T) -> V
   ): List<V> =
     zipWithNext(transform).post({
@@ -131,208 +132,208 @@ object CollectionLaws : Laws {
     }) { "size bounded by the smallest" }
 
   // operations which remove things
-  inline fun <E> Collection<E>.dropLaw(n: Int): List<E> {
+  @Law inline fun <E> Collection<E>.dropLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return drop(n).post({
       if (this.size <= n) (it.size == 0) else (it.size == this.size - n)
     }) { "bounds for drop" }
   }
-  inline fun <E> Collection<E>.takeLaw(n: Int): List<E> {
+  @Law inline fun <E> Collection<E>.takeLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return take(n).post({
       it.size <= this.size && it.size <= n
     }) { "bounds for take" }
   }
 
-  inline fun <E> Collection<E>.filterLaw(predicate: (E) -> Boolean): List<E> =
+  @Law inline fun <E> Collection<E>.filterLaw(predicate: (E) -> Boolean): List<E> =
     filter(predicate).post({ it.size <= this.size }) { "bounds after filter" }
-  inline fun <E> Collection<E>.filterNotLaw(predicate: (E) -> Boolean): List<E> =
+  @Law inline fun <E> Collection<E>.filterNotLaw(predicate: (E) -> Boolean): List<E> =
     filterNot(predicate).post({ it.size <= this.size }) { "bounds after filter" }
-  inline fun <E> Collection<E?>.filterNotNullLaw(): List<E> =
+  @Law inline fun <E> Collection<E?>.filterNotNullLaw(): List<E> =
     filterNotNull().post({ it.size <= this.size }) { "bounds after filter" }
-  inline fun <E> Collection<E>.filterIndexedLaw(predicate: (Int, E) -> Boolean): List<E> =
+  @Law inline fun <E> Collection<E>.filterIndexedLaw(predicate: (Int, E) -> Boolean): List<E> =
     filterIndexed(predicate).post({ it.size <= this.size }) { "bounds after filter" }
-  inline fun <reified R> Collection<*>.filterIsInstanceLaw(): List<R> =
+  @Law inline fun <reified R> Collection<*>.filterIsInstanceLaw(): List<R> =
     filterIsInstance<R>().post({ it.size <= this.size }) { "bounds after filter" }
 
-  inline fun <E> Collection<E>.distinctLaw(): List<E> =
+  @Law inline fun <E> Collection<E>.distinctLaw(): List<E> =
     distinct().post({ it.size <= this.size }) { "size bounded by original " }
-  inline fun <T, K> Collection<T>.distinctByLaw(selector: (T) -> K): List<T> =
+  @Law inline fun <T, K> Collection<T>.distinctByLaw(selector: (T) -> K): List<T> =
     distinctBy(selector).post({ it.size <= this.size }) { "size bounded by original " }
 
-  inline fun <E> Collection<E>.plusLaw(element: E): List<E> =
+  @Law inline fun <E> Collection<E>.plusLaw(element: E): List<E> =
     plus(element).post({ it.size == this.size + 1 }) { "size increases by 1" }
-  inline fun <E> Collection<E>.plusLaw(elements: Collection<E>): List<E> =
+  @Law inline fun <E> Collection<E>.plusLaw(elements: Collection<E>): List<E> =
     plus(elements).post({ it.size == this.size + elements.size }) { "size increases by size of the collection" }
 
-  inline fun <E> Collection<E>.minusLaw(element: E): List<E> =
+  @Law inline fun <E> Collection<E>.minusLaw(element: E): List<E> =
     minus(element).post({
       it.size >= this.size - 1 && it.size <= this.size
     }) { "size may decrease by 1" }
-  inline fun <E> Collection<E>.minusLaw(elements: Collection<E>): List<E> =
+  @Law inline fun <E> Collection<E>.minusLaw(elements: Collection<E>): List<E> =
     minus(elements).post({
       it.size >= this.size - elements.size && it.size <= this.size
     }) { "size may decrease by size of the removed elements" }
 
   // operations which keep the size
-  inline fun <E> Collection<E>.reversedLaw(): List<E> =
+  @Law inline fun <E> Collection<E>.reversedLaw(): List<E> =
     reversed().post({ it.size == this.size }) { "size remains after reversal" }
-  inline fun <E : Comparable<E>> Collection<E>.sortedLaw(): List<E> =
+  @Law inline fun <E : Comparable<E>> Collection<E>.sortedLaw(): List<E> =
     sorted().post({ it.size == this.size }) { "size remains after sorting" }
-  inline fun <E : Comparable<E>> Collection<E>.sortedDescendingLaw(): List<E> =
+  @Law inline fun <E : Comparable<E>> Collection<E>.sortedDescendingLaw(): List<E> =
     sortedDescending().post({ it.size == this.size }) { "size remains after sorting" }
-  inline fun <T, R : Comparable<R>> Collection<T>.sortedByLaw(crossinline selector: (T) -> R?): List<T> =
+  @Law inline fun <T, R : Comparable<R>> Collection<T>.sortedByLaw(crossinline selector: (T) -> R?): List<T> =
     sortedBy(selector).post({ it.size == this.size }) { "size remains after sorting" }
-  inline fun <T, R : Comparable<R>> Collection<T>.sortedByDescendingLaw(crossinline selector: (T) -> R?): List<T> =
+  @Law inline fun <T, R : Comparable<R>> Collection<T>.sortedByDescendingLaw(crossinline selector: (T) -> R?): List<T> =
     sortedByDescending(selector).post({ it.size == this.size }) { "size remains after sorting" }
-  inline fun <T> Collection<T>.sortedWithLaw(comparator: Comparator<in T>): List<T> =
+  @Law inline fun <T> Collection<T>.sortedWithLaw(comparator: Comparator<in T>): List<T> =
     sortedWith(comparator).post({ it.size == this.size }) { "size remains after sorting" }
 
-  inline fun <T> Collection<T>.shuffledLaw(): List<T> =
+  @Law inline fun <T> Collection<T>.shuffledLaw(): List<T> =
     shuffled().post({ it.size == this.size }) { "size remains after shuffle" }
 
-  inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
+  @Law inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
     map(transform).post({ it.size == this.size }) { "size remains after map" }
-  inline fun <A, B> Collection<A>.mapIndexedLaw(transform: (Int, A) -> B): List<B> =
+  @Law inline fun <A, B> Collection<A>.mapIndexedLaw(transform: (Int, A) -> B): List<B> =
     mapIndexed(transform).post({ it.size == this.size }) { "size remains after map" }
 
-  inline fun <A, B> Collection<A>.mapNotNullLaw(transform: (A) -> B?): List<B> =
+  @Law inline fun <A, B> Collection<A>.mapNotNullLaw(transform: (A) -> B?): List<B> =
     mapNotNull(transform).post({ it.size <= this.size }) { "size bounded by original" }
-  inline fun <A, B> Collection<A>.mapIndexedNotNullLaw(transform: (Int, A) -> B?): List<B> =
+  @Law inline fun <A, B> Collection<A>.mapIndexedNotNullLaw(transform: (Int, A) -> B?): List<B> =
     mapIndexedNotNull(transform).post({ it.size == this.size }) { "size bounded by original" }
 
   // operations between several collections
-  inline fun <T> Collection<T>.intersectLaw(other: Collection<T>): Set<T> =
+  @Law inline fun <T> Collection<T>.intersectLaw(other: Collection<T>): Set<T> =
     intersect(other).post({
       it.size <= this.size && it.size <= other.size
     }) { "bounds for intersection" }
-  inline fun <T> Collection<T>.subtractLaw(other: Collection<T>): Set<T> =
+  @Law inline fun <T> Collection<T>.subtractLaw(other: Collection<T>): Set<T> =
     subtract(other).post({
       it.size <= this.size
     }) { "bounds for subtraction" }
-  inline fun <T> Collection<T>.unionLaw(other: Collection<T>): Set<T> =
+  @Law inline fun <T> Collection<T>.unionLaw(other: Collection<T>): Set<T> =
     union(other).post({
       it.size >= this.size && it.size >= other.size
     }) { "bounds for subtraction" }
 }
 
-object ListLaws : Laws {
+@Laws object ListLaws {
   // size is inherited
   // isEmpty is inherited
 
-  inline fun <E> List<E>.getLaw(index: Int): E {
+  @Law inline fun <E> List<E>.getLaw(index: Int): E {
     pre(index >= 0 && index < size) { "index within bounds" }
     return get(index)
   }
-  inline fun <E> List<E>.elementAtLaw(index: Int): E {
+  @Law inline fun <E> List<E>.elementAtLaw(index: Int): E {
     pre(index >= 0 && index < size) { "index within bounds" }
     return elementAt(index)
   }
-  inline fun <E> List<E>.getOrNullLaw(index: Int): E? =
+  @Law inline fun <E> List<E>.getOrNullLaw(index: Int): E? =
     getOrNull(index).post({
       (it == null) == (index < 0 && index >= size)
     }) { "null iff out of bounds" }
-  inline fun <E> List<E>.elementAtOrNullLaw(index: Int): E? =
+  @Law inline fun <E> List<E>.elementAtOrNullLaw(index: Int): E? =
     elementAtOrNull(index).post({
       (it == null) == (index < 0 && index >= size)
     }) { "null iff out of bounds" }
 
-  inline fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean): E {
     pre(size >= 1) { "not empty" }
     return first(predicate)
   }
-  inline fun <E> List<E>.firstOrNullLaw(): E? =
+  @Law inline fun <E> List<E>.firstOrNullLaw(): E? =
     firstOrNull().post({
       (it == null) == (this.size <= 0)
     }) { "null iff empty" }
-  inline fun <E> List<E>.lastLaw(): E {
+  @Law inline fun <E> List<E>.lastLaw(): E {
     pre(size >= 1) { "not empty" }
     return last()
   }
-  inline fun <E> List<E>.lastLaw(predicate: (x: E) -> Boolean): E {
+  @Law inline fun <E> List<E>.lastLaw(predicate: (x: E) -> Boolean): E {
     pre(size >= 1) { "not empty" }
     return last(predicate)
   }
-  inline fun <E> List<E>.lastOrNullLaw(): E? =
+  @Law inline fun <E> List<E>.lastOrNullLaw(): E? =
     lastOrNull().post({
       (it == null) == (this.size <= 0)
     }) { "null iff empty" }
 
-  inline fun <E> List<E>.singleLaw(): E {
+  @Law inline fun <E> List<E>.singleLaw(): E {
     pre(size == 1) { "size should be exactly 1" }
     return single()
   }
-  inline fun <E> List<E>.singleOrNullLaw(): E? =
+  @Law inline fun <E> List<E>.singleOrNullLaw(): E? =
     singleOrNull().post({
       (it == null) == (this.size != 1)
     }) { "null iff size is not 1" }
 
-  inline fun <E> List<E>.indexOfLaw(element: E): Int =
+  @Law inline fun <E> List<E>.indexOfLaw(element: E): Int =
     indexOf(element).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOf" }
-  inline fun <E> List<E>.lastIndexOfLaw(element: E): Int =
+  @Law inline fun <E> List<E>.lastIndexOfLaw(element: E): Int =
     lastIndexOf(element).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for lastIndexOf" }
-  inline fun <E> List<E>.lastIndexLaw(): Int =
+  @Law inline fun <E> List<E>.lastIndexLaw(): Int =
     lastIndex.post({ it == size - 1 }) { "last index is size - 1" }
-  inline fun <E> List<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
+  @Law inline fun <E> List<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
     indexOfFirst(predicate).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOfFirst" }
-  inline fun <E> List<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
+  @Law inline fun <E> List<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
     indexOfLast(predicate).post({
       if (this.size <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOfLast" }
 
-  inline fun <E> emptyListLaw(): List<E> =
+  @Law inline fun <E> emptyListLaw(): List<E> =
     emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
-  inline fun <E> emptyListOfLaw(): List<E> =
+  @Law inline fun <E> emptyListOfLaw(): List<E> =
     listOf<E>().post({ it.size == 0 }) { "empty list is empty" }
-  inline fun <E> listOfNotNullLaw(element: E?): List<E> =
+  @Law inline fun <E> listOfNotNullLaw(element: E?): List<E> =
     listOfNotNull(element).post({
       if (element == null) (it.size == 0) else (it.size == 1)
     }) { "empty iff element is null" }
   // listOf, listOfNotNull -> we do not support varargs yet
 
-  inline fun <E> List<E>?.orEmptyLaw(): List<E> =
+  @Law inline fun <E> List<E>?.orEmptyLaw(): List<E> =
     orEmpty().post({
       if (this == null) (it.size == 0) else (it.size == this.size)
     }) { "returns empty when this is null" }
 
-  inline fun <E> List<E>.asReversedLaw(): List<E> =
+  @Law inline fun <E> List<E>.asReversedLaw(): List<E> =
     asReversed().post({ it.size == this.size }) { "size remains after reversal" }
 
-  inline fun <E> List<E>.component1Law(): E {
+  @Law inline fun <E> List<E>.component1Law(): E {
     pre(this.size >= 1) { "element #1 available" }
     return component1()
   }
-  inline fun <E> List<E>.component2Law(): E {
+  @Law inline fun <E> List<E>.component2Law(): E {
     pre(this.size >= 2) { "element #2 available" }
     return component1()
   }
-  inline fun <E> List<E>.component3Law(): E {
+  @Law inline fun <E> List<E>.component3Law(): E {
     pre(this.size >= 3) { "element #3 available" }
     return component1()
   }
-  inline fun <E> List<E>.component4Law(): E {
+  @Law inline fun <E> List<E>.component4Law(): E {
     pre(this.size >= 4) { "element #4 available" }
     return component1()
   }
-  inline fun <E> List<E>.component5Law(): E {
+  @Law inline fun <E> List<E>.component5Law(): E {
     pre(this.size >= 5) { "element #5 available" }
     return component1()
   }
 
   // operations
-  inline fun <E> List<E>.dropLastLaw(n: Int): List<E> {
+  @Law inline fun <E> List<E>.dropLastLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return dropLast(n).post({
       if (this.size <= n) (it.size == 0) else (it.size == this.size - n)
     }) { "bounds for drop" }
   }
-  inline fun <E> List<E>.takeLastLaw(n: Int): List<E> {
+  @Law inline fun <E> List<E>.takeLastLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return takeLast(n).post({
       it.size <= this.size && it.size <= n
@@ -340,123 +341,124 @@ object ListLaws : Laws {
   }
 }
 
-object SetLaws : Laws {
+@Laws object SetLaws {
   // size is inherited
   // isEmpty is inherited
 
-  inline fun <E> emptySetLaw(): Set<E> =
+  @Law inline fun <E> emptySetLaw(): Set<E> =
     emptySet<E>().post({ it.size == 0 }) { "empty set is empty" }
-  inline fun <E> emptySetOfLaw(): Set<E> =
+  @Law inline fun <E> emptySetOfLaw(): Set<E> =
     setOf<E>().post({ it.size == 0 }) { "empty set is empty" }
-  inline fun <E> setOfNotNullLaw(element: E?): Set<E> =
+  @Law inline fun <E> setOfNotNullLaw(element: E?): Set<E> =
     setOfNotNull(element).post({
       if (element == null) (it.size == 0) else (it.size == 1)
     }) { "empty iff element is null" }
   // setOf, setOfNotNull -> we do not support varargs yet
 
-  inline fun <E> Set<E>?.orEmptyLaw(): Set<E> =
+  @Law inline fun <E> Set<E>?.orEmptyLaw(): Set<E> =
     orEmpty().post({
       if (this == null) (it.size == 0) else (it.size == this.size)
     }) { "returns empty when this is null" }
 }
 
-object MapLaws : Laws {
-  inline fun <K, V> Map<K, V>.sizeLaw(): Int =
+@Laws
+object MapLaws {
+  @Law inline fun <K, V> Map<K, V>.sizeLaw(): Int =
     size.post({ it >= 0 }) { "size is non-negative" }
-  inline fun <K, V> Map<K, V>.isEmptyLaw(): Boolean =
+  @Law inline fun <K, V> Map<K, V>.isEmptyLaw(): Boolean =
     isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
-  inline fun <K, V> Map<K, V>.isNotEmptyLaw(): Boolean =
+  @Law inline fun <K, V> Map<K, V>.isNotEmptyLaw(): Boolean =
     isNotEmpty().post({ it == (size > 0) }) { "not empty when size is > 0" }
-  inline fun <K, V> Map<K, V>?.isNullOrEmptyLaw(): Boolean =
+  @Law inline fun <K, V> Map<K, V>?.isNullOrEmptyLaw(): Boolean =
     isNullOrEmpty().post({
       it == ((this == null) || (this.size <= 0))
     }) { "either null or size is 0" }
-  inline fun <K, V> Map<K, V>?.orEmptyLaw(): Map<K, V> =
+  @Law inline fun <K, V> Map<K, V>?.orEmptyLaw(): Map<K, V> =
     orEmpty().post({
       if (this == null) (it.size == 0) else (it.size == this.size)
     }) { "returns empty when this is null" }
 
-  inline fun <K, V> Map<K, V>.keysLaw(): Set<K> =
+  @Law inline fun <K, V> Map<K, V>.keysLaw(): Set<K> =
     keys.post({ it.size == this.size }) { "size of keys remains" }
-  inline fun <K, V> Map<K, V>.valuesLaw(): Collection<V> =
+  @Law inline fun <K, V> Map<K, V>.valuesLaw(): Collection<V> =
     values.post({ it.size == this.size }) { "size of values remains" }
-  inline fun <K, V> Map<K, V>.entriesLaw(): Set<Map.Entry<K, V>> =
+  @Law inline fun <K, V> Map<K, V>.entriesLaw(): Set<Map.Entry<K, V>> =
     entries.post({ it.size == this.size }) { "size of entries remains" }
 
-  inline fun <K, V> emptyMapLaw(): Map<K, V> =
+  @Law inline fun <K, V> emptyMapLaw(): Map<K, V> =
     emptyMap<K, V>().post({ it.size == 0 }) { "empty map is empty" }
   // mapOf -> we do not support varargs yet
 
-  inline fun <K, V, R> Map<out K, V>.mapValuesLaw(
+  @Law inline fun <K, V, R> Map<out K, V>.mapValuesLaw(
     transform: (Map.Entry<K, V>) -> R
   ): Map<K, R> =
     mapValues(transform).post({ it.size == this.size }) { "size remains after mapValues" }
-  inline fun <K, V, R> Map<out K, V>.mapKeysLaw(
+  @Law inline fun <K, V, R> Map<out K, V>.mapKeysLaw(
     transform: (Map.Entry<K, V>) -> R
   ): Map<R, V> =
     mapKeys(transform).post({ it.size <= this.size }) { "size bounded after mapKeys" }
 
-  inline fun <K, V> Map<out K, V>.filterLaw(
+  @Law inline fun <K, V> Map<out K, V>.filterLaw(
     predicate: (Map.Entry<K, V>) -> Boolean
   ): Map<K, V> =
     filter(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
-  inline fun <K, V> Map<out K, V>.filterNotLaw(
+  @Law inline fun <K, V> Map<out K, V>.filterNotLaw(
     predicate: (Map.Entry<K, V>) -> Boolean
   ): Map<K, V> =
     filterNot(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
-  inline fun <K, V> Map<out K, V>.filterValuesLaw(
+  @Law inline fun <K, V> Map<out K, V>.filterValuesLaw(
     predicate: (V) -> Boolean
   ): Map<K, V> =
     filterValues(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
-  inline fun <K, V> Map<out K, V>.filterKeysLaw(
+  @Law inline fun <K, V> Map<out K, V>.filterKeysLaw(
     predicate: (K) -> Boolean
   ): Map<K, V> =
     filterKeys(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
 
-  inline fun <K, V> Map<out K, V>.plusLaw(pair: Pair<K, V>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.plusLaw(pair: Pair<K, V>): Map<K, V> =
     plus(pair).post({ it.size <= this.size + 1 }) { "size may increase by 1" }
-  inline fun <K, V> Map<out K, V>.plusLaw(pairs: Collection<Pair<K, V>>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.plusLaw(pairs: Collection<Pair<K, V>>): Map<K, V> =
     plus(pairs).post({ it.size <= this.size + pairs.size }) { "size may increase by size of the collection" }
-  inline fun <K, V> Map<out K, V>.plusLaw(map: Map<K, V>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.plusLaw(map: Map<K, V>): Map<K, V> =
     plus(map).post({ it.size <= this.size + map.size }) { "size may increase by size of the map" }
 
-  inline fun <K, V> Map<out K, V>.minusLaw(key: K): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.minusLaw(key: K): Map<K, V> =
     minus(key).post({
       it.size <= this.size && it.size >= this.size - 1
     }) { "size may decrease by 1" }
-  inline fun <K, V> Map<out K, V>.minusLaw(keys: Collection<K>): Map<K, V> =
+  @Law inline fun <K, V> Map<out K, V>.minusLaw(keys: Collection<K>): Map<K, V> =
     minus(keys).post({
       it.size <= this.size && it.size >= this.size - keys.size
     }) { "size may decrease by size of the collection" }
 }
 
-object MapEntryLaws : Laws {
-  inline fun <K, V> Map.Entry<K, V>.component1Law(): K =
+@Laws object MapEntryLaws {
+  @Law inline fun <K, V> Map.Entry<K, V>.component1Law(): K =
     component1().post({ it == this.key }) { "1st component is key" }
-  inline fun <K, V> Map.Entry<K, V>.component2Law(): V =
+  @Law inline fun <K, V> Map.Entry<K, V>.component2Law(): V =
     component2().post({ it == this.value }) { "2nd component is value" }
 }
 
-object CollectionConversionsLaws : Laws {
-  inline fun <K, V> Collection<Pair<K, V>>.toMapLaw(): Map<K, V> =
+@Laws object CollectionConversionsLaws {
+  @Law inline fun <K, V> Collection<Pair<K, V>>.toMapLaw(): Map<K, V> =
     toMap().post({
       it.size <= this.size
     }) { "size bounded by collection" }
-  inline fun <T, K, V> Collection<T>.associateLaw(transform: (T) -> Pair<K, V>): Map<K, V> =
+  @Law inline fun <T, K, V> Collection<T>.associateLaw(transform: (T) -> Pair<K, V>): Map<K, V> =
     associate(transform).post({
       it.size <= this.size
     }) { "size bounded by collection" }
-  inline fun <T, K> Collection<T>.associateByLaw(keySelector: (T) -> K): Map<K, T> =
+  @Law inline fun <T, K> Collection<T>.associateByLaw(keySelector: (T) -> K): Map<K, T> =
     associateBy(keySelector).post({
       it.size <= this.size
     }) { "size bounded by collection" }
-  inline fun <T, K> Collection<K>.associateWithLaw(valueSelector: (K) -> T): Map<K, T> =
+  @Law inline fun <T, K> Collection<K>.associateWithLaw(valueSelector: (K) -> T): Map<K, T> =
     associateWith(valueSelector).post({
       it.size <= this.size
     }) { "size bounded by collection" }
 
-  inline fun <E> Collection<E>.toListLaw(): List<E> =
+  @Law inline fun <E> Collection<E>.toListLaw(): List<E> =
     toList().post({ it.size == this.size }) { "size remains after converstion to list" }
-  inline fun <E> Collection<E>.toSetLaw(): Set<E> =
+  @Law inline fun <E> Collection<E>.toSetLaw(): Set<E> =
     toSet().post({ it.size < this.size }) { "size bounded by original size" }
 }

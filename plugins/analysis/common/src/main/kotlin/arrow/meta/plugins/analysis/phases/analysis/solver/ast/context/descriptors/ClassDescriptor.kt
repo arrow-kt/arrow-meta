@@ -4,7 +4,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeParameters {
 
-  fun getUnsubstitutedMemberScope(): MemberScope
+  val unsubstitutedMemberScope: MemberScope
+  val staticScope: MemberScope
+  val unsubstitutedInnerClassesScope: MemberScope
+  val completeUnsubstitutedScope: MemberScope
+    get() = CombinedMemberScope(listOf(unsubstitutedMemberScope, staticScope, unsubstitutedInnerClassesScope))
+
   val constructors: Collection<ConstructorDescriptor>
   val companionObjectDescriptor: ClassDescriptor?
   val kind: ClassKind

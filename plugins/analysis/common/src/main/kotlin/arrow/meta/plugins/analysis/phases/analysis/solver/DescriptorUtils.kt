@@ -30,18 +30,13 @@ internal val DeclarationDescriptor.topMostOverriden: DeclarationDescriptor
  * or lives inside an object that inherits Laws
  */
 fun DeclarationDescriptor.isALaw(): Boolean =
-  annotations().hasAnnotation(FqName("arrow.analysis.Law")) ||
-    containingDeclaration.isLawsType()
+  annotations().hasAnnotation(FqName("arrow.analysis.Law"))
 
 /**
  * returns true if the type inherits Laws
  */
-internal fun DeclarationDescriptor?.isLawsType(): Boolean = when (this) {
-  is ClassDescriptor -> superTypes.any {
-    it.descriptor?.fqNameSafe == FqName("arrow.analysis.Laws")
-  }
-  else -> false
-}
+internal fun DeclarationDescriptor?.isLawsType(): Boolean =
+  this?.annotations()?.hasAnnotation(FqName("arrow.analysis.Laws")) ?: false
 
 /**
  * check if a descriptor is compatible with other,
