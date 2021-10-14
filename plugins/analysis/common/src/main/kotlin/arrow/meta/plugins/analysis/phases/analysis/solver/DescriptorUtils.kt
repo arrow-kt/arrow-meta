@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
+import arrow.meta.plugins.analysis.types.primitiveType
 
 /**
  * Obtain the descriptors which have been overridden by a declaration,
@@ -94,7 +95,9 @@ fun DeclarationDescriptor.isLooselyCompatibleWith(
  */
 fun DeclarationDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor -> hasOneReceiver()
-  is FunctionDescriptor -> valueParameters.isEmpty() && hasOneReceiver()
+  is FunctionDescriptor ->
+    valueParameters.isEmpty() && hasOneReceiver() &&
+      (returnType?.unwrappedNotNullableType?.primitiveType() != null)
   else -> false
 }
 

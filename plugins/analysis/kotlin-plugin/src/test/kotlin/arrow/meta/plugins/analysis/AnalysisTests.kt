@@ -449,9 +449,9 @@ class AnalysisTests {
   fun `post-conditions for subjects, function`() {
     """
       ${imports()}
-      @Pre(messages = {"not empty"}, formulae = {"(>= (int (field kotlin.collections.List.size this)) 1)"}, dependencies = {"kotlin.collections.List.size"})
+      @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
       @Subject(fqName = "kotlin.collections/first")
-      fun <E> List<E>.first(predicate: (x: E) -> Boolean) = first(predicate)
+      fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean) = first(predicate)
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
