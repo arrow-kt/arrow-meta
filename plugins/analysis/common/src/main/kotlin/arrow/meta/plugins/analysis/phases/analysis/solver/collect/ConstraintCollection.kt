@@ -491,8 +491,10 @@ internal fun ModuleDescriptor.declarationsWithConstraints(
   skip: Set<FqName> = skipPackages
 ): List<DeclarationDescriptor> {
   // initialize worklists
-  val firstPackage = System.getProperty("ARROW_ANALYSIS_INITIAL_PACKAGE_FOR_COLLECTION", "")
-  val packagesWorklist = LinkedList(listOf(FqName(firstPackage)))
+  val firstPackages =
+    System.getProperty("ARROW_ANALYSIS_INITIAL_PACKAGES_FOR_COLLECTION", "").split(',')
+      .takeIf { it.isNotEmpty() } ?: listOf("")
+  val packagesWorklist = LinkedList(firstPackages.map { FqName(it) })
   val scopesWorklist = LinkedList<MemberScope>()
   // initialize place for results
   val result = mutableListOf<DeclarationDescriptor>()
