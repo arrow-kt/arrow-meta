@@ -417,7 +417,7 @@ class AnalysisTests {
     """
       ${imports()}
       @Pre(messages = ["not zero divisor"], formulae = ["(not (= (int other) 0))"], dependencies = [])
-      @Subject(fqName = "kotlin/Int/div")
+      @Subject(fqName = "kotlin.Int.div")
       fun Int.divLaw(other: Int) = this / other
         
       val x: Int = 1 / 0
@@ -434,7 +434,7 @@ class AnalysisTests {
       import kotlin.Result.Companion.success
       
       @Post(messages = ["create a success"], formulae = ["true"], dependencies = ["kotlin.Result.isSuccess"])
-      @Subject(fqName = "kotlin/Result/Companion/success")
+      @Subject(fqName = "kotlin.Result.Companion.success")
       fun <T> Result.Companion.successLaw(x: T): Result<T> = success(x)
         
       val x: Result<Int> = success(3)
@@ -449,7 +449,7 @@ class AnalysisTests {
     """
       ${imports()}
       @Post(messages = ["example"], formulae = ["true"], dependencies = [])
-      @Subject(fqName = "kotlin.collections/minus")
+      @Subject(fqName = "kotlin.collections.minus")
       fun <E> Collection<E>.minusLaw(element: E) = minus(element)
       """(
       withPlugin = { compilesNoUnreachable },
@@ -462,7 +462,7 @@ class AnalysisTests {
     """
       ${imports()}
       @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
-      @Subject(fqName = "kotlin.collections/first")
+      @Subject(fqName = "kotlin.collections.first")
       fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean) = first(predicate)
       """(
       withPlugin = { compilesNoUnreachable },
@@ -621,7 +621,7 @@ class AnalysisTests {
       import kotlin.collections.ArrayList
       
       @Pre(messages = ["initial capacity should be non-negative"], formulae = ["(>= (int initialCapacity) 0)"], dependencies = [])
-      @Subject(fqName = "kotlin.collections/ArrayList/<init>")
+      @Subject(fqName = "kotlin.collections.ArrayList.<init>")
       fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
         pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
         return ArrayList(initialCapacity)
@@ -1302,12 +1302,12 @@ class AnalysisTests {
       object ListLaws {
         @Law
         @Post(messages = ["empty list is empty"], formulae = ["(= (int (field kotlin.collections.List.size ${'\\'}${'$'}result)) 0)"], dependencies = ["kotlin.collections.List.size"])
-        @Subject(fqName = "kotlin.collections/emptyList")
+        @Subject(fqName = "kotlin.collections.emptyList")
         inline fun <E> emptyListLaw(): List<E> = emptyList<E>()
 
         @Law
         @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
-        @Subject(fqName = "kotlin.collections/first")
+        @Subject(fqName = "kotlin.collections.first")
         inline fun <E> List<E>.firstLaw(): E = first()
       }
         

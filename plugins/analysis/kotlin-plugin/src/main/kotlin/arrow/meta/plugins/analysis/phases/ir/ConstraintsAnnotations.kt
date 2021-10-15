@@ -1,11 +1,8 @@
 package arrow.meta.plugins.analysis.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageFragmentDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
@@ -126,31 +123,8 @@ private fun IrUtils.lawSubjectAnnotationFromClassId(classId: ClassId, descriptor
 
 private fun IrUtils.lawSubjectAnnotation(fnDescriptor: FunctionDescriptor, descriptor: ClassDescriptor): IrConstructorCall? =
   descriptor.irConstructorCall()?.also {
-    it.putValueArgument(0, constantValue(fnDescriptor.getLawName()))
+    it.putValueArgument(0, constantValue(fnDescriptor.fqNameSafe.name))
   }
-
-private fun DeclarationDescriptor.getLawName(): String {
-  val builder = StringBuilder()
-
-  tailrec fun DeclarationDescriptor.go() {
-    val containing = containingDeclaration
-    when {
-      this is PackageFragmentDescriptor ||
-        this is PackageViewDescriptor ||
-        this is ModuleDescriptor ||
-        containing == null
-      -> builder.insert(0, fqNameSafe.name)
-      else -> {
-        builder.insert(0, name.value)
-        builder.insert(0, '/')
-        containing.go()
-      }
-    }
-  }
-  go()
-
-  return builder.toString()
-}
 
 private fun IrUtils.annotation(messages: List<String>, formulae: List<String>, dependencies: List<String>, descriptor: ClassDescriptor): IrConstructorCall? =
   descriptor.irConstructorCall()?.also {
