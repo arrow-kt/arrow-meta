@@ -97,9 +97,8 @@ fun DeclarationDescriptor.isField(): Boolean = when (this) {
   is PropertyDescriptor ->
     hasOneReceiver() && !(returnType?.descriptor?.isFun ?: false)
   is FunctionDescriptor ->
-    (name.value.startsWith("is") || name.value.startsWith("get")) && // it's a getter
-      valueParameters.isEmpty() && hasOneReceiver() &&
-      (returnType?.unwrappedNotNullableType?.primitiveType() != null)
+    valueParameters.isEmpty() && hasOneReceiver() &&
+      !(returnType?.descriptor?.isFun ?: false)
   else -> false
 }
 

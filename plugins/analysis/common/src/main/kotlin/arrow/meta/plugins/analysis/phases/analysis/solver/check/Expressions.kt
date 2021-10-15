@@ -456,14 +456,13 @@ internal fun SolverState.checkRegularFunctionCall(
           val descriptor = resolvedCall.resultingDescriptor
           if (descriptor.isField()) {
             val fieldConstraint = solver.ints {
-              val typeName = descriptor.fqNameSafe.name
               val argName =
                 if (resolvedCall.hasReceiver()) receiverName else argVars[0].assignedSmtVariable
               NamedConstraint(
-                "${expression.text} == $typeName($argName)",
+                "${expression.text} == ${descriptor.fqNameSafe.name}($argName)",
                 equal(
                   associatedVarName,
-                  solver.field(typeName, argName))
+                  field(descriptor, argName))
               )
             }
             addConstraint(fieldConstraint)
@@ -969,7 +968,7 @@ private fun SolverState.obtainInvariant(
     ?.takeIf { it.specialKind == SpecialKind.Invariant }
     ?.arg("predicate", data.context)
     ?.let { expr: Expression ->
-      solver.topLevelExpressionToFormula(expr, data.context, emptyList(), true)
+      topLevelExpressionToFormula(expr, data.context, emptyList(), true)
         ?.let { formula -> expr to formula }
     }
 

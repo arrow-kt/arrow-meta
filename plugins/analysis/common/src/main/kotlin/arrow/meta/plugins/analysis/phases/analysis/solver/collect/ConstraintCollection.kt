@@ -54,9 +54,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
@@ -123,7 +121,7 @@ internal fun Declaration.constraints(
     constraintsFromFunctionLike(solverState, context, emptyList())
   else -> Pair(arrayListOf(), arrayListOf())
 }.let { (preConstraints, postConstraints) ->
-  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty() || descriptor.isField()) {
+  if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
     solverState.addConstraints(
       descriptor, preConstraints, postConstraints,
       context
@@ -271,7 +269,7 @@ private fun Element.elementToConstraint(
   val kind = call?.specialKind
   return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
     val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
-    val result = solverState.solver.topLevelExpressionToFormula(predicateArg, context, parameters, false)
+    val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
       context.reportErrorsParsingPredicate(this, msg)
@@ -301,7 +299,7 @@ private fun SolverState.addConstraints(
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
-    findDescriptorFromRemoteLaw(descriptor)
+    findDescriptorFromRemoteLaw(descriptor, bindingContext)
     ?: findDescriptorFromLocalLaw(descriptor, bindingContext)
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
@@ -315,12 +313,13 @@ private fun SolverState.addConstraints(
 }
 
 private fun findDescriptorFromRemoteLaw(
-  descriptor: DeclarationDescriptor
+  descriptor: DeclarationDescriptor,
+  context: ResolutionContext
 ): DeclarationDescriptor? =
   descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
     val name = lawSubject.argumentValueAsString("fqName")
     val result = name?.let {
-      descriptor.module.obtainDeclaration(FqName(it), descriptor)
+      context.obtainDeclaration(FqName(it), descriptor)
     }
     result.also {
       if (it == null) {
@@ -332,38 +331,11 @@ private fun findDescriptorFromRemoteLaw(
     }
   }
 
-private fun ModuleDescriptor.obtainDeclaration(
+private fun ResolutionContext.obtainDeclaration(
   fqName: FqName,
   compatibleWith: DeclarationDescriptor
 ): DeclarationDescriptor? {
-  val portions = fqName.name.split("/")
-
-  var current: List<DeclarationDescriptor> = listOfNotNull(getPackage(portions.first()))
-  for (portion in portions.drop(1)) {
-    current = when (portion) {
-      "<init>" -> current.flatMap {
-        when (it) {
-          is ClassDescriptor -> it.constructors
-          is TypeAliasDescriptor -> it.constructors
-          else -> emptyList()
-        }
-      }
-      else -> current.flatMap { decl ->
-        when (decl) {
-          is PackageViewDescriptor -> decl.memberScope.getContributedDescriptors { true }
-          is ClassDescriptor -> decl.completeUnsubstitutedScope.getContributedDescriptors { true }
-          is TypeAliasDescriptor -> decl.classDescriptor?.completeUnsubstitutedScope?.getContributedDescriptors { true }
-          else -> null
-        }.orEmpty().flatMap {
-          when (it) {
-            is PropertyDescriptor -> listOfNotNull(it, it.getter, it.setter)
-            else -> listOf(it)
-          }
-        }.filter { it.name.value == portion }
-      }
-    }
-  }
-
+  val current = descriptorFor(fqName)
   // the type either strictly checks
   // or we need to look for the best match
   return current.firstOrNull { it.isCompatibleWith(compatibleWith) }
@@ -508,7 +480,7 @@ internal fun ModuleDescriptor.declarationsWithConstraints(
       val descriptors = scope.getContributedDescriptors { true }
       // 2. add the interesting ones to the result
       result.addAll(descriptors.filter {
-        it.preAnnotation() != null || it.postAnnotation() != null || it.isField()
+        it.preAnnotation() != null || it.postAnnotation() != null
       })
       // 3. add all new member scopes to the worklist
       scopesWorklist.addAll(descriptors
@@ -549,7 +521,7 @@ internal fun SolverState.addClassPathConstraintsToSolverState(
       else -> null
     }?.let { element -> parseFormula(element, ann, descriptor) }
   }
-  if (constraints.isNotEmpty() || descriptor.isField()) {
+  if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<NamedConstraint>()
     val postConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
@@ -621,7 +593,7 @@ public fun finalizeConstraintsCollection(
     module.declarationsWithConstraints().forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
-    solverState.introduceFieldNamesInSolver()
+    // solverState.introduceFieldNamesInSolver()
     // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
     solverState.collectionEnds()
     if (solverState.hadParseErrors()) {
@@ -631,7 +603,7 @@ public fun finalizeConstraintsCollection(
     }
   } else AnalysisResult.Completed
 
-internal fun Solver.topLevelExpressionToFormula(
+internal fun SolverState.topLevelExpressionToFormula(
   ex: Expression?,
   context: ResolutionContext,
   parameters: List<Parameter>,
@@ -640,7 +612,7 @@ internal fun Solver.topLevelExpressionToFormula(
   expressionToFormula(ex, context, parameters, allowAnyReference)?.let {
     when (it) {
       is BooleanFormula -> it
-      is ObjectFormula -> boolValue(it)
+      is ObjectFormula -> solver.boolValue(it)
       else -> null
     }
   }
@@ -648,7 +620,7 @@ internal fun Solver.topLevelExpressionToFormula(
 /**
  * Transform a [Expression] into a [Formula]
  */
-private fun Solver.expressionToFormula(
+private fun SolverState.expressionToFormula(
   ex: Expression?,
   context: ResolutionContext,
   parameters: List<Parameter>,
@@ -664,16 +636,16 @@ private fun Solver.expressionToFormula(
     // basic blocks
     ex is BlockExpression ->
       ex.statements.mapNotNull { recur(it) as? BooleanFormula }
-        .let { conditions -> boolAndList(conditions) }
+        .let { conditions -> solver.boolAndList(conditions) }
     ex is ConstantExpression ->
-      ex.type(context)?.let { ty -> makeConstant(ty, ex) }
+      ex.type(context)?.let { ty -> solver.makeConstant(ty, ex) }
     ex is ThisExpression -> // reference to this
-      makeObjectVariable("this")
+      solver.makeObjectVariable("this")
     ex is NameReferenceExpression && ex.isResultReference(context) ->
-      makeObjectVariable(RESULT_VAR_NAME)
+      solver.makeObjectVariable(RESULT_VAR_NAME)
     ex is NameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
       if (allowAnyReference || parameters.any { it.nameAsName == ex.getReferencedNameAsName() }) {
-        makeObjectVariable(ex.getReferencedName())
+        solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
         context.reportErrorsParsingPredicate(ex, msg)
@@ -681,7 +653,7 @@ private fun Solver.expressionToFormula(
       }
     ex is NameReferenceExpression && argCall?.resultingDescriptor is LocalVariableDescriptor ->
       if (allowAnyReference) {
-        makeObjectVariable(ex.getReferencedName())
+        solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
         context.reportErrorsParsingPredicate(ex, msg)
@@ -692,7 +664,7 @@ private fun Solver.expressionToFormula(
       val thenBranch = recur(ex.thenExpression)
       val elseBranch = recur(ex.elseExpression)
       if (cond != null && thenBranch != null && elseBranch != null) {
-        ifThenElse(cond, thenBranch, elseBranch)
+        solver.ifThenElse(cond, thenBranch, elseBranch)
       } else {
         null
       }
@@ -700,7 +672,7 @@ private fun Solver.expressionToFormula(
     ex is WhenExpression && ex.subjectExpression == null ->
       ex.entries.foldRight<WhenEntry, Formula?>(null) { entry, acc ->
         val conditions: List<BooleanFormula?> = when {
-          entry.isElse -> listOf(booleanFormulaManager.makeTrue())
+          entry.isElse -> listOf(solver.booleanFormulaManager.makeTrue())
           else -> entry.conditions.map { cond ->
             when (cond) {
               is WhenConditionWithExpression -> recur(cond.expression) as? BooleanFormula
@@ -712,26 +684,26 @@ private fun Solver.expressionToFormula(
         when {
           body == null || conditions.any { it == null } ->
             return@foldRight null // error case
-          acc != null -> ifThenElse(boolOrList(conditions.filterNotNull()), body, acc)
+          acc != null -> solver.ifThenElse(solver.boolOrList(conditions.filterNotNull()), body, acc)
           entry.isElse -> body
           else -> null
         }
       }
     // special cases which do not always resolve well
     ex is BinaryExpression && ex.operationTokenRpr == "EQEQ" && ex.right is NullExpression ->
-      ex.left?.let { recur(it) as? ObjectFormula }?.let { isNull(it) }
+      ex.left?.let { recur(it) as? ObjectFormula }?.let { solver.isNull(it) }
     ex is BinaryExpression && ex.operationTokenRpr == "EXCLEQ" && ex.right is NullExpression ->
-      ex.left?.let { recur(it) as? ObjectFormula }?.let { isNotNull(it) }
+      ex.left?.let { recur(it) as? ObjectFormula }?.let { solver.isNotNull(it) }
     ex is BinaryExpression && ex.operationTokenRpr == "ANDAND" ->
       recur(ex.left)?.let { leftFormula ->
         recur(ex.right)?.let { rightFormula ->
-          boolAnd(listOf(leftFormula, rightFormula))
+          solver.boolAnd(listOf(leftFormula, rightFormula))
         }
       }
     ex is BinaryExpression && ex.operationTokenRpr == "OROR" ->
       recur(ex.left)?.let { leftFormula ->
         recur(ex.right)?.let { rightFormula ->
-          boolOr(listOf(leftFormula, rightFormula))
+          solver.boolOr(listOf(leftFormula, rightFormula))
         }
       }
     // fall-through case
@@ -741,8 +713,8 @@ private fun Solver.expressionToFormula(
       }
       val wrappedArgs =
         args.takeIf { args.all { it.second != null } }
-          ?.map { (ty, e) -> wrap(e!!, ty) }
-      wrappedArgs?.let { primitiveFormula(context, argCall, it) }
+          ?.map { (ty, e) -> solver.wrap(e!!, ty) }
+      wrappedArgs?.let { solver.primitiveFormula(context, argCall, it) }
         ?: fieldFormula(argCall.resultingDescriptor, args)
     }
     else -> null
@@ -767,14 +739,14 @@ private fun Solver.wrap(
   else -> formula
 }
 
-private fun Solver.fieldFormula(
+private fun SolverState.fieldFormula(
   descriptor: CallableDescriptor,
   args: List<Pair<Type, Formula?>>
 ): ObjectFormula? = descriptor.takeIf { it.isField() }?.let {
     // create a field, the 'this' may be missing
     val thisExpression =
-      (args.getOrNull(0)?.second as? ObjectFormula) ?: makeObjectVariable("this")
-    field(descriptor.fqNameSafe.name, thisExpression)
+      (args.getOrNull(0)?.second as? ObjectFormula) ?: solver.makeObjectVariable("this")
+    field(descriptor, thisExpression)
   }
 
 /**
