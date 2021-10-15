@@ -73,7 +73,7 @@ class FieldProvider(
   }
 
   companion object {
-    fun NEW(solver: Solver, prover: ProverEnvironment): FieldProvider =
+    operator fun invoke(solver: Solver, prover: ProverEnvironment): FieldProvider =
       FieldProvider(solver, prover, mutableMapOf(), 0)
   }
 }

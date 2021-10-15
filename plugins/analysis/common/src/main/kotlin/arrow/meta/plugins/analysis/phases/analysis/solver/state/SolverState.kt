@@ -29,7 +29,7 @@ data class SolverState(
   ),
   val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf(),
-  val fieldProvider: FieldProvider = FieldProvider.NEW(solver, prover)
+  val fieldProvider: FieldProvider = FieldProvider(solver, prover)
 ) {
 
   private var stage = Stage.Init
