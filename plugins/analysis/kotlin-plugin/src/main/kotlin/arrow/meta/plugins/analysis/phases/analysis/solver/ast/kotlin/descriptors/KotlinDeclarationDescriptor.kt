@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 fun interface KotlinDeclarationDescriptor :
   DeclarationDescriptor {
-  fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+  override fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 
   override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
 

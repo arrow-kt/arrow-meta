@@ -48,12 +48,16 @@ annotation class Subject(val fqName: String)
  * can group several of them together.
  *
  * ```
- * object IntLaws : Laws {
+ * @Laws
+ * object IntLaws {
  *   fun Int.plusLaw { ... }
  * }
  * ```
  */
-interface Laws
+@Target(
+  AnnotationTarget.CLASS
+)
+annotation class Laws
 
 /**
  * Indicates that the preconditions for a call

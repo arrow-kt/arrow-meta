@@ -89,3 +89,10 @@ fun Solver.isFieldCall(f: Formula): Boolean {
   }
   return visit(f, visitor)
 }
+
+fun FormulaManager.extractSingleVariable(
+  formula: Formula
+): String? =
+  extractVariables(formula)
+    .takeIf { it.size == 1 }
+    ?.toList()?.getOrNull(0)?.first

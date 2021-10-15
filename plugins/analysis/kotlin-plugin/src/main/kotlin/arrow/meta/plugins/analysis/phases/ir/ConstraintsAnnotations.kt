@@ -11,12 +11,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrMutableAnnotationContainer
@@ -58,7 +58,6 @@ internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
   }
 }
 
-@OptIn(ObsoleteDescriptorBasedAPI::class)
 private fun getIrReturnedExpressionWithoutPostcondition(
   function: IrFunction
 ): FunctionDescriptor? {
@@ -68,16 +67,24 @@ private fun getIrReturnedExpressionWithoutPostcondition(
     else -> lastElement
   }
   // remove outer layer of postcondition
-  val veryLast = when (lastElementWithoutReturn) {
-    is IrMemberAccessExpression<*> -> {
-      val call = lastElementWithoutReturn.symbol.descriptor.fqNameSafe
-      lastElementWithoutReturn.extensionReceiver
-        .takeIf { call == FqName("arrow.analysis.post") }
+  val veryLast: IrStatement? = when (lastElementWithoutReturn) {
+    is IrMemberAccessExpression<*> -> when (val symbol = lastElementWithoutReturn.symbol) {
+      is IrFunctionSymbol ->
+        lastElementWithoutReturn.extensionReceiver
+          .takeIf { symbol.owner.toIrBasedDescriptor().fqNameSafe == FqName("arrow.analysis.post") }
+      else -> null
     }
     else -> null
   } ?: lastElementWithoutReturn
-  return (veryLast as? IrMemberAccessExpression<IrFunctionSymbol>)
-    ?.symbol?.owner?.toIrBasedDescriptor()?.model()
+  // and finally obtain the model
+  return when (veryLast) {
+    is IrMemberAccessExpression<*> -> when (val symbol = veryLast.symbol) {
+      is IrFunctionSymbol -> symbol.owner.toIrBasedDescriptor()
+        .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
+      else -> null
+    }
+    else -> null
+  }
 }
 
 private fun IrMutableAnnotationContainer.addAnnotation(annotation: IrConstructorCall) {

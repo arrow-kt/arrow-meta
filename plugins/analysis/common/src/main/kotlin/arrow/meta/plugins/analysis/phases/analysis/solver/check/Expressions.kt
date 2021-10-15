@@ -71,7 +71,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SubjectCon
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.primitiveConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
@@ -80,6 +79,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
+import arrow.meta.plugins.analysis.phases.analysis.solver.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.referencedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState

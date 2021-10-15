@@ -32,7 +32,6 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is SimpleFunctionDescriptor -> KotlinSimpleFunctionDescriptor(this).repr()
     is TypeAliasConstructorDescriptor -> KotlinTypeAliasConstructorDescriptor(this).repr()
     is ConstructorDescriptor -> KotlinConstructorDescriptor(this).repr()
-    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) { }).repr()
     is PropertyAccessorDescriptor -> KotlinPropertyAccessorDescriptor(this).repr()
     is PropertyDescriptor -> KotlinPropertyDescriptor(this).repr()
     is PackageViewDescriptor -> KotlinPackageViewDescriptor(this).repr()
@@ -45,6 +44,7 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
+    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) { }).repr()
     else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 

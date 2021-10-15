@@ -14,7 +14,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPostConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPreconditionsInconsistencies
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.immediateConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovStrongerPostcondition
@@ -41,6 +40,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CurrentBranch
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkDefaultValueInconsistency
 
 // 2.1: declarations

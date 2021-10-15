@@ -5,10 +5,22 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class AnalysisTests {
+
+  companion object {
+    @BeforeAll
+    @JvmStatic
+    fun `set initial package`() {
+      // this signals that instead of the whole CLASSPATH
+      // only the elements within 'kotlin' should be gathered
+      // this speeds up the testing process
+      System.setProperty("ARROW_ANALYSIS_INITIAL_PACKAGES_FOR_COLLECTION", "kotlin,test")
+    }
+  }
 
   @Test
   fun `bad predicate, could not parse predicate`() {
@@ -416,6 +428,49 @@ class AnalysisTests {
   }
 
   @Test
+  fun `post-conditions for subjects`() {
+    """
+      ${imports()}
+      import kotlin.Result.Companion.success
+      
+      @Post(messages = ["create a success"], formulae = ["true"], dependencies = ["kotlin.Result.isSuccess"])
+      @Subject(fqName = "kotlin/Result/Companion/success")
+      fun <T> Result.Companion.successLaw(x: T): Result<T> = success(x)
+        
+      val x: Result<Int> = success(3)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `post-conditions for subjects, subtype`() {
+    """
+      ${imports()}
+      @Post(messages = ["example"], formulae = ["true"], dependencies = [])
+      @Subject(fqName = "kotlin.collections/minus")
+      fun <E> Collection<E>.minusLaw(element: E) = minus(element)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `post-conditions for subjects, function`() {
+    """
+      ${imports()}
+      @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
+      @Subject(fqName = "kotlin.collections/first")
+      fun <E> List<E>.firstLaw(predicate: (x: E) -> Boolean) = first(predicate)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `ad-hoc laws are checked in call, 1`() {
     """
       ${imports()}
@@ -459,7 +514,9 @@ class AnalysisTests {
     """
       ${imports()}
       
-      object IntLaws : Laws {
+      @Laws
+      object IntLaws {
+        @Law
         fun Int.safeDiv(theOtherNumber: Int): Int {
           pre( theOtherNumber != 0 ) { "other is not zero" }
           return this / theOtherNumber
@@ -478,7 +535,9 @@ class AnalysisTests {
     """
       ${imports()}
       
-      object IntLaws : Laws {
+      @Laws
+      object IntLaws {
+        @Law
         fun Int.safeDiv(theOtherNumber: Int): Int {
           pre( theOtherNumber != 0 ) { "other is not zero" }
           return this / theOtherNumber
@@ -532,15 +591,7 @@ class AnalysisTests {
   fun `ad-hoc laws for constructors, 1`() {
     """
       ${imports()}
-      
-      import kotlin.collections.ArrayList
-      
-      object ArrayListLaws : Laws {
-        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
-          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
-          return ArrayList(initialCapacity)
-        }
-      }
+      ${arrayListLaws()}
      
       val result = ArrayList<Int>(-1)
       """(
@@ -553,15 +604,7 @@ class AnalysisTests {
   fun `ad-hoc laws for constructors, 2`() {
     """
       ${imports()}
-      
-      import kotlin.collections.ArrayList
-      
-      object ArrayListLaws : Laws {
-        fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
-          pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
-          return ArrayList(initialCapacity)
-        }
-      }
+      ${arrayListLaws()}
      
       val result = ArrayList<Int>(1)
       """(
@@ -1223,6 +1266,57 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `parses predicates, Collection, 1`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+        
+      val problem = emptyList<Int>().map { it + 1 }.first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Collection, 2`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+        
+      val oki = emptyList<Int>().map { it + 1 }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `parses predicates, Collection, using annotations`() {
+    """
+      ${imports()}
+      
+      @Laws
+      object ListLaws {
+        @Law
+        @Post(messages = ["empty list is empty"], formulae = ["(= (int (field kotlin.collections.List.size ${'\\'}${'$'}result)) 0)"], dependencies = ["kotlin.collections.List.size"])
+        @Subject(fqName = "kotlin.collections/emptyList")
+        inline fun <E> emptyListLaw(): List<E> = emptyList<E>()
+
+        @Law
+        @Pre(messages = ["not empty"], formulae = ["(>= (int (field kotlin.collections.List.size this)) 1)"], dependencies = ["kotlin.collections.List.size"])
+        @Subject(fqName = "kotlin.collections/first")
+        inline fun <E> List<E>.firstLaw(): E = first()
+      }
+        
+      val oki = emptyList<Int>().first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1244,6 +1338,47 @@ import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
  """
+
+private fun collectionListLaws(): String =
+"""
+@Laws
+object CollectionLaws {
+  @Law
+  inline fun <E> Collection<E>.firstLaw(): E {
+    pre(size >= 1) { "not empty" }
+    return first()
+  }
+  @Law
+  inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
+    map(transform).post({ it.size == this.size }) { "size remains after map" }
+}
+
+@Laws
+object ListLaws {
+  @Law
+  inline fun <E> emptyListLaw(): List<E> =
+    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
+  @Law
+  inline fun <E> List<E>.firstLaw(): E {
+    pre(size >= 1) { "not empty" }
+    return first()
+  }
+}
+"""
+
+private fun arrayListLaws(): String =
+"""
+import kotlin.collections.ArrayList
+      
+@Laws
+object ArrayListLaws {
+  @Law
+  fun <A> ArrayListConstruction(initialCapacity: Int): ArrayList<A> {
+    pre( initialCapacity >= 0 ) { "initial capacity should be non-negative" }
+    return ArrayList(initialCapacity)
+  }
+}
+"""
 
 // TODO update arrow dependencies to latest to test validated support
 private operator fun String.invoke(

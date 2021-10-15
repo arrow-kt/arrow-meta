@@ -20,7 +20,14 @@ class KotlinClassDescriptor(
 
   override fun impl(): org.jetbrains.kotlin.descriptors.ClassDescriptor = impl
   override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
-  override fun getUnsubstitutedMemberScope(): MemberScope = KotlinMemberScope { impl().unsubstitutedMemberScope }
+
+  override val unsubstitutedMemberScope: MemberScope
+    get() = KotlinMemberScope { impl.unsubstitutedMemberScope }
+  override val staticScope: MemberScope
+    get() = KotlinMemberScope { impl.staticScope }
+  override val unsubstitutedInnerClassesScope: MemberScope
+    get() = KotlinMemberScope { impl.unsubstitutedInnerClassesScope }
+
   override val constructors: Collection<ConstructorDescriptor>
     get() = impl().constructors.map { it.model() }
   override val companionObjectDescriptor: ClassDescriptor?
@@ -44,6 +51,8 @@ class KotlinClassDescriptor(
     get() = impl().isFun
   override val isValue: Boolean
     get() = impl().isValue
+  override val isEnumEntry: Boolean
+    get() = impl().kind == ClassKind.ENUM_ENTRY
   override val thisAsReceiverParameter: ReceiverParameterDescriptor
     get() = impl().thisAsReceiverParameter.model()
   override val unsubstitutedPrimaryConstructor: ConstructorDescriptor?

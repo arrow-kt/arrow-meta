@@ -30,6 +30,7 @@ dependencies {
 
 compileKotlinJvm {
     dependsOn(":analysis-kotlin-plugin:jar")
+    dependsOn(":analysis-laws:jar")
     kotlinOptions {
         freeCompilerArgs += ["-Xplugin=${rootDir}/plugins/analysis/kotlin-plugin/build/libs/arrow-analysis-kotlin-plugin-1.5.31-SNAPSHOT.jar",
                              "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${buildDir}"]
