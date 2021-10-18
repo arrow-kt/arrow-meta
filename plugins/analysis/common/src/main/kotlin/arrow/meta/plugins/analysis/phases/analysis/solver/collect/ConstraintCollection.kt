@@ -62,6 +62,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DotQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionResolvedValueArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
@@ -456,6 +457,49 @@ private val skipPackages = setOf(
 )
 
 /**
+ * Get all the pre- and post- conditions for
+ * local declarations.
+ */
+internal fun DeclarationDescriptor.declarationsWithConstraints(): List<DeclarationDescriptor> {
+  // we fake the initial scope
+  val fakeMemberScope = object : MemberScope {
+    override fun getClassifierNames(): Set<Name> =
+      throw IllegalStateException("not available here")
+    override fun getFunctionNames(): Set<Name> =
+      throw IllegalStateException("not available here")
+    override fun getVariableNames(): Set<Name> =
+      throw IllegalStateException("not available here")
+    override fun getContributedDescriptors(filter: (name: String) -> Boolean): List<DeclarationDescriptor> =
+      listOf(this@declarationsWithConstraints).filter { decl -> filter(decl.name.value) }
+  }
+  val scopesWorklist = LinkedList<MemberScope>(listOf(fakeMemberScope))
+  // initialize place for results
+  val result = mutableListOf<DeclarationDescriptor>()
+
+  // the work
+  while (scopesWorklist.isNotEmpty()) {
+    // work to do in a member scope
+    val scope = scopesWorklist.remove()
+    // 1. get all descriptors
+    val descriptors = scope.getContributedDescriptors { true }
+    // 2. add the interesting ones to the result
+    result.addAll(descriptors.filter {
+      it.preAnnotation() != null || it.postAnnotation() != null
+    })
+    // 3. add all new member scopes to the worklist
+    scopesWorklist.addAll(descriptors
+      .filterIsInstance<ClassDescriptor>()
+      .filter { !it.isEnumEntry && !it.isException() }
+      .map { it.completeUnsubstitutedScope })
+    scopesWorklist.addAll(descriptors
+      .filterIsInstance<TypeAliasDescriptor>()
+      .mapNotNull { it.classDescriptor?.completeUnsubstitutedScope })
+  }
+
+  return result.toList()
+}
+
+/**
  * Get all the pre- and post- conditions for declarations
  * in the CLASSPATH, by looking at the annotations.
  */
@@ -592,7 +636,7 @@ public fun finalizeConstraintsCollection(
 ): AnalysisResult =
   if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
     // check local declarations for Laws
-    localDeclarations.forEach {
+    localDeclarations.flatMap { it.declarationsWithConstraints() }.forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
     // check rest of the CLASSPATH for laws
