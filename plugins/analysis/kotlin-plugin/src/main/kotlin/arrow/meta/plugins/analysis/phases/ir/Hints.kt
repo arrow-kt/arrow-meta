@@ -1,23 +1,35 @@
 package arrow.meta.plugins.analysis.phases.ir
 
 import arrow.meta.phases.CompilerContext
-import arrow.meta.quotes.filebase.File
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.name.FqName
+import java.io.File
 import java.util.UUID
 
-fun CompilerContext.hintsFile(descriptor: ModuleDescriptor, packages: Set<FqName>): File =
-  hints(descriptor, packages).file("AnalysisHints.kt")
+fun CompilerContext.hintsFile(
+  parentPath: String,
+  descriptor: ModuleDescriptor,
+  packages: Set<FqName>
+): File =
+  File(
+    parentPath,
+    "/AnalysisHints.kt",
+  ).also {
+    it.createNewFile()
+    it.writeText(hints(descriptor, packages))
+  }
 
 fun hints(descriptor: ModuleDescriptor, packages: Set<FqName>): String {
   val hintPackageName =
     descriptor.stableName?.asString()?.replace('.', '_')
-      ?: "unknown.id${UUID.randomUUID().toString().replace('-', '_')}"
+      ?: "unknown_${UUID.randomUUID().toString().replace('-', '_')}"
   val packageList = packages.joinToString() { name ->
-    "\"${name.asString()}\""
+    "\"${name.name}\""
   }
   return """
-         |@file:arrow.analysis.DeclaresLawsIn($packageList")
-         |package arrow.analysis.hints.$hintPackageName
+         |package arrow.analysis.hints
+         |
+         |@arrow.analysis.PackagesWithLaws([$packageList])
+         |class hints_for_$hintPackageName { }
          |""".trimMargin()
 }

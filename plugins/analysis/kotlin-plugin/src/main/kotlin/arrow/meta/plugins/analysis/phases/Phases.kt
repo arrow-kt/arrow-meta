@@ -4,9 +4,12 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
+import arrow.meta.phases.getOrCreateBaseDirectory
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnalysisResult
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.KotlinResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
@@ -17,12 +20,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.finalizeConstr
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.analysis.phases.ir.hintsFile
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
-import arrow.meta.quotes.Transform
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-
-typealias KotlinFqName = org.jetbrains.kotlin.name.FqName
+import java.io.File
 
 internal fun Meta.analysisPhases(): ExtensionPhase =
   Composite(
@@ -36,16 +37,21 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         analysisCompleted = { project, module, bindingTrace, files ->
           val kotlinModule: KotlinModuleDescriptor = module.model()
           val context = KotlinResolutionContext(bindingTrace, module)
-          val locals = files.flatMap { file ->
-            file.declarations.mapNotNull { decl ->
-              context.descriptorFor(decl.model())
-            }
-          }
-          when (finalizeConstraintsCollection(solverState(module), locals, kotlinModule, context)) {
-            AnalysisResult.Retry ->
+          val locals = files.declarationDescriptors(context)
+          val (result, interesting) = finalizeConstraintsCollection(solverState(module), locals, kotlinModule, context)
+          when (result) {
+            AnalysisResult.Retry -> {
+              // 1. generate the additional file with hints
+              val parentPath = files.firstParentPath()?.let { java.io.File(it) }
+              val path = getOrCreateBaseDirectory(parentPath)
+              hintsFile(path.absolutePath, module, interesting)
+              // 2. retry with all the gathered information
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
-                bindingTrace.bindingContext, module, emptyList(), emptyList()
+                bindingTrace.bindingContext, module,
+                additionalJavaRoots = emptyList(),
+                additionalKotlinRoots = listOfNotNull(path)
               )
+            }
             AnalysisResult.ParsingError ->
               org.jetbrains.kotlin.analyzer.AnalysisResult.compilationError(
                 bindingTrace.bindingContext
@@ -67,19 +73,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         }
       },
       irFunction { fn ->
-        compilerContext.run {
-          module?.let { recordedNames(it) }
-            ?.let { annotateWithConstraints(it, fn) }
-        }
+        annotateWithConstraints(fn)
         null
-      },
-      IrGeneration { compilerContext, moduleFragment, _ ->
-        compilerContext.run {
-          module?.let { recordedNames(it) }
-            ?.let { recordedNames ->
-              Transform.newSources<KtFile>(hintsFile(moduleFragment.descriptor, recordedNames))
-            }
-        }
       },
       irDumpKotlinLike()
     )
@@ -93,10 +88,6 @@ internal fun CompilerContext.solverState(
   module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
 ): SolverState? = get(SolverState.key(KotlinModuleDescriptor(module)))
 
-internal fun CompilerContext.recordedNames(
-  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
-): MutableSet<KotlinFqName>? = get(recordedNamesFor(KotlinModuleDescriptor(module)))
-
 internal fun CompilerContext.ensureSolverStateInitialization(
   module: ModuleDescriptor
 ) {
@@ -106,13 +97,16 @@ internal fun CompilerContext.ensureSolverStateInitialization(
     val state = SolverState(NameProvider())
     set(SolverState.key(module), state)
   }
-  // and do the same for the set of recorded names
-  val recordedNames = get<MutableSet<KotlinFqName>>(recordedNamesFor(module))
-  if (recordedNames == null) {
-    val newRecordedNames = mutableSetOf<KotlinFqName>()
-    set(recordedNamesFor(module), newRecordedNames)
-  }
 }
 
-fun recordedNamesFor(moduleDescriptor: ModuleDescriptor): String =
-  "RecordedNames-${moduleDescriptor.name}"
+fun Collection<KtFile>.declarationDescriptors(
+  context: ResolutionContext
+): List<DeclarationDescriptor> =
+  this.flatMap { file ->
+    file.declarations.mapNotNull { decl ->
+      context.descriptorFor(decl.model())
+    }
+  }
+
+private fun Iterable<KtFile>.firstParentPath(): String? =
+  firstOrNull()?.virtualFilePath?.let { java.io.File(it).parentFile.absolutePath }

@@ -68,6 +68,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionWithExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.gather
 import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.isField
@@ -435,6 +436,12 @@ private fun getReturnedExpressionWithoutPostcondition(
   return veryLast?.getResolvedCall(bindingContext)
 }
 
+private val Annotated.hasPreOrPostAnnotation: Boolean
+  get() = annotations().run {
+    hasAnnotation(FqName("arrow.analysis.Pre")) ||
+      hasAnnotation(FqName("arrow.analysis.Post"))
+  }
+
 private fun Annotated.preAnnotation(): AnnotationDescriptor? =
   annotations().findAnnotation(FqName("arrow.analysis.Pre"))
 
@@ -633,27 +640,40 @@ public fun finalizeConstraintsCollection(
   localDeclarations: List<DeclarationDescriptor>,
   module: ModuleDescriptor,
   bindingTrace: ResolutionContext
-): AnalysisResult =
+): Pair<AnalysisResult, Set<FqName>> =
   if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
-    // check local declarations for Laws
-    localDeclarations.flatMap { it.declarationsWithConstraints() }.forEach {
+    // check local declarations for @Laws
+    localDeclarations.flatMap {
+      it.gather { it.hasPreOrPostAnnotation }
+    }.forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
-    // check rest of the CLASSPATH for laws
+    // check rest of the CLASSPATH for @Laws
     val skipClasspath =
       System.getProperty("ARROW_ANALYSIS_SKIP_CLASSPATH", "false").toBooleanStrictOrNull() ?: false
     if (!skipClasspath) {
-      module.declarationsWithConstraints().forEach {
+      module.gather {
+        it.hasPreOrPostAnnotation
+      }.forEach {
         solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
       }
     }
+
+    // end the process of collection
     solverState.collectionEnds()
     if (solverState.hadParseErrors()) {
-      AnalysisResult.ParsingError
+      Pair(AnalysisResult.ParsingError, emptySet())
     } else {
-      AnalysisResult.Retry
+      // figure out which is the set of local elements
+      // whose packages should be added in the hints
+      val interesting = localDeclarations.flatMap {
+        it.gather { solverState.callableConstraints.containsKey(it.fqNameSafe) }
+      }.mapNotNull {
+        it.containingPackage
+      }.toSet()
+      Pair(AnalysisResult.Retry, interesting)
     }
-  } else AnalysisResult.Completed
+  } else Pair(AnalysisResult.Completed, emptySet())
 
 internal fun SolverState.topLevelExpressionToFormula(
   ex: Expression?,

@@ -3,7 +3,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
@@ -21,7 +20,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 fun interface KotlinCallableDescriptor :
-  CallableDescriptor {
+  CallableDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.CallableDescriptor
 
@@ -30,8 +29,6 @@ fun interface KotlinCallableDescriptor :
   override fun annotations(): Annotations = KotlinAnnotations(descriptor().impl().annotations)
   override val module: ModuleDescriptor
     get() = impl().module.model()
-  override val containingDeclaration: DeclarationDescriptor?
-    get() = impl().containingDeclaration.model()
 
   override fun element(): Element? =
     (impl().findPsi() as? KtElement)?.model()

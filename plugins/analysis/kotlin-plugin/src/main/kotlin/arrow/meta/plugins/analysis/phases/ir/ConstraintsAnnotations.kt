@@ -26,8 +26,6 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
-import org.jetbrains.kotlin.ir.util.getPackageFragment
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -35,7 +33,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.FormulaManager
 
 internal fun IrUtils.annotateWithConstraints(
-  recordedNames: MutableSet<FqName>,
   fn: IrFunction
 ) {
   val kotlinModule: ModuleDescriptor = moduleFragment.descriptor.model()
@@ -45,9 +42,6 @@ internal fun IrUtils.annotateWithConstraints(
       .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
     val declarationConstraints = solverState.constraintsFromSolverState(model)
     if (declarationConstraints != null) {
-      fn.getPackageFragment()?.fqNameForIrSerialization?.let {
-        recordedNames.add(it)
-      }
       solverState.solver.formulae {
         preAnnotation(declarationConstraints.pre, solverState.solver.formulaManager)
           ?.let { fn.addAnnotation(it) }
