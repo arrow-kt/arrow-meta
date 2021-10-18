@@ -60,6 +60,16 @@ annotation class Subject(val fqName: String)
 annotation class Laws
 
 /**
+ * This is used internally to speed up the search for laws
+ * Each package with any law should include this annotation
+ * in a submodule of 'arrow.analysis.hints'
+ */
+@Target(
+  AnnotationTarget.FILE
+)
+annotation class DeclaresLawsIn(val packages: Array<String>)
+
+/**
  * Indicates that the preconditions for a call
  * should not be checked.
  */

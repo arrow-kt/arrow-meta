@@ -121,7 +121,6 @@ data class SolverState(
   }
 
   companion object {
-
     fun key(moduleDescriptor: ModuleDescriptor): String =
       "SolverState-${moduleDescriptor.name}"
   }

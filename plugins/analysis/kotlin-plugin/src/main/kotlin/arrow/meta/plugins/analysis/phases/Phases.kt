@@ -15,9 +15,14 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectDeclarationsConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.finalizeConstraintsCollection
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
+import arrow.meta.plugins.analysis.phases.ir.hintsFile
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
+import arrow.meta.quotes.Transform
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+
+typealias KotlinFqName = org.jetbrains.kotlin.name.FqName
 
 internal fun Meta.analysisPhases(): ExtensionPhase =
   Composite(
@@ -57,8 +62,19 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         }
       },
       irFunction { fn ->
-        annotateWithConstraints(fn)
+        compilerContext.run {
+          module?.let { recordedNames(it) }
+            ?.let { annotateWithConstraints(it, fn) }
+        }
         null
+      },
+      IrGeneration { compilerContext, moduleFragment, _ ->
+        compilerContext.run {
+          module?.let { recordedNames(it) }
+            ?.let { recordedNames ->
+              Transform.newSources<KtFile>(hintsFile(moduleFragment.descriptor, recordedNames))
+            }
+        }
       },
       irDumpKotlinLike()
     )
@@ -70,14 +86,28 @@ internal fun CompilerContext.solverState(
 
 internal fun CompilerContext.solverState(
   module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
-): SolverState? = get<SolverState>(SolverState.key(KotlinModuleDescriptor(module)))
+): SolverState? = get(SolverState.key(KotlinModuleDescriptor(module)))
+
+internal fun CompilerContext.recordedNames(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
+): MutableSet<KotlinFqName>? = get(recordedNamesFor(KotlinModuleDescriptor(module)))
 
 internal fun CompilerContext.ensureSolverStateInitialization(
   module: ModuleDescriptor
 ) {
+  // ensure that the solver state is initialized
   val solverState = get<SolverState>(SolverState.key(module))
   if (solverState == null) {
     val state = SolverState(NameProvider())
     set(SolverState.key(module), state)
   }
+  // and do the same for the set of recorded names
+  val recordedNames = get<MutableSet<KotlinFqName>>(recordedNamesFor(module))
+  if (recordedNames == null) {
+    val newRecordedNames = mutableSetOf<KotlinFqName>()
+    set(recordedNamesFor(module), newRecordedNames)
+  }
 }
+
+fun recordedNamesFor(moduleDescriptor: ModuleDescriptor): String =
+  "RecordedNames-${moduleDescriptor.name}"
