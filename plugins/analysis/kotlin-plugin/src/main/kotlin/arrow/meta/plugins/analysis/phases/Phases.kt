@@ -36,7 +36,12 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         analysisCompleted = { project, module, bindingTrace, files ->
           val kotlinModule: KotlinModuleDescriptor = module.model()
           val context = KotlinResolutionContext(bindingTrace, module)
-          when (finalizeConstraintsCollection(solverState(module), kotlinModule, context)) {
+          val locals = files.flatMap { file ->
+            file.declarations.mapNotNull { decl ->
+              context.descriptorFor(decl.model())
+            }
+          }
+          when (finalizeConstraintsCollection(solverState(module), locals, kotlinModule, context)) {
             AnalysisResult.Retry ->
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
                 bindingTrace.bindingContext, module, emptyList(), emptyList()

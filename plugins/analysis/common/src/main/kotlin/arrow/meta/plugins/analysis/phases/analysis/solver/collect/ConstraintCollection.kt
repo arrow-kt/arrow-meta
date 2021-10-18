@@ -586,15 +586,23 @@ internal fun SolverState.parseFormula(
  */
 public fun finalizeConstraintsCollection(
   solverState: SolverState?,
+  localDeclarations: List<DeclarationDescriptor>,
   module: ModuleDescriptor,
   bindingTrace: ResolutionContext
 ): AnalysisResult =
   if (solverState != null && solverState.isIn(SolverState.Stage.CollectConstraints)) {
-    module.declarationsWithConstraints().forEach {
+    // check local declarations for Laws
+    localDeclarations.forEach {
       solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
     }
-    // solverState.introduceFieldNamesInSolver()
-    // solverState.introduceFieldAxiomsInSolver() // only if we introduce a solver with quantifiers
+    // check rest of the CLASSPATH for laws
+    val skipClasspath =
+      System.getProperty("ARROW_ANALYSIS_SKIP_CLASSPATH", "false").toBooleanStrictOrNull() ?: false
+    if (!skipClasspath) {
+      module.declarationsWithConstraints().forEach {
+        solverState.addClassPathConstraintsToSolverState(it, bindingTrace)
+      }
+    }
     solverState.collectionEnds()
     if (solverState.hadParseErrors()) {
       AnalysisResult.ParsingError

@@ -18,7 +18,9 @@ class AnalysisTests {
       // this signals that instead of the whole CLASSPATH
       // only the elements within 'kotlin' should be gathered
       // this speeds up the testing process
-      System.setProperty("ARROW_ANALYSIS_INITIAL_PACKAGES_FOR_COLLECTION", "kotlin,test")
+      // System.setProperty("ARROW_ANALYSIS_INITIAL_PACKAGES_FOR_COLLECTION", "kotlin,test")
+      // or even better, skipp CLASSPATH resolution altogether
+      System.setProperty("ARROW_ANALYSIS_SKIP_CLASSPATH", "true")
     }
   }
 
