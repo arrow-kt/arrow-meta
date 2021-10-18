@@ -11,13 +11,13 @@ fun CompilerContext.hintsFile(descriptor: ModuleDescriptor, packages: Set<FqName
 
 fun hints(descriptor: ModuleDescriptor, packages: Set<FqName>): String {
   val hintPackageName =
-    descriptor.stableName?.asString()?.replace('.', '_') ?:
-      "unknown.id${UUID.randomUUID().toString().replace('-', '_')}"
+    descriptor.stableName?.asString()?.replace('.', '_')
+      ?: "unknown.id${UUID.randomUUID().toString().replace('-', '_')}"
   val packageList = packages.joinToString() { name ->
     "\"${name.asString()}\""
   }
   return """
-         |@file:arrow.analysis.DeclaresLawsIn(${packageList}")
-         |package arrow.analysis.hints.${hintPackageName}
+         |@file:arrow.analysis.DeclaresLawsIn($packageList")
+         |package arrow.analysis.hints.$hintPackageName
          |""".trimMargin()
 }
