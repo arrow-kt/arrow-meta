@@ -6,24 +6,27 @@ import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.getOrCreateBaseDirectory
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnalysisResult
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.KotlinResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
-import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectDeclarationsConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.finalizeConstraintsCollection
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.phases.ir.HintState
+import arrow.meta.plugins.analysis.phases.ir.NeedsProcessing
+import arrow.meta.plugins.analysis.phases.ir.Processed
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
+import arrow.meta.plugins.analysis.phases.ir.hintGenKey
 import arrow.meta.plugins.analysis.phases.ir.hintsFile
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
-import java.io.File
 
 internal fun Meta.analysisPhases(): ExtensionPhase =
   Composite(
@@ -31,8 +34,19 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       analysis(
         doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
           val kotlinModule: KotlinModuleDescriptor = module.model()
+          val hintsKey = hintGenKey(kotlinModule)
           ensureSolverStateInitialization(kotlinModule)
-          null
+          when (get<HintState>(hintsKey) ?: NeedsProcessing) {
+            NeedsProcessing -> {
+              set(hintsKey, Processed)
+              val path = getOrCreateBaseDirectory(null)
+              org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
+            }
+            Processed -> {
+              set(hintsKey, Processed)
+              null
+            }
+          }
         },
         analysisCompleted = { project, module, bindingTrace, files ->
           val kotlinModule: KotlinModuleDescriptor = module.model()
@@ -42,14 +56,15 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
           when (result) {
             AnalysisResult.Retry -> {
               // 1. generate the additional file with hints
-              val parentPath = files.firstParentPath()?.let { java.io.File(it) }
-              val path = getOrCreateBaseDirectory(parentPath)
+              //val parentPath = files.firstParentPath()?.let { java.io.File(it) }
+              val path = getOrCreateBaseDirectory(null)
               hintsFile(path.absolutePath, module, interesting)
+              set(hintGenKey(kotlinModule), NeedsProcessing)
               // 2. retry with all the gathered information
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
                 bindingTrace.bindingContext, module,
-                additionalJavaRoots = emptyList(),
-                additionalKotlinRoots = listOfNotNull(path)
+                emptyList(),
+                listOf(path.absoluteFile)
               )
             }
             AnalysisResult.ParsingError ->

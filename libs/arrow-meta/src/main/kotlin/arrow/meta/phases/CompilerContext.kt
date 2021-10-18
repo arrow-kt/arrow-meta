@@ -93,13 +93,9 @@ fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () 
 inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
   compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }
 
-fun CompilerContext.getOrCreateBaseDirectory(parentPathFile: File?): File {
-  val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DefaultElementScope.DEFAULT_BASE_DIR.toString()))?.get(0)
-    ?: DefaultElementScope.DEFAULT_BASE_DIR.toString()
-  val parentPath = Paths.get(parentPathFile?.path ?: "")
-  val parentPathWithoutRoot = parentPath.root.relativize(parentPath)
-  val path = Paths.get(baseDir, parentPathWithoutRoot.toString())
-  val directory = path.toFile()
+fun getOrCreateBaseDirectory(parentPathFile: File?): File {
+  val parentPath = Paths.get(parentPathFile?.path ?: "build/generated/source/kapt/main")
+  val directory = parentPath.toFile()
   directory.mkdirs()
   return directory
 }
