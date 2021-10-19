@@ -1,15 +1,9 @@
 package arrow.meta.phases
 
-import arrow.meta.ArrowMetaConfigurationKeys
-import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.resolve.cache.ProofsCache
 import arrow.meta.quotes.QuoteDefinition
 import arrow.meta.quotes.Scope
-import java.io.File
-import java.nio.file.Paths
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -21,6 +15,10 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
+import java.io.File
+import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The Compiler Context represents the environment received by all plugins.
