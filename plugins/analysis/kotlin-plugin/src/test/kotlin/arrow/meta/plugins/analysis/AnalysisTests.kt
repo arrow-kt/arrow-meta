@@ -5,24 +5,10 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class AnalysisTests {
-
-  companion object {
-    @BeforeAll
-    @JvmStatic
-    fun `set initial package`() {
-      // this signals that instead of the whole CLASSPATH
-      // only the elements within 'kotlin' should be gathered
-      // this speeds up the testing process
-      // System.setProperty("ARROW_ANALYSIS_INITIAL_PACKAGES_FOR_COLLECTION", "kotlin,test")
-      // or even better, skipp CLASSPATH resolution altogether
-      System.setProperty("ARROW_ANALYSIS_SKIP_CLASSPATH", "true")
-    }
-  }
 
   @Test
   fun `bad predicate, could not parse predicate`() {

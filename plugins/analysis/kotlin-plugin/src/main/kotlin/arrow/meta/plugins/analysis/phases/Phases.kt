@@ -15,7 +15,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromClasspath
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromAnnotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.ir.HintState
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
@@ -49,7 +49,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             if (solverState != null) {
               val locals = files.declarationDescriptors(context)
               val (result, interesting) =
-                solverState.collectConstraintsFromClasspath(locals, kotlinModule, context)
+                solverState.collectConstraintsFromAnnotations(locals, kotlinModule, context)
               setStageAs(module, Stage.Prove) // we end the CollectConstraints phase
               when (result) {
                 AnalysisResult.Retry -> {

@@ -165,6 +165,7 @@ fun DeclarationDescriptor.gather(
  */
 fun ModuleDescriptor.gather(
   initialPackages: List<FqName> = listOf(FqName("")),
+  addSubPackages: Boolean,
   predicate: (DeclarationDescriptor) -> Boolean
 ): List<DeclarationDescriptor> {
   // initialize worklists
@@ -195,7 +196,8 @@ fun ModuleDescriptor.gather(
       // 1. add the scope to the worklist
       getPackage(pkg.name)?.memberScope?.let { scopesWorklist.add(it) }
       // 2. add the subpackages to the worklist
-      packagesWorklist.addAll(getSubPackagesOf(pkg))
+      if (addSubPackages)
+        packagesWorklist.addAll(getSubPackagesOf(pkg))
     } else {
       break
     }

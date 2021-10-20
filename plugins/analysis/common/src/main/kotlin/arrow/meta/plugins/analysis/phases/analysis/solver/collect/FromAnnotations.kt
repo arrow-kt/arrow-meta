@@ -14,32 +14,19 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 /**
- * Finishes the collection of constraints from CLASSPATH.
- * In addition, it signals that we have finished collecting
- * constraints, and we should now proceed to checking
- * declarations.
+ * Collects constraints by harvesting annotations.
+ * There are two sources: local declarations,
+ * and the entire CLASSPATH.
  */
-public fun SolverState.collectConstraintsFromClasspath(
+public fun SolverState.collectConstraintsFromAnnotations(
   localDeclarations: List<DeclarationDescriptor>,
   module: ModuleDescriptor,
   bindingTrace: ResolutionContext
 ): Pair<AnalysisResult, Set<FqName>> {
   // check local declarations for @Laws
-  localDeclarations.flatMap {
-    it.gather { it.hasPreOrPostAnnotation }
-  }.forEach {
-    addConstraintsFromAnnotations(it, bindingTrace)
-  }
+  collectFromLocalDeclarations(localDeclarations, bindingTrace)
   // check rest of the CLASSPATH for @Laws
-  val skipClasspath =
-    System.getProperty("ARROW_ANALYSIS_SKIP_CLASSPATH", "false").toBooleanStrictOrNull() ?: false
-  if (!skipClasspath) {
-    module.gather {
-      it.hasPreOrPostAnnotation
-    }.forEach {
-      addConstraintsFromAnnotations(it, bindingTrace)
-    }
-  }
+  collectFromClasspath(module, bindingTrace)
 
   return if (hadParseErrors()) {
     Pair(AnalysisResult.ParsingError, emptySet())
@@ -52,6 +39,37 @@ public fun SolverState.collectConstraintsFromClasspath(
       it.containingPackage
     }.toSet()
     Pair(AnalysisResult.Retry, interesting)
+  }
+}
+
+private fun SolverState.collectFromLocalDeclarations(localDeclarations: List<DeclarationDescriptor>, bindingTrace: ResolutionContext) {
+  localDeclarations.flatMap {
+    it.gather { it.hasPreOrPostAnnotation }
+  }.forEach {
+    addConstraintsFromAnnotations(it, bindingTrace)
+  }
+}
+
+private fun SolverState.collectFromClasspath(module: ModuleDescriptor, bindingTrace: ResolutionContext) {
+  val collectEntireClasspath =
+    System.getProperty("ARROW_ANALYSIS_COLLECT_ENTIRE_CLASSPATH", "false").toBooleanStrictOrNull() ?: false
+  if (collectEntireClasspath) {
+    module.gather(addSubPackages = true) { it.hasPreOrPostAnnotation }
+  } else {
+    // usual case: figure out the right packages from the hints
+    val packagesWithLaws = module.gather(
+      initialPackages = listOf(FqName("arrow.analysis.hints")),
+      addSubPackages = false) {
+      it.annotations().hasAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+    }.flatMap {
+      it.annotations()
+        .findAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+        ?.argumentValueAsArrayOfString("packages")
+        .orEmpty()
+    }.map { FqName(it) }
+    module.gather(packagesWithLaws, addSubPackages = false) { it.hasPreOrPostAnnotation }
+  }.forEach {
+    addConstraintsFromAnnotations(it, bindingTrace)
   }
 }
 
@@ -85,11 +103,9 @@ private fun SolverState.parseFormula(
   annotation: AnnotationDescriptor,
   descriptor: DeclarationDescriptor
 ): Pair<String, List<NamedConstraint>> {
-  fun getArg(arg: String) = annotation.argumentValueAsArrayOfString(arg)
-
-  val dependencies = getArg("dependencies")
-  val formulae = getArg("formulae")
-  val messages = getArg("messages")
+  val dependencies = annotation.argumentValueAsArrayOfString("dependencies")
+  val formulae = annotation.argumentValueAsArrayOfString("formulae")
+  val messages = annotation.argumentValueAsArrayOfString("messages")
   return element to messages.zip(formulae).map { (msg, formula) ->
     NamedConstraint(msg, parseFormula(descriptor, formula, dependencies.toList()))
   }
