@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.smt
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.THIS_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.smt.utils.DefaultKotlinPrinter
 import arrow.meta.plugins.analysis.smt.utils.KotlinPrinter
 import arrow.meta.plugins.analysis.smt.utils.NameProvider

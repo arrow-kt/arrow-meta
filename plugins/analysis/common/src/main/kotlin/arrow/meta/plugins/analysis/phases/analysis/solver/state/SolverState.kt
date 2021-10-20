@@ -3,7 +3,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.state
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
@@ -11,7 +10,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.utils.FieldProvider
@@ -31,18 +30,6 @@ data class SolverState(
   val solverTrace: MutableList<String> = mutableListOf(),
   val fieldProvider: FieldProvider = FieldProvider(solver, prover)
 ) {
-
-  private var stage = Stage.Init
-
-  fun currentStage(): Stage = stage
-
-  fun collecting(): Unit {
-    stage = Stage.CollectConstraints
-  }
-
-  fun collectionEnds(): Unit {
-    stage = Stage.Prove
-  }
 
   private var parseErrors = false
 
@@ -83,8 +70,6 @@ data class SolverState(
       solverTrace.add("POP (scoped)")
     }
 
-  fun isIn(that: Stage) = stage == that
-
   fun addConstraint(constraint: NamedConstraint) {
     prover.addConstraint(constraint.formula)
     solverTrace.add("${constraint.msg} : ${constraint.formula}")
@@ -118,14 +103,5 @@ data class SolverState(
   fun field(field: DeclarationDescriptor, formula: ObjectFormula): ObjectFormula {
     fieldProvider.introduce(field)
     return solver.field(field.fqNameSafe.name, formula)
-  }
-
-  companion object {
-    fun key(moduleDescriptor: ModuleDescriptor): String =
-      "SolverState-${moduleDescriptor.name}"
-  }
-
-  enum class Stage {
-    Init, CollectConstraints, Prove
   }
 }

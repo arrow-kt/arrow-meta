@@ -2,7 +2,6 @@ package arrow.meta.plugins.analysis.phases.ir
 
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import java.io.File
 import java.util.UUID
@@ -33,12 +32,10 @@ fun hints(descriptor: ModuleDescriptor, packages: Set<FqName>): String {
          |import arrow.analysis.PackagesWithLaws
          |
          |@PackagesWithLaws([$packageList])
-         |class hints_for_$hintPackageName { }
+         |class hints_$hintPackageName { }
          |""".trimMargin()
 }
 
-internal fun hintGenKey(module: KotlinModuleDescriptor) = "arrow-analysis-hint-${module.name}"
-
-internal sealed interface HintState
-object NeedsProcessing : HintState
-object Processed : HintState
+enum class HintState {
+  NeedsProcessing, Processed
+}

@@ -13,7 +13,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isException
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.analysis.smt.Solver
+import arrow.meta.plugins.analysis.smt.renameDeclarationConstraints
 import java.util.LinkedList
 
 /**
@@ -148,7 +150,6 @@ fun DeclarationDescriptor.gather(
     // 3. add all new member scopes to the worklist
     scopesWorklist.addAll(descriptors
       .filterIsInstance<ClassDescriptor>()
-      .filter { !it.isEnumEntry && !it.isException() }
       .map { it.completeUnsubstitutedScope })
     scopesWorklist.addAll(descriptors
       .filterIsInstance<TypeAliasDescriptor>()
@@ -184,7 +185,6 @@ fun ModuleDescriptor.gather(
       // 3. add all new member scopes to the worklist
       scopesWorklist.addAll(descriptors
         .filterIsInstance<ClassDescriptor>()
-        .filter { !it.isEnumEntry && !it.isException() }
         .map { it.completeUnsubstitutedScope })
       scopesWorklist.addAll(descriptors
         .filterIsInstance<TypeAliasDescriptor>()
@@ -202,4 +202,22 @@ fun ModuleDescriptor.gather(
   }
 
   return result.toList()
+}
+
+/**
+ * Rename the conditions from one descriptor
+ * to the names of another
+ */
+internal fun Solver.renameConditions(
+  constraints: DeclarationConstraints,
+  to: DeclarationDescriptor
+): DeclarationConstraints {
+  val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.value }
+  val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.value }
+  return if (fromParams != null && toParams != null) {
+    val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
+    DeclarationConstraints(to, renamed.pre, renamed.post)
+  } else {
+    DeclarationConstraints(to, constraints.pre, constraints.post)
+  }
 }

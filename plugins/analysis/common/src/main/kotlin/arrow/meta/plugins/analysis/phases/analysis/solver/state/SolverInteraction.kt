@@ -1,7 +1,7 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.state
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentBodyPre
@@ -13,8 +13,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.L
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatBodyPost
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatCallPre
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
-import arrow.meta.plugins.analysis.smt.fieldNames
-import arrow.meta.plugins.analysis.smt.substituteVariable
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
@@ -22,6 +20,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentDefaultValues
+import arrow.meta.plugins.analysis.smt.fieldNames
+import arrow.meta.plugins.analysis.smt.substituteVariable
 import org.sosy_lab.java_smt.api.BooleanFormula
 import org.sosy_lab.java_smt.api.Model
 

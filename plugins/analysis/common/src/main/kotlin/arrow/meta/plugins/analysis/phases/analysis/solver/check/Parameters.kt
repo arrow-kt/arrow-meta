@@ -4,7 +4,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 
 data class ParamInfo(val name: String, val smtName: String, val type: Type?, val element: Element?)
