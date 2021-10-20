@@ -28,7 +28,8 @@ fun Meta.generateGivenPreludeFile(): ExtensionPhase =
       val alreadyGenerated = get<Boolean>(genkey)
       if (alreadyGenerated != null && alreadyGenerated) null
       else {
-        val path = getOrCreateBaseDirectory(null)
+        val parentPath = files.firstParentPath()?.let { java.io.File(it) }
+        val path = getOrCreateBaseDirectory(parentPath)
         generateGivenFiles(module, path.absolutePath)
         set(genkey, true)
         AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
