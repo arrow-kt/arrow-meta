@@ -60,7 +60,11 @@ public fun SolverState.checkDeclarationConstraints(
       is EnumEntry ->
         checkEnumEntry(context, descriptor, declaration)
       is ClassOrObject ->
-        doOnlyWhen(!declaration.isInterfaceOrEnum() && declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
+        doOnlyWhen(
+          !declaration.isInterfaceOrEnum() &&
+            declaration.hasPrimaryConstructor() &&
+            declaration.primaryConstructor == null &&
+            !descriptor.hasPackageWithLawsAnnotation) {
           cont {
             val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
             context.reportUnsupported(declaration, msg)

@@ -76,20 +76,20 @@ import arrow.analysis.pre
       (it == null) == (this.length != 1)
     }) { "null iff length is not 1" }
 
-  @Law inline fun CharSequence.indexOfLaw(element: Char): Int =
-    indexOf(element).post({
+  @Law inline fun CharSequence.indexOfLawChar(element: Char, startIndex: Int, ignoreCase: Boolean): Int =
+    indexOf(element, startIndex, ignoreCase).post({
       if (this.length <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOf" }
-  @Law inline fun CharSequence.indexOfLaw(element: String): Int =
-    indexOf(element).post({
+  @Law inline fun CharSequence.indexOfLawString(element: String, startIndex: Int, ignoreCase: Boolean): Int =
+    indexOf(element, startIndex, ignoreCase).post({
       if (this.length <= 0) (it == -1) else (it >= -1)
     }) { "bounds for indexOf" }
-  @Law inline fun CharSequence.lastIndexOfLaw(element: Char): Int =
-    lastIndexOf(element).post({
+  @Law inline fun CharSequence.lastIndexOfLawChar(element: Char, startIndex: Int, ignoreCase: Boolean): Int =
+    lastIndexOf(element, startIndex, ignoreCase).post({
       if (this.length <= 0) (it == -1) else (it >= -1)
     }) { "bounds for lastIndexOf" }
-  @Law inline fun CharSequence.lastIndexOfLaw(element: String): Int =
-    lastIndexOf(element).post({
+  @Law inline fun CharSequence.lastIndexOfLawString(element: String, startIndex: Int, ignoreCase: Boolean): Int =
+    lastIndexOf(element, startIndex, ignoreCase).post({
       if (this.length <= 0) (it == -1) else (it >= -1)
     }) { "bounds for lastIndexOf" }
   @Law inline fun CharSequence.indexOfFirstLaw(predicate: (x: Char) -> Boolean): Int =
@@ -188,6 +188,11 @@ import arrow.analysis.pre
 }
 
 @Laws object StringLaws {
-  @Law inline fun String.plusLaw(other: CharSequence): String =
-    plus(other).post({ it.length == this.length + other.length }) { "concatenation adds lengths" }
+  @Law inline fun String.plusLaw(other: CharSequence?): String =
+    plus(other).post({
+      when {
+        other == null -> it.length == this.length
+        else -> it.length == this.length + other.length
+      }
+    }) { "concatenation adds lengths" }
 }

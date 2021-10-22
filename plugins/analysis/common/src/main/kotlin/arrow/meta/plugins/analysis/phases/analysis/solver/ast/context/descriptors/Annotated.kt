@@ -10,4 +10,10 @@ interface Annotated {
       hasAnnotation(FqName("arrow.analysis.Pre")) ||
         hasAnnotation(FqName("arrow.analysis.Post"))
     }
+
+  val hasPackageWithLawsAnnotation: Boolean
+    get() = annotations().hasAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+
+  val packageWithLawsAnnotation: AnnotationDescriptor?
+    get() = annotations().findAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
 }
