@@ -1,3 +1,13 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenLocal()
+    }
+}
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+enableFeaturePreview("VERSION_CATALOGS")
+
 rootProject.name = 'arrow-meta-workspace'
 
 //Libraries
@@ -18,22 +28,22 @@ include ':docs'
 //Plugins
 
 // Proofs
-include ':proofs-plugin'
-project(':proofs-plugin').projectDir = new File('plugins/proofs/proofs-plugin')
-
-include ':proofs-gradle-plugin'
-project(':proofs-gradle-plugin').projectDir = new File('plugins/proofs/proofs-gradle-plugin')
+//include ':proofs-plugin'
+//project(':proofs-plugin').projectDir = new File('plugins/proofs/proofs-plugin')
+//
+//include ':proofs-gradle-plugin'
+//project(':proofs-gradle-plugin').projectDir = new File('plugins/proofs/proofs-gradle-plugin')
 
 include ':prelude'
 project(':prelude').projectDir = new File('plugins/proofs/prelude')
 
 //Optics
 
-include ':optics-plugin'
-project(':optics-plugin').projectDir = new File('plugins/optics/optics-plugin')
-
-include ':optics-gradle-plugin'
-project(':optics-gradle-plugin').projectDir = new File('plugins/optics/optics-gradle-plugin')
+//include ':optics-plugin'
+//project(':optics-plugin').projectDir = new File('plugins/optics/optics-plugin')
+//
+//include ':optics-gradle-plugin'
+//project(':optics-gradle-plugin').projectDir = new File('plugins/optics/optics-gradle-plugin')
 
 //Liquid
 
@@ -54,3 +64,5 @@ project(':analysis-laws').projectDir = new File('plugins/analysis/laws')
 
 include ':analysis-example'
 project(':analysis-example').projectDir = new File('plugins/analysis/example')
+
+includeBuild "arrow-analysis-example"

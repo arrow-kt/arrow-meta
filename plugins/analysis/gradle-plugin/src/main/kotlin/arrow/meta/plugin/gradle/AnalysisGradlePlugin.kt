@@ -1,13 +1,14 @@
 package arrow.meta.plugin.gradle
 
-import org.gradle.api.Project
+public class AnalysisGradlePlugin : ArrowMetaGradlePlugin {
+  override val groupId: String = "io.arrow-kt"
+  override val artifactId: String = "arrow-analysis-kotlin-plugin"
+  override val version: String = "1.5.31-SNAPSHOT"
+  override val pluginId: String = "io.arrow-kt.analysis"
 
-class AnalysisGradlePlugin : ArrowMetaGradlePlugin() {
-
-  override fun apply(project: Project): Unit {
-    super.apply(project)
-    addMetaDependency(project, "kotlinCompilerClasspath", "io.arrow-kt:arrow-analysis-types-jvm")
-    addMetaDependency(project, "implementation", "io.arrow-kt:arrow-analysis-types-jvm")
-    addCompilerPlugin(project, "arrow-analysis-kotlin-plugin")
-  }
+  override val dependencies: List<Triple<String, String, String>> =
+    listOf(
+      Triple(groupId, "analysis-laws", version),
+      Triple(groupId, "analysis-types", version),
+    )
 }

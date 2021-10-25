@@ -14,13 +14,13 @@ plugins {
 configure(subprojects - project("docs")
 ) {
     apply plugin: "org.jetbrains.dokka"
-    dokka {
-        outputFormat = 'jekyll'
-        outputDirectory = PATH_APIDOCS
-        configuration {
-            includes = ['README.md']
-        }
-    }
+//    dokka {
+//        outputFormat = 'jekyll'
+//        outputDirectory = PATH_APIDOCS
+//        configuration {
+//            includes = ['README.md']
+//        }
+//    }
 }
 
 // Publication
@@ -34,7 +34,11 @@ configure(subprojects - project("docs")
 configure(subprojects -
         project(":docs") -
         project(":gradle-plugin-commons") -
-        project(":analysis-types") // MPP subprojects
+        project(":analysis-example") -
+        project(":analysis-common") -
+        project(":analysis-gradle-plugin") -
+        project(":analysis-laws") -
+        project(":analysis-types")
 ) {
     afterEvaluate {
         jar {
@@ -80,6 +84,7 @@ allprojects {
             url "http://logicrunch.research.it.uu.se/maven/"
         }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        mavenLocal()
     }
 }
 
@@ -100,10 +105,5 @@ task buildMetaDoc {
 }
 
 runValidation.mustRunAfter generateDoc
-
-// All KotlinCompile tasks depend on the fatJar task of the compiler plugin
-project("analysis-laws").tasks.withType(KotlinCompile).configureEach {
-    dependsOn project("analysis-kotlin-plugin").tasks["jar"]
-}
 
 apply from: "${rootDir}/gradle/publication.gradle"

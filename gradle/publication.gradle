@@ -65,6 +65,7 @@ afterEvaluate {
                 }
                 url = VERSION_NAME.endsWith('SNAPSHOT') ? SNAPSHOT_REPOSITORY : RELEASE_REPOSITORY
             }
+            mavenLocal()
         }
     }
 
