@@ -295,7 +295,15 @@ import arrow.analysis.pre
     listOfNotNull(element).post({
       if (element == null) (it.size == 0) else (it.size == 1)
     }) { "empty iff element is null" }
-  // listOf, listOfNotNull -> we do not support varargs yet
+  @Law inline fun <E> listOfLaw(vararg elements: E): List<E> =
+    listOf(*elements).post({ it.size == elements.size }) { "literal size" }
+  @Law inline fun <E> listOfNotNullLaw(vararg elements: E?): List<E> =
+    listOfNotNull(*elements).post({ it.size <= elements.size }) { "bounded by the literal" }
+
+  @Law inline fun <E> emptyMutableListLaw(): List<E> =
+    mutableListOf<E>().post({ it.size == 0 }) { "empty list is empty" }
+  @Law inline fun <E> mutableListOfLaw(vararg elements: E): MutableList<E> =
+    mutableListOf(*elements).post({ it.size == elements.size }) { "literal size" }
 
   @Law inline fun <E> List<E>?.orEmptyLaw(): List<E> =
     orEmpty().post({
@@ -311,19 +319,19 @@ import arrow.analysis.pre
   }
   @Law inline fun <E> List<E>.component2Law(): E {
     pre(this.size >= 2) { "element #2 available" }
-    return component1()
+    return component2()
   }
   @Law inline fun <E> List<E>.component3Law(): E {
     pre(this.size >= 3) { "element #3 available" }
-    return component1()
+    return component3()
   }
   @Law inline fun <E> List<E>.component4Law(): E {
     pre(this.size >= 4) { "element #4 available" }
-    return component1()
+    return component4()
   }
   @Law inline fun <E> List<E>.component5Law(): E {
     pre(this.size >= 5) { "element #5 available" }
-    return component1()
+    return component5()
   }
 
   // operations
@@ -353,7 +361,15 @@ import arrow.analysis.pre
     setOfNotNull(element).post({
       if (element == null) (it.size == 0) else (it.size == 1)
     }) { "empty iff element is null" }
-  // setOf, setOfNotNull -> we do not support varargs yet
+  @Law inline fun <E> setOfLaw(vararg elements: E): Set<E> =
+    setOf(*elements).post({ it.size <= elements.size }) { "bounded by the literal" }
+  @Law inline fun <E> setOfNotNullLaw(vararg elements: E?): Set<E> =
+    setOfNotNull(*elements).post({ it.size <= elements.size }) { "bounded by the literal" }
+
+  @Law inline fun <E> emptyMutableSetOfLaw(): MutableSet<E> =
+    mutableSetOf<E>().post({ it.size == 0 }) { "empty set is empty" }
+  @Law inline fun <E> mutableSetOfLaw(vararg elements: E): MutableSet<E> =
+    mutableSetOf(*elements).post({ it.size <= elements.size }) { "bounded by the literal" }
 
   @Law inline fun <E> Set<E>?.orEmptyLaw(): Set<E> =
     orEmpty().post({
@@ -387,7 +403,13 @@ object MapLaws {
 
   @Law inline fun <K, V> emptyMapLaw(): Map<K, V> =
     emptyMap<K, V>().post({ it.size == 0 }) { "empty map is empty" }
-  // mapOf -> we do not support varargs yet
+  @Law inline fun <K, V> mapOfLaw(vararg elements: Pair<K, V>): Map<K, V> =
+    mapOf(*elements).post({ it.size <= elements.size }) { "literal size" }
+
+  @Law inline fun <K, V> emptyMutableMapLaw(): Map<K, V> =
+    mutableMapOf<K, V>().post({ it.size == 0 }) { "empty map is empty" }
+  @Law inline fun <K, V> mutableMapOfLaw(vararg elements: Pair<K, V>): MutableMap<K, V> =
+    mutableMapOf(*elements).post({ it.size <= elements.size }) { "literal size" }
 
   @Law inline fun <K, V, R> Map<out K, V>.mapValuesLaw(
     transform: (Map.Entry<K, V>) -> R

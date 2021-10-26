@@ -60,10 +60,9 @@ private fun SolverState.collectFromClasspath(module: ModuleDescriptor, bindingTr
     val packagesWithLaws = module.gather(
       initialPackages = listOf(FqName("arrow.analysis.hints")),
       addSubPackages = false) {
-      it.annotations().hasAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+      it.hasPackageWithLawsAnnotation
     }.flatMap {
-      it.annotations()
-        .findAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+      it.packageWithLawsAnnotation
         ?.argumentValueAsArrayOfString("packages")
         .orEmpty()
     }.map { FqName(it) }
