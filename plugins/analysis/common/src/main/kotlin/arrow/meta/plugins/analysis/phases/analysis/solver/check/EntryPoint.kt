@@ -14,9 +14,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Class
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 
-// PHASE 2: CHECKING OF CONSTRAINTS
-// ================================
-
 /* [NOTE: which do we use continuations?]
  * It might look odd that we create continuations when checking
  * the body, instead of simply performing the steps.
@@ -42,21 +39,16 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
  * Thus, the conditional `if` can duplicate the check of the "remainder".
  */
 
-internal const val RESULT_VAR_NAME = "${'$'}result"
-internal const val THIS_VAR_NAME = "this"
-
-// 2.0: entry point
 /**
  * When the solver is in the prover state
  * check this [declaration] body constraints
  */
-public fun checkDeclarationConstraints(
-  solverState: SolverState?,
+public fun SolverState.checkDeclarationConstraints(
   context: ResolutionContext,
   declaration: Declaration,
   descriptor: DeclarationDescriptor
-) = solverState?.run {
-  if (isIn(SolverState.Stage.Prove) && !hadParseErrors() && declaration.shouldBeAnalyzed()) {
+) {
+  if (!hadParseErrors() && declaration.shouldBeAnalyzed()) {
     // trace
     solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body
@@ -68,7 +60,11 @@ public fun checkDeclarationConstraints(
       is EnumEntry ->
         checkEnumEntry(context, descriptor, declaration)
       is ClassOrObject ->
-        doOnlyWhen(!declaration.isInterfaceOrEnum() && declaration.hasPrimaryConstructor() && declaration.primaryConstructor == null) {
+        doOnlyWhen(
+          !declaration.isInterfaceOrEnum() &&
+            declaration.hasPrimaryConstructor() &&
+            declaration.primaryConstructor == null &&
+            !descriptor.hasPackageWithLawsAnnotation) {
           cont {
             val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
             context.reportUnsupported(declaration, msg)

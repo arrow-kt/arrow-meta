@@ -2,12 +2,11 @@ package arrow.meta.plugins.analysis.phases.ir
 
 import arrow.meta.phases.codegen.ir.IrUtils
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.smt.fieldNames
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -32,13 +31,14 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.sosy_lab.java_smt.api.FormulaManager
 
-internal fun IrUtils.annotateWithConstraints(fn: IrFunction) {
-  val kotlinModule: ModuleDescriptor = moduleFragment.descriptor.model()
-  val solverState = compilerContext.get<SolverState>(SolverState.key(kotlinModule))
-  if (solverState != null && !solverState.hadParseErrors()) {
+internal fun IrUtils.annotateWithConstraints(
+  solverState: SolverState,
+  fn: IrFunction
+) {
+  if (!solverState.hadParseErrors()) {
     val model = fn.toIrBasedDescriptor()
       .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
-    val declarationConstraints = solverState.constraintsFromSolverState(model)
+    val declarationConstraints = solverState.getConstraintsFor(model)
     if (declarationConstraints != null) {
       solverState.solver.formulae {
         preAnnotation(declarationConstraints.pre, solverState.solver.formulaManager)

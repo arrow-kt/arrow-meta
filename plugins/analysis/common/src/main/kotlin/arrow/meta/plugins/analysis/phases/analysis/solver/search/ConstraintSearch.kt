@@ -1,24 +1,22 @@
-package arrow.meta.plugins.analysis.phases.analysis.solver.collect
+package arrow.meta.plugins.analysis.phases.analysis.solver.search
 
+import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.RESULT_VAR_NAME
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.isComparison
 import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.overriddenDescriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
+import arrow.meta.plugins.analysis.phases.analysis.solver.renameConditions
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.ObjectFormula
-import arrow.meta.plugins.analysis.smt.Solver
-import arrow.meta.plugins.analysis.smt.renameDeclarationConstraints
 import arrow.meta.plugins.analysis.smt.substituteObjectVariables
 import arrow.meta.plugins.analysis.types.PrimitiveType
 import arrow.meta.plugins.analysis.types.primitiveType
@@ -30,27 +28,27 @@ import org.sosy_lab.java_smt.api.NumeralFormula
  * Looks up in the solver state previously collected constraints and
  * returns the constraints associated to this [resolvedCall] resulting descriptor if any
  */
-public fun SolverState.constraintsFromSolverState(
+public fun SolverState.getConstraintsFor(
   resolvedCall: ResolvedCall
 ): DeclarationConstraints? =
-  constraintsFromSolverState(resolvedCall.resultingDescriptor)
+  getConstraintsFor(resolvedCall.resultingDescriptor)
 
 /**
  * Looks up in the solver state previously collected constraints and
  * returns the constraints associated to this [descriptor],
  * or any of the declaration it has overridden, if any
  */
-public fun SolverState.constraintsFromSolverState(
+public fun SolverState.getConstraintsFor(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  immediateConstraintsFromSolverState(descriptor)
-    ?: overriddenConstraintsFromSolverState(descriptor)
+  getImmediateConstraintsFor(descriptor)
+    ?: getOverriddenConstraintsFor(descriptor)
 
 /**
  * Looks up in the solver state previously collected constraints
  * for the given [descriptor], but not for their possible parents
  */
-internal fun SolverState.immediateConstraintsFromSolverState(
+internal fun SolverState.getImmediateConstraintsFor(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
   callableConstraints[descriptor.withAliasUnwrapped.fqNameSafe]
@@ -94,7 +92,7 @@ internal fun SolverState.typeInvariants(
   type: Type,
   result: ObjectFormula
 ): List<NamedConstraint> {
-  val invariants = overType(context, { constraintsFromSolverState(it) }, type)?.post?.let { constraints ->
+  val invariants = overType(context, { getConstraintsFor(it) }, type)?.post?.let { constraints ->
     // replace $result by new name
     constraints.map {
       NamedConstraint(
@@ -117,12 +115,12 @@ internal fun SolverState.typeInvariants(
  * Looks up in the solver state previously collected constraints
  * for every declaration the [descriptor] may have overridden
  */
-internal fun SolverState.overriddenConstraintsFromSolverState(
+internal fun SolverState.getOverriddenConstraintsFor(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
   descriptor.withAliasUnwrapped
     .overriddenDescriptors()?.mapNotNull { overriddenDescriptor ->
-    constraintsFromSolverState(overriddenDescriptor)
+      getConstraintsFor(overriddenDescriptor)
   }?.takeIf {
     it.isNotEmpty()
   }?.map {
@@ -136,6 +134,9 @@ internal fun SolverState.overriddenConstraintsFromSolverState(
       overriddenConstraints.flatMap { it.post })
   }
 
+/**
+ * Special primitive constraints
+ */
 internal fun SolverState.primitiveConstraints(
   context: ResolutionContext,
   call: ResolvedCall,
@@ -201,23 +202,5 @@ internal fun SolverState.primitiveConstraints(
         DeclarationConstraints(descriptor, emptyList(), listOf(named))
       }
     }
-  }
-}
-
-/**
- * Rename the conditions from one descriptor
- * to the names of another
- */
-internal fun Solver.renameConditions(
-  constraints: DeclarationConstraints,
-  to: DeclarationDescriptor
-): DeclarationConstraints {
-  val fromParams = (constraints.descriptor as? CallableDescriptor)?.valueParameters?.map { it.name.value }
-  val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.value }
-  return if (fromParams != null && toParams != null) {
-    val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
-    DeclarationConstraints(to, renamed.pre, renamed.post)
-  } else {
-    DeclarationConstraints(to, constraints.pre, constraints.post)
   }
 }

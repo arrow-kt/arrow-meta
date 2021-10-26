@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 interface DeclarationDescriptor : Named, Annotated {
   val module: ModuleDescriptor
   val containingDeclaration: DeclarationDescriptor?
+  val containingPackage: FqName?
   fun element(): Element?
   val fqNameSafe: FqName
   fun impl(): Any
