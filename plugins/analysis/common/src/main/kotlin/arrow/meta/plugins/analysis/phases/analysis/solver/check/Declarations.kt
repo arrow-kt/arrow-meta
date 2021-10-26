@@ -5,17 +5,19 @@ import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
+import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CheckData
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CurrentVarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.NoReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ReturnPoints
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPostConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPreconditionsInconsistencies
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.immediateConstraintsFromSolverState
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getImmediateConstraintsFor
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getOverriddenConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovStrongerPostcondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovWeakerPrecondition
 import arrow.meta.plugins.analysis.smt.ObjectFormula
@@ -62,7 +64,7 @@ internal fun <A> SolverState.checkTopLevel(
 ): ContSeq<A> {
   // bring the constraints in (if there are any)
   val constraints =
-    constraintsFromSolverState(descriptor)?.let {
+    getConstraintsFor(descriptor)?.let {
       solver.substituteDeclarationConstraints(it, mapOf(RESULT_VAR_NAME to resultName))
     }
   // initialize the check data
@@ -258,8 +260,8 @@ private fun SolverState.checkLiskovConditions(
   descriptor: DeclarationDescriptor,
   context: ResolutionContext
 ): Boolean {
-  val immediateConstraints = immediateConstraintsFromSolverState(descriptor)
-  val overriddenConstraints = overriddenConstraintsFromSolverState(descriptor)
+  val immediateConstraints = getImmediateConstraintsFor(descriptor)
+  val overriddenConstraints = getOverriddenConstraintsFor(descriptor)
   return if (immediateConstraints != null && overriddenConstraints != null) {
     // pre-conditions should be weaker,
     // so the immediate ones should be implied by the overridden ones

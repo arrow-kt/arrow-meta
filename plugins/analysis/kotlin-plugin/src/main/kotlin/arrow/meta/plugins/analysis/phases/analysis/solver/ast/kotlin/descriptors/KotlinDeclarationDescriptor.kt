@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -23,6 +24,9 @@ fun interface KotlinDeclarationDescriptor :
 
   override val containingDeclaration: DeclarationDescriptor?
     get() = impl().containingDeclaration?.model()
+
+  override val containingPackage: FqName?
+    get() = impl().containingPackage()?.let { FqName(it.asString()) }
 
   override fun element(): Element? =
     (impl().findPsi() as? KtElement)?.model()

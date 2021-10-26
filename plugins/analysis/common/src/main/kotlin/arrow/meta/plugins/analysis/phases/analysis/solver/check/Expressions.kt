@@ -9,7 +9,9 @@ import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.sequence
 import arrow.meta.plugins.analysis.phases.analysis.solver.ArgumentExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
+import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
@@ -70,11 +72,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.StateAfter
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SubjectCondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.primitiveConstraints
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.primitiveConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.typeInvariants
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
@@ -443,7 +445,7 @@ internal fun SolverState.checkRegularFunctionCall(
       returnOrContinue.fold(
         { r -> StateAfter(r, dataAfterArgs) },
         { argVars ->
-          val callConstraints = (constraintsFromSolverState(resolvedCall)
+          val callConstraints = (getConstraintsFor(resolvedCall)
             ?: primitiveConstraints(data.context, resolvedCall))?.let { declInfo ->
             val completeRenaming =
               argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
