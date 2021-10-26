@@ -11,7 +11,8 @@ class KotlinPackageViewDescriptor(
 
   override fun impl(): org.jetbrains.kotlin.descriptors.PackageViewDescriptor = impl
 
-  override fun getMemberScope(): MemberScope = KotlinMemberScope { impl().memberScope }
+  override val memberScope: MemberScope
+    get() = KotlinMemberScope { impl().memberScope }
 
   override val fqName: FqName
     get() = FqName(impl().fqName.asString())

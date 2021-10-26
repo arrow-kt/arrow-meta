@@ -4,7 +4,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
@@ -13,6 +12,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.isComparison
+import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
+import arrow.meta.plugins.analysis.phases.analysis.solver.overriddenDescriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.ObjectFormula
@@ -220,13 +221,3 @@ internal fun Solver.renameConditions(
     DeclarationConstraints(to, constraints.pre, constraints.post)
   }
 }
-
-/**
- * Obtain the descriptors which have been overridden by a declaration,
- * if they exist
- */
-internal fun DeclarationDescriptor.overriddenDescriptors(): Collection<DeclarationDescriptor>? =
-  when (this) {
-    is CallableMemberDescriptor -> this.overriddenDescriptors
-    else -> null
-  }

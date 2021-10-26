@@ -14,7 +14,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.constraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPostConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkPreconditionsInconsistencies
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.immediateConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.overriddenConstraintsFromSolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkLiskovStrongerPostcondition
@@ -38,9 +37,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.CurrentBranch
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkDefaultValueInconsistency
 
 // 2.1: declarations
@@ -134,7 +135,7 @@ internal fun SolverState.checkPrimaryConstructor(
     val klass = declaration.getContainingClassOrObject()
     ContSeq.unit.flatMap {
       // introduce 'val' and 'var' from the constructor
-      introduceImplicitProperties(klass)
+      introduceImplicitProperties(context, klass)
     }.flatMap {
       // call the superclass constructors
       // (this will ultimately check the Liskov for classes)
@@ -149,6 +150,7 @@ internal fun SolverState.checkPrimaryConstructor(
   }
 
 private fun SolverState.introduceImplicitProperties(
+  context: ResolutionContext,
   klass: ClassOrObject
 ): ContSeq<Unit> = cont {
   // if we have 'var' or 'var' in the parameters,
@@ -157,17 +159,20 @@ private fun SolverState.introduceImplicitProperties(
   klass.primaryConstructorParameters
     .filter { it.hasValOrVar() }
     .forEach { param ->
-      val paramName = param.nameAsName?.value ?: THIS_VAR_NAME
-      val fieldName = klass.fqName?.let { "$it.$paramName" } ?: THIS_VAR_NAME
-      addConstraint(NamedConstraint(
-        "definition of property $paramName",
-        solver.objects {
-          equal(
-            solver.makeObjectVariable(paramName),
-            solver.field(fieldName, solver.thisVariable)
-          )
+      (context.descriptorFor(param) as? ValueParameterDescriptor)
+        ?.let { context.backingPropertyForConstructorParameter(it) }
+        ?.let { propertyDescriptor ->
+          val paramName = param.nameAsName?.value ?: THIS_VAR_NAME
+          addConstraint(NamedConstraint(
+            "definition of property $paramName",
+            solver.objects {
+              equal(
+                solver.makeObjectVariable(paramName),
+                field(propertyDescriptor, solver.thisVariable)
+              )
+            }
+          ))
         }
-      ))
     }
 }
 
@@ -198,8 +203,8 @@ private fun SolverState.checkClassDeclarationInConstructorContext(
     is AnonymousInitializer ->
       checkExpressionConstraints(thisRef, decl.body, data)
     is Property ->
-      doOnlyWhenNotNull(decl.fqName?.name, NoReturn) { fieldName ->
-        val result = solver.field(fieldName, solver.makeObjectVariable(THIS_VAR_NAME))
+      doOnlyWhenNotNull(data.context.descriptorFor(decl), NoReturn) { descriptor ->
+        val result = field(descriptor, solver.makeObjectVariable(THIS_VAR_NAME))
         checkExpressionConstraints(result, decl.stableBody(), data)
       }
     else -> ContSeq.unit

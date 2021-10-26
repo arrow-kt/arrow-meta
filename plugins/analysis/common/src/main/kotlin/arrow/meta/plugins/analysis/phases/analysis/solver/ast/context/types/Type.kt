@@ -2,7 +2,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 
-interface Type {
+interface Type : Comparable<Type> {
   val descriptor: ClassDescriptor?
   val unwrappedNotNullableType: Type
   val isMarkedNullable: Boolean
@@ -22,4 +22,11 @@ interface Type {
   fun isShort(): Boolean
   fun isUnsignedNumberType(): Boolean
   fun isChar(): Boolean
+
+  override fun compareTo(other: Type): Int =
+    when {
+      this.isSubtypeOf(other) -> -1
+      other.isSubtypeOf(this) -> 1
+      else -> 0
+    }
 }

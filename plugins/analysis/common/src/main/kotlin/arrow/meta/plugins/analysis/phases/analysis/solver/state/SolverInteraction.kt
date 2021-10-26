@@ -43,20 +43,22 @@ internal fun SolverState.checkInconsistency(
 
 internal fun SolverState.addAndCheckConsistency(
   constraints: Iterable<NamedConstraint>,
+  context: ResolutionContext,
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
   constraints.forEach { addConstraint(it) }
-  additionalFieldConstraints(constraints).forEach { addConstraint(it) }
+  additionalFieldConstraints(constraints, context).forEach { addConstraint(it) }
   return checkInconsistency(message)
 }
 
 internal fun SolverState.checkImplicationOf(
   constraint: NamedConstraint,
+  context: ResolutionContext,
   message: (model: Model) -> Unit
 ): Boolean =
   bracket {
     solver.booleans { addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula))) }
-    additionalFieldConstraints(listOf(constraint)).forEach { addConstraint(it) }
+    additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
     val unsat = prover.isUnsat
     if (!unsat) {
       message(prover.model)
@@ -66,18 +68,21 @@ internal fun SolverState.checkImplicationOf(
   }
 
 internal fun SolverState.additionalFieldConstraints(
-  formulae: Iterable<NamedConstraint>
+  formulae: Iterable<NamedConstraint>,
+  context: ResolutionContext
 ): Set<NamedConstraint> =
   solver.formulaManager.fieldNames(formulae.map { it.formula })
     .flatMap { (fieldName, appliedTo) ->
-      val constraints = singleConstraintsFromFqName(FqName(fieldName))
-      if (constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
+      val fqName = FqName(fieldName)
+      val descriptor = context.descriptorFor(fqName).getOrNull(0)
+      val constraints = singleConstraintsFromFqName(fqName)
+      if (descriptor != null && constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
         setOf(
           NamedConstraint(
             constraints.post[0].msg,
             solver.substituteVariable(
               constraints.post[0].formula,
-              mapOf(RESULT_VAR_NAME to solver.field(fieldName, appliedTo), "this" to appliedTo)
+              mapOf(RESULT_VAR_NAME to field(descriptor, appliedTo), "this" to appliedTo)
             )
           )
         )
@@ -123,7 +128,7 @@ internal fun SolverState.checkPreconditionsInconsistencies(
 ): Boolean =
   solver.run {
     constraints?.pre?.let {
-      addAndCheckConsistency(it) { unsatCore ->
+      addAndCheckConsistency(it, context) { unsatCore ->
         val msg = inconsistentBodyPre(declaration, unsatCore)
         context.reportInconsistentBodyPre(declaration, msg)
       }
@@ -142,7 +147,7 @@ internal fun SolverState.checkPostConditionsImplication(
 ) {
   solver.run {
     constraints?.post?.forEach { postCondition ->
-      checkImplicationOf(postCondition) {
+      checkImplicationOf(postCondition, context) {
         val msg = unsatBodyPost(declaration, postCondition, branch)
         context.reportUnsatBodyPost(declaration, msg)
       }
@@ -162,7 +167,7 @@ internal fun SolverState.checkCallPreConditionsImplication(
 ) =
   solver.run {
     callConstraints?.pre?.forEach { callPreCondition ->
-      checkImplicationOf(callPreCondition) { model ->
+      checkImplicationOf(callPreCondition, context) { model ->
         val msg = unsatCallPre(callPreCondition, resolvedCall, branch, model)
         context.reportUnsatCallPre(expression, msg)
       }
@@ -180,7 +185,7 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
 ): Boolean =
   solver.run {
     callConstraints?.post?.let {
-      addAndCheckConsistency(it) { unsatCore ->
+      addAndCheckConsistency(it, context) { unsatCore ->
         val msg = inconsistentCallPost(unsatCore, branch)
         context.reportInconsistentCallPost(expression, msg)
       }
@@ -197,7 +202,7 @@ internal fun SolverState.checkConditionsInconsistencies(
   branch: Branch
 ): Boolean =
   solver.run {
-    addAndCheckConsistency(formulae) { unsatCore ->
+    addAndCheckConsistency(formulae, context) { unsatCore ->
       val msg = inconsistentConditions(unsatCore, branch)
       context.reportInconsistentConditions(expression, msg)
     }
@@ -210,7 +215,7 @@ internal fun SolverState.checkInvariantConsistency(
   branch: Branch
 ): Boolean =
   solver.run {
-    addAndCheckConsistency(listOf(constraint)) {
+    addAndCheckConsistency(listOf(constraint), context) {
       val msg = inconsistentInvariants(it, branch)
       context.reportInconsistentInvariants(expression, msg)
     }
@@ -223,7 +228,7 @@ internal fun SolverState.checkInvariant(
   branch: Branch
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) { model ->
+    checkImplicationOf(constraint, context) { model ->
       val msg = unsatInvariants(expression, constraint, branch, model)
       context.reportUnsatInvariants(expression, msg)
     }
@@ -235,7 +240,7 @@ internal fun SolverState.checkLiskovWeakerPrecondition(
   expression: Element
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) {
+    checkImplicationOf(constraint, context) {
       val msg = notWeakerPrecondition(constraint)
       context.reportLiskovProblem(expression, msg)
     }
@@ -247,7 +252,7 @@ internal fun SolverState.checkLiskovStrongerPostcondition(
   expression: Element
 ): Boolean =
   solver.run {
-    checkImplicationOf(constraint) {
+    checkImplicationOf(constraint, context) {
       val msg = notStrongerPostcondition(constraint)
       context.reportLiskovProblem(expression, msg)
     }

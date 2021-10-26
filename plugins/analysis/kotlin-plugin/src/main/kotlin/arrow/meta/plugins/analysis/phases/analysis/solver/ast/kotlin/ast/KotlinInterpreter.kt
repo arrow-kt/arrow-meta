@@ -32,7 +32,6 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is SimpleFunctionDescriptor -> KotlinSimpleFunctionDescriptor(this).repr()
     is TypeAliasConstructorDescriptor -> KotlinTypeAliasConstructorDescriptor(this).repr()
     is ConstructorDescriptor -> KotlinConstructorDescriptor(this).repr()
-    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) { }).repr()
     is PropertyAccessorDescriptor -> KotlinPropertyAccessorDescriptor(this).repr()
     is PropertyDescriptor -> KotlinPropertyDescriptor(this).repr()
     is PackageViewDescriptor -> KotlinPackageViewDescriptor(this).repr()
@@ -45,7 +44,8 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
-    else -> TODO("Missing impl for $this (class ${this.javaClass})")
+    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) { }).repr()
+    else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 
 fun <A : KtElement,
@@ -97,8 +97,10 @@ fun <A : KtElement,
     is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
     is KtConstructorDelegationReferenceExpression -> KotlinConstructorDelegationReferenceExpression(this).repr()
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
-   // is KtFile -> KotlinFile(this).repr()
-    else -> TODO("Missing impl for $this")
+    is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
+    is KtInitializerList -> KotlinInitializerList(this).repr()
+    // is KtFile -> KotlinFile(this).repr()
+    else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 
 fun <A : Element,
