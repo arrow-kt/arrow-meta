@@ -43,8 +43,11 @@ options:
       - title: Pre and post-conditions
         url: /analysis-conditions.html
 
-      - title: Control operators (`if`, `when`)
+      - title: Control operators (if, when)
         url: /analysis-control.html
+
+      - title: Mutability and loops
+        url: /analysis-mutability.html
 
       - title: Types and invariants
         url: /analysis-types.html
@@ -54,6 +57,3 @@ options:
 
       - title: 3rd-party libraries
         url: /analysis-laws.html
-
-      - title: Mutability
-        url: /analysis-mutability.html

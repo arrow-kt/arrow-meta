@@ -23,7 +23,8 @@ fun increment(x: Int): Int {
 Each pre-condition takes a Boolean condition and a block with a message describing such condition. Even though the Kotlin compiler allows any expression to appear in those positions, there are heavy restrictions on what is actually understood by Λrrow Analysis.
 
 - Pre-conditions may only talk about parameters to the function, including `this` when inside a class method or defining an extension function;
-- You can only create Boolean expressions using basic arithmetic operations (addition, subtraction, ...) and comparisons, and simple Boolean operations (and, or, not). In particular, you cannot define a Boolean function and use it in a condition;
+- You can only create Boolean expressions using basic arithmetic operations (addition, subtraction, ...), comparisons, and simple Boolean operations (and, or, not). In particular, you cannot define a Boolean function and use it in a condition;
+- You may use `if` or `when`, but in the latter case only _without_ a subject;
 - The final block must be a simple constant string. We follow this pattern for compatibility with Kotlin's built-in `require` function.
 
 ### Errors related to pre-conditions

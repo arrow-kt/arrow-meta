@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: Analysis - Mutability
+title: Analysis - Mutability and loops
 ---
 
-# Mutability
+# Mutability and loops

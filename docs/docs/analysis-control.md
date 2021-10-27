@@ -94,3 +94,15 @@ fun double2(n: Int): Int {
     .post({ it > 0 }) { "result positive" }
 }
 ```
+
+## Null safety
+
+Λrrow Analysis can reason about `null` values, in a similar way as the [Kotlin compiler does](https://kotlinlang.org/docs/null-safety.html). The Elvis safe call operator `?.` is recognized, and in combination with the aforementioned support for scope functions, the tool can handle idiomatic code such as the following.
+
+```kotlin
+fun incrementNotNull(x: Int?): Int? {
+  pre((x == null) || (x > 0)) { "x is null or positive" }
+  val y = x?.let { it + 1 }
+  return y.post({ (it == null) || (it > 1) }) { "null or greater than 1" }
+}
+```
