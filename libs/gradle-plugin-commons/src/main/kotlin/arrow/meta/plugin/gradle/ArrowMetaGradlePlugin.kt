@@ -33,7 +33,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
+    val kotlinVersion = properties.getProperty("kotlinVersion")
     if (kotlinVersion != project.getKotlinPluginVersion()) {
       throw InvalidUserDataException("Use Kotlin $kotlinVersion for this Gradle Plugin")
     }
@@ -89,8 +89,8 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   private fun classpathOf(dependency: String, properties: Properties): String {
     try {
-      val compilerPluginVersion = properties.getProperty(VERSION_KEY)
-      val regex = Regex(".*$dependency-$compilerPluginVersion.*")
+      val arrowVersion = properties.getProperty(VERSION_KEY)
+      val regex = Regex(".*$dependency-$arrowVersion.*")
       return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")
@@ -98,6 +98,6 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
   }
 
   private companion object {
-    private const val VERSION_KEY = "COMPILER_PLUGIN_VERSION"
+    private const val VERSION_KEY = "compilerPluginVersion"
   }
 }

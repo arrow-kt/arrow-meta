@@ -5,9 +5,9 @@ plugins {
 
 tasks.processResources {
   filesMatching("**/plugin.properties") {
-    filter { it.replace("%COMPILER_PLUGIN_VERSION%", "$version") }
-    filter { it.replace("%KOTLIN_VERSION%", libs.versions.kotlin.get()) }
-    filter { it.replace("%ARROW_VERSION%", libs.versions.arrow.get()) }
+    filter { it.replace("%compilerPluginVersion%", "$version") }
+    filter { it.replace("%kotlinVersion%", libs.versions.kotlin.get()) }
+    filter { it.replace("%arrowVersion%", libs.versions.arrow.get()) }
   }
 }
 

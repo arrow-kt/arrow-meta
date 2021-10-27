@@ -122,7 +122,7 @@ interface ConfigSyntax {
     Dependency("arrow-meta-prelude:$currentVersion")
 
   fun analysisLib(currentVersion: String?): Dependency =
-    Dependency("analysis-types-jvm:$currentVersion")
+    Dependency("arrow-analysis-types:$currentVersion")
 
   /**
    * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as

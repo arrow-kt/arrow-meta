@@ -1,7 +1,7 @@
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "1.5.31" apply false
-  id("org.jetbrains.dokka") version "1.5.30" apply false
-  id("org.jlleitschuh.gradle.ktlint") version "10.1.0" apply false
+  alias(libs.plugins.kotlin.jvm) apply false
+  alias(libs.plugins.dokka) apply false
+  alias(libs.plugins.ktlint) apply false
 }
 
 allprojects {
@@ -45,8 +45,8 @@ allprojects {
 
     systemProperty("arrow.meta.generate.source.dir", File("$buildDir/generated/meta/tests").absolutePath)
     systemProperty("CURRENT_VERSION", "$version")
-    systemProperty("ARROW_VERSION", libs.versions.arrow.get())
-    systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())
+    systemProperty("arrowVersion", libs.versions.arrow.get())
+    systemProperty("jvmTargetVersion", properties["jvmTargetVersion"].toString())
     jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
   }
 }

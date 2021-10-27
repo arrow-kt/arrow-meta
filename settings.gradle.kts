@@ -9,6 +9,16 @@ pluginManagement {
   }
 }
 
+dependencyResolutionManagement {
+  versionCatalogs {
+    create("libs") {
+      from(files("gradle/projects.libs.versions.toml"))
+      val kotlinVersion: String? by settings
+      kotlinVersion?.let { version("kotlin", it) }
+    }
+  }
+}
+
 rootProject.name = "arrow-meta-workspace"
 
 // Libraries

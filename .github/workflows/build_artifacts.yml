@@ -45,11 +45,11 @@ jobs:
 
       - name: Build and test with Gradle
         if: contains(matrix.kotlin, '1.5')
-        run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} build --scan --stacktrace
+        run: ./gradlew -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace
 
       - name: Compile with Gradle
         if: contains(matrix.kotlin, '1.6')
-        run: ./gradlew -PKOTLIN_VERSION=${{ matrix.kotlin }} -PJVM_TARGET_VERSION=${{ matrix.jvm_target }} compileKotlin --scan --stacktrace
+        run: ./gradlew -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} compileKotlin --scan --stacktrace
 
       - name: Bundle the build report
         if: failure()

@@ -40,7 +40,7 @@ internal fun compile(data: CompilationData): Result =
   }.compile()
 
 private fun obtainTarget(data: CompilationData): String =
-  data.targetVersion ?: System.getProperty("JVM_TARGET_VERSION", "1.8")
+  data.targetVersion ?: System.getProperty("jvmTargetVersion", "1.8")
 
 private fun classpathOf(dependency: String): File {
   val file =
@@ -72,5 +72,3 @@ private fun sanitizeClassPathFileName(dep: String): String =
   }.joinToString("")
     .replace("-jvm.jar", "")
     .replace("-jvm", "")
-
-
