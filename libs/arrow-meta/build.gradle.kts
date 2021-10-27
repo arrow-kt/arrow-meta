@@ -39,3 +39,16 @@ dependencies {
     }
     testRuntimeOnly(projects.arrowMetaPrelude)
 }
+
+tasks.test {
+  useJUnitPlatform()
+  testLogging {
+    showStandardStreams = true
+    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    events("passed", "skipped", "failed", "standardOut", "standardError")
+  }
+  systemProperty("CURRENT_VERSION", properties["VERSION_NAME"].toString())
+  systemProperty("ARROW_VERSION", properties["ARROW_VERSION"].toString())
+  systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())
+  jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
+}
