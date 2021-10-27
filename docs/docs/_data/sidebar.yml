@@ -43,6 +43,9 @@ options:
       - title: Pre and post-conditions
         url: /analysis-conditions.html
 
+      - title: Control operators (`if`, `when`)
+        url: /analysis-control.html
+
       - title: Types and invariants
         url: /analysis-types.html
 

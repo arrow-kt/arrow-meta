@@ -20,3 +20,40 @@ class Positive(val value: Int) {
 val positiveExample = Positive(1)
 fun Positive.add(other: Positive) =
   Positive(this.value + other.value)
+
+/*
+fun nope(x: Int): Int {
+  pre(x >= 0) { "value >= 0" }
+  return (x + 1).post({ it > 1 }) { "result > 1" }
+}
+
+fun nope2(x: Int): Int {
+  pre(x > 0) { "x must be positive" }
+  return if (x < 0) 1 else 2
+}
+*/
+
+fun <A> List<A>.myGet(index: Int): A {
+  pre(index >= 0 && index < this.size) { "index within bounds" }
+  return this.get(index)
+}
+fun <A> List<A>.firstOr(default: A): A =
+  if (this.size > 0) this.myGet(0) else default
+
+fun absoluteValue(n: Int): Int = when {
+  n < 0 -> -n
+  n == 0 -> 0
+  else -> n
+}.post({ it >= 0 }) { "result >= 0" }
+
+fun double(n: Int): Int {
+  pre(n > 0) { "n positive" }
+  val z = n + n
+  val r = z + 1
+  return r.post({ it > 0 }) { "result positive" }
+}
+
+fun double2(n: Int): Int {
+  pre(n > 0) { "n positive" }
+  return (n + n).let { it + 1 }.post({ it > 0 }) { "result positive" }
+}
