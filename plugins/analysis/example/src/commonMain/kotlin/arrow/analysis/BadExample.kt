@@ -57,3 +57,9 @@ fun double2(n: Int): Int {
   pre(n > 0) { "n positive" }
   return (n + n).let { it + 1 }.post({ it > 0 }) { "result positive" }
 }
+
+fun <A> List<A>.count(): Int {
+  var count = 0.invariant({ it >= 0 }) { "z >= 0" }
+  for (elt in this) { count = count + 1 }
+  return count.post({ it >= 0 }) { "result >= 0" }
+}
