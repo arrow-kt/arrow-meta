@@ -248,6 +248,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `when, absolute value`() {
+    """
+      ${imports()}
+      fun absoluteValue(n: Int): Int = when {
+        n >= 0 -> n
+        else   -> -n
+      }.post({ it >= 0 }) { "result >= 0" }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `pre-conditions are not satisfied in call`() {
     """
       ${imports()}

@@ -7,7 +7,7 @@ import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.asContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhenNotNull
-import arrow.meta.continuations.sequence
+import arrow.meta.continuations.nested
 import arrow.meta.plugins.analysis.phases.analysis.solver.ArgumentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
@@ -1055,7 +1055,7 @@ private fun SolverState.checkConditional(
         )
         newData.noReturn()
       }).map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
-    }.sequence()
+    }.nested()
   }.flatMap { conditionInformation ->
     yesNo(conditionInformation)
       .asContSeq()

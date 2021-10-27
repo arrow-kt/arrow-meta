@@ -121,6 +121,17 @@ fun <A> Iterable<A>.asContSeq(): ContSeq<A> =
 fun <A> List<ContSeq<A>>.sequence(): ContSeq<List<A>> =
   if (isEmpty()) ContSeq(emptyList()) else ContSeq(flatMap { it.toList() })
 
+fun <A> List<ContSeq<A>>.nested(): ContSeq<List<A>> =
+  if (isEmpty()) {
+    cont { emptyList() }
+  } else {
+    first().flatMap { x ->
+      drop(1).nested().map { xs ->
+        listOf(x) + xs
+      }
+    }
+  }
+
 /** Execute a side effect only when some condition holds. */
 inline fun doOnlyWhen(condition: Boolean, crossinline f: () -> ContSeq<Unit>): ContSeq<Unit> =
   if (condition) f() else ContSeq.unit
