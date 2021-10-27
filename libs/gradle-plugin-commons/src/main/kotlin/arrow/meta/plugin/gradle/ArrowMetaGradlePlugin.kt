@@ -1,9 +1,13 @@
 package arrow.meta.plugin.gradle
 
+import io.github.classgraph.ClassGraph
+import java.io.File
 import java.util.Properties
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
@@ -23,6 +27,11 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
   public val dependencies: List<Triple<String, String, String>>
 
   override fun apply(project: Project): Unit {
+    val defaultPath = File("${project.buildDir}/generated/meta/").path
+
+    val extension = project.extensions.create("arrowMeta", ArrowMetaExtension::class.java)
+    extension.generatedSrcOutputDir.convention(defaultPath)
+
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
@@ -40,15 +49,31 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
         p.dependencies.add(configuration, "$g:$a:$v")
       }
     }
+
+    project.afterEvaluate { p ->
+      p.extensions.findByType(KotlinProjectExtension::class.java)?.sourceSets?.all { sourceSet ->
+        sourceSet.kotlin.srcDirs("${extension.generatedSrcOutputDir.get()}/${sourceSet.name}/")
+      }
+    }
   }
 
   override fun getPluginArtifact(): SubpluginArtifact =
     SubpluginArtifact(groupId, artifactId, version)
 
-  override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> =
-    kotlinCompilation.target.project.provider { emptyList() }
+  override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
+    val project = kotlinCompilation.target.project
+    val extension = project.extensions.getByType(ArrowMetaExtension::class.java)
+    return project.provider {
+      listOf(
+        SubpluginOption(
+          key = "generatedSrcOutputDir",
+          value = "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
+        ),
+      )
+    }
+  }
 
-  override fun getCompilerPluginId(): String = pluginId
+  override fun getCompilerPluginId(): String = "arrow.meta.plugin.compiler"
 
   override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
 
@@ -62,4 +87,18 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     project.afterEvaluate { p ->
       p.dependencies.add(configuration, "$groupId:$artifactId:$version")
     }
+
+  private fun classpathOf(dependency: String, properties: Properties): String {
+    try {
+      val compilerPluginVersion = properties.getProperty(VERSION_KEY)
+      val regex = Regex(".*$dependency-$compilerPluginVersion.*")
+      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
+    } catch (e: NoSuchElementException) {
+      throw InvalidUserDataException("$dependency not found")
+    }
+  }
+
+  private companion object {
+    private const val VERSION_KEY = "COMPILER_PLUGIN_VERSION"
+  }
 }

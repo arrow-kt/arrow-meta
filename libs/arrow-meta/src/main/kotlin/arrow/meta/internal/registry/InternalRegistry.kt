@@ -149,9 +149,8 @@ interface InternalRegistry : ConfigSyntax {
       } else {
         val messageCollector: MessageCollector? =
           cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
-        CompilerContext(project, messageCollector)
+        CompilerContext(configuration, project, messageCollector)
       }
-    ctx.configuration = configuration // TODO fix with better strategy to extract current config
     registerPostAnalysisContextEnrichment(project, ctx)
 
 // TODO: Pending fix https://github.com/gradle/gradle/issues/14727

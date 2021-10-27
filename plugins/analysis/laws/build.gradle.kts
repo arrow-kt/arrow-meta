@@ -10,7 +10,7 @@ kotlin {
     commonMain {
       dependencies {
         compileOnly(libs.kotlin.stdlibCommon)
-        api(projects.analysisTypes)
+        api(projects.arrowAnalysisTypes)
       }
     }
 
@@ -30,15 +30,15 @@ kotlin {
 
 dependencies {
   compileOnly(libs.kotlin.stdlibJDK8)
-  kotlinCompilerClasspath(projects.analysisKotlinPlugin)
+  kotlinCompilerClasspath(projects.arrowAnalysisKotlinPlugin)
 }
 
 tasks.compileKotlinJvm {
   kotlinOptions {
-    suppressWarnings = true
+    dependsOn(":arrow-analysis-kotlin-plugin:jar")
     freeCompilerArgs = listOf(
       "-Xplugin=$rootDir/plugins/analysis/kotlin-plugin/build/libs/arrow-analysis-kotlin-plugin-1.5.31-SNAPSHOT.jar",
-      "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=$buildDir"
+      "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=$buildDir/generated/meta"
     )
   }
 }

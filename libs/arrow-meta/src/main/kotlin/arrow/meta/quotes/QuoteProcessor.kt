@@ -11,6 +11,7 @@ import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.MetaFileViewProvider
+import arrow.meta.phases.analysis.getOrCreateBaseDirectory
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
@@ -187,10 +188,7 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = sourcePath?.let {
-    val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DefaultElementScope.DEFAULT_BASE_DIR.toString()))?.get(0)
-    val path = Paths.get(baseDir ?: DefaultElementScope.DEFAULT_BASE_DIR.toString(), it)
-    val directory = path.toFile()
-    directory.mkdirs()
+    val directory = getOrCreateBaseDirectory(configuration)
     CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)
     })

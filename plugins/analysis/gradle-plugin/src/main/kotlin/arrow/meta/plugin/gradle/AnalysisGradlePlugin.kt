@@ -8,7 +8,7 @@ public class AnalysisGradlePlugin : ArrowMetaGradlePlugin {
 
   override val dependencies: List<Triple<String, String, String>> =
     listOf(
-      Triple(groupId, "analysis-laws", version),
-      Triple(groupId, "analysis-types", version),
+      Triple(groupId, "arrow-analysis-laws", version),
+      Triple(groupId, "arrow-analysis-types", version),
     )
 }

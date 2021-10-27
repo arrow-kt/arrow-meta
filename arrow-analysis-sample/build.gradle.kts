@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("io.arrow-kt:analysis-gradle-plugin:1.5.31-SNAPSHOT")
+    classpath("io.arrow-kt:arrow-analysis-gradle-plugin:1.5.31-SNAPSHOT")
   }
 }
 
@@ -25,4 +25,8 @@ allprojects {
     mavenLocal()
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
   }
+}
+
+configurations.all {
+  resolutionStrategy.cacheChangingModulesFor(0, "seconds")
 }

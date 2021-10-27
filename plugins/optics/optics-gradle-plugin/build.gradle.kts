@@ -8,23 +8,23 @@ tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
+gradlePlugin {
+  plugins {
+    create("arrow") {
+      id = "io.arrow-kt.optics"
+      displayName = "Arrow Optics Gradle Plugin"
+      implementationClass = "arrow.meta.plugin.gradle.OpticsGradlePlugin"
+    }
+  }
+}
+
 dependencies {
   api(projects.arrowGradlePluginCommons)
   runtimeOnly("io.github.classgraph:classgraph:4.8.47")
 
   // Necessary during plugin execution to be found and added for compilation
   api(projects.arrowMeta)
-  api(projects.arrowAnalysisKotlinPlugin)
-}
-
-gradlePlugin {
-  plugins {
-    create("arrow") {
-      id = "io.arrow-kt.analysis"
-      displayName = "Arrow Analysis Gradle Plugin"
-      implementationClass = "arrow.meta.plugin.gradle.AnalysisGradlePlugin"
-    }
-  }
+  api(projects.arrowOpticsPlugin)
 }
 
 pluginBundle {
