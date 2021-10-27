@@ -11,7 +11,7 @@ title: Analysis - Quick Start
 
 Open your Gradle build file, and add the following lines:
 
-<div class="setup-graddle" markdown="1">
+<div class="setup-gradle" markdown="1">
 <!-- Tab links -->
 <div class="tab" markdown="1">
   <button class="tablinks" onclick="openSetup(event, 'gradle-kotlin')" id="defaultOpen" markdown="1">Gradle Kotlin DSL</button>
@@ -28,7 +28,7 @@ Open your Gradle build file, and add the following lines:
 
 <div id="gradle-groovy" class="tabcontent" markdown="1">
 
-```groovy
+```java
 // code for build.gradle
 ```
 

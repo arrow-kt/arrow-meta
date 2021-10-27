@@ -141,4 +141,50 @@
         max-width: 100%;
       }
     }
+
+    .setup-gradle {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      background: #fff;
+      box-shadow: $base-box-shadow;
+
+      .tab {
+        overflow: hidden;
+        p {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          button:nth-child(2) {
+            border-right: 1px solid #DCDEE1;
+            border-left: 1px solid #DCDEE1;
+          }
+        }
+      }
+
+      .tab button {
+        background-color: rgba($dark-color-doc, 0.03);
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 1.75rem 1rem;
+        font-size: 1.25rem;
+        font-family: $heading-font-family;
+        font-weight: $font-bold;
+        transition: 0.3s;
+        box-shadow: 0 1px #DCDEE1;
+      }
+      /* Change background color of buttons on hover */
+      .tab button:hover {
+        background-color: rgba($dark-color-doc, 0.01);
+      }
+      /* Create an active/current tablink class */
+      .tab button.active {
+        background: none;
+        box-shadow: none;
+      }
+      /* Style the tab content */
+      .tabcontent {
+        display: none;
+        padding: 0rem 1rem 0.1rem 1rem;
+      }
+    }
 }
