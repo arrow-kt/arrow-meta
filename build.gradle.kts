@@ -42,6 +42,8 @@ allprojects {
       exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       events("passed", "skipped", "failed", "standardOut", "standardError")
     }
+
+    systemProperty("arrow.meta.generate.source.dir", File("$buildDir/generated/meta/tests").absolutePath)
     systemProperty("CURRENT_VERSION", version)
     systemProperty("ARROW_VERSION", libs.versions.arrow.get())
     systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())

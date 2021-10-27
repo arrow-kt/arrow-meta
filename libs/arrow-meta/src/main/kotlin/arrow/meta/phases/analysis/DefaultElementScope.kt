@@ -485,6 +485,7 @@ class DefaultElementScope(
 fun getOrCreateBaseDirectory(configuration: CompilerConfiguration?): java.io.File {
   val parentBuildPath: String? =
     configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)?.firstOrNull()
+      ?: System.getProperty("arrow.meta.generate.source.dir")
   checkNotNull(parentBuildPath) {
     "Generated sources output dir is not found: ${ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR}"
   }

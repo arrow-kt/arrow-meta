@@ -3,6 +3,7 @@ package arrow.meta.plugins.analysis
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
+import arrow.meta.plugin.testing.PluginOption
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
 import org.junit.jupiter.api.Disabled
@@ -1328,7 +1329,7 @@ import arrow.analysis.unsafeCall
  """
 
 private fun collectionListLaws(): String =
-"""
+  """
 @Laws
 object CollectionLaws {
   @Law
@@ -1355,7 +1356,7 @@ object ListLaws {
 """
 
 private fun arrayListLaws(): String =
-"""
+  """
 import kotlin.collections.ArrayList
       
 @Laws
@@ -1374,7 +1375,10 @@ private operator fun String.invoke(
   withoutPlugin: AssertSyntax.() -> Assert
 ) {
   assertThis(CompilerTest(
-    config = { newMetaDependencies() },
+    config = {
+      newMetaDependencies() // +
+      // addPluginOptions(PluginOption("arrow.meta.plugin.compiler", "generatedSrcOutputDir", "value"))
+    },
     code = { this@invoke.source },
     assert = { withPlugin() }
   ))
