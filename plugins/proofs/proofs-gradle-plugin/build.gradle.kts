@@ -20,7 +20,7 @@ gradlePlugin {
 
 dependencies {
   api(projects.arrowGradlePluginCommons)
-  runtimeOnly("io.github.classgraph:classgraph:4.8.47")
+  runtimeOnly(libs.classgraph)
 
   // Necessary during plugin execution to be found and added for compilation
   api(projects.arrowMeta)

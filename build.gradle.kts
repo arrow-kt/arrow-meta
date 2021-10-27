@@ -1,7 +1,3 @@
-buildscript {
-    extra.set("PATH_APIDOCS", "$rootDir/docs/docs/apidocs")
-}
-
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.5.31" apply false
   id("org.jetbrains.dokka") version "1.5.30" apply false
@@ -14,6 +10,9 @@ allprojects {
     mavenCentral()
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
   }
+
+  group = property("projects.group").toString()
+  version = property("projects.version").toString()
 }
 
 tasks {
@@ -33,4 +32,19 @@ tasks {
   }
 
   named("runValidation").get().mustRunAfter("generateDoc")
+}
+
+allprojects {
+  this.tasks.withType<Test>() {
+    useJUnitPlatform()
+    testLogging {
+      showStandardStreams = true
+      exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+      events("passed", "skipped", "failed", "standardOut", "standardError")
+    }
+    systemProperty("CURRENT_VERSION", version)
+    systemProperty("ARROW_VERSION", libs.versions.arrow.get())
+    systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())
+    jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
+  }
 }

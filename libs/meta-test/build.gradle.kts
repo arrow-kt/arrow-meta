@@ -8,21 +8,30 @@ kotlin {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("io.github.classgraph:classgraph:4.8.47")
+  compileOnly(libs.kotlin.stdlibJDK8)
+  implementation(libs.classgraph)
 
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable")
-    implementation("org.jetbrains.kotlin:kotlin-annotation-processing-embeddable")
-    implementation("com.github.tschuchortdev:kotlin-compile-testing:1.4.4") {
-        exclude(group = "io.github.classgraph", module = "classgraph")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-annotation-processing-embeddable")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-jdk8")
-    }
-    implementation("org.assertj:assertj-core:3.13.2")
-    implementation(projects.arrowMeta)
+  implementation(libs.kotlin.compilerEmbeddable)
+  implementation(libs.kotlin.annotationProcessingEmbeddable)
+  implementation(libs.kotlinCompileTesting) {
+    exclude(group = libs.classgraph.get().module.group, module = libs.classgraph.get().module.name)
+    exclude(
+      group = libs.kotlin.compilerEmbeddable.get().module.group,
+      module = libs.kotlin.compilerEmbeddable.get().module.name
+    )
+    exclude(
+      group = libs.kotlin.annotationProcessingEmbeddable.get().module.group,
+      module = libs.kotlin.annotationProcessingEmbeddable.get().module.name
+    )
+    exclude(
+      group = libs.kotlin.stdlibJDK8.get().module.group,
+      module = libs.kotlin.stdlibJDK8.get().module.name
+    )
+  }
+  implementation(libs.assertj)
+  implementation(projects.arrowMeta)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
-    testRuntimeOnly(projects.arrowMetaPrelude)
+  testImplementation(libs.kotlin.stdlibJDK8)
+  testImplementation(libs.junit)
+  testRuntimeOnly(projects.arrowMetaPrelude)
 }

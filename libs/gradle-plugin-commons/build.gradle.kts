@@ -5,17 +5,17 @@ plugins {
 
 tasks.processResources {
   filesMatching("**/plugin.properties") {
-    filter { it.replace("%COMPILER_PLUGIN_VERSION%", properties["VERSION_NAME"].toString()) }
-    filter { it.replace("%KOTLIN_VERSION%", properties["KOTLIN_VERSION"].toString()) }
-    filter { it.replace("%ARROW_VERSION%", properties["ARROW_VERSION"].toString()) }
+    filter { it.replace("%COMPILER_PLUGIN_VERSION%", "$version") }
+    filter { it.replace("%KOTLIN_VERSION%", libs.versions.kotlin.get()) }
+    filter { it.replace("%ARROW_VERSION%", libs.versions.arrow.get()) }
   }
 }
 
 dependencies {
   compileOnly(gradleApi())
-  compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
-  api("org.jetbrains.kotlin:kotlin-gradle-plugin-api")
-  compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin")
-  compileOnly("org.jetbrains.kotlin:kotlin-reflect")
-  compileOnly("io.github.classgraph:classgraph:4.8.47")
+  compileOnly(libs.kotlin.stdlibJDK8)
+  api(libs.kotlin.gradlePluginApi)
+  compileOnly(libs.kotlin.gradlePluginX)
+  compileOnly(libs.kotlin.reflect)
+  compileOnly(libs.classgraph)
 }

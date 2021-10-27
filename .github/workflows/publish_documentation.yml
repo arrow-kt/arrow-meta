@@ -28,7 +28,7 @@ jobs:
       run: |
         sudo gem install bundler
         bundle install --gemfile docs/Gemfile --path vendor/bundle
-        MAYOR_MINOR_VERSION=$(grep -e "^VERSION_NAME=.*$" gradle.properties | cut -d= -f2 | cut -d. -f1-2)
+        MAYOR_MINOR_VERSION=$(grep -e "^projects.version=.*$" gradle.properties | cut -d= -f2 | cut -d. -f1-2)
         echo $MAYOR_MINOR_VERSION
         # bundle exec jekyll build --baseurl /$MAYOR_MINOR_VERSION -s docs -d docs/build/_site
         BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/build/site -d docs/build/_site

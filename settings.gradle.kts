@@ -2,10 +2,11 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 enableFeaturePreview("VERSION_CATALOGS")
 
 pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenLocal()
-    }
+  repositories {
+    gradlePluginPortal()
+    mavenCentral()
+    mavenLocal()
+  }
 }
 
 rootProject.name = "arrow-meta-workspace"
@@ -24,6 +25,7 @@ project(":arrow-gradle-plugin-commons").projectDir = File("libs/gradle-plugin-co
 // Docs
 
 include(":arrow-meta-docs")
+project(":arrow-meta-docs").projectDir = File("docs")
 
 //Plugins
 
@@ -65,5 +67,5 @@ project(":arrow-analysis-laws").projectDir = File("plugins/analysis/laws")
 include(":arrow-analysis-example")
 project(":arrow-analysis-example").projectDir = File("plugins/analysis/example")
 
-includeBuild("arrow-analysis-sample")
-includeBuild("arrow-proofs-example")
+//includeBuild("arrow-analysis-sample")
+//includeBuild("arrow-proofs-example")

@@ -1,6 +1,5 @@
 package arrow.meta.quotes
 
-import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
 import arrow.meta.internal.kastree.ast.MutableVisitor
@@ -9,7 +8,6 @@ import arrow.meta.internal.kastree.ast.Writer
 import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.MetaFileViewProvider
 import arrow.meta.phases.analysis.getOrCreateBaseDirectory
 import arrow.meta.phases.analysis.traverseFilter
@@ -21,7 +19,6 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * Quote processor defines how quotes should behave related with its processing phase

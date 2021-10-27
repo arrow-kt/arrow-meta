@@ -9,7 +9,7 @@ kotlin {
 
 dependencies {
   compileOnly(libs.kotlin.stdlibJDK8)
-  api("io.arrow-kt:arrow-core:1.0.1-SNAPSHOT")
+  api(libs.arrowCore)
   api(projects.arrowAnalysisTypes)
-  api("org.sosy-lab:java-smt:3.10.1")
+  api(libs.javaSmt)
 }

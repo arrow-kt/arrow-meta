@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.arrowGradleConfig.jvm)
-    alias(libs.plugins.arrowGradleConfig.publishJvm)
+  alias(libs.plugins.arrowGradleConfig.jvm)
+  alias(libs.plugins.arrowGradleConfig.publishJvm)
 }
 
 kotlin {
-    explicitApiWarning()
+  explicitApiWarning()
 }
 
 tasks.compileKotlin {
@@ -12,43 +12,39 @@ tasks.compileKotlin {
 }
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
-    compileOnly("com.intellij:openapi:7.0.3")
-    compileOnly("org.jetbrains.kotlin:kotlin-reflect")
-    api("org.javassist:javassist:3.27.0-GA")
-    api("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable")
-    api("org.jetbrains.kotlin:kotlin-script-util") {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler")
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
-    }
-    api("org.jetbrains.kotlin:kotlin-compiler-embeddable")
-
-    testCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.0")
-    testImplementation(projects.arrowMetaTest)
-    testRuntimeOnly(projects.arrowMeta)
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-script-util")
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable")
-    testImplementation("org.jetbrains.kotlin:kotlin-stdlib")
-    testRuntimeOnly("io.arrow-kt:arrow-core:1.0.0") {
-        exclude(group = "org.jetbrains.kotlin")
-    }
-    testRuntimeOnly("io.arrow-kt:arrow-optics:1.0.0") {
-        exclude(group = "org.jetbrains.kotlin")
-    }
-    testRuntimeOnly(projects.arrowMetaPrelude)
-}
-
-tasks.test {
-  useJUnitPlatform()
-  testLogging {
-    showStandardStreams = true
-    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-    events("passed", "skipped", "failed", "standardOut", "standardError")
+  compileOnly(libs.kotlin.stdlibJDK8)
+  compileOnly(libs.intellijOpenApi)
+  compileOnly(libs.kotlin.reflect)
+  api(libs.javaAssist)
+  api(libs.kotlin.scriptingCompilerEmbeddable)
+  api(libs.kotlin.scriptUtil) {
+    exclude(
+      group = libs.kotlin.stdlibJDK8.get().module.group,
+      module = libs.kotlin.stdlibJDK8.get().module.name
+    )
+    exclude(
+      group = libs.kotlin.compiler.get().module.group,
+      module = libs.kotlin.compiler.get().module.name
+    )
+    exclude(
+      group = libs.kotlin.compilerEmbeddable.get().module.group,
+      module = libs.kotlin.compilerEmbeddable.get().module.name
+    )
   }
-  systemProperty("CURRENT_VERSION", properties["VERSION_NAME"].toString())
-  systemProperty("ARROW_VERSION", properties["ARROW_VERSION"].toString())
-  systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())
-  jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
+  api(libs.kotlin.compilerEmbeddable)
+
+  testCompileOnly(libs.kotlin.compilerEmbeddable)
+  testImplementation(libs.junit)
+  testImplementation(projects.arrowMetaTest)
+  testRuntimeOnly(projects.arrowMeta)
+  testRuntimeOnly(libs.kotlin.scriptUtil)
+  testRuntimeOnly(libs.kotlin.scriptingCompilerEmbeddable)
+  testImplementation(libs.kotlin.stdlibJDK8)
+  testRuntimeOnly(libs.arrowCore) {
+    exclude(group = libs.kotlin.stdlibJDK8.get().module.group)
+  }
+  testRuntimeOnly(libs.arrowOptics) {
+    exclude(group = libs.kotlin.stdlibJDK8.get().module.group)
+  }
+  testRuntimeOnly(projects.arrowMetaPrelude)
 }
