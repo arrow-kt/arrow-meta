@@ -13,6 +13,7 @@ kotlinCompileTesting = "1.4.4"
 
 [libraries]
 arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrow" }
+arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrowOptics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }

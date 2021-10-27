@@ -17,6 +17,7 @@ dependencies {
     testRuntimeOnly(projects.arrowMeta)
     testRuntimeOnly(projects.arrowMetaPrelude)
     testRuntimeOnly(projects.arrowOpticsPlugin)
+    testRuntimeOnly(libs.arrowAnnotations)
     testRuntimeOnly(libs.arrowCore)
     testRuntimeOnly(libs.arrowOptics)
 }

@@ -44,7 +44,7 @@ allprojects {
     }
 
     systemProperty("arrow.meta.generate.source.dir", File("$buildDir/generated/meta/tests").absolutePath)
-    systemProperty("CURRENT_VERSION", version)
+    systemProperty("CURRENT_VERSION", "$version")
     systemProperty("ARROW_VERSION", libs.versions.arrow.get())
     systemProperty("JVM_TARGET_VERSION", properties["JVM_TARGET_VERSION"].toString())
     jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
