@@ -70,7 +70,7 @@ configure(subprojects - project(":arrow-meta-docs")) {
       kotlinExtension?.sourceSets?.forEach { sourceSet ->
         sourceSet.kotlin.srcDirs.forEach {
           taskNumber += 1
-          named(sourceSet.name + taskNumber) {
+          create(sourceSet.name + taskNumber) {
             skipDeprecated.set(true)
             reportUndocumented.set(true)
             sourceLink {
