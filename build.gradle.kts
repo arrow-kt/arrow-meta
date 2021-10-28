@@ -19,7 +19,7 @@ allprojects {
 
 tasks {
   create<Exec>("generateDoc") {
-    commandLine("sh", "gradlew", "dokkaGfm")
+    commandLine("sh", "gradlew", "dokkaJekyll")
   }
 
   create<Exec>("runValidation") {

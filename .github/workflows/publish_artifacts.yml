@@ -5,12 +5,29 @@ on:
     branches:
     - main
 
+env:
+  OSS_USER: '${{ secrets.OSS_USER }}'
+  OSS_TOKEN: '${{ secrets.OSS_TOKEN }}'
+  OSS_STAGING_PROFILE_ID: '${{ secrets.OSS_STAGING_PROFILE_ID }}'
+  SIGNING_KEY_NAME: '${{ secrets.SIGNING_KEY_NAME }}'
+  SIGNING_KEY_ID: '${{ secrets.SIGNING_KEY_ID }}'
+  SIGNING_KEY_PASSPHRASE: '${{ secrets.SIGNING_KEY_PASSPHRASE }}'
+  SIGNING_KEY: '${{ secrets.SIGNING_KEY }}'
+  GRADLE_PUBLISH_KEY: '${{ secrets.GRADLE_PUBLISH_KEY }}'
+  GRADLE_PUBLISH_SECRET: '${{ secrets.GRADLE_PUBLISH_SECRET }}'
+
 jobs:
   publish_artifacts:
 
     env:
       JAVA_OPTS: -Xms512m -Xmx1024m
-    runs-on: ubuntu-latest
+
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: '${{ matrix.os }}'
 
     steps:
     - uses: actions/checkout@v2
@@ -30,20 +47,12 @@ jobs:
             echo "::set-output name=repository-type::release"
         fi
     - name: Publish artifacts
-      env:
-        SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
-        SONATYPE_PWD: ${{ secrets.SONATYPE_PWD }}
-        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
-        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
       run: |
         echo "NOTE: docs has its own publication workflows"
         echo "Uploading artifacts..."
-        ./gradlew publish
+        ./gradlew publishToSonatype closeSonatypeStagingRepository
         echo "${{ steps.properties.outputs.actual-version }} deployed!"
     - name: Publish Gradle Plugin into Gradle Plugins Portal
       if: steps.properties.outputs.repository-type == 'release'
-      env:
-        GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-        GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
       run: |
-        ./gradlew -Dgradle.publish.key=$GRADLE_PUBLISH_KEY -Dgradle.publish.secret=$GRADLE_PUBLISH_SECRET publishPlugins
+        ./gradlew -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
