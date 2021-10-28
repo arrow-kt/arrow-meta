@@ -3,7 +3,6 @@ package arrow.meta.plugins.analysis
 import arrow.meta.plugin.testing.Assert
 import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
-import arrow.meta.plugin.testing.PluginOption
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
 import org.junit.jupiter.api.Disabled
