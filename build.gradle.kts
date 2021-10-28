@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.dokka) apply false
@@ -17,7 +19,7 @@ allprojects {
 
 tasks {
   create<Exec>("generateDoc") {
-    commandLine("sh", "gradlew", "dokka")
+    commandLine("sh", "gradlew", "dokkaGfm")
   }
 
   create<Exec>("runValidation") {
@@ -43,10 +45,49 @@ allprojects {
       events("passed", "skipped", "failed", "standardOut", "standardError")
     }
 
-    systemProperty("arrow.meta.generate.source.dir", File("$buildDir/generated/meta/tests").absolutePath)
+    systemProperty(
+      "arrow.meta.generate.source.dir",
+      File("$buildDir/generated/meta/tests").absolutePath
+    )
     systemProperty("CURRENT_VERSION", "$version")
     systemProperty("arrowVersion", libs.versions.arrow.get())
     systemProperty("jvmTargetVersion", properties["jvmTargetVersion"].toString())
     jvmArgs = listOf("""-Dkotlin.compiler.execution.strategy="in-process"""")
+  }
+}
+
+configure(subprojects - project("docs")) {
+  apply(plugin = "org.jetbrains.dokka")
+  tasks.named<DokkaTask>("dokkaGfm") {
+    outputDirectory.set(file("$rootDir/docs/docs/apidocs"))
+
+    dokkaSourceSets {
+      val arrowMetaBlobMain = "https://github.com/arrow-kt/arrow-meta/blob/main"
+      if (file("src/main/kotlin").exists()) {
+        named("main") {
+          skipDeprecated.set(true)
+          reportUndocumented.set(true)
+          sourceLink {
+            localDirectory.set(file("src/main/kotlin"))
+            remoteUrl.set(
+              uri("$arrowMetaBlobMain/${relativeProjectPath("src/main/kotlin")}").toURL()
+            )
+            remoteLineSuffix.set("#L")
+          }
+        }
+      } else if (file("src/commonMain/kotlin").exists()) {
+        named("main") {
+          skipDeprecated.set(true)
+          reportUndocumented.set(true)
+          sourceLink {
+            localDirectory.set(file("src/commonMain/kotlin"))
+            remoteUrl.set(
+              uri("$arrowMetaBlobMain/${relativeProjectPath("src/commonMain/kotlin")}").toURL()
+            )
+            remoteLineSuffix.set("#L")
+          }
+        }
+      }
+    }
   }
 }
