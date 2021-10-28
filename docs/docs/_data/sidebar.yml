@@ -57,3 +57,10 @@ options:
 
       - title: 3rd-party libraries
         url: /analysis-laws.html
+
+  - title: Proofs
+
+    nested_options:
+
+      - title: Quick Start
+        url: /proofs-quickstart.html
