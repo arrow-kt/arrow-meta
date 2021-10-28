@@ -56,7 +56,7 @@ allprojects {
   }
 }
 
-configure(subprojects - project("docs")) {
+configure(subprojects - project(":arrow-meta-docs")) {
   apply(plugin = "org.jetbrains.dokka")
   tasks.named<DokkaTask>("dokkaGfm") {
     outputDirectory.set(file("$rootDir/docs/docs/apidocs"))
