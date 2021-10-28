@@ -24,7 +24,7 @@ tasks {
   }
 
   create<Exec>("runValidation") {
-    commandLine("sh", "gradlew", ":docs:runAnk")
+    commandLine("sh", "gradlew", ":arrow-meta-docs:runAnk")
   }
 
   create("buildMetaDoc") {
