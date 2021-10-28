@@ -97,7 +97,7 @@ configure(subprojects - project(":arrow-meta-docs")) {
           }
         }
       } else if (file("src/commonMain/kotlin").exists()) {
-        named("main") {
+        named("commonMain") {
           skipDeprecated.set(true)
           reportUndocumented.set(true)
           sourceLink {

@@ -28,7 +28,7 @@ the range of the declared predicates constraining the type.
 Consider the use case of modeling a `port` number. Instead of using `Int` to describe a port, we will create our own `Port` type and
 enable the refined-types capabilities by making the `Port` companion extend the [Refined](http://127.0.0.1:4000/apidocs/arrow-refined-types/arrow.refinement/-refined/index.html) class.
 
-```kotlin:ank
+```kotlin
 import arrow.refinement.Refined
 import arrow.refinement.ensure
 
@@ -42,7 +42,7 @@ value class Port /* private constructor */ (val value: Int) {
 
 When attempting to instantiate a Port with invalid values as constants, the plugin fails at compile-time and forces us to correct the input preventing a potential runtime exception.
 
-```kotlin:ank:silent
+```kotlin
 Port(70000)
 // error: "$it should be in the closed range of 0..65535 to be a valid port number"
 ```
@@ -50,7 +50,7 @@ Port(70000)
 For cases where the input values are dynamic and not evaluable at compile-time, the plugin advises us to use a safe API
 based on nullable types.
 
-```kotlin:ank
+```kotlin
 fun f(n: Int) {
   Port(n)
 }
@@ -59,15 +59,15 @@ fun f(n: Int) {
 
 The refined type plugin includes a runtime API that can be used without the plugin to validate types:
 
-```kotlin:ank
+```kotlin
 Port.orNull(5555)
 ```
 
-```kotlin:ank
+```kotlin
 Port.orNull(70000)
 ```
 
-```kotlin:ank
+```kotlin
 try { Port.require(70000) } catch (e: IllegalArgumentException) { e.message }
 ```
 
