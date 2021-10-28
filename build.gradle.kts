@@ -1,5 +1,4 @@
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
@@ -59,36 +58,28 @@ allprojects {
 
 configure(subprojects - project(":arrow-meta-docs")) {
   apply(plugin = "org.jetbrains.dokka")
-  tasks.named<DokkaTask>("dokkaGfm") {
+  tasks.named<DokkaTask>("dokkaJekyll") {
     outputDirectory.set(file("$rootDir/docs/docs/apidocs"))
 
     dokkaSourceSets {
       val arrowMetaBlobMain = "https://github.com/arrow-kt/arrow-meta/blob/main"
 
-      if (file("src/main/kotlin").exists()) {
-        named("main") {
-          skipDeprecated.set(true)
-          reportUndocumented.set(true)
-          sourceLink {
-            localDirectory.set(file("src/main/kotlin"))
-            remoteUrl.set(
-              uri("$arrowMetaBlobMain/${relativeProjectPath("src/main/kotlin")}").toURL()
-            )
-            remoteLineSuffix.set("#L")
+      configureEach {
+        skipDeprecated.set(true)
+        reportUndocumented.set(true)
+        sourceRoots.filter { it.path.contains(file("test/").path, ignoreCase = true) }
+          .forEach {
+            val file = it.relativeTo(projectDir)
+            println("HELLO: $file")
+            println("HELLO2: ${uri("$arrowMetaBlobMain/$file").toURL()}")
+            sourceLink {
+              localDirectory.set(file)
+              remoteUrl.set(
+                uri("$arrowMetaBlobMain/$file").toURL()
+              )
+              remoteLineSuffix.set("#L")
+            }
           }
-        }
-      } else if (file("src/commonMain/kotlin").exists()) {
-        named("commonMain") {
-          skipDeprecated.set(true)
-          reportUndocumented.set(true)
-          sourceLink {
-            localDirectory.set(file("src/commonMain/kotlin"))
-            remoteUrl.set(
-              uri("$arrowMetaBlobMain/${relativeProjectPath("src/commonMain/kotlin")}").toURL()
-            )
-            remoteLineSuffix.set("#L")
-          }
-        }
       }
     }
   }
