@@ -1,4 +1,5 @@
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
@@ -63,6 +64,24 @@ configure(subprojects - project(":arrow-meta-docs")) {
 
     dokkaSourceSets {
       val arrowMetaBlobMain = "https://github.com/arrow-kt/arrow-meta/blob/main"
+
+      val kotlinExtension = this@configure.extensions.findByType<KotlinProjectExtension>()
+      var taskNumber = 0
+      kotlinExtension?.sourceSets?.forEach { sourceSet ->
+        sourceSet.kotlin.srcDirs.forEach {
+          taskNumber += 1
+          named(sourceSet.name + taskNumber) {
+            skipDeprecated.set(true)
+            reportUndocumented.set(true)
+            sourceLink {
+              localDirectory.set(it)
+              remoteUrl.set(uri("$arrowMetaBlobMain/${relativeProjectPath(it.path)}").toURL())
+              remoteLineSuffix.set("#L")
+            }
+          }
+        }
+      }
+
       if (file("src/main/kotlin").exists()) {
         named("main") {
           skipDeprecated.set(true)
