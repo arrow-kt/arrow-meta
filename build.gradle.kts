@@ -70,13 +70,15 @@ configure(subprojects - project(":arrow-meta-docs")) {
       kotlinExtension?.sourceSets?.forEach { sourceSet ->
         sourceSet.kotlin.srcDirs.forEach {
           taskNumber += 1
-          create(sourceSet.name + taskNumber) {
-            skipDeprecated.set(true)
-            reportUndocumented.set(true)
-            sourceLink {
-              localDirectory.set(it)
-              remoteUrl.set(uri("$arrowMetaBlobMain/${relativeProjectPath(it.path)}").toURL())
-              remoteLineSuffix.set("#L")
+          if (it.exists()) {
+            create(sourceSet.name + taskNumber) {
+              skipDeprecated.set(true)
+              reportUndocumented.set(true)
+              sourceLink {
+                localDirectory.set(it)
+                remoteUrl.set(uri("$arrowMetaBlobMain/${relativeProjectPath(it.path)}").toURL())
+                remoteLineSuffix.set("#L")
+              }
             }
           }
         }
