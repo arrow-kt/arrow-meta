@@ -1,13 +1,13 @@
 package arrow.meta.plugin.gradle
 
-import org.gradle.api.Project
+public class ProofsGradlePlugin : ArrowMetaGradlePlugin {
+  override val groupId: String = "io.arrow-kt"
+  override val artifactId: String = "arrow-proofs-plugin"
+  override val version: String = "1.5.31-SNAPSHOT"
+  override val pluginId: String = "io.arrow-kt.proofs"
 
-class ProofsGradlePlugin : ArrowMetaGradlePlugin() {
-
-  override fun apply(project: Project): Unit {
-    super.apply(project)
-
-    addMetaDependency(project, "implementation", "io.arrow-kt:arrow-meta-prelude")
-    addCompilerPlugin(project, "arrow-proofs-plugin")
-  }
+  override val dependencies: List<Triple<String, String, String>> =
+    listOf(
+      Triple(groupId, "arrow-meta-prelude", version),
+    )
 }

@@ -71,7 +71,7 @@ const val dslValues =
       |)"""
 
 operator fun String.invoke(assert: AssertSyntax.() -> Assert) {
-  val arrowVersion = System.getProperty("ARROW_VERSION")
+  val arrowVersion = System.getProperty("arrowVersion")
   val currentVersion = System.getProperty("CURRENT_VERSION")
   val opticsCompilerPlugin =
     CompilerPlugin("Arrow Meta Optics", listOf(Dependency("arrow-optics-plugin:$currentVersion")))

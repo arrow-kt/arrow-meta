@@ -1,5 +1,6 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.quotes.Scope
 import arrow.meta.quotes.classorobject.ClassDeclaration
 import arrow.meta.quotes.classorobject.ObjectDeclaration
@@ -41,6 +42,7 @@ import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
@@ -94,18 +96,14 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Default impl for element scopes based on the [KtPsiFactory]
  */
-class DefaultElementScope(project: Project) : ElementScope {
-
-  companion object {
-    val DEFAULT_BASE_DIR: Path = Paths.get("build")
-    val DEFAULT_GENERATED_SRC_PATH: Path = Paths.get("generated", "source", "kapt", "main")
-  }
+class DefaultElementScope(
+  override val configuration: CompilerConfiguration?,
+  project: Project,
+) : ElementScope {
 
   private val delegate = KtPsiFactory(project)
 
@@ -148,10 +146,20 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val KtTypeReference.functionTypeParameter: Parameter
     get() = Parameter(delegate.createFunctionTypeParameter(this))
 
-  override fun typeAlias(name: String, typeParameters: List<String>, typeElement: KtTypeElement, descriptor: TypeAliasDescriptor?): TypeAlias =
+  override fun typeAlias(
+    name: String,
+    typeParameters: List<String>,
+    typeElement: KtTypeElement,
+    descriptor: TypeAliasDescriptor?
+  ): TypeAlias =
     TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement), descriptor)
 
-  override fun typeAlias(name: String, typeParameters: List<String>, body: String, descriptor: TypeAliasDescriptor?): TypeAlias =
+  override fun typeAlias(
+    name: String,
+    typeParameters: List<String>,
+    body: String,
+    descriptor: TypeAliasDescriptor?
+  ): TypeAlias =
     TypeAlias(delegate.createTypeAlias(name, typeParameters, body), descriptor)
 
   override val star: PsiElement
@@ -185,13 +193,31 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.companionObject: ObjectDeclaration
     get() = ObjectDeclaration(delegate.createCompanionObject(trimMargin()), null)
 
-  override fun property(modifiers: String?, name: String, type: String?, isVar: Boolean, initializer: String?, descriptor: PropertyDescriptor?): Property =
+  override fun property(
+    modifiers: String?,
+    name: String,
+    type: String?,
+    isVar: Boolean,
+    initializer: String?,
+    descriptor: PropertyDescriptor?
+  ): Property =
     Property(delegate.createProperty(modifiers, name, type, isVar, initializer), descriptor)
 
-  override fun property(name: String, type: String?, isVar: Boolean, initializer: String?, descriptor: PropertyDescriptor?): Property =
+  override fun property(
+    name: String,
+    type: String?,
+    isVar: Boolean,
+    initializer: String?,
+    descriptor: PropertyDescriptor?
+  ): Property =
     Property(delegate.createProperty(name, type, isVar, initializer), descriptor)
 
-  override fun property(name: String, type: String?, isVar: Boolean, descriptor: PropertyDescriptor?): Property =
+  override fun property(
+    name: String,
+    type: String?,
+    isVar: Boolean,
+    descriptor: PropertyDescriptor?
+  ): Property =
     Property(delegate.createProperty(name, type, isVar), descriptor)
 
   override val String.property: (PropertyDescriptor?) -> Property
@@ -353,7 +379,12 @@ class DefaultElementScope(project: Project) : ElementScope {
   override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
     Scope(delegate.createBlockCodeFragment(trimMargin(), context))
 
-  override fun argument(expression: KtExpression?, name: Name?, isSpread: Boolean, reformat: Boolean): ValueArgument =
+  override fun argument(
+    expression: KtExpression?,
+    name: Name?,
+    isSpread: Boolean,
+    reformat: Boolean
+  ): ValueArgument =
     ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
 
   override val String.argument: ValueArgument
@@ -371,7 +402,11 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.block: BlockExpression
     get() = BlockExpression(delegate.createBlock(trimMargin().trim()))
 
-  override fun singleStatementBlock(statement: KtExpression, prevComment: String?, nextComment: String?): BlockExpression =
+  override fun singleStatementBlock(
+    statement: KtExpression,
+    prevComment: String?,
+    nextComment: String?
+  ): BlockExpression =
     BlockExpression(delegate.createSingleStatementBlock(statement, prevComment, nextComment))
 
   override val String.comment: PsiComment
@@ -394,14 +429,16 @@ class DefaultElementScope(project: Project) : ElementScope {
       """
       |try { } 
       |$this
-      """.trimIndent().trim().`try`.catchClauses.value.first())
+      """.trimIndent().trim().`try`.catchClauses.value.first()
+    )
 
   override val String.finally: FinallySection
     get() = FinallySection(
       """
       |try { } 
       |$this
-      """.trimIndent().trim().`try`.finallySection.value)
+      """.trimIndent().trim().`try`.finallySection.value
+    )
 
   override val String.`throw`: ThrowExpression
     get() = ThrowExpression(expression.value as KtThrowExpression)
@@ -430,13 +467,29 @@ class DefaultElementScope(project: Project) : ElementScope {
   override val String.annotatedExpression: AnnotatedExpression
     get() = AnnotatedExpression(expression.value as KtAnnotatedExpression)
 
-  override fun String.file(fileName: String): File = file(fileName, DEFAULT_GENERATED_SRC_PATH.toString())
+  override fun String.file(fileName: String): File =
+    file(fileName, getOrCreateBaseDirectory(configuration).path)
 
-  override fun String.file(fileName: String, filePath: String) = File(delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", this), sourcePath = FqName(filePath))
+  override fun String.file(fileName: String, filePath: String) = File(
+    delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", this),
+    sourcePath = FqName(filePath)
+  )
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)
 
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
+}
+
+fun getOrCreateBaseDirectory(configuration: CompilerConfiguration?): java.io.File {
+  val parentBuildPath: String? =
+    configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)?.firstOrNull()
+      ?: System.getProperty("arrow.meta.generate.source.dir")
+  checkNotNull(parentBuildPath) {
+    "Generated sources output dir is not found: ${ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR}"
+  }
+  val directory = java.io.File("$parentBuildPath")
+  directory.mkdirs()
+  return directory
 }

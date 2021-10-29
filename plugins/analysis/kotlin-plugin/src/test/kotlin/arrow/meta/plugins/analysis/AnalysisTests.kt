@@ -1328,7 +1328,7 @@ import arrow.analysis.unsafeCall
  """
 
 private fun collectionListLaws(): String =
-"""
+  """
 @Laws
 object CollectionLaws {
   @Law
@@ -1355,7 +1355,7 @@ object ListLaws {
 """
 
 private fun arrayListLaws(): String =
-"""
+  """
 import kotlin.collections.ArrayList
       
 @Laws
@@ -1374,7 +1374,10 @@ private operator fun String.invoke(
   withoutPlugin: AssertSyntax.() -> Assert
 ) {
   assertThis(CompilerTest(
-    config = { newMetaDependencies() },
+    config = {
+      newMetaDependencies() // +
+      // addPluginOptions(PluginOption("arrow.meta.plugin.compiler", "generatedSrcOutputDir", "value"))
+    },
     code = { this@invoke.source },
     assert = { withPlugin() }
   ))

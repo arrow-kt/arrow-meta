@@ -1,17 +1,15 @@
 package arrow.meta.plugin.gradle
 
-import org.gradle.api.Project
+public class OpticsGradlePlugin : ArrowMetaGradlePlugin {
+  override val groupId: String = "io.arrow-kt"
+  override val artifactId: String = "arrow-optics-plugin"
+  override val version: String = "1.5.31-SNAPSHOT"
+  override val pluginId: String = "io.arrow-kt.optics"
 
-class OpticsGradlePlugin : ArrowMetaGradlePlugin() {
-
-  override fun apply(project: Project): Unit {
-    super.apply(project)
-
-    addMetaDependency(project, "implementation", "io.arrow-kt:arrow-meta-prelude")
-
-    addArrowDependency(project, "implementation", "io.arrow-kt:arrow-core")
-    addArrowDependency(project, "implementation", "io.arrow-kt:arrow-optics")
-
-    addCompilerPlugin(project, "arrow-optics-plugin")
-  }
+  override val dependencies: List<Triple<String, String, String>> =
+    listOf(
+      Triple(groupId, "arrow-meta-prelude", version),
+      Triple(groupId, "arrow-core", "1.0.0"),
+      Triple(groupId, "arrow-optics", "1.0.0"),
+    )
 }

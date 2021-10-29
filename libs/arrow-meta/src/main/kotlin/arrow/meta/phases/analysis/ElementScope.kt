@@ -41,6 +41,7 @@ import arrow.meta.quotes.nameddeclaration.stub.typeparameterlistowner.TypeAlias
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
@@ -79,6 +80,8 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.resolve.ImportPath
 
 interface ElementScope {
+
+  val configuration: CompilerConfiguration?
 
   val valKeyword: PsiElement
 
@@ -333,6 +336,7 @@ interface ElementScope {
   val String.functionLiteral: FunctionLiteral
 
   val String.classBody: ClassBody
+
   /**
    * Creates an expression that has reference to its context
    *
@@ -349,10 +353,7 @@ interface ElementScope {
   val String.comment: PsiComment
 
   companion object {
-    fun default(project: Project): ElementScope =
-      DefaultElementScope(project)
+    fun default(configuration: CompilerConfiguration?, project: Project): ElementScope =
+      DefaultElementScope(configuration, project)
   }
 }
-
-fun <A> PsiElement.scoped(f: ElementScope.() -> A): A =
-  f(ElementScope.default(project))

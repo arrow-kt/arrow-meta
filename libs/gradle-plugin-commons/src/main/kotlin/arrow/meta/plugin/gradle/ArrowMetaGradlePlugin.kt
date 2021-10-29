@@ -1,64 +1,103 @@
 package arrow.meta.plugin.gradle
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import io.github.classgraph.ClassGraph
-import org.gradle.api.InvalidUserDataException
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import java.io.File
 import java.util.Properties
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
+import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
-abstract class ArrowMetaGradlePlugin : Plugin<Project> {
+public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
-  companion object {
-    private const val VERSION_KEY = "COMPILER_PLUGIN_VERSION"
-  }
-  private val properties = Properties()
+  public val groupId: String
+
+  public val artifactId: String
+
+  public val version: String
+
+  public val pluginId: String
+
+  public val dependencies: List<Triple<String, String, String>>
 
   override fun apply(project: Project): Unit {
-    properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val kotlinVersion = properties.getProperty("KOTLIN_VERSION")
-    if (kotlinVersion != project.getKotlinPluginVersion())
-      throw InvalidUserDataException("Use Kotlin $kotlinVersion for this Gradle Plugin")
+    val defaultPath = File("${project.buildDir}/generated/meta/").path
 
-    // To add its transitive dependencies
-    addMetaDependency(project, "kotlinCompilerClasspath", "io.arrow-kt:arrow-meta")
+    val extension = project.extensions.create("arrowMeta", ArrowMetaExtension::class.java)
+    extension.generatedSrcOutputDir.convention(defaultPath)
+
+    val properties = Properties()
+    properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
+    val kotlinVersion = properties.getProperty("kotlinVersion")
+    if (kotlinVersion != project.getKotlinPluginVersion()) {
+      throw InvalidUserDataException("Use Kotlin $kotlinVersion for this Gradle Plugin")
+    }
+    project.afterEvaluate { p ->
+      dependencies.forEach { (g, a, v) ->
+        val configuration = if (p.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+          "commonMainImplementation"
+        } else {
+          "implementation"
+        }
+
+        p.dependencies.add(configuration, "$g:$a:$v")
+      }
+    }
 
     project.afterEvaluate { p ->
-      p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += listOf(
-          "-Xplugin=${classpathOf("arrow-meta")}",
-          "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=${p.buildDir.absolutePath}"
-        )
+      p.extensions.findByType(KotlinProjectExtension::class.java)?.sourceSets?.all { sourceSet ->
+        sourceSet.kotlin.srcDirs("${extension.generatedSrcOutputDir.get()}/${sourceSet.name}/")
       }
     }
   }
 
-  protected fun addMetaDependency(project: Project, configuration: String, dependency: String) =
+  override fun getPluginArtifact(): SubpluginArtifact =
+    SubpluginArtifact(groupId, artifactId, version)
+
+  override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
+    val project = kotlinCompilation.target.project
+    val extension = project.extensions.getByType(ArrowMetaExtension::class.java)
+    return project.provider {
+      listOf(
+        SubpluginOption(
+          key = "generatedSrcOutputDir",
+          value = "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
+        ),
+      )
+    }
+  }
+
+  override fun getCompilerPluginId(): String = "arrow.meta.plugin.compiler"
+
+  override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+
+  public fun addMetaDependency(
+    project: Project,
+    configuration: String,
+    groupId: String,
+    artifactId: String,
+    version: String,
+  ): Unit =
     project.afterEvaluate { p ->
-      p.dependencies.add(configuration, "$dependency:${properties.getProperty(VERSION_KEY)}")
+      p.dependencies.add(configuration, "$groupId:$artifactId:$version")
     }
 
-  protected fun addArrowDependency(project: Project, configuration: String, dependency: String) =
-    project.afterEvaluate { p ->
-      p.dependencies.add(configuration, "$dependency:${properties.getProperty("ARROW_VERSION")}")
-    }
-
-  protected fun addCompilerPlugin(project: Project, plugin: String) =
-    project.afterEvaluate { p ->
-      println("Applying $plugin for ${project.name} ...")
-      p.tasks.withType(KotlinCompile::class.java).configureEach {
-        it.kotlinOptions.freeCompilerArgs += listOf("-Xplugin=${classpathOf(plugin)}")
-      }
-    }
-
-  private fun classpathOf(dependency: String): String {
+  private fun classpathOf(dependency: String, properties: Properties): String {
     try {
-      val compilerPluginVersion = properties.getProperty(VERSION_KEY)
-      val regex = Regex(".*$dependency-$compilerPluginVersion.*")
+      val arrowVersion = properties.getProperty(VERSION_KEY)
+      val regex = Regex(".*$dependency-$arrowVersion.*")
       return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")
     }
+  }
+
+  private companion object {
+    private const val VERSION_KEY = "compilerPluginVersion"
   }
 }

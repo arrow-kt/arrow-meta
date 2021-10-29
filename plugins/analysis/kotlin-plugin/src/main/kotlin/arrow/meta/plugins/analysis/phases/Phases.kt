@@ -4,7 +4,7 @@ import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
 import arrow.meta.phases.ExtensionPhase
-import arrow.meta.phases.getOrCreateBaseDirectory
+import arrow.meta.phases.analysis.getOrCreateBaseDirectory
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.AnalysisResult
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
@@ -35,7 +35,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
           when (get<HintState>(Keys.hints(kotlinModule))) {
             HintState.NeedsProcessing -> {
               setHintsAs(kotlinModule, HintState.Processed)
-              val path = getOrCreateBaseDirectory(null)
+              val path = getOrCreateBaseDirectory(configuration)
               org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
             }
             else -> null
@@ -54,7 +54,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
               when (result) {
                 AnalysisResult.Retry -> {
                   // 1. generate the additional file with hints
-                  val path = getOrCreateBaseDirectory(null)
+                  val path = getOrCreateBaseDirectory(configuration)
                   hintsFile(path.absolutePath, module, interesting)
                   setHintsAs(kotlinModule, HintState.NeedsProcessing)
                   // 2. retry with all the gathered information

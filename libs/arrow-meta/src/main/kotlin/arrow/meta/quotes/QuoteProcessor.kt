@@ -1,6 +1,5 @@
 package arrow.meta.quotes
 
-import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.dsl.platform.cli
 import arrow.meta.dsl.platform.ide
 import arrow.meta.internal.kastree.ast.MutableVisitor
@@ -9,8 +8,8 @@ import arrow.meta.internal.kastree.ast.Writer
 import arrow.meta.internal.kastree.ast.psi.Converter
 import arrow.meta.internal.kastree.ast.psi.ast
 import arrow.meta.phases.CompilerContext
-import arrow.meta.phases.analysis.DefaultElementScope
 import arrow.meta.phases.analysis.MetaFileViewProvider
+import arrow.meta.phases.analysis.getOrCreateBaseDirectory
 import arrow.meta.phases.analysis.traverseFilter
 import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
@@ -20,7 +19,6 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * Quote processor defines how quotes should behave related with its processing phase
@@ -187,10 +185,7 @@ fun ArrayList<KtFile>.replaceFiles(file: KtFile, newFile: List<KtFile>) {
 
 fun CompilerContext.changeSource(file: KtFile, newSource: String, rootFile: KtFile, sourcePath: String? = null): KtFile {
   var virtualFile = sourcePath?.let {
-    val baseDir = configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, listOf(DefaultElementScope.DEFAULT_BASE_DIR.toString()))?.get(0)
-    val path = Paths.get(baseDir ?: DefaultElementScope.DEFAULT_BASE_DIR.toString(), it)
-    val directory = path.toFile()
-    directory.mkdirs()
+    val directory = getOrCreateBaseDirectory(configuration)
     CoreLocalVirtualFile(CoreLocalFileSystem(), File(directory, file.name).apply {
       writeText(file.text)
     })
