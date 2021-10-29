@@ -2,7 +2,7 @@
 arrow = "1.0.0"
 arrowGradleConfig = "0.3.2"
 assertj = "3.13.2"
-classgraph = "4.8.47"
+classgraph = "4.8.129"
 dokka = "1.5.30"
 intellijOpenApi = "7.0.3"
 javaAssist = "3.27.0-GA"
