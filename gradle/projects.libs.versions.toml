@@ -11,7 +11,7 @@ kotlin = "1.5.31"
 kotest = "3.4.2"
 ktlint = "10.1.0"
 javaSmt = "3.10.1"
-kotlinCompileTesting = "1.4.4"
+kotlinCompileTesting = "1.4.5"
 
 [libraries]
 arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrow" }
