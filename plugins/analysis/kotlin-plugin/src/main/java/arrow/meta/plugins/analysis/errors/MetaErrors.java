@@ -27,7 +27,7 @@ public interface MetaErrors {
     @SuppressWarnings("UnusedDeclaration")
     Object _initializer = new Object() {
         {
-            Errors.Initializer.initializeFactoryNames(MetaErrors.class);
+            Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(MetaErrors.class, MetaDefaultErrorMessagesJvm.INSTANCE);
         }
     };
 }

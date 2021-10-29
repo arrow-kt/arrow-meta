@@ -1,0 +1,50 @@
+[versions]
+arrow = "1.0.0"
+arrowGradleConfig = "0.3.2"
+assertj = "3.13.2"
+classgraph = "4.8.47"
+dokka = "1.5.30"
+intellijOpenApi = "7.0.3"
+javaAssist = "3.27.0-GA"
+junit = "5.8.0"
+kotlin = "1.5.31"
+kotest = "3.4.2"
+ktlint = "10.1.0"
+javaSmt = "3.10.1"
+kotlinCompileTesting = "1.4.4"
+
+[libraries]
+arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrow" }
+arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
+arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrowOptics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
+intellijOpenApi = { module = "com.intellij:openapi", version.ref = "intellijOpenApi" }
+javaAssist = { module = "org.javassist:javassist", version.ref = "javaAssist" }
+javaSmt = { module = "org.sosy-lab:java-smt", version.ref = "javaSmt" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+kotlin-annotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler" }
+kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
+kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common" }
+kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
+kotlin-stdlibJS = { module = "org.jetbrains.kotlin:kotlin-stdlib-js" }
+kotlin-scriptingCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable" }
+kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util" }
+kotlin-gradlePluginX = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
+kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-multiplatform = { id = "io.arrow-kt.arrow-gradle-config-multiplatform", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-publishJavaPlatform = { id = "io.arrow-kt.arrow-gradle-config-publish-java-platform", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-publishJvm = { id = "io.arrow-kt.arrow-gradle-config-publish-jvm", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-publishMultiplatform = { id = "io.arrow-kt.arrow-gradle-config-publish-multiplatform", version.ref = "arrowGradleConfig" }
+arrowGradleConfig-publishGradlePluginX = { id = "io.arrow-kt.arrow-gradle-config-publish-gradle-plugin", version.ref = "arrowGradleConfig" }

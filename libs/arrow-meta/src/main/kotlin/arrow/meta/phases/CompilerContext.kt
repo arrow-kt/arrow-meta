@@ -4,6 +4,8 @@ import arrow.meta.phases.analysis.ElementScope
 import arrow.meta.plugins.proofs.phases.resolve.cache.ProofsCache
 import arrow.meta.quotes.QuoteDefinition
 import arrow.meta.quotes.Scope
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -15,19 +17,16 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
-import java.io.File
-import java.nio.file.Paths
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The Compiler Context represents the environment received by all plugins.
  * The Compiler Context will get more services as they become relevant overtime to the development of compiler plugins.
  */
 open class CompilerContext(
+  override val configuration: CompilerConfiguration?,
   open val project: Project,
   val messageCollector: MessageCollector? = null,
-  val scope: ElementScope = ElementScope.default(project),
+  val scope: ElementScope = ElementScope.default(configuration, project),
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
   val eval: (String) -> Any? = {
     KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it)
@@ -36,8 +35,6 @@ open class CompilerContext(
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
   var bindingTrace: BindingTrace? = null
-
-  var configuration: CompilerConfiguration? = null
 
   val quotes: MutableList<QuoteDefinition<out KtElement, out KtElement, out Scope<KtElement>>> =
     mutableListOf()
@@ -83,17 +80,11 @@ fun <T> CompilerContext.evaluateDependsOn(
   return rewindablePhase(analysisPhaseWasRewind.get())
 }
 
-fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () -> T?): T? = evaluateDependsOn(
-  noRewindablePhase = evaluation,
-  rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
-)
+fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () -> T?): T? =
+  evaluateDependsOn(
+    noRewindablePhase = evaluation,
+    rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
+  )
 
 inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
   compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }
-
-fun getOrCreateBaseDirectory(parentPathFile: File?): File {
-  val parentPath = Paths.get(parentPathFile?.path ?: "build/generated/source/kapt/main")
-  val directory = parentPath.toFile()
-  directory.mkdirs()
-  return directory
-}

@@ -89,7 +89,7 @@ data class Snippet(
 }
 
 fun Snippet.asFileText(): String = """
-            |${if (`package` != "`unnamed package`") "package $`package`" else ""}
+            |${if (`package`.isNotBlank() && `package` != "`unnamed package`") "package $`package`" else ""}
             |${imports.joinToString(prefix = "\n", separator = "\n", postfix = "\n")}
             |$content
             """.trimMargin()

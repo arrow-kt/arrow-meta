@@ -100,7 +100,7 @@ fun <A : KtElement,
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
     // is KtFile -> KotlinFile(this).repr()
-    else -> TODO("Missing impl for $this (${this.javaClass.name})")
+    else -> TODO("Missing impl for ${this.text} ${this.containingKtFile.virtualFilePath} (${this.javaClass.name})")
   }
 
 fun <A : Element,
