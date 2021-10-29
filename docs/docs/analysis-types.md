@@ -52,6 +52,9 @@ class Positive(val value: Int) {
 Whereas `init` blocks are the preferred way to declare invariants, Λrrow Analysis provides a more fine-grained approach which can be useful in some cases. Remember that an invariant plays two roles: you need them to be true at instantiation time, and you can count on them at usage time; you can decide for an invariant to have only the first role by using `pre` in an initializer or constructor, and to have only the latter role by using `post`. For example, the definition of `Positive` above could be rewritten as:
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 class Positive(val value: Int) {
   init { 
     pre(value > 0) { "value must be positive" }
@@ -76,6 +79,8 @@ This translates into the following two guidelines for the case in which `B` over
 Let's look at a concrete example, and understand why it is rejected.
 
 ```kotlin
+import arrow.analysis.post
+
 open class A() {
   open fun f(): Int = 2.post({ it > 0 }) { "greater than 0" }
 }
@@ -98,6 +103,8 @@ Whenever a method in a type declares pre and post-conditions, but an overriden m
 This slight modification of the example above is also rejected. In this case the post-condition `result > 0` is implicitly inherited by `B.f`. However, the result value computed in its body, `0`, does not satisfy that post-condition.
 
 ```kotlin
+import arrow.analysis.post
+
 open class A() {
   open fun f(): Int = 2.post({ it > 0 }) { "greater than 0" }
 }
@@ -114,6 +121,8 @@ There are exceptions to this implicit inheritance: initializer blocks and constr
 When designing a hierarchy of classes, we often need to decide whether we attach information about a property as an invariant of each class, or as a post-condition of the property. For example, this is another way in which we could have declared our `Positive` class.
 
 ```kotlin
+import arrow.analysis.post
+
 class Positive(private n: Int) {
   init { pre(n > 0) }
   
@@ -133,6 +142,9 @@ We have mentioned that by using pre and postconditions we have enforce a particu
 Following our example, this is how we would declare `A` as an interface while keeping the promise of `f` always returning a positive number. We add an additional member marked with the `@Law` annotation, and whose body consists **only** of `pre` and `post` blocks and a call to the function we want to decorate (the name is irrelevant, but we often use `method_Law` or something similar.)
 
 ```kotlin
+import arrow.analysis.Law
+import arrow.analysis.post
+
 interface A {
   fun f(): Int
 

@@ -8,6 +8,8 @@ title: Analysis - Fields
 The declaration of pre and post-conditions may not only talk about the value of the arguments, but also reference their properties, fields, and even some of their functions. This is used, for example, in the contract of the indexing operation of a list, in which we refer to its `size`.
 
 ```kotlin
+import arrow.analysis.pre
+
 class List<T> {
   val size: Int
     get() = // complicated computation
@@ -27,6 +29,8 @@ We use the word **field** to collectively refer to those elements of an argument
 Given the rules above, the following is accepted by Λrrow Analysis:
 
 ```kotlin
+import arrow.analysis.pre
+
 fun <T> List<T>.first(): T {
   pre(this.isNotEmpty()) { "list should not be empty" }
   return this.get(0)
@@ -44,6 +48,8 @@ It is very common, though, to have this kind of relationship between properties.
 The tool then deems each usage of the derived field as being equivalent to its definition. In our case, the `List` class would declare the postcondition in `isNotEmpty`.
 
 ```kotlin
+import arrow.analysis.post
+
 class List<T> {
   fun isNotEmpty(): Boolean {
     // complicated code

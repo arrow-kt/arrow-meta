@@ -16,6 +16,8 @@ To attach information about a 3rd-party function you declare a function somewher
 For example, this is the way to declare that an empty list has size 0:
 
 ```kotlin
+import arrow.analysis.Law
+
 @Law inline fun <T> emptyListLaw(): List<T> =
   emptyList<T>().post({ it.size == 0 }) { "empty list has size 0" }
 ```
@@ -27,6 +29,9 @@ As a practical tip, we find useful to mark the function as `inline`. That way yo
 If you want to define pre and postconditions for an entire library, it's often useful to organize those by package or type. To help with this task, you can define several laws inside an `object` marked with the `@Laws` annotation (notice the final `s`.)
 
 ```kotlin
+import arrow.analysis.Law
+import arrow.analysis.Laws
+
 @Laws object ListLaws {
   @Law inline fun <T> emptyListLaw(): List<T> =
     emptyList<T>().post({ it.size == 0 }) { "empty list has size 0" }

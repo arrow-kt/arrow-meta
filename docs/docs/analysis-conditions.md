@@ -12,7 +12,7 @@ In the Quick Start we've introduced the idea of pre and post-conditions of funct
 When using Λrrow Analysis, each function may declare one or more _pre-conditions_, which describe what should be true of the arguments of each call to it. In other words, the **caller** of the function must ensure that pre-conditions are true on every single call.
 
 ```kotlin
-import arrow.analysis.*
+import arrow.analysis.pre
 
 fun increment(x: Int): Int {
   pre(x > 0) { "value must be positive" }
@@ -42,6 +42,8 @@ e: pre-condition `value must be positive` is not satisfied in `increment(-1)`
 When more than one block of pre-conditions is present, the tool also checks that those pre-conditions are not inconsistent. Imagine we require for the a number to be both positive and negative:
 
 ```kotlin
+import arrow.analysis.pre
+
 fun wat(x: Int): Int {
   pre(x > 0) { "value must be positive" }
   pre(x < 0) { "value must be negative" }
@@ -59,6 +61,8 @@ Think about it: there's no value that can satisfy the requirements imposed by `w
 If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking for a particular function call. 
 
 ```kotlin
+import arrow.analysis.unsafeCall
+
 val wrong = unsafeCall(increment(-2))
 ```
 
@@ -69,6 +73,8 @@ This case usually arises for data which comes from external input. However, we s
 Post-conditions describe the **promises** we give about the result of the function. They are quite important when composing larger programs, because post-conditions define which information about the inner computation we want to expose about to the rest of the program. For example, these two programs are valid:
 
 ```kotlin
+import arrow.analysis.post
+
 fun one() = 1.post({ it == 1 }) { "result is exactly 1" }
 fun positive() = 1.post({ it > 0 }) { "result is positive" }
 ```
@@ -85,6 +91,9 @@ Post-conditions are attached to the result value by calling the `post` extension
 The most common error message related to post-conditions is for them not being true in the _general_ case. This means that there's at least one set of values for the parameters for which the post-condition is not true. Take the following example:
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 fun nope(x: Int): Int {
   pre(x >= 0) { "value >= 0" }
   return (x + 1).post({ it > 1 }) { "result > 1" }

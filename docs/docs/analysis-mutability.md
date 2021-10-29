@@ -25,6 +25,8 @@ We call this promise an **invariant** of the mutable variable.
 As a consequence, if you do not declare an invariant, Λrrow Analysis knows nothing about your variable. Here's an example which is "obviously" correct, but not accepted by the tool:
 
 ```kotlin
+import arrow.analysis.post
+
 fun usesMutability(x: Int): Int {
   var z = 2
   return z.post({ it > 0 }) { "greater than 0" }
@@ -38,6 +40,9 @@ Let's declare an invariant. We use the same syntax as post-conditions, but use t
 . After attaching this information to the variable, we are free to re-assign the variable, but we need to keep our promise.
 
 ```kotlin
+import arrow.analysis.invariant
+import arrow.analysis.post
+
 fun usesMutability(x: Int): Int {
   var z = 2.invariant({ it > 0 }) { "invariant it > 0" }
   z = 3
@@ -48,6 +53,9 @@ fun usesMutability(x: Int): Int {
 Of course, if we don't keep our promise, Λrrow Analysis won't be happy.
 
 ```kotlin
+import arrow.analysis.invariant
+import arrow.analysis.post
+
 fun usesMutability(x: Int): Int {
   var z = 2.invariant({ it > 0 }) { "invariant it > 0" }
   z = 0 // 0 is not > 0
@@ -63,6 +71,9 @@ e: invariants are not satisfied in `z = 0`
 One place in which mutability is hard to avoid is loops. Our recommendation is to think carefully about invariants for your mutable variables, because a good choice will determine what can be checked. Here's an example in which we compute the length of a list using a mutable integral variable:
 
 ```kotlin
+import arrow.analysis.invariant
+import arrow.analysis.post
+
 fun <A> List<A>.count(): Int {
   var count = 0.invariant({ it >= 0 }) { "z >= 0" }
   for (elt in this) { count = count + 1 }

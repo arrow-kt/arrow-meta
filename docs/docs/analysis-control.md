@@ -29,6 +29,8 @@ This tells you that at that point you know that the `size` is not greater than 0
 The environment is also important when checking post-conditions. Whenever you have some branching operation, like `if` or `when`, the post-condition is checked on **each** branch **separately**, even when the `post` appears as part of a common expression. This allows Λrrow Analysis to accept the following, in which whether the result is non-negative depends on the prior check over `n`.
 
 ```kotlin
+import arrow.analysis.post
+
 fun absoluteValue(n: Int): Int = when {
   n < 0  -> -n
   n == 0 -> 0
@@ -41,6 +43,8 @@ fun absoluteValue(n: Int): Int = when {
 Being aware of the environment makes Λrrow Analysis able to detect some cases of unreachable code. Here's a simple (but not very useful) example, in which we can guarantee that `1` is never returned because the case `x < 0` cannot arise thanks to the pre-condition.
 
 ```kotlin
+import arrow.analysis.pre
+
 fun boo(x: Int): Int {
   pre(x > 0) { "x must be positive" }
   return if (x < 0) 1 else 2
@@ -60,6 +64,8 @@ This is another case in which we continue working on pruning useless information
 Λrrow Analysis is not able to propagate information via higher-order functions. For example, if you `map` the `absoluteValue` function defined above over a list of numbers, the knowledge that *each* element of the list is non-negative is not represented within the system. The following is rejected, for example:
 
 ```kotlin
+import arrow.analysis.post
+
 val okButRejected = listOf(-1).map { absoluteValue(it) }.first()
   .post({ it >= 0 }) { "result is non-negative" }
 ```
@@ -77,6 +83,9 @@ There's a handful of higher-order functions which play a significant role in Kot
 This means you can choose whatever code style suits you best. Λrrow Analysis can handle local variables,
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 fun double(n: Int): Int {
   pre(n > 0) { "n positive" }
   val z = n + n
@@ -88,6 +97,9 @@ fun double(n: Int): Int {
 as well as chains of scope functions,
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 fun double2(n: Int): Int {
   pre(n > 0) { "n positive" }
   return (n + n).let { it + 1 }
@@ -100,6 +112,9 @@ fun double2(n: Int): Int {
 Λrrow Analysis can reason about `null` values, in a similar way as the [Kotlin compiler does](https://kotlinlang.org/docs/null-safety.html). The Elvis safe call operator `?.` is recognized, and in combination with the aforementioned support for scope functions, the tool can handle idiomatic code such as the following.
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 fun incrementNotNull(x: Int?): Int? {
   pre((x == null) || (x > 0)) { "x is null or positive" }
   val y = x?.let { it + 1 }

@@ -80,7 +80,7 @@ fun increment(x: Int): Int = x + 1
 However, in our domain it only makes sense to call this function with positive numbers: the perfect job for a pre-condition. Alas, adding this pre-condition forces us to turn the simple function into a block and use `return`.
 
 ```kotlin
-import arrow.analysis.*
+import arrow.analysis.pre
 
 fun increment(x: Int): Int {
   pre(x > 0) { "value must be positive" }
@@ -116,6 +116,9 @@ e: pre-condition `value must be positive` is not satisfied in `increment(increme
 This error tells us that Λrrow Analysis was not able to deduce whether `increment(1)` is positive or not. To fix the problem, we need to introduce a _post-condition_, a **promise** about the result of the function. In this case, we know that given a positive number, the result of incrementing it is also positive.
 
 ```kotlin
+import arrow.analysis.pre
+import arrow.analysis.post
+
 fun increment(x: Int): Int {
   pre(x > 0) { "value must be positive" }
   return (x + 1).post({ it > 0 }) { "result is positive" }
