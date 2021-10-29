@@ -13,62 +13,18 @@ video: WKR384ZeBgk
 
 # Functional companion to Kotlin's Compiler & IDE
 
-Λrrow Meta is a meta-programming library designed to build compiler plugins for Kotlin.
+> Λrrow Meta is a meta-programming library designed to build compiler plugins for Kotlin.
 
 The Λrrow org bundles independent plugins built with Λrrow meta.
 
-# [Refined Types](/apidocs/arrow-refined-types/arrow.refinement/)
+# [Analysis](/analysis-quickstart.html)
 
-A refined type is any regular type constrained by predicates expected to hold in all possible values of the type's
-constructor.
+Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
 
-The refined-types plugin monitors all calls to Refined type constructors, ensuring arguments provided are verifiable in
-the range of the declared predicates constraining the type.
+[Get started with Λrrow Analysis](/analysis-quickstart.html)
 
-Consider the use case of modeling a `port` number. Instead of using `Int` to describe a port, we will create our own `Port` type and
-enable the refined-types capabilities by making the `Port` companion extend the [Refined](http://127.0.0.1:4000/apidocs/arrow-refined-types/arrow.refinement/-refined/index.html) class.
+# [Proofs](/proofs-quickstart.html) 
 
-```kotlin
-import arrow.refinement.Refined
-import arrow.refinement.ensure
+Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle!
 
-@JvmInline
-value class Port /* private constructor */ (val value: Int) {
-  companion object : Refined<Int, Port>(::Port, {
-    ensure((it in 0..65535) to "$it should be in the closed range of 0..65535 to be a valid port number")
-  })
-}
-```
-
-When attempting to instantiate a Port with invalid values as constants, the plugin fails at compile-time and forces us to correct the input preventing a potential runtime exception.
-
-```kotlin
-Port(70000)
-// error: "$it should be in the closed range of 0..65535 to be a valid port number"
-```
-
-For cases where the input values are dynamic and not evaluable at compile-time, the plugin advises us to use a safe API
-based on nullable types.
-
-```kotlin
-fun f(n: Int) {
-  Port(n)
-}
-// error: Prefer a safe alternative such as Port.orNull(n) or for explicit use of exceptions `Port.require(n)`
-```
-
-The refined type plugin includes a runtime API that can be used without the plugin to validate types:
-
-```kotlin
-Port.orNull(5555)
-```
-
-```kotlin
-Port.orNull(70000)
-```
-
-```kotlin
-try { Port.require(70000) } catch (e: IllegalArgumentException) { e.message }
-```
-
-[Learn more about Refined Types](/apidocs/arrow-refined-types/arrow.refinement/)
+[Get started with Λrrow Proofs](/proofs-quickstart.html)

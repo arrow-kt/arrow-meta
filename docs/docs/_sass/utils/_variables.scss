@@ -14,6 +14,7 @@ $background-color: #F5F7F8;
 $color-primary: #263238;
 $background-color: #F5F7F8;
 $box-text-color: #263238;
+$dark-color-doc: #273244;
 // meta
 $meta-color: #CD151D;
 $meta-background: #2E3B44;
@@ -33,6 +34,7 @@ $font-bold: 700;
 $base-font-size: 14px;
 $base-line-height: 28px;
 $base-docs-font-size: 16px;
+$heading-font-family: 'Montserrat', sans-serif;
 // Sizes
 // -----------------------------------------------
 $base-point-grid: 8px;
@@ -88,6 +90,7 @@ $sidebar-width: 325px;
 // Box Shadow
 $box-shadow-item: rgba($brand-primary, 0.10) 0 0 20px;
 $box-shadow-button: rgba(0,0,0,0.3) 0 2px 8px 0;
+$base-box-shadow: 0 4px 10px rgba($meta-background, 0.08);
 // Docsearch dropdown
 $dropdown-config: (
   main-color: $brand-tertiary,
