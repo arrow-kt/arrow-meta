@@ -10,7 +10,7 @@ junit = "5.8.1"
 kotlin = "1.5.31"
 kotest = "3.4.2"
 ktlint = "10.1.0"
-javaSmt = "3.10.1"
+javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.5"
 
 [libraries]
