@@ -15,19 +15,18 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
 fun interface KotlinCallableMemberDescriptor :
-  CallableMemberDescriptor,
-  KotlinCallableDescriptor,
-  KotlinMemberDescriptor {
+  CallableMemberDescriptor, KotlinCallableDescriptor, KotlinMemberDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 
   override val kind: CallableMemberDescriptor.Kind
-    get() = when (impl().kind) {
-      Kind.DECLARATION -> CallableMemberDescriptor.Kind.DECLARATION
-      Kind.FAKE_OVERRIDE -> CallableMemberDescriptor.Kind.FAKE_OVERRIDE
-      Kind.DELEGATION -> CallableMemberDescriptor.Kind.DELEGATION
-      Kind.SYNTHESIZED -> CallableMemberDescriptor.Kind.SYNTHESIZED
-    }
+    get() =
+      when (impl().kind) {
+        Kind.DECLARATION -> CallableMemberDescriptor.Kind.DECLARATION
+        Kind.FAKE_OVERRIDE -> CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+        Kind.DELEGATION -> CallableMemberDescriptor.Kind.DELEGATION
+        Kind.SYNTHESIZED -> CallableMemberDescriptor.Kind.SYNTHESIZED
+      }
 
   override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
   override val module: ModuleDescriptor
@@ -35,8 +34,7 @@ fun interface KotlinCallableMemberDescriptor :
   override val containingDeclaration: DeclarationDescriptor?
     get() = impl().containingDeclaration.model()
 
-  override fun element(): Element? =
-    (impl().findPsi() as? KtElement)?.model()
+  override fun element(): Element? = (impl().findPsi() as? KtElement)?.model()
 
   override val fqNameSafe: FqName
     get() = FqName(impl().fqNameSafe.asString())

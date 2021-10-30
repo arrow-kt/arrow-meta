@@ -14,29 +14,35 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-internal class ProofsMemberScope(private val synthProofs: () -> List<CallableMemberDescriptor>) : MemberScope {
+internal class ProofsMemberScope(private val synthProofs: () -> List<CallableMemberDescriptor>) :
+  MemberScope {
   override fun getClassifierNames(): Set<Name>? = synthProofs().map { it.name }.toSet()
 
-  override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
+  override fun getContributedClassifier(
+    name: Name,
+    location: LookupLocation
+  ): ClassifierDescriptor? =
     synthProofs().firstOrNull { it.name == name }.safeAs<ClassifierDescriptor>()
 
   override fun getContributedDescriptors(
     kindFilter: DescriptorKindFilter,
     nameFilter: (Name) -> Boolean
-  ): Collection<DeclarationDescriptor> =
-    synthProofs().filter { nameFilter(it.name) }
+  ): Collection<DeclarationDescriptor> = synthProofs().filter { nameFilter(it.name) }
 
-  override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
+  override fun getContributedFunctions(
+    name: Name,
+    location: LookupLocation
+  ): Collection<SimpleFunctionDescriptor> =
     synthProofs().filterIsInstance<SimpleFunctionDescriptor>().filter { it.name == name }
 
-  override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-    emptyList()
+  override fun getContributedVariables(
+    name: Name,
+    location: LookupLocation
+  ): Collection<PropertyDescriptor> = emptyList()
 
-  override fun getFunctionNames(): Set<Name> =
-    synthProofs().map { it.name }.toSet()
+  override fun getFunctionNames(): Set<Name> = synthProofs().map { it.name }.toSet()
 
-  override fun getVariableNames(): Set<Name> =
-    emptySet()
+  override fun getVariableNames(): Set<Name> = emptySet()
 
   override fun printScopeStructure(p: Printer) {
     println("printScopeStructure")
@@ -44,10 +50,6 @@ internal class ProofsMemberScope(private val synthProofs: () -> List<CallableMem
 }
 
 fun (() -> List<Proof>).memberScope(): MemberScope {
-  val synthProofs by lazy {
-    this().flatMap { proof ->
-      proof.callables { true }
-    }
-  }
+  val synthProofs by lazy { this().flatMap { proof -> proof.callables { true } } }
   return ProofsMemberScope { synthProofs }
 }

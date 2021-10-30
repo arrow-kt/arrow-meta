@@ -28,22 +28,29 @@ fun List<GivenProof>.matchingCandidates(
   compilerContext: CompilerContext,
   superType: KotlinType
 ): List<GivenProof> {
-  val proofs = if (containsErrorsOrNothing(superType)) emptyList<GivenProof>()
-  else {
-    compilerContext.run {
-      try {
-        module?.run {
-          componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
-            val proofs =
-              this@matchingCandidates.resolveGivenProofs(superType, compilerContext, proofsCallResolver, this)
-            proofs
+  val proofs =
+    if (containsErrorsOrNothing(superType)) emptyList<GivenProof>()
+    else {
+      compilerContext.run {
+        try {
+          module?.run {
+            componentProvider?.get<ProofsCallResolver>()?.let { proofsCallResolver ->
+              val proofs =
+                this@matchingCandidates.resolveGivenProofs(
+                  superType,
+                  compilerContext,
+                  proofsCallResolver,
+                  this
+                )
+              proofs
+            }
           }
-        } ?: emptyList()
-      } catch (e: ContainerConsistencyException) {
-        emptyList<GivenProof>()
+            ?: emptyList()
+        } catch (e: ContainerConsistencyException) {
+          emptyList<GivenProof>()
+        }
       }
     }
-  }
   return proofs
 }
 
@@ -68,36 +75,44 @@ fun List<GivenProof>.resolveGivenProofs(
   return callResolutionResult.matchingGivenProofs(superType)
 }
 
-fun containsErrorsOrNothing(vararg types: KotlinType) =
-  types.any { it.isError || it.isNothing() }
+fun containsErrorsOrNothing(vararg types: KotlinType) = types.any { it.isError || it.isNothing() }
 
-inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(superType: KotlinType): List<A> =
+inline fun <reified A : GivenProof> CallResolutionResult.matchingGivenProofs(
+  superType: KotlinType
+): List<A> =
   if (this is AllCandidatesResolutionResult) {
-    // TODO if candidate diagnostics includes NoValueForParameter then we may want to proceed to inductive resolution
+    // TODO if candidate diagnostics includes NoValueForParameter then we may want to proceed to
+    // inductive resolution
     // if the param was a contextual param
-    val selectedCandidates = allCandidates.filter {
-      val missingParams = it.diagnostics.firstOrNull()
-      it.diagnostics.isEmpty() ||
-        // this is a provider with contextual arguments
-        missingParams is NoValueForParameter && missingParams.parameterDescriptor.annotations.any { it.isGivenContextProof() }
-    }
-    val proofs = selectedCandidates.flatMap {
-      it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable()
-    }.filter {
-      it is A && includeInCandidates(it.to, superType)
-    }.filterIsInstance<A>()
+    val selectedCandidates =
+      allCandidates.filter {
+        val missingParams = it.diagnostics.firstOrNull()
+        it.diagnostics.isEmpty() ||
+          // this is a provider with contextual arguments
+          missingParams is NoValueForParameter &&
+            missingParams.parameterDescriptor.annotations.any { it.isGivenContextProof() }
+      }
+    val proofs =
+      selectedCandidates
+        .flatMap { it.candidate.resolvedCall.candidateDescriptor.asProof().asIterable() }
+        .filter { it is A && includeInCandidates(it.to, superType) }
+        .filterIsInstance<A>()
     proofs.toList()
   } else emptyList()
 
 fun includeInCandidates(a: KotlinType, b: KotlinType): Boolean =
   (a.isTypeParameter() ||
-    baseLineTypeChecker.isSubtypeOf(a.replaceArgumentsWithStarProjections(), b.replaceArgumentsWithStarProjections()))
+    baseLineTypeChecker.isSubtypeOf(
+      a.replaceArgumentsWithStarProjections(),
+      b.replaceArgumentsWithStarProjections()
+    ))
 
 fun kotlinCall(superType: KotlinType): KotlinCall =
   object : KotlinCall {
-    override val argumentsInParenthesis: List<KotlinCallArgument> get() {
-      return emptyList()
-    }
+    override val argumentsInParenthesis: List<KotlinCallArgument>
+      get() {
+        return emptyList()
+      }
     override val callKind: KotlinCallKind = KotlinCallKind.FUNCTION
     override val explicitReceiver: ReceiverKotlinCallArgument? = null
     override val externalArgument: KotlinCallArgument? = null

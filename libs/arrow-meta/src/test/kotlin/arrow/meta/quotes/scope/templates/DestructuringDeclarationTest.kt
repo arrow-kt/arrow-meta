@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test
 
 class DestructuringDeclarationTest {
 
-  private val destructuringDeclaration = """
+  private val destructuringDeclaration =
+    """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -22,10 +23,12 @@ class DestructuringDeclarationTest {
 
   @Test
   fun `Validate destructuring declaration scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(DestructuringDeclarationPlugin())) },
-      code = { destructuringDeclaration },
-      assert = { quoteOutputMatches(destructuringDeclaration) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(DestructuringDeclarationPlugin())) },
+        code = { destructuringDeclaration },
+        assert = { quoteOutputMatches(destructuringDeclaration) }
+      )
+    )
   }
 }

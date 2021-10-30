@@ -8,11 +8,9 @@ class CurrentBranch(private val branches: List<BooleanFormula>) {
 
   fun get(): Branch = branches
 
-  fun add(constraint: BooleanFormula) =
-    CurrentBranch(branches + constraint)
+  fun add(constraint: BooleanFormula) = CurrentBranch(branches + constraint)
 
-  fun add(constraints: List<BooleanFormula>) =
-    CurrentBranch(branches + constraints)
+  fun add(constraints: List<BooleanFormula>) = CurrentBranch(branches + constraints)
 
   companion object {
     fun new(): CurrentBranch = CurrentBranch(emptyList())

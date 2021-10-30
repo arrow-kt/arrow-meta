@@ -10,12 +10,13 @@ import org.jetbrains.kotlin.psi.KtTypeProjection
 fun interface KotlinTypeProjection : TypeProjection {
   fun impl(): KtTypeProjection
   override val projectionKind: ProjectionKind
-    get() = when (impl().projectionKind) {
-      KtProjectionKind.IN -> ProjectionKind.IN
-      KtProjectionKind.OUT -> ProjectionKind.OUT
-      KtProjectionKind.STAR -> ProjectionKind.STAR
-      KtProjectionKind.NONE -> ProjectionKind.NONE
-    }
+    get() =
+      when (impl().projectionKind) {
+        KtProjectionKind.IN -> ProjectionKind.IN
+        KtProjectionKind.OUT -> ProjectionKind.OUT
+        KtProjectionKind.STAR -> ProjectionKind.STAR
+        KtProjectionKind.NONE -> ProjectionKind.NONE
+      }
   override val typeReference: TypeReference?
     get() = impl().typeReference?.model()
 }

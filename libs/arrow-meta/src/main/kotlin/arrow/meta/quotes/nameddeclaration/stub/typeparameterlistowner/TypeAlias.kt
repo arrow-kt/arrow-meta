@@ -12,7 +12,8 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  *
  * A template destructuring [Scope] for a [KtTypeAlias].
  *
- * * ```kotlin:ank:silent
+ * *
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke

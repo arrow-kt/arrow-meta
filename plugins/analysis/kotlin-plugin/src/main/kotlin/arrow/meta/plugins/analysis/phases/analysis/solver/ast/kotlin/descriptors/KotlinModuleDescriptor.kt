@@ -6,11 +6,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
-class KotlinModuleDescriptor(
-  val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
-) :
-  ModuleDescriptor,
-  KotlinDeclarationDescriptor {
+class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor) :
+  ModuleDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.ModuleDescriptor = impl
 
@@ -18,7 +15,9 @@ class KotlinModuleDescriptor(
     impl().getPackage(org.jetbrains.kotlin.name.FqName(pck)).model()
 
   override fun getSubPackagesOf(fqName: FqName): List<FqName> =
-    impl().getSubPackagesOf(org.jetbrains.kotlin.name.FqName(fqName.name)) { true }.map { FqName(it.asString()) }
+    impl().getSubPackagesOf(org.jetbrains.kotlin.name.FqName(fqName.name)) { true }.map {
+      FqName(it.asString())
+    }
 
   override val stableName: Name?
     get() = impl().stableName?.let { Name(it.asString()) }

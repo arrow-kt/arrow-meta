@@ -39,7 +39,8 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
  */
 class WhenExpression(
   override val value: KtWhenExpression?,
-  val entries: ScopedList<KtWhenEntry> = ScopedList(value = value?.entries.orEmpty(), separator = "\n"),
+  val entries: ScopedList<KtWhenEntry> =
+    ScopedList(value = value?.entries.orEmpty(), separator = "\n"),
   val `(expression)`: Scope<KtExpression> = WhenScope(value?.subjectExpression),
   val `else`: Scope<KtExpression> = Scope(value?.elseExpression)
 ) : Scope<KtWhenExpression>(value) {

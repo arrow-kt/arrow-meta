@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *          }
  *        )
  *      }
- *```
+ * ```
  */
 class IsExpression(
   override val value: KtIsExpression?,
@@ -40,6 +40,5 @@ class IsExpression(
   val type: TypeReference = TypeReference(value?.typeReference)
 ) : Scope<KtIsExpression>(value) {
 
-  override fun ElementScope.identity(): IsExpression =
-    """$left $operation $type""".`is`
+  override fun ElementScope.identity(): IsExpression = """$left $operation $type""".`is`
 }

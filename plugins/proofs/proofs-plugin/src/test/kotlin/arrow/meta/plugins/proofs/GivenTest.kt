@@ -10,7 +10,8 @@ class GivenTest {
   @Test
   fun `coherent polymorphic identity`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given internal val x = "yes!"
         val result = given<String>()
       """,
@@ -21,7 +22,8 @@ class GivenTest {
   @Test
   fun `coherent polymorphic identity inference`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given internal val x = "yes!"
         val result: String = given()
       """,
@@ -32,7 +34,8 @@ class GivenTest {
   @Test
   fun `coherent concrete identity`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given internal val x = "yes!"
         fun id(@Given evidence: String): String =
           evidence
@@ -45,7 +48,8 @@ class GivenTest {
   @Test
   fun `user explicit local override`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given internal val x = "yes!"
         fun id(@Given evidence: String): String =
           evidence
@@ -58,7 +62,8 @@ class GivenTest {
   @Test
   fun `value provider`() {
     givenTest(
-      source = """
+      source =
+        """
         class X(val value: String)
         @Given val x: X = X("yes!")
         val result = given<X>().value
@@ -70,7 +75,8 @@ class GivenTest {
   @Test
   fun `fun provider`() {
     givenTest(
-      source = """
+      source =
+        """
         class X(val value: String)
         @Given fun x(): X = X("yes!")
         val result = given<X>().value
@@ -82,7 +88,8 @@ class GivenTest {
   @Test
   fun `class provider`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given class X {
           val value = "yes!"
         }
@@ -95,7 +102,8 @@ class GivenTest {
   @Test
   fun `object provider`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given object X {
           val value = "yes!"
         }
@@ -105,7 +113,8 @@ class GivenTest {
     )
   }
 
-  val prelude = """
+  val prelude =
+    """
     package test
     import arrow.Context
     
@@ -130,16 +139,12 @@ class GivenTest {
        $prelude
        $source
       """
-    assertThis(CompilerTest(
-      config = {
-        newMetaDependencies()
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        allOf(expected.first.source.evalsTo(expected.second))
-      }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { newMetaDependencies() },
+        code = { codeSnippet.source },
+        assert = { allOf(expected.first.source.evalsTo(expected.second)) }
+      )
+    )
   }
 }

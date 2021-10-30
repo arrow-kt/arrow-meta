@@ -4,8 +4,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Visibility
 
 fun interface KotlinDeclarationDescriptorWithVisibility :
-  DeclarationDescriptorWithVisibility,
-  KotlinDeclarationDescriptor {
+  DeclarationDescriptorWithVisibility, KotlinDeclarationDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
   override val visibility: Visibility
     get() = KotlinVisibility { impl().visibility.delegate }

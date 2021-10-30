@@ -31,10 +31,11 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
  *          }
  *        )
  *      }
- *```
+ * ```
  */
 class ModifierList(
   override val value: KtModifierList?,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries.orEmpty()),
+  val `@annotations`: ScopedList<KtAnnotationEntry> =
+    ScopedList(value?.annotationEntries.orEmpty()),
   val modifier: PsiElement? = value?.visibilityModifier()
 ) : Scope<KtModifierList>(value)

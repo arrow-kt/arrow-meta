@@ -1,21 +1,17 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
 
-import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Named
+import arrow.meta.plugins.analysis.smt.ObjectFormula
 
-/**
- * Maps return points to the SMT variables representing that place.
- */
+/** Maps return points to the SMT variables representing that place. */
 data class ReturnPoints(
   val topMostReturnPointVariableName: Pair<String?, ObjectFormula>,
   val namedReturnPointVariableNames: Map<String, ObjectFormula>
 ) {
 
   fun addAndReplaceTopMost(newScopeName: String, newVariableName: ObjectFormula) =
-    this
-      .replaceTopMost(newScopeName, newVariableName)
-      .add(newScopeName, newVariableName)
+    this.replaceTopMost(newScopeName, newVariableName).add(newScopeName, newVariableName)
 
   fun replaceTopMost(newScopeName: String?, newVariableName: ObjectFormula) =
     ReturnPoints(Pair(newScopeName, newVariableName), namedReturnPointVariableNames)

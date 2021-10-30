@@ -8,19 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.whileExpression
 
 open class WhileExpressionPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    whileExpressionPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(whileExpressionPlugin)
 }
 
 val Meta.whileExpressionPlugin
   get() = "While Expression Scope Plugin" {
     meta(
       whileExpression(this, { true }) { e ->
-        Transform.replace(
-          replacing = e,
-          newDeclaration = identity()
-        )
+        Transform.replace(replacing = e, newDeclaration = identity())
       }
     )
   }

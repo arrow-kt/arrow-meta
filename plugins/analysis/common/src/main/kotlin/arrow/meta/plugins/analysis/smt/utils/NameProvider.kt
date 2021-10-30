@@ -1,9 +1,9 @@
 package arrow.meta.plugins.analysis.smt.utils
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -18,14 +18,12 @@ class NameProvider {
 
   private val assignedNames: ConcurrentHashMap<String, ReferencedElement?> = ConcurrentHashMap()
 
-  fun mirroredElement(assignedName: String): ReferencedElement? =
-    assignedNames[assignedName]
+  fun mirroredElement(assignedName: String): ReferencedElement? = assignedNames[assignedName]
 
   fun recordNewName(prefix: String, mirroredElement: ReferencedElement?): String {
     val n = counter.getAndUpdate { it + 1 }
     val newName = "${prefix}$n"
-    if (mirroredElement != null)
-      assignedNames[newName] = mirroredElement
+    if (mirroredElement != null) assignedNames[newName] = mirroredElement
     return newName
   }
 }

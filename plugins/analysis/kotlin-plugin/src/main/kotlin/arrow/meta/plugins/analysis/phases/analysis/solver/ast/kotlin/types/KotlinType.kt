@@ -1,8 +1,8 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types
 
 import arrow.meta.phases.resolve.unwrappedNotNullableType
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.TypeProjection
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.types.TypeUtils
@@ -31,11 +31,9 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
   override val arguments: List<TypeProjection>
     get() = impl.arguments.map { KotlinTypeProjection(it) }
 
-  override fun isBoolean(): Boolean =
-    impl.isBoolean()
+  override fun isBoolean(): Boolean = impl.isBoolean()
 
-  override fun isNullable(): Boolean =
-    impl.isNullable()
+  override fun isNullable(): Boolean = impl.isNullable()
 
   override fun isSubtypeOf(other: Type): Boolean {
     if (this === other) return true
@@ -49,7 +47,8 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
     }
   }
 
-  private val org.jetbrains.kotlin.types.KotlinType.superTypesAndMe: List<org.jetbrains.kotlin.types.KotlinType>
+  private val org.jetbrains.kotlin.types.KotlinType.superTypesAndMe:
+    List<org.jetbrains.kotlin.types.KotlinType>
     get() = listOf(this) + this.unwrap().constructor.supertypes.flatMap { it.superTypesAndMe }
 
   override fun isEqualTo(other: Type): Boolean {
@@ -62,33 +61,23 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
     return impl.unwrap().constructor == other.impl.unwrap().constructor
   }
 
-  override fun isInt(): Boolean =
-    impl.isInt()
+  override fun isInt(): Boolean = impl.isInt()
 
-  override fun isLong(): Boolean =
-    impl.isLong()
+  override fun isLong(): Boolean = impl.isLong()
 
-  override fun isFloat(): Boolean =
-    impl.isFloat()
+  override fun isFloat(): Boolean = impl.isFloat()
 
-  override fun isDouble(): Boolean =
-    impl.isDouble()
+  override fun isDouble(): Boolean = impl.isDouble()
 
-  override fun isTypeParameter(): Boolean =
-    impl.isTypeParameter()
+  override fun isTypeParameter(): Boolean = impl.isTypeParameter()
 
-  override fun isAnyOrNullableAny(): Boolean =
-    impl.isAnyOrNullableAny()
+  override fun isAnyOrNullableAny(): Boolean = impl.isAnyOrNullableAny()
 
-  override fun isByte(): Boolean =
-    impl.isByte()
+  override fun isByte(): Boolean = impl.isByte()
 
-  override fun isShort(): Boolean =
-    impl.isShort()
+  override fun isShort(): Boolean = impl.isShort()
 
-  override fun isUnsignedNumberType(): Boolean =
-    impl.isUnsignedNumberType()
+  override fun isUnsignedNumberType(): Boolean = impl.isUnsignedNumberType()
 
-  override fun isChar(): Boolean =
-    impl.isChar()
+  override fun isChar(): Boolean = impl.isChar()
 }

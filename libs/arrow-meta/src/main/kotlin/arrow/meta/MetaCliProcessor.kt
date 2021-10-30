@@ -7,10 +7,7 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
-/**
- * CLI bootstrap service
- */
-
+/** CLI bootstrap service */
 object ArrowMetaConfigurationKeys {
   val GENERATED_SRC_OUTPUT_DIR: CompilerConfigurationKey<List<String>> =
     CompilerConfigurationKey<List<String>>("directory to locate sources")
@@ -19,18 +16,17 @@ object ArrowMetaConfigurationKeys {
 class MetaCliProcessor : CommandLineProcessor {
 
   companion object {
-    val ARROW_META_GENERATED_SRC_OUTPUT_DIR = CliOption(
-      "generatedSrcOutputDir",
-      "arrow-meta-gen-src-output-dir",
-      "Directory to locate generated sources",
-      required = false,
-      allowMultipleOccurrences = false
-    )
+    val ARROW_META_GENERATED_SRC_OUTPUT_DIR =
+      CliOption(
+        "generatedSrcOutputDir",
+        "arrow-meta-gen-src-output-dir",
+        "Directory to locate generated sources",
+        required = false,
+        allowMultipleOccurrences = false
+      )
   }
 
-  /**
-   * The Arrow Meta Compiler Plugin Id
-   */
+  /** The Arrow Meta Compiler Plugin Id */
   override val pluginId: String = "arrow.meta.plugin.compiler"
 
   override val pluginOptions: Collection<CliOption> = listOf(ARROW_META_GENERATED_SRC_OUTPUT_DIR)
@@ -39,11 +35,10 @@ class MetaCliProcessor : CommandLineProcessor {
     option: AbstractCliOption,
     value: String,
     configuration: CompilerConfiguration
-  ) = when (option.optionName) {
-    "generatedSrcOutputDir" -> configuration.add(
-      ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR,
-      value
-    )
-    else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
-  }
+  ) =
+    when (option.optionName) {
+      "generatedSrcOutputDir" ->
+        configuration.add(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR, value)
+      else -> throw CliOptionProcessingException("Unknown option: ${option.optionName}")
+    }
 }

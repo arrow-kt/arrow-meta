@@ -36,6 +36,5 @@ class WhileExpression(
   val condition: Scope<KtExpression> = Scope(value.condition)
 ) : LoopExpression<KtWhileExpression>(value) {
 
-  override fun ElementScope.identity(): WhileExpression =
-    """while ($condition) $body""".`while`
+  override fun ElementScope.identity(): WhileExpression = """while ($condition) $body""".`while`
 }

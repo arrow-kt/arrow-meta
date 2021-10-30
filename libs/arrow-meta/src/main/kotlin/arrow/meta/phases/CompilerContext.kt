@@ -19,8 +19,8 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
 
 /**
- * The Compiler Context represents the environment received by all plugins.
- * The Compiler Context will get more services as they become relevant overtime to the development of compiler plugins.
+ * The Compiler Context represents the environment received by all plugins. The Compiler Context
+ * will get more services as they become relevant overtime to the development of compiler plugins.
  */
 open class CompilerContext(
   override val configuration: CompilerConfiguration?,
@@ -28,9 +28,7 @@ open class CompilerContext(
   val messageCollector: MessageCollector? = null,
   val scope: ElementScope = ElementScope.default(configuration, project),
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
-  val eval: (String) -> Any? = {
-    KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it)
-  }
+  val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
 ) : ElementScope by scope {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
@@ -59,15 +57,13 @@ open class CompilerContext(
 
   val ctx: CompilerContext = this
 
-  @PublishedApi
-  internal val sessionData: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
+  @PublishedApi internal val sessionData: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
 
   fun <T : Any> set(key: String, value: T): Unit {
     sessionData[key] = value
   }
 
-  inline fun <reified T : Any> get(key: String): T? =
-    sessionData[key] as? T
+  inline fun <reified T : Any> get(key: String): T? = sessionData[key] as? T
 
   val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
 }
@@ -86,5 +82,7 @@ fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () 
     rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
   )
 
-inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(compilerContext: CompilerContext): D? =
+inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(
+  compilerContext: CompilerContext
+): D? =
   compilerContext.analysedDescriptors.filterIsInstance<D>().firstOrNull { it.findPsi() == this }

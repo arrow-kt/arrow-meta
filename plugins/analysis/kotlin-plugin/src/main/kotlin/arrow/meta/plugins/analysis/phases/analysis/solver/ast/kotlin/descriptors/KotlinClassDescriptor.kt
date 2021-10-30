@@ -1,22 +1,18 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.descriptors.ClassKind
 
-class KotlinClassDescriptor(
-  val impl: org.jetbrains.kotlin.descriptors.ClassDescriptor
-) :
-  ClassDescriptor,
-  KotlinDeclarationDescriptor,
-  KotlinClassifierDescriptorWithTypeParameters {
+class KotlinClassDescriptor(val impl: org.jetbrains.kotlin.descriptors.ClassDescriptor) :
+  ClassDescriptor, KotlinDeclarationDescriptor, KotlinClassifierDescriptorWithTypeParameters {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.ClassDescriptor = impl
   override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
@@ -33,14 +29,15 @@ class KotlinClassDescriptor(
   override val companionObjectDescriptor: ClassDescriptor?
     get() = impl().companionObjectDescriptor?.model()
   override val kind: ClassDescriptor.ClassKind
-    get() = when (impl().kind) {
-      ClassKind.CLASS -> ClassDescriptor.ClassKind.CLASS
-      ClassKind.INTERFACE -> ClassDescriptor.ClassKind.INTERFACE
-      ClassKind.ENUM_CLASS -> ClassDescriptor.ClassKind.ENUM_CLASS
-      ClassKind.ENUM_ENTRY -> ClassDescriptor.ClassKind.ENUM_ENTRY
-      ClassKind.ANNOTATION_CLASS -> ClassDescriptor.ClassKind.ANNOTATION_CLASS
-      ClassKind.OBJECT -> ClassDescriptor.ClassKind.OBJECT
-    }
+    get() =
+      when (impl().kind) {
+        ClassKind.CLASS -> ClassDescriptor.ClassKind.CLASS
+        ClassKind.INTERFACE -> ClassDescriptor.ClassKind.INTERFACE
+        ClassKind.ENUM_CLASS -> ClassDescriptor.ClassKind.ENUM_CLASS
+        ClassKind.ENUM_ENTRY -> ClassDescriptor.ClassKind.ENUM_ENTRY
+        ClassKind.ANNOTATION_CLASS -> ClassDescriptor.ClassKind.ANNOTATION_CLASS
+        ClassKind.OBJECT -> ClassDescriptor.ClassKind.OBJECT
+      }
   override val isCompanionObject: Boolean
     get() = impl().isCompanionObject
   override val isData: Boolean

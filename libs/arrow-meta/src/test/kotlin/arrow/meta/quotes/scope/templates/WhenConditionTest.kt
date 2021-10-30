@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class WhenConditionTest {
 
   companion object {
-    val whenConditionExpression = """
+    val whenConditionExpression =
+      """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -25,10 +26,12 @@ class WhenConditionTest {
 
   @Test
   fun `Validate when condition scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(WhenConditionPlugin())) },
-      code = { whenConditionExpression },
-      assert = { quoteOutputMatches(whenConditionExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(WhenConditionPlugin())) },
+        code = { whenConditionExpression },
+        assert = { quoteOutputMatches(whenConditionExpression) }
+      )
+    )
   }
 }

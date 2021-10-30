@@ -5,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtBlockExpression
 
-class KotlinBlockExpression(val impl: KtBlockExpression) : BlockExpression, KotlinElement, KotlinExpression {
+class KotlinBlockExpression(val impl: KtBlockExpression) :
+  BlockExpression, KotlinElement, KotlinExpression {
   override fun impl(): KtBlockExpression = impl
   override val firstStatement: Expression?
     get() = impl().firstStatement?.model()

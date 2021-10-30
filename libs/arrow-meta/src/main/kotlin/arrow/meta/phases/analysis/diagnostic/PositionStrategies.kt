@@ -14,50 +14,33 @@ import org.jetbrains.kotlin.psi.psiUtil.textRangeWithoutComments
 import org.jetbrains.kotlin.resolve.BindingContext
 
 /**
- * Each [element] that is a witness of this strategy has an attribute that allows internal orphans to be published publicly.
- * e.g.: [PublishedApi] annotation
+ * Each [element] that is a witness of this strategy has an attribute that allows internal orphans
+ * to be published publicly. e.g.: [PublishedApi] annotation
  */
 @JvmField
 val onPublishedInternalOrphan: PositioningStrategy<KtDeclaration> =
-  position(
-    mark = {
-      listOf(
-        it.publishedApiAnnotation()?.textRange ?: it.textRange
-      )
-    }
-  )
+  position(mark = { listOf(it.publishedApiAnnotation()?.textRange ?: it.textRange) })
 
 @JvmField
 val onNavigationElement: PositioningStrategy<KtDeclaration> =
-  position(
-    mark = {
-      listOf(
-        it.navigationElement?.textRange ?: it.textRange
-      )
-    }
-  )
+  position(mark = { listOf(it.navigationElement?.textRange ?: it.textRange) })
 
 @JvmField
 val onIdentifyingElement: PositioningStrategy<KtObjectDeclaration> =
-  position(
-    mark = {
-      listOf(
-        it.identifyingElement?.textRange ?: it.textRange
-      )
-    }
-  )
+  position(mark = { listOf(it.identifyingElement?.textRange ?: it.textRange) })
 
 /**
  * matching on the shortName is valid, as the diagnostic is only applied, if the FqName correlates.
  * Which is checked prior to the Diagnostic being applied.
  */
 fun KtDeclaration.publishedApiAnnotation(): KtAnnotationEntry? =
-  annotationEntries.firstOrNull {
-    it.shortName == StandardNames.FqNames.publishedApi.shortName()
-  }
+  annotationEntries.firstOrNull { it.shortName == StandardNames.FqNames.publishedApi.shortName() }
 
 fun KtDeclaration.onPublishedApi(ctx: BindingContext): Pair<KtAnnotationEntry, TextRange>? =
-  annotationEntries.firstOrNull { ctx.get(BindingContext.ANNOTATION, it)?.fqName == StandardNames.FqNames.publishedApi }
+  annotationEntries
+    .firstOrNull {
+      ctx.get(BindingContext.ANNOTATION, it)?.fqName == StandardNames.FqNames.publishedApi
+    }
     ?.let { it to it.textRangeWithoutComments }
 
 fun <A : PsiElement> position(
@@ -66,11 +49,9 @@ fun <A : PsiElement> position(
   markDiagnostic: (ParametrizedDiagnostic<out A>) -> List<TextRange> = { mark(it.psiElement) }
 ): PositioningStrategy<A> =
   object : PositioningStrategy<A>() {
-    override fun mark(element: A): List<TextRange> =
-      mark(element)
+    override fun mark(element: A): List<TextRange> = mark(element)
 
-    override fun isValid(element: A): Boolean =
-      isValid(element)
+    override fun isValid(element: A): Boolean = isValid(element)
 
     override fun markDiagnostic(diagnostic: ParametrizedDiagnostic<out A>): List<TextRange> =
       markDiagnostic(diagnostic)

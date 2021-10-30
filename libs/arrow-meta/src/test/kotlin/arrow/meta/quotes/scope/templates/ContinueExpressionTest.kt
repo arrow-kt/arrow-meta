@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 class ContinueExpressionTest {
 
   companion object {
-    private val continueExpression = """
+    private val continueExpression =
+      """
         | loop@ for (i in 1..100) {
         |   for (j in 1..100) {
         |     if (j > 30) continue@loop
@@ -18,7 +19,8 @@ class ContinueExpressionTest {
         | } 
         | """.continueExpression()
 
-    private val noLabeledTarget = """
+    private val noLabeledTarget =
+      """
         | for(i in 0 until 100 step 3) {
         |   if (i == 6) continue
         |   if (i == 60) break
@@ -38,10 +40,7 @@ class ContinueExpressionTest {
       | """.source
     }
 
-    val continueExpressions = arrayOf(
-      continueExpression,
-      noLabeledTarget
-    )
+    val continueExpressions = arrayOf(continueExpression, noLabeledTarget)
   }
 
   @Test
@@ -55,10 +54,12 @@ class ContinueExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(ReturnExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ReturnExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

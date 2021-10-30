@@ -5,9 +5,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.V
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 
-class KotlinValueArgumentList(
-  val impl: KtValueArgumentList
-) : ValueArgumentList, KotlinElement {
+class KotlinValueArgumentList(val impl: KtValueArgumentList) : ValueArgumentList, KotlinElement {
   override fun impl(): KtValueArgumentList = impl
   override val arguments: List<ValueArgument>
     get() = impl().arguments.map { it.model() }

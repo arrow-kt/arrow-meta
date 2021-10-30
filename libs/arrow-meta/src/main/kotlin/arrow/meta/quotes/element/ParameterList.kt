@@ -10,26 +10,21 @@ import org.jetbrains.kotlin.psi.KtParameterList
  *
  * A template destructuring [Scope] for a [KtParameterList].
  *
- * ``kotlin:ank:silent
- * import arrow.meta.Meta
- * import arrow.meta.CliPlugin
- * import arrow.meta.invoke
- * import arrow.meta.quotes.Transform
- * import arrow.meta.quotes.parameterList
+ * ``kotlin:ank:silent import arrow.meta.Meta import arrow.meta.CliPlugin import arrow.meta.invoke
+ * import arrow.meta.quotes.Transform import arrow.meta.quotes.parameterList
  *
- * val Meta.reformatModifier: CliPlugin
- *  get() =
- *  "ReformatParameter" {
- *   meta(
+ * val Meta.reformatModifier: CliPlugin get() = "ReformatParameter" { meta(
+ * ```
  *    parameterList({ true }) { l ->
  *     Transform.replace(
  *      replacing = l,
  *      newDeclaration = """ $`(params)` """.parameterList
  *     )
  *    }
- *   )
- *  }
- *```
+ * ```
+ * ) }
+ * ```
+ * ```
  */
 class ParameterList(
   override val value: KtParameterList?,

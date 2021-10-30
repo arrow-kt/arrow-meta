@@ -8,20 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.isExpression
 
 open class IsExpressionPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    isExpressionPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(isExpressionPlugin)
 }
 
 val Meta.isExpressionPlugin
-  get() =
-    "Is Expression Scope Plugin" {
-      meta(
-        isExpression(this, { true }) { expression ->
-          Transform.replace(
-            replacing = expression,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "Is Expression Scope Plugin" {
+    meta(
+      isExpression(this, { true }) { expression ->
+        Transform.replace(replacing = expression, newDeclaration = identity())
+      }
+    )
+  }

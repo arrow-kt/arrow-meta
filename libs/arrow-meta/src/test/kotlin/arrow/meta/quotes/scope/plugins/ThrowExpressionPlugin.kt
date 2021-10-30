@@ -8,20 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.throwExpression
 
 open class ThrowExpressionPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    throwExpressionPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(throwExpressionPlugin)
 }
 
 val Meta.throwExpressionPlugin
-  get() =
-    "Throw Expression Scope Plugin" {
-      meta(
-        throwExpression(this, { true }) { expression ->
-          Transform.replace(
-            replacing = expression,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "Throw Expression Scope Plugin" {
+    meta(
+      throwExpression(this, { true }) { expression ->
+        Transform.replace(replacing = expression, newDeclaration = identity())
+      }
+    )
+  }

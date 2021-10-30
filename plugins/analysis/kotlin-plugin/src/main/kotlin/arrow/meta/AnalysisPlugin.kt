@@ -5,9 +5,5 @@ import arrow.meta.plugins.analysis.phases.analysisPhases
 
 open class AnalysisPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
-    listOf(
-      "Arrow Analysis" {
-        meta(analysisPhases())
-      }
-    )
+    listOf("Arrow Analysis" { meta(analysisPhases()) })
 }

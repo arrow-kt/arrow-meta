@@ -7,8 +7,5 @@ import kotlin.contracts.ExperimentalContracts
 
 open class MetaPlugin : Meta {
   @ExperimentalContracts
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> =
-    listOf(
-      helloWorld
-    )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(helloWorld)
 }

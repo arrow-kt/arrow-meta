@@ -10,35 +10,35 @@ import org.junit.jupiter.api.Test
 class TypeAliasTest {
 
   companion object {
-    private val typeAlias = """
+    private val typeAlias =
+      """
                          | //metadebug
                          | 
                          | typealias IntegerPredicate = (Int) -> Boolean
                          | """.source
 
-    private val typeAliasWithConstraints = """
+    private val typeAliasWithConstraints =
+      """
                          | //metadebug
                          | 
                          | typealias Predicate<Int> = (Int) -> Boolean
                          | """.source
 
-    private val typeAliasWithGenerics = """
+    private val typeAliasWithGenerics =
+      """
                          | //metadebug
                          | 
                          | typealias Predicate<T> = (T) -> Boolean
                          | """.source
 
-    private val typeAliasDescriptor = """
+    private val typeAliasDescriptor =
+      """
                          | //metadebug
                          | 
                          | typealias DescriptorEvaluation = String
                          | """.source
 
-    val typeAliasExpressions = arrayOf(
-      typeAlias,
-      typeAliasWithConstraints,
-      typeAliasWithGenerics
-    )
+    val typeAliasExpressions = arrayOf(typeAlias, typeAliasWithConstraints, typeAliasWithGenerics)
   }
 
   @Test
@@ -58,16 +58,16 @@ class TypeAliasTest {
 
   @Test
   fun `Validate type alias descriptor`() {
-    validate(
-      typeAliasDescriptor
-    )
+    validate(typeAliasDescriptor)
   }
 
   private fun validate(source: Code.Source, transformedSource: Code.Source = source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(TypeAliasPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(transformedSource) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(TypeAliasPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(transformedSource) }
+      )
+    )
   }
 }

@@ -26,31 +26,35 @@ import arrow.meta.quotes.classDeclaration
 import org.jetbrains.kotlin.psi.KtClass
 
 val Meta.optics: CliPlugin
-  get() =
-    "optics" {
-      meta(
-        classDeclaration(this, { isOpticsTarget(element) }) { c ->
-          if (c.element.companionObjects.isEmpty())
-            knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
-          val files = ctx.process(listOf(adt(c.element)))
-          Transform.newSources(*files.toTypedArray())
-        }
-      )
-    }
+  get() = "optics" {
+    meta(
+      classDeclaration(this, { isOpticsTarget(element) }) { c ->
+        if (c.element.companionObjects.isEmpty())
+          knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
+        val files = ctx.process(listOf(adt(c.element)))
+        Transform.newSources(*files.toTypedArray())
+      }
+    )
+  }
 
 private fun CompilerContext.adt(c: KtClass): ADT =
-  ADT(c.containingKtFile.packageFqName, c, c.targets().map { target ->
-    when (target) {
-      OpticsTarget.LENS -> ctx.evalAnnotatedDataClass(c, c.name!!.lensErrorMessage).let(::LensTarget)
-      OpticsTarget.OPTIONAL -> evalAnnotatedDataClass(c, c.name!!.optionalErrorMessage).let(::OptionalTarget)
-      OpticsTarget.ISO -> evalAnnotatedIsoElement(c).let(::IsoTarget)
-      OpticsTarget.PRISM -> evalAnnotatedPrismElement(c).let(::PrismTarget)
-      OpticsTarget.DSL -> evalAnnotatedDslElement(c)
+  ADT(
+    c.containingKtFile.packageFqName,
+    c,
+    c.targets().map { target ->
+      when (target) {
+        OpticsTarget.LENS ->
+          ctx.evalAnnotatedDataClass(c, c.name!!.lensErrorMessage).let(::LensTarget)
+        OpticsTarget.OPTIONAL ->
+          evalAnnotatedDataClass(c, c.name!!.optionalErrorMessage).let(::OptionalTarget)
+        OpticsTarget.ISO -> evalAnnotatedIsoElement(c).let(::IsoTarget)
+        OpticsTarget.PRISM -> evalAnnotatedPrismElement(c).let(::PrismTarget)
+        OpticsTarget.DSL -> evalAnnotatedDslElement(c)
+      }
     }
-  })
+  )
 
 val opticsAnnotation: Regex = Regex("@(arrow\\.)?Optics")
 
 fun isOpticsTarget(ktClass: KtClass): Boolean =
-  (ktClass.isData() || ktClass.isSealed()) &&
-    ktClass.isAnnotatedWith(opticsAnnotation)
+  (ktClass.isData() || ktClass.isSealed()) && ktClass.isAnnotatedWith(opticsAnnotation)

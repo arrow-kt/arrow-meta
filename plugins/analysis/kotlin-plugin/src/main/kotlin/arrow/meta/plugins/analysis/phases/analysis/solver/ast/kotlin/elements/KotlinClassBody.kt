@@ -9,7 +9,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtClassBody
 
-class KotlinClassBody(val impl: KtClassBody) : ClassBody, KotlinDeclarationContainer, KotlinElement {
+class KotlinClassBody(val impl: KtClassBody) :
+  ClassBody, KotlinDeclarationContainer, KotlinElement {
   override fun impl(): KtClassBody = impl
   override val anonymousInitializers: List<AnonymousInitializer>
     get() = impl().anonymousInitializers.map { it.model() }

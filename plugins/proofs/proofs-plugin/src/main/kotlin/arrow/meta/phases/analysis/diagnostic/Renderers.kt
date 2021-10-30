@@ -10,8 +10,7 @@ import org.jetbrains.kotlin.types.KotlinType
 @JvmField
 val RenderProof: DiagnosticParameterRenderer<Proof> =
   object : DiagnosticParameterRenderer<Proof> {
-    override fun render(obj: Proof, renderingContext: RenderingContext): String =
-      obj.asString()
+    override fun render(obj: Proof, renderingContext: RenderingContext): String = obj.asString()
   }
 
 @JvmField
@@ -21,12 +20,11 @@ val RenderProofs: DiagnosticParameterRenderer<Collection<Proof>> =
       obj.joinToString(separator = ",\n") { it.asString() }
   }
 
-val ProofRenderer: DescriptorRenderer =
-  DescriptorRenderer.FQ_NAMES_IN_TYPES
+val ProofRenderer: DescriptorRenderer = DescriptorRenderer.FQ_NAMES_IN_TYPES
 
 @JvmField
 val RenderTypes: DiagnosticParameterRenderer<KotlinType> =
   object : DiagnosticParameterRenderer<KotlinType> {
-  override fun render(obj: KotlinType, renderingContext: RenderingContext): String =
-    ProofRenderer.renderType(obj)
-}
+    override fun render(obj: KotlinType, renderingContext: RenderingContext): String =
+      ProofRenderer.renderType(obj)
+  }

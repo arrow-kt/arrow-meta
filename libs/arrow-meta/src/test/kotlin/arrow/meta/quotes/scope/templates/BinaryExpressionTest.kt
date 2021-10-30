@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class BinaryExpressionTest {
 
   companion object {
-    val binaryExpression = """
+    val binaryExpression =
+      """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -22,10 +23,12 @@ class BinaryExpressionTest {
 
   @Test
   fun `Validate when binary expression properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(BinaryExpressionPlugin())) },
-      code = { binaryExpression },
-      assert = { quoteOutputMatches(binaryExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(BinaryExpressionPlugin())) },
+        code = { binaryExpression },
+        assert = { quoteOutputMatches(binaryExpression) }
+      )
+    )
   }
 }

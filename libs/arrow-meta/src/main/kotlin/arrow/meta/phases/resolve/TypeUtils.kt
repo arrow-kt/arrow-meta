@@ -17,18 +17,18 @@ val baseLineTypeChecker: NewKotlinTypeCheckerImpl =
 
 fun KotlinType.typeArgumentsMap(other: KotlinType): Map<TypeProjection, TypeProjection> =
   if (isTypeParameter()) mapOf(this.asTypeProjection() to other.asTypeProjection())
-  else arguments.mapIndexed { n, typeProjection ->
-    other.arguments.getOrNull(n)?.let {
-      typeProjection to it
-    }
-  }.filterNotNull().toMap()
+  else
+    arguments
+      .mapIndexed { n, typeProjection ->
+        other.arguments.getOrNull(n)?.let { typeProjection to it }
+      }
+      .filterNotNull()
+      .toMap()
 
 val KotlinType.unwrappedNotNullableType: UnwrappedType
   get() = makeNotNullable().unwrap()
 
-/**
- * Returns an intersection of this [KotlinType] with [other]
- */
+/** Returns an intersection of this [KotlinType] with [other] */
 fun KotlinType.intersection(vararg other: KotlinType): KotlinType {
   val constructor = IntersectionTypeConstructor(listOf(this) + other.toList())
   return KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(

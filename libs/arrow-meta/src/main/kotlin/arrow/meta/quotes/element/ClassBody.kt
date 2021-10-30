@@ -46,21 +46,27 @@ import org.jetbrains.kotlin.psi.KtProperty
  */
 class ClassBody(
   override val value: KtClassBody?,
-  val companionObjects: ScopedList<KtObjectDeclaration> = ScopedList(value?.allCompanionObjects ?: listOf(), separator = "\n"),
-  val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value?.anonymousInitializers ?: listOf(), separator = "\n"),
-  val danglingAnnotations: ScopedList<KtAnnotationEntry> = ScopedList(value?.danglingAnnotations ?: listOf(), separator = "\n"),
-  val enumEntries: ScopedList<KtEnumEntry> = ScopedList(value?.enumEntries ?: listOf(), separator = "\n"),
-  val functions: ScopedList<KtNamedFunction> = ScopedList(value?.functions ?: listOf(), separator = "\n"),
-  val properties: ScopedList<KtProperty> = ScopedList(value?.properties ?: listOf(), separator = "\n")
+  val companionObjects: ScopedList<KtObjectDeclaration> =
+    ScopedList(value?.allCompanionObjects ?: listOf(), separator = "\n"),
+  val anonymousInitializers: ScopedList<KtAnonymousInitializer> =
+    ScopedList(value?.anonymousInitializers ?: listOf(), separator = "\n"),
+  val danglingAnnotations: ScopedList<KtAnnotationEntry> =
+    ScopedList(value?.danglingAnnotations ?: listOf(), separator = "\n"),
+  val enumEntries: ScopedList<KtEnumEntry> =
+    ScopedList(value?.enumEntries ?: listOf(), separator = "\n"),
+  val functions: ScopedList<KtNamedFunction> =
+    ScopedList(value?.functions ?: listOf(), separator = "\n"),
+  val properties: ScopedList<KtProperty> =
+    ScopedList(value?.properties ?: listOf(), separator = "\n")
 ) : Scope<KtClassBody>(value) {
 
-    override fun toString(): String =
-      if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
+  override fun toString(): String =
+    if (value != null) value.text?.drop(1)?.dropLast(1) ?: "" else ""
 
-    // TODO split up into two different elements to be able to use the identity method
-    override fun ElementScope.identity(): Scope<KtClassBody> =
-      if (enumEntries.isEmpty()) {
-          """
+  // TODO split up into two different elements to be able to use the identity method
+  override fun ElementScope.identity(): Scope<KtClassBody> =
+    if (enumEntries.isEmpty()) {
+      """
               | {
               |  $properties
               |
@@ -69,13 +75,13 @@ class ClassBody(
               |  $functions
               | }
               | """.classBody
-      } else {
-          """
+    } else {
+      """
               | {
               |  $enumEntries
               |
               |  $functions
               | }
               | """.classBody
-      }
+    }
 }

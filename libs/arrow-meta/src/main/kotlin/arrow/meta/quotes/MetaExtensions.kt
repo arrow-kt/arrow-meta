@@ -77,340 +77,272 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 
-/**
- * @see [BinaryExpression]
- */
+/** @see [BinaryExpression] */
 fun Meta.binaryExpression(
   ctx: CompilerContext,
   match: KtBinaryExpression.() -> Boolean,
   map: BinaryExpression.(KtBinaryExpression) -> Transform<KtBinaryExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { BinaryExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { BinaryExpression(it) }
 
-/**
- * @see [BlockExpression]
- */
+/** @see [BlockExpression] */
 fun Meta.blockExpression(
   ctx: CompilerContext,
   match: KtBlockExpression.() -> Boolean,
   map: BlockExpression.(KtBlockExpression) -> Transform<KtBlockExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { BlockExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { BlockExpression(it) }
 
-/**
- * @see [BreakExpression]
- */
+/** @see [BreakExpression] */
 fun Meta.breakExpression(
   ctx: CompilerContext,
   match: KtBreakExpression.() -> Boolean,
   map: BreakExpression.(KtBreakExpression) -> Transform<KtBreakExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { BreakExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { BreakExpression(it) }
 
-/**
- * @see [CatchClause]
- */
+/** @see [CatchClause] */
 fun Meta.catchClause(
   ctx: CompilerContext,
   match: KtCatchClause.() -> Boolean,
   map: CatchClause.(KtCatchClause) -> Transform<KtCatchClause>
-): ExtensionPhase =
-  quote(ctx, match, map) { CatchClause(it) }
+): ExtensionPhase = quote(ctx, match, map) { CatchClause(it) }
 
-/**
- * @see [ClassBody]
- */
+/** @see [ClassBody] */
 fun Meta.classBody(
   ctx: CompilerContext,
   match: KtClassBody.() -> Boolean,
   map: ClassBody.(KtClassBody) -> Transform<KtClassBody>
-): ExtensionPhase =
-  quote(ctx, match, map) { ClassBody(it) }
+): ExtensionPhase = quote(ctx, match, map) { ClassBody(it) }
 
-/**
- * @see [ClassDeclaration]
- */
+/** @see [ClassDeclaration] */
 fun Meta.classDeclaration(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtClass, ClassDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtClass) -> ClassDescriptor? = { element -> descriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtClass) -> ClassDescriptor? = { element ->
+    descriptor(element)
+  },
   map: ClassDeclaration.(TypedQuoteTemplate<KtClass, ClassDescriptor>) -> Transform<KtClass>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> ClassDeclaration(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) ->
+    ClassDeclaration(element, descriptor)
+  }
 
-/**
- * @see [ContinueExpression]
- */
+/** @see [ContinueExpression] */
 fun Meta.continueExpression(
   ctx: CompilerContext,
   match: KtContinueExpression.() -> Boolean,
   map: ContinueExpression.(KtContinueExpression) -> Transform<KtContinueExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { ContinueExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { ContinueExpression(it) }
 
-/**
- * @see [DotQualifiedExpression]
- */
+/** @see [DotQualifiedExpression] */
 fun Meta.dotQualifiedExpression(
   ctx: CompilerContext,
   match: KtDotQualifiedExpression.() -> Boolean,
   map: DotQualifiedExpression.(KtDotQualifiedExpression) -> Transform<KtDotQualifiedExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { DotQualifiedExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { DotQualifiedExpression(it) }
 
-/**
- * @see [DestructuringDeclaration]
- */
+/** @see [DestructuringDeclaration] */
 fun Meta.destructuringDeclaration(
   ctx: CompilerContext,
   match: KtDestructuringDeclaration.() -> Boolean,
-  map: DestructuringDeclaration.(KtDestructuringDeclaration) -> Transform<KtDestructuringDeclaration>
-): ExtensionPhase =
-  quote(ctx, match, map) { DestructuringDeclaration(it) }
+  map:
+    DestructuringDeclaration.(KtDestructuringDeclaration) -> Transform<KtDestructuringDeclaration>
+): ExtensionPhase = quote(ctx, match, map) { DestructuringDeclaration(it) }
 
-/**
- * @see [File]
- */
+/** @see [File] */
 fun Meta.file(
   ctx: CompilerContext,
   match: KtFile.() -> Boolean,
   map: File.(KtFile) -> Transform<KtFile>
-): ExtensionPhase =
-  quote(ctx, match, map) { File(it) }
+): ExtensionPhase = quote(ctx, match, map) { File(it) }
 
-/**
- * @see [FinallySection]
- */
+/** @see [FinallySection] */
 fun Meta.finallySection(
   ctx: CompilerContext,
   match: KtFinallySection.() -> Boolean,
   map: FinallySection.(KtFinallySection) -> Transform<KtFinallySection>
-): ExtensionPhase =
-  quote(ctx, match, map) { FinallySection(it) }
+): ExtensionPhase = quote(ctx, match, map) { FinallySection(it) }
 
-/**
- * @see [ForExpression]
- */
+/** @see [ForExpression] */
 fun Meta.forExpression(
   ctx: CompilerContext,
   match: KtForExpression.() -> Boolean,
   map: ForExpression.(KtForExpression) -> Transform<KtForExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { ForExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { ForExpression(it) }
 
-/**
- * @see [FunctionLiteral]
- */
+/** @see [FunctionLiteral] */
 fun Meta.functionLiteral(
   ctx: CompilerContext,
   match: KtFunctionLiteral.() -> Boolean,
   map: FunctionLiteral.(KtFunctionLiteral) -> Transform<KtFunctionLiteral>
-): ExtensionPhase =
-  quote(ctx, match, map) { FunctionLiteral(it) }
+): ExtensionPhase = quote(ctx, match, map) { FunctionLiteral(it) }
 
-/**
- * @see [IfExpression]
- */
+/** @see [IfExpression] */
 fun Meta.ifExpression(
   ctx: CompilerContext,
   match: KtIfExpression.() -> Boolean,
   map: IfExpression.(KtIfExpression) -> Transform<KtIfExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { IfExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { IfExpression(it) }
 
-/**
- * @see [IsExpression]
- */
+/** @see [IsExpression] */
 fun Meta.isExpression(
   ctx: CompilerContext,
   match: KtIsExpression.() -> Boolean,
   map: IsExpression.(KtIsExpression) -> Transform<KtIsExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { IsExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { IsExpression(it) }
 
-/**
- * @see [ImportDirective]
- */
+/** @see [ImportDirective] */
 fun Meta.importDirective(
   ctx: CompilerContext,
   match: KtImportDirective.() -> Boolean,
   map: ImportDirective.(KtImportDirective) -> Transform<KtImportDirective>
-): ExtensionPhase =
-  quote(ctx, match, map) { ImportDirective(it) }
+): ExtensionPhase = quote(ctx, match, map) { ImportDirective(it) }
 
-/**
- * @see [LambdaExpression]
- */
+/** @see [LambdaExpression] */
 fun Meta.lambdaExpression(
   ctx: CompilerContext,
   match: KtLambdaExpression.() -> Boolean,
   map: LambdaExpression.(KtLambdaExpression) -> Transform<KtLambdaExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { LambdaExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { LambdaExpression(it) }
 
-/**
- * @see [NamedFunction]
- */
+/** @see [NamedFunction] */
 fun Meta.namedFunction(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element -> descriptor(element) },
-  map: NamedFunction.(TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>) -> Transform<KtNamedFunction>
+  mapDescriptor: List<DeclarationDescriptor>.(KtNamedFunction) -> FunctionDescriptor? = { element ->
+    descriptor(element)
+  },
+  map:
+    NamedFunction.(TypedQuoteTemplate<KtNamedFunction, FunctionDescriptor>) -> Transform<
+        KtNamedFunction>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> NamedFunction(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) ->
+    NamedFunction(element, descriptor)
+  }
 
-/**
- * @see [ObjectDeclaration]
- */
+/** @see [ObjectDeclaration] */
 fun Meta.objectDeclaration(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtObjectDeclaration) -> ClassDescriptor? = { element -> descriptor(element) },
-  map: ObjectDeclaration.(TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>) -> Transform<KtObjectDeclaration>
+  mapDescriptor: List<DeclarationDescriptor>.(KtObjectDeclaration) -> ClassDescriptor? =
+      { element ->
+    descriptor(element)
+  },
+  map:
+    ObjectDeclaration.(TypedQuoteTemplate<KtObjectDeclaration, ClassDescriptor>) -> Transform<
+        KtObjectDeclaration>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> ObjectDeclaration(element, descriptor)}
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) ->
+    ObjectDeclaration(element, descriptor)
+  }
 
-/**
- * @see [PackageDirective]
- */
+/** @see [PackageDirective] */
 fun Meta.packageDirective(
   ctx: CompilerContext,
   match: KtPackageDirective.() -> Boolean,
   map: PackageDirective.(KtPackageDirective) -> Transform<KtPackageDirective>
-): ExtensionPhase =
-  quote(ctx, match, map) { PackageDirective(it) }
+): ExtensionPhase = quote(ctx, match, map) { PackageDirective(it) }
 
-/**
- * @see [Parameter]
- */
+/** @see [Parameter] */
 fun Meta.parameter(
   ctx: CompilerContext,
   match: KtParameter.() -> Boolean,
   map: Parameter.(KtParameter) -> Transform<KtParameter>
-): ExtensionPhase =
-  quote(ctx, match, map) { Parameter(it) }
+): ExtensionPhase = quote(ctx, match, map) { Parameter(it) }
 
-/**
- * @see [Property]
- */
+/** @see [Property] */
 fun Meta.property(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtProperty, PropertyDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element -> descriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtProperty) -> PropertyDescriptor? = { element ->
+    descriptor(element)
+  },
   map: Property.(TypedQuoteTemplate<KtProperty, PropertyDescriptor>) -> Transform<KtProperty>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> Property(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) ->
+    Property(element, descriptor)
+  }
 
-/**
- * @see [PropertyAccessor]
- */
+/** @see [PropertyAccessor] */
 fun Meta.propertyAccessor(
   ctx: CompilerContext,
   match: KtPropertyAccessor.() -> Boolean,
   map: PropertyAccessor.(KtPropertyAccessor) -> Transform<KtPropertyAccessor>
-): ExtensionPhase =
-  quote(ctx, match, map) { PropertyAccessor(it) }
+): ExtensionPhase = quote(ctx, match, map) { PropertyAccessor(it) }
 
-/**
- * @see [ReturnExpression]
- */
+/** @see [ReturnExpression] */
 fun Meta.returnExpression(
   ctx: CompilerContext,
   match: KtReturnExpression.() -> Boolean,
   map: ReturnExpression.(KtReturnExpression) -> Transform<KtReturnExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { ReturnExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { ReturnExpression(it) }
 
-/**
- * @see [ThrowExpression]
- */
+/** @see [ThrowExpression] */
 fun Meta.throwExpression(
   ctx: CompilerContext,
   match: KtThrowExpression.() -> Boolean,
   map: ThrowExpression.(KtThrowExpression) -> Transform<KtThrowExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { ThrowExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { ThrowExpression(it) }
 
-/**
- * @see [TypeReference]
- */
+/** @see [TypeReference] */
 fun Meta.typeReference(
   ctx: CompilerContext,
   match: KtTypeReference.() -> Boolean,
   map: TypeReference.(KtTypeReference) -> Transform<KtTypeReference>
-): ExtensionPhase =
-  quote(ctx, match, map) { TypeReference(it) }
+): ExtensionPhase = quote(ctx, match, map) { TypeReference(it) }
 
-/**
- * @see [WhenCondition]
- */
+/** @see [WhenCondition] */
 fun Meta.whenCondition(
   ctx: CompilerContext,
   match: KtWhenCondition.() -> Boolean,
   map: WhenCondition.(KtWhenCondition) -> Transform<KtWhenCondition>
-): ExtensionPhase =
-  quote(ctx, match, map) { WhenCondition(it) }
+): ExtensionPhase = quote(ctx, match, map) { WhenCondition(it) }
 
-/**
- * @see [WhenEntry]
- */
+/** @see [WhenEntry] */
 fun Meta.whenEntry(
   ctx: CompilerContext,
   match: KtWhenEntry.() -> Boolean,
   map: WhenEntry.(KtWhenEntry) -> Transform<KtWhenEntry>
-): ExtensionPhase =
-  quote(ctx, match, map) { WhenEntry(it) }
+): ExtensionPhase = quote(ctx, match, map) { WhenEntry(it) }
 
-/**
- * @see [WhenExpression]
- */
+/** @see [WhenExpression] */
 fun Meta.whenExpression(
   ctx: CompilerContext,
   match: KtWhenExpression.() -> Boolean,
   map: WhenExpression.(KtWhenExpression) -> Transform<KtWhenExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { WhenExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { WhenExpression(it) }
 
-/**
- * @see [WhileExpression]
- */
+/** @see [WhileExpression] */
 fun Meta.whileExpression(
   ctx: CompilerContext,
   match: KtWhileExpression.() -> Boolean,
   map: WhileExpression.(KtWhileExpression) -> Transform<KtWhileExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { WhileExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { WhileExpression(it) }
 
-/**
- * @see [ThisExpression]
- */
+/** @see [ThisExpression] */
 fun Meta.thisExpression(
   ctx: CompilerContext,
   match: KtThisExpression.() -> Boolean,
   map: ThisExpression.(KtThisExpression) -> Transform<KtThisExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { ThisExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { ThisExpression(it) }
 
-/**
- * @see [TryExpression]
- */
+/** @see [TryExpression] */
 fun Meta.tryExpression(
   ctx: CompilerContext,
   match: KtTryExpression.() -> Boolean,
   map: TryExpression.(KtTryExpression) -> Transform<KtTryExpression>
-): ExtensionPhase =
-  quote(ctx, match, map) { TryExpression(it) }
+): ExtensionPhase = quote(ctx, match, map) { TryExpression(it) }
 
-/**
- * @see [TypeAlias]
- */
+/** @see [TypeAlias] */
 fun Meta.typeAlias(
   ctx: CompilerContext,
   match: TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>.() -> Boolean,
-  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element -> descriptor(element) },
+  mapDescriptor: List<DeclarationDescriptor>.(KtTypeAlias) -> TypeAliasDescriptor? = { element ->
+    descriptor(element)
+  },
   map: TypeAlias.(TypedQuoteTemplate<KtTypeAlias, TypeAliasDescriptor>) -> Transform<KtTypeAlias>
 ): ExtensionPhase =
-  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) -> TypeAlias(element, descriptor) }
+  typedQuote(ctx, match, map, mapDescriptor) { (element, descriptor) ->
+    TypeAlias(element, descriptor)
+  }
 
 /**
  * """someObject.add(${argumentName = argumentExpression}.valueArgument)""""
@@ -420,5 +352,4 @@ fun Meta.valueArgument(
   ctx: CompilerContext,
   match: KtValueArgument.() -> Boolean,
   map: ValueArgument.(KtValueArgument) -> Transform<KtValueArgument>
-): ExtensionPhase =
-  quote(ctx, match, map) { ValueArgument(it) }
+): ExtensionPhase = quote(ctx, match, map) { ValueArgument(it) }

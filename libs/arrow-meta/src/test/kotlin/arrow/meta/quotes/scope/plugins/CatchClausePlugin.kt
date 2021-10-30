@@ -8,20 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.catchClause
 
 open class CatchClausePlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    catchClausePlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(catchClausePlugin)
 }
 
 val Meta.catchClausePlugin
-  get() =
-    "Catch Clause Scope Plugin" {
-      meta(
-        catchClause(this, { true }) { element ->
-          Transform.replace(
-            replacing = element,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "Catch Clause Scope Plugin" {
+    meta(
+      catchClause(this, { true }) { element ->
+        Transform.replace(replacing = element, newDeclaration = identity())
+      }
+    )
+  }

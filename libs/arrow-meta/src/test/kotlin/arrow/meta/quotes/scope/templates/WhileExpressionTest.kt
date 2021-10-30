@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class WhileExpressionTest {
 
   companion object {
-    val whileExpression = """
+    val whileExpression =
+      """
                          | //metadebug
                          | 
                          | fun power(x: Int) {
@@ -23,10 +24,12 @@ class WhileExpressionTest {
 
   @Test
   fun `Validate while expression scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(WhileExpressionPlugin())) },
-      code = { whileExpression },
-      assert = { quoteOutputMatches(whileExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(WhileExpressionPlugin())) },
+        code = { whileExpression },
+        assert = { quoteOutputMatches(whileExpression) }
+      )
+    )
   }
 }

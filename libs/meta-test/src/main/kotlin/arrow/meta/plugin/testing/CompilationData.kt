@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
 /**
- * Compilation data is a Monoid that can accumulate in its element as it's
- * composed and merged with other CompilationData elements
+ * Compilation data is a Monoid that can accumulate in its element as it's composed and merged with
+ * other CompilationData elements
  */
 internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),

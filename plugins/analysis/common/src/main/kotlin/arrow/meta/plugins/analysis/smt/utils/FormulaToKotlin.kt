@@ -33,13 +33,18 @@ internal class DefaultKotlinPrinter(
   ) : DefaultFormulaVisitor<Void?>() {
 
     override fun visitDefault(pF: Formula): Void? {
-      nameProvider.mirroredElement(pF.toString())?.let {
-        out.append(it.element.text)
-      } ?: out.append(pF)
+      nameProvider.mirroredElement(pF.toString())?.let { out.append(it.element.text) }
+        ?: out.append(pF)
       return null
     }
 
-    private enum class Render { Unary, Binary, Hidden, Field, Unsupported }
+    private enum class Render {
+      Unary,
+      Binary,
+      Hidden,
+      Field,
+      Unsupported
+    }
 
     private fun FunctionDeclaration<*>.toKotlin(): Pair<Render, String> =
       when (kind) {
@@ -87,14 +92,10 @@ internal class DefaultKotlinPrinter(
           fmgr.visit(pArgs[1], this)
         }
         Render.Unsupported -> {
-          pArgs.forEach { arg ->
-            fmgr.visit(arg, this)
-          }
+          pArgs.forEach { arg -> fmgr.visit(arg, this) }
         }
         Render.Hidden -> {
-          pArgs.forEach { arg ->
-            fmgr.visit(arg, this)
-          }
+          pArgs.forEach { arg -> fmgr.visit(arg, this) }
         }
         Render.Field -> {
           fmgr.visit(pArgs[1], this)

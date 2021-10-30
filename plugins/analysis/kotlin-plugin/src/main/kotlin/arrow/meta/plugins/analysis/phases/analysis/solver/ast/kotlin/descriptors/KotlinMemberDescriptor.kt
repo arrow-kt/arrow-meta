@@ -13,12 +13,13 @@ fun interface KotlinMemberDescriptor : MemberDescriptor, KotlinDeclarationDescri
   override fun impl(): org.jetbrains.kotlin.descriptors.MemberDescriptor
 
   override val modality: Modality
-    get() = when (impl().modality) {
-      FINAL -> Modality.FINAL
-      SEALED -> Modality.SEALED
-      OPEN -> Modality.OPEN
-      ABSTRACT -> Modality.ABSTRACT
-    }
+    get() =
+      when (impl().modality) {
+        FINAL -> Modality.FINAL
+        SEALED -> Modality.SEALED
+        OPEN -> Modality.OPEN
+        ABSTRACT -> Modality.ABSTRACT
+      }
 
   override val visibility: Visibility
     get() = KotlinVisibility { impl().visibility.delegate }

@@ -10,7 +10,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements.Ko
 
 open class KotlinExpressionValueArgument(
   override val impl: org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
-) : ValueArgument, ExpressionValueArgument, ExpressionResolvedValueArgument, KotlinResolvedValueArgument(impl) {
+) :
+  ValueArgument,
+  ExpressionValueArgument,
+  ExpressionResolvedValueArgument,
+  KotlinResolvedValueArgument(impl) {
   override fun impl(): org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument = impl
   override val argumentExpression: Expression?
     get() = impl().valueArgument?.getArgumentExpression()?.model()
@@ -20,11 +24,9 @@ open class KotlinExpressionValueArgument(
   override fun getArgumentName(): ValueArgumentName? =
     impl().valueArgument?.getArgumentName()?.let { KotlinValueArgumentName(it) }
 
-  override fun isNamed(): Boolean =
-    impl().valueArgument?.isNamed() == true
+  override fun isNamed(): Boolean = impl().valueArgument?.isNamed() == true
 
-  override fun isExternal(): Boolean =
-    impl().valueArgument?.isExternal() == true
+  override fun isExternal(): Boolean = impl().valueArgument?.isExternal() == true
 
   override val valueArgument: ValueArgument?
     get() = impl().valueArgument?.let { KotlinValueArgument(it) }

@@ -9,11 +9,7 @@ import org.jetbrains.kotlin.psi.KtAnnotation
 fun interface KotlinAnnotation : Annotation {
   fun impl(): KtAnnotation
   override val entries: List<AnnotationEntry>
-    get() =
-      impl().entries.map {
-        it.model()
-      }
+    get() = impl().entries.map { it.model() }
   override val useSiteTarget: AnnotationUseSiteTarget?
-    get() =
-      impl().useSiteTarget?.model()
+    get() = impl().useSiteTarget?.model()
 }

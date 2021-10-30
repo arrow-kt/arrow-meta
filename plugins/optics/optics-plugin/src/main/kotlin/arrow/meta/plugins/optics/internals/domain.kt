@@ -1,8 +1,8 @@
 package arrow.meta.plugins.optics.internals
 
+import java.util.Locale
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
-import java.util.Locale
 
 data class ADT(val pckg: FqName, val el: KtClass, val targets: List<Target>) {
   val sourceClassName = el.fqName?.asString() ?: el.name!!
@@ -10,21 +10,28 @@ data class ADT(val pckg: FqName, val el: KtClass, val targets: List<Target>) {
   val simpleName = el.name!!
   val packageName = pckg.asString()
 
-  operator fun Snippet.plus(snippet: Snippet): Snippet = copy(
-    imports = imports + snippet.imports,
-    content = "$content\n${snippet.content}"
-  )
+  operator fun Snippet.plus(snippet: Snippet): Snippet =
+    copy(imports = imports + snippet.imports, content = "$content\n${snippet.content}")
 }
 
 enum class OpticsTarget {
-  ISO, LENS, PRISM, OPTIONAL, DSL
+  ISO,
+  LENS,
+  PRISM,
+  OPTIONAL,
+  DSL
 }
 
 typealias IsoTarget = Target.Iso
+
 typealias PrismTarget = Target.Prism
+
 typealias LensTarget = Target.Lens
+
 typealias OptionalTarget = Target.Optional
+
 typealias SealedClassDsl = Target.SealedClassDsl
+
 typealias DataClassDsl = Target.DataClassDsl
 
 sealed class Target {
@@ -39,17 +46,20 @@ sealed class Target {
 }
 
 typealias NonNullFocus = Focus.NonNull
+
 typealias OptionFocus = Focus.Option
+
 typealias NullableFocus = Focus.Nullable
 
 sealed class Focus {
 
   companion object {
-    operator fun invoke(fullName: String, paramName: String): Focus = when {
-      fullName.endsWith("?") -> Nullable(fullName, paramName)
-      fullName.startsWith("`arrow`.`core`.`Option`") -> Option(fullName, paramName)
-      else -> NonNull(fullName, paramName)
-    }
+    operator fun invoke(fullName: String, paramName: String): Focus =
+      when {
+        fullName.endsWith("?") -> Nullable(fullName, paramName)
+        fullName.startsWith("`arrow`.`core`.`Option`") -> Option(fullName, paramName)
+        else -> NonNull(fullName, paramName)
+      }
   }
 
   abstract val className: String
@@ -60,7 +70,8 @@ sealed class Focus {
   }
 
   data class Option(override val className: String, override val paramName: String) : Focus() {
-    val nestedClassName = Regex("`arrow`.`core`.`Option`<(.*)>$").matchEntire(className)!!.groupValues[1]
+    val nestedClassName =
+      Regex("`arrow`.`core`.`Option`<(.*)>$").matchEntire(className)!!.groupValues[1]
   }
 
   data class NonNull(override val className: String, override val paramName: String) : Focus()
@@ -88,7 +99,8 @@ data class Snippet(
   val fqName = "$`package`.$name"
 }
 
-fun Snippet.asFileText(): String = """
+fun Snippet.asFileText(): String =
+  """
             |${if (`package`.isNotBlank() && `package` != "`unnamed package`") "package $`package`" else ""}
             |${imports.joinToString(prefix = "\n", separator = "\n", postfix = "\n")}
             |$content

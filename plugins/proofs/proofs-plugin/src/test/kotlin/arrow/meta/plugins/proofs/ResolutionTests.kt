@@ -19,7 +19,9 @@ class ResolutionTests {
       """
     ) {
       failsWith {
-        it.contains("This GivenProof test.n on the type kotlin.Int violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+        it.contains(
+          "This GivenProof test.n on the type kotlin.Int violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan."
+        )
       }
     }
   }
@@ -39,7 +41,9 @@ class ResolutionTests {
       """
     ) {
       failsWith {
-        it.contains("This GivenProof test.monoid on the type arrow.typeclasses.Monoid<kotlin.collections.Iterable<A>> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan.")
+        it.contains(
+          "This GivenProof test.monoid on the type arrow.typeclasses.Monoid<kotlin.collections.Iterable<A>> violates ownership rules, because public Proofs over 3rd party Types break coherence over the kotlin ecosystem. One way to solve this is to declare the Proof as an internal orphan."
+        )
       }
     }
   }
@@ -57,9 +61,7 @@ class ResolutionTests {
         
       val x = Foo.foo()
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
@@ -75,9 +77,7 @@ class ResolutionTests {
         
       val x = Foo().foo()
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
@@ -94,9 +94,7 @@ class ResolutionTests {
         
       val x = Foo().foo()
       """
-    ) {
-      "x".source.evalsTo(42 * 2)
-    }
+    ) { "x".source.evalsTo(42 * 2) }
   }
 
   @Test
@@ -115,9 +113,7 @@ class ResolutionTests {
         
       val x = t().foo()
       """
-    ) {
-      "x".source.evalsTo(42 * 2)
-    }
+    ) { "x".source.evalsTo(42 * 2) }
   }
 
   @Test
@@ -131,9 +127,7 @@ class ResolutionTests {
         
       val x = t()
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
@@ -206,9 +200,7 @@ class ResolutionTests {
         
       val x = id<Foo>().n
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
@@ -227,9 +219,7 @@ class ResolutionTests {
         
       val x = id<Foo<Int>>().n
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
@@ -241,15 +231,14 @@ class ResolutionTests {
         
       val x = given<Int>()
       """
-    ) {
-      "x".source.evalsTo(42)
-    }
+    ) { "x".source.evalsTo(42) }
   }
 
   @Test
   fun `@Given internal orphan override`() {
     givenResolutionTest(
-      source = """
+      source =
+        """
         @Given
         val p1 = Person("Peter Parker", 22)
         
@@ -260,12 +249,7 @@ class ResolutionTests {
         val name = result.name
         val age = result.age
       """
-    ) {
-      allOf(
-        "name".source.evalsTo("Harry Potter"),
-        "age".source.evalsTo(14)
-      )
-    }
+    ) { allOf("name".source.evalsTo("Harry Potter"), "age".source.evalsTo(14)) }
   }
 
   @Test
@@ -386,21 +370,29 @@ class ResolutionTests {
       """
     ) {
       failsWith {
-        it.contains("Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation.")
+        it.contains(
+          "Internal overrides of proofs are not permitted to be published, as they break coherent proof resolution over the kotlin ecosystem. Please remove the @PublishedApi annotation."
+        )
       }
     }
   }
 
-  @Test // TODO: Add compiler warning that nothing will be injected without arrow.given as a default value
+  @Test // TODO: Add compiler warning that nothing will be injected without arrow.given as a default
+  // value
   fun `unresolved class provider due to non injected given as default value and missing GivenProof on String`() {
     givenResolutionTest(
-      source = """
+      source =
+        """
         @Given class X(@Given val value: String)
         val result = given<X>().value
       """
     ) {
       allOf(
-        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") }
+        failsWith {
+          it.contains(
+            "This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof."
+          )
+        }
       )
     }
   }
@@ -408,15 +400,28 @@ class ResolutionTests {
   @Test
   fun `unresolved class provider due to missing GivenProof on String`() {
     givenResolutionTest(
-      source = """
+      source =
+        """
         @Given class X(@Given val value: String)
         val result = given<X>().value
       """
     ) {
       allOf(
-        failsWith { it.contains("This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof.") },
-        failsWith { it.contains("There is no Proof for this type kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") },
-        failsWith { it.contains("There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.") }
+        failsWith {
+          it.contains(
+            "This GivenProof on the type test.X cant be semi-inductively resolved. Please verify that all parameters have default value or that other injected given values have a corresponding proof."
+          )
+        },
+        failsWith {
+          it.contains(
+            "There is no Proof for this type kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site."
+          )
+        },
+        failsWith {
+          it.contains(
+            "There is no Proof for this type test.X to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site."
+          )
+        }
       )
     }
   }
@@ -424,7 +429,8 @@ class ResolutionTests {
   @Test
   fun `resolved class provider due to coherent Semi-inductive implementation`() {
     givenResolutionTest(
-      source = """
+      source =
+        """
         @Given class X(@Given val value: String,  @Given val p: Person)
         
         @Given
@@ -458,7 +464,9 @@ class ResolutionTests {
       """
     ) {
       failsWith {
-        it.contains("There is no Proof for this type (kotlin.Int) -> kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site.")
+        it.contains(
+          "There is no Proof for this type (kotlin.Int) -> kotlin.String to resolve this call. Either define a corresponding GivenProof or provide an evidence explicitly at this call-site."
+        )
       }
     }
   }
@@ -466,14 +474,13 @@ class ResolutionTests {
   @Test
   fun `resolved callable Member`() {
     givenResolutionTest(
-      source = """
+      source =
+        """
         @Given
         internal val x: (Int) -> String = { i -> i.toString() }
         val result = given<(Int) -> String>().invoke(5)
       """
-    ) {
-      "result".source.evalsTo("5")
-    }
+    ) { "result".source.evalsTo("5") }
   }
 
   private fun givenResolutionTest(source: String, assert: CompilerTest.Companion.() -> Assert) {
@@ -481,15 +488,15 @@ class ResolutionTests {
     val arrowCoreData = Dependency("arrow-core:$arrowVersion")
     assertThis(
       CompilerTest(
-        config = {
-          newMetaDependencies() + addDependencies(arrowCoreData)
-        },
+        config = { newMetaDependencies() + addDependencies(arrowCoreData) },
         code = {
           """
           |${GivenTest().prelude}
           |data class Person(val name: String, val age: Int)
           |$source
-        """.trimMargin().source
+        """
+            .trimMargin()
+            .source
         },
         assert = assert
       )
@@ -501,9 +508,7 @@ class ResolutionTests {
     val arrowCoreData = Dependency("arrow-core:$arrowVersion")
     assertThis(
       CompilerTest(
-        config = {
-          newMetaDependencies() + addDependencies(arrowCoreData)
-        },
+        config = { newMetaDependencies() + addDependencies(arrowCoreData) },
         code = {
           """
           |package test
@@ -528,7 +533,9 @@ class ResolutionTests {
           |data class Person(val name: String, val age: Int)
           |
           |$source
-        """.trimMargin().source
+        """
+            .trimMargin()
+            .source
         },
         assert = assert
       )

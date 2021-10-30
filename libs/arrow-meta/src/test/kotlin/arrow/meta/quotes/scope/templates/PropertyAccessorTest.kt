@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 
 class PropertyAccessorTest {
   companion object {
-    private val propertyAccessorGet = """
+    private val propertyAccessorGet =
+      """
             | //metadebug
             |
             | class Wrapper {
@@ -18,7 +19,8 @@ class PropertyAccessorTest {
             |  }
             | """.source
 
-    private val propertyAccessorSet = """
+    private val propertyAccessorSet =
+      """
             | //metadebug
             |
             | class Wrapper {
@@ -27,7 +29,8 @@ class PropertyAccessorTest {
             |  } 
             | """.source
 
-    private val propertyAccessorVisibility = """
+    private val propertyAccessorVisibility =
+      """
             | //metadebug
             |
             | class Wrapper {
@@ -36,11 +39,8 @@ class PropertyAccessorTest {
             |  } 
             | """.source
 
-    val propertyAccessorExpressions = arrayOf(
-      propertyAccessorGet,
-      propertyAccessorSet,
-      propertyAccessorVisibility
-    )
+    val propertyAccessorExpressions =
+      arrayOf(propertyAccessorGet, propertyAccessorSet, propertyAccessorVisibility)
   }
 
   @Test
@@ -59,10 +59,12 @@ class PropertyAccessorTest {
   }
 
   fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(PropertyAccessorPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(PropertyAccessorPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

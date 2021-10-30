@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class BreakExpressionTest {
 
   companion object {
-    val breakExpression = """
+    val breakExpression =
+      """
                          | //metadebug
                          | 
                          | fun loop() {
@@ -24,10 +25,12 @@ class BreakExpressionTest {
 
   @Test
   fun `Validate break expression scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(BreakExpressionPlugin())) },
-      code = { breakExpression },
-      assert = { quoteOutputMatches(breakExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(BreakExpressionPlugin())) },
+        code = { breakExpression },
+        assert = { quoteOutputMatches(breakExpression) }
+      )
+    )
   }
 }

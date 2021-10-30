@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 class IsExpressionTest {
 
   companion object {
-    private val isExpression = """
+    private val isExpression =
+      """
       |if (2 is Int) {
       |  println("2 is a number")
       |} else {
@@ -18,7 +19,8 @@ class IsExpressionTest {
       |}
       |""".isExpression()
 
-    private val trueIsExpression = """
+    private val trueIsExpression =
+      """
       |if (true) {
       |  println("2 is a number")
       |} else {
@@ -40,11 +42,7 @@ class IsExpressionTest {
       | """.source
     }
 
-    val isExpressions = arrayOf(
-      isExpression,
-      trueIsExpression,
-      asExpression
-    )
+    val isExpressions = arrayOf(isExpression, trueIsExpression, asExpression)
   }
 
   @Test
@@ -73,10 +71,12 @@ class IsExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(IsExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(IsExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

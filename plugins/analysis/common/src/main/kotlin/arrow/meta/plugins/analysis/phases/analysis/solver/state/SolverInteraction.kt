@@ -1,25 +1,25 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.state
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
+import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentBodyPre
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentCallPost
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentConditions
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentDefaultValues
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Liskov.notStrongerPostcondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Liskov.notWeakerPrecondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatBodyPost
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatCallPre
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Unsatisfiability.unsatInvariants
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Branch
-import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages.Inconsistency.inconsistentDefaultValues
 import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.substituteVariable
 import org.sosy_lab.java_smt.api.BooleanFormula
@@ -55,28 +55,35 @@ internal fun SolverState.checkImplicationOf(
   constraint: NamedConstraint,
   context: ResolutionContext,
   message: (model: Model) -> Unit
-): Boolean =
-  bracket {
-    solver.booleans { addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula))) }
-    additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
-    val unsat = prover.isUnsat
-    if (!unsat) {
-      message(prover.model)
-      solverTrace.add("SAT! (not implied)")
-    }
-    !unsat
+): Boolean = bracket {
+  solver.booleans {
+    addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula)))
   }
+  additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
+  val unsat = prover.isUnsat
+  if (!unsat) {
+    message(prover.model)
+    solverTrace.add("SAT! (not implied)")
+  }
+  !unsat
+}
 
 internal fun SolverState.additionalFieldConstraints(
   formulae: Iterable<NamedConstraint>,
   context: ResolutionContext
 ): Set<NamedConstraint> =
-  solver.formulaManager.fieldNames(formulae.map { it.formula })
+  solver
+    .formulaManager
+    .fieldNames(formulae.map { it.formula })
     .flatMap { (fieldName, appliedTo) ->
       val fqName = FqName(fieldName)
       val descriptor = context.descriptorFor(fqName).getOrNull(0)
       val constraints = singleConstraintsFromFqName(fqName)
-      if (descriptor != null && constraints != null && constraints.pre.isEmpty() && constraints.post.size == 1) {
+      if (descriptor != null &&
+          constraints != null &&
+          constraints.pre.isEmpty() &&
+          constraints.post.size == 1
+      ) {
         setOf(
           NamedConstraint(
             constraints.post[0].msg,
@@ -89,15 +96,11 @@ internal fun SolverState.additionalFieldConstraints(
       } else {
         emptySet()
       }
-    }.toSet()
+    }
+    .toSet()
 
-/**
- * This obtains the *single* constraint related
- * to a particular FqName
- */
-internal fun SolverState.singleConstraintsFromFqName(
-  name: FqName
-): DeclarationConstraints? =
+/** This obtains the *single* constraint related to a particular FqName */
+internal fun SolverState.singleConstraintsFromFqName(name: FqName): DeclarationConstraints? =
   callableConstraints[name]?.takeIf { it.size == 1 }?.first()
 
 // PRODUCE ERRORS FROM INTERACTION
@@ -106,16 +109,17 @@ internal fun SolverState.singleConstraintsFromFqName(
 internal fun SolverState.checkDefaultValueInconsistency(
   context: ResolutionContext,
   declaration: Declaration
-): Boolean = solver.run {
-  checkInconsistency { unsatCore ->
-    val msg = inconsistentDefaultValues(declaration, unsatCore)
-    context.reportInconsistentBodyPre(declaration, msg)
+): Boolean =
+  solver.run {
+    checkInconsistency { unsatCore ->
+      val msg = inconsistentDefaultValues(declaration, unsatCore)
+      context.reportInconsistentBodyPre(declaration, msg)
+    }
   }
-}
 
 /**
- * Checks that this [declaration] does not contain logical inconsistencies in its preconditions.
- * For example:
+ * Checks that this [declaration] does not contain logical inconsistencies in its preconditions. For
+ * example:
  * - `(x > 0)`
  * - `(x < 0)`
  *
@@ -132,12 +136,13 @@ internal fun SolverState.checkPreconditionsInconsistencies(
         val msg = inconsistentBodyPre(declaration, unsatCore)
         context.reportInconsistentBodyPre(declaration, msg)
       }
-    } ?: false // if there are no preconditions, they are consistent
+    }
+      ?: false // if there are no preconditions, they are consistent
   }
 
 /**
- * Checks that this [declaration] constraints post conditions hold
- * according to the declaration body in the current solver state
+ * Checks that this [declaration] constraints post conditions hold according to the declaration body
+ * in the current solver state
  */
 internal fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
@@ -155,9 +160,7 @@ internal fun SolverState.checkPostConditionsImplication(
   }
 }
 
-/**
- * Checks the pre-conditions in [callConstraints] hold for [resolvedCall]
- */
+/** Checks the pre-conditions in [callConstraints] hold for [resolvedCall] */
 internal fun SolverState.checkCallPreConditionsImplication(
   callConstraints: DeclarationConstraints?,
   context: ResolutionContext,
@@ -174,9 +177,7 @@ internal fun SolverState.checkCallPreConditionsImplication(
     }
   }
 
-/**
- * Checks the post-conditions in [callConstraints] hold for [resolvedCall]
- */
+/** Checks the post-conditions in [callConstraints] hold for [resolvedCall] */
 internal fun SolverState.checkCallPostConditionsInconsistencies(
   callConstraints: DeclarationConstraints?,
   context: ResolutionContext,
@@ -189,12 +190,11 @@ internal fun SolverState.checkCallPostConditionsInconsistencies(
         val msg = inconsistentCallPost(unsatCore, branch)
         context.reportInconsistentCallPost(expression, msg)
       }
-    } ?: false
+    }
+      ?: false
   }
 
-/**
- * Add the [formulae] to the set and checks that it remains consistent
- */
+/** Add the [formulae] to the set and checks that it remains consistent */
 internal fun SolverState.checkConditionsInconsistencies(
   formulae: List<NamedConstraint>,
   context: ResolutionContext,

@@ -34,9 +34,7 @@ import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
 @Suppress("RedundantUnitReturnType")
-class ProofsIrCodegen(
-  val irUtils: IrUtils
-) {
+class ProofsIrCodegen(val irUtils: IrUtils) {
 
   fun IrUtils.matchedCandidateProofCall(
     fn: CallableDescriptor,
@@ -51,55 +49,50 @@ class ProofsIrCodegen(
         fn.valueParameters.forEachIndexed { n, descriptor ->
           val contextFqName = descriptor.contextualAnnotations().firstOrNull()
           if (contextFqName != null) {
-            val argProof = this@matchedCandidateProofCall.compilerContext.givenProofCall(
-              contextFqName,
-              irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType }.toIrBasedKotlinType()
-            )
-            if (argProof != null)
-              putValueArgument(n, argProof)
+            val argProof =
+              this@matchedCandidateProofCall.compilerContext.givenProofCall(
+                contextFqName,
+                irTypes.getOrElse(n) { pluginContext.irBuiltIns.nothingType }.toIrBasedKotlinType()
+              )
+            if (argProof != null) putValueArgument(n, argProof)
           }
         }
       }
     }
   }
 
-  fun CompilerContext.givenProofCall(
-    context: FqName,
-    superType: KotlinType
-  ): IrExpression? =
+  fun CompilerContext.givenProofCall(context: FqName, superType: KotlinType): IrExpression? =
     irUtils.run {
       val candidate = givenProof(context, superType)
-      candidate?.givenProof?.let { proof ->
-        substitutedProofCall(proof, superType)
-      }
+      candidate?.givenProof?.let { proof -> substitutedProofCall(proof, superType) }
     }
 
-  private fun IrUtils.substitutedProofCall(proof: GivenProof, superType: KotlinType): IrExpression? =
+  private fun IrUtils.substitutedProofCall(
+    proof: GivenProof,
+    superType: KotlinType
+  ): IrExpression? =
     matchedCandidateProofCall(
       fn = proof.callableDescriptor,
       typeSubstitutor = proof.substitutor(superType)
     )
 
-  fun GivenProof.substitutor(
-    superType: KotlinType
-  ): NewTypeSubstitutorByConstructorMap =
+  fun GivenProof.substitutor(superType: KotlinType): NewTypeSubstitutorByConstructorMap =
     ProofCandidate(
-      proofType = to,
-      otherType = superType.unwrappedNotNullableType,
-      through = through
-    ).typeSubstitutor
+        proofType = to,
+        otherType = superType.unwrappedNotNullableType,
+        through = through
+      )
+      .typeSubstitutor
 
   fun CompilerContext.proveNestedCalls(expression: IrCall): IrMemberAccessExpression<*> =
     proveCall(expression)
 
   private fun CompilerContext.proveCall(expression: IrCall): IrMemberAccessExpression<*> =
-      if (expression.symbol.owner.annotations.hasAnnotation(ArrowCompileTime)) {
-        insertGivenCall(expression)
-      } else expression
+    if (expression.symbol.owner.annotations.hasAnnotation(ArrowCompileTime)) {
+      insertGivenCall(expression)
+    } else expression
 
-  private fun CompilerContext.insertGivenCall(
-    expression: IrCall
-  ): IrMemberAccessExpression<*> {
+  private fun CompilerContext.insertGivenCall(expression: IrCall): IrMemberAccessExpression<*> {
     val replacement: IrMemberAccessExpression<*>? = expression.replacementCall()
     return if (replacement != null) {
       expression.substitutedValueParameters.forEachIndexed { index, (param, superType) ->
@@ -147,31 +140,31 @@ internal fun Meta.removeCompileTimeDeclarations() = irModuleFragment {
 val ProofCandidate.typeSubstitutor: NewTypeSubstitutorByConstructorMap
   get() {
     val allArgsMap =
-      proofType.typeArgumentsMap(otherType)
-        .filter { it.key.type.isTypeParameter() } +
+      proofType.typeArgumentsMap(otherType).filter { it.key.type.isTypeParameter() } +
         mapOf(
-          through.module.builtIns.nothingType.asTypeProjection() to TypeUtils.DONT_CARE.asTypeProjection()
+          through.module.builtIns.nothingType.asTypeProjection() to
+            TypeUtils.DONT_CARE.asTypeProjection()
         )
     return NewTypeSubstitutorByConstructorMap(
-      allArgsMap.map {
-        it.key.type.constructor to it.value.type.unwrap()
-      }.toMap()
+      allArgsMap.map { it.key.type.constructor to it.value.type.unwrap() }.toMap()
     )
   }
 
 internal fun IrCall.replacementCall(): IrMemberAccessExpression<*>? =
-  symbol.owner.body?.statements?.firstOrNull()
-    ?.filterMap<IrMemberAccessExpression<*>, IrMemberAccessExpression<*>>({ true }) {
-      it
-    }?.firstOrNull()?.run {
+  symbol
+    .owner
+    .body
+    ?.statements
+    ?.firstOrNull()
+    ?.filterMap<IrMemberAccessExpression<*>, IrMemberAccessExpression<*>>({ true }) { it }
+    ?.firstOrNull()
+    ?.run {
       val rep = deepCopyWithSymbols(this@replacementCall.symbol.owner)
       this@replacementCall.typeArguments.forEach { (n, arg) ->
-        if (rep.typeArgumentsCount > n && arg != null)
-          rep.putTypeArgument(n, arg)
+        if (rep.typeArgumentsCount > n && arg != null) rep.putTypeArgument(n, arg)
       }
       this@replacementCall.valueArguments.forEach { (n, arg) ->
-        if (rep.valueArgumentsCount > n && arg != null)
-          rep.putValueArgument(n, arg)
+        if (rep.valueArgumentsCount > n && arg != null) rep.putValueArgument(n, arg)
       }
 
       // rep.extensionReceiver = this@replacementCall.extensionReceiver

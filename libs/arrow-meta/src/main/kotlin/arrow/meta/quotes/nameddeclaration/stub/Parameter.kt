@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * A template destructuring [Scope] for a [KtParameter]
  *
  * ### Parameter Formatting:
- *  ```
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
@@ -39,9 +39,8 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *    }
  * ```
  *
- *
- * ### Class Parameter:
- * A loop parameter may be found within a [ClassDeclaration]. For example, we can change:
+ * ### Class Parameter: A loop parameter may be found within a [ClassDeclaration]. For example, we
+ * can change:
  * ```
  * class A(val environmentRepository: Repository)
  * ```
@@ -50,7 +49,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * class A(val environmentRepository: Repository = EnvironmentRepository())
  * ```
  * By working with loop parameters:
- *  ```
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
@@ -71,8 +70,8 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *    }
  * ```
  *
- * ### Loop Parameter:
- *  A loop parameter may be found within a [ForExpression]. For example, we can change
+ * ### Loop Parameter: A loop parameter may be found within a [ForExpression]. For example, we can
+ * change
  * ```
  * for (i in list) { ... }
  * ```
@@ -102,8 +101,8 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *    }
  * ```
  *
- * ### Destructuring Parameter:
- * A destructuring parameter may be found within a [FunctionLiteral]. For example, we can change:
+ * ### Destructuring Parameter: A destructuring parameter may be found within a [FunctionLiteral].
+ * For example, we can change:
  * ```
  * someFunction(x) { func -> ... }
  * ```
@@ -112,7 +111,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  * someFunction(x) { function -> ... }
  * ```
  * By working with destructuring parameters:
- *```kotlin:ank:silent
+ * ```kotlin:ank:silent
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
@@ -133,19 +132,20 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
  *    }
  * ```
  */
-
 class Parameter(
   override val value: KtParameter?,
   val name: Name? = value?.nameAsName,
   val type: TypeReference = TypeReference(value?.typeReference),
-  val `(typeParams)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value?.typeParameters
-    ?: listOf(), postfix = ">"),
+  val `(typeParams)`: ScopedList<KtTypeParameter> =
+    ScopedList(prefix = "<", value = value?.typeParameters ?: listOf(), postfix = ">"),
   val defaultValue: Scope<KtExpression> = Scope(value?.defaultValue),
-  val valOrVar: Name = when {
-    value?.hasValOrVar() == true && value.isMutable -> "var"
-    value?.hasValOrVar() == true && !value.isMutable -> "val"
-    value?.isVarArg == true -> "vararg"
-    else -> ""
-  }.let(Name::identifier),
-  val destructuringDeclaration: DestructuringDeclaration = DestructuringDeclaration(value?.destructuringDeclaration)
+  val valOrVar: Name =
+    when {
+      value?.hasValOrVar() == true && value.isMutable -> "var"
+      value?.hasValOrVar() == true && !value.isMutable -> "val"
+      value?.isVarArg == true -> "vararg"
+      else -> ""
+    }.let(Name::identifier),
+  val destructuringDeclaration: DestructuringDeclaration =
+    DestructuringDeclaration(value?.destructuringDeclaration)
 ) : Scope<KtParameter>(value)

@@ -5,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 
-class KotlinParenthesizedExpression(override val impl: KtParenthesizedExpression) : ParenthesizedExpression, KotlinDefaultExpression(impl) {
+class KotlinParenthesizedExpression(override val impl: KtParenthesizedExpression) :
+  ParenthesizedExpression, KotlinDefaultExpression(impl) {
   override val expression: Expression?
     get() = impl.expression?.model()
 }

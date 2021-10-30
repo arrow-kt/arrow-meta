@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *
  * A template destructuring [Scope] for a [KtContinueExpression].
  *
- *  ```
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke

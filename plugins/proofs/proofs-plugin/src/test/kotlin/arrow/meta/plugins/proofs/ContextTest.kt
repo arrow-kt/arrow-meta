@@ -10,7 +10,8 @@ class ContextTest {
   @Test
   fun `multiple context providers are supported`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given object X {
           val value = "yes!"
         }
@@ -28,7 +29,8 @@ class ContextTest {
   @Test
   fun `different context providers of the same type are not ambiguous`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given internal val x: String = "yes!"
         @Config internal val y: String = "nope!"
         fun foo(@Given x: String, @Config y: String): Pair<String, String> =
@@ -42,7 +44,8 @@ class ContextTest {
   @Test
   fun `A provider supports multiple contexts`() {
     givenTest(
-      source = """
+      source =
+        """
         @Given @Config internal val x: String = "yes!"
         fun foo(@Given x: String, @Config y: String): Pair<String, String> =
           x to y
@@ -52,7 +55,8 @@ class ContextTest {
     )
   }
 
-  val prelude = """
+  val prelude =
+    """
     package test
     import arrow.Context
     
@@ -86,16 +90,12 @@ class ContextTest {
        $prelude
        $source
       """
-    assertThis(CompilerTest(
-      config = {
-        newMetaDependencies()
-      },
-      code = {
-        codeSnippet.source
-      },
-      assert = {
-        allOf(expected.first.source.evalsTo(expected.second))
-      }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { newMetaDependencies() },
+        code = { codeSnippet.source },
+        assert = { allOf(expected.first.source.evalsTo(expected.second)) }
+      )
+    )
   }
 }

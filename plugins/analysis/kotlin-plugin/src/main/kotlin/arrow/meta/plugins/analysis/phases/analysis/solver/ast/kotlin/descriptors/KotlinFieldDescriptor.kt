@@ -8,6 +8,5 @@ fun interface KotlinFieldDescriptor : FieldDescriptor, KotlinAnnotated {
   override fun impl(): org.jetbrains.kotlin.descriptors.FieldDescriptor
 
   override val correspondingProperty: PropertyDescriptor
-    get() =
-      impl().correspondingProperty.model()
+    get() = impl().correspondingProperty.model()
 }

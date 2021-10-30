@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test
 class LambdaExpressionTest {
 
   companion object {
-    private val lambdaExpression = """val square: (Int) -> Int = { x -> x * x }""".lambdaExpression()
+    private val lambdaExpression =
+      """val square: (Int) -> Int = { x -> x * x }""".lambdaExpression()
 
-    private val lambdaExpressionAsFunction = """
+    private val lambdaExpressionAsFunction =
+      """
       | fun whenPassingALambdaLiteral_thenCallTriggerLambda() {
       |   fun invokeLambda(lambda: (Double) -> Boolean) : Boolean {
       |     return lambda(4.329)
@@ -25,13 +27,11 @@ class LambdaExpressionTest {
       | }
       |""".lambdaExpression()
 
-    private val lambdaExpressionWithMultipleParameters = """val square: (Int, Int, Int) -> Int = { x, y, _ -> x + y }""".lambdaExpression()
+    private val lambdaExpressionWithMultipleParameters =
+      """val square: (Int, Int, Int) -> Int = { x, y, _ -> x + y }""".lambdaExpression()
 
-    val lambdaExpressions = arrayOf(
-      lambdaExpression,
-      lambdaExpressionAsFunction,
-      lambdaExpressionWithMultipleParameters
-    )
+    val lambdaExpressions =
+      arrayOf(lambdaExpression, lambdaExpressionAsFunction, lambdaExpressionWithMultipleParameters)
 
     private fun String.lambdaExpression(): Code.Source {
       return """
@@ -58,10 +58,12 @@ class LambdaExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(LambdaExpressionsPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(LambdaExpressionsPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

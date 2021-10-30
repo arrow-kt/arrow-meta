@@ -7,9 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.W
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtWhenExpression
 
-class KotlinWhenExpression(
-  val impl: KtWhenExpression
-) : WhenExpression, KotlinExpression {
+class KotlinWhenExpression(val impl: KtWhenExpression) : WhenExpression, KotlinExpression {
 
   override fun impl(): KtWhenExpression = impl
 

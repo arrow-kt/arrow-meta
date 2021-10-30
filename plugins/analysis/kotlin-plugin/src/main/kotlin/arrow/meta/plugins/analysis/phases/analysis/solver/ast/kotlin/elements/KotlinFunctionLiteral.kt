@@ -7,8 +7,7 @@ import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
 class KotlinFunctionLiteral(val impl: KtFunctionLiteral) : FunctionLiteral, KotlinFunction {
   override fun impl(): KtFunctionLiteral = impl
-  override fun hasParameterSpecification(): Boolean =
-    impl().hasParameterSpecification()
+  override fun hasParameterSpecification(): Boolean = impl().hasParameterSpecification()
 
   override val bodyExpression: Expression?
     get() = impl().bodyExpression?.model()

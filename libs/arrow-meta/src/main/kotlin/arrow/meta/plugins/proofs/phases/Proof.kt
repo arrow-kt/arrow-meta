@@ -8,14 +8,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.types.KotlinType
 
-sealed class Proof(
-  open val to: KotlinType,
-  open val through: DeclarationDescriptor
-) {
+sealed class Proof(open val to: KotlinType, open val through: DeclarationDescriptor) {
 
-  inline fun <A> fold(
-    given: GivenProof.() -> A
-  ): A =
+  inline fun <A> fold(given: GivenProof.() -> A): A =
     when (this) {
       is GivenProof -> given(this)
     }
@@ -23,28 +18,24 @@ sealed class Proof(
   abstract fun isContextAmbiguous(other: Proof): Boolean
 }
 
-sealed class GivenProof(
-  override val to: KotlinType,
-  override val through: DeclarationDescriptor
-) : Proof(to, through) {
+sealed class GivenProof(override val to: KotlinType, override val through: DeclarationDescriptor) :
+  Proof(to, through) {
   abstract val callableDescriptor: CallableDescriptor
-  val contexts: Set<FqName> get() = through.contextualAnnotations()
+  val contexts: Set<FqName>
+    get() = through.contextualAnnotations()
   override fun isContextAmbiguous(other: Proof): Boolean =
     other is GivenProof && contexts == other.contexts
 }
 
-data class ClassProof(
-  override val to: KotlinType,
-  override val through: ClassDescriptor
-) : GivenProof(to, through) {
+data class ClassProof(override val to: KotlinType, override val through: ClassDescriptor) :
+  GivenProof(to, through) {
   override val callableDescriptor: CallableDescriptor
-    get() = through.unsubstitutedPrimaryConstructor ?: TODO("no primary constructor for ${through.name}")
+    get() =
+      through.unsubstitutedPrimaryConstructor ?: TODO("no primary constructor for ${through.name}")
 }
 
-data class ObjectProof(
-  override val to: KotlinType,
-  override val through: ClassDescriptor
-) : GivenProof(to, through) {
+data class ObjectProof(override val to: KotlinType, override val through: ClassDescriptor) :
+  GivenProof(to, through) {
   override val callableDescriptor: CallableDescriptor
     get() = FakeCallableDescriptorForObject(through)
 }

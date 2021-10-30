@@ -23,6 +23,7 @@ import org.sosy_lab.java_smt.api.SolverContext
 import org.sosy_lab.java_smt.api.UFManager
 
 typealias ObjectFormula = NumeralFormula.IntegerFormula
+
 typealias FieldFormula = NumeralFormula.IntegerFormula
 
 val ObjectFormulaType = FormulaType.IntegerType
@@ -34,38 +35,27 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   BooleanFormulaManager by context.formulaManager.booleanFormulaManager,
   KotlinPrinter by DefaultKotlinPrinter(context.formulaManager, nameProvider) {
 
-  fun <A> ints(f: IntegerFormulaManager.() -> A): A =
-    f(integerFormulaManager)
+  fun <A> ints(f: IntegerFormulaManager.() -> A): A = f(integerFormulaManager)
 
-  fun <A> objects(f: IntegerFormulaManager.() -> A): A =
-    f(integerFormulaManager)
+  fun <A> objects(f: IntegerFormulaManager.() -> A): A = f(integerFormulaManager)
 
-  fun <A> booleans(f: BooleanFormulaManager.() -> A): A =
-    f(booleanFormulaManager)
+  fun <A> booleans(f: BooleanFormulaManager.() -> A): A = f(booleanFormulaManager)
 
-  fun <A> rationals(f: RationalFormulaManager.() -> A): A =
-    f(rationalFormulaManager)
+  fun <A> rationals(f: RationalFormulaManager.() -> A): A = f(rationalFormulaManager)
 
-  fun <A> floatingPoint(f: FloatingPointFormulaManager.() -> A): A =
-    f(floatingPointFormulaManager)
+  fun <A> floatingPoint(f: FloatingPointFormulaManager.() -> A): A = f(floatingPointFormulaManager)
 
-  fun <A> bitvectors(f: BitvectorFormulaManager.() -> A): A =
-    f(bitvectorFormulaManager)
+  fun <A> bitvectors(f: BitvectorFormulaManager.() -> A): A = f(bitvectorFormulaManager)
 
-  fun <A> arrays(f: ArrayFormulaManager.() -> A): A =
-    f(arrayFormulaManager)
+  fun <A> arrays(f: ArrayFormulaManager.() -> A): A = f(arrayFormulaManager)
 
-  fun <A> quantified(f: QuantifiedFormulaManager.() -> A): A =
-    f(quantifiedFormulaManager)
+  fun <A> quantified(f: QuantifiedFormulaManager.() -> A): A = f(quantifiedFormulaManager)
 
-  fun <A> separationLogic(f: SLFormulaManager.() -> A): A =
-    f(slFormulaManager)
+  fun <A> separationLogic(f: SLFormulaManager.() -> A): A = f(slFormulaManager)
 
-  fun <A> uninterpretedFunctions(f: UFManager.() -> A): A =
-    f(ufManager)
+  fun <A> uninterpretedFunctions(f: UFManager.() -> A): A = f(ufManager)
 
-  fun <A> formulae(f: FormulaManager.() -> A): A =
-    f(formulaManager)
+  fun <A> formulae(f: FormulaManager.() -> A): A = f(formulaManager)
 
   val intValueFun: FunctionDeclaration<ObjectFormula> =
     ufManager.declareUF(INT_VALUE_NAME, FormulaType.IntegerType, ObjectFormulaType)
@@ -82,28 +72,30 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   val isNullFn: FunctionDeclaration<BooleanFormula> =
     ufManager.declareUF(IS_NULL_FUNCTION_NAME, FormulaType.BooleanType, ObjectFormulaType)
 
-  fun intValue(formula: ObjectFormula): NumeralFormula.IntegerFormula =
-    uninterpretedFunctions { callUF(intValueFun, formula) }
+  fun intValue(formula: ObjectFormula): NumeralFormula.IntegerFormula = uninterpretedFunctions {
+    callUF(intValueFun, formula)
+  }
 
-  fun boolValue(formula: ObjectFormula): BooleanFormula =
-    uninterpretedFunctions { callUF(boolValueFun, formula) }
+  fun boolValue(formula: ObjectFormula): BooleanFormula = uninterpretedFunctions {
+    callUF(boolValueFun, formula)
+  }
 
   fun decimalValue(formula: ObjectFormula): NumeralFormula.RationalFormula =
-    uninterpretedFunctions { callUF(decimalValueFun, formula) }
+      uninterpretedFunctions {
+    callUF(decimalValueFun, formula)
+  }
 
-  fun field(fieldName: String, formula: ObjectFormula): ObjectFormula =
-    uninterpretedFunctions {
-      callUF(fieldFun, integerFormulaManager.makeVariable(fieldName), formula)
-    }
+  fun field(fieldName: String, formula: ObjectFormula): ObjectFormula = uninterpretedFunctions {
+    callUF(fieldFun, integerFormulaManager.makeVariable(fieldName), formula)
+  }
 
-  fun isNull(formula: ObjectFormula): BooleanFormula =
-    uninterpretedFunctions { callUF(isNullFn, formula) }
+  fun isNull(formula: ObjectFormula): BooleanFormula = uninterpretedFunctions {
+    callUF(isNullFn, formula)
+  }
 
-  fun isNotNull(formula: ObjectFormula): BooleanFormula =
-    booleans { not(isNull(formula)) }
+  fun isNotNull(formula: ObjectFormula): BooleanFormula = booleans { not(isNull(formula)) }
 
-  fun makeObjectVariable(varName: String): ObjectFormula =
-    objects { this.makeVariable(varName) }
+  fun makeObjectVariable(varName: String): ObjectFormula = objects { this.makeVariable(varName) }
 
   fun makeBooleanObjectVariable(varName: String): BooleanFormula =
     boolValue(makeObjectVariable(varName))
@@ -120,7 +112,10 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   companion object {
 
     operator fun invoke(nameProvider: NameProvider): Solver =
-      Solver(SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL), nameProvider)
+      Solver(
+        SolverContextFactory.createSolverContext(SolverContextFactory.Solvers.SMTINTERPOL),
+        nameProvider
+      )
 
     val INT_VALUE_NAME = "int"
     val BOOL_VALUE_NAME = "bool"

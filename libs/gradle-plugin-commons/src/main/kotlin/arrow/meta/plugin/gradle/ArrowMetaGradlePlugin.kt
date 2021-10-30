@@ -39,11 +39,12 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
     project.afterEvaluate { p ->
       dependencies.forEach { (g, a, v) ->
-        val configuration = if (p.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-          "commonMainImplementation"
-        } else {
-          "implementation"
-        }
+        val configuration =
+          if (p.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+            "commonMainImplementation"
+          } else {
+            "implementation"
+          }
 
         p.dependencies.add(configuration, "$g:$a:$v")
       }
@@ -59,14 +60,17 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
   override fun getPluginArtifact(): SubpluginArtifact =
     SubpluginArtifact(groupId, artifactId, version)
 
-  override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
+  override fun applyToCompilation(
+    kotlinCompilation: KotlinCompilation<*>
+  ): Provider<List<SubpluginOption>> {
     val project = kotlinCompilation.target.project
     val extension = project.extensions.getByType(ArrowMetaExtension::class.java)
     return project.provider {
       listOf(
         SubpluginOption(
           key = "generatedSrcOutputDir",
-          value = "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
+          value =
+            "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
         ),
       )
     }
@@ -91,7 +95,10 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     try {
       val arrowVersion = properties.getProperty(VERSION_KEY)
       val regex = Regex(".*$dependency-$arrowVersion.*")
-      return ClassGraph().classpathFiles.first { classpath -> classpath.name.matches(regex) }.toString()
+      return ClassGraph()
+        .classpathFiles
+        .first { classpath -> classpath.name.matches(regex) }
+        .toString()
     } catch (e: NoSuchElementException) {
       throw InvalidUserDataException("$dependency not found")
     }

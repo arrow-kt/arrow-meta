@@ -8,19 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.whenEntry
 
 open class WhenEntryPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    whenEntryPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(whenEntryPlugin)
 }
 
 val Meta.whenEntryPlugin
   get() = "When Entry Scope Plugin" {
     meta(
       whenEntry(this, { true }) { e ->
-        Transform.replace(
-          replacing = e,
-          newDeclaration = identity()
-        )
+        Transform.replace(replacing = e, newDeclaration = identity())
       }
     )
   }

@@ -7,19 +7,20 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.namedFunction
 
 val Meta.helloWorld: CliPlugin
-  get() =
-    "Hello World" {
-      meta(
-        namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
-          Transform.replace(
-            replacing = c,
-            newDeclaration =
+  get() = "Hello World" {
+    meta(
+      namedFunction(this, { element.name == "helloWorld" }) { (c, _) ->
+        Transform.replace(
+          replacing = c,
+          newDeclaration =
             """| 
                | fun helloWorld(): String = 
                |   "Hello ΛRROW Meta!"
                |   
-               |""".function(descriptor)
-          )
-        }
-      )
-    }
+               |""".function(
+              descriptor
+            )
+        )
+      }
+    )
+  }

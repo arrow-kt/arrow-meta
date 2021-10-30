@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
  *
  * A template destructuring [Scope] for a [KtBreakExpression].
  *
- *  ```
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke
@@ -37,6 +37,5 @@ class BreakExpression(
   override val labelName: String? = value.getLabelName() ?: "break"
 ) : ExpressionWithLabel<KtBreakExpression>(value) {
 
-  override fun ElementScope.identity(): BreakExpression =
-    """break$targetLabel""".`break`
+  override fun ElementScope.identity(): BreakExpression = """break$targetLabel""".`break`
 }

@@ -7,7 +7,11 @@ import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.post
 
-@Laws object ComparableRangeLaws {
-  @Law inline fun <T : Comparable<T>> T.rangeToLaw(that: T): ClosedRange<T> =
-    this.rangeTo(that).post({ it.start == this && it.endInclusive == that }) { "range with given bounds" }
+@Laws
+object ComparableRangeLaws {
+  @Law
+  inline fun <T : Comparable<T>> T.rangeToLaw(that: T): ClosedRange<T> =
+    this.rangeTo(that).post({ it.start == this && it.endInclusive == that }) {
+      "range with given bounds"
+    }
 }

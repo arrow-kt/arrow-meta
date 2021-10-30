@@ -5,14 +5,16 @@ import org.sosy_lab.java_smt.api.BooleanFormula
 
 data class CurrentVarInfo(private val varInfo: List<VarInfo>) {
 
-  fun get(name: String): VarInfo? =
-    varInfo.firstOrNull { it.name == name }
+  fun get(name: String): VarInfo? = varInfo.firstOrNull { it.name == name }
 
-  fun add(name: String, smtName: String, origin: Element, invariant: BooleanFormula? = null): CurrentVarInfo =
-    this.add(listOf(VarInfo(name, smtName, origin, invariant)))
+  fun add(
+    name: String,
+    smtName: String,
+    origin: Element,
+    invariant: BooleanFormula? = null
+  ): CurrentVarInfo = this.add(listOf(VarInfo(name, smtName, origin, invariant)))
 
-  fun add(vars: List<VarInfo>): CurrentVarInfo =
-    CurrentVarInfo(vars + varInfo)
+  fun add(vars: List<VarInfo>): CurrentVarInfo = CurrentVarInfo(vars + varInfo)
 
   companion object {
     fun new(): CurrentVarInfo = CurrentVarInfo(emptyList())

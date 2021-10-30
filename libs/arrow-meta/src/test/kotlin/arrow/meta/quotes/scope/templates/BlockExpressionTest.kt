@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class BlockExpressionTest {
 
   companion object {
-    val blockExpression = """
+    val blockExpression =
+      """
                          | //metadebug
                          | 
                          | val x = {}
@@ -18,10 +19,12 @@ class BlockExpressionTest {
 
   @Test
   fun `Validate block expression scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(BlockExpressionPlugin())) },
-      code = { blockExpression },
-      assert = { quoteOutputMatches(blockExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(BlockExpressionPlugin())) },
+        code = { blockExpression },
+        assert = { quoteOutputMatches(blockExpression) }
+      )
+    )
   }
 }

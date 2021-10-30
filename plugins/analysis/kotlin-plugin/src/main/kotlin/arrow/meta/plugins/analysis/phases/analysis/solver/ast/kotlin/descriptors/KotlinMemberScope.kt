@@ -19,6 +19,10 @@ fun interface KotlinMemberScope : MemberScope {
   override fun getVariableNames(): Set<Name> =
     impl().getVariableNames().map { Name(it.asString()) }.toSet()
 
-  override fun getContributedDescriptors(filter: (name: String) -> Boolean): List<DeclarationDescriptor> =
-    impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map { it.model() }
+  override fun getContributedDescriptors(
+    filter: (name: String) -> Boolean
+  ): List<DeclarationDescriptor> =
+    impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map {
+      it.model()
+    }
 }

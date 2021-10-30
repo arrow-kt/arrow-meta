@@ -12,11 +12,9 @@ fun interface KotlinClassOrObject : ClassOrObject, KotlinNamedDeclaration, Kotli
   override fun getAnonymousInitializers(): List<AnonymousInitializer> =
     impl().getAnonymousInitializers().map { it.model() }
 
-  override fun isTopLevel(): Boolean =
-    impl().isTopLevel()
+  override fun isTopLevel(): Boolean = impl().isTopLevel()
 
-  override fun isAnnotation(): Boolean =
-    impl().isAnnotation()
+  override fun isAnnotation(): Boolean = impl().isAnnotation()
 
   override val name: String?
     get() = impl().name

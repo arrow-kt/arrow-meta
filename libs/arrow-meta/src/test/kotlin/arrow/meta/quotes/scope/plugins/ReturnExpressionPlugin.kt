@@ -8,20 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.returnExpression
 
 open class ReturnExpressionPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    returnExpressionPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(returnExpressionPlugin)
 }
 
 val Meta.returnExpressionPlugin: CliPlugin
-  get() =
-    "Return Expression Scope Plugin" {
-      meta(
-        returnExpression(this, { true }) { expression ->
-          Transform.replace(
-            replacing = expression,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "Return Expression Scope Plugin" {
+    meta(
+      returnExpression(this, { true }) { expression ->
+        Transform.replace(replacing = expression, newDeclaration = identity())
+      }
+    )
+  }

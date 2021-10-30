@@ -5,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
-class KotlinPropertyDescriptor(val impl: org.jetbrains.kotlin.descriptors.PropertyDescriptor) : PropertyDescriptor, KotlinVariableDescriptorWithAccessors, KotlinCallableMemberDescriptor {
+class KotlinPropertyDescriptor(val impl: org.jetbrains.kotlin.descriptors.PropertyDescriptor) :
+  PropertyDescriptor, KotlinVariableDescriptorWithAccessors, KotlinCallableMemberDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.PropertyDescriptor = impl
   override val isSetterProjectedOut: Boolean
     get() = impl().isSetterProjectedOut

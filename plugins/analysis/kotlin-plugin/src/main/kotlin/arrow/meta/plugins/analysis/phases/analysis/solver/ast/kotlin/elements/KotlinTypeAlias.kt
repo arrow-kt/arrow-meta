@@ -7,9 +7,7 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
 
 fun interface KotlinTypeAlias : TypeAlias, KotlinNamedDeclaration {
   override fun impl(): KtTypeAlias
-  override fun isTopLevel(): Boolean =
-    impl().isTopLevel()
+  override fun isTopLevel(): Boolean = impl().isTopLevel()
 
-  override fun getTypeReference(): TypeReference? =
-    impl().getTypeReference()?.model()
+  override fun getTypeReference(): TypeReference? = impl().getTypeReference()?.model()
 }

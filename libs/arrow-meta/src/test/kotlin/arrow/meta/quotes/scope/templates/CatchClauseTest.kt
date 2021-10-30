@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class CatchClauseTest {
 
   companion object {
-    val catchClauseExpression = """
+    val catchClauseExpression =
+      """
                          | //metadebug
                          | 
                          | fun measureTimeMillis(block: () -> Unit): Unit {
@@ -22,10 +23,12 @@ class CatchClauseTest {
 
   @Test
   fun `Validate catch clause scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(CatchClausePlugin())) },
-      code = { catchClauseExpression },
-      assert = { quoteOutputMatches(catchClauseExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(CatchClausePlugin())) },
+        code = { catchClauseExpression },
+        assert = { quoteOutputMatches(catchClauseExpression) }
+      )
+    )
   }
 }

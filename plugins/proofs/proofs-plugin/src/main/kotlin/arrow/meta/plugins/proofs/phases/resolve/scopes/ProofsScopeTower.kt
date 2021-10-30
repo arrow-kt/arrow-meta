@@ -31,33 +31,36 @@ class ProofsScopeTower(
   compilerContext: CompilerContext
 ) : ImplicitScopeTower {
   val scopeOwner = module
-  val importingScope = LexicalScopeImpl(
-    ImportingScope.Empty,
-    scopeOwner,
-    false,
-    null,
-    LexicalScopeKind.SYNTHETIC,
-    LocalRedeclarationChecker.DO_NOTHING
-  ) {}
+  val importingScope =
+    LexicalScopeImpl(
+      ImportingScope.Empty,
+      scopeOwner,
+      false,
+      null,
+      LexicalScopeKind.SYNTHETIC,
+      LocalRedeclarationChecker.DO_NOTHING
+    ) {}
   override val dynamicScope: MemberScope = SimpleMemberScope(proofs.map { it.through })
   override val implicitsResolutionFilter: ImplicitsExtensionsResolutionFilter =
     ImplicitsExtensionsResolutionFilter.Default
   override val isDebuggerContext: Boolean = false
   override val isNewInferenceEnabled: Boolean = false
-  override val lexicalScope: LexicalScope = LexicalChainedScope.create(
-    parent = importingScope,
-    ownerDescriptor = scopeOwner,
-    isOwnerDescriptorAccessibleByLabel = false,
-    implicitReceiver = null,
-    kind = LexicalScopeKind.SYNTHETIC,
-    memberScopes = arrayOf({ proofs }.memberScope())
-  ) // .addImportingScope(memberScope.memberScopeAsImportingScope())
+  override val lexicalScope: LexicalScope =
+    LexicalChainedScope.create(
+      parent = importingScope,
+      ownerDescriptor = scopeOwner,
+      isOwnerDescriptorAccessibleByLabel = false,
+      implicitReceiver = null,
+      kind = LexicalScopeKind.SYNTHETIC,
+      memberScopes = arrayOf({ proofs }.memberScope())
+    ) // .addImportingScope(memberScope.memberScopeAsImportingScope())
   override val location: LookupLocation = NoLookupLocation.FROM_BACKEND
   override val syntheticScopes: SyntheticScopes = SyntheticScopes.Empty
-  override val typeApproximator: TypeApproximator = TypeApproximator(
-    module.builtIns,
-    compilerContext.configuration?.languageVersionSettings ?: LanguageVersionSettingsImpl.DEFAULT
-  )
+  override val typeApproximator: TypeApproximator =
+    TypeApproximator(
+      module.builtIns,
+      compilerContext.configuration?.languageVersionSettings ?: LanguageVersionSettingsImpl.DEFAULT
+    )
   override fun getImplicitReceiver(scope: LexicalScope): ReceiverValueWithSmartCastInfo? = null
   override fun interceptFunctionCandidates(
     resolutionScope: ResolutionScope,
@@ -66,8 +69,7 @@ class ProofsScopeTower(
     location: LookupLocation,
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
-  ): Collection<FunctionDescriptor> =
-    emptyList()
+  ): Collection<FunctionDescriptor> = emptyList()
 
   override fun interceptVariableCandidates(
     resolutionScope: ResolutionScope,
@@ -76,6 +78,5 @@ class ProofsScopeTower(
     location: LookupLocation,
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
-  ): Collection<VariableDescriptor> =
-    emptyList()
+  ): Collection<VariableDescriptor> = emptyList()
 }

@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  */
 class AnnotatedExpression(
   override val value: KtAnnotatedExpression?,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value?.annotationEntries.orEmpty()),
+  val `@annotations`: ScopedList<KtAnnotationEntry> =
+    ScopedList(value?.annotationEntries.orEmpty()),
   val expression: Scope<KtExpression> = Scope(value?.baseExpression)
 ) : Scope<KtAnnotatedExpression>(value)

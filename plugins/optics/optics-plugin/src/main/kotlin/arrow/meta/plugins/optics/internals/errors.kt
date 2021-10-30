@@ -1,14 +1,16 @@
 package arrow.meta.plugins.optics.internals
 
 val String.otherClassTypeErrorMessage
-  get() = """
+  get() =
+    """
       |$this cannot be annotated with @Optics
       | ^
       |
       |Only data and sealed classes can be annotated with @Optics annotation""".trimMargin()
 
 val String.lensErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate arrow.optics.Lens for $this
       |                                       ^
       |arrow.optics.OpticsTarget.LENS is an invalid @Optics argument for $this.
@@ -16,7 +18,8 @@ val String.lensErrorMessage
       """.trimMargin()
 
 val String.optionalErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate arrow.optics.Optional for $this
       |                                           ^
       |arrow.optics.OpticsTarget.OPTIONAL is an invalid @Optics argument for $this.
@@ -24,7 +27,8 @@ val String.optionalErrorMessage
       """.trimMargin()
 
 val String.prismErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate arrow.optics.Prism for $this
       |                                        ^
       |arrow.optics.OpticsTarget.PRISM is an invalid @Optics argument for $this.
@@ -32,7 +36,8 @@ val String.prismErrorMessage
       """.trimMargin()
 
 val String.isoErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate arrow.optics.Iso for $this
       |                                      ^
       |arrow.optics.OpticsTarget.ISO is an invalid @Optics argument for $this.
@@ -40,14 +45,16 @@ val String.isoErrorMessage
       """.trimMargin()
 
 val String.isoTooBigErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate arrow.optics.Iso for $this
       |                                      ^
       |Iso generation is supported for data classes with up to 22 constructor parameters.
       """.trimMargin()
 
 val String.dslErrorMessage
-  get() = """
+  get() =
+    """
       |Cannot generate DSL (arrow.optics.BoundSetter) for $this
       |                                           ^
       |arrow.optics.OpticsTarget.DSL is an invalid @Optics argument for $this.
@@ -55,4 +62,4 @@ val String.dslErrorMessage
       """.trimMargin()
 
 val String.noCompanion
- get() = "@optics annotated class $this needs to declare companion object."
+  get() = "@optics annotated class $this needs to declare companion object."

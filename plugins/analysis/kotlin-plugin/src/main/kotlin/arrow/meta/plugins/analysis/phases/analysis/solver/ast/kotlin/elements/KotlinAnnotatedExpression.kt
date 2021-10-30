@@ -1,4 +1,3 @@
-
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
@@ -6,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 
-fun interface KotlinAnnotatedExpression : AnnotatedExpression, KotlinAnnotated, KotlinAnnotationsContainer {
+fun interface KotlinAnnotatedExpression :
+  AnnotatedExpression, KotlinAnnotated, KotlinAnnotationsContainer {
   override fun impl(): KtAnnotatedExpression
 
   override val baseExpression: Expression?

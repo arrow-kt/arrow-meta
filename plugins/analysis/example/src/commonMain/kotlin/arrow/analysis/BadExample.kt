@@ -12,14 +12,18 @@ fun increment(x: Int): Int {
   pre(x > 0) { "value must be positive" }
   return (x + 1).post({ it > 0 }) { "result is positive" }
 }
+
 val example = increment(increment(1))
 
 class Positive(val value: Int) {
-  init { require(value > 0) }
+  init {
+    require(value > 0)
+  }
 }
+
 val positiveExample = Positive(1)
-fun Positive.add(other: Positive) =
-  Positive(this.value + other.value)
+
+fun Positive.add(other: Positive) = Positive(this.value + other.value)
 
 /*
 fun nope(x: Int): Int {
@@ -37,14 +41,15 @@ fun <A> List<A>.myGet(index: Int): A {
   pre(index >= 0 && index < this.size) { "index within bounds" }
   return this.get(index)
 }
-fun <A> List<A>.firstOr(default: A): A =
-  if (this.size > 0) this.myGet(0) else default
 
-fun absoluteValue(n: Int): Int = when {
-  n < 0 -> -n
-  n == 0 -> 0
-  else -> n
-}.post({ it >= 0 }) { "result >= 0" }
+fun <A> List<A>.firstOr(default: A): A = if (this.size > 0) this.myGet(0) else default
+
+fun absoluteValue(n: Int): Int =
+  when {
+    n < 0 -> -n
+    n == 0 -> 0
+    else -> n
+  }.post({ it >= 0 }) { "result >= 0" }
 
 fun double(n: Int): Int {
   pre(n > 0) { "n positive" }
@@ -60,6 +65,8 @@ fun double2(n: Int): Int {
 
 fun <A> List<A>.count(): Int {
   var count = 0.invariant({ it >= 0 }) { "z >= 0" }
-  for (elt in this) { count = count + 1 }
+  for (elt in this) {
+    count = count + 1
+  }
   return count.post({ it >= 0 }) { "result >= 0" }
 }

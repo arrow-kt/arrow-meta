@@ -4,9 +4,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 
 class KotlinPackageFragmentDescriptor(
   val impl: org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-) :
-  PackageFragmentDescriptor,
-  KotlinDeclarationDescriptor {
+) : PackageFragmentDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor = impl
 }

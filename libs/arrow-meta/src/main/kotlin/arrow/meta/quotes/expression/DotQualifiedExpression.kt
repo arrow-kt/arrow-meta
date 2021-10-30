@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *          }
  *        )
  *      }
- *```
+ * ```
  */
 class DotQualifiedExpression(
   override val value: KtDotQualifiedExpression?,

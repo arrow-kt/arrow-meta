@@ -11,6 +11,5 @@ fun interface KotlinDeclarationWithInitializer : DeclarationWithInitializer, Kot
   override val initializer: Expression?
     get() = impl().initializer?.model()
 
-  override fun hasInitializer(): Boolean =
-    impl().hasInitializer()
+  override fun hasInitializer(): Boolean = impl().hasInitializer()
 }

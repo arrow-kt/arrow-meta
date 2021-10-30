@@ -7,7 +7,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 
-fun interface KotlinCallableDeclaration : CallableDeclaration, KotlinNamedDeclaration, KotlinTypeParameterListOwner {
+fun interface KotlinCallableDeclaration :
+  CallableDeclaration, KotlinNamedDeclaration, KotlinTypeParameterListOwner {
   override fun impl(): KtCallableDeclaration
   override val valueParameterList: ParameterList?
     get() = impl().valueParameterList?.model()

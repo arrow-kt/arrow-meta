@@ -24,11 +24,9 @@ fun interface KotlinPureClassOrObject : PureClassOrObject, KotlinDeclarationCont
   override val companionObjects: List<ObjectDeclaration?>
     get() = impl().companionObjects.map { it.model() }
 
-  override fun hasExplicitPrimaryConstructor(): Boolean =
-    impl().hasExplicitPrimaryConstructor()
+  override fun hasExplicitPrimaryConstructor(): Boolean = impl().hasExplicitPrimaryConstructor()
 
-  override fun hasPrimaryConstructor(): Boolean =
-    impl().hasPrimaryConstructor()
+  override fun hasPrimaryConstructor(): Boolean = impl().hasPrimaryConstructor()
 
   override val primaryConstructor: PrimaryConstructor?
     get() = impl().primaryConstructor?.model()

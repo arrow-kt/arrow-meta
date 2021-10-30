@@ -4,7 +4,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 
-class KotlinTypeAliasConstructorDescriptor(override val impl: org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor) : KotlinConstructorDescriptor(impl), TypeAliasConstructorDescriptor {
+class KotlinTypeAliasConstructorDescriptor(
+  override val impl: org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
+) : KotlinConstructorDescriptor(impl), TypeAliasConstructorDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor = impl
 
   override val underlyingConstructorDescriptor: ConstructorDescriptor

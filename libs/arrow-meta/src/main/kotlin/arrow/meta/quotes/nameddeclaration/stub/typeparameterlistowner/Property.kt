@@ -20,9 +20,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
  * <code>""" $modality $visibility $valOrVar $name $returnType $initializer """.property</code>
- * *
- * A template destructuring [Scope] for a [KtProperty].
- *
+ * * A template destructuring [Scope] for a [KtProperty].
  *
  * ```
  * import arrow.meta.Meta
@@ -53,32 +51,43 @@ class Property(
   override val descriptor: PropertyDescriptor?,
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
-  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters
-    ?: listOf(), postfix = ">"),
-  val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
+  val `(typeParameters)`: ScopedList<KtTypeParameter> =
+    ScopedList(prefix = "<", value = value.typeParameters ?: listOf(), postfix = ">"),
+  val receiver: ScopedList<KtTypeReference> =
+    ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,
   val typeReference: TypeReference? = TypeReference(value.typeReference),
-  val `(params)`: ScopedList<KtParameter> = ScopedList(
-    prefix = "(",
-    value = value.valueParameters ?: listOf(),
-    postfix = ")",
-    forceRenderSurroundings = true
-  ),
-  val delegate: Scope<KtPropertyDelegate> = Scope(value.delegate), // TODO KtPropertyDelegate scope and quote template
-  val delegateExpressionOrInitializer: Scope<KtExpression> = Scope(value.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
-  val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
-  val initializer: ScopedList<KtExpression> = ScopedList(listOfNotNull(value.initializer), prefix = " = "),
-  val valOrVar: Name = when {
-    value.isVar -> "var"
-    else -> "val"
-  }.let(Name::identifier),
+  val `(params)`: ScopedList<KtParameter> =
+    ScopedList(
+      prefix = "(",
+      value = value.valueParameters ?: listOf(),
+      postfix = ")",
+      forceRenderSurroundings = true
+    ),
+  val delegate: Scope<KtPropertyDelegate> =
+    Scope(value.delegate), // TODO KtPropertyDelegate scope and quote template
+  val delegateExpressionOrInitializer: Scope<KtExpression> =
+    Scope(value.delegateExpressionOrInitializer), // TODO KtExpression scope and quote template
+  val returnType: ScopedList<KtTypeReference> =
+    ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
+  val initializer: ScopedList<KtExpression> =
+    ScopedList(listOfNotNull(value.initializer), prefix = " = "),
+  val valOrVar: Name =
+    when {
+      value.isVar -> "var"
+      else -> "val"
+    }.let(Name::identifier),
   val getter: PropertyAccessor = PropertyAccessor(value.getter),
   val setter: PropertyAccessor = PropertyAccessor(value.setter)
 ) : TypeParameterListOwner<KtProperty, PropertyDescriptor>(value, descriptor), SyntheticElement {
-  override fun ElementScope.identity(descriptor: PropertyDescriptor?): TypedScope<KtProperty, PropertyDescriptor> {
+  override fun ElementScope.identity(
+    descriptor: PropertyDescriptor?
+  ): TypedScope<KtProperty, PropertyDescriptor> {
     return """$modality $visibility $valOrVar $name $returnType $initializer
                   $getter
                   $setter
-                  $delegate""".property(descriptor)
+                  $delegate""".property(
+      descriptor
+    )
   }
 }

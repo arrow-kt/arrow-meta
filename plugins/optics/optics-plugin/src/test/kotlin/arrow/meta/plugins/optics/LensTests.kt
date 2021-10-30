@@ -15,7 +15,9 @@ class LensTests {
       |
       |val i: Lens<LensData, String> = LensData.field1
       |val r = i != null
-      """ { "r".source.evalsTo(true) }
+      """ {
+      "r".source.evalsTo(true)
+    }
   }
 
   @Test
@@ -30,6 +32,8 @@ class LensTests {
       |
       |val i: Lens<LensesSecondaryConstructor, String> = LensesSecondaryConstructor.fieldString
       |val r = i != null
-      """ { "r".source.evalsTo(true) }
+      """ {
+      "r".source.evalsTo(true)
+    }
   }
 }

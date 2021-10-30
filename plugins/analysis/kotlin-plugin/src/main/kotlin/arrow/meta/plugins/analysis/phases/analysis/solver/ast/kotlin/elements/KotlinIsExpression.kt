@@ -7,7 +7,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtIsExpression
 
-class KotlinIsExpression(val impl: KtIsExpression) : IsExpression, KotlinExpression, KotlinOperationExpression {
+class KotlinIsExpression(val impl: KtIsExpression) :
+  IsExpression, KotlinExpression, KotlinOperationExpression {
   override fun impl(): KtIsExpression = impl
   override val leftHandSide: Expression
     get() = impl().leftHandSide.model()
