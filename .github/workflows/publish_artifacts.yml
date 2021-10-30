@@ -3,7 +3,7 @@ name: Publish Artifacts
 on:
   push:
     branches:
-    - main
+    - fix-publish-artifacts
 
 env:
   OSS_USER: '${{ secrets.OSS_USER }}'
@@ -39,7 +39,7 @@ jobs:
     - name: Check properties
       id: properties
       run: |
-        ACTUAL_VERSION=$(grep -e "^projects.version=.*$" gradle.properties | cut -d= -f2)
+        ACTUAL_VERSION=$(grep -e "^projects\.version=.*$" gradle.properties | cut -d= -f2)
         echo "::set-output name=actual-version::$ACTUAL_VERSION"
         if [[ "$ACTUAL_VERSION" == *-SNAPSHOT ]]; then
             echo "::set-output name=repository-type::snapshot"
