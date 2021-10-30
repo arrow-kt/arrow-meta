@@ -5,6 +5,7 @@ plugins {
   alias(libs.plugins.dokka) apply false
   alias(libs.plugins.ktlint) apply false
   alias(libs.plugins.arrowGradleConfig.nexus)
+  alias(libs.plugins.arrowGradleConfig.formatter)
 }
 
 allprojects {
