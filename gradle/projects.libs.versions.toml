@@ -9,7 +9,7 @@ javaAssist = "3.27.0-GA"
 junit = "5.8.1"
 kotlin = "1.5.31"
 kotest = "3.4.2"
-ktlint = "10.1.0"
+ktlint = "10.2.0"
 javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.5"
 
