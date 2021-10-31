@@ -1,6 +1,6 @@
 [versions]
 arrow = "1.0.0"
-arrowGradleConfig = "0.3.5"
+arrowGradleConfig = "0.4.1"
 assertj = "3.21.0"
 classgraph = "4.8.129"
 dokka = "1.5.31"
@@ -9,7 +9,6 @@ javaAssist = "3.28.0-GA"
 junit = "5.8.1"
 kotlin = "1.5.31"
 kotest = "3.4.2"
-ktlint = "10.2.0"
 javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.5"
 
@@ -40,7 +39,6 @@ kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testi
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 arrowGradleConfig-formatter = { id = "io.arrow-kt.arrow-gradle-config-formatter", version.ref = "arrowGradleConfig" }
 arrowGradleConfig-jvm = { id = "io.arrow-kt.arrow-gradle-config-jvm", version.ref = "arrowGradleConfig" }
 arrowGradleConfig-multiplatform = { id = "io.arrow-kt.arrow-gradle-config-multiplatform", version.ref = "arrowGradleConfig" }
