@@ -3,13 +3,12 @@ import org.jetbrains.dokka.gradle.DokkaTask
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.dokka) apply false
-  alias(libs.plugins.ktlint) apply false
   alias(libs.plugins.arrowGradleConfig.nexus)
+  alias(libs.plugins.arrowGradleConfig.formatter)
 }
 
 allprojects {
   repositories {
-    mavenLocal()
     mavenCentral()
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
   }

@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class TypeReferenceTest {
 
   companion object {
-    val typeReferenceExpression = """
+    val typeReferenceExpression =
+      """
                          | //metadebug
                          | 
                          | val aBoxedA: Int? = 13
@@ -18,10 +19,12 @@ class TypeReferenceTest {
 
   @Test
   fun `Validate type reference properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(TypeReferencePlugin())) },
-      code = { typeReferenceExpression },
-      assert = { quoteOutputMatches(typeReferenceExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(TypeReferencePlugin())) },
+        code = { typeReferenceExpression },
+        assert = { quoteOutputMatches(typeReferenceExpression) }
+      )
+    )
   }
 }

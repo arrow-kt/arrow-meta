@@ -15,7 +15,9 @@ class OptionalTests {
       |
       |val i: Optional<OptionalData, String> = OptionalData.field1
       |val r = i != null
-      """ { "r".source.evalsTo(true) }
+      """ {
+      "r".source.evalsTo(true)
+    }
   }
 
   @Test
@@ -30,6 +32,8 @@ class OptionalTests {
       |
       |val i: Optional<OptionalSecondaryConstructor, String> = OptionalSecondaryConstructor.fieldString
       |val r = i != null
-      """ { "r".source.evalsTo(true) }
+      """ {
+      "r".source.evalsTo(true)
+    }
   }
 }

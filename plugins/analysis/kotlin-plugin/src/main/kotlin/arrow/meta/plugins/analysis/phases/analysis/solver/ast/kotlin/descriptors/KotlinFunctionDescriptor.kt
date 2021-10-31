@@ -4,17 +4,20 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind
 
-abstract class KotlinFunctionDescriptor(open val impl: org.jetbrains.kotlin.descriptors.FunctionDescriptor) : FunctionDescriptor, KotlinCallableMemberDescriptor {
+abstract class KotlinFunctionDescriptor(
+  open val impl: org.jetbrains.kotlin.descriptors.FunctionDescriptor
+) : FunctionDescriptor, KotlinCallableMemberDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.FunctionDescriptor = impl
 
   override val kind: CallableMemberDescriptor.Kind
-    get() = when (impl().kind) {
-      Kind.DECLARATION -> CallableMemberDescriptor.Kind.DECLARATION
-      Kind.FAKE_OVERRIDE -> CallableMemberDescriptor.Kind.FAKE_OVERRIDE
-      Kind.DELEGATION -> CallableMemberDescriptor.Kind.DELEGATION
-      Kind.SYNTHESIZED -> CallableMemberDescriptor.Kind.SYNTHESIZED
-    }
+    get() =
+      when (impl().kind) {
+        Kind.DECLARATION -> CallableMemberDescriptor.Kind.DECLARATION
+        Kind.FAKE_OVERRIDE -> CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+        Kind.DELEGATION -> CallableMemberDescriptor.Kind.DELEGATION
+        Kind.SYNTHESIZED -> CallableMemberDescriptor.Kind.SYNTHESIZED
+      }
   override val isOperator: Boolean
     get() = impl().isOperator
   override val isInfix: Boolean

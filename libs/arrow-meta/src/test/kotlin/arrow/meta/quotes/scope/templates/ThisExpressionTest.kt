@@ -11,37 +11,45 @@ class ThisExpressionTest {
 
   @Test
   fun `Validate this expression with labeled qualifiers scope properties`() {
-    validate("""
+    validate(
+      """
         | fun Int.foo() {
         |   val a = this@A
         |   val b = this@B
         |   val c1 = this@foo
-        | }""".thisExpression())
+        | }""".thisExpression()
+    )
   }
 
   @Test
   fun `Validate this expression no labeled target scope properties`() {
-    validate("""
+    validate(
+      """
       | val funLit2 = { s: String ->
       |  val d1 = this
       | }
-      | """.thisExpression())
+      | """.thisExpression()
+    )
   }
 
   @Test
   fun `Validate this expression with reflection target scope properties`() {
-    validate("""
+    validate(
+      """
       | fun stringToSentence(input: String): String = input + " is in a sentence."
       | val funLit2 = { s: String -> this::stringToSentence }
-      | """.thisExpression())
+      | """.thisExpression()
+    )
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(ThisExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ThisExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 
   private fun String.thisExpression(): Code.Source {
@@ -53,6 +61,9 @@ class ThisExpressionTest {
       |     $this
       |   }
       | }
-      | """.trimMargin().trim().source
+      | """
+      .trimMargin()
+      .trim()
+      .source
   }
 }

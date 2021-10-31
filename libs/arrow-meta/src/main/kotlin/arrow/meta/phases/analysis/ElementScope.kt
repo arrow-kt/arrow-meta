@@ -241,10 +241,7 @@ interface ElementScope {
 
   val String.lambdaParameterList: ParameterList
 
-  fun lambdaExpression(
-    parameters: String,
-    body: String
-  ): LambdaExpression
+  fun lambdaExpression(parameters: String, body: String): LambdaExpression
 
   val String.enumEntry: Scope<KtEnumEntry>
 

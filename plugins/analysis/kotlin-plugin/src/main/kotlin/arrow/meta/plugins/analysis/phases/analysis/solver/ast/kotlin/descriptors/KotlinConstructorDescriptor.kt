@@ -4,7 +4,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
-open class KotlinConstructorDescriptor(override val impl: org.jetbrains.kotlin.descriptors.ConstructorDescriptor) : ConstructorDescriptor, KotlinFunctionDescriptor(impl) {
+open class KotlinConstructorDescriptor(
+  override val impl: org.jetbrains.kotlin.descriptors.ConstructorDescriptor
+) : ConstructorDescriptor, KotlinFunctionDescriptor(impl) {
   override fun impl(): org.jetbrains.kotlin.descriptors.ConstructorDescriptor = impl
 
   override val constructedClass: ClassDescriptor

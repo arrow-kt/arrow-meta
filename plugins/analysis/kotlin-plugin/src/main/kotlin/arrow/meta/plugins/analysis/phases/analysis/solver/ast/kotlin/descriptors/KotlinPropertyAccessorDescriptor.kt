@@ -4,7 +4,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptorWithAccessors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
-class KotlinPropertyAccessorDescriptor(override val impl: org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor) : PropertyAccessorDescriptor, KotlinVariableAccessorDescriptor(impl) {
+class KotlinPropertyAccessorDescriptor(
+  override val impl: org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor
+) : PropertyAccessorDescriptor, KotlinVariableAccessorDescriptor(impl) {
   override fun impl(): org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor = impl
   override val overriddenDescriptors: Collection<PropertyAccessorDescriptor>
     get() = impl().overriddenDescriptors.map { it.model() }

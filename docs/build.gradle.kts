@@ -3,7 +3,6 @@ import arrow.ank.AnkExtension
 buildscript {
   repositories {
     mavenCentral()
-    mavenLocal()
   }
   dependencies {
     classpath(libs.arrowAnkGradle)

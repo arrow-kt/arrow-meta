@@ -4,6 +4,9 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
   val kind: Kind
 
   enum class Kind {
-    DECLARATION, FAKE_OVERRIDE, DELEGATION, SYNTHESIZED;
+    DECLARATION,
+    FAKE_OVERRIDE,
+    DELEGATION,
+    SYNTHESIZED
   }
 }

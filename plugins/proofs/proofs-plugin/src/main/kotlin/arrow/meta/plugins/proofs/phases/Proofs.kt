@@ -41,18 +41,19 @@ fun KtAnnotated.hasAnnotation(trace: BindingTrace, fqName: FqName): Boolean =
 fun KtAnnotated.hasAnnotation(ctx: BindingContext, fqName: FqName): Boolean =
   annotations(ctx).any { it.fqName == fqName }
 
-fun Annotated.isProof(): Boolean =
-  annotations.any { it.isGivenContextProof() }
+fun Annotated.isProof(): Boolean = annotations.any { it.isGivenContextProof() }
 
-private fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides(): CallableMemberDescriptor? =
+private fun CallableMemberDescriptor.discardPlatformBaseObjectFakeOverrides():
+  CallableMemberDescriptor? =
   when (kind) {
     CallableMemberDescriptor.Kind.FAKE_OVERRIDE ->
-      if (dispatchReceiverParameter?.type == builtIns.anyType) null
-      else this
+      if (dispatchReceiverParameter?.type == builtIns.anyType) null else this
     else -> this
   }
 
-fun Proof.callables(descriptorNameFilter: (Name) -> Boolean = { true }): List<CallableMemberDescriptor> =
+fun Proof.callables(
+  descriptorNameFilter: (Name) -> Boolean = { true }
+): List<CallableMemberDescriptor> =
   to.memberScope
     .getContributedDescriptors(nameFilter = descriptorNameFilter)
     .toList()
@@ -69,29 +70,24 @@ fun CompilerContext.givenProof(context: FqName, superType: KotlinType): GivenPro
   givenProofCandidate(superType, givenProofs(context, superType))
 
 private fun CompilerContext.givenProofs(context: FqName, superType: KotlinType): List<GivenProof> =
-  proof<GivenProof>()
-    .filter {
-      context in it.contexts
-    }
-    .matchingCandidates(this, superType)
+  proof<GivenProof>().filter { context in it.contexts }.matchingCandidates(this, superType)
 
 private fun CompilerContext.givenProofCandidate(
   targetType: KotlinType,
   candidates: List<GivenProof>
 ): GivenProofResolution {
   val proofs = givenProofs()
-  val c = candidates
-    .filter {
+  val c =
+    candidates.filter {
       it.isResolved(proofs, mutableSetOf()).first &&
-        proofs.skippedProofsDueToAmbiguities()
-          .firstOrNull { (p, _) -> p == it } == null
+        proofs.skippedProofsDueToAmbiguities().firstOrNull { (p, _) -> p == it } == null
     }
-  val maybeAmbiguous = c.filter {
-    it.to != targetType && it.to.isSubtypeOf(targetType)
-  }
-  val choosenCandidate = c.minByOrNull {
-    it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility != DescriptorVisibilities.INTERNAL
-  }
+  val maybeAmbiguous = c.filter { it.to != targetType && it.to.isSubtypeOf(targetType) }
+  val choosenCandidate =
+    c.minByOrNull {
+      it.through.safeAs<DeclarationDescriptorWithVisibility>()?.visibility !=
+        DescriptorVisibilities.INTERNAL
+    }
 
   val ambiguous = if (maybeAmbiguous.size > 1) maybeAmbiguous else emptyList()
   return GivenProofResolution(choosenCandidate, targetType, ambiguous)
@@ -101,8 +97,8 @@ inline fun <reified P : Proof> CompilerContext.proof(): List<P> =
   module?.proofs(this)?.filterIsInstance<P>()!!
 
 /**
- * returns a Map, where the keys are [KotlinType] and the values are
- * all corresponding proofs without refining the list as it is done in [givenProofs].
+ * returns a Map, where the keys are [KotlinType] and the values are all corresponding proofs
+ * without refining the list as it is done in [givenProofs].
  */
 fun CompilerContext.allGivenProofs(): Map<KotlinType, List<GivenProof>> =
   proof<GivenProof>()
@@ -112,16 +108,14 @@ fun CompilerContext.allGivenProofs(): Map<KotlinType, List<GivenProof>> =
         if (acc.containsKey(key)) acc[key] = acc[key].orEmpty() + proof
         else acc[key] = listOf(proof)
       }
-    }.toMap()
+    }
+    .toMap()
 
-/**
- * contrary to [allGivenProofs] it refines the List as it is done in [givenProofs]
- */
+/** contrary to [allGivenProofs] it refines the List as it is done in [givenProofs] */
 fun CompilerContext.givenProofs(): Map<KotlinType, List<GivenProof>> =
   allGivenProofs()
-    .mapValues { (type, proofs) ->
-      proofs.matchingCandidates(this, type)
-    }.filterValues { it.isNotEmpty() }
+    .mapValues { (type, proofs) -> proofs.matchingCandidates(this, type) }
+    .filterValues { it.isNotEmpty() }
 
 @Synchronized
 fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
@@ -144,5 +138,6 @@ fun ModuleDescriptor.proofs(ctx: CompilerContext): List<Proof> =
 
 fun Proof.asString(): String =
   when (this) {
-    is GivenProof -> "GivenProof ${through.fqNameSafe.asString()} on the type ${ProofRenderer.renderType(to)}"
+    is GivenProof ->
+      "GivenProof ${through.fqNameSafe.asString()} on the type ${ProofRenderer.renderType(to)}"
   }

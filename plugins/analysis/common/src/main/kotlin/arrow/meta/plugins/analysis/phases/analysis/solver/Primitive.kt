@@ -50,8 +50,7 @@ fun Solver.primitiveFormula(
   val returnTy = descriptor.returnType?.primitiveType()
   val argTys = descriptor.allParameters.map { param -> param.type.primitiveType() }
   return when {
-    descriptor.isComparison() ->
-      comparisonFormula(context, resolvedCall, args)
+    descriptor.isComparison() -> comparisonFormula(context, resolvedCall, args)
     returnTy == PrimitiveType.BOOLEAN && argTys.all { it == PrimitiveType.BOOLEAN } ->
       booleanFormula(descriptor, args)
     returnTy == PrimitiveType.INTEGRAL && argTys.all { it == PrimitiveType.INTEGRAL } ->
@@ -74,85 +73,86 @@ private fun Solver.comparisonFormula(
   resolvedCall: ResolvedCall,
   args: List<Formula>
 ): BooleanFormula? =
-  resolvedCall.allArgumentExpressions(context)
-    .takeIf { it.size == 2 }
-    ?.let {
-      val ty1 = it[0].type.unwrapIfNullable().primitiveType()
-      val ty2 = it[1].type.unwrapIfNullable().primitiveType()
-      val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
-      when {
-        ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->
-          when (op) {
-            "==" -> boolEquivalence(args)
-            "!=" -> boolEquivalence(args)?.let { f -> not(f) }
-            else -> null
-          }
-        ty1 == PrimitiveType.INTEGRAL && ty2 == PrimitiveType.INTEGRAL ->
-          when (op) {
-            "==" -> intEquals(args)
-            "!=" -> intEquals(args)?.let { f -> not(f) }
-            ">" -> intGreaterThan(args)
-            ">=" -> intGreaterThanOrEquals(args)
-            "<" -> intLessThan(args)
-            "<=" -> intLessThanOrEquals(args)
-            else -> null
-          }
-        ty1 == PrimitiveType.RATIONAL && ty2 == PrimitiveType.RATIONAL ->
-          when (op) {
-            "==" -> rationalEquals(args)
-            "!=" -> rationalEquals(args)?.let { f -> not(f) }
-            ">" -> rationalGreaterThan(args)
-            ">=" -> rationalGreaterThanOrEquals(args)
-            "<" -> rationalLessThan(args)
-            "<=" -> rationalLessThanOrEquals(args)
-            else -> null
-          }
-        ty1 == null && ty2 == null -> // equality on objects
-          when (op) {
-            "==" -> intEquals(args)
-            else -> null
-          }
-        else -> null
-      }
+  resolvedCall.allArgumentExpressions(context).takeIf { it.size == 2 }?.let {
+    val ty1 = it[0].type.unwrapIfNullable().primitiveType()
+    val ty2 = it[1].type.unwrapIfNullable().primitiveType()
+    val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
+    when {
+      ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->
+        when (op) {
+          "==" -> boolEquivalence(args)
+          "!=" -> boolEquivalence(args)?.let { f -> not(f) }
+          else -> null
+        }
+      ty1 == PrimitiveType.INTEGRAL && ty2 == PrimitiveType.INTEGRAL ->
+        when (op) {
+          "==" -> intEquals(args)
+          "!=" -> intEquals(args)?.let { f -> not(f) }
+          ">" -> intGreaterThan(args)
+          ">=" -> intGreaterThanOrEquals(args)
+          "<" -> intLessThan(args)
+          "<=" -> intLessThanOrEquals(args)
+          else -> null
+        }
+      ty1 == PrimitiveType.RATIONAL && ty2 == PrimitiveType.RATIONAL ->
+        when (op) {
+          "==" -> rationalEquals(args)
+          "!=" -> rationalEquals(args)?.let { f -> not(f) }
+          ">" -> rationalGreaterThan(args)
+          ">=" -> rationalGreaterThanOrEquals(args)
+          "<" -> rationalLessThan(args)
+          "<=" -> rationalLessThanOrEquals(args)
+          else -> null
+        }
+      ty1 == null && ty2 == null -> // equality on objects
+      when (op) {
+          "==" -> intEquals(args)
+          else -> null
+        }
+      else -> null
     }
+  }
 
 private fun Solver.booleanFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
-): BooleanFormula? = when (descriptor.fqNameSafe) {
-  FqName("kotlin.Boolean.not") -> boolNot(args)
-  FqName("kotlin.Boolean.and") -> boolAnd(args)
-  FqName("kotlin.Boolean.or") -> boolOr(args)
-  FqName("kotlin.Boolean.xor") -> boolXor(args)
-  else -> null
-}
+): BooleanFormula? =
+  when (descriptor.fqNameSafe) {
+    FqName("kotlin.Boolean.not") -> boolNot(args)
+    FqName("kotlin.Boolean.and") -> boolAnd(args)
+    FqName("kotlin.Boolean.or") -> boolOr(args)
+    FqName("kotlin.Boolean.xor") -> boolXor(args)
+    else -> null
+  }
 
 private fun Solver.integralFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
-): NumeralFormula.IntegerFormula? = when (descriptor.name.value) {
-  "plus" -> intPlus(args)
-  "minus" -> intMinus(args)
-  "times" -> intMultiply(args)
-  // "div" -> intDivide(args) // not all SMT solvers support div
-  "inc" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-  "dec" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
-  "unaryMinus" -> intNegate(args)
-  "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.IntegerFormula)
-  else -> null
-}
+): NumeralFormula.IntegerFormula? =
+  when (descriptor.name.value) {
+    "plus" -> intPlus(args)
+    "minus" -> intMinus(args)
+    "times" -> intMultiply(args)
+    // "div" -> intDivide(args) // not all SMT solvers support div
+    "inc" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "unaryMinus" -> intNegate(args)
+    "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.IntegerFormula)
+    else -> null
+  }
 
 private fun Solver.rationalFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
-): NumeralFormula.RationalFormula? = when (descriptor.name.value) {
-  "plus" -> rationalPlus(args)
-  "minus" -> rationalMinus(args)
-  "times" -> rationalMultiply(args)
-  // "div" -> rationalDivide(args) // not all SMT solvers support div
-  "inc" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-  "dec" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
-  "unaryMinus" -> rationalNegate(args)
-  "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.RationalFormula)
-  else -> null
-}
+): NumeralFormula.RationalFormula? =
+  when (descriptor.name.value) {
+    "plus" -> rationalPlus(args)
+    "minus" -> rationalMinus(args)
+    "times" -> rationalMultiply(args)
+    // "div" -> rationalDivide(args) // not all SMT solvers support div
+    "inc" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "unaryMinus" -> rationalNegate(args)
+    "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.RationalFormula)
+    else -> null
+  }

@@ -10,15 +10,14 @@ import arrow.meta.plugins.proofs.phases.quotes.generateGivenPreludeFile
 import arrow.meta.plugins.proofs.phases.resolve.proofResolutionRules
 
 val Meta.typeProofs: CliPlugin
-  get() =
-    "Type Proofs CLI" {
-      meta(
-        enableIr(),
-        enableProofCallResolver(),
-        proofResolutionRules(),
-        generateGivenPreludeFile(),
-        irCall { ProofsIrCodegen(this) { proveNestedCalls(it) } },
-        removeCompileTimeDeclarations(),
-        irDumpKotlinLike()
-      )
-    }
+  get() = "Type Proofs CLI" {
+    meta(
+      enableIr(),
+      enableProofCallResolver(),
+      proofResolutionRules(),
+      generateGivenPreludeFile(),
+      irCall { ProofsIrCodegen(this) { proveNestedCalls(it) } },
+      removeCompileTimeDeclarations(),
+      irDumpKotlinLike()
+    )
+  }

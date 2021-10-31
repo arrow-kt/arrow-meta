@@ -93,45 +93,42 @@ interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<CliPlugin>
 
-  fun meta(vararg phases: ExtensionPhase): List<ExtensionPhase> =
-    phases.toList()
+  fun meta(vararg phases: ExtensionPhase): List<ExtensionPhase> = phases.toList()
 
   private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
     cli {
-      AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {
-        override fun doAnalysis(
-          project: Project,
-          module: ModuleDescriptor,
-          projectContext: ProjectContext,
-          files: Collection<KtFile>,
-          bindingTrace: BindingTrace,
-          componentProvider: ComponentProvider
-        ): AnalysisResult? {
-          ctx.module = module
-          ctx.componentProvider = componentProvider
-          return null
-        }
+      AnalysisHandlerExtension.registerExtension(
+        project,
+        object : AnalysisHandlerExtension {
+          override fun doAnalysis(
+            project: Project,
+            module: ModuleDescriptor,
+            projectContext: ProjectContext,
+            files: Collection<KtFile>,
+            bindingTrace: BindingTrace,
+            componentProvider: ComponentProvider
+          ): AnalysisResult? {
+            ctx.module = module
+            ctx.componentProvider = componentProvider
+            return null
+          }
 
-        override fun analysisCompleted(
-          project: Project,
-          module: ModuleDescriptor,
-          bindingTrace: BindingTrace,
-          files: Collection<KtFile>
-        ): AnalysisResult? {
-          ctx.module = module
-          return super.analysisCompleted(project, module, bindingTrace, files)
+          override fun analysisCompleted(
+            project: Project,
+            module: ModuleDescriptor,
+            bindingTrace: BindingTrace,
+            files: Collection<KtFile>
+          ): AnalysisResult? {
+            ctx.module = module
+            return super.analysisCompleted(project, module, bindingTrace, files)
+          }
         }
-      })
+      )
     }
   }
 
-  fun registerProjectComponents(
-    project: MockProject,
-    configuration: CompilerConfiguration
-  ) {
-    ide {
-      println("registerProjectComponents!!!! CALLED in IDEA!!!! something is wrong.")
-    }
+  fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
+    ide { println("registerProjectComponents!!!! CALLED in IDEA!!!! something is wrong.") }
     registerMetaComponents(project, configuration)
   }
 
@@ -140,29 +137,26 @@ interface InternalRegistry : ConfigSyntax {
     configuration: CompilerConfiguration,
     context: CompilerContext? = null
   ) {
-    cli {
-      registerSyntheticScopeProviderIfNeeded(project)
-    }
+    cli { registerSyntheticScopeProviderIfNeeded(project) }
     val ctx: CompilerContext =
       if (context != null) {
         context
       } else {
-        val messageCollector: MessageCollector? =
-          cli { configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE) }
+        val messageCollector: MessageCollector? = cli {
+          configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+        }
         CompilerContext(configuration, project, messageCollector)
       }
     registerPostAnalysisContextEnrichment(project, ctx)
 
-// TODO: Pending fix https://github.com/gradle/gradle/issues/14727
-//    println("System.properties are: " + System.getProperties().map {
-//     "\n${it.key} : ${it.value}"
-//    })
-//
-//    installArrowPlugin()
+    // TODO: Pending fix https://github.com/gradle/gradle/issues/14727
+    //    println("System.properties are: " + System.getProperties().map {
+    //     "\n${it.key} : ${it.value}"
+    //    })
+    //
+    //    installArrowPlugin()
 
-    val initialPhases = listOf("Initial setup" {
-      listOf(compilerContextService())
-    })
+    val initialPhases = listOf("Initial setup" { listOf(compilerContextService()) })
     (initialPhases + intercept(ctx)).forEach { plugin ->
       println("Registering Cli plugin: $plugin extensions: ${plugin.meta}")
       plugin.meta.invoke(ctx).forEach { currentPhase ->
@@ -171,24 +165,27 @@ interface InternalRegistry : ConfigSyntax {
             // Empty & Composite allow for composing ExtensionPhases
             is ExtensionPhase.Empty -> Unit
             is Composite -> phases.map(ExtensionPhase::registerPhase)
-
             is CollectAdditionalSources -> registerCollectAdditionalSources(project, this, ctx)
             is Config -> registerCompilerConfiguration(project, this, ctx)
-
             is ExtraImports -> registerExtraImports(project, this, ctx)
-
-            is PreprocessedVirtualFileFactory -> registerPreprocessedVirtualFileFactory(project, this, ctx)
+            is PreprocessedVirtualFileFactory ->
+              registerPreprocessedVirtualFileFactory(project, this, ctx)
             is StorageComponentContainer -> registerStorageComponentContainer(project, this, ctx)
             is AnalysisHandler -> registerAnalysisHandler(project, this, ctx)
             is ClassBuilder -> registerClassBuilder(project, this, ctx)
             is Codegen -> registerCodegen(project, this, ctx)
-            is DeclarationAttributeAlterer -> registerDeclarationAttributeAlterer(project, this, ctx)
+            is DeclarationAttributeAlterer ->
+              registerDeclarationAttributeAlterer(project, this, ctx)
             is PackageProvider -> packageFragmentProvider(project, this, ctx)
             is SyntheticResolver -> registerSyntheticResolver(project, this, ctx)
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
             // is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
-            else -> ctx.messageCollector?.report(CompilerMessageSeverity.ERROR, "Unsupported extension phase: $this")
+            else ->
+              ctx.messageCollector?.report(
+                CompilerMessageSeverity.ERROR,
+                "Unsupported extension phase: $this"
+              )
           }
         }
         currentPhase.registerPhase()
@@ -197,78 +194,122 @@ interface InternalRegistry : ConfigSyntax {
   }
 
   fun registerSyntheticScopeProviderIfNeeded(project: Project) {
-    if (!project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)) {
+    if (!project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)
+    ) {
       SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }
   }
 
-// TODO: Pending fix https://github.com/gradle/gradle/issues/14727
-//  fun installArrowPlugin() {
-//    val ideaPath = System.getProperty("idea.plugins.path")
-//    val userDir = System.getProperty("user.dir")
-//    if (ideaPath != null && ideaPath.isNotEmpty() && userDir != null && userDir.isNotEmpty()) {
-//      println("Installing Arrow Plugin: $ideaPath, $userDir")
-//    }
-//  }
+  // TODO: Pending fix https://github.com/gradle/gradle/issues/14727
+  //  fun installArrowPlugin() {
+  //    val ideaPath = System.getProperty("idea.plugins.path")
+  //    val userDir = System.getProperty("user.dir")
+  //    if (ideaPath != null && ideaPath.isNotEmpty() && userDir != null && userDir.isNotEmpty()) {
+  //      println("Installing Arrow Plugin: $ideaPath, $userDir")
+  //    }
+  //  }
 
   fun registerMetaAnalyzer(): ExtensionPhase = ExtensionPhase.Empty
 
   fun registerExtraImports(project: Project, phase: ExtraImports, ctx: CompilerContext) {
-    ExtraImportsProviderExtension.registerExtension(project, object : ExtraImportsProviderExtension {
-      override fun getExtraImports(ktFile: KtFile): Collection<KtImportInfo> =
-        phase.run { ctx.extraImports(ktFile) }
-    })
+    ExtraImportsProviderExtension.registerExtension(
+      project,
+      object : ExtraImportsProviderExtension {
+        override fun getExtraImports(ktFile: KtFile): Collection<KtImportInfo> =
+          phase.run { ctx.extraImports(ktFile) }
+      }
+    )
   }
 
-  fun registerPreprocessedVirtualFileFactory(project: Project, phase: PreprocessedVirtualFileFactory, ctx: CompilerContext) {
-    PreprocessedVirtualFileFactoryExtension.registerExtension(project, object : PreprocessedVirtualFileFactoryExtension {
-      override fun createPreprocessedFile(file: VirtualFile?): VirtualFile? =
-        phase.run { ctx.createPreprocessedFile(file) }
+  fun registerPreprocessedVirtualFileFactory(
+    project: Project,
+    phase: PreprocessedVirtualFileFactory,
+    ctx: CompilerContext
+  ) {
+    PreprocessedVirtualFileFactoryExtension.registerExtension(
+      project,
+      object : PreprocessedVirtualFileFactoryExtension {
+        override fun createPreprocessedFile(file: VirtualFile?): VirtualFile? =
+          phase.run { ctx.createPreprocessedFile(file) }
 
-      override fun createPreprocessedLightFile(file: LightVirtualFile?): LightVirtualFile? =
-        phase.run { ctx.createPreprocessedLightFile(file) }
+        override fun createPreprocessedLightFile(file: LightVirtualFile?): LightVirtualFile? =
+          phase.run { ctx.createPreprocessedLightFile(file) }
 
-      override fun isPassThrough(): Boolean =
-        phase.run { ctx.isPassThrough() }
-    })
+        override fun isPassThrough(): Boolean = phase.run { ctx.isPassThrough() }
+      }
+    )
   }
 
-  fun registerSyntheticScopeProvider(project: Project, phase: SyntheticScopeProvider, ctx: CompilerContext) {
-    SyntheticScopeProviderExtension.registerExtension(project, object : SyntheticScopeProviderExtension {
-      override fun getScopes(moduleDescriptor: ModuleDescriptor, javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope): List<SyntheticScope> =
-        phase.run {
-          listOf(
-            object : SyntheticScope {
-              override fun getSyntheticConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? =
-                phase.run { ctx.syntheticConstructor(constructor) }
+  fun registerSyntheticScopeProvider(
+    project: Project,
+    phase: SyntheticScopeProvider,
+    ctx: CompilerContext
+  ) {
+    SyntheticScopeProviderExtension.registerExtension(
+      project,
+      object : SyntheticScopeProviderExtension {
+        override fun getScopes(
+          moduleDescriptor: ModuleDescriptor,
+          javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope
+        ): List<SyntheticScope> =
+          phase.run {
+            listOf(
+              object : SyntheticScope {
+                override fun getSyntheticConstructor(
+                  constructor: ConstructorDescriptor
+                ): ConstructorDescriptor? = phase.run { ctx.syntheticConstructor(constructor) }
 
-              override fun getSyntheticConstructors(classifierDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticConstructors(classifierDescriptors) }
+                override fun getSyntheticConstructors(
+                  classifierDescriptors: Collection<DeclarationDescriptor>
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticConstructors(classifierDescriptors) }
 
-              override fun getSyntheticConstructors(contributedClassifier: ClassifierDescriptor, location: LookupLocation): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticConstructors(contributedClassifier, location) }
+                override fun getSyntheticConstructors(
+                  contributedClassifier: ClassifierDescriptor,
+                  location: LookupLocation
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticConstructors(contributedClassifier, location) }
 
-              override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, location: LookupLocation): Collection<PropertyDescriptor> =
-                phase.run { ctx.syntheticExtensionProperties(receiverTypes, location) }
+                override fun getSyntheticExtensionProperties(
+                  receiverTypes: Collection<KotlinType>,
+                  location: LookupLocation
+                ): Collection<PropertyDescriptor> =
+                  phase.run { ctx.syntheticExtensionProperties(receiverTypes, location) }
 
-              override fun getSyntheticExtensionProperties(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
-                phase.run { ctx.syntheticExtensionProperties(receiverTypes, name, location) }
+                override fun getSyntheticExtensionProperties(
+                  receiverTypes: Collection<KotlinType>,
+                  name: Name,
+                  location: LookupLocation
+                ): Collection<PropertyDescriptor> =
+                  phase.run { ctx.syntheticExtensionProperties(receiverTypes, name, location) }
 
-              override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticMemberFunctions(receiverTypes) }
+                override fun getSyntheticMemberFunctions(
+                  receiverTypes: Collection<KotlinType>
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticMemberFunctions(receiverTypes) }
 
-              override fun getSyntheticMemberFunctions(receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticMemberFunctions(receiverTypes, name, location) }
+                override fun getSyntheticMemberFunctions(
+                  receiverTypes: Collection<KotlinType>,
+                  name: Name,
+                  location: LookupLocation
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticMemberFunctions(receiverTypes, name, location) }
 
-              override fun getSyntheticStaticFunctions(functionDescriptors: Collection<DeclarationDescriptor>): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticStaticFunctions(functionDescriptors) }
+                override fun getSyntheticStaticFunctions(
+                  functionDescriptors: Collection<DeclarationDescriptor>
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticStaticFunctions(functionDescriptors) }
 
-              override fun getSyntheticStaticFunctions(contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation): Collection<FunctionDescriptor> =
-                phase.run { ctx.syntheticStaticFunctions(contributedFunctions, location) }
-            }
-          )
-        }
-    })
+                override fun getSyntheticStaticFunctions(
+                  contributedFunctions: Collection<FunctionDescriptor>,
+                  location: LookupLocation
+                ): Collection<FunctionDescriptor> =
+                  phase.run { ctx.syntheticStaticFunctions(contributedFunctions, location) }
+              }
+            )
+          }
+      }
+    )
   }
 
   fun registerIRGeneration(
@@ -276,14 +317,14 @@ interface InternalRegistry : ConfigSyntax {
     phase: IRGeneration,
     compilerContext: CompilerContext
   ) {
-    IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
-      override fun generate(
-        moduleFragment: IrModuleFragment,
-        pluginContext: IrPluginContext
-      ) {
-        phase.run { compilerContext.generate(moduleFragment, pluginContext) }
+    IrGenerationExtension.registerExtension(
+      project,
+      object : IrGenerationExtension {
+        override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+          phase.run { compilerContext.generate(moduleFragment, pluginContext) }
+        }
       }
-    })
+    )
   }
 
   fun registerSyntheticResolver(
@@ -291,102 +332,108 @@ interface InternalRegistry : ConfigSyntax {
     phase: SyntheticResolver,
     compilerContext: CompilerContext
   ) {
-    SyntheticResolveExtension.registerExtension(project, object : SyntheticResolveExtension {
-      override fun addSyntheticSupertypes(thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>) {
-        phase.run { compilerContext.addSyntheticSupertypes(thisDescriptor, supertypes) }
-      }
+    SyntheticResolveExtension.registerExtension(
+      project,
+      object : SyntheticResolveExtension {
+        override fun addSyntheticSupertypes(
+          thisDescriptor: ClassDescriptor,
+          supertypes: MutableList<KotlinType>
+        ) {
+          phase.run { compilerContext.addSyntheticSupertypes(thisDescriptor, supertypes) }
+        }
 
-      override fun generateSyntheticClasses(
-        thisDescriptor: ClassDescriptor,
-        name: Name,
-        ctx: LazyClassContext,
-        declarationProvider: ClassMemberDeclarationProvider,
-        result: MutableSet<ClassDescriptor>
-      ) {
-        phase.run {
-          compilerContext.generateSyntheticClasses(
-            thisDescriptor,
-            name,
-            ctx,
-            declarationProvider,
-            result
-          )
+        override fun generateSyntheticClasses(
+          thisDescriptor: ClassDescriptor,
+          name: Name,
+          ctx: LazyClassContext,
+          declarationProvider: ClassMemberDeclarationProvider,
+          result: MutableSet<ClassDescriptor>
+        ) {
+          phase.run {
+            compilerContext.generateSyntheticClasses(
+              thisDescriptor,
+              name,
+              ctx,
+              declarationProvider,
+              result
+            )
+          }
+        }
+
+        override fun generateSyntheticClasses(
+          thisDescriptor: PackageFragmentDescriptor,
+          name: Name,
+          ctx: LazyClassContext,
+          declarationProvider: PackageMemberDeclarationProvider,
+          result: MutableSet<ClassDescriptor>
+        ) {
+          phase.run {
+            compilerContext.generatePackageSyntheticClasses(
+              thisDescriptor,
+              name,
+              ctx,
+              declarationProvider,
+              result
+            )
+          }
+        }
+
+        override fun generateSyntheticMethods(
+          thisDescriptor: ClassDescriptor,
+          name: Name,
+          bindingContext: BindingContext,
+          fromSupertypes: List<SimpleFunctionDescriptor>,
+          result: MutableCollection<SimpleFunctionDescriptor>
+        ) {
+          phase.run {
+            compilerContext.generateSyntheticMethods(
+              thisDescriptor,
+              name,
+              bindingContext,
+              fromSupertypes,
+              result
+            )
+          }
+        }
+
+        override fun generateSyntheticProperties(
+          thisDescriptor: ClassDescriptor,
+          name: Name,
+          bindingContext: BindingContext,
+          fromSupertypes: ArrayList<PropertyDescriptor>,
+          result: MutableSet<PropertyDescriptor>
+        ) {
+          phase.run {
+            compilerContext.generateSyntheticProperties(
+              thisDescriptor,
+              name,
+              bindingContext,
+              fromSupertypes,
+              result
+            )
+          }
+        }
+
+        override fun getSyntheticCompanionObjectNameIfNeeded(
+          thisDescriptor: ClassDescriptor
+        ): Name? {
+          return phase.run {
+            compilerContext.getSyntheticCompanionObjectNameIfNeeded(thisDescriptor)
+          }
+        }
+
+        override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
+          return phase.run { compilerContext.getSyntheticFunctionNames(thisDescriptor) }
+        }
+
+        override fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> {
+          return phase.run { compilerContext.getSyntheticNestedClassNames(thisDescriptor) }
         }
       }
-
-      override fun generateSyntheticClasses(
-        thisDescriptor: PackageFragmentDescriptor,
-        name: Name,
-        ctx: LazyClassContext,
-        declarationProvider: PackageMemberDeclarationProvider,
-        result: MutableSet<ClassDescriptor>
-      ) {
-        phase.run {
-          compilerContext.generatePackageSyntheticClasses(
-            thisDescriptor,
-            name,
-            ctx,
-            declarationProvider,
-            result
-          )
-        }
-      }
-
-      override fun generateSyntheticMethods(
-        thisDescriptor: ClassDescriptor,
-        name: Name,
-        bindingContext: BindingContext,
-        fromSupertypes: List<SimpleFunctionDescriptor>,
-        result: MutableCollection<SimpleFunctionDescriptor>
-      ) {
-        phase.run {
-          compilerContext.generateSyntheticMethods(
-            thisDescriptor,
-            name,
-            bindingContext,
-            fromSupertypes,
-            result
-          )
-        }
-      }
-
-      override fun generateSyntheticProperties(
-        thisDescriptor: ClassDescriptor,
-        name: Name,
-        bindingContext: BindingContext,
-        fromSupertypes: ArrayList<PropertyDescriptor>,
-        result: MutableSet<PropertyDescriptor>
-      ) {
-        phase.run {
-          compilerContext.generateSyntheticProperties(
-            thisDescriptor,
-            name,
-            bindingContext,
-            fromSupertypes,
-            result
-          )
-        }
-      }
-
-      override fun getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor): Name? {
-        return phase.run { compilerContext.getSyntheticCompanionObjectNameIfNeeded(thisDescriptor) }
-      }
-
-      override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
-        return phase.run { compilerContext.getSyntheticFunctionNames(thisDescriptor) }
-      }
-
-      override fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> {
-        return phase.run { compilerContext.getSyntheticNestedClassNames(thisDescriptor) }
-      }
-    })
+    )
   }
 
-  fun packageFragmentProvider(
-    project: Project,
-    phase: PackageProvider,
-    ctx: CompilerContext
-  ) {
+  fun packageFragmentProvider(project: Project, phase: PackageProvider, ctx: CompilerContext) {
     PackageFragmentProviderExtension.registerExtension(
       project,
       object : PackageFragmentProviderExtension {
@@ -409,7 +456,8 @@ interface InternalRegistry : ConfigSyntax {
             )
           }
         }
-      })
+      }
+    )
   }
 
   fun registerDeclarationAttributeAlterer(
@@ -437,31 +485,35 @@ interface InternalRegistry : ConfigSyntax {
             )
           }
         }
-      })
+      }
+    )
   }
 
   fun registerCodegen(project: Project, phase: Codegen, ctx: CompilerContext) {
-    ExpressionCodegenExtension.registerExtension(project, object : ExpressionCodegenExtension {
-      override fun applyFunction(
-        receiver: StackValue,
-        resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context
-      ): StackValue? {
-        return phase.run { ctx.applyFunction(receiver, resolvedCall, c) }
-      }
+    ExpressionCodegenExtension.registerExtension(
+      project,
+      object : ExpressionCodegenExtension {
+        override fun applyFunction(
+          receiver: StackValue,
+          resolvedCall: ResolvedCall<*>,
+          c: ExpressionCodegenExtension.Context
+        ): StackValue? {
+          return phase.run { ctx.applyFunction(receiver, resolvedCall, c) }
+        }
 
-      override fun applyProperty(
-        receiver: StackValue,
-        resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context
-      ): StackValue? {
-        return phase.run { ctx.applyProperty(receiver, resolvedCall, c) }
-      }
+        override fun applyProperty(
+          receiver: StackValue,
+          resolvedCall: ResolvedCall<*>,
+          c: ExpressionCodegenExtension.Context
+        ): StackValue? {
+          return phase.run { ctx.applyProperty(receiver, resolvedCall, c) }
+        }
 
-      override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {
-        phase.run { ctx.generateClassSyntheticParts(codegen) }
+        override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {
+          phase.run { ctx.generateClassSyntheticParts(codegen) }
+        }
       }
-    })
+    )
   }
 
   fun registerStorageComponentContainer(
@@ -488,70 +540,75 @@ interface InternalRegistry : ConfigSyntax {
             knownSources: Collection<KtFile>,
             configuration: CompilerConfiguration,
             project: Project
-          ): Collection<KtFile> = phase.run {
-            ctx.collectAdditionalSourcesAndUpdateConfiguration(knownSources, configuration, project)
+          ): Collection<KtFile> =
+            phase.run {
+              ctx.collectAdditionalSourcesAndUpdateConfiguration(
+                knownSources,
+                configuration,
+                project
+              )
+            }
+        }
+      )
+    }
+  }
+
+  fun registerAnalysisHandler(project: Project, phase: AnalysisHandler, ctx: CompilerContext) {
+    phase.pushAnalysisPhase()
+    cli {
+      AnalysisHandlerExtension.registerExtension(
+        project,
+        object : AnalysisHandlerExtension {
+          override fun analysisCompleted(
+            project: Project,
+            module: ModuleDescriptor,
+            bindingTrace: BindingTrace,
+            files: Collection<KtFile>
+          ): AnalysisResult? =
+            phase.run {
+              popAnalysisPhase()
+              val result = ctx.analysisCompleted(project, module, bindingTrace, files)
+              if (result is AnalysisResult.RetryWithAdditionalRoots) willRewind(true)
+              when {
+                result?.isError() == true -> result
+                canRewind() -> {
+                  willRewind(false)
+                  AnalysisResult.RetryWithAdditionalRoots(
+                    bindingTrace.bindingContext,
+                    module,
+                    emptyList(),
+                    emptyList()
+                  )
+                }
+                else -> null
+              }
+            }
+
+          override fun doAnalysis(
+            project: Project,
+            module: ModuleDescriptor,
+            projectContext: ProjectContext,
+            files: Collection<KtFile>,
+            bindingTrace: BindingTrace,
+            componentProvider: ComponentProvider
+          ): AnalysisResult? {
+            return phase.run {
+              ctx.doAnalysis(
+                project,
+                module,
+                projectContext,
+                files,
+                bindingTrace,
+                componentProvider
+              )
+            }
           }
         }
       )
     }
   }
 
-  fun registerAnalysisHandler(
-    project: Project,
-    phase: AnalysisHandler,
-    ctx: CompilerContext
-  ) {
-    phase.pushAnalysisPhase()
-    cli {
-      AnalysisHandlerExtension.registerExtension(project, object : AnalysisHandlerExtension {
-        override fun analysisCompleted(
-          project: Project,
-          module: ModuleDescriptor,
-          bindingTrace: BindingTrace,
-          files: Collection<KtFile>
-        ): AnalysisResult? = phase.run {
-          popAnalysisPhase()
-          val result = ctx.analysisCompleted(project, module, bindingTrace, files)
-          if (result is AnalysisResult.RetryWithAdditionalRoots) willRewind(true)
-          when {
-            result?.isError() == true ->
-              result
-            canRewind() -> {
-              willRewind(false)
-              AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), emptyList())
-            }
-            else -> null
-          }
-        }
-
-        override fun doAnalysis(
-          project: Project,
-          module: ModuleDescriptor,
-          projectContext: ProjectContext,
-          files: Collection<KtFile>,
-          bindingTrace: BindingTrace,
-          componentProvider: ComponentProvider
-        ): AnalysisResult? {
-          return phase.run {
-            ctx.doAnalysis(
-              project,
-              module,
-              projectContext,
-              files,
-              bindingTrace,
-              componentProvider
-            )
-          }
-        }
-      })
-    }
-  }
-
-  fun registerClassBuilder(
-    project: Project,
-    phase: ClassBuilder,
-    ctx: CompilerContext
-  ) {
+  fun registerClassBuilder(project: Project, phase: ClassBuilder, ctx: CompilerContext) {
     ClassBuilderInterceptorExtension.registerExtension(
       project,
       object : ClassBuilderInterceptorExtension {
@@ -560,43 +617,46 @@ interface InternalRegistry : ConfigSyntax {
           bindingContext: BindingContext,
           diagnostics: DiagnosticSink
         ): ClassBuilderFactory =
-          phase.run {
-            ctx.interceptClassBuilder(interceptedFactory, bindingContext, diagnostics)
-          }
-      })
+          phase.run { ctx.interceptClassBuilder(interceptedFactory, bindingContext, diagnostics) }
+      }
+    )
   }
 
-  fun registerCompilerConfiguration(
-    project: Project,
-    phase: Config,
-    ctx: CompilerContext
-  ) {
+  fun registerCompilerConfiguration(project: Project, phase: Config, ctx: CompilerContext) {
     CompilerConfigurationExtension.registerExtension(
       project,
       object : CompilerConfigurationExtension {
         override fun updateConfiguration(configuration: CompilerConfiguration) {
           phase.run { ctx.updateConfiguration(configuration) }
         }
-      })
+      }
+    )
   }
 
-  class DelegatingContributor(val phase: StorageComponentContainer, val ctx: CompilerContext) : StorageComponentContainerContributor {
+  class DelegatingContributor(val phase: StorageComponentContainer, val ctx: CompilerContext) :
+    StorageComponentContainerContributor {
 
-    override fun registerModuleComponents(container: org.jetbrains.kotlin.container.StorageComponentContainer, platform: TargetPlatform, moduleDescriptor: ModuleDescriptor) {
+    override fun registerModuleComponents(
+      container: org.jetbrains.kotlin.container.StorageComponentContainer,
+      platform: TargetPlatform,
+      moduleDescriptor: ModuleDescriptor
+    ) {
       phase.run { ctx.registerModuleComponents(container, moduleDescriptor) }
-      container.useInstance(object : DeclarationChecker {
-        override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext): Unit =
-          phase.run { ctx.check(declaration, descriptor, context) }
-      })
+      container.useInstance(
+        object : DeclarationChecker {
+          override fun check(
+            declaration: KtDeclaration,
+            descriptor: DeclarationDescriptor,
+            context: DeclarationCheckerContext
+          ): Unit = phase.run { ctx.check(declaration, descriptor, context) }
+        }
+      )
     }
   }
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(
-      registerModuleComponents = { container, moduleDescriptor ->
-        container.useInstance(this)
-      },
-      check = { declaration, descriptor, context ->
-      }
+      registerModuleComponents = { container, moduleDescriptor -> container.useInstance(this) },
+      check = { declaration, descriptor, context -> }
     )
 }

@@ -1,35 +1,27 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
-import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import java.nio.file.Path
+import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 
-/**
- * Represents a dependency from `<artifact-id>:<version>` string.
- */
+/** Represents a dependency from `<artifact-id>:<version>` string. */
 data class Dependency(val mavenCoordinates: String)
 
-/**
- * Represents a compiler plugin.
- */
+/** Represents a compiler plugin. */
 data class CompilerPlugin(
 
-  /**
-   * Descriptive name about the Compiler Plugin.
-   */
+  /** Descriptive name about the Compiler Plugin. */
   val name: String,
 
-  /**
-   * List of necessary dependencies to use that plugin during the compilation.
-   */
+  /** List of necessary dependencies to use that plugin during the compilation. */
   val dependencies: List<Dependency>
 )
 
 internal typealias CompilerTestInterpreter = (CompilerTest) -> Unit
 
 /**
- * Allows to provide configuration and code for the compilation and
- * to indicate the expected behaviour.
+ * Allows to provide configuration and code for the compilation and to indicate the expected
+ * behaviour.
  *
  * @see [assertThis]
  */
@@ -53,20 +45,14 @@ data class CompilerTest(
    */
   val assert: Companion.() -> Assert
 ) {
-  internal fun run(interpret: CompilerTestInterpreter): Unit =
-    interpret(this)
+  internal fun run(interpret: CompilerTestInterpreter): Unit = interpret(this)
 
   companion object : ConfigSyntax by Config, CodeSyntax by Code, AssertSyntax by Assert {
-    operator fun invoke(f: Companion.() -> CompilerTest): CompilerTest =
-      f(this)
+    operator fun invoke(f: Companion.() -> CompilerTest): CompilerTest = f(this)
   }
 }
 
-data class PluginOption(
-  val pluginId: String,
-  val key: String,
-  val value: String
-)
+data class PluginOption(val pluginId: String, val key: String, val value: String)
 
 /**
  * Allows to indicate the necessary configuration to run a compilation.
@@ -76,47 +62,32 @@ data class PluginOption(
 interface ConfigSyntax {
   val emptyConfig: Config
 
-  /**
-   * Adds the compiler plugins to run the compilation.
-   */
+  /** Adds the compiler plugins to run the compilation. */
   fun addCompilerPlugins(vararg element: CompilerPlugin): Config =
     Config.Many(listOf(Config.AddCompilerPlugins(element.toList())))
 
-  /**
-   * Adds the Meta Plugins to run the compilation.
-   */
+  /** Adds the Meta Plugins to run the compilation. */
   fun addMetaPlugins(vararg element: Meta): Config =
     Config.Many(listOf(Config.AddMetaPlugins(element.toList())))
 
-  /**
-   * Adds the necessary dependencies to run the compilation.
-   */
+  /** Adds the necessary dependencies to run the compilation. */
   fun addDependencies(vararg element: Dependency): Config =
     Config.Many(listOf(Config.AddDependencies(element.toList())))
 
-  /**
-   * Adds the necessary arguments to run the compilation.
-   */
+  /** Adds the necessary arguments to run the compilation. */
   fun addArguments(vararg element: String): Config =
     Config.Many(listOf(Config.AddArguments(element.toList())))
 
-  /**
-   * Adds command line processors for the compiler plugins.
-   */
+  /** Adds command line processors for the compiler plugins. */
   fun addCommandLineProcessors(vararg element: CommandLineProcessor): Config =
     Config.Many(listOf(Config.AddCommandLineProcessors(element.toList())))
 
-  /**
-   * Adds options for the compiler plugins.
-   */
+  /** Adds options for the compiler plugins. */
   fun addPluginOptions(vararg element: PluginOption): Config =
     Config.Many(listOf(Config.AddPluginOptions(element.toList())))
 
-  /**
-   * Allows to combine [Config].
-   */
-  operator fun Config.plus(other: Config): List<Config> =
-    listOf(this, other)
+  /** Allows to combine [Config]. */
+  operator fun Config.plus(other: Config): List<Config> = listOf(this, other)
 
   fun prelude(currentVersion: String?): Dependency =
     Dependency("arrow-meta-prelude:$currentVersion")
@@ -125,26 +96,27 @@ interface ConfigSyntax {
     Dependency("arrow-analysis-types:$currentVersion")
 
   /**
-   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude as
-   * a dependency.
+   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude
+   * as a dependency.
    */
   val metaDependencies: List<Config>
     get() {
       val currentVersion = System.getProperty("CURRENT_VERSION")
-      val compilerPlugin = CompilerPlugin("Arrow Meta", listOf(Dependency("arrow-meta:$currentVersion")))
+      val compilerPlugin =
+        CompilerPlugin("Arrow Meta", listOf(Dependency("arrow-meta:$currentVersion")))
       return addCompilerPlugins(compilerPlugin) + addDependencies(prelude(currentVersion))
     }
 }
 
-/**
- * Represents the different types of [Config] which will be managed.
- */
+/** Represents the different types of [Config] which will be managed. */
 sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
   internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
   internal data class AddArguments(val arguments: List<String>) : Config()
-  internal data class AddCommandLineProcessors(val commandLineProcessors: List<CommandLineProcessor>) : Config()
+  internal data class AddCommandLineProcessors(
+    val commandLineProcessors: List<CommandLineProcessor>
+  ) : Config()
   internal data class AddPluginOptions(val pluginOptions: List<PluginOption>) : Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
@@ -162,35 +134,23 @@ interface CodeSyntax {
    *
    * @see [CompilerTest]
    */
-  fun sources(vararg sources: Code.Source): Code =
-    sources(sources.toList())
+  fun sources(vararg sources: Code.Source): Code = sources(sources.toList())
 
-  fun sources(sources: List<Code.Source>): Code =
-    Code.Sources(sources)
+  fun sources(sources: List<Code.Source>): Code = Code.Sources(sources)
 }
 
-/**
- * Represents the different types of [Code] which will be managed.
- */
+/** Represents the different types of [Code] which will be managed. */
 sealed class Code {
 
-  /**
-   * Represents all kind of code snippets: source code to be compiled, expressions, etc.
-   */
+  /** Represents all kind of code snippets: source code to be compiled, expressions, etc. */
   data class Source(
-    /**
-     * Necessary filename to identify different code snippets.
-     */
+    /** Necessary filename to identify different code snippets. */
     val filename: String = DEFAULT_FILENAME,
-    /**
-     * Content of code snippet.
-     */
+    /** Content of code snippet. */
     val text: String
   ) : Code()
 
-  /**
-   * It's possible to provide one or several sources to be compiled
-   */
+  /** It's possible to provide one or several sources to be compiled */
   internal data class Sources(val sources: List<Source>) : Code()
 
   internal companion object : CodeSyntax {
@@ -206,14 +166,11 @@ sealed class Code {
 interface AssertSyntax {
   val emptyAssert: Assert.SingleAssert
 
-  /**
-   * Checks that code snippet compiles successfully.
-   */
+  /** Checks that code snippet compiles successfully. */
   val compiles: Assert.SingleAssert
 
   /**
-   * Checks that code snippet compiles successfully
-   * and (possible) warning message has a certain
+   * Checks that code snippet compiles successfully and (possible) warning message has a certain
    * property.
    *
    * For instance:
@@ -226,9 +183,7 @@ interface AssertSyntax {
    */
   fun compilesWith(f: (String) -> Boolean): Assert.SingleAssert = Assert.CompilesWith(f)
 
-  /**
-   * Checks that code snippet fails.
-   */
+  /** Checks that code snippet fails. */
   val fails: Assert.SingleAssert
 
   /**
@@ -250,66 +205,78 @@ interface AssertSyntax {
    *
    * @param source Code snippet with the expected quote output.
    */
-  fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert = Assert.QuoteOutputMatches(source)
+  fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert =
+    Assert.QuoteOutputMatches(source)
 
   /**
-   * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
+   * Checks that quote output during the compilation matches with the code snippet provided for a
+   * specific file.
    *
    * @param filename Name of the specific file that will be evaluated.
    * @param source Code snippet with the expected quote output.
    */
-  fun quoteFileMatches(filename: String, source: Code.Source): Assert.SingleAssert = Assert.QuoteFileMatches(filename, source)
+  fun quoteFileMatches(filename: String, source: Code.Source): Assert.SingleAssert =
+    Assert.QuoteFileMatches(filename, source)
 
   /**
-   * Checks that quote output during the compilation matches with the code snippet provided for a specific file.
+   * Checks that quote output during the compilation matches with the code snippet provided for a
+   * specific file.
    *
    * @param filename Name of the specific file that will be evaluated.
    * @param source Code snippet with the expected quote output.
    * @param sourcePath Source path of the expected file.
    */
-  fun quoteFileMatches(filename: String, source: Code.Source, sourcePath: Path): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
+  fun quoteFileMatches(
+    filename: String,
+    source: Code.Source,
+    sourcePath: Path
+  ): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
 
   /**
-   * Checks if a code snippet evals to a provided value after the compilation.
-   * This operation loads all the generated classes and run the code snippet by reflection.
+   * Checks if a code snippet evals to a provided value after the compilation. This operation loads
+   * all the generated classes and run the code snippet by reflection.
    *
    * @param value Expected result after running the code snippet.
    */
-  fun Code.Source.evalsTo(value: Any?, onError: (Throwable) -> Any? = { throw it }): Assert.SingleAssert = Assert.EvalsTo(this, value, onError)
+  fun Code.Source.evalsTo(
+    value: Any?,
+    onError: (Throwable) -> Any? = { throw it }
+  ): Assert.SingleAssert = Assert.EvalsTo(this, value, onError)
 
-  /**
-   * Returns a Source object from a String.
-   */
-  val String.source: Code.Source get() = Code.Source(text = this)
+  /** Returns a Source object from a String. */
+  val String.source: Code.Source
+    get() = Code.Source(text = this)
 
-  /**
-   * Allows to provide several [Assert.SingleAssert].
-   */
+  /** Allows to provide several [Assert.SingleAssert]. */
   operator fun Assert.SingleAssert.plus(other: Assert.SingleAssert): Assert =
     Assert.Many(listOf(this, other))
 
-  /**
-   * Allows to provide several [Assert.SingleAssert].
-   */
+  /** Allows to provide several [Assert.SingleAssert]. */
   fun allOf(vararg elements: Assert.SingleAssert): Assert =
     if (elements.isNotEmpty()) allOf(elements.asList()) else Assert.Many(emptyList())
 
-  fun allOf(elements: List<Assert.SingleAssert>): Assert =
-    Assert.Many(elements)
+  fun allOf(elements: List<Assert.SingleAssert>): Assert = Assert.Many(elements)
 }
 
-/**
- * Represents the different types of [Assert] which will be managed.
- */
+/** Represents the different types of [Assert] which will be managed. */
 sealed class Assert {
 
   abstract class SingleAssert : Assert()
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
   internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
-  internal data class QuoteFileMatches(val filename: String, val source: Code.Source) : SingleAssert()
-  internal data class QuoteFileWithCustomPathMatches(val filename: String, val source: Code.Source, val sourcePath: Path) : SingleAssert()
-  internal data class EvalsTo(val source: Code.Source, val output: Any?, val onError: (Throwable) -> Any?) : SingleAssert()
+  internal data class QuoteFileMatches(val filename: String, val source: Code.Source) :
+    SingleAssert()
+  internal data class QuoteFileWithCustomPathMatches(
+    val filename: String,
+    val source: Code.Source,
+    val sourcePath: Path
+  ) : SingleAssert()
+  internal data class EvalsTo(
+    val source: Code.Source,
+    val output: Any?,
+    val onError: (Throwable) -> Any?
+  ) : SingleAssert()
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
   internal data class CompilesWith(val f: (String) -> Boolean) : SingleAssert()
   internal sealed class CompilationResult : SingleAssert() {

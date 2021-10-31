@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test
 class ReturnExpressionTest {
 
   companion object {
-    private val returnExpression = """
+    private val returnExpression =
+      """
         | fun whatTimeIsIt(): Long {
         |   return System.currentTimeMillis()
         | }
         | """.returnExpression()
 
-    private val labeledReturnExpression = """
+    private val labeledReturnExpression =
+      """
         | fun foo() {
         |   run loop@{
         |     listOf(1, 2, 3, 4, 5).forEach {
@@ -37,10 +39,7 @@ class ReturnExpressionTest {
       | """.source
     }
 
-    val returnExpressions = arrayOf(
-      returnExpression,
-      labeledReturnExpression
-    )
+    val returnExpressions = arrayOf(returnExpression, labeledReturnExpression)
   }
 
   @Test
@@ -54,10 +53,12 @@ class ReturnExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(ReturnExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ReturnExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

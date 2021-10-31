@@ -3,12 +3,11 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ObjectDeclaration
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
-class KotlinObjectDeclaration(val impl: KtObjectDeclaration) : ObjectDeclaration, KotlinClassOrObject {
+class KotlinObjectDeclaration(val impl: KtObjectDeclaration) :
+  ObjectDeclaration, KotlinClassOrObject {
   override fun impl(): KtObjectDeclaration = impl
 
-  override fun isCompanion(): Boolean =
-    impl().isCompanion()
+  override fun isCompanion(): Boolean = impl().isCompanion()
 
-  override fun isObjectLiteral(): Boolean =
-    impl().isObjectLiteral()
+  override fun isObjectLiteral(): Boolean = impl().isObjectLiteral()
 }

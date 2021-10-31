@@ -26,10 +26,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.renameConditions
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 
 /**
- * Depending on the source of the [descriptor] we might
- * need to attach the information to different places.
- * The main case is when you declare a @Law, in which
- * case you have to look for the proper place.
+ * Depending on the source of the [descriptor] we might need to attach the information to different
+ * places. The main case is when you declare a @Law, in which case you have to look for the proper
+ * place.
  */
 internal fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
@@ -43,33 +42,32 @@ internal fun SolverState.addConstraints(
   if (lawSubject is CallableDescriptor && lawSubject.fqNameSafe == FqName("arrow.analysis.post"))
     throw Exception("trying to attach to post, this is wrong!")
   if (lawSubject != null) {
-    val renamed = solver.renameConditions(
-      DeclarationConstraints(descriptor, preConstraints, postConstraints),
-      lawSubject.withAliasUnwrapped)
+    val renamed =
+      solver.renameConditions(
+        DeclarationConstraints(descriptor, preConstraints, postConstraints),
+        lawSubject.withAliasUnwrapped
+      )
     callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
   }
   callableConstraints.add(descriptor, preConstraints, postConstraints)
 }
 
-/**
- * Finds the target of a particular law
- * by looking up its [arrow.analysis.Subject] annotation
- */
+/** Finds the target of a particular law by looking up its [arrow.analysis.Subject] annotation */
 private fun findDescriptorFromRemoteLaw(
   descriptor: DeclarationDescriptor,
   context: ResolutionContext
 ): DeclarationDescriptor? =
   descriptor.annotations().findAnnotation(FqName("arrow.analysis.Subject"))?.let { lawSubject ->
     val name = lawSubject.argumentValueAsString("fqName")
-    val result = name?.let {
-      context.obtainDeclaration(FqName(it), descriptor)
-    }
+    val result = name?.let { context.obtainDeclaration(FqName(it), descriptor) }
     result.also {
       if (it == null) {
         if (name == null)
           throw Exception(ErrorMessages.Parsing.subjectWithoutName(descriptor.fqNameSafe.name))
         else
-          throw Exception(ErrorMessages.Parsing.couldNotResolveSubject(name, descriptor.fqNameSafe.name))
+          throw Exception(
+            ErrorMessages.Parsing.couldNotResolveSubject(name, descriptor.fqNameSafe.name)
+          )
       }
     }
   }
@@ -82,34 +80,31 @@ private fun ResolutionContext.obtainDeclaration(
   // the type either strictly checks
   // or we need to look for the best match
   return current.firstOrNull { it.isCompatibleWith(compatibleWith) }
-    ?: current.filter { it.isLooselyCompatibleWith(compatibleWith) }
-      .minWithOrNull{ o1, o2 ->
-        when {
-          o1.isLooselyCompatibleWith(o2) -> -1
-          o2.isLooselyCompatibleWith(o1) -> 1
-          else -> 0
-        }
+    ?: current.filter { it.isLooselyCompatibleWith(compatibleWith) }.minWithOrNull { o1, o2 ->
+      when {
+        o1.isLooselyCompatibleWith(o2) -> -1
+        o2.isLooselyCompatibleWith(o1) -> 1
+        else -> 0
       }
+    }
 }
 
 /**
- * Finds the target of a particular law
- * by looking at its last return,
- * if marked with a [arrow.analysis.Law] annotation.
+ * Finds the target of a particular law by looking at its last return, if marked with a
+ * [arrow.analysis.Law] annotation.
  */
 private fun SolverState.findDescriptorFromLocalLaw(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ): DeclarationDescriptor? {
-  if (!descriptor.isALaw())
-    return null
+  if (!descriptor.isALaw()) return null
 
-  if (descriptor !is CallableDescriptor)
-    return null
+  if (descriptor !is CallableDescriptor) return null
 
   val lawCall =
-    (descriptor.element() as? Function)
-      ?.let { getReturnedExpressionWithoutPostcondition(it, bindingContext) }
+    (descriptor.element() as? Function)?.let {
+      getReturnedExpressionWithoutPostcondition(it, bindingContext)
+    }
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
@@ -121,10 +116,13 @@ private fun SolverState.findDescriptorFromLocalLaw(
 
   val parameters = descriptor.allParameters.filter { !it.type.descriptor.isLawsType() }
   val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.expression }
-  val check = parameters.zip(arguments).all { (param, arg) ->
-    (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
-      (param is ValueParameterDescriptor && arg is NameReferenceExpression && arg.getReferencedNameAsName() == param.name)
-  }
+  val check =
+    parameters.zip(arguments).all { (param, arg) ->
+      (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
+        (param is ValueParameterDescriptor &&
+          arg is NameReferenceExpression &&
+          arg.getReferencedNameAsName() == param.name)
+    }
   if (!check) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustHaveParametersInOrder()
@@ -142,32 +140,33 @@ private fun getReturnedExpressionWithoutPostcondition(
   bindingContext: ResolutionContext
 ): ResolvedCall? {
   val lastElement = function.body()?.lastBlockStatementOrThis()
-  val lastElementWithoutReturn = when (lastElement) {
-    is ReturnExpression -> lastElement.returnedExpression
-    else -> lastElement
-  }
-  // remove outer layer of postcondition
-  val veryLast = when (lastElementWithoutReturn) {
-    is DotQualifiedExpression -> {
-      val selector = lastElementWithoutReturn.selectorExpression
-      val callee = (selector as? CallExpression)?.calleeExpression
-      if (callee != null && callee.text == "post") {
-        lastElementWithoutReturn.receiverExpression
-      } else {
-        null
-      }
+  val lastElementWithoutReturn =
+    when (lastElement) {
+      is ReturnExpression -> lastElement.returnedExpression
+      else -> lastElement
     }
-    else -> null
-  } ?: lastElementWithoutReturn
+  // remove outer layer of postcondition
+  val veryLast =
+    when (lastElementWithoutReturn) {
+      is DotQualifiedExpression -> {
+        val selector = lastElementWithoutReturn.selectorExpression
+        val callee = (selector as? CallExpression)?.calleeExpression
+        if (callee != null && callee.text == "post") {
+          lastElementWithoutReturn.receiverExpression
+        } else {
+          null
+        }
+      }
+      else -> null
+    }
+      ?: lastElementWithoutReturn
 
   return veryLast?.getResolvedCall(bindingContext)
 }
 
 /**
- * This function is the one really adding
- * the constraints to the list, keeping
- * into consideration possible duplicate
- * [FqName]s.
+ * This function is the one really adding the constraints to the list, keeping into consideration
+ * possible duplicate [FqName]s.
  */
 private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   descriptor: DeclarationDescriptor,

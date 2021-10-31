@@ -38,11 +38,12 @@ private fun processLensSyntax(ele: ADT, foci: List<Focus>): String =
 
 private fun processOptionalSyntax(ele: ADT, optic: DataClassDsl) =
   optic.foci.filterNot { it is NonNullFocus }.joinToString(separator = "\n") { focus ->
-    val targetClassName = when (focus) {
-      is NullableFocus -> focus.nonNullClassName
-      is OptionFocus -> focus.nestedClassName
-      is NonNullFocus -> ""
-    }
+    val targetClassName =
+      when (focus) {
+        is NullableFocus -> focus.nonNullClassName
+        is OptionFocus -> focus.nestedClassName
+        is NonNullFocus -> ""
+      }
 
     """
     |inline val <S> $Iso<S, ${ele.sourceClassName}>.${focus.paramName}: $Optional<S, $targetClassName> inline get() = this + ${ele.sourceClassName}.${focus.paramName}

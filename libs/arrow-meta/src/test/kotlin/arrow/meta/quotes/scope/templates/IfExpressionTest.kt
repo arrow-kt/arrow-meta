@@ -10,19 +10,22 @@ import org.junit.jupiter.api.Test
 class IfExpressionTest {
 
   companion object {
-    private val ifExpression = """
+    private val ifExpression =
+      """
       | if (2 == 3) {
       |   println("FAKE NEWS")
       | } else {
       |   println("success!")
       | }""".ifExpression()
 
-    private val withoutElse = """
+    private val withoutElse =
+      """
       | if (2 == 3) {
       |   println("FAKE NEWS")
       | }""".ifExpression()
 
-    private val singleLine = """if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression()
+    private val singleLine =
+      """if (2 == 3) println("FAKE NEWS") else println("success")""".ifExpression()
 
     private fun String.ifExpression(): Code.Source {
       return """
@@ -36,11 +39,7 @@ class IfExpressionTest {
       | """.source
     }
 
-    val ifExpressions = arrayOf(
-      ifExpression,
-      withoutElse,
-      singleLine
-    )
+    val ifExpressions = arrayOf(ifExpression, withoutElse, singleLine)
   }
 
   @Test
@@ -59,10 +58,12 @@ class IfExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(IfExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(IfExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

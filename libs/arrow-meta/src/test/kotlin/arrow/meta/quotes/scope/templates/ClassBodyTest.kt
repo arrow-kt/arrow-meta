@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 class ClassBodyTest {
 
   companion object {
-    private val classBodyScopeTest = """
+    private val classBodyScopeTest =
+      """
         | //metadebug
         | 
         | class ClassBodyScopeTest {
@@ -29,7 +30,8 @@ class ClassBodyTest {
         | }
         """.source
 
-    private val enumBodyScopeTest = """
+    private val enumBodyScopeTest =
+      """
       | //metadebug
       | 
       | enum class EnumBodyScopeTest {
@@ -40,7 +42,8 @@ class ClassBodyTest {
       | }
       | """.source
 
-    private val objectBodyScopeTest = """
+    private val objectBodyScopeTest =
+      """
       | //metadebug
       |
       | object ObjectBodyScopeTest {
@@ -55,16 +58,12 @@ class ClassBodyTest {
       | }
       | """.source
 
-    val classBodyExpressions = arrayOf(
-      classBodyScopeTest,
-      enumBodyScopeTest,
-      objectBodyScopeTest
-    )
+    val classBodyExpressions = arrayOf(classBodyScopeTest, enumBodyScopeTest, objectBodyScopeTest)
   }
 
   @Test
   fun `Validate class body scope properties`() {
-      validate(classBodyScopeTest)
+    validate(classBodyScopeTest)
   }
 
   @Test
@@ -78,10 +77,12 @@ class ClassBodyTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(ClassBodyPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ClassBodyPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

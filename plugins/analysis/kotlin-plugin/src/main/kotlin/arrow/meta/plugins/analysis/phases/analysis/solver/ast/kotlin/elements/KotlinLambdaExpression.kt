@@ -7,9 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
-class KotlinLambdaExpression(
-  val impl: KtLambdaExpression
-) : LambdaExpression, KotlinExpression {
+class KotlinLambdaExpression(val impl: KtLambdaExpression) : LambdaExpression, KotlinExpression {
   override fun impl(): KtLambdaExpression = impl
   override val functionLiteral: FunctionLiteral
     get() = impl().functionLiteral.model()
@@ -18,6 +16,5 @@ class KotlinLambdaExpression(
   override val bodyExpression: BlockExpression?
     get() = impl().bodyExpression?.model()
 
-  override fun hasDeclaredReturnType(): Boolean =
-    impl().hasDeclaredReturnType()
+  override fun hasDeclaredReturnType(): Boolean = impl().hasDeclaredReturnType()
 }

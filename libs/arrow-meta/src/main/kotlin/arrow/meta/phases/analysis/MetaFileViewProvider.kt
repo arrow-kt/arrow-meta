@@ -6,8 +6,8 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.com.intellij.psi.SingleRootFileViewProvider
 
 /**
- * Provides interception access to the internals of a [VirtualFile] allowing to replace
- * its [Document]
+ * Provides interception access to the internals of a [VirtualFile] allowing to replace its
+ * [Document]
  */
 class MetaFileViewProvider(
   psiManager: PsiManager,

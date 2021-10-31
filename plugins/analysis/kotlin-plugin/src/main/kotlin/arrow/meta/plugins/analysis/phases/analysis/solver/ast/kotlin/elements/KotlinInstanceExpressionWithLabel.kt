@@ -5,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.R
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtInstanceExpressionWithLabel
 
-fun interface KotlinInstanceExpressionWithLabel : InstanceExpressionWithLabel, KotlinExpressionWithLabel {
+fun interface KotlinInstanceExpressionWithLabel :
+  InstanceExpressionWithLabel, KotlinExpressionWithLabel {
   override fun impl(): KtInstanceExpressionWithLabel
   override val instanceReference: ReferenceExpression
     get() = impl().instanceReference.model()

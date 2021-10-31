@@ -2,13 +2,11 @@ package arrow.meta.plugins.optics.internals
 
 import arrow.meta.internal.plusIfNotBlank
 
-fun generateIsos(ele: ADT, target: IsoTarget) = Snippet(
-  `package` = ele.packageName,
-  name = ele.simpleName,
-  content = processElement(ele, target)
-)
+fun generateIsos(ele: ADT, target: IsoTarget) =
+  Snippet(`package` = ele.packageName, name = ele.simpleName, content = processElement(ele, target))
 
-inline val Target.targetNames inline get() = foci.map(Focus::className)
+inline val Target.targetNames
+  inline get() = foci.map(Focus::className)
 
 private fun processElement(iso: ADT, target: Target): String {
   val foci = target.foci
@@ -22,7 +20,8 @@ private fun processElement(iso: ADT, target: Target): String {
       1 -> "${iso.sourceName}.${foci.first().paramName}"
       2 -> "$Pair(${foci[0].format()}, ${foci[1].format()})"
       3 -> "$Triple(${foci[0].format()}, ${foci[1].format()}, ${foci[2].format()})"
-      else -> foci.joinToString(prefix = "$Tuple${foci.size}(", postfix = ")", transform = Focus::format)
+      else ->
+        foci.joinToString(prefix = "$Tuple${foci.size}(", postfix = ")", transform = Focus::format)
     }
 
   fun focusType() =
@@ -37,8 +36,10 @@ private fun processElement(iso: ADT, target: Target): String {
     when (foci.size) {
       1 -> "${iso.sourceClassName}(it)"
       2 -> "pair: ${focusType()} -> ${iso.sourceClassName}(pair.first, pair.second)"
-      3 -> "triple: ${focusType()} -> ${iso.sourceClassName}(triple.first, triple.second, triple.third)"
-      else -> "tuple: ${focusType()} -> ${(foci.indices).joinToString(prefix = "${iso.sourceClassName}(", postfix = ")", transform = { "tuple.${letters[it]}" })}"
+      3 ->
+        "triple: ${focusType()} -> ${iso.sourceClassName}(triple.first, triple.second, triple.third)"
+      else ->
+        "tuple: ${focusType()} -> ${(foci.indices).joinToString(prefix = "${iso.sourceClassName}(", postfix = ")", transform = { "tuple.${letters[it]}" })}"
     }
 
   return """

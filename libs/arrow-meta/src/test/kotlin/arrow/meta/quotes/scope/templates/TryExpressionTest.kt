@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class TryExpressionTest {
 
   companion object {
-    val tryExpression = """
+    val tryExpression =
+      """
                          | //metadebug
                          | 
                          | fun measureTimeMillis(block: () -> Unit): Unit {
@@ -22,10 +23,12 @@ class TryExpressionTest {
 
   @Test
   fun `Validate try expression scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(TryExpressionPlugin())) },
-      code = { tryExpression },
-      assert = { quoteOutputMatches(tryExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(TryExpressionPlugin())) },
+        code = { tryExpression },
+        assert = { quoteOutputMatches(tryExpression) }
+      )
+    )
   }
 }

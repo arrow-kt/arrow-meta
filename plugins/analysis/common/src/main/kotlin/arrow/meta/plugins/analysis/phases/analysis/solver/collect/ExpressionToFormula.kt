@@ -52,12 +52,9 @@ import org.sosy_lab.java_smt.api.Formula
 import org.sosy_lab.java_smt.api.FormulaType
 
 /**
- * Transform a [Expression] into a [Formula],
- * wrapping with additional 'bool' fields
- * when required
+ * Transform a [Expression] into a [Formula], wrapping with additional 'bool' fields when required
  *
- * This is the function to be used when turning
- * an expression in a formula anywhere in the analysis
+ * This is the function to be used when turning an expression in a formula anywhere in the analysis
  */
 internal fun SolverState.topLevelExpressionToFormula(
   ex: Expression?,
@@ -73,9 +70,7 @@ internal fun SolverState.topLevelExpressionToFormula(
     }
   }
 
-/**
- * Transform a [Expression] into a [Formula]
- */
+/** Transform a [Expression] into a [Formula] */
 private fun SolverState.expressionToFormula(
   ex: Expression?,
   context: ResolutionContext,
@@ -91,12 +86,12 @@ private fun SolverState.expressionToFormula(
     ex is LambdaExpression -> recur(ex.bodyExpression)
     // basic blocks
     ex is BlockExpression ->
-      ex.statements.mapNotNull { recur(it) as? BooleanFormula }
-        .let { conditions -> solver.boolAndList(conditions) }
-    ex is ConstantExpression ->
-      ex.type(context)?.let { ty -> solver.makeConstant(ty, ex) }
+      ex.statements.mapNotNull { recur(it) as? BooleanFormula }.let { conditions ->
+        solver.boolAndList(conditions)
+      }
+    ex is ConstantExpression -> ex.type(context)?.let { ty -> solver.makeConstant(ty, ex) }
     ex is ThisExpression -> // reference to this
-      solver.makeObjectVariable("this")
+    solver.makeObjectVariable("this")
     ex is NameReferenceExpression && ex.isResultReference(context) ->
       solver.makeObjectVariable(RESULT_VAR_NAME)
     ex is NameReferenceExpression && argCall?.resultingDescriptor is ParameterDescriptor ->
@@ -127,19 +122,20 @@ private fun SolverState.expressionToFormula(
     }
     ex is WhenExpression && ex.subjectExpression == null ->
       ex.entries.foldRight<WhenEntry, Formula?>(null) { entry, acc ->
-        val conditions: List<BooleanFormula?> = when {
-          entry.isElse -> listOf(solver.booleanFormulaManager.makeTrue())
-          else -> entry.conditions.map { cond ->
-            when (cond) {
-              is WhenConditionWithExpression -> recur(cond.expression) as? BooleanFormula
-              else -> null
-            }
+        val conditions: List<BooleanFormula?> =
+          when {
+            entry.isElse -> listOf(solver.booleanFormulaManager.makeTrue())
+            else ->
+              entry.conditions.map { cond ->
+                when (cond) {
+                  is WhenConditionWithExpression -> recur(cond.expression) as? BooleanFormula
+                  else -> null
+                }
+              }
           }
-        }
         val body = recur(entry.expression)
         when {
-          body == null || conditions.any { it == null } ->
-            return@foldRight null // error case
+          body == null || conditions.any { it == null } -> return@foldRight null // error case
           acc != null -> solver.ifThenElse(solver.boolOrList(conditions.filterNotNull()), body, acc)
           entry.isElse -> body
           else -> null
@@ -152,24 +148,17 @@ private fun SolverState.expressionToFormula(
       ex.left?.let { recur(it) as? ObjectFormula }?.let { solver.isNotNull(it) }
     ex is BinaryExpression && ex.operationTokenRpr == "ANDAND" ->
       recur(ex.left)?.let { leftFormula ->
-        recur(ex.right)?.let { rightFormula ->
-          solver.boolAnd(listOf(leftFormula, rightFormula))
-        }
+        recur(ex.right)?.let { rightFormula -> solver.boolAnd(listOf(leftFormula, rightFormula)) }
       }
     ex is BinaryExpression && ex.operationTokenRpr == "OROR" ->
       recur(ex.left)?.let { leftFormula ->
-        recur(ex.right)?.let { rightFormula ->
-          solver.boolOr(listOf(leftFormula, rightFormula))
-        }
+        recur(ex.right)?.let { rightFormula -> solver.boolOr(listOf(leftFormula, rightFormula)) }
       }
     // fall-through case
     argCall != null -> {
-      val args = argCall.allArgumentExpressions(context).map { (_, ty, e) ->
-        Pair(ty, recur(e))
-      }
+      val args = argCall.allArgumentExpressions(context).map { (_, ty, e) -> Pair(ty, recur(e)) }
       val wrappedArgs =
-        args.takeIf { args.all { it.second != null } }
-          ?.map { (ty, e) -> solver.wrap(e!!, ty) }
+        args.takeIf { args.all { it.second != null } }?.map { (ty, e) -> solver.wrap(e!!, ty) }
       wrappedArgs?.let { solver.primitiveFormula(context, argCall, it) }
         ?: fieldFormula(argCall.resultingDescriptor, args)
     }
@@ -177,73 +166,65 @@ private fun SolverState.expressionToFormula(
   }
 }
 
-private fun Solver.wrap(
-  formula: Formula,
-  type: Type
-): Formula = when {
-  // only wrap variables and 'field(name, thing)'
-  !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
-  formula is ObjectFormula -> {
-    val unwrapped = if (type.isMarkedNullable) type.unwrappedNotNullableType else type
-    when (unwrapped.primitiveType()) {
-      PrimitiveType.INTEGRAL -> intValue(formula)
-      PrimitiveType.RATIONAL -> decimalValue(formula)
-      PrimitiveType.BOOLEAN -> boolValue(formula)
-      else -> formula
+private fun Solver.wrap(formula: Formula, type: Type): Formula =
+  when {
+    // only wrap variables and 'field(name, thing)'
+    !formulaManager.isSingleVariable(formula) && !isFieldCall(formula) -> formula
+    formula is ObjectFormula -> {
+      val unwrapped = if (type.isMarkedNullable) type.unwrappedNotNullableType else type
+      when (unwrapped.primitiveType()) {
+        PrimitiveType.INTEGRAL -> intValue(formula)
+        PrimitiveType.RATIONAL -> decimalValue(formula)
+        PrimitiveType.BOOLEAN -> boolValue(formula)
+        else -> formula
+      }
     }
+    else -> formula
   }
-  else -> formula
-}
 
 private fun SolverState.fieldFormula(
   descriptor: CallableDescriptor,
   args: List<Pair<Type, Formula?>>
-): ObjectFormula? = descriptor.takeIf { it.isField() }?.let {
-  // create a field, the 'this' may be missing
-  val thisExpression =
-    (args.getOrNull(0)?.second as? ObjectFormula) ?: solver.makeObjectVariable("this")
-  field(descriptor, thisExpression)
-}
+): ObjectFormula? =
+  descriptor.takeIf { it.isField() }?.let {
+    // create a field, the 'this' may be missing
+    val thisExpression =
+      (args.getOrNull(0)?.second as? ObjectFormula) ?: solver.makeObjectVariable("this")
+    field(descriptor, thisExpression)
+  }
 
 /**
- * Turns a named constant expression into a smt [Formula]
- * represented as a constant declared in the correct theory
- * given this [type].
+ * Turns a named constant expression into a smt [Formula] represented as a constant declared in the
+ * correct theory given this [type].
  *
- * For example if [type] refers to [Int] the constant smt value will have as
- * formula type [FormulaType.IntegerType]
+ * For example if [type] refers to [Int] the constant smt value will have as formula type
+ * [FormulaType.IntegerType]
  */
-private fun Solver.makeConstant(
-  type: Type,
-  ex: ConstantExpression
-): Formula? = when (type.unwrapIfNullable().primitiveType()) {
-  PrimitiveType.INTEGRAL ->
-    ex.text.asIntegerLiteral()?.let { integerFormulaManager.makeNumber(it) }
-  PrimitiveType.RATIONAL ->
-    ex.text.asFloatingLiteral()?.let { rationalFormulaManager.makeNumber(it) }
-  PrimitiveType.BOOLEAN ->
-    booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict())
-  else -> null
-}
+private fun Solver.makeConstant(type: Type, ex: ConstantExpression): Formula? =
+  when (type.unwrapIfNullable().primitiveType()) {
+    PrimitiveType.INTEGRAL ->
+      ex.text.asIntegerLiteral()?.let { integerFormulaManager.makeNumber(it) }
+    PrimitiveType.RATIONAL ->
+      ex.text.asFloatingLiteral()?.let { rationalFormulaManager.makeNumber(it) }
+    PrimitiveType.BOOLEAN -> booleanFormulaManager.makeBoolean(ex.text.toBooleanStrict())
+    else -> null
+  }
 
 internal fun Element.isResultReference(bindingContext: ResolutionContext): Boolean =
   getPostOrInvariantParent(bindingContext)?.let { parent ->
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
       (expArg?.valueArgument as? ExpressionLambdaArgument)?.getLambdaExpression()
-        ?: (expArg?.valueArgument as? ExpressionResolvedValueArgument)?.argumentExpression as? LambdaExpression
+        ?: (expArg?.valueArgument as? ExpressionResolvedValueArgument)?.argumentExpression as?
+          LambdaExpression
     val params =
-      lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() +
-        listOf("it")
+      lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() + listOf("it")
     this.text in params.distinct()
-  } ?: false
+  }
+    ?: false
 
-internal fun Element.getPostOrInvariantParent(
-  bindingContext: ResolutionContext
-): ResolvedCall? =
-  this.parents().mapNotNull {
-    it.getResolvedCall(bindingContext)
-  }.firstOrNull { call ->
+internal fun Element.getPostOrInvariantParent(bindingContext: ResolutionContext): ResolvedCall? =
+  this.parents().mapNotNull { it.getResolvedCall(bindingContext) }.firstOrNull { call ->
     val kind = call.specialKind
     kind == SpecialKind.Post || kind == SpecialKind.Invariant
   }

@@ -8,20 +8,15 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.destructuringDeclaration
 
 open class DestructuringDeclarationPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    destructuringDeclarationPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> =
+    listOf(destructuringDeclarationPlugin)
 }
 
 val Meta.destructuringDeclarationPlugin
-  get() =
-    "Destructuring Declaration Scope Plugin" {
-      meta(
-        destructuringDeclaration(this, { true }) { declaration ->
-          Transform.replace(
-            replacing = declaration,
-            newDeclaration = identity()
-          )
-        }
-      )
-    }
+  get() = "Destructuring Declaration Scope Plugin" {
+    meta(
+      destructuringDeclaration(this, { true }) { declaration ->
+        Transform.replace(replacing = declaration, newDeclaration = identity())
+      }
+    )
+  }

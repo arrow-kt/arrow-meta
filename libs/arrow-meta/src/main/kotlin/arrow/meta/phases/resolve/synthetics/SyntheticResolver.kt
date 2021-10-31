@@ -56,7 +56,9 @@ interface SyntheticResolver : ExtensionPhase {
     result: MutableSet<PropertyDescriptor>
   ): Unit
 
-  fun CompilerContext.getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor): Name?
+  fun CompilerContext.getSyntheticCompanionObjectNameIfNeeded(
+    thisDescriptor: ClassDescriptor
+  ): Name?
 
   fun CompilerContext.getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name>
 

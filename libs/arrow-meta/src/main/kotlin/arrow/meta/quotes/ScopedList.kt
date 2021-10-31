@@ -12,22 +12,23 @@ data class ScopedList<K : KtElement>(
 ) {
 
   override fun toString(): String =
-    if (value.isEmpty())
-      if (forceRenderSurroundings) prefix + postfix
-      else ""
-    else value.filterNot { it.text == "null" }.joinToString( // some java values
-      separator = separator,
-      prefix = prefix,
-      postfix = postfix,
-      transform = transform
-    )
+    if (value.isEmpty()) if (forceRenderSurroundings) prefix + postfix else ""
+    else
+      value
+        .filterNot { it.text == "null" }
+        .joinToString( // some java values
+          separator = separator,
+          prefix = prefix,
+          postfix = postfix,
+          transform = transform
+        )
 
   fun toStringList(): List<String> {
     val list = arrayListOf<String>()
     if (value.isEmpty()) {
       if (forceRenderSurroundings) list.add(prefix + postfix)
     } else {
-      list.addAll(value.mapNotNull {it.text})
+      list.addAll(value.mapNotNull { it.text })
     }
     return list
   }
@@ -39,11 +40,9 @@ data class ScopedList<K : KtElement>(
   }
 }
 
-fun <K : KtElement> ScopedList<K>.map(f: (K) -> K?): ScopedList<K> =
-  copy(value.mapNotNull(f))
+fun <K : KtElement> ScopedList<K>.map(f: (K) -> K?): ScopedList<K> = copy(value.mapNotNull(f))
 
-fun <A, K : KtElement> ScopedList<K>.fold(a: A, f: (A, K) -> A): A =
-  value.fold(a, f)
+fun <A, K : KtElement> ScopedList<K>.fold(a: A, f: (A, K) -> A): A = value.fold(a, f)
 
 fun <A, K : KtElement> ScopedList<K>.foldIndexed(a: A, f: (Int, A, K) -> A): A =
   value.foldIndexed(a, f)

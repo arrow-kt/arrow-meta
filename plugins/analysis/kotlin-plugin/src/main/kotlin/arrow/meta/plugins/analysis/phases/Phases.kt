@@ -14,8 +14,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.KotlinResol
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
-import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromAnnotations
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.ir.HintState
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
@@ -36,7 +36,12 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             HintState.NeedsProcessing -> {
               setHintsAs(kotlinModule, HintState.Processed)
               val path = getOrCreateBaseDirectory(configuration)
-              org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(bindingTrace.bindingContext, module, emptyList(), listOfNotNull(path))
+              org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
+                bindingTrace.bindingContext,
+                module,
+                emptyList(),
+                listOfNotNull(path)
+              )
             }
             else -> null
           }
@@ -59,7 +64,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
                   setHintsAs(kotlinModule, HintState.NeedsProcessing)
                   // 2. retry with all the gathered information
                   org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
-                    bindingTrace.bindingContext, module,
+                    bindingTrace.bindingContext,
+                    module,
                     emptyList(),
                     listOf(path.absoluteFile)
                   )
@@ -75,7 +81,9 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         },
       ),
       declarationChecker { declaration, descriptor, context ->
-        if (isInStage(context.moduleDescriptor, Stage.Init) || isInStage(context.moduleDescriptor, Stage.CollectConstraints)) {
+        if (isInStage(context.moduleDescriptor, Stage.Init) ||
+            isInStage(context.moduleDescriptor, Stage.CollectConstraints)
+        ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
           val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
           val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
@@ -106,12 +114,13 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
   )
 
 enum class Stage {
-  Init, CollectConstraints, Prove
+  Init,
+  CollectConstraints,
+  Prove
 }
 
 object Keys {
-  fun stage(moduleDescriptor: ModuleDescriptor): String =
-    "Stage-${moduleDescriptor.name}"
+  fun stage(moduleDescriptor: ModuleDescriptor): String = "Stage-${moduleDescriptor.name}"
 
   fun stage(moduleDescriptor: org.jetbrains.kotlin.descriptors.ModuleDescriptor): String =
     "Stage-${moduleDescriptor.name}"
@@ -119,33 +128,26 @@ object Keys {
   fun solverState(moduleDescriptor: ModuleDescriptor): String =
     "SolverState-${moduleDescriptor.name}"
 
-  fun hints(module: ModuleDescriptor): String =
-    "arrow-analysis-hint-${module.name}"
+  fun hints(module: ModuleDescriptor): String = "arrow-analysis-hint-${module.name}"
 }
 
-internal fun CompilerContext.solverState(
-  context: DeclarationCheckerContext
-): SolverState? = solverState(context.moduleDescriptor)
+internal fun CompilerContext.solverState(context: DeclarationCheckerContext): SolverState? =
+  solverState(context.moduleDescriptor)
 
 internal fun CompilerContext.solverState(
   module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
 ): SolverState? = get(Keys.solverState(KotlinModuleDescriptor(module)))
 
-internal fun CompilerContext.initialize(
-  module: ModuleDescriptor
-) {
-  ensureInitialized(Keys.solverState(module)) {
-    SolverState(NameProvider())
-  }
-  ensureInitialized(Keys.hints(module)) {
-    HintState.NeedsProcessing
-  }
-  ensureInitialized(Keys.stage(module)) {
-    Stage.Init
-  }
+internal fun CompilerContext.initialize(module: ModuleDescriptor) {
+  ensureInitialized(Keys.solverState(module)) { SolverState(NameProvider()) }
+  ensureInitialized(Keys.hints(module)) { HintState.NeedsProcessing }
+  ensureInitialized(Keys.stage(module)) { Stage.Init }
 }
 
-internal inline fun <reified A : Any> CompilerContext.ensureInitialized(key: String, acquire: () -> A) {
+internal inline fun <reified A : Any> CompilerContext.ensureInitialized(
+  key: String,
+  acquire: () -> A
+) {
   val thing: A? = get(key)
   if (thing == null) {
     set(key, acquire())
@@ -156,18 +158,21 @@ fun Collection<KtFile>.declarationDescriptors(
   context: ResolutionContext
 ): List<DeclarationDescriptor> =
   this.flatMap { file ->
-    file.declarations.mapNotNull { decl ->
-      context.descriptorFor(decl.model())
-    }
+    file.declarations.mapNotNull { decl -> context.descriptorFor(decl.model()) }
   }
 
 private fun CompilerContext.setHintsAs(module: ModuleDescriptor, state: HintState) {
   set(Keys.hints(module), state)
 }
 
-private fun CompilerContext.isInStage(module: org.jetbrains.kotlin.descriptors.ModuleDescriptor, stage: Stage) =
-  get<Stage>(Keys.stage(module)) == stage
+private fun CompilerContext.isInStage(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor,
+  stage: Stage
+) = get<Stage>(Keys.stage(module)) == stage
 
-private fun CompilerContext.setStageAs(module: org.jetbrains.kotlin.descriptors.ModuleDescriptor, stage: Stage) {
+private fun CompilerContext.setStageAs(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor,
+  stage: Stage
+) {
   set(Keys.stage(module), stage)
 }

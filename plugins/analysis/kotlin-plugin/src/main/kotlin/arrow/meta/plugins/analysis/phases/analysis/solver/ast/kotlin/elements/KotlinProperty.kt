@@ -22,14 +22,12 @@ class KotlinProperty(val impl: KtProperty) : Property, KotlinVariableDeclaration
   override val setter: PropertyAccessor?
     get() = impl().setter?.model()
 
-  override fun hasDelegate(): Boolean =
-    impl().hasDelegate()
+  override fun hasDelegate(): Boolean = impl().hasDelegate()
 
   override val delegate: PropertyDelegate?
     get() = impl().delegate?.model()
 
-  override fun hasDelegateExpression(): Boolean =
-    impl().hasDelegateExpression()
+  override fun hasDelegateExpression(): Boolean = impl().hasDelegateExpression()
 
   override val delegateExpression: Expression?
     get() = impl().delegateExpression?.model()
@@ -40,8 +38,7 @@ class KotlinProperty(val impl: KtProperty) : Property, KotlinVariableDeclaration
   override val delegateExpressionOrInitializer: Expression?
     get() = impl().delegateExpressionOrInitializer?.model()
 
-  override fun hasBody(): Boolean =
-    impl().hasBody()
+  override fun hasBody(): Boolean = impl().hasBody()
 
   override val isVar: Boolean
     get() = impl().isVar

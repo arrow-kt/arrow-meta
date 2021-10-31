@@ -18,7 +18,8 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
 /**
- * <code>""" $modality $visibility fun $`(typeParameters)` $receiver.$name $`(args)` : $returnType = { $body } """.namedFunction</code>
+ * <code>""" $modality $visibility fun $`(typeParameters)` $receiver.$name $`(args)` : $returnType =
+ * { $body } """.namedFunction</code>
  *
  * A template destructuring [Scope] for a [KtNamedFunction].
  *
@@ -49,24 +50,31 @@ class NamedFunction(
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val visibility: Name? = value.visibilityModifierType()?.value?.let(Name::identifier),
   val modifiers: Scope<KtModifierList> = Scope(value.modifierList),
-  val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
-  val receiver: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
+  val `(typeParameters)`: ScopedList<KtTypeParameter> =
+    ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
+  val receiver: ScopedList<KtTypeReference> =
+    ScopedList(listOfNotNull(value.receiverTypeReference), postfix = "."),
   val name: Name? = value.nameAsName,
-  val `(params)`: ScopedList<KtParameter> = ScopedList(
-    prefix = "(",
-    value = value.valueParameters,
-    postfix = ")",
-    forceRenderSurroundings = true
-  ),
-  val returnType: ScopedList<KtTypeReference> = ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
+  val `(params)`: ScopedList<KtParameter> =
+    ScopedList(
+      prefix = "(",
+      value = value.valueParameters,
+      postfix = ")",
+      forceRenderSurroundings = true
+    ),
+  val returnType: ScopedList<KtTypeReference> =
+    ScopedList(listOfNotNull(value.typeReference), prefix = " : "),
   val body: FunctionBody? = value.body()?.let { FunctionBody(it) }
 ) : TypeParameterListOwner<KtNamedFunction, FunctionDescriptor>(value, descriptor) {
-    override fun ElementScope.identity(descriptor: FunctionDescriptor?): TypedScope<KtNamedFunction, FunctionDescriptor> {
-        return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function(descriptor)
-    }
+  override fun ElementScope.identity(
+    descriptor: FunctionDescriptor?
+  ): TypedScope<KtNamedFunction, FunctionDescriptor> {
+    return """ $modifiers fun $receiver $name $`(params)` $returnType = $body """.function(
+      descriptor
+    )
+  }
 }
 
 class FunctionBody(override val value: KtExpression) : Scope<KtExpression>(value) {
-  override fun toString(): String =
-    value.bodySourceAsExpression() ?: ""
+  override fun toString(): String = value.bodySourceAsExpression() ?: ""
 }

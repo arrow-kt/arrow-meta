@@ -31,17 +31,26 @@ open class ClassOrObjectScope<out T : KtClassOrObject>(
   override val descriptor: ClassDescriptor?,
   val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
-  val superTypes: ScopedList<KtSuperTypeListEntry> = ScopedList(value = value.superTypeListEntries, prefix = if (value.superTypeListEntries.isEmpty()) "" else " : "),
+  val superTypes: ScopedList<KtSuperTypeListEntry> =
+    ScopedList(
+      value = value.superTypeListEntries,
+      prefix = if (value.superTypeListEntries.isEmpty()) "" else " : "
+    ),
   val body: ClassBody = ClassBody(value.body),
-  val declarations: ScopedList<KtDeclaration> = ScopedList(value = value.declarations, separator = "\n"),
+  val declarations: ScopedList<KtDeclaration> =
+    ScopedList(value = value.declarations, separator = "\n"),
   val primaryConstructor: KtPrimaryConstructor? = value.primaryConstructor,
-  val primaryConstructorParameterList: ScopedList<KtParameter> = ScopedList(value = value.primaryConstructorParameters, separator = ", "),
-  val secondaryConstructor: ScopedList<KtSecondaryConstructor> = ScopedList(value = value.secondaryConstructors),
-  val anonymousInitializers: ScopedList<KtAnonymousInitializer> = ScopedList(value = value.getAnonymousInitializers()),
+  val primaryConstructorParameterList: ScopedList<KtParameter> =
+    ScopedList(value = value.primaryConstructorParameters, separator = ", "),
+  val secondaryConstructor: ScopedList<KtSecondaryConstructor> =
+    ScopedList(value = value.secondaryConstructors),
+  val anonymousInitializers: ScopedList<KtAnonymousInitializer> =
+    ScopedList(value = value.getAnonymousInitializers()),
   val name: Name? = value.nameAsName
 ) : TypedScope<T, ClassDescriptor>(value, descriptor)
 
-fun <T : KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> = Scope(value.getOrCreateBody())
+fun <T : KtClassOrObject> ClassOrObjectScope<T>.getOrCreateBody(): Scope<KtClassBody> =
+  Scope(value.getOrCreateBody())
 
 val <T : KtClassOrObject> ClassOrObjectScope<T>.allConstructors
   get() = ScopedList(value.allConstructors)

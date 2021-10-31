@@ -8,19 +8,14 @@ import arrow.meta.quotes.Transform
 import arrow.meta.quotes.propertyAccessor
 
 open class PropertyAccessorPlugin : Meta {
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    propertyAccessorPlugin
-  )
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(propertyAccessorPlugin)
 }
 
 val Meta.propertyAccessorPlugin
   get() = "Property accessor plugin" {
     meta(
       propertyAccessor(this, { true }) { propertyAccessor ->
-        Transform.replace(
-          replacing = propertyAccessor,
-          newDeclaration = identity()
-        )
+        Transform.replace(replacing = propertyAccessor, newDeclaration = identity())
       }
     )
   }

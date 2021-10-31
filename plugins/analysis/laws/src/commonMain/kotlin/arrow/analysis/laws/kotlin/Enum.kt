@@ -7,7 +7,9 @@ import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.post
 
-@Laws object EnumLaws {
-  @Law inline fun <E : Enum<E>> Enum<E>.ordinalLaw(): Int =
+@Laws
+object EnumLaws {
+  @Law
+  inline fun <E : Enum<E>> Enum<E>.ordinalLaw(): Int =
     ordinal.post({ it >= 0 }) { "ordinal is non-negative" }
 }

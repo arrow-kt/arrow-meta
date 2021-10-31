@@ -17,14 +17,16 @@ data class CheckData(
   fun replaceTopMostReturnPoint(scope: String?, variableName: ObjectFormula) =
     this.copy(returnPoints = returnPoints.replaceTopMost(scope, variableName))
 
-  fun addVarInfo(name: String, smtName: String, origin: Element, invariant: BooleanFormula? = null): CheckData =
-    this.copy(varInfo = varInfo.add(name, smtName, origin, invariant))
+  fun addVarInfo(
+    name: String,
+    smtName: String,
+    origin: Element,
+    invariant: BooleanFormula? = null
+  ): CheckData = this.copy(varInfo = varInfo.add(name, smtName, origin, invariant))
 
-  fun addVarInfos(vars: List<VarInfo>): CheckData =
-    this.copy(varInfo = varInfo.add(vars))
+  fun addVarInfos(vars: List<VarInfo>): CheckData = this.copy(varInfo = varInfo.add(vars))
 
-  fun addBranch(constraint: BooleanFormula): CheckData =
-    this.copy(branch = branch.add(constraint))
+  fun addBranch(constraint: BooleanFormula): CheckData = this.copy(branch = branch.add(constraint))
 
   fun addBranch(constraint: List<BooleanFormula>): CheckData =
     this.copy(branch = branch.add(constraint))

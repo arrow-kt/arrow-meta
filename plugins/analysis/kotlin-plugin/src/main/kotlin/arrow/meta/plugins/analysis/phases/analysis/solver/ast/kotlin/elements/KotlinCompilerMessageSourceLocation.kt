@@ -2,7 +2,9 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
 
-class KotlinCompilerMessageSourceLocation(val impl: org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation) : CompilerMessageSourceLocation {
+class KotlinCompilerMessageSourceLocation(
+  val impl: org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+) : CompilerMessageSourceLocation {
   override val column: Int
     get() = impl.column
   override val columnEnd: Int

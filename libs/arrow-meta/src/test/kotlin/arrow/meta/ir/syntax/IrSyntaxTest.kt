@@ -137,7 +137,7 @@ class IrSyntaxTest {
         // TODO: IrErrorDeclaration::class.java,
         // TODO: IrErrorExpression::class.java,
         // TODO: IrErrorCallExpression::class.java
-      ),
+        ),
       """
         package test
         import arrow.*
@@ -193,26 +193,18 @@ class IrSyntaxTest {
             9 - 6
           }
         }
-    """.trimIndent())
+    """.trimIndent()
+    )
   }
 }
 
-internal fun <A : IrElement> visits(element: Class<A>): String =
-  "${element.name} is visited"
+internal fun <A : IrElement> visits(element: Class<A>): String = "${element.name} is visited"
 
 private fun <A : IrElement> testIrVisit(elements: List<Class<out A>>, src: String = ""): Unit =
   assertThis(
     CompilerTest(
       config = { metaDependencies + addMetaPlugins(IrSyntaxPlugin()) },
       code = { src.source },
-      assert = {
-        allOf(
-          elements.map { element ->
-            failsWith {
-              it.contains(visits(element))
-            }
-          }
-        )
-      }
+      assert = { allOf(elements.map { element -> failsWith { it.contains(visits(element)) } }) }
     )
   )

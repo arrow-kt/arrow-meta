@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.psi.KtIfExpression
  *          }
  *        )
  *      }
- *```
+ * ```
  */
 class IfExpression(
   override val value: KtIfExpression?,
@@ -41,8 +41,9 @@ class IfExpression(
   val `else`: Scope<KtExpression> = Scope(value?.`else`)
 ) : Scope<KtIfExpression>(value) {
 
-  override fun ElementScope.identity(): IfExpression = when {
-    `else`.value == null -> """if ($condition) $then""".`if`
-    else -> """if ($condition) $then else $`else`""".`if`
-  }
+  override fun ElementScope.identity(): IfExpression =
+    when {
+      `else`.value == null -> """if ($condition) $then""".`if`
+      else -> """if ($condition) $then else $`else`""".`if`
+    }
 }

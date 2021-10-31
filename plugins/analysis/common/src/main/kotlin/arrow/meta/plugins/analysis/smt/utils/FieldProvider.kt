@@ -19,9 +19,7 @@ class FieldProvider(
     if (basicFields.containsKey(name)) return basicName(name)
 
     val overridden = descriptor.overriddenDescriptors().orEmpty()
-    val topOverriden = overridden.filter {
-      it.overriddenDescriptors().isNullOrEmpty()
-    }
+    val topOverriden = overridden.filter { it.overriddenDescriptors().isNullOrEmpty() }
     return when (topOverriden.size) {
       0 -> {
         // it's basic!
@@ -50,18 +48,14 @@ class FieldProvider(
 
   private fun basicName(name: String): Long {
     val index = basicFields.getValue(name)
-    val constraint = solver.ints {
-      equal(makeVariable(name), makeNumber(index))
-    }
+    val constraint = solver.ints { equal(makeVariable(name), makeNumber(index)) }
     prover.addConstraint(constraint)
     return index
   }
 
   private fun derivedName(name: String, topName: String): Long {
     val index = basicFields.getValue(topName)
-    val constraint = solver.ints {
-      equal(makeVariable(name), makeVariable(topName))
-    }
+    val constraint = solver.ints { equal(makeVariable(name), makeVariable(topName)) }
     prover.addConstraint(constraint)
     return index
   }

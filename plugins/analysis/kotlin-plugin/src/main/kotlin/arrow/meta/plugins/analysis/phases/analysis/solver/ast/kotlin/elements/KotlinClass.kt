@@ -9,36 +9,26 @@ import org.jetbrains.kotlin.psi.KtClass
 open class KotlinClass(open val impl: KtClass) : Class, KotlinClassOrObject {
   override fun impl(): KtClass = impl
 
-  override fun getProperties(): List<Property> =
-    impl().getProperties().map { it.model() }
+  override fun getProperties(): List<Property> = impl().getProperties().map { it.model() }
 
-  override fun isInterface(): Boolean =
-    impl().isInterface()
+  override fun isInterface(): Boolean = impl().isInterface()
 
-  override fun isEnum(): Boolean =
-    impl().isEnum()
+  override fun isEnum(): Boolean = impl().isEnum()
 
-  override fun isData(): Boolean =
-    impl().isData()
+  override fun isData(): Boolean = impl().isData()
 
-  override fun isSealed(): Boolean =
-    impl().isSealed()
+  override fun isSealed(): Boolean = impl().isSealed()
 
-  override fun isInner(): Boolean =
-    impl().isInner()
+  override fun isInner(): Boolean = impl().isInner()
 
-  override fun isInline(): Boolean =
-    impl().isInline()
+  override fun isInline(): Boolean = impl().isInline()
 
-  override fun isValue(): Boolean =
-    impl().isValue()
+  override fun isValue(): Boolean = impl().isValue()
 
   override fun getAnonymousInitializers(): List<AnonymousInitializer> =
     impl().getAnonymousInitializers().map { it.model() }
 
-  override fun isTopLevel(): Boolean =
-    impl().isTopLevel()
+  override fun isTopLevel(): Boolean = impl().isTopLevel()
 
-  override fun isAnnotation(): Boolean =
-    impl().isAnnotation()
+  override fun isAnnotation(): Boolean = impl().isAnnotation()
 }

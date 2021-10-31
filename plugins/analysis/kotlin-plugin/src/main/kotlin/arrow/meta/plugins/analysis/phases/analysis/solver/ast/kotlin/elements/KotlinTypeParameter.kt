@@ -12,11 +12,12 @@ import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
 fun interface KotlinTypeParameter : TypeParameter {
   fun impl(): KtTypeParameter
   override val variance: Variance
-    get() = when (impl().variance) {
-      INVARIANT -> Variance.Invariant
-      IN_VARIANCE -> Variance.In
-      OUT_VARIANCE -> Variance.Out
-    }
+    get() =
+      when (impl().variance) {
+        INVARIANT -> Variance.Invariant
+        IN_VARIANCE -> Variance.In
+        OUT_VARIANCE -> Variance.Out
+      }
   override val extendsBound: TypeReference?
     get() = impl().extendsBound?.model()
 }

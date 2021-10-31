@@ -16,14 +16,11 @@ open class KotlinDefaultValueArgument(
   override val isSpread: Boolean
     get() = valueArgument?.isSpread ?: false
 
-  override fun getArgumentName(): ValueArgumentName? =
-    valueArgument?.getArgumentName()
+  override fun getArgumentName(): ValueArgumentName? = valueArgument?.getArgumentName()
 
-  override fun isNamed(): Boolean =
-    valueArgument?.isNamed() == true
+  override fun isNamed(): Boolean = valueArgument?.isNamed() == true
 
-  override fun isExternal(): Boolean =
-    valueArgument?.isExternal() == true
+  override fun isExternal(): Boolean = valueArgument?.isExternal() == true
 
   override val valueArgument: ValueArgument?
     get() = impl().arguments.getOrNull(0)?.let { KotlinValueArgument(it) }

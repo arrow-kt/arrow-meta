@@ -8,7 +8,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 
-fun interface KotlinPropertyAccessor : PropertyAccessor, KotlinDeclarationWithBody, KotlinModifierListOwner,
+fun interface KotlinPropertyAccessor :
+  PropertyAccessor,
+  KotlinDeclarationWithBody,
+  KotlinModifierListOwner,
   KotlinDeclarationWithInitializer {
   override fun impl(): KtPropertyAccessor
   override val isSetter: Boolean

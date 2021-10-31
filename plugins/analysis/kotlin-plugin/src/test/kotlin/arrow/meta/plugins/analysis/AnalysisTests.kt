@@ -107,8 +107,9 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") &&
-            it.contains("in branch: ( ! x > 0)")
+          it.contains(
+            "declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)"
+          ) && it.contains("in branch: ( ! x > 0)")
         }
       },
       withoutPlugin = { compiles }
@@ -149,7 +150,11 @@ class AnalysisTests {
         return x.post({ r -> r > 0 }) { "greater than 0" } 
       }
       """(
-      withPlugin = { failsWith { it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") } },
+      withPlugin = {
+        failsWith {
+          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -179,7 +184,11 @@ class AnalysisTests {
         return z.post({ it > 0 }) { "greater than 0" }
       }
       """(
-      withPlugin = { failsWith { it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)") } },
+      withPlugin = {
+        failsWith {
+          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -272,7 +281,9 @@ class AnalysisTests {
       }
       val result = bar(1)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `x is 42` is not satisfied in `bar(1)`") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `x is 42` is not satisfied in `bar(1)`") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -357,7 +368,9 @@ class AnalysisTests {
         return 2
       }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -377,7 +390,9 @@ class AnalysisTests {
         return 2
       }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)`") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `(< (int x) 0)` is not satisfied in `bar(1)`") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -409,7 +424,9 @@ class AnalysisTests {
      
       val result = bar(30)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `x less than 10` is not satisfied in `bar(30)`") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `x less than 10` is not satisfied in `bar(30)`") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -424,7 +441,9 @@ class AnalysisTests {
         
       val x: Int = 1 / 0
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `not zero divisor` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `not zero divisor` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -485,7 +504,9 @@ class AnalysisTests {
      
       val result = 1 / 0
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -527,7 +548,9 @@ class AnalysisTests {
      
       val result = 1 / 0
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `other is not zero` is not satisfied in `1 / 0`") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -566,7 +589,9 @@ class AnalysisTests {
      
       val result = listOf(1, 0).map { n -> 1 / n }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `other is not zero` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -584,7 +609,9 @@ class AnalysisTests {
      
       val result = listOf(1, 0).map { 1 / it }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `other is not zero` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `other is not zero` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -597,7 +624,11 @@ class AnalysisTests {
      
       val result = ArrayList<Int>(-1)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
+      withPlugin = {
+        failsWith {
+          it.contains("pre-condition `initial capacity should be non-negative` is not satisfied")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -631,7 +662,11 @@ class AnalysisTests {
      
       val result = ArrayList<Int>(-1)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `initial capacity should be non-negative` is not satisfied") } },
+      withPlugin = {
+        failsWith {
+          it.contains("pre-condition `initial capacity should be non-negative` is not satisfied")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -670,7 +705,11 @@ class AnalysisTests {
        
       val wrong: String = emptyList<String>().get(0)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `index smaller than size` is not satisfied in `get(0)`") } },
+      withPlugin = {
+        failsWith {
+          it.contains("pre-condition `index smaller than size` is not satisfied in `get(0)`")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -693,7 +732,13 @@ class AnalysisTests {
        
       val wrong: String = emptyList<String>()[0]
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `index smaller than size` is not satisfied in `emptyList<String>()[0]`") } },
+      withPlugin = {
+        failsWith {
+          it.contains(
+            "pre-condition `index smaller than size` is not satisfied in `emptyList<String>()[0]`"
+          )
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -891,7 +936,11 @@ class AnalysisTests {
         override fun f(): Int = 1.post({ it >= 0 }) { "non-negative" }
       }
       """(
-      withPlugin = { failsWith { it.contains("post-condition `greater than 0` from overridden member is not satisfied") } },
+      withPlugin = {
+        failsWith {
+          it.contains("post-condition `greater than 0` from overridden member is not satisfied")
+        }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -937,7 +986,9 @@ class AnalysisTests {
         override fun f(): Int = 0
       }
       """(
-      withPlugin = { failsWith { it.contains("declaration `f` fails to satisfy the post-condition") } },
+      withPlugin = {
+        failsWith { it.contains("declaration `f` fails to satisfy the post-condition") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -958,7 +1009,9 @@ class AnalysisTests {
       
       val wrong = A(0)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `n must be positive` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -977,7 +1030,9 @@ class AnalysisTests {
         fun f(x: Int) = x
       }
       """(
-      withPlugin = { failsWith { it.contains("declaration `A` fails to satisfy the post-condition") } },
+      withPlugin = {
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -995,7 +1050,9 @@ class AnalysisTests {
       
       val wrong = B(0)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `n must be positive` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1052,7 +1109,9 @@ class AnalysisTests {
         fun f(x: Int) = x
       }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `n must be positive` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1070,7 +1129,9 @@ class AnalysisTests {
       
       class B(): A(0) { }
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `n must be positive` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `n must be positive` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1088,7 +1149,9 @@ class AnalysisTests {
       
       val x = A()
       """(
-      withPlugin = { compilesWith { it.contains("implicit primary constructors are (not yet) supported") } },
+      withPlugin = {
+        compilesWith { it.contains("implicit primary constructors are (not yet) supported") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1108,7 +1171,9 @@ class AnalysisTests {
       
       val p = Positive(1) - Positive(2)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `ensure positive answer` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `ensure positive answer` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1166,7 +1231,9 @@ class AnalysisTests {
       
       val result = f(1)
       """(
-      withPlugin = { failsWith { it.contains("pre-condition `greater than ten` is not satisfied") } },
+      withPlugin = {
+        failsWith { it.contains("pre-condition `greater than ten` is not satisfied") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1387,17 +1454,22 @@ private operator fun String.invoke(
   withPlugin: AssertSyntax.() -> Assert,
   withoutPlugin: AssertSyntax.() -> Assert
 ) {
-  assertThis(CompilerTest(
-    config = {
-      newMetaDependencies() // +
-      // addPluginOptions(PluginOption("arrow.meta.plugin.compiler", "generatedSrcOutputDir", "value"))
-    },
-    code = { this@invoke.source },
-    assert = { withPlugin() }
-  ))
-  assertThis(CompilerTest(
-    config = { listOf(addDependencies(analysisLib(System.getProperty("CURRENT_VERSION")))) },
-    code = { this@invoke.source },
-    assert = { withoutPlugin() }
-  ))
+  assertThis(
+    CompilerTest(
+      config = {
+        newMetaDependencies() // +
+        // addPluginOptions(PluginOption("arrow.meta.plugin.compiler", "generatedSrcOutputDir",
+        // "value"))
+      },
+      code = { this@invoke.source },
+      assert = { withPlugin() }
+    )
+  )
+  assertThis(
+    CompilerTest(
+      config = { listOf(addDependencies(analysisLib(System.getProperty("CURRENT_VERSION")))) },
+      code = { this@invoke.source },
+      assert = { withoutPlugin() }
+    )
+  )
 }

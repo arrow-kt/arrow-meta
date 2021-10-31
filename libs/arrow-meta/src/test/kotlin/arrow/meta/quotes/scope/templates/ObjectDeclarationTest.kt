@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class ObjectDeclarationTest {
 
   companion object {
-    val objectDeclarationExpression = """
+    val objectDeclarationExpression =
+      """
                          | //metadebug
                          | 
                          | @Deprecated("Test") object X {
@@ -20,10 +21,12 @@ class ObjectDeclarationTest {
 
   @Test
   fun `Validate object declaration scope properties`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(ObjectDeclarationPlugin()) },
-      code = { objectDeclarationExpression },
-      assert = { quoteOutputMatches(objectDeclarationExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { metaDependencies + addMetaPlugins(ObjectDeclarationPlugin()) },
+        code = { objectDeclarationExpression },
+        assert = { quoteOutputMatches(objectDeclarationExpression) }
+      )
+    )
   }
 }

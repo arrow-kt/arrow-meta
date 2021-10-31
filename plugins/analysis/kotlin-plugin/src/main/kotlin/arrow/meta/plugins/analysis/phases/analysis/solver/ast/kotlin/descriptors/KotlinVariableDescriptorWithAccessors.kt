@@ -5,8 +5,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
 fun interface KotlinVariableDescriptorWithAccessors :
-  VariableDescriptorWithAccessors,
-  KotlinVariableDescriptor {
+  VariableDescriptorWithAccessors, KotlinVariableDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.VariableDescriptorWithAccessors
   override val getter: VariableAccessorDescriptor?

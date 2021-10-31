@@ -9,8 +9,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 
 class KotlinParameter(val impl: KtParameter) : Parameter, KotlinCallableDeclaration {
   override fun impl(): KtParameter = impl
-  override fun hasDefaultValue(): Boolean =
-    impl().hasDefaultValue()
+  override fun hasDefaultValue(): Boolean = impl().hasDefaultValue()
 
   override val defaultValue: Expression?
     get() = impl().defaultValue?.model()
@@ -19,8 +18,7 @@ class KotlinParameter(val impl: KtParameter) : Parameter, KotlinCallableDeclarat
   override val isVarArg: Boolean
     get() = impl().isVarArg
 
-  override fun hasValOrVar(): Boolean =
-    impl.hasValOrVar()
+  override fun hasValOrVar(): Boolean = impl.hasValOrVar()
 
   override val destructuringDeclaration: DestructuringDeclaration?
     get() = impl().destructuringDeclaration?.model()

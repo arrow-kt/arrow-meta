@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class ThrowExpressionTest {
 
   companion object {
-    val throwExpression = """
+    val throwExpression =
+      """
                          | //metadebug
                          | 
                          | fun throwAssertionError() {
@@ -20,10 +21,12 @@ class ThrowExpressionTest {
 
   @Test
   fun `Validate throw expression properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(ThrowExpressionPlugin())) },
-      code = { throwExpression },
-      assert = { quoteOutputMatches(throwExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ThrowExpressionPlugin())) },
+        code = { throwExpression },
+        assert = { quoteOutputMatches(throwExpression) }
+      )
+    )
   }
 }

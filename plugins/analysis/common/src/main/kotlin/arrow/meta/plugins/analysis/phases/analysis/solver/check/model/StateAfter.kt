@@ -6,11 +6,9 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
  * - the new information about variables and branches
  */
 data class StateAfter(val returnInfo: Return, val data: CheckData) {
-  fun withReturn(newReturnInfo: Return): StateAfter =
-    this.copy(returnInfo = newReturnInfo)
+  fun withReturn(newReturnInfo: Return): StateAfter = this.copy(returnInfo = newReturnInfo)
 
-  fun withData(oldData: CheckData): StateAfter =
-    this.copy(data = oldData)
+  fun withData(oldData: CheckData): StateAfter = this.copy(data = oldData)
 }
 
 fun CheckData.noReturn() = StateAfter(NoReturn, this)

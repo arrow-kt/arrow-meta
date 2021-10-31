@@ -97,9 +97,7 @@ import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
 
-/**
- * Default impl for element scopes based on the [KtPsiFactory]
- */
+/** Default impl for element scopes based on the [KtPsiFactory] */
 class DefaultElementScope(
   override val configuration: CompilerConfiguration?,
   project: Project,
@@ -151,16 +149,14 @@ class DefaultElementScope(
     typeParameters: List<String>,
     typeElement: KtTypeElement,
     descriptor: TypeAliasDescriptor?
-  ): TypeAlias =
-    TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement), descriptor)
+  ): TypeAlias = TypeAlias(delegate.createTypeAlias(name, typeParameters, typeElement), descriptor)
 
   override fun typeAlias(
     name: String,
     typeParameters: List<String>,
     body: String,
     descriptor: TypeAliasDescriptor?
-  ): TypeAlias =
-    TypeAlias(delegate.createTypeAlias(name, typeParameters, body), descriptor)
+  ): TypeAlias = TypeAlias(delegate.createTypeAlias(name, typeParameters, body), descriptor)
 
   override val star: PsiElement
     get() = delegate.createStar()
@@ -209,16 +205,14 @@ class DefaultElementScope(
     isVar: Boolean,
     initializer: String?,
     descriptor: PropertyDescriptor?
-  ): Property =
-    Property(delegate.createProperty(name, type, isVar, initializer), descriptor)
+  ): Property = Property(delegate.createProperty(name, type, isVar, initializer), descriptor)
 
   override fun property(
     name: String,
     type: String?,
     isVar: Boolean,
     descriptor: PropertyDescriptor?
-  ): Property =
-    Property(delegate.createProperty(name, type, isVar), descriptor)
+  ): Property = Property(delegate.createProperty(name, type, isVar), descriptor)
 
   override val String.property: (PropertyDescriptor?) -> Property
     get() = { Property(delegate.createProperty(trimMargin().trim()), it) }
@@ -334,7 +328,9 @@ class DefaultElementScope(
   override val String.whenCondition: WhenCondition
     get() = WhenCondition(delegate.createWhenCondition(trimMargin()))
 
-  override fun blockStringTemplateEntry(expression: KtExpression): Scope<KtStringTemplateEntryWithExpression> =
+  override fun blockStringTemplateEntry(
+    expression: KtExpression
+  ): Scope<KtStringTemplateEntryWithExpression> =
     Scope(delegate.createBlockStringTemplateEntry(expression))
 
   override fun simpleNameStringTemplateEntry(name: String): Scope<KtSimpleNameStringTemplateEntry> =
@@ -373,7 +369,9 @@ class DefaultElementScope(
   override fun String.typeCodeFragment(context: PsiElement?): Scope<KtTypeCodeFragment> =
     Scope(delegate.createTypeCodeFragment(trimMargin(), context))
 
-  override fun String.expressionCodeFragment(context: PsiElement?): Scope<KtExpressionCodeFragment> =
+  override fun String.expressionCodeFragment(
+    context: PsiElement?
+  ): Scope<KtExpressionCodeFragment> =
     Scope(delegate.createExpressionCodeFragment(trimMargin(), context))
 
   override fun String.blockCodeFragment(context: PsiElement?): Scope<KtBlockCodeFragment> =
@@ -384,8 +382,7 @@ class DefaultElementScope(
     name: Name?,
     isSpread: Boolean,
     reformat: Boolean
-  ): ValueArgument =
-    ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
+  ): ValueArgument = ValueArgument(delegate.createArgument(expression, name, isSpread, reformat))
 
   override val String.argument: ValueArgument
     get() = ValueArgument(delegate.createArgument(trimMargin()))
@@ -425,20 +422,28 @@ class DefaultElementScope(
     get() = TryExpression(expression.value as KtTryExpression)
 
   override val String.catch: CatchClause
-    get() = CatchClause(
-      """
+    get() =
+      CatchClause(
+        """
       |try { } 
       |$this
-      """.trimIndent().trim().`try`.catchClauses.value.first()
-    )
+      """
+          .trimIndent()
+          .trim()
+          .`try`
+          .catchClauses
+          .value
+          .first()
+      )
 
   override val String.finally: FinallySection
-    get() = FinallySection(
-      """
+    get() =
+      FinallySection(
+        """
       |try { } 
       |$this
       """.trimIndent().trim().`try`.finallySection.value
-    )
+      )
 
   override val String.`throw`: ThrowExpression
     get() = ThrowExpression(expression.value as KtThrowExpression)
@@ -470,10 +475,11 @@ class DefaultElementScope(
   override fun String.file(fileName: String): File =
     file(fileName, getOrCreateBaseDirectory(configuration).path)
 
-  override fun String.file(fileName: String, filePath: String) = File(
-    delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", this),
-    sourcePath = FqName(filePath)
-  )
+  override fun String.file(fileName: String, filePath: String) =
+    File(
+      delegate.createFile(if (fileName.contains(".kt")) fileName else "$fileName.kt", this),
+      sourcePath = FqName(filePath)
+    )
 
   override val String.functionLiteral: FunctionLiteral
     get() = FunctionLiteral((expression.value as KtLambdaExpression).functionLiteral)

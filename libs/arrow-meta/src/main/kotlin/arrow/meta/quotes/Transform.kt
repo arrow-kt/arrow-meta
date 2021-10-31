@@ -5,9 +5,7 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 
-/**
- * The resulting action from matching on transformation
- */
+/** The resulting action from matching on transformation */
 sealed class Transform<out K> {
 
   /**
@@ -117,9 +115,7 @@ sealed class Transform<out K> {
    *
    * @param transforms list of transformations
    */
-  data class Many<K : KtElement>(
-    val transforms: ArrayList<Transform<K>>
-  ) : Transform<K>()
+  data class Many<K : KtElement>(val transforms: ArrayList<Transform<K>>) : Transform<K>()
 
   /**
    * A Transform that allows code generation. See below:
@@ -147,13 +143,11 @@ sealed class Transform<out K> {
    *    }
    *   )
    *  }
-   *```
+   * ```
    *
    * @param files list of files to be generated
    */
-  data class NewSource<K : KtElement>(
-    val files: List<File>
-  ) : Transform<K>()
+  data class NewSource<K : KtElement>(val files: List<File>) : Transform<K>()
 
   object Empty : Transform<Nothing>()
 
@@ -161,14 +155,12 @@ sealed class Transform<out K> {
     fun <K : KtElement> replace(
       replacing: PsiElement,
       newDeclarations: List<Scope<KtElement>>
-    ): Transform<K> =
-      Replace(replacing, newDeclarations)
+    ): Transform<K> = Replace(replacing, newDeclarations)
 
     fun <K : KtElement> replace(
       replacing: PsiElement,
       newDeclaration: Scope<KtElement>
-    ): Transform<K> =
-      replace(replacing, listOf(newDeclaration))
+    ): Transform<K> = replace(replacing, listOf(newDeclaration))
 
     fun <K : KtElement> remove(remove: PsiElement): Transform<K> = Replace(remove, emptyList())
 
@@ -182,9 +174,7 @@ sealed class Transform<out K> {
       declarations: List<Scope<KtExpressionCodeFragment>>
     ): Transform<K> = Remove(removeIn, declarations)
 
-    fun <K : KtElement> newSources(
-      vararg files: File
-    ): Transform<K> = NewSource(files.toList())
+    fun <K : KtElement> newSources(vararg files: File): Transform<K> = NewSource(files.toList())
 
     val empty: Transform<Nothing> = Empty
   }

@@ -14,20 +14,18 @@ import org.jetbrains.kotlin.psi.psiUtil.isNull
 
 /* ktlint-enable no-wildcard-imports */
 
-private fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
-  B : DeclarationDescriptor> A.repr(): B =
+private fun <
+  A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A.repr():
+  B = this as B
+
+private fun <A : DeclarationDescriptor, B : DeclarationDescriptor> A.repr(unit: Unit = Unit): B =
   this as B
 
-private fun <A : DeclarationDescriptor,
-  B : DeclarationDescriptor> A.repr(unit: Unit = Unit): B =
-  this as B
+fun <A : Element, B : Element> A.repr(): B = this as B
 
-fun <A : Element,
-  B : Element> A.repr(): B =
-  this as B
-
-fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
-  B : DeclarationDescriptor> A.model(): B =
+fun <
+  A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A.model():
+  B =
   when (this) {
     is SimpleFunctionDescriptor -> KotlinSimpleFunctionDescriptor(this).repr()
     is TypeAliasConstructorDescriptor -> KotlinTypeAliasConstructorDescriptor(this).repr()
@@ -44,12 +42,11 @@ fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor,
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
-    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) { }).repr()
+    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) {}).repr()
     else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 
-fun <A : KtElement,
-  B : Element> A.model(): B =
+fun <A : KtElement, B : Element> A.model(): B =
   when (this) {
     is KtNamedFunction -> KotlinNamedFunction(this).repr()
     is KtProperty -> KotlinProperty(this).repr()
@@ -95,14 +92,16 @@ fun <A : KtElement,
     is KtWhenConditionWithExpression -> KotlinWhenConditionWithExpression(this).repr()
     is KtSecondaryConstructor -> KotlinSecondaryConstructor(this).repr()
     is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
-    is KtConstructorDelegationReferenceExpression -> KotlinConstructorDelegationReferenceExpression(this).repr()
+    is KtConstructorDelegationReferenceExpression ->
+      KotlinConstructorDelegationReferenceExpression(this).repr()
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
     // is KtFile -> KotlinFile(this).repr()
-    else -> TODO("Missing impl for ${this.text} ${this.containingKtFile.virtualFilePath} (${this.javaClass.name})")
+    else ->
+      TODO(
+        "Missing impl for ${this.text} ${this.containingKtFile.virtualFilePath} (${this.javaClass.name})"
+      )
   }
 
-fun <A : Element,
-  B : KtElement> A.element(): B =
-  impl() as B
+fun <A : Element, B : KtElement> A.element(): B = impl() as B

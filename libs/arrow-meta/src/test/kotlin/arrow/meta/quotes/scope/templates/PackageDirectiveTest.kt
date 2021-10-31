@@ -21,11 +21,7 @@ class PackageDirectiveTest {
            """.source
     }
 
-    val packageExpressions = arrayOf(
-      test,
-      package_names,
-      package_last_name
-    )
+    val packageExpressions = arrayOf(test, package_names, package_last_name)
   }
 
   @Test
@@ -44,10 +40,12 @@ class PackageDirectiveTest {
   }
 
   private fun validate(lastPackage: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(PackageDirectivePlugin())) },
-      code = { lastPackage },
-      assert = { quoteOutputMatches(lastPackage) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(PackageDirectivePlugin())) },
+        code = { lastPackage },
+        assert = { quoteOutputMatches(lastPackage) }
+      )
+    )
   }
 }

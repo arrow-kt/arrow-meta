@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test
 class DotQualifiedExpressionTest {
 
   companion object {
-    private val dotQualifiedExpression = """
+    private val dotQualifiedExpression =
+      """
       | val list = listOf("12", "33", "65")
       |     list.flatMap { it.toList() }
       |""".dotQualifiedExpression()
 
-    private val mutableDotQualifiedExpression = """"Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
+    private val mutableDotQualifiedExpression =
+      """"Shortest".plus("sentence").plus("ever")""".dotQualifiedExpression()
 
     private fun String.dotQualifiedExpression(): Code.Source {
       return """
@@ -29,10 +31,7 @@ class DotQualifiedExpressionTest {
       | """.source
     }
 
-    val dotQualifiedExpressions = arrayOf(
-      dotQualifiedExpression,
-      mutableDotQualifiedExpression
-    )
+    val dotQualifiedExpressions = arrayOf(dotQualifiedExpression, mutableDotQualifiedExpression)
   }
 
   @Test
@@ -46,10 +45,12 @@ class DotQualifiedExpressionTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(DotQualifiedExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(DotQualifiedExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

@@ -78,13 +78,15 @@ operator fun String.invoke(assert: AssertSyntax.() -> Assert) {
   val arrowAnnotations = Dependency("arrow-annotations:$arrowVersion")
   val arrowCore = Dependency("arrow-core:$arrowVersion")
   val arrowOptics = Dependency("arrow-optics:$arrowVersion")
-  assertThis(CompilerTest(
-    config = {
-      metaDependencies +
-        addCompilerPlugins(opticsCompilerPlugin) +
-        addDependencies(arrowAnnotations, arrowCore, arrowOptics)
-    },
-    code = { this@invoke.source },
-    assert = { assert() }
-  ))
+  assertThis(
+    CompilerTest(
+      config = {
+        metaDependencies +
+          addCompilerPlugins(opticsCompilerPlugin) +
+          addDependencies(arrowAnnotations, arrowCore, arrowOptics)
+      },
+      code = { this@invoke.source },
+      assert = { assert() }
+    )
+  )
 }

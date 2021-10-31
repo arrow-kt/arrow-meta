@@ -22,10 +22,11 @@ import org.sosy_lab.java_smt.api.SolverContext
 data class SolverState(
   val names: NameProvider = NameProvider(),
   val solver: Solver = Solver(names),
-  val prover: ProverEnvironment = solver.newProverEnvironment(
-    SolverContext.ProverOptions.GENERATE_MODELS,
-    SolverContext.ProverOptions.GENERATE_UNSAT_CORE
-  ),
+  val prover: ProverEnvironment =
+    solver.newProverEnvironment(
+      SolverContext.ProverOptions.GENERATE_MODELS,
+      SolverContext.ProverOptions.GENERATE_UNSAT_CORE
+    ),
   val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf(),
   val fieldProvider: FieldProvider = FieldProvider(solver, prover)
@@ -48,27 +49,21 @@ data class SolverState(
     return result
   }
 
-  /**
-   * This signals that the rest of the computation
-   * happens inside a push/pop bracket
-   */
-  val continuationBracket: ContSeq<Unit> =
-    ContSeq { bracket { yield(Unit) } }
+  /** This signals that the rest of the computation happens inside a push/pop bracket */
+  val continuationBracket: ContSeq<Unit> = ContSeq { bracket { yield(Unit) } }
 
-  /**
-   * This signals that part of the computation
-   * happens inside a push/pop bracket
-   */
+  /** This signals that part of the computation happens inside a push/pop bracket */
   fun <A> scopedBracket(cont: () -> ContSeq<A>) =
-    ContSeq.unit.map {
-      solverTrace.add("PUSH (scoped)")
-      prover.push()
-    }.flatMap {
-      cont()
-    }.onEach {
-      prover.pop()
-      solverTrace.add("POP (scoped)")
-    }
+    ContSeq.unit
+      .map {
+        solverTrace.add("PUSH (scoped)")
+        prover.push()
+      }
+      .flatMap { cont() }
+      .onEach {
+        prover.pop()
+        solverTrace.add("POP (scoped)")
+      }
 
   fun addConstraint(constraint: NamedConstraint) {
     prover.addConstraint(constraint.formula)
@@ -79,11 +74,8 @@ data class SolverState(
     prover.addConstraint(constraint.formula)
   }
 
-  fun newName(
-    context: ResolutionContext,
-    prefix: String,
-    element: Element?
-  ): String = newName(context, prefix, element, null)
+  fun newName(context: ResolutionContext, prefix: String, element: Element?): String =
+    newName(context, prefix, element, null)
 
   fun newName(
     context: ResolutionContext,

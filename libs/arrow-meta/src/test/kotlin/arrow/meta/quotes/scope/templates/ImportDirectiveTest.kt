@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class ImportDirectiveTest {
 
   companion object {
-    val importDirectiveExpression = """
+    val importDirectiveExpression =
+      """
                          | //metadebug
                          | import kotlin.assert as testMessage
                          | """.source
@@ -17,10 +18,12 @@ class ImportDirectiveTest {
 
   @Test
   fun `Validate import directive scope properties`() {
-    assertThis(CompilerTest(
-      config = { metaDependencies + addMetaPlugins(ImportDirectivePlugin()) },
-      code = { importDirectiveExpression },
-      assert = { quoteOutputMatches(importDirectiveExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { metaDependencies + addMetaPlugins(ImportDirectivePlugin()) },
+        code = { importDirectiveExpression },
+        assert = { quoteOutputMatches(importDirectiveExpression) }
+      )
+    )
   }
 }

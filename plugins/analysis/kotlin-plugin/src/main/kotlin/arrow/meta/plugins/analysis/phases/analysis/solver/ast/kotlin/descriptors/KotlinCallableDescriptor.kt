@@ -1,6 +1,5 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
@@ -11,6 +10,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.backend.common.descriptors.allParameters
@@ -19,8 +19,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
-fun interface KotlinCallableDescriptor :
-  CallableDescriptor, KotlinDeclarationDescriptor {
+fun interface KotlinCallableDescriptor : CallableDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.CallableDescriptor
 
@@ -30,8 +29,7 @@ fun interface KotlinCallableDescriptor :
   override val module: ModuleDescriptor
     get() = impl().module.model()
 
-  override fun element(): Element? =
-    (impl().findPsi() as? KtElement)?.model()
+  override fun element(): Element? = (impl().findPsi() as? KtElement)?.model()
 
   override val fqNameSafe: FqName
     get() = FqName(impl().fqNameSafe.asString())

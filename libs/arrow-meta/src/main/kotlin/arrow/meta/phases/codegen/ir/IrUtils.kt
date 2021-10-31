@@ -50,7 +50,8 @@ class IrUtils(
   val pluginContext: IrPluginContext,
   val compilerContext: CompilerContext,
   val moduleFragment: IrModuleFragment
-) : ReferenceSymbolTable by pluginContext.symbols.externalSymbolTable,
+) :
+  ReferenceSymbolTable by pluginContext.symbols.externalSymbolTable,
   IrTypeSystemContext by IrTypeSystemContextImpl(pluginContext.irBuiltIns),
   IrFactory by pluginContext.irFactory {
 
@@ -61,14 +62,14 @@ class IrUtils(
       moduleDescriptor = moduleFragment.descriptor
     )
 
-  fun KotlinType.toIrType(): IrType =
-    typeTranslator.translateType(this)
+  fun KotlinType.toIrType(): IrType = typeTranslator.translateType(this)
 
   fun CallableDescriptor.irCall(): IrExpression =
     when (this) {
       is PropertyDescriptor -> {
         val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
-        irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let { irSimpleFunctionSymbol ->
+        irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
+          irSimpleFunctionSymbol ->
           IrCallImpl(
             startOffset = UNDEFINED_OFFSET,
             endOffset = UNDEFINED_OFFSET,
@@ -77,7 +78,8 @@ class IrUtils(
             typeArgumentsCount = irSimpleFunctionSymbol.owner.typeParameters.size,
             valueArgumentsCount = irSimpleFunctionSymbol.owner.valueParameters.size
           )
-        } ?: TODO("Unsupported irCall for $this")
+        }
+          ?: TODO("Unsupported irCall for $this")
       }
       is ClassConstructorDescriptor -> {
         val irSymbol = pluginContext.symbols.externalSymbolTable.referenceConstructor(this)
@@ -118,7 +120,8 @@ class IrUtils(
 
   fun PropertyDescriptor.irGetterCall(): IrCall? {
     val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
-    return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let { irSimpleFunctionSymbol ->
+    return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
+      irSimpleFunctionSymbol ->
       IrCallImpl(
         startOffset = UNDEFINED_OFFSET,
         endOffset = UNDEFINED_OFFSET,
@@ -145,21 +148,28 @@ class IrUtils(
     }
   }
 
-  fun CallableDescriptor.substitutedIrTypes(typeSubstitutor: NewTypeSubstitutorByConstructorMap): List<IrType?> =
+  fun CallableDescriptor.substitutedIrTypes(
+    typeSubstitutor: NewTypeSubstitutorByConstructorMap
+  ): List<IrType?> =
     typeParameters.mapIndexed { _, typeParamDescriptor ->
-      val newType = typeSubstitutor.map.entries.find {
-        it.key.toString() == typeParamDescriptor.defaultType.toString()
-      }
+      val newType =
+        typeSubstitutor.map.entries.find {
+          it.key.toString() == typeParamDescriptor.defaultType.toString()
+        }
       newType?.value?.toIrType()
     }
 
   fun <A> IrFunction.transform(data: A, f: IrFunction.(a: A) -> Unit = Noop.effect2): IrStatement =
-    transform(object : IrElementTransformer<A> {
-      override fun visitFunction(declaration: IrFunction, data: A): IrStatement {
-        f(declaration, data)
-        return super.visitFunction(declaration, data)
-      }
-    }, data) as IrStatement
+    transform(
+      object : IrElementTransformer<A> {
+        override fun visitFunction(declaration: IrFunction, data: A): IrStatement {
+          f(declaration, data)
+          return super.visitFunction(declaration, data)
+        }
+      },
+      data
+    ) as
+      IrStatement
 }
 
 inline fun <reified E, B> IrElement.filterMap(
@@ -167,21 +177,20 @@ inline fun <reified E, B> IrElement.filterMap(
   crossinline map: (E) -> B
 ): List<B> {
   val els = arrayListOf<B>()
-  val visitor = object : IrElementVisitor<Unit, Unit> {
-    override fun visitElement(element: IrElement, data: Unit) {
-      if (element is E && filter(element)) {
-        els.add(map(element))
+  val visitor =
+    object : IrElementVisitor<Unit, Unit> {
+      override fun visitElement(element: IrElement, data: Unit) {
+        if (element is E && filter(element)) {
+          els.add(map(element))
+        }
+        element.acceptChildren(this, Unit)
       }
-      element.acceptChildren(this, Unit)
     }
-  }
   acceptChildren(visitor, Unit)
   return els
 }
 
-/**
- * returns the index and the value argument
- */
+/** returns the index and the value argument */
 val IrCall.valueArguments: List<Pair<Int, IrExpression?>>
   get() {
     val args = arrayListOf<Pair<Int, IrExpression?>>()
@@ -191,9 +200,7 @@ val IrCall.valueArguments: List<Pair<Int, IrExpression?>>
     return args.toList()
   }
 
-/**
- * returns the index and the type argument
- */
+/** returns the index and the type argument */
 val IrCall.typeArguments: List<Pair<Int, IrType?>>
   get() {
     val args = arrayListOf<Pair<Int, IrType?>>()
@@ -207,31 +214,30 @@ val IrCall.substitutedValueParameters: List<Pair<IrValueParameter, IrType?>>
   get() = symbol.owner.substitutedValueParameters(this)
 
 val IrTypeParametersContainer.allTypeParameters: List<IrTypeParameter>
-  get() = if (this is IrConstructor)
-    parentAsClass.typeParameters + typeParameters
-  else
-    typeParameters
+  get() =
+    if (this is IrConstructor) parentAsClass.typeParameters + typeParameters else typeParameters
 
-fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(container: IrTypeParametersContainer): Map<IrTypeParameter, IrType> =
-  container.allTypeParameters.withIndex().associate {
-    it.value to getTypeArgument(it.index)!!
-  }
+fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(
+  container: IrTypeParametersContainer
+): Map<IrTypeParameter, IrType> =
+  container.allTypeParameters.withIndex().associate { it.value to getTypeArgument(it.index)!! }
 
 val IrMemberAccessExpression<*>.typeSubstitutions: Map<IrTypeParameter, IrType>
-  get() = symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
+  get() =
+    symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
-/**
- * returns a Pair of the descriptor and it's substituted KotlinType at the call-site
- */
-private fun IrSimpleFunction.substitutedValueParameters(call: IrCall): List<Pair<IrValueParameter, IrType?>> =
-  valueParameters
-    .map {
-      val type = it.type
-      it to (type.takeIf { t -> !t.isTypeParameter() }
-        ?: typeParameters
-          .firstOrNull { typeParam -> typeParam.defaultType == type }
-          ?.let { typeParam ->
-            call.getTypeArgument(typeParam.index)
-          } ?: type // Could not resolve the substituted KotlinType
-        )
-    }
+/** returns a Pair of the descriptor and it's substituted KotlinType at the call-site */
+private fun IrSimpleFunction.substitutedValueParameters(
+  call: IrCall
+): List<Pair<IrValueParameter, IrType?>> =
+  valueParameters.map {
+    val type = it.type
+    it to
+      (type.takeIf { t -> !t.isTypeParameter() }
+        ?: typeParameters.firstOrNull { typeParam -> typeParam.defaultType == type }?.let {
+          typeParam ->
+          call.getTypeArgument(typeParam.index)
+        }
+          ?: type // Could not resolve the substituted KotlinType
+      )
+  }

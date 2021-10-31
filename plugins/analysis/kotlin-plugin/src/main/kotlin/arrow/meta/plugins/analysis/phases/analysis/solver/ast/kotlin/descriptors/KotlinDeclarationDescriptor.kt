@@ -13,8 +13,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 
-fun interface KotlinDeclarationDescriptor :
-  DeclarationDescriptor {
+fun interface KotlinDeclarationDescriptor : DeclarationDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 
   override fun annotations(): Annotations = KotlinAnnotations(impl().annotations)
@@ -28,8 +27,7 @@ fun interface KotlinDeclarationDescriptor :
   override val containingPackage: FqName?
     get() = impl().containingPackage()?.let { FqName(it.asString()) }
 
-  override fun element(): Element? =
-    (impl().findPsi() as? KtElement)?.model()
+  override fun element(): Element? = (impl().findPsi() as? KtElement)?.model()
 
   override val fqNameSafe: FqName
     get() = FqName(impl().fqNameSafe.asString())

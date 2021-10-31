@@ -35,6 +35,5 @@ class ThrowExpression(
   override val value: KtThrowExpression?,
   val thrownExpression: Scope<KtExpression> = Scope(value?.thrownExpression)
 ) : Scope<KtThrowExpression>(value) {
-  override fun ElementScope.identity(): ThrowExpression =
-    """throw $thrownExpression""".`throw`
+  override fun ElementScope.identity(): ThrowExpression = """throw $thrownExpression""".`throw`
 }

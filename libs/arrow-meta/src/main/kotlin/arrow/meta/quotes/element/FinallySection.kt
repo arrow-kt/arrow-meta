@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtFinallySection
  *     }
  *    )
  *   }
- *```
+ * ```
  */
 class FinallySection(
   override val value: KtFinallySection?,

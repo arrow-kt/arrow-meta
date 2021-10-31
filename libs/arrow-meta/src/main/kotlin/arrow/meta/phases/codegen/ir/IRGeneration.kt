@@ -11,8 +11,5 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
  */
 interface IRGeneration : ExtensionPhase {
 
-  fun CompilerContext.generate(
-    moduleFragment: IrModuleFragment,
-    pluginContext: IrPluginContext
-  )
+  fun CompilerContext.generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext)
 }

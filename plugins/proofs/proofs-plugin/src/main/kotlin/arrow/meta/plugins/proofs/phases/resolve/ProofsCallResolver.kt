@@ -63,52 +63,79 @@ class ProofsCallResolver(
   ): CallResolutionResult {
     kotlinCall.checkCallInvariants()
     val trace = BindingTraceContext.createTraceableBindingTrace()
-    val context = ExpressionTypingContext.newContext(
-      trace, scopeTower.lexicalScope, DataFlowInfo.EMPTY,
-      expectedType, LanguageVersionSettingsImpl.DEFAULT,
-      DataFlowValueFactoryImpl(LanguageVersionSettingsImpl.DEFAULT))
-    val fakeCall = object : Call {
-      override fun getCallOperationNode(): ASTNode? = null
-      override fun getExplicitReceiver(): Receiver? = null
-      override fun getDispatchReceiver(): ReceiverValue? = null
-      override fun getCalleeExpression(): KtExpression? = null
-      override fun getValueArgumentList(): KtValueArgumentList? = null
-      override fun getValueArguments(): List<ValueArgument> = emptyList()
-      override fun getFunctionLiteralArguments(): List<LambdaArgument> = emptyList()
-      override fun getTypeArguments(): List<KtTypeProjection> = emptyList()
-      override fun getTypeArgumentList(): KtTypeArgumentList? = null
-      override fun getCallElement(): KtElement = throw IllegalStateException("this is a fake call element")
-      override fun getCallType(): Call.CallType = Call.CallType.DEFAULT
-    }
-    val basicCallContext = BasicCallResolutionContext.create(
-      context, fakeCall, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS)
+    val context =
+      ExpressionTypingContext.newContext(
+        trace,
+        scopeTower.lexicalScope,
+        DataFlowInfo.EMPTY,
+        expectedType,
+        LanguageVersionSettingsImpl.DEFAULT,
+        DataFlowValueFactoryImpl(LanguageVersionSettingsImpl.DEFAULT)
+      )
+    val fakeCall =
+      object : Call {
+        override fun getCallOperationNode(): ASTNode? = null
+        override fun getExplicitReceiver(): Receiver? = null
+        override fun getDispatchReceiver(): ReceiverValue? = null
+        override fun getCalleeExpression(): KtExpression? = null
+        override fun getValueArgumentList(): KtValueArgumentList? = null
+        override fun getValueArguments(): List<ValueArgument> = emptyList()
+        override fun getFunctionLiteralArguments(): List<LambdaArgument> = emptyList()
+        override fun getTypeArguments(): List<KtTypeProjection> = emptyList()
+        override fun getTypeArgumentList(): KtTypeArgumentList? = null
+        override fun getCallElement(): KtElement =
+          throw IllegalStateException("this is a fake call element")
+        override fun getCallType(): Call.CallType = Call.CallType.DEFAULT
+      }
+    val basicCallContext =
+      BasicCallResolutionContext.create(
+        context,
+        fakeCall,
+        CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS
+      )
     val resolutionCallbacks =
       psiCallResolver.createResolutionCallbacks(trace, InferenceSession.default, basicCallContext)
-    val candidateFactory = SimpleCandidateFactory(callComponents, scopeTower, kotlinCall, resolutionCallbacks, callableReferenceResolver)
+    val candidateFactory =
+      SimpleCandidateFactory(
+        callComponents,
+        scopeTower,
+        kotlinCall,
+        resolutionCallbacks,
+        callableReferenceResolver
+      )
 
     val resolutionCandidates = map {
       it.fold(
-        given = { givenCandidate(candidateFactory) },
-      ).forceResolution()
+          given = { givenCandidate(candidateFactory) },
+        )
+        .forceResolution()
     }
 
     if (collectAllCandidates) {
-      val allCandidates = towerResolver.runWithEmptyTowerData(
-        KnownResultProcessor(resolutionCandidates),
-        TowerResolver.AllCandidatesCollector(),
-        useOrder = false
+      val allCandidates =
+        towerResolver.runWithEmptyTowerData(
+          KnownResultProcessor(resolutionCandidates),
+          TowerResolver.AllCandidatesCollector(),
+          useOrder = false
+        )
+      return kotlinCallCompleter.createAllCandidatesResult(
+        allCandidates,
+        expectedType,
+        resolutionCallbacks
       )
-      return kotlinCallCompleter.createAllCandidatesResult(allCandidates, expectedType, resolutionCallbacks)
     }
-    val candidates = towerResolver.runWithEmptyTowerData(
-      KnownResultProcessor(resolutionCandidates),
-      TowerResolver.SuccessfulResultCollector(),
-      useOrder = true
-    )
+    val candidates =
+      towerResolver.runWithEmptyTowerData(
+        KnownResultProcessor(resolutionCandidates),
+        TowerResolver.SuccessfulResultCollector(),
+        useOrder = true
+      )
     return choseMostSpecific(candidateFactory, resolutionCallbacks, expectedType, candidates)
   }
 
-  private fun GivenProof.givenCandidate(candidateFactory: SimpleCandidateFactory): KotlinResolutionCandidate =
+  private fun GivenProof.givenCandidate(
+    candidateFactory: SimpleCandidateFactory
+  ): KotlinResolutionCandidate =
     candidateFactory.createCandidate(
       towerCandidate = CandidateWithBoundDispatchReceiver(null, callableDescriptor, emptyList()),
       explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
@@ -121,26 +148,35 @@ class ProofsCallResolver(
     expectedType: UnwrappedType?,
     candidates: Collection<KotlinResolutionCandidate>
   ): CallResolutionResult {
-    var refinedCandidates = candidates.filter {
-      it.resolvedCall.freshReturnType?.let { a ->
-        expectedType?.let { b ->
-          baseLineTypeChecker.isSubtypeOf(a, b)
+    var refinedCandidates =
+      candidates.filter {
+        it.resolvedCall.freshReturnType?.let { a ->
+          expectedType?.let { b -> baseLineTypeChecker.isSubtypeOf(a, b) }
         }
-      } ?: false
-    }
-    if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
+          ?: false
+      }
+    if (!callComponents.languageVersionSettings.supportsFeature(
+        LanguageFeature.RefinedSamAdaptersPriority
+      )
+    ) {
       val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
       if (nonSynthesized.isNotEmpty()) {
         refinedCandidates = nonSynthesized
       }
     }
 
-    val maximallySpecificCandidates = overloadingConflictResolver.chooseMaximallySpecificCandidates(
-      refinedCandidates,
-      CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-      discriminateGenerics = true
-    )
+    val maximallySpecificCandidates =
+      overloadingConflictResolver.chooseMaximallySpecificCandidates(
+        refinedCandidates,
+        CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+        discriminateGenerics = true
+      )
 
-    return kotlinCallCompleter.runCompletion(candidateFactory, maximallySpecificCandidates, expectedType, resolutionCallbacks)
+    return kotlinCallCompleter.runCompletion(
+      candidateFactory,
+      maximallySpecificCandidates,
+      expectedType,
+      resolutionCallbacks
+    )
   }
 }

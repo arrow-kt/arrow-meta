@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.psi.KtThisExpression
  *
  * A template destructuring [Scope] for a [KtBreakExpression].
  *
- *  ```
+ * ```
  * import arrow.meta.Meta
  * import arrow.meta.CliPlugin
  * import arrow.meta.invoke

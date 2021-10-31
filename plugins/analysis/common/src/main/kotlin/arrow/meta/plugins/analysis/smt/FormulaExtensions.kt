@@ -9,28 +9,26 @@ import org.sosy_lab.java_smt.api.visitors.DefaultFormulaVisitor
 import org.sosy_lab.java_smt.api.visitors.TraversalProcess
 
 fun <T : Formula> Solver.substituteVariable(formula: T, mapping: Map<String, Formula>): T =
-  formulae {
-    val subst = mapping.mapKeys { entry ->
-      makeVariable(getFormulaType(entry.value), entry.key)
-    }
-    substitute(formula, subst)
-  }
+    formulae {
+  val subst = mapping.mapKeys { entry -> makeVariable(getFormulaType(entry.value), entry.key) }
+  substitute(formula, subst)
+}
 
-internal fun <T : Formula> Solver.renameObjectVariables(formula: T, mapping: Map<String, String>): T =
-  formulae {
-    val subst = mapping.map { (k, v) ->
-      Pair(makeObjectVariable(k), makeObjectVariable(v))
-    }.toMap()
-    substitute(formula, subst)
-  }
+internal fun <T : Formula> Solver.renameObjectVariables(
+  formula: T,
+  mapping: Map<String, String>
+): T = formulae {
+  val subst = mapping.map { (k, v) -> Pair(makeObjectVariable(k), makeObjectVariable(v)) }.toMap()
+  substitute(formula, subst)
+}
 
-internal fun <T : Formula> Solver.substituteObjectVariables(formula: T, mapping: Map<String, ObjectFormula>): T =
-  formulae {
-    val subst = mapping.map { (k, v) ->
-      Pair(makeObjectVariable(k), v)
-    }.toMap()
-    substitute(formula, subst)
-  }
+internal fun <T : Formula> Solver.substituteObjectVariables(
+  formula: T,
+  mapping: Map<String, ObjectFormula>
+): T = formulae {
+  val subst = mapping.map { (k, v) -> Pair(makeObjectVariable(k), v) }.toMap()
+  substitute(formula, subst)
+}
 
 fun Solver.renameDeclarationConstraints(
   decl: DeclarationConstraints,
@@ -54,18 +52,23 @@ fun Solver.substituteDeclarationConstraints(
 
 fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {
   val names = mutableSetOf<Pair<String, ObjectFormula>>()
-  val visitor = object : DefaultFormulaVisitor<TraversalProcess>() {
-    override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
-    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, fn: FunctionDeclaration<*>?): TraversalProcess {
-      val secondArg = args?.getOrNull(1) as? ObjectFormula
-      if (fn?.name == Solver.FIELD_FUNCTION_NAME && secondArg != null) {
-        args.getOrNull(0)?.let { fieldNames ->
-          names.addAll(extractVariables(fieldNames).keys.map { Pair(it, secondArg) })
+  val visitor =
+    object : DefaultFormulaVisitor<TraversalProcess>() {
+      override fun visitDefault(f: Formula?): TraversalProcess = TraversalProcess.CONTINUE
+      override fun visitFunction(
+        f: Formula?,
+        args: MutableList<Formula>?,
+        fn: FunctionDeclaration<*>?
+      ): TraversalProcess {
+        val secondArg = args?.getOrNull(1) as? ObjectFormula
+        if (fn?.name == Solver.FIELD_FUNCTION_NAME && secondArg != null) {
+          args.getOrNull(0)?.let { fieldNames ->
+            names.addAll(extractVariables(fieldNames).keys.map { Pair(it, secondArg) })
+          }
         }
+        return TraversalProcess.CONTINUE
       }
-      return TraversalProcess.CONTINUE
     }
-  }
   visitRecursively(f, visitor)
   return names
 }
@@ -74,25 +77,26 @@ fun FormulaManager.fieldNames(f: Iterable<Formula>): Set<Pair<String, ObjectForm
   f.flatMap { fieldNames(it) }.toSet()
 
 fun FormulaManager.isSingleVariable(f: Formula): Boolean {
-  val visitor = object : DefaultFormulaVisitor<Boolean>() {
-    override fun visitDefault(f: Formula?): Boolean = false
-    override fun visitFreeVariable(f: Formula?, name: String?): Boolean = true
-  }
+  val visitor =
+    object : DefaultFormulaVisitor<Boolean>() {
+      override fun visitDefault(f: Formula?): Boolean = false
+      override fun visitFreeVariable(f: Formula?, name: String?): Boolean = true
+    }
   return visit(f, visitor)
 }
 
 fun Solver.isFieldCall(f: Formula): Boolean {
-  val visitor = object : DefaultFormulaVisitor<Boolean>() {
-    override fun visitDefault(f: Formula?): Boolean = false
-    override fun visitFunction(f: Formula?, args: MutableList<Formula>?, functionDeclaration: FunctionDeclaration<*>?): Boolean =
-      functionDeclaration?.name == Solver.FIELD_FUNCTION_NAME
-  }
+  val visitor =
+    object : DefaultFormulaVisitor<Boolean>() {
+      override fun visitDefault(f: Formula?): Boolean = false
+      override fun visitFunction(
+        f: Formula?,
+        args: MutableList<Formula>?,
+        functionDeclaration: FunctionDeclaration<*>?
+      ): Boolean = functionDeclaration?.name == Solver.FIELD_FUNCTION_NAME
+    }
   return visit(f, visitor)
 }
 
-fun FormulaManager.extractSingleVariable(
-  formula: Formula
-): String? =
-  extractVariables(formula)
-    .takeIf { it.size == 1 }
-    ?.toList()?.getOrNull(0)?.first
+fun FormulaManager.extractSingleVariable(formula: Formula): String? =
+  extractVariables(formula).takeIf { it.size == 1 }?.toList()?.getOrNull(0)?.first

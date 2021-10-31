@@ -1,17 +1,17 @@
 package arrow.meta.plugins.analysis.types
 
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 enum class PrimitiveType {
-  BOOLEAN, INTEGRAL, RATIONAL, CHAR
+  BOOLEAN,
+  INTEGRAL,
+  RATIONAL,
+  CHAR
 }
 
 fun Type.unwrapIfNullable(): Type =
-  if (isMarkedNullable || isNullable())
-    unwrappedNotNullableType
-  else
-    this
+  if (isMarkedNullable || isNullable()) unwrappedNotNullableType else this
 
 fun Type.primitiveType(): PrimitiveType? =
   when {
@@ -24,9 +24,10 @@ fun Type.primitiveType(): PrimitiveType? =
     isDouble() -> PrimitiveType.RATIONAL
     isFloat() -> PrimitiveType.RATIONAL
     isChar() -> PrimitiveType.CHAR
-    else -> when (this.descriptor?.fqNameSafe) {
-      FqName("java.math.BigInteger") -> PrimitiveType.INTEGRAL
-      FqName("java.math.BigDecimal") -> PrimitiveType.RATIONAL
-      else -> null
-    }
+    else ->
+      when (this.descriptor?.fqNameSafe) {
+        FqName("java.math.BigInteger") -> PrimitiveType.INTEGRAL
+        FqName("java.math.BigDecimal") -> PrimitiveType.RATIONAL
+        else -> null
+      }
   }

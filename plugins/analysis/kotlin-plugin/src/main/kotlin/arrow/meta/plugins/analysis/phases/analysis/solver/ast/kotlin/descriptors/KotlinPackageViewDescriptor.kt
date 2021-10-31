@@ -6,8 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 
 class KotlinPackageViewDescriptor(
   val impl: org.jetbrains.kotlin.descriptors.PackageViewDescriptor
-) :
-  PackageViewDescriptor, KotlinDeclarationDescriptor {
+) : PackageViewDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.PackageViewDescriptor = impl
 

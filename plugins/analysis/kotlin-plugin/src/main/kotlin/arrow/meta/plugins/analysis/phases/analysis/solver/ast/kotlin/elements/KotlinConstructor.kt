@@ -5,8 +5,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.C
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtConstructor
 
-fun interface KotlinConstructor<T : Constructor<T>> : Constructor<T>,
-  KotlinFunction {
+fun interface KotlinConstructor<T : Constructor<T>> : Constructor<T>, KotlinFunction {
   override fun impl(): KtConstructor<*>
   override fun getContainingClassOrObject(): ClassOrObject =
     impl().getContainingClassOrObject().model()

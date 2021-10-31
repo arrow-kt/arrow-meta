@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 class WhenExpressionTest {
 
   companion object {
-    val doMaths = """
+    val doMaths =
+      """
             | //metadebug
             |
             |   fun doMaths(x: Int) {
@@ -21,7 +22,8 @@ class WhenExpressionTest {
             |   }
             | """.source
 
-    val singleExpressionFunction = """
+    val singleExpressionFunction =
+      """
             | //metadebug
             |
             |   fun doMaths(x: Int) = when(x) {
@@ -30,7 +32,8 @@ class WhenExpressionTest {
             |   }
             | """.source
 
-    val sealedClass = """
+    val sealedClass =
+      """
             | //metadebug
             |   
             | sealed class SupportedMaths {
@@ -44,11 +47,12 @@ class WhenExpressionTest {
             | }
             | """.source
 
-    val whenExpressions = arrayOf(
-      doMaths,
-      singleExpressionFunction // ,
-      // sealedClass Todo: Make PBT fails
-    )
+    val whenExpressions =
+      arrayOf(
+        doMaths,
+        singleExpressionFunction // ,
+        // sealedClass Todo: Make PBT fails
+        )
   }
 
   @Test
@@ -67,10 +71,12 @@ class WhenExpressionTest {
   }
 
   fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(WhenExpressionPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(WhenExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

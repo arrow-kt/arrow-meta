@@ -13,10 +13,7 @@ import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 
 fun DeclarationDescriptor.contextualAnnotations(): Set<FqName> =
-  annotations.mapNotNull {
-    if (it.isGivenContextProof()) it.fqName
-    else null
-  }.toSet()
+  annotations.mapNotNull { if (it.isGivenContextProof()) it.fqName else null }.toSet()
 
 fun DeclarationDescriptor.asProof(): Sequence<Proof> =
   when (this) {
@@ -29,7 +26,8 @@ fun DeclarationDescriptor.asProof(): Sequence<Proof> =
   }
 
 fun AnnotationDescriptor.isGivenContextProof(): Boolean =
-  type.constructor.declarationDescriptor?.annotations?.hasAnnotation(FqName("arrow.Context")) == true
+  type.constructor.declarationDescriptor?.annotations?.hasAnnotation(FqName("arrow.Context")) ==
+    true
 
 fun ClassDescriptor.asProof(): Sequence<Proof> =
   annotations.asSequence().mapNotNull {
@@ -56,8 +54,7 @@ fun FunctionDescriptor.asProof(): Sequence<Proof> =
   }
 
 internal fun ClassDescriptor.asGivenProof(): GivenProof =
-  if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this)
-  else ClassProof(defaultType, this)
+  if (kind == ClassKind.OBJECT) ObjectProof(defaultType, this) else ClassProof(defaultType, this)
 
 internal fun CallableMemberDescriptor.asGivenProof(): GivenProof? =
   returnType?.let { CallableMemberProof(it, this) }

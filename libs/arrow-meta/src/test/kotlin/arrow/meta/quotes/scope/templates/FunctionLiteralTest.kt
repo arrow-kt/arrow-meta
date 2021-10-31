@@ -12,9 +12,11 @@ class FunctionLiteralTest {
   companion object {
     private val functionLiteral = """val a = { i: Int -> i + 1 }""".functionLiteral()
 
-    private val anonymousFunction = """val increment: (Int) -> Unit = fun(x) { x + 1 }""".functionLiteral()
+    private val anonymousFunction =
+      """val increment: (Int) -> Unit = fun(x) { x + 1 }""".functionLiteral()
 
-    private val lambdaExpression = """val sum: (Int, Int) -> Int = { x: Int, y: Int -> x + y }""".functionLiteral()
+    private val lambdaExpression =
+      """val sum: (Int, Int) -> Int = { x: Int, y: Int -> x + y }""".functionLiteral()
 
     private fun String.functionLiteral(): Code.Source {
       return """
@@ -25,14 +27,13 @@ class FunctionLiteralTest {
       |    $this
       |   }
       |  }
-      | """.trimMargin().trim().source
+      | """
+        .trimMargin()
+        .trim()
+        .source
     }
 
-    val functionalLiteralExpressions = arrayOf(
-      functionLiteral,
-      anonymousFunction,
-      lambdaExpression
-    )
+    val functionalLiteralExpressions = arrayOf(functionLiteral, anonymousFunction, lambdaExpression)
   }
 
   @Test
@@ -51,10 +52,12 @@ class FunctionLiteralTest {
   }
 
   private fun validate(source: Code.Source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(FunctionLiteralPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(source) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(FunctionLiteralPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
   }
 }

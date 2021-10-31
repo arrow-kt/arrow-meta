@@ -25,7 +25,9 @@ fun interface KotlinElement : Element {
     }
 
   override fun parents(): List<Element> =
-    impl().parents.filter { it !is KtFile }.filterIsInstance<KtElement>().toList().map { it.model() }
+    impl().parents.filter { it !is KtFile }.filterIsInstance<KtElement>().toList().map {
+      it.model()
+    }
 
   override fun location(): CompilerMessageSourceLocation? =
     MessageUtil.psiElementToMessageLocation(impl().psiOrParent)?.let {

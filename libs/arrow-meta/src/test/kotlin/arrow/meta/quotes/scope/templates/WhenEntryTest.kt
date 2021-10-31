@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test
 class WhenEntryTest {
 
   companion object {
-    val whenEntryExpression = """
+    val whenEntryExpression =
+      """
                          | //metadebug
                          | 
                          | class Wrapper {
@@ -25,10 +26,12 @@ class WhenEntryTest {
 
   @Test
   fun `Validate when entry scope properties`() {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(WhenEntryPlugin())) },
-      code = { whenEntryExpression },
-      assert = { quoteOutputMatches(whenEntryExpression) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(WhenEntryPlugin())) },
+        code = { whenEntryExpression },
+        assert = { quoteOutputMatches(whenEntryExpression) }
+      )
+    )
   }
 }

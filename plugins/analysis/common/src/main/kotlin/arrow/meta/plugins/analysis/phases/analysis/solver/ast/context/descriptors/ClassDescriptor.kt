@@ -8,7 +8,10 @@ interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeP
   val staticScope: MemberScope
   val unsubstitutedInnerClassesScope: MemberScope
   val completeUnsubstitutedScope: MemberScope
-    get() = CombinedMemberScope(listOf(unsubstitutedMemberScope, staticScope, unsubstitutedInnerClassesScope))
+    get() =
+      CombinedMemberScope(
+        listOf(unsubstitutedMemberScope, staticScope, unsubstitutedInnerClassesScope)
+      )
 
   val constructors: Collection<ConstructorDescriptor>
   val companionObjectDescriptor: ClassDescriptor?
@@ -25,6 +28,11 @@ interface ClassDescriptor : DeclarationDescriptor, ClassifierDescriptorWithTypeP
   val superTypes: Collection<Type>
 
   enum class ClassKind {
-    CLASS, INTERFACE, ENUM_CLASS, ENUM_ENTRY, ANNOTATION_CLASS, OBJECT
+    CLASS,
+    INTERFACE,
+    ENUM_CLASS,
+    ENUM_ENTRY,
+    ANNOTATION_CLASS,
+    OBJECT
   }
 }

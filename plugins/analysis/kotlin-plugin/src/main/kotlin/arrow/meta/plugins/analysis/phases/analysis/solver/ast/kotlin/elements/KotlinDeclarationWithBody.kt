@@ -13,17 +13,13 @@ fun interface KotlinDeclarationWithBody : DeclarationWithBody, KotlinDeclaration
   override val bodyExpression: Expression?
     get() = impl().bodyExpression?.model()
 
-  override fun hasBlockBody(): Boolean =
-    impl().hasBlockBody()
+  override fun hasBlockBody(): Boolean = impl().hasBlockBody()
 
-  override fun hasBody(): Boolean =
-    impl().hasBody()
+  override fun hasBody(): Boolean = impl().hasBody()
 
-  override fun hasDeclaredReturnType(): Boolean =
-    impl().hasDeclaredReturnType()
+  override fun hasDeclaredReturnType(): Boolean = impl().hasDeclaredReturnType()
 
-  override fun body(): Expression? =
-    impl().body()?.model()
+  override fun body(): Expression? = impl().body()?.model()
 
   override val valueParameters: List<Parameter?>
     get() = impl().valueParameters.map { it.model() }

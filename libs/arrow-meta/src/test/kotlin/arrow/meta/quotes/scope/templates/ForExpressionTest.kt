@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Test
 
 class ForExpressionTest {
 
-    companion object {
-        private val someFunction = """
+  companion object {
+    private val someFunction =
+      """
                 | fun someFunction() {
                 |   for (i in 1..10) {
                 |     println(i)
@@ -18,13 +19,15 @@ class ForExpressionTest {
                 | }
                 | """.forExpression()
 
-      private val singleLineFunction = """
+    private val singleLineFunction =
+      """
                   | fun singleLineFunction() {
                   |     for (i in 1..10) println(i)
                   | }
                   |   """.forExpression()
 
-      private val destructuringDeclarationFunction = """
+    private val destructuringDeclarationFunction =
+      """
                   | fun destructuringDeclarationFunction() {
                   |         for ((index, value) in listOf("a", "b", "c").withIndex()) {
                   |              println("index: " + index)
@@ -33,43 +36,41 @@ class ForExpressionTest {
                   | }
                   |   """.forExpression()
 
-        private fun String.forExpression(): Code.Source {
-            return """
+    private fun String.forExpression(): Code.Source {
+      return """
                       | //metadebug
                       | 
                       | class Wrapper {
                       |   $this
                       | }
                       | """.source
-        }
-
-        val forExpressions = arrayOf(
-          someFunction,
-          singleLineFunction,
-          destructuringDeclarationFunction
-        )
     }
 
-    @Test
-    fun `Validate for expression scope properties`() {
-        validate(someFunction)
-    }
+    val forExpressions = arrayOf(someFunction, singleLineFunction, destructuringDeclarationFunction)
+  }
 
-    @Test
-    fun `Validate for expression single line scope properties`() {
-        validate(singleLineFunction)
-    }
+  @Test
+  fun `Validate for expression scope properties`() {
+    validate(someFunction)
+  }
 
-    @Test
-    fun `Validate for expression destructuring declaration scope properties`() {
-        validate(destructuringDeclarationFunction)
-    }
+  @Test
+  fun `Validate for expression single line scope properties`() {
+    validate(singleLineFunction)
+  }
 
-    fun validate(source: Code.Source) {
-        assertThis(CompilerTest(
-            config = { listOf(addMetaPlugins(ForExpressionPlugin())) },
-            code = { source },
-            assert = { quoteOutputMatches(source) }
-        ))
-    }
+  @Test
+  fun `Validate for expression destructuring declaration scope properties`() {
+    validate(destructuringDeclarationFunction)
+  }
+
+  fun validate(source: Code.Source) {
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(ForExpressionPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(source) }
+      )
+    )
+  }
 }

@@ -14,9 +14,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 /**
- * Collects constraints by harvesting annotations.
- * There are two sources: local declarations,
- * and the entire CLASSPATH.
+ * Collects constraints by harvesting annotations. There are two sources: local declarations, and
+ * the entire CLASSPATH.
  */
 public fun SolverState.collectConstraintsFromAnnotations(
   localDeclarations: List<DeclarationDescriptor>,
@@ -33,56 +32,62 @@ public fun SolverState.collectConstraintsFromAnnotations(
   } else {
     // figure out which is the set of local elements
     // whose packages should be added in the hints
-    val interesting = localDeclarations.flatMap {
-      it.gather { callableConstraints.containsKey(it.fqNameSafe) }
-    }.mapNotNull {
-      it.containingPackage
-    }.toSet()
+    val interesting =
+      localDeclarations
+        .flatMap { it.gather { callableConstraints.containsKey(it.fqNameSafe) } }
+        .mapNotNull { it.containingPackage }
+        .toSet()
     Pair(AnalysisResult.Retry, interesting)
   }
 }
 
-private fun SolverState.collectFromLocalDeclarations(localDeclarations: List<DeclarationDescriptor>, bindingTrace: ResolutionContext) {
-  localDeclarations.flatMap {
-    it.gather { it.hasPreOrPostAnnotation }
-  }.forEach {
+private fun SolverState.collectFromLocalDeclarations(
+  localDeclarations: List<DeclarationDescriptor>,
+  bindingTrace: ResolutionContext
+) {
+  localDeclarations.flatMap { it.gather { it.hasPreOrPostAnnotation } }.forEach {
     addConstraintsFromAnnotations(it, bindingTrace)
   }
 }
 
-private fun SolverState.collectFromClasspath(module: ModuleDescriptor, bindingTrace: ResolutionContext) {
+private fun SolverState.collectFromClasspath(
+  module: ModuleDescriptor,
+  bindingTrace: ResolutionContext
+) {
   val collectEntireClasspath =
-    System.getProperty("ARROW_ANALYSIS_COLLECT_ENTIRE_CLASSPATH", "false").toBooleanStrictOrNull() ?: false
+    System.getProperty("ARROW_ANALYSIS_COLLECT_ENTIRE_CLASSPATH", "false").toBooleanStrictOrNull()
+      ?: false
   if (collectEntireClasspath) {
-    module.gather(addSubPackages = true) { it.hasPreOrPostAnnotation }
-  } else {
-    // usual case: figure out the right packages from the hints
-    val packagesWithLaws = module.gather(
-      initialPackages = listOf(FqName("arrow.analysis.hints")),
-      addSubPackages = false) {
-      it.hasPackageWithLawsAnnotation
-    }.flatMap {
-      it.packageWithLawsAnnotation
-        ?.argumentValueAsArrayOfString("packages")
-        .orEmpty()
-    }.map { FqName(it) }
-    module.gather(packagesWithLaws, addSubPackages = false) { it.hasPreOrPostAnnotation }
-  }.forEach {
-    addConstraintsFromAnnotations(it, bindingTrace)
-  }
+      module.gather(addSubPackages = true) { it.hasPreOrPostAnnotation }
+    } else {
+      // usual case: figure out the right packages from the hints
+      val packagesWithLaws =
+        module
+          .gather(
+            initialPackages = listOf(FqName("arrow.analysis.hints")),
+            addSubPackages = false
+          ) { it.hasPackageWithLawsAnnotation }
+          .flatMap {
+            it.packageWithLawsAnnotation?.argumentValueAsArrayOfString("packages").orEmpty()
+          }
+          .map { FqName(it) }
+      module.gather(packagesWithLaws, addSubPackages = false) { it.hasPreOrPostAnnotation }
+    }
+    .forEach { addConstraintsFromAnnotations(it, bindingTrace) }
 }
 
 internal fun SolverState.addConstraintsFromAnnotations(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ) {
-  val constraints = descriptor.annotations().iterable().mapNotNull { ann ->
-    when (ann.fqName) {
-      FqName("arrow.analysis.Pre") -> "pre"
-      FqName("arrow.analysis.Post") -> "post"
-      else -> null
-    }?.let { element -> parseFormula(element, ann, descriptor) }
-  }
+  val constraints =
+    descriptor.annotations().iterable().mapNotNull { ann ->
+      when (ann.fqName) {
+        FqName("arrow.analysis.Pre") -> "pre"
+        FqName("arrow.analysis.Post") -> "post"
+        else -> null
+      }?.let { element -> parseFormula(element, ann, descriptor) }
+    }
   if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<NamedConstraint>()
     val postConstraints = arrayListOf<NamedConstraint>()
@@ -94,9 +99,7 @@ internal fun SolverState.addConstraintsFromAnnotations(
   }
 }
 
-/**
- * Parse constraints from annotations.
- */
+/** Parse constraints from annotations. */
 private fun SolverState.parseFormula(
   element: String,
   annotation: AnnotationDescriptor,
@@ -105,14 +108,13 @@ private fun SolverState.parseFormula(
   val dependencies = annotation.argumentValueAsArrayOfString("dependencies")
   val formulae = annotation.argumentValueAsArrayOfString("formulae")
   val messages = annotation.argumentValueAsArrayOfString("messages")
-  return element to messages.zip(formulae).map { (msg, formula) ->
-    NamedConstraint(msg, parseFormula(descriptor, formula, dependencies.toList()))
-  }
+  return element to
+    messages.zip(formulae).map { (msg, formula) ->
+      NamedConstraint(msg, parseFormula(descriptor, formula, dependencies.toList()))
+    }
 }
 
-/**
- * Parse constraints from annotations.
- */
+/** Parse constraints from annotations. */
 internal fun SolverState.parseFormula(
   descriptor: DeclarationDescriptor,
   formula: String,
@@ -121,17 +123,18 @@ internal fun SolverState.parseFormula(
   val VALUE_TYPE = "Int"
   val FIELD_TYPE = "Int"
   // build the parameters environment
-  val params = (descriptor as? CallableDescriptor)?.let { function ->
-    function.valueParameters.joinToString(separator = "\n") { param ->
-      "(declare-fun ${param.name} () $VALUE_TYPE)"
+  val params =
+    (descriptor as? CallableDescriptor)?.let { function ->
+      function.valueParameters.joinToString(separator = "\n") { param ->
+        "(declare-fun ${param.name} () $VALUE_TYPE)"
+      }
     }
-  } ?: ""
+      ?: ""
   // build the dependencies
-  val deps = dependencies.joinToString(separator = "\n") {
-    "(declare-fun $it () $FIELD_TYPE)"
-  }
+  val deps = dependencies.joinToString(separator = "\n") { "(declare-fun $it () $FIELD_TYPE)" }
   // build the rest of the environment
-  val rest = """
+  val rest =
+    """
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
   """.trimIndent()

@@ -1,7 +1,7 @@
 package arrow.meta.quotes.pbt
 
-import arrow.meta.Meta
 import arrow.meta.CliPlugin
+import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.quotes.Scope
@@ -67,27 +67,28 @@ import org.jetbrains.kotlin.psi.KtWhileExpression
 
 open class GenericPlugin : Meta {
 
-  override fun intercept(ctx: CompilerContext): List<CliPlugin> = listOf(
-    "Generic Plugin" {
-      meta(
-        quote(
-          this,
-          { implemented(this) },
-          { element: KtElement ->
-            Transform.replace(
-              replacing = element,
-              newDeclaration = identity() // TODO: remove default implementation
-            )
-          },
-          { transform(it) }
+  override fun intercept(ctx: CompilerContext): List<CliPlugin> =
+    listOf(
+      "Generic Plugin" {
+        meta(
+          quote(
+            this,
+            { implemented(this) },
+            { element: KtElement ->
+              Transform.replace(
+                replacing = element,
+                newDeclaration = identity() // TODO: remove default implementation
+              )
+            },
+            { transform(it) }
+          )
         )
-      )
-    }
-  )
+      }
+    )
 
   // TODO: remove at the end
-  private fun implemented(ktElement: KtElement): Boolean = (
-    ktElement is KtBinaryExpression ||
+  private fun implemented(ktElement: KtElement): Boolean =
+    (ktElement is KtBinaryExpression ||
       ktElement is KtBlockExpression ||
       ktElement is KtBreakExpression ||
       ktElement is KtCatchClause ||
@@ -114,8 +115,7 @@ open class GenericPlugin : Meta {
       ktElement is KtWhenCondition ||
       ktElement is KtWhenEntry ||
       ktElement is KtWhenExpression ||
-      ktElement is KtWhileExpression
-    )
+      ktElement is KtWhileExpression)
 }
 
 fun transform(ktElement: KtElement): Scope<KtElement> {

@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.psi.KtExpression
  *     }
  *    )
  *   }
- *```
+ * ```
  */
 class CatchClause(
   override val value: KtCatchClause?,

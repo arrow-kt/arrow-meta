@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test
 class PropertyTest {
 
   companion object {
-    private val property = """
+    private val property =
+      """
             | //metadebug
             |
             | class Address {
@@ -22,7 +23,8 @@ class PropertyTest {
             | }
             | """.source
 
-    private val propertyGetter = """
+    private val propertyGetter =
+      """
             | //metadebug
             |
             |class Address {
@@ -31,7 +33,8 @@ class PropertyTest {
             |}
             | """.source
 
-    private val propertySetter = """
+    private val propertySetter =
+      """
             | //metadebug
             |
             | class Address {
@@ -42,7 +45,8 @@ class PropertyTest {
             |   }
             | """.source
 
-    private val propertyDelegate = """
+    private val propertyDelegate =
+      """
             | //metadebug
             |
             | class Address {
@@ -50,7 +54,8 @@ class PropertyTest {
             | }
             | """.source
 
-    private val propertyDescriptor = """
+    private val propertyDescriptor =
+      """
             | //metadebug
             |
             | class Address {
@@ -58,12 +63,7 @@ class PropertyTest {
             | }
             | """.source
 
-    val propertyExpressions = arrayOf(
-      property,
-      propertyGetter,
-      propertySetter,
-      propertyDelegate
-    )
+    val propertyExpressions = arrayOf(property, propertyGetter, propertySetter, propertyDelegate)
   }
 
   @Test
@@ -88,16 +88,16 @@ class PropertyTest {
 
   @Test
   fun `validate property descriptor`() {
-    validate(
-      propertyDescriptor
-    )
+    validate(propertyDescriptor)
   }
 
   fun validate(source: Code.Source, transformedSource: Code.Source = source) {
-    assertThis(CompilerTest(
-      config = { listOf(addMetaPlugins(PropertyPlugin())) },
-      code = { source },
-      assert = { quoteOutputMatches(transformedSource) }
-    ))
+    assertThis(
+      CompilerTest(
+        config = { listOf(addMetaPlugins(PropertyPlugin())) },
+        code = { source },
+        assert = { quoteOutputMatches(transformedSource) }
+      )
+    )
   }
 }

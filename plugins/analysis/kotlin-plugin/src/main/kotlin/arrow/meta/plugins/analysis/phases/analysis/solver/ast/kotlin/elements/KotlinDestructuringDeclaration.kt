@@ -5,7 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.D
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 
-fun interface KotlinDestructuringDeclaration : DestructuringDeclaration, KotlinDeclarationWithInitializer {
+fun interface KotlinDestructuringDeclaration :
+  DestructuringDeclaration, KotlinDeclarationWithInitializer {
   override fun impl(): KtDestructuringDeclaration
   override val entries: List<DestructuringDeclarationEntry>
     get() = impl().entries.map { it.model() }
