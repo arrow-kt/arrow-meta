@@ -9,19 +9,19 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        compileOnly(libs.kotlin.stdlibCommon)
+        implementation(libs.kotlin.stdlibCommon)
       }
     }
 
     named("jvmMain") {
       dependencies {
-        compileOnly(libs.kotlin.stdlibJDK8)
+        implementation(libs.kotlin.stdlibJDK8)
       }
     }
 
     named("jsMain") {
       dependencies {
-        compileOnly(libs.kotlin.stdlibJS)
+        implementation(libs.kotlin.stdlibJS)
       }
     }
   }
