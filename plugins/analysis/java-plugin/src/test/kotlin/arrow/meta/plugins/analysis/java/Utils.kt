@@ -14,10 +14,7 @@ public operator fun Pair<String, String>.invoke(
     file = this,
     check = withPlugin
   )
-  worker(
-    file = this,
-    check = withoutPlugin
-  )
+  worker(file = this, check = withoutPlugin)
 }
 
 private fun worker(
@@ -26,8 +23,6 @@ private fun worker(
   check: CompilationSubject.() -> Unit
 ): Unit {
   val compiler = Compiler.javac().config()
-  val compilation = compiler.compile(
-    JavaFileObjects.forSourceString(file.first, file.second)
-  )
+  val compilation = compiler.compile(JavaFileObjects.forSourceString(file.first, file.second))
   assertThat(compilation).check()
 }

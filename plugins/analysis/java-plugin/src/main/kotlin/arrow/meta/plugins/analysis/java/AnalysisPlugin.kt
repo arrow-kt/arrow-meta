@@ -18,15 +18,17 @@ public class AnalysisPlugin : Plugin {
     val context: Context = (task as BasicJavacTask).context
     val logger = Log.instance(context)
     val diagnostics = JCDiagnostic.Factory.instance(context)
-    logger.report(diagnostics.warning(
-      Lint.LintCategory.RAW,
-      DiagnosticSource.NO_SOURCE,
-      JCDiagnostic.SimpleDiagnosticPosition(1),
-      "Hello from $name"))
+    logger.report(
+      diagnostics.warning(
+        Lint.LintCategory.RAW,
+        DiagnosticSource.NO_SOURCE,
+        JCDiagnostic.SimpleDiagnosticPosition(1),
+        "Hello from $name"
+      )
+    )
   }
 
   public companion object {
     public val NAME: String = "ArrowAnalysisJavaPlugin"
   }
-
 }
