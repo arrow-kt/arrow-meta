@@ -51,7 +51,8 @@ public annotation class Post(
  * This is used internally to speed up the search for laws Each package with any law should include
  * this annotation in a class of module 'arrow.analysis.hints'
  */
-@Target(AnnotationTarget.CLASS) public annotation class PackagesWithLaws(val packages: Array<String>)
+@Target(AnnotationTarget.CLASS)
+public annotation class PackagesWithLaws(val packages: Array<String>)
 
 /** Indicates that the preconditions for a call should not be checked. */
 public inline fun <A> unsafeCall(call: A): A = call
