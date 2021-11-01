@@ -67,6 +67,9 @@ project(":arrow-analysis-common").projectDir = File("plugins/analysis/common")
 include(":arrow-analysis-kotlin-plugin")
 project(":arrow-analysis-kotlin-plugin").projectDir = File("plugins/analysis/kotlin-plugin")
 
+include(":arrow-analysis-java-plugin")
+project(":arrow-analysis-java-plugin").projectDir = File("plugins/analysis/java-plugin")
+
 include(":arrow-analysis-gradle-plugin")
 project(":arrow-analysis-gradle-plugin").projectDir = File("plugins/analysis/gradle-plugin")
 

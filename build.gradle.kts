@@ -1,5 +1,6 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.dokka) apply false
