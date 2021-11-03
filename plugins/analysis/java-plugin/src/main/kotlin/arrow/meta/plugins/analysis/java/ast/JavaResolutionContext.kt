@@ -4,7 +4,6 @@ package arrow.meta.plugins.analysis.java.ast
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.Resolver
-import arrow.meta.plugins.analysis.java.ast.types.JavaType
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
@@ -20,7 +19,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 public class JavaResolutionContext(ctx: AnalysisContext, resolver: Resolver) : ResolutionContext {
   override val types: Types =
     object : Types {
-      override val nothingType: Type = JavaType(ctx, ctx.symbolTable.botType)
+      override val nothingType: Type = ctx.symbolTable.botType.model(ctx)
     }
 
   override val module: ModuleDescriptor = ctx.elements.getModuleOf(resolver.topElement).model(ctx)

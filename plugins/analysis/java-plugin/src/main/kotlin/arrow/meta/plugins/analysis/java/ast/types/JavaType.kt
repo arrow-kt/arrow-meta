@@ -3,16 +3,23 @@
 package arrow.meta.plugins.analysis.java.ast.types
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
+import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.TypeProjection
 import javax.lang.model.type.ArrayType
+import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.type.TypeVariable
 
 public class JavaType(private val ctx: AnalysisContext, private val ty: TypeMirror) : Type {
-  override val descriptor: ClassDescriptor?
-    get() = TODO("Not yet implemented")
+  override val descriptor: ClassDescriptor? =
+    ty.visit(
+      object : OurTypeVisitor<ClassDescriptor?>(null) {
+        override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): ClassDescriptor? =
+          t?.asElement()?.model(ctx)
+      }
+    )
 
   override fun isNullable(): Boolean = false
   override val unwrappedNotNullableType: Type = this

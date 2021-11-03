@@ -19,15 +19,12 @@ public open class JavaDescriptor(private val ctx: AnalysisContext, private val i
   override val containingDeclaration: DeclarationDescriptor = impl.enclosingElement.model(ctx)
   override val containingPackage: FqName = FqName(impl.enclosingElement.fqName)
 
+  override val fqNameSafe: FqName = FqName(impl.fqName)
+  override val name: Name = Name(impl.simpleName.toString())
+
   override fun element():
     arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element? {
     TODO("Not yet implemented")
   }
-
-  override val fqNameSafe: FqName = FqName(impl.fqName)
-  override val name: Name = Name(impl.simpleName.toString())
-
-  override fun annotations(): Annotations {
-    TODO("Not yet implemented")
-  }
+  override fun annotations(): Annotations = JavaAnnotations(ctx, impl.annotationMirrors)
 }
