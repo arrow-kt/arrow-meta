@@ -12,6 +12,9 @@ import javax.tools.JavaCompiler
 public class Resolver(task: JavaCompiler.CompilationTask, public val unit: CompilationUnitTree) {
   private val trees: Trees = Trees.instance(task)
 
+  public val topElement: Element
+    get() = trees.getElement(TreePath(unit))
+
   public fun Tree.path(): TreePath = TreePath.getPath(unit, this)
   public fun Tree.resolve(): Element = trees.getElement(this.path())
 }
