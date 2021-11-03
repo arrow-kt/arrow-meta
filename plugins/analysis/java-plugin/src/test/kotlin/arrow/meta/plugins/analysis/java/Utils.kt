@@ -10,7 +10,7 @@ public operator fun Pair<String, String>.invoke(
   withoutPlugin: CompilationSubject.() -> Unit
 ) {
   worker(
-    config = { withOptions("-Xplugin:" + AnalysisPlugin.NAME) },
+    config = { withOptions("-Xplugin:" + AnalysisJavaPlugin.NAME) },
     file = this,
     check = withPlugin
   )
