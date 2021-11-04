@@ -9,7 +9,7 @@ import com.sun.source.util.Trees
 import javax.lang.model.element.Element
 import javax.tools.JavaCompiler
 
-public class Resolver(task: JavaCompiler.CompilationTask, public val unit: CompilationUnitTree) {
+public class Resolver(task: JavaCompiler.CompilationTask, private val unit: CompilationUnitTree) {
   private val trees: Trees = Trees.instance(task)
 
   public val topElement: Element

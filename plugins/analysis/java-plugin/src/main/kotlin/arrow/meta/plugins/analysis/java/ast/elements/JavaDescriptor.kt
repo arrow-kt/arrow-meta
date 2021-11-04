@@ -4,6 +4,7 @@ package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
@@ -20,7 +21,7 @@ public open class JavaDescriptor(private val ctx: AnalysisContext, private val i
   override val containingPackage: FqName = FqName(impl.enclosingElement.fqName)
 
   override val fqNameSafe: FqName = FqName(impl.fqName)
-  override val name: Name = Name(impl.simpleName.toString())
+  override val name: Name = impl.simpleName.name()
 
   override fun element():
     arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element? {

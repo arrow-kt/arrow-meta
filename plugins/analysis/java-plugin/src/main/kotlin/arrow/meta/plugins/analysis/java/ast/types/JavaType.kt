@@ -12,7 +12,7 @@ import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.type.TypeVariable
 
-public class JavaType(private val ctx: AnalysisContext, private val ty: TypeMirror) : Type {
+public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMirror) : Type {
   override val descriptor: ClassDescriptor? =
     ty.visit(
       object : OurTypeVisitor<ClassDescriptor?>(null) {
