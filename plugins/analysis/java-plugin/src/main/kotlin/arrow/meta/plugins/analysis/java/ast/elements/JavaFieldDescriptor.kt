@@ -3,6 +3,7 @@
 package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
+import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.types.JavaType
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
@@ -15,6 +16,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableAccessorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import com.sun.tools.javac.code.Symbol
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
@@ -28,8 +30,11 @@ public class JavaFieldDescriptor(ctx: AnalysisContext, impl: VariableElement) :
   override val isVar: Boolean = true
   override val isConst: Boolean = impl.constantValue != null
 
-  override val type: JavaType
-    get() = TODO("Not yet implemented")
+  override val type: JavaType =
+    when (impl) {
+      is Symbol -> impl.type.model(ctx)
+      else -> throw IllegalStateException("this element should be a symbol")
+    }
 
   override val overriddenDescriptors: Collection<CallableDescriptor>
     get() = TODO("Not yet implemented")
