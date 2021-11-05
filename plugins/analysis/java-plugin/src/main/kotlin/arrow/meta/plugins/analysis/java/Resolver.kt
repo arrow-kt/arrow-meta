@@ -7,6 +7,7 @@ import com.sun.source.tree.Tree
 import com.sun.source.util.TreePath
 import com.sun.source.util.Trees
 import javax.lang.model.element.Element
+import javax.lang.model.type.TypeMirror
 import javax.tools.JavaCompiler
 
 public class Resolver(task: JavaCompiler.CompilationTask, private val unit: CompilationUnitTree) {
@@ -17,6 +18,7 @@ public class Resolver(task: JavaCompiler.CompilationTask, private val unit: Comp
 
   public fun path(tree: Tree): TreePath = TreePath.getPath(unit, tree)
   public fun resolve(tree: Tree): Element = trees.getElement(path(tree))
+  public fun resolveType(tree: Tree): TypeMirror? = trees.getTypeMirror(path(tree))
   public fun tree(element: Element): Tree? = trees.getTree(element)
 
   public fun positionOf(tree: Tree): Pair<Long, Long> =

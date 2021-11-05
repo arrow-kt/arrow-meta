@@ -20,8 +20,7 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
   override fun impl(): Tree = impl
   override val text: String = impl.toString()
 
-  // to be overriden in subclasses
-  override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = null
+  override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = impl.resolvedCall(ctx)
 
   override fun parents(): List<Element> =
     ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
@@ -33,11 +32,12 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
 
   override val psiOrParent: Element = this
 
-  override fun type(context: ResolutionContext): Type? =
+  public fun type(): Type? =
     when (impl) {
       is JCTree -> impl.type.modelCautious(ctx)
       else -> null
     }
+  override fun type(context: ResolutionContext): Type? = type()
 
   override fun lastBlockStatementOrThis(): Expression =
     when (impl) {
