@@ -30,6 +30,8 @@ public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMir
       object : OurTypeVisitor<List<TypeProjection>>(emptyList()) {
         override fun visitArray(t: ArrayType?, p: TypeMirror?): List<TypeProjection> =
           listOfNotNull(t?.componentType).map { JavaTypeProjection(ctx, it) }
+        override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): List<TypeProjection> =
+          t?.typeArguments?.map { JavaTypeProjection(ctx, it) }.orEmpty()
       }
     )
 

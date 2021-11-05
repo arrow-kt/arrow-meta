@@ -4,6 +4,7 @@ package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.types.JavaTypeConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
@@ -12,6 +13,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import javax.lang.model.element.Element
+import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
@@ -21,8 +23,15 @@ public class JavaEnumConstantDescriptor(
   private val impl: VariableElement
 ) : ClassDescriptor, JavaMemberDescriptor(ctx, impl) {
 
+  private val enclosingType = impl.enclosingElement.asType()
+
   private fun memberScope(predicate: (Element) -> Boolean): JavaMemberScope =
-    JavaMemberScope(ctx, impl.enclosingElement.enclosedElements.filter(predicate))
+    JavaMemberScope(
+      ctx,
+      impl.enclosingElement.enclosedElements.filter {
+        it.kind != ElementKind.ENUM_CONSTANT && predicate(it)
+      }
+    )
 
   override val unsubstitutedMemberScope: MemberScope = memberScope {
     it !is TypeElement && !it.modifiers.contains(Modifier.STATIC)
@@ -36,15 +45,14 @@ public class JavaEnumConstantDescriptor(
 
   override val kind: ClassDescriptor.ClassKind = ClassDescriptor.ClassKind.ENUM_ENTRY
 
-  override val superTypes: Collection<Type> = listOf(impl.enclosingElement.asType().model(ctx))
+  override val superTypes: Collection<Type> = listOf(enclosingType.model(ctx))
   override val declaredTypeParameters: List<TypeParameterDescriptor> = emptyList()
 
-  override val typeConstructor: TypeConstructor?
-    get() = TODO("Not yet implemented")
-  override val defaultType: Type?
-    get() = TODO("Not yet implemented")
+  override val typeConstructor: TypeConstructor =
+    JavaTypeConstructor(ctx, impl.enclosingElement as TypeElement)
+  override val defaultType: Type = enclosingType.model(ctx)
   override val thisAsReceiverParameter: ReceiverParameterDescriptor =
-    JavaReceiverParameterDescriptor(ctx, impl.enclosingElement.asType(), impl.enclosingElement)
+    JavaReceiverParameterDescriptor(ctx, enclosingType, impl.enclosingElement)
 
   override val isCompanionObject: Boolean = false
   override val isData: Boolean = false

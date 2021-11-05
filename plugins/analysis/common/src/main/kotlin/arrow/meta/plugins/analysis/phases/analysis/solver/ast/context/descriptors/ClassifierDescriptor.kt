@@ -3,6 +3,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descripto
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface ClassifierDescriptor {
-  val typeConstructor: TypeConstructor?
-  val defaultType: Type?
+  val typeConstructor: TypeConstructor
+  val defaultType: Type
 }

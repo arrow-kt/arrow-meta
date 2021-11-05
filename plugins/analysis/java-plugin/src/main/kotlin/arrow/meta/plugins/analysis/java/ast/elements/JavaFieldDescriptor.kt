@@ -36,8 +36,8 @@ public class JavaFieldDescriptor(ctx: AnalysisContext, impl: VariableElement) :
       else -> throw IllegalStateException("this element should be a symbol")
     }
 
-  override val overriddenDescriptors: Collection<CallableDescriptor>
-    get() = TODO("Not yet implemented")
+  // fields in Java never override those in parent classes
+  override val overriddenDescriptors: Collection<CallableDescriptor> = emptyList()
 
   override val isSetterProjectedOut: Boolean = false
   override val accessors: List<PropertyAccessorDescriptor> = emptyList()

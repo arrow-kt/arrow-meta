@@ -4,6 +4,7 @@ package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.types.JavaTypeConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
@@ -52,10 +53,8 @@ public class JavaClassDescriptor(private val ctx: AnalysisContext, private val i
   override val declaredTypeParameters: List<TypeParameterDescriptor> =
     impl.typeParameters.map { it.model(ctx) }
 
-  override val typeConstructor: TypeConstructor?
-    get() = TODO("Not yet implemented")
-  override val defaultType: Type?
-    get() = TODO("Not yet implemented")
+  override val typeConstructor: TypeConstructor = JavaTypeConstructor(ctx, impl)
+  override val defaultType: Type = ctx.types.getDeclaredType(impl).model(ctx)
   override val thisAsReceiverParameter: ReceiverParameterDescriptor =
     JavaReceiverParameterDescriptor(ctx, impl.asType(), impl.enclosingElement)
 

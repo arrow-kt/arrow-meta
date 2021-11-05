@@ -4,6 +4,7 @@ package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.types.allSupertypes
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
@@ -39,5 +40,19 @@ public open class JavaFunctionDescriptor(ctx: AnalysisContext, impl: ExecutableE
   override val allParameters: List<ParameterDescriptor> =
     listOfNotNull(dispatchReceiverParameter) + valueParameters
 
-  override val overriddenDescriptors: Collection<CallableDescriptor> = TODO("Not yet implemented")
+  override val overriddenDescriptors: Collection<CallableDescriptor> =
+    when (val klass = impl.enclosingClass) {
+      null -> emptyList()
+      else ->
+        klass.asType().allSupertypes(ctx).flatMap { parent ->
+          ctx
+            .types
+            .asElement(parent)
+            ?.enclosedElements
+            .orEmpty()
+            .filterIsInstance<ExecutableElement>()
+            .filter { methodInParent -> ctx.elements.overrides(impl, methodInParent, klass) }
+            .map { it.model(ctx) }
+        }
+    }
 }
