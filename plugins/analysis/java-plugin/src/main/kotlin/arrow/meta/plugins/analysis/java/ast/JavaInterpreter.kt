@@ -19,7 +19,9 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
 import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
+import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
+import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
 import arrow.meta.plugins.analysis.java.ast.types.JavaType
@@ -30,11 +32,19 @@ import com.sun.source.tree.ArrayTypeTree
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
+import com.sun.source.tree.DirectiveTree
+import com.sun.source.tree.ErroneousTree
 import com.sun.source.tree.ExpressionStatementTree
+import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
 import com.sun.source.tree.MethodTree
+import com.sun.source.tree.ModifiersTree
+import com.sun.source.tree.ModuleTree
+import com.sun.source.tree.PackageTree
 import com.sun.source.tree.ParameterizedTypeTree
+import com.sun.source.tree.ParenthesizedTree
 import com.sun.source.tree.PrimitiveTypeTree
+import com.sun.source.tree.SynchronizedTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.TypeParameterTree
 import com.sun.source.tree.UnionTypeTree
@@ -82,7 +92,8 @@ public fun <
   ctx: AnalysisContext
 ): B? =
   when (this) {
-    is CompilationUnitTree -> null
+    is CompilationUnitTree, is PackageTree, is ModuleTree, is DirectiveTree, is ImportTree -> null
+    is ModifiersTree -> null
     else -> JavaElement(ctx, this) as B
   }
 
@@ -106,12 +117,23 @@ public fun <
       else JavaMethod(ctx, this) as B
     is VariableTree -> JavaVariable(ctx, this) as B
     // expressions
+    is ParenthesizedTree -> JavaParenthesized(ctx, this) as B
+    is ErroneousTree -> JavaElement(ctx, this) as B // nothing special
     // statements
     is ClassTree -> JavaClass(ctx, this) as B
+    is SynchronizedTree -> JavaSynchronized(ctx, this) as B
     is ExpressionStatementTree -> JavaSingleBlock(ctx, this) as B
     is BlockTree -> JavaBlock(ctx, this) as B
     is CompilationUnitTree ->
       throw IllegalArgumentException("compilation unit trees cannot be converted")
+    is PackageTree -> throw IllegalArgumentException("package trees cannot be converted")
+    is ModuleTree -> throw IllegalArgumentException("module trees cannot be converted")
+    is DirectiveTree -> throw IllegalArgumentException("module directive trees cannot be converted")
+    is ImportTree -> throw IllegalArgumentException("import trees cannot be converted")
+    is ModifiersTree ->
+      throw IllegalArgumentException(
+        "modifiers trees cannot be converted, annotations should be handled in elements"
+      )
     else -> JavaElement(ctx, this) as B
   }
 

@@ -47,6 +47,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SynchronizedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TryExpression
@@ -138,6 +139,11 @@ internal fun SolverState.checkExpressionConstraints(
           checkExpressionConstraints(associatedVarName, expression.expression, data)
         is AnnotatedExpression ->
           checkExpressionConstraints(associatedVarName, expression.baseExpression, data)
+        is SynchronizedExpression ->
+          checkExpressionConstraintsWithNewName("subject", expression.subject, data)
+            .checkReturnInfo { stateAfter ->
+              checkExpressionConstraints(associatedVarName, expression.block, stateAfter.data)
+            }
         is BlockExpression ->
           inScope(data) { // new variables are local to that block
             checkBlockExpression(associatedVarName, expression.statements, data)
