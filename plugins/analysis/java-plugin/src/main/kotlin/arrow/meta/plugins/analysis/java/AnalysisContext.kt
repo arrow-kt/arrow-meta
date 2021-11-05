@@ -2,6 +2,7 @@
 
 package arrow.meta.plugins.analysis.java
 
+import com.sun.source.tree.CompilationUnitTree
 import com.sun.tools.javac.api.BasicJavacTask
 import com.sun.tools.javac.code.Symtab
 import com.sun.tools.javac.util.Context
@@ -11,8 +12,8 @@ import com.sun.tools.javac.util.Log
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
-public class AnalysisContext(
-  context: Context,
+open public class AnalysisContextWithoutResolver(
+  public val context: Context,
   public val types: Types,
   public val elements: Elements
 ) {
@@ -23,7 +24,20 @@ public class AnalysisContext(
   public val symbolTable: Symtab = Symtab.instance(context)
 
   public companion object {
-    public operator fun invoke(task: BasicJavacTask): AnalysisContext =
-      AnalysisContext(task.context, task.types, task.elements)
+    public operator fun invoke(task: BasicJavacTask): AnalysisContextWithoutResolver =
+      AnalysisContextWithoutResolver(task.context, task.types, task.elements)
+  }
+}
+
+public class AnalysisContext(
+  context: Context,
+  types: Types,
+  elements: Elements,
+  public val unit: CompilationUnitTree,
+  public val resolver: Resolver
+) : AnalysisContextWithoutResolver(context, types, elements) {
+  public companion object {
+    public operator fun invoke(task: BasicJavacTask, unit: CompilationUnitTree): AnalysisContext =
+      AnalysisContext(task.context, task.types, task.elements, unit, Resolver(task, unit))
   }
 }

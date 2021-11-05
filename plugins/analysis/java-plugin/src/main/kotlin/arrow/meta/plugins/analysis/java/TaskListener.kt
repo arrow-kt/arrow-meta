@@ -2,6 +2,7 @@
 
 package arrow.meta.plugins.analysis.java
 
+import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.util.JavacTask
 import com.sun.source.util.TaskEvent
 import com.sun.source.util.TaskListener
@@ -23,11 +24,11 @@ public abstract class PerKindTaskListener : TaskListener {
   public fun afterGenerate(e: TaskEvent): Unit {}
 }
 
-public fun JavacTask.after(kind: TaskEvent.Kind, run: (TaskEvent, Resolver) -> Unit) {
+public fun JavacTask.after(kind: TaskEvent.Kind, run: (TaskEvent, CompilationUnitTree) -> Unit) {
   addTaskListener(
     object : TaskListener {
       override fun finished(e: TaskEvent?): Unit {
-        if (e?.kind == kind) run(e, Resolver(this@after, e.compilationUnit))
+        if (e?.kind == kind) run(e, e.compilationUnit)
       }
     }
   )

@@ -4,6 +4,7 @@ package arrow.meta.plugins.analysis.java.ast.descriptors
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.java.ast.types.allSupertypes
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
@@ -34,7 +35,7 @@ public open class JavaFunctionDescriptor(ctx: AnalysisContext, impl: ExecutableE
     }
   override val typeParameters: List<TypeParameterDescriptor> =
     impl.typeParameters.map { it.model(ctx) }
-  override val returnType: Type? = impl.returnType.model(ctx)
+  override val returnType: Type? = impl.returnType.modelCautious(ctx)
   final override val valueParameters: List<ValueParameterDescriptor> =
     impl.parameters.map { it.model(ctx) }
   override val allParameters: List<ParameterDescriptor> =

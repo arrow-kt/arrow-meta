@@ -24,8 +24,8 @@ public open class JavaDescriptor(private val ctx: AnalysisContext, private val i
   override val name: Name = impl.simpleName.name()
 
   override fun element():
-    arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element? {
-    TODO("Not yet implemented")
-  }
+    arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element? =
+    ctx.resolver.tree(impl)?.model(ctx)
+
   override fun annotations(): Annotations = JavaAnnotations(ctx, impl.annotationMirrors)
 }

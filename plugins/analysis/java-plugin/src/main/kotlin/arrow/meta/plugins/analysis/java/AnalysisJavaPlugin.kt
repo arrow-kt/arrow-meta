@@ -15,7 +15,8 @@ public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 
   override fun init(task: JavacTask?, vararg args: String?) {
-    val ctx = AnalysisContext(task as BasicJavacTask)
+    val javaTask = task as BasicJavacTask
+    val ctx = AnalysisContextWithoutResolver(task)
     ctx.logger.report(
       ctx.diagnostics.warning(
         Lint.LintCategory.RAW,
@@ -25,9 +26,9 @@ public class AnalysisJavaPlugin : Plugin {
         name
       )
     )
-    task.after(TaskEvent.Kind.ENTER) { e, resolver ->
-      resolver.run {
-        val tys = e.compilationUnit.typeDecls.map { it.resolve() }
+    task.after(TaskEvent.Kind.ENTER) { e, unit ->
+      AnalysisContext(task, unit).run {
+        val tys = e.compilationUnit.typeDecls.map { resolver.resolve(it) }
       }
     }
   }
