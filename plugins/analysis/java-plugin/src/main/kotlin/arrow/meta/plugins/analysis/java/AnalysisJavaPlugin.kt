@@ -2,6 +2,8 @@
 
 package arrow.meta.plugins.analysis.java
 
+import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
+import arrow.meta.plugins.analysis.java.ast.model
 import com.sun.source.util.JavacTask
 import com.sun.source.util.Plugin
 import com.sun.source.util.TaskEvent
@@ -28,7 +30,7 @@ public class AnalysisJavaPlugin : Plugin {
     )
     task.after(TaskEvent.Kind.ENTER) { e, unit ->
       AnalysisContext(task, unit).run {
-        val tys = e.compilationUnit.typeDecls.map { resolver.resolve(it) }
+        val tys: List<JavaElement> = e.compilationUnit.typeDecls.map { it.model(this) }
       }
     }
   }

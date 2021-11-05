@@ -14,12 +14,32 @@ import arrow.meta.plugins.analysis.java.ast.descriptors.JavaPackageDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaParameterDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaSimpleFunctionDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaTypeParameterDescriptor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
+import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
+import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
+import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
+import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
+import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
+import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
 import arrow.meta.plugins.analysis.java.ast.types.JavaType
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
+import com.sun.source.tree.AnnotatedTypeTree
+import com.sun.source.tree.ArrayTypeTree
+import com.sun.source.tree.BlockTree
+import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
+import com.sun.source.tree.ExpressionStatementTree
+import com.sun.source.tree.IntersectionTypeTree
+import com.sun.source.tree.MethodTree
+import com.sun.source.tree.ParameterizedTypeTree
+import com.sun.source.tree.PrimitiveTypeTree
 import com.sun.source.tree.Tree
+import com.sun.source.tree.TypeParameterTree
+import com.sun.source.tree.UnionTypeTree
+import com.sun.source.tree.VariableTree
+import com.sun.source.tree.WildcardTree
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
@@ -72,6 +92,24 @@ public fun <
   ctx: AnalysisContext
 ): B =
   when (this) {
+    is ArrayTypeTree,
+    is ParameterizedTypeTree,
+    is TypeParameterTree,
+    is PrimitiveTypeTree,
+    is IntersectionTypeTree,
+    is UnionTypeTree,
+    is AnnotatedTypeTree,
+    is WildcardTree -> JavaTypeReference(ctx, this) as B
+    is MethodTree ->
+      if (ctx.resolver.resolve(this).kind == ElementKind.CONSTRUCTOR)
+        JavaConstructor(ctx, this) as B
+      else JavaMethod(ctx, this) as B
+    is VariableTree -> JavaVariable(ctx, this) as B
+    // expressions
+    // statements
+    is ClassTree -> JavaClass(ctx, this) as B
+    is ExpressionStatementTree -> JavaSingleBlock(ctx, this) as B
+    is BlockTree -> JavaBlock(ctx, this) as B
     is CompilationUnitTree ->
       throw IllegalArgumentException("compilation unit trees cannot be converted")
     else -> JavaElement(ctx, this) as B

@@ -18,7 +18,7 @@ import com.sun.tools.javac.tree.JCTree
 
 public class JavaResolvedCall(
   private val ctx: AnalysisContext,
-  whole: Tree,
+  private val whole: Tree,
   private val method: Symbol,
   private val receiver: Tree?,
   typeArgs: List<Tree>,
@@ -38,7 +38,7 @@ public class JavaResolvedCall(
   override val extensionReceiver: ReceiverValue? = null
 
   override val resultingDescriptor: CallableDescriptor = method.model(ctx)
-  override fun getReturnType(): Type = (method as Symbol.MethodSymbol).returnType.model(ctx)
+  override fun getReturnType(): Type = whole.model<Tree, JavaElement>(ctx).type()!!
 
   override val typeArguments: Map<TypeParameterDescriptor, Type> =
     resultingDescriptor

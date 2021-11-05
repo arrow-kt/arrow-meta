@@ -4,5 +4,5 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Vari
 
 interface TypeParameter {
   val variance: Variance
-  val extendsBound: TypeReference?
+  val extendsBounds: List<TypeReference>
 }

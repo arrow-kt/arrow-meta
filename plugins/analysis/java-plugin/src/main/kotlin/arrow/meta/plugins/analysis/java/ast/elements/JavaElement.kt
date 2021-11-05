@@ -7,17 +7,22 @@ import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Annotation
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotationEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ModifierList
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ModifierListOwner
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.Tree
 import com.sun.tools.javac.tree.JCTree
 
 public open class JavaElement(private val ctx: AnalysisContext, private val impl: Tree) :
-  Expression {
+  Expression, ModifierListOwner {
   override fun impl(): Tree = impl
+
   override val text: String = impl.toString()
 
   override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = impl.resolvedCall(ctx)
@@ -44,4 +49,9 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
       is BlockTree -> impl.statements.last().model(ctx)
       else -> this
     }
+
+  final override val modifierList: ModifierList? = null // TODO: fix later
+
+  override fun getAnnotations(): List<Annotation> = modifierList?.annotations.orEmpty()
+  override val annotationEntries: List<AnnotationEntry> = modifierList?.annotationEntries.orEmpty()
 }

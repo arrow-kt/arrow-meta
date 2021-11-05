@@ -18,6 +18,6 @@ fun interface KotlinTypeParameter : TypeParameter {
         IN_VARIANCE -> Variance.In
         OUT_VARIANCE -> Variance.Out
       }
-  override val extendsBound: TypeReference?
-    get() = impl().extendsBound?.model()
+  override val extendsBounds: List<TypeReference>
+    get() = listOfNotNull(impl().extendsBound?.model())
 }

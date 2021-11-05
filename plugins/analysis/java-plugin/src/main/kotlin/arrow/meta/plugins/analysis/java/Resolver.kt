@@ -20,6 +20,7 @@ public class Resolver(task: JavaCompiler.CompilationTask, private val unit: Comp
   public fun resolve(tree: Tree): Element = trees.getElement(path(tree))
   public fun resolveType(tree: Tree): TypeMirror? = trees.getTypeMirror(path(tree))
   public fun tree(element: Element): Tree? = trees.getTree(element)
+  public fun parent(tree: Tree): Tree? = path(tree).parentPath.leaf
 
   public fun positionOf(tree: Tree): Pair<Long, Long> =
     trees.sourcePositions.getStartPosition(unit, tree) to
