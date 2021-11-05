@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import com.sun.source.tree.BlockTree
+import com.sun.source.tree.EmptyStatementTree
 import com.sun.source.tree.ExpressionStatementTree
 
 public class JavaBlock(ctx: AnalysisContext, impl: BlockTree) :
@@ -19,4 +20,10 @@ public class JavaSingleBlock(ctx: AnalysisContext, impl: ExpressionStatementTree
   BlockExpression, JavaElement(ctx, impl) {
   override val firstStatement: Expression = impl.expression.model(ctx)
   override val statements: List<Expression> = listOf(firstStatement)
+}
+
+public class JavaEmptyBlock(ctx: AnalysisContext, impl: EmptyStatementTree) :
+  BlockExpression, JavaElement(ctx, impl) {
+  override val firstStatement: Expression? = null
+  override val statements: List<Expression> = emptyList()
 }

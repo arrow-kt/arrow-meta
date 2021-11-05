@@ -18,6 +18,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
 import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
+import arrow.meta.plugins.analysis.java.ast.elements.JavaEmptyBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
@@ -33,6 +34,7 @@ import com.sun.source.tree.BlockTree
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.tree.DirectiveTree
+import com.sun.source.tree.EmptyStatementTree
 import com.sun.source.tree.ErroneousTree
 import com.sun.source.tree.ExpressionStatementTree
 import com.sun.source.tree.ImportTree
@@ -122,6 +124,7 @@ public fun <
     // statements
     is ClassTree -> JavaClass(ctx, this) as B
     is SynchronizedTree -> JavaSynchronized(ctx, this) as B
+    is EmptyStatementTree -> JavaEmptyBlock(ctx, this) as B
     is ExpressionStatementTree -> JavaSingleBlock(ctx, this) as B
     is BlockTree -> JavaBlock(ctx, this) as B
     is CompilationUnitTree ->
