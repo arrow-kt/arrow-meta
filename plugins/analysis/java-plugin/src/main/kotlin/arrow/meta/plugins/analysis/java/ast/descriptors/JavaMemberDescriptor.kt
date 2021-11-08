@@ -10,23 +10,25 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 
-public open class JavaMemberDescriptor(ctx: AnalysisContext, impl: Element) :
+public open class JavaMemberDescriptor(ctx: AnalysisContext, private val impl: Element) :
   MemberDescriptor, JavaDescriptor(ctx, impl) {
 
-  override val modality: Modality =
-    when {
-      impl.modifiers.contains(Modifier.FINAL) -> Modality.FINAL
-      impl.modifiers.contains(Modifier.ABSTRACT) || impl.kind == ElementKind.INTERFACE ->
-        Modality.ABSTRACT
-      else -> Modality.OPEN
-    }
+  override val modality: Modality
+    get() =
+      when {
+        impl.modifiers.contains(Modifier.FINAL) -> Modality.FINAL
+        impl.modifiers.contains(Modifier.ABSTRACT) || impl.kind == ElementKind.INTERFACE ->
+          Modality.ABSTRACT
+        else -> Modality.OPEN
+      }
 
-  override val visibility: Visibility =
-    object : Visibility {
-      override val isPublicAPI: Boolean = impl.modifiers.contains(Modifier.PUBLIC)
-      // this is the same as the simple name
-      override val name: String = impl.simpleName.toString()
-    }
+  override val visibility: Visibility
+    get() =
+      object : Visibility {
+        override val isPublicAPI: Boolean = impl.modifiers.contains(Modifier.PUBLIC)
+        // this is the same as the simple name
+        override val name: String = impl.simpleName.toString()
+      }
 
   override val isExpect: Boolean = false
   override val isActual: Boolean = false

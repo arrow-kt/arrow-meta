@@ -21,37 +21,42 @@ public class JavaResolvedCall(
   private val whole: Tree,
   private val method: Symbol,
   private val receiver: Tree?,
-  typeArgs: List<Tree>,
-  arguments: List<Tree>
+  private val typeArgs: List<Tree>,
+  private val arguments: List<Tree>
 ) : ResolvedCall {
 
-  override val callElement: Element = whole.model(ctx)
+  override val callElement: Element
+    get() = whole.model(ctx)
 
   override fun getReceiverExpression(): JavaElement? = receiver?.model(ctx)
-  override val dispatchReceiver: ReceiverValue? =
-    getReceiverExpression()?.let {
-      object : ReceiverValue {
-        override val type: Type = it.type()!!
+  override val dispatchReceiver: ReceiverValue?
+    get() =
+      getReceiverExpression()?.let {
+        object : ReceiverValue {
+          override val type: Type = it.type()!!
+        }
       }
-    }
   // there are no extension receivers in Java
   override val extensionReceiver: ReceiverValue? = null
 
-  override val resultingDescriptor: CallableDescriptor = method.model(ctx)
+  override val resultingDescriptor: CallableDescriptor
+    get() = method.model(ctx)
   override fun getReturnType(): Type = whole.model<Tree, JavaElement>(ctx).type()!!
 
-  override val typeArguments: Map<TypeParameterDescriptor, Type> =
-    resultingDescriptor
-      .typeParameters
-      .zip(typeArgs)
-      .map { (descr, tree) -> descr to ctx.resolver.resolveType(tree)!!.model(ctx) }
-      .toMap()
-  override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument> =
-    resultingDescriptor
-      .valueParameters
-      .zip(arguments)
-      .map { (descr, tree) -> descr to JavaResolvedValueArgument(ctx, tree, descr) }
-      .toMap()
+  override val typeArguments: Map<TypeParameterDescriptor, Type>
+    get() =
+      resultingDescriptor
+        .typeParameters
+        .zip(typeArgs)
+        .map { (descr, tree) -> descr to ctx.resolver.resolveType(tree)!!.model(ctx) }
+        .toMap()
+  override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
+    get() =
+      resultingDescriptor
+        .valueParameters
+        .zip(arguments)
+        .map { (descr, tree) -> descr to JavaResolvedValueArgument(ctx, tree, descr) }
+        .toMap()
 }
 
 public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =

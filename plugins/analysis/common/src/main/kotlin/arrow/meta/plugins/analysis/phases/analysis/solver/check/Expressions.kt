@@ -146,7 +146,12 @@ internal fun SolverState.checkExpressionConstraints(
             }
         is BlockExpression ->
           inScope(data) { // new variables are local to that block
-            checkBlockExpression(associatedVarName, expression.statements, expression.implicitReturnFromLast, data)
+            checkBlockExpression(
+              associatedVarName,
+              expression.statements,
+              expression.implicitReturnFromLast,
+              data
+            )
           }
         is ReturnExpression -> checkReturnConstraints(expression, data)
         is BreakExpression, is ContinueExpression -> {
@@ -249,8 +254,10 @@ private fun SolverState.checkBlockExpression(
 ): ContSeq<StateAfter> =
   when {
     expressions.isEmpty() -> cont { data.noReturn() }
-    expressions.size == 1 && implicitReturnFromLast -> // this is the last element, so it's the return value of the expression
-    checkExpressionConstraints(associatedVarName, expressions[0], data)
+    expressions.size == 1 &&
+      implicitReturnFromLast -> // this is the last element, so it's the return value of the
+      // expression
+      checkExpressionConstraints(associatedVarName, expressions[0], data)
     else -> {
       val first = expressions[0]
       val remainder = expressions.drop(1)

@@ -9,12 +9,15 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 
-public class JavaConstructorDescriptor(ctx: AnalysisContext, impl: ExecutableElement) :
-  ConstructorDescriptor, JavaFunctionDescriptor(ctx, impl) {
+public class JavaConstructorDescriptor(
+  private val ctx: AnalysisContext,
+  private val impl: ExecutableElement
+) : ConstructorDescriptor, JavaFunctionDescriptor(ctx, impl) {
   init {
     require(impl.kind == ElementKind.CONSTRUCTOR)
   }
 
-  override val constructedClass: ClassDescriptor = impl.returnType.model(ctx).descriptor!!
+  override val constructedClass: ClassDescriptor
+    get() = impl.returnType.model(ctx).descriptor!!
   override val isPrimary: Boolean = false
 }

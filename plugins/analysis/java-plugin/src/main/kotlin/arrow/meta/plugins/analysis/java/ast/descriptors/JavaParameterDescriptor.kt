@@ -15,7 +15,8 @@ public class JavaParameterDescriptor(ctx: AnalysisContext, private val impl: Var
     require(impl.kind == ElementKind.PARAMETER || impl.kind == ElementKind.EXCEPTION_PARAMETER)
   }
 
-  override val index: Int = impl.enclosingElement.parametersFromEverywhere.indexOf(impl)
+  override val index: Int
+    get() = impl.enclosingElement.parametersFromEverywhere.indexOf(impl)
 
   override val isCrossinline: Boolean = false
   override val isNoinline: Boolean = false

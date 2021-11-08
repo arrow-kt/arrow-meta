@@ -12,11 +12,13 @@ import javax.lang.model.type.WildcardType
 public class JavaTypeProjection(private val ctx: AnalysisContext, private val ty: TypeMirror) :
   TypeProjection {
   override val projectionKind: Variance = Variance.Invariant
-  override val type: Type = JavaType(ctx, ty)
-  override val isStarProjection: Boolean =
-    ty.visit(
-      object : OurTypeVisitor<Boolean>(false) {
-        override fun visitWildcard(t: WildcardType?, p: TypeMirror?): Boolean = true
-      }
-    )
+  override val type: Type
+    get() = JavaType(ctx, ty)
+  override val isStarProjection: Boolean
+    get() =
+      ty.visit(
+        object : OurTypeVisitor<Boolean>(false) {
+          override fun visitWildcard(t: WildcardType?, p: TypeMirror?): Boolean = true
+        }
+      )
 }

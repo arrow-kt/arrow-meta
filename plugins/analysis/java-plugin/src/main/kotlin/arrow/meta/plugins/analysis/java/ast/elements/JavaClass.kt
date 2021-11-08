@@ -28,29 +28,35 @@ import com.sun.source.tree.Tree
 public class JavaClass(private val ctx: AnalysisContext, private val impl: ClassTree) :
   Class, JavaElement(ctx, impl) {
 
-  override val parents: List<Element> =
-    ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
-  override val name: String = impl.name.toString()
-  override val nameAsSafeName: Name = Name(name)
-  override val fqName: FqName = FqName(impl.fqName(ctx))
-  override val nameAsName: Name = nameAsSafeName
+  override val parents: List<Element>
+    get() = ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
+  override val name: String
+    get() = impl.name.toString()
+  override val nameAsSafeName: Name
+    get() = Name(name)
+  override val fqName: FqName
+    get() = FqName(impl.fqName(ctx))
+  override val nameAsName: Name
+    get() = nameAsSafeName
 
-  override val superTypeListEntries: List<SuperTypeListEntry> =
-    (listOfNotNull(impl.extendsClause) + impl.implementsClause).map { it.model(ctx) }
-  override val declarations: List<Declaration> = impl.members.map { it.model(ctx) }
+  override val superTypeListEntries: List<SuperTypeListEntry>
+    get() = (listOfNotNull(impl.extendsClause) + impl.implementsClause).map { it.model(ctx) }
+  override val declarations: List<Declaration>
+    get() = impl.members.map { it.model(ctx) }
 
-  override val body: ClassBody =
-    object : ClassBody, JavaElement(ctx, impl) {
-      override val anonymousInitializers: List<AnonymousInitializer> = emptyList()
-      override val properties: List<Property> = emptyList()
-      override val functions: List<NamedFunction> =
-        this@JavaClass.declarations.mapNotNull { it as? JavaMethod }.filter {
-          it !is JavaConstructor
-        }
-      override val enumEntries: List<EnumEntry> = emptyList() // TODO
-      override val allCompanionObjects: List<ObjectDeclaration> = emptyList()
-      override val declarations: List<Declaration> = this@JavaClass.declarations
-    }
+  override val body: ClassBody
+    get() =
+      object : ClassBody, JavaElement(ctx, impl) {
+        override val anonymousInitializers: List<AnonymousInitializer> = emptyList()
+        override val properties: List<Property> = emptyList()
+        override val functions: List<NamedFunction> =
+          this@JavaClass.declarations.mapNotNull { it as? JavaMethod }.filter {
+            it !is JavaConstructor
+          }
+        override val enumEntries: List<EnumEntry> = emptyList() // TODO
+        override val allCompanionObjects: List<ObjectDeclaration> = emptyList()
+        override val declarations: List<Declaration> = this@JavaClass.declarations
+      }
 
   // Java does not have many Kotlin niceties
   override fun getProperties(): List<Property> = emptyList()
@@ -64,8 +70,8 @@ public class JavaClass(private val ctx: AnalysisContext, private val impl: Class
   override val primaryConstructorModifierList: ModifierList? = null
   override val primaryConstructorParameters: List<Parameter> = emptyList()
 
-  override val secondaryConstructors: List<SecondaryConstructor?> =
-    declarations.filterIsInstance<JavaConstructor>()
+  override val secondaryConstructors: List<SecondaryConstructor?>
+    get() = declarations.filterIsInstance<JavaConstructor>()
 
   override fun isAnnotation(): Boolean = impl.kind == Tree.Kind.ANNOTATION_TYPE
   override fun isInterface(): Boolean = impl.kind == Tree.Kind.INTERFACE
@@ -76,5 +82,6 @@ public class JavaClass(private val ctx: AnalysisContext, private val impl: Class
   override fun isInline(): Boolean = false
   override fun isValue(): Boolean = false
   override fun isTopLevel(): Boolean = !isInner()
-  override val isLocal: Boolean = ctx.resolver.parentTrees(impl).any { it is MethodTree }
+  override val isLocal: Boolean
+    get() = ctx.resolver.parentTrees(impl).any { it is MethodTree }
 }

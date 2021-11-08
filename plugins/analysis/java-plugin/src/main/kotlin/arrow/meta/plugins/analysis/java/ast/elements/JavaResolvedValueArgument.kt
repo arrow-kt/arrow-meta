@@ -14,19 +14,21 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.V
 import com.sun.source.tree.Tree
 
 public class JavaResolvedValueArgument(
-  ctx: AnalysisContext,
-  impl: Tree,
-  descr: ValueParameterDescriptor
+  private val ctx: AnalysisContext,
+  private val impl: Tree,
+  private val descr: ValueParameterDescriptor
 ) : ResolvedValueArgument {
-  override val arguments: List<ValueArgument> = listOf(JavaValueArgument(ctx, impl, descr))
+  override val arguments: List<ValueArgument>
+    get() = listOf(JavaValueArgument(ctx, impl, descr))
 }
 
 public class JavaValueArgument(
-  ctx: AnalysisContext,
-  impl: Tree,
+  private val ctx: AnalysisContext,
+  private val impl: Tree,
   private val descr: ValueParameterDescriptor
 ) : ValueArgument {
-  override val argumentExpression: Expression = impl.model(ctx)
+  override val argumentExpression: Expression
+    get() = impl.model(ctx)
   override fun getArgumentName(): ValueArgumentName = JavaValueArgumentName(descr)
 
   override fun isNamed(): Boolean = false
@@ -34,7 +36,9 @@ public class JavaValueArgument(
   override val isSpread: Boolean = false
 }
 
-public class JavaValueArgumentName(descr: ValueParameterDescriptor) : ValueArgumentName {
-  override val asName: Name = descr.name
+public class JavaValueArgumentName(private val descr: ValueParameterDescriptor) :
+  ValueArgumentName {
+  override val asName: Name
+    get() = descr.name
   override val referenceExpression: SimpleNameExpression? = null
 }

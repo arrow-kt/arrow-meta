@@ -21,8 +21,10 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.VariableElement
 
-public class JavaFieldDescriptor(ctx: AnalysisContext, impl: VariableElement) :
-  PropertyDescriptor, JavaMemberDescriptor(ctx, impl) {
+public class JavaFieldDescriptor(
+  private val ctx: AnalysisContext,
+  private val impl: VariableElement
+) : PropertyDescriptor, JavaMemberDescriptor(ctx, impl) {
   init {
     require(impl.kind == ElementKind.FIELD)
   }
@@ -30,11 +32,12 @@ public class JavaFieldDescriptor(ctx: AnalysisContext, impl: VariableElement) :
   override val isVar: Boolean = true
   override val isConst: Boolean = impl.constantValue != null
 
-  override val type: JavaType =
-    when (impl) {
-      is Symbol -> impl.type.model(ctx)
-      else -> throw IllegalStateException("this element should be a symbol")
-    }
+  override val type: JavaType
+    get() =
+      when (impl) {
+        is Symbol -> impl.type.model(ctx)
+        else -> throw IllegalStateException("this element should be a symbol")
+      }
 
   // fields in Java never override those in parent classes
   override val overriddenDescriptors: Collection<CallableDescriptor> = emptyList()
@@ -51,9 +54,10 @@ public class JavaFieldDescriptor(ctx: AnalysisContext, impl: VariableElement) :
 
   override val allParameters: List<ParameterDescriptor> = emptyList()
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
-  override val dispatchReceiverParameter: ReceiverParameterDescriptor? =
-    if (impl.modifiers.contains(Modifier.STATIC)) null
-    else JavaReceiverParameterDescriptor(ctx, type.ty, impl)
+  override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+    get() =
+      if (impl.modifiers.contains(Modifier.STATIC)) null
+      else JavaReceiverParameterDescriptor(ctx, type.ty, impl)
   override val typeParameters: List<TypeParameterDescriptor> = emptyList()
   override val returnType: Type = type
   override val valueParameters: List<ValueParameterDescriptor> = emptyList()

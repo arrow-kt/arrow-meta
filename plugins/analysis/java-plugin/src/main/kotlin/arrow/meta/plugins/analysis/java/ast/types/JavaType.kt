@@ -13,29 +13,31 @@ import javax.lang.model.type.TypeMirror
 import javax.lang.model.type.TypeVariable
 
 public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMirror) : Type {
-  override val descriptor: ClassDescriptor? =
-    ty.visit(
-      object : OurTypeVisitor<ClassDescriptor?>(null) {
-        override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): ClassDescriptor? =
-          t?.asElement()?.model(ctx)
-      }
-    )
+  override val descriptor: ClassDescriptor?
+    get() =
+      ty.visit(
+        object : OurTypeVisitor<ClassDescriptor?>(null) {
+          override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): ClassDescriptor? =
+            t?.asElement()?.model(ctx)
+        }
+      )
 
   override fun isNullable(): Boolean = false
   override val unwrappedNotNullableType: Type = this
   override val isMarkedNullable: Boolean = false
 
-  override val arguments: List<TypeProjection> =
-    ty.visit(
-      object : OurTypeVisitor<List<TypeProjection>>(emptyList()) {
-        override fun visitArray(t: ArrayType?, p: TypeMirror?): List<TypeProjection> =
-          listOfNotNull(t?.componentType).map { JavaTypeProjection(ctx, it) }
-        override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): List<TypeProjection> =
-          t?.typeArguments?.map { JavaTypeProjection(ctx, it) }.orEmpty()
-      }
-    )
+  override val arguments: List<TypeProjection>
+    get() =
+      ty.visit(
+        object : OurTypeVisitor<List<TypeProjection>>(emptyList()) {
+          override fun visitArray(t: ArrayType?, p: TypeMirror?): List<TypeProjection> =
+            listOfNotNull(t?.componentType).map { JavaTypeProjection(ctx, it) }
+          override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): List<TypeProjection> =
+            t?.typeArguments?.map { JavaTypeProjection(ctx, it) }.orEmpty()
+        }
+      )
 
-  private fun isEqualTo(other: TypeMirror) = ctx.types.isSameType(ty, other)
+  private fun isEqualTo(other: TypeMirror): Boolean = ctx.types.isSameType(ty, other)
 
   override fun isBoolean(): Boolean = isEqualTo(ctx.symbolTable.booleanType)
   override fun isInt(): Boolean = isEqualTo(ctx.symbolTable.intType)

@@ -33,32 +33,33 @@ public class JavaEnumConstantDescriptor(
       }
     )
 
-  override val unsubstitutedMemberScope: MemberScope = memberScope {
-    it !is TypeElement && !it.modifiers.contains(Modifier.STATIC)
-  }
-  override val staticScope: MemberScope = memberScope {
-    it !is TypeElement && it.modifiers.contains(Modifier.STATIC)
-  }
-  override val unsubstitutedInnerClassesScope: MemberScope = memberScope { it is TypeElement }
+  override val unsubstitutedMemberScope: MemberScope
+    get() = memberScope { it !is TypeElement && !it.modifiers.contains(Modifier.STATIC) }
+  override val staticScope: MemberScope
+    get() = memberScope { it !is TypeElement && it.modifiers.contains(Modifier.STATIC) }
+  override val unsubstitutedInnerClassesScope: MemberScope
+    get() = memberScope { it is TypeElement }
 
   override val constructors: Collection<JavaConstructorDescriptor> = emptyList()
 
   override val kind: ClassDescriptor.ClassKind = ClassDescriptor.ClassKind.ENUM_ENTRY
 
-  override val superTypes: Collection<Type> = listOf(enclosingType.model(ctx))
+  override val superTypes: Collection<Type>
+    get() = listOf(enclosingType.model(ctx))
   override val declaredTypeParameters: List<TypeParameterDescriptor> = emptyList()
 
-  override val typeConstructor: TypeConstructor =
-    JavaTypeConstructor(ctx, impl.enclosingElement as TypeElement)
-  override val defaultType: Type = enclosingType.model(ctx)
-  override val thisAsReceiverParameter: ReceiverParameterDescriptor =
-    JavaReceiverParameterDescriptor(ctx, enclosingType, impl.enclosingElement)
+  override val typeConstructor: TypeConstructor
+    get() = JavaTypeConstructor(ctx, impl.enclosingElement as TypeElement)
+  override val defaultType: Type
+    get() = enclosingType.model(ctx)
+  override val thisAsReceiverParameter: ReceiverParameterDescriptor
+    get() = JavaReceiverParameterDescriptor(ctx, enclosingType, impl.enclosingElement)
 
   override val isCompanionObject: Boolean = false
   override val isData: Boolean = false
   override val isInline: Boolean = false
-  override val isFun: Boolean =
-    ctx.types.isSubtype(impl.asType(), ctx.symbolTable.functionalInterfaceType)
+  override val isFun: Boolean
+    get() = ctx.types.isSubtype(impl.asType(), ctx.symbolTable.functionalInterfaceType)
   override val isValue: Boolean = false
   override val isEnumEntry: Boolean = false
   override val isInner: Boolean = true

@@ -11,16 +11,22 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Variance
 import javax.lang.model.element.TypeParameterElement
 
-public class JavaTypeParameterDescriptor(ctx: AnalysisContext, impl: TypeParameterElement) :
-  TypeParameterDescriptor, JavaMemberDescriptor(ctx, impl) {
+public class JavaTypeParameterDescriptor(
+  private val ctx: AnalysisContext,
+  private val impl: TypeParameterElement
+) : TypeParameterDescriptor, JavaMemberDescriptor(ctx, impl) {
 
-  override val upperBounds: List<Type> = impl.bounds.map { it.model(ctx) }
-  override val index: Int = impl.enclosingElement.typeParametersFromEverywhere.indexOf(impl)
+  override val upperBounds: List<Type>
+    get() = impl.bounds.map { it.model(ctx) }
+  override val index: Int
+    get() = impl.enclosingElement.typeParametersFromEverywhere.indexOf(impl)
 
   override val isReified: Boolean = false
   override val variance: Variance = Variance.Invariant
   override val isCapturedFromOuterDeclaration: Boolean = false
 
-  override val typeConstructor: TypeConstructor = JavaTypeParameterConstructor(ctx, impl)
-  override val defaultType: Type = impl.asType().model(ctx)
+  override val typeConstructor: TypeConstructor
+    get() = JavaTypeParameterConstructor(ctx, impl)
+  override val defaultType: Type
+    get() = impl.asType().model(ctx)
 }

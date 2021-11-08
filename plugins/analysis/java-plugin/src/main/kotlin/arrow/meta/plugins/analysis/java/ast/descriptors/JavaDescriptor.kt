@@ -16,9 +16,12 @@ public open class JavaDescriptor(private val ctx: AnalysisContext, private val i
   DeclarationDescriptor {
   override fun impl(): Element = impl
 
-  override val module: ModuleDescriptor = ctx.elements.getModuleOf(impl).model(ctx)
-  override val containingDeclaration: DeclarationDescriptor = impl.enclosingElement.model(ctx)
-  override val containingPackage: FqName = FqName(impl.enclosingElement.fqName)
+  override val module: ModuleDescriptor
+    get() = ctx.elements.getModuleOf(impl).model(ctx)
+  override val containingDeclaration: DeclarationDescriptor
+    get() = impl.enclosingElement.model(ctx)
+  override val containingPackage: FqName
+    get() = FqName(impl.enclosingElement.fqName)
 
   override val fqNameSafe: FqName = FqName(impl.fqName)
   override val name: Name = impl.simpleName.name()

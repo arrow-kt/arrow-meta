@@ -9,7 +9,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Variance
 import com.sun.source.tree.TypeParameterTree
 
-public class JavaTypeParameter(ctx: AnalysisContext, impl: TypeParameterTree) : TypeParameter {
+public class JavaTypeParameter(
+  private val ctx: AnalysisContext,
+  private val impl: TypeParameterTree
+) : TypeParameter {
   override val variance: Variance = Variance.Invariant
-  override val extendsBounds: List<TypeReference> = impl.bounds.map { it.model(ctx) }
+  override val extendsBounds: List<TypeReference>
+    get() = impl.bounds.map { it.model(ctx) }
 }

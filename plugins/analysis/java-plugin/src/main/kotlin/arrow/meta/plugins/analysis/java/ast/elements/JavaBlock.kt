@@ -19,8 +19,10 @@ public class JavaBlock(private val ctx: AnalysisContext, private val impl: Block
   override val implicitReturnFromLast: Boolean = false
 }
 
-public class JavaSingleBlock(private val ctx: AnalysisContext, private val impl: ExpressionStatementTree) :
-  BlockExpression, JavaElement(ctx, impl) {
+public class JavaSingleBlock(
+  private val ctx: AnalysisContext,
+  private val impl: ExpressionStatementTree
+) : BlockExpression, JavaElement(ctx, impl) {
   override val firstStatement: Expression
     get() = impl.expression.model(ctx)
   override val statements: List<Expression>

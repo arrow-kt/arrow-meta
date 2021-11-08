@@ -14,14 +14,17 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import com.sun.tools.javac.code.Symbol
 import javax.lang.model.element.VariableElement
 
-public open class JavaValueDescriptor(ctx: AnalysisContext, impl: VariableElement) :
-  ValueDescriptor, JavaMemberDescriptor(ctx, impl) {
+public open class JavaValueDescriptor(
+  private val ctx: AnalysisContext,
+  private val impl: VariableElement
+) : ValueDescriptor, JavaMemberDescriptor(ctx, impl) {
 
-  override val type: Type =
-    when (impl) {
-      is Symbol -> impl.type.model(ctx)
-      else -> throw IllegalStateException("this element should be a symbol")
-    }
+  override val type: Type
+    get() =
+      when (impl) {
+        is Symbol -> impl.type.model(ctx)
+        else -> throw IllegalStateException("this element should be a symbol")
+      }
   override val allParameters: List<ParameterDescriptor> = emptyList()
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
   override val dispatchReceiverParameter: ReceiverParameterDescriptor? = null

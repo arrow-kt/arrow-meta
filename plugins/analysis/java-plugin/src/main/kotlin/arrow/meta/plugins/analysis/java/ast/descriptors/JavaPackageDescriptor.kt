@@ -9,8 +9,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import javax.lang.model.element.PackageElement
 
-public class JavaPackageDescriptor(ctx: AnalysisContext, impl: PackageElement) :
-  PackageViewDescriptor, PackageFragmentDescriptor, JavaDescriptor(ctx, impl) {
-  override val fqName: FqName = FqName(impl.fqName)
-  override val memberScope: MemberScope = JavaMemberScope(ctx, impl.enclosedElements)
+public class JavaPackageDescriptor(
+  private val ctx: AnalysisContext,
+  private val impl: PackageElement
+) : PackageViewDescriptor, PackageFragmentDescriptor, JavaDescriptor(ctx, impl) {
+  override val fqName: FqName
+    get() = FqName(impl.fqName)
+  override val memberScope: MemberScope
+    get() = JavaMemberScope(ctx, impl.enclosedElements)
 }

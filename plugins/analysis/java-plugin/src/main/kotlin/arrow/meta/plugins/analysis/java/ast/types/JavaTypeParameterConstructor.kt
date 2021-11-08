@@ -11,11 +11,16 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeParameterElement
 
-public class JavaTypeParameterConstructor(ctx: AnalysisContext, impl: TypeParameterElement) :
-  TypeConstructor {
+public class JavaTypeParameterConstructor(
+  private val ctx: AnalysisContext,
+  private val impl: TypeParameterElement
+) : TypeConstructor {
   override val parameters: List<TypeParameterDescriptor> = emptyList()
-  override val supertypes: Collection<Type> = impl.bounds.map { it.model(ctx) }
-  override val isFinal: Boolean = impl.modifiers.contains(Modifier.FINAL)
+  override val supertypes: Collection<Type>
+    get() = impl.bounds.map { it.model(ctx) }
+  override val isFinal: Boolean
+    get() = impl.modifiers.contains(Modifier.FINAL)
   override val isDenotable: Boolean = true
-  override val declarationDescriptor: ClassifierDescriptor = impl.model(ctx)
+  override val declarationDescriptor: ClassifierDescriptor
+    get() = impl.model(ctx)
 }

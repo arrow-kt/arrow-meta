@@ -8,7 +8,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ParenthesizedExpression
 import com.sun.source.tree.ParenthesizedTree
 
-public class JavaParenthesized(ctx: AnalysisContext, impl: ParenthesizedTree) :
-  ParenthesizedExpression, JavaElement(ctx, impl) {
-  override val expression: Expression = impl.expression.model(ctx)
+public class JavaParenthesized(
+  private val ctx: AnalysisContext,
+  private val impl: ParenthesizedTree
+) : ParenthesizedExpression, JavaElement(ctx, impl) {
+  override val expression: Expression
+    get() = impl.expression.model(ctx)
 }

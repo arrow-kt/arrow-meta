@@ -5,12 +5,21 @@ package arrow.meta.plugins.analysis.java.ast.elements
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
 
-public class JavaSourceLocation(ctx: AnalysisContext, startPos: Long, endPos: Long) :
-  CompilerMessageSourceLocation {
-  override val column: Int = ctx.unit.lineMap.getColumnNumber(startPos).toInt()
-  override val columnEnd: Int = ctx.unit.lineMap.getColumnNumber(endPos).toInt()
-  override val line: Int = ctx.unit.lineMap.getLineNumber(startPos).toInt()
-  override val lineEnd: Int = ctx.unit.lineMap.getLineNumber(endPos).toInt()
-  override val lineContent: String? = null
-  override val path: String = ctx.unit.sourceFile.name
+public class JavaSourceLocation(
+  private val ctx: AnalysisContext,
+  private val startPos: Long,
+  private val endPos: Long
+) : CompilerMessageSourceLocation {
+  override val column: Int
+    get() = ctx.unit.lineMap.getColumnNumber(startPos).toInt()
+  override val columnEnd: Int
+    get() = ctx.unit.lineMap.getColumnNumber(endPos).toInt()
+  override val line: Int
+    get() = ctx.unit.lineMap.getLineNumber(startPos).toInt()
+  override val lineEnd: Int
+    get() = ctx.unit.lineMap.getLineNumber(endPos).toInt()
+  override val lineContent: String?
+    get() = null
+  override val path: String
+    get() = ctx.unit.sourceFile.name
 }

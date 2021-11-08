@@ -22,29 +22,35 @@ import javax.lang.model.type.TypeMirror
 public class JavaReceiverParameterDescriptor(
   private val ctx: AnalysisContext,
   private val ty: TypeMirror,
-  enclosing: javax.lang.model.element.Element
+  private val enclosing: javax.lang.model.element.Element
 ) : ReceiverParameterDescriptor {
   override fun impl(): TypeMirror = ty
 
   override val name: Name = Name("this")
   override val fqNameSafe: FqName = FqName("this")
 
-  override val type: Type = ty.model(ctx)
-  override val value: ReceiverValue =
-    object : ReceiverValue {
-      override val type: Type = this@JavaReceiverParameterDescriptor.type
-    }
+  override val type: Type
+    get() = ty.model(ctx)
+  override val value: ReceiverValue
+    get() =
+      object : ReceiverValue {
+        override val type: Type = this@JavaReceiverParameterDescriptor.type
+      }
   override val allParameters: List<ParameterDescriptor> = emptyList()
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
   override val dispatchReceiverParameter: ReceiverParameterDescriptor? = null
   override val typeParameters: List<TypeParameterDescriptor> = emptyList()
-  override val returnType: Type = type
+  override val returnType: Type
+    get() = type
   override val valueParameters: List<ValueParameterDescriptor> = emptyList()
   override val overriddenDescriptors: Collection<CallableDescriptor> = emptyList()
 
-  override val containingDeclaration: DeclarationDescriptor = enclosing.model(ctx)
-  override val module: ModuleDescriptor = containingDeclaration.module
-  override val containingPackage: FqName? = containingDeclaration.containingPackage
+  override val containingDeclaration: DeclarationDescriptor
+    get() = enclosing.model(ctx)
+  override val module: ModuleDescriptor
+    get() = containingDeclaration.module
+  override val containingPackage: FqName?
+    get() = containingDeclaration.containingPackage
 
   override fun element(): Element? = null
   override fun annotations(): Annotations = JavaAnnotations(ctx, emptyList())

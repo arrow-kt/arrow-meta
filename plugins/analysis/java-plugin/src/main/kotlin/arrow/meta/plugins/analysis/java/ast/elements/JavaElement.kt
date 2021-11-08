@@ -23,7 +23,8 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
   Expression, ModifierListOwner {
   override fun impl(): Tree = impl
 
-  override val text: String = impl.toString()
+  override val text: String
+    get() = impl.toString()
 
   override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = impl.resolvedCall(ctx)
 
@@ -50,8 +51,9 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
       else -> this
     }
 
-  final override val modifierList: ModifierList? = null // TODO: fix later
+  override val modifierList: ModifierList? = null // TODO: fix later
 
   override fun getAnnotations(): List<Annotation> = modifierList?.annotations.orEmpty()
-  override val annotationEntries: List<AnnotationEntry> = modifierList?.annotationEntries.orEmpty()
+  override val annotationEntries: List<AnnotationEntry>
+    get() = modifierList?.annotationEntries.orEmpty()
 }

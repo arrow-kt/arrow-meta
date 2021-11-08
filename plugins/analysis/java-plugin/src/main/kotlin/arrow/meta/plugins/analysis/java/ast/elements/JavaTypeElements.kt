@@ -9,9 +9,11 @@ import com.sun.source.tree.ArrayTypeTree
 import com.sun.source.tree.ParameterizedTypeTree
 import com.sun.source.tree.Tree
 
-public class JavaTypeReference private constructor(ctx: AnalysisContext, impl: Tree) :
+public class JavaTypeReference
+private constructor(private val ctx: AnalysisContext, private val impl: Tree) :
   TypeReference, JavaElement(ctx, impl) {
-  override val typeElement: TypeElement = JavaTypeElement(ctx, impl)
+  override val typeElement: TypeElement
+    get() = JavaTypeElement(ctx, impl)
 
   public companion object {
     public operator fun invoke(ctx: AnalysisContext, impl: Tree): JavaTypeReference? =
@@ -32,12 +34,13 @@ public class JavaTypeReference private constructor(ctx: AnalysisContext, impl: T
   }
 }
 
-public class JavaTypeElement(ctx: AnalysisContext, impl: Tree) :
+public class JavaTypeElement(private val ctx: AnalysisContext, private val impl: Tree) :
   TypeElement, JavaElement(ctx, impl) {
-  override val typeArgumentsAsTypes: List<TypeReference> =
-    when (impl) {
-      is ArrayTypeTree -> listOfNotNull(JavaTypeReference(ctx, impl.type))
-      is ParameterizedTypeTree -> impl.typeArguments.mapNotNull { JavaTypeReference(ctx, it) }
-      else -> emptyList()
-    }
+  override val typeArgumentsAsTypes: List<TypeReference>
+    get() =
+      when (impl) {
+        is ArrayTypeTree -> listOfNotNull(JavaTypeReference(ctx, impl.type))
+        is ParameterizedTypeTree -> impl.typeArguments.mapNotNull { JavaTypeReference(ctx, it) }
+        else -> emptyList()
+      }
 }

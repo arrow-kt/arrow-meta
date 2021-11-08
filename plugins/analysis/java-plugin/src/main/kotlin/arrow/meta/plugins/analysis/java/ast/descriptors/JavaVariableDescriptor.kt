@@ -7,14 +7,15 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.VariableElement
 
-public open class JavaVariableDescriptor(ctx: AnalysisContext, impl: VariableElement) :
+public open class JavaVariableDescriptor(ctx: AnalysisContext, private val impl: VariableElement) :
   VariableDescriptor, JavaValueDescriptor(ctx, impl) {
 
-  override val isVar: Boolean =
-    when (impl.kind) {
-      ElementKind.LOCAL_VARIABLE, ElementKind.FIELD -> true
-      else -> false
-    }
+  override val isVar: Boolean
+    get() =
+      when (impl.kind) {
+        ElementKind.LOCAL_VARIABLE, ElementKind.FIELD -> true
+        else -> false
+      }
   override val isConst: Boolean = impl.constantValue != null
   override val isLateInit: Boolean = false
 }
