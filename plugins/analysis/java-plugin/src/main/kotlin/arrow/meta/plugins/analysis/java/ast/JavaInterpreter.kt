@@ -14,6 +14,7 @@ import arrow.meta.plugins.analysis.java.ast.descriptors.JavaPackageDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaParameterDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaSimpleFunctionDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaTypeParameterDescriptor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaBinary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBreak
 import arrow.meta.plugins.analysis.java.ast.elements.JavaCase
@@ -36,6 +37,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaSwitch
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTernaryConditional
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
+import arrow.meta.plugins.analysis.java.ast.elements.JavaUnary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
 import arrow.meta.plugins.analysis.java.ast.elements.JavaWhile
 import arrow.meta.plugins.analysis.java.ast.types.JavaType
@@ -43,6 +45,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import com.sun.source.tree.AnnotatedTypeTree
 import com.sun.source.tree.ArrayTypeTree
+import com.sun.source.tree.BinaryTree
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.BreakTree
 import com.sun.source.tree.CaseTree
@@ -73,6 +76,7 @@ import com.sun.source.tree.SwitchTree
 import com.sun.source.tree.SynchronizedTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.TypeParameterTree
+import com.sun.source.tree.UnaryTree
 import com.sun.source.tree.UnionTypeTree
 import com.sun.source.tree.VariableTree
 import com.sun.source.tree.WhileLoopTree
@@ -152,6 +156,8 @@ public fun <
         null -> JavaNull(ctx, this) as B
         else -> JavaLiteral(ctx, this) as B
       }
+    is UnaryTree -> JavaUnary(ctx, this) as B
+    is BinaryTree -> JavaBinary(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B

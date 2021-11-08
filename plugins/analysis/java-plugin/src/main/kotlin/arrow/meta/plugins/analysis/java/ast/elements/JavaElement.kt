@@ -26,7 +26,8 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
   override val text: String
     get() = impl.toString()
 
-  override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = impl.resolvedCall(ctx)
+  public fun getResolvedCall(): ResolvedCall? = impl.resolvedCall(ctx)
+  override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = getResolvedCall()
 
   override fun parents(): List<Element> =
     ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }

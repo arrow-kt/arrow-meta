@@ -10,11 +10,20 @@ import javax.lang.model.element.TypeParameterElement
 import javax.lang.model.element.VariableElement
 
 public val Element.fqName: String
-  get() =
-    when (this) {
-      is QualifiedNameable -> qualifiedName.toString()
-      else -> enclosingElement.fqName + "." + simpleName.toString()
+  get() {
+    val elts = mutableListOf<String>()
+    var current: Element? = this
+    while (current != null) {
+      if (current is QualifiedNameable) {
+        elts.add(0, current.qualifiedName.toString())
+        current = null
+      } else {
+        elts.add(0, current.simpleName.toString())
+        current = current.enclosingElement
+      }
     }
+    return elts.filter { it.isNotEmpty() }.joinToString(separator = ".")
+  }
 
 public val Element.enclosingClass: TypeElement?
   get() =

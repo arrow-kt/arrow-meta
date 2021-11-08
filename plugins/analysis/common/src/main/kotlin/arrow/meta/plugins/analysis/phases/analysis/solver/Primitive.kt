@@ -118,9 +118,9 @@ private fun Solver.booleanFormula(
   args: List<Formula>
 ): BooleanFormula? =
   when (descriptor.fqNameSafe) {
-    FqName("kotlin.Boolean.not") -> boolNot(args)
-    FqName("kotlin.Boolean.and") -> boolAnd(args)
-    FqName("kotlin.Boolean.or") -> boolOr(args)
+    FqName("kotlin.Boolean.not"), FqName("!") -> boolNot(args)
+    FqName("kotlin.Boolean.and"), FqName("&&") -> boolAnd(args)
+    FqName("kotlin.Boolean.or"), FqName("||") -> boolOr(args)
     FqName("kotlin.Boolean.xor") -> boolXor(args)
     else -> null
   }
@@ -131,13 +131,26 @@ private fun Solver.integralFormula(
 ): NumeralFormula.IntegerFormula? =
   when (descriptor.name.value) {
     "plus" -> intPlus(args)
-    "minus" -> intMinus(args)
-    "times" -> intMultiply(args)
-    // "div" -> intDivide(args) // not all SMT solvers support div
-    "inc" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "dec" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "unaryMinus" -> intNegate(args)
     "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.IntegerFormula)
+    "+" ->
+      when (args.size) {
+        2 -> intPlus(args)
+        1 -> (args.getOrNull(0) as? NumeralFormula.IntegerFormula)
+        else -> throw IllegalArgumentException("+ with weird # of parameters")
+      }
+    "minus" -> intMinus(args)
+    "unaryMinus" -> intNegate(args)
+    "-" ->
+      when (args.size) {
+        2 -> intMinus(args)
+        1 -> intNegate(args)
+        else -> throw IllegalArgumentException("- with weird # of parameters")
+      }
+    "times", "*" -> intMultiply(args)
+    // "div", "/" -> intDivide(args) // not all SMT solvers support div
+    "inc",
+    "++" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec", "--" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
     else -> null
   }
 
@@ -147,12 +160,25 @@ private fun Solver.rationalFormula(
 ): NumeralFormula.RationalFormula? =
   when (descriptor.name.value) {
     "plus" -> rationalPlus(args)
-    "minus" -> rationalMinus(args)
-    "times" -> rationalMultiply(args)
-    // "div" -> rationalDivide(args) // not all SMT solvers support div
-    "inc" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "dec" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "unaryMinus" -> rationalNegate(args)
     "unaryPlus" -> (args.getOrNull(0) as? NumeralFormula.RationalFormula)
+    "+" ->
+      when (args.size) {
+        2 -> rationalPlus(args)
+        1 -> (args.getOrNull(0) as? NumeralFormula.RationalFormula)
+        else -> throw IllegalArgumentException("+ with weird # of parameters")
+      }
+    "minus" -> rationalMinus(args)
+    "unaryMinus" -> rationalNegate(args)
+    "-" ->
+      when (args.size) {
+        2 -> rationalMinus(args)
+        1 -> rationalNegate(args)
+        else -> throw IllegalArgumentException("- with weird # of parameters")
+      }
+    "times", "*" -> rationalMultiply(args)
+    // "div", "/" -> rationalDivide(args) // not all SMT solvers support div
+    "inc",
+    "++" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec", "--" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
     else -> null
   }

@@ -28,7 +28,7 @@ public class AnalysisJavaPlugin : Plugin {
         name
       )
     )
-    task.after(TaskEvent.Kind.ENTER) { e, unit ->
+    task.after(TaskEvent.Kind.ANALYZE) { e, unit ->
       AnalysisContext(task, unit).run {
         val tys: List<JavaElement> = e.compilationUnit.typeDecls.map { it.model(this) }
       }
