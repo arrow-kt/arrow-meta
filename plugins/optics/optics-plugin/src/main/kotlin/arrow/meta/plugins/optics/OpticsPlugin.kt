@@ -54,7 +54,7 @@ private fun CompilerContext.adt(c: KtClass): ADT =
     }
   )
 
-val opticsAnnotation: Regex = Regex("@(arrow\\.)?Optics")
+val opticsAnnotation: Regex = Regex("@(arrow\\.optics\\.)?optics")
 
 fun isOpticsTarget(ktClass: KtClass): Boolean =
   (ktClass.isData() || ktClass.isSealed()) && ktClass.isAnnotatedWith(opticsAnnotation)

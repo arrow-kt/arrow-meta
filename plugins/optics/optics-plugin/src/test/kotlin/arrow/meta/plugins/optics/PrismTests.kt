@@ -8,7 +8,7 @@ class PrismTests {
   fun `Prism will be generated for sealed class`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |sealed class PrismSealed(val field: String, val nullable: String?) {
       | data class PrismSealed1(private val a: String?) : PrismSealed("", a)
       | data class PrismSealed2(private val b: String?) : PrismSealed("", b)

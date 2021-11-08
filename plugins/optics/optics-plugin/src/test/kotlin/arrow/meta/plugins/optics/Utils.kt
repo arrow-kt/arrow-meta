@@ -18,19 +18,19 @@ const val imports =
       """
 
 const val dslModel =
-  """@Optics data class Street(val number: Int, val name: String) {
+  """@optics data class Street(val number: Int, val name: String) {
             companion object
           }
-          @Optics data class Address(val city: String, val street: Street) {
+          @optics data class Address(val city: String, val street: Street) {
             companion object
           }
-          @Optics data class Company(val name: String, val address: Address) {
+          @optics data class Company(val name: String, val address: Address) {
             companion object
           }
-          @Optics data class Employee(val name: String, val company: Company?) {
+          @optics data class Employee(val name: String, val company: Company?) {
             companion object
           }
-          @Optics data class Employees(val employees: List<Employee>) {
+          @optics data class Employees(val employees: List<Employee>) {
             companion object
           }
           sealed class Keys
@@ -46,7 +46,7 @@ const val dslModel =
           object Four : Keys() {
             override fun toString(): String = "Four"
           }
-          @Optics data class Db(val content: Map<Keys, String>) {
+          @optics data class Db(val content: Map<Keys, String>) {
             companion object
           }"""
 
