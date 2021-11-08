@@ -26,7 +26,9 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaEmptyBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaEnhancedFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIf
+import arrow.meta.plugins.analysis.java.ast.elements.JavaLiteral
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
+import arrow.meta.plugins.analysis.java.ast.elements.JavaNull
 import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaReturn
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
@@ -58,6 +60,7 @@ import com.sun.source.tree.ForLoopTree
 import com.sun.source.tree.IfTree
 import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
+import com.sun.source.tree.LiteralTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.ModifiersTree
 import com.sun.source.tree.ModuleTree
@@ -144,6 +147,11 @@ public fun <
     is ParenthesizedTree -> JavaParenthesized(ctx, this) as B
     is ConditionalExpressionTree -> JavaTernaryConditional(ctx, this) as B
     is ErroneousTree -> JavaElement(ctx, this) as B // nothing special
+    is LiteralTree ->
+      when (this.value) {
+        null -> JavaNull(ctx, this) as B
+        else -> JavaLiteral(ctx, this) as B
+      }
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B
