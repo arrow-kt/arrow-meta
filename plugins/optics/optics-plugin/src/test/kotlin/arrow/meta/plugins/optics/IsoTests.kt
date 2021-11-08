@@ -10,7 +10,7 @@ class IsoTests {
   fun `Isos will be generated for data class`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class IsoData(
       |  val field1: String
       |) { companion object }
@@ -26,7 +26,7 @@ class IsoTests {
   fun `Isos will be generated for data class with secondary constructors`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class IsoSecondaryConstructor(val fieldNumber: Int, val fieldString: String) {
       |  constructor(number: Int) : this(number, number.toString())
       |  companion object
@@ -43,7 +43,7 @@ class IsoTests {
   fun `Iso generation requires companion object declaration`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class IsoNoCompanion(
       |  val field1: String
       |)
@@ -56,7 +56,7 @@ class IsoTests {
   fun `Isos cannot be generated for huge classes`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class IsoXXL(
       |  val field1: String,
       |  val field2: String,

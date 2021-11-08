@@ -3,17 +3,17 @@ package arrow.meta.plugins.optics.internals
 val String.otherClassTypeErrorMessage
   get() =
     """
-      |$this cannot be annotated with @Optics
+      |$this cannot be annotated with @optics
       | ^
       |
-      |Only data and sealed classes can be annotated with @Optics annotation""".trimMargin()
+      |Only data and sealed classes can be annotated with @optics annotation""".trimMargin()
 
 val String.lensErrorMessage
   get() =
     """
       |Cannot generate arrow.optics.Lens for $this
       |                                       ^
-      |arrow.optics.OpticsTarget.LENS is an invalid @Optics argument for $this.
+      |arrow.optics.OpticsTarget.LENS is an invalid @optics argument for $this.
       |It is only valid for data classes.
       """.trimMargin()
 
@@ -22,7 +22,7 @@ val String.optionalErrorMessage
     """
       |Cannot generate arrow.optics.Optional for $this
       |                                           ^
-      |arrow.optics.OpticsTarget.OPTIONAL is an invalid @Optics argument for $this.
+      |arrow.optics.OpticsTarget.OPTIONAL is an invalid @optics argument for $this.
       |It is only valid for data classes.
       """.trimMargin()
 
@@ -31,7 +31,7 @@ val String.prismErrorMessage
     """
       |Cannot generate arrow.optics.Prism for $this
       |                                        ^
-      |arrow.optics.OpticsTarget.PRISM is an invalid @Optics argument for $this.
+      |arrow.optics.OpticsTarget.PRISM is an invalid @optics argument for $this.
       |It is only valid for sealed classes.
       """.trimMargin()
 
@@ -40,7 +40,7 @@ val String.isoErrorMessage
     """
       |Cannot generate arrow.optics.Iso for $this
       |                                      ^
-      |arrow.optics.OpticsTarget.ISO is an invalid @Optics argument for $this.
+      |arrow.optics.OpticsTarget.ISO is an invalid @optics argument for $this.
       |It is only valid for data classes.
       """.trimMargin()
 
@@ -57,7 +57,7 @@ val String.dslErrorMessage
     """
       |Cannot generate DSL (arrow.optics.BoundSetter) for $this
       |                                           ^
-      |arrow.optics.OpticsTarget.DSL is an invalid @Optics argument for $this.
+      |arrow.optics.OpticsTarget.DSL is an invalid @optics argument for $this.
       |It is only valid for data classes and sealed classes.
       """.trimMargin()
 

@@ -7,9 +7,5 @@ public class OpticsGradlePlugin : ArrowMetaGradlePlugin {
   override val pluginId: String = "io.arrow-kt.optics"
 
   override val dependencies: List<Triple<String, String, String>> =
-    listOf(
-      Triple(groupId, "arrow-meta-prelude", version),
-      Triple(groupId, "arrow-core", "1.0.0"),
-      Triple(groupId, "arrow-optics", "1.0.0"),
-    )
+    listOf(Triple(groupId, "arrow-optics", "1.0.0"))
 }

@@ -8,7 +8,7 @@ class OptionalTests {
   fun `Optional will be generated for data class`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class OptionalData(
       |  val field1: String?
       |) { companion object }
@@ -24,7 +24,7 @@ class OptionalTests {
   fun `Optional will be generated for data class with secondary constructors`() {
     """
       |$imports
-      |@Optics
+      |@optics
       |data class OptionalSecondaryConstructor(val fieldNumber: Int?, val fieldString: String?) {
       |  constructor(number: Int?) : this(number, number?.toString())
       |  companion object
