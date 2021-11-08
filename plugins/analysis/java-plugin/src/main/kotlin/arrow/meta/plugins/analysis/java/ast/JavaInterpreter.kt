@@ -16,6 +16,7 @@ import arrow.meta.plugins.analysis.java.ast.descriptors.JavaSimpleFunctionDescri
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaTypeParameterDescriptor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBreak
+import arrow.meta.plugins.analysis.java.ast.elements.JavaCase
 import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
 import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaContinue
@@ -24,11 +25,14 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaEmptyBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaEnhancedFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaFor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaIf
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaReturn
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
+import arrow.meta.plugins.analysis.java.ast.elements.JavaSwitch
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
+import arrow.meta.plugins.analysis.java.ast.elements.JavaTernaryConditional
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
 import arrow.meta.plugins.analysis.java.ast.elements.JavaWhile
@@ -39,8 +43,10 @@ import com.sun.source.tree.AnnotatedTypeTree
 import com.sun.source.tree.ArrayTypeTree
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.BreakTree
+import com.sun.source.tree.CaseTree
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
+import com.sun.source.tree.ConditionalExpressionTree
 import com.sun.source.tree.ContinueTree
 import com.sun.source.tree.DirectiveTree
 import com.sun.source.tree.DoWhileLoopTree
@@ -49,6 +55,7 @@ import com.sun.source.tree.EnhancedForLoopTree
 import com.sun.source.tree.ErroneousTree
 import com.sun.source.tree.ExpressionStatementTree
 import com.sun.source.tree.ForLoopTree
+import com.sun.source.tree.IfTree
 import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
 import com.sun.source.tree.MethodTree
@@ -59,6 +66,7 @@ import com.sun.source.tree.ParameterizedTypeTree
 import com.sun.source.tree.ParenthesizedTree
 import com.sun.source.tree.PrimitiveTypeTree
 import com.sun.source.tree.ReturnTree
+import com.sun.source.tree.SwitchTree
 import com.sun.source.tree.SynchronizedTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.TypeParameterTree
@@ -134,6 +142,7 @@ public fun <
     is VariableTree -> JavaVariable(ctx, this) as B
     // expressions
     is ParenthesizedTree -> JavaParenthesized(ctx, this) as B
+    is ConditionalExpressionTree -> JavaTernaryConditional(ctx, this) as B
     is ErroneousTree -> JavaElement(ctx, this) as B // nothing special
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
@@ -143,11 +152,15 @@ public fun <
     is WhileLoopTree -> JavaWhile(ctx, this) as B
     is ForLoopTree -> JavaFor(ctx, this) as B
     is EnhancedForLoopTree -> JavaEnhancedFor(ctx, this) as B
+    is IfTree -> JavaIf(ctx, this) as B
+    is SwitchTree -> JavaSwitch(ctx, this) as B
+    is CaseTree -> JavaCase(ctx, this) as B
     is ClassTree -> JavaClass(ctx, this) as B
     is SynchronizedTree -> JavaSynchronized(ctx, this) as B
     is EmptyStatementTree -> JavaEmptyBlock(ctx, this) as B
     is ExpressionStatementTree -> JavaSingleBlock(ctx, this) as B
     is BlockTree -> JavaBlock(ctx, this) as B
+    // compilation elements
     is CompilationUnitTree ->
       throw IllegalArgumentException("compilation unit trees cannot be converted")
     is PackageTree -> throw IllegalArgumentException("package trees cannot be converted")

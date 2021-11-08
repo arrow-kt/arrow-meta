@@ -9,30 +9,25 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.EmptyStatementTree
 import com.sun.source.tree.ExpressionStatementTree
+import com.sun.source.tree.Tree
 
-public class JavaBlock(private val ctx: AnalysisContext, private val impl: BlockTree) :
-  BlockExpression, JavaElement(ctx, impl) {
+public open class JavaBlockParent(
+  private val ctx: AnalysisContext,
+  private val elements: List<Tree>,
+  owner: Tree
+) : BlockExpression, JavaElement(ctx, owner) {
   override val statements: List<Expression>
-    get() = impl.statements.map { it.model(ctx) }
+    get() = elements.map { it.model(ctx) }
   override val firstStatement: Expression?
     get() = statements.firstOrNull()
   override val implicitReturnFromLast: Boolean = false
 }
 
-public class JavaSingleBlock(
-  private val ctx: AnalysisContext,
-  private val impl: ExpressionStatementTree
-) : BlockExpression, JavaElement(ctx, impl) {
-  override val firstStatement: Expression
-    get() = impl.expression.model(ctx)
-  override val statements: List<Expression>
-    get() = listOf(firstStatement)
-  override val implicitReturnFromLast: Boolean = false
-}
+public class JavaBlock(ctx: AnalysisContext, impl: BlockTree) :
+  BlockExpression, JavaBlockParent(ctx, impl.statements, impl) {}
+
+public class JavaSingleBlock(ctx: AnalysisContext, impl: ExpressionStatementTree) :
+  BlockExpression, JavaBlockParent(ctx, listOf(impl.expression), impl) {}
 
 public class JavaEmptyBlock(ctx: AnalysisContext, impl: EmptyStatementTree) :
-  BlockExpression, JavaElement(ctx, impl) {
-  override val firstStatement: Expression? = null
-  override val statements: List<Expression> = emptyList()
-  override val implicitReturnFromLast: Boolean = false
-}
+  BlockExpression, JavaBlockParent(ctx, emptyList(), impl) {}
