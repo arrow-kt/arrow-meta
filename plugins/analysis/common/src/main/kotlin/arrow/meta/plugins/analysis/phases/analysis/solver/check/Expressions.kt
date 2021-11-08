@@ -49,6 +49,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.S
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SynchronizedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThreePieceForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
@@ -708,16 +709,19 @@ private fun SolverState.checkElvisOperator(
   }
 }
 
-data class CallArgumentsInfo(
+internal data class CallArgumentsInfo(
   val returnOrVariables: Either<ExplicitReturn, List<CallArgumentVariable>>,
   val data: CheckData
 ) {
-  companion object {
+  internal companion object {
     fun init(data: CheckData) = CallArgumentsInfo(emptyList<CallArgumentVariable>().right(), data)
   }
 }
 
-data class CallArgumentVariable(val parameterName: String, val assignedSmtVariable: ObjectFormula)
+internal data class CallArgumentVariable(
+  val parameterName: String,
+  val assignedSmtVariable: ObjectFormula
+)
 
 private fun List<CallArgumentVariable>.toMap() = associate { (name, smt) -> name to smt }
 
@@ -1295,9 +1299,18 @@ private fun SolverState.checkLoopExpression(
 ): ContSeq<StateAfter> =
   when (expression) {
     is ForExpression -> checkForExpression(expression.loopParameter, expression.body, data)
+    is ThreePieceForExpression ->
+      inScope(data) {
+        val initVar = solver.makeObjectVariable(newName(data.context, "initializer", expression))
+        checkBlockExpression(initVar, expression.initializer, false, data).flatMap { after ->
+          doOnlyWhenNotNull(expression.condition, data.noReturn()) {
+            checkWhileExpression(it, expression.body, emptyList(), after.data)
+          }
+        }
+      }
     is WhileExpression ->
       doOnlyWhenNotNull(expression.condition, data.noReturn()) {
-        checkWhileExpression(it, expression.body, data)
+        checkWhileExpression(it, expression.body, emptyList(), data)
       }
     is DoWhileExpression -> {
       // remember that do { t } while (condition)
@@ -1305,7 +1318,7 @@ private fun SolverState.checkLoopExpression(
       checkExpressionConstraintsWithNewName("firstIter", expression.body, data).flatMap {
         doOnlyWhenNotNull(expression.condition, data.noReturn()) {
           // do not change the data, since the block goes out of scope
-          checkWhileExpression(it, expression.body, data)
+          checkWhileExpression(it, expression.body, emptyList(), data)
         }
       }
     }
@@ -1332,7 +1345,7 @@ private fun SolverState.checkForExpression(
                   val smtName = newName(data.context, paramName, loopParameter)
                   data.addVarInfo(paramName, smtName, loopParameter, null)
                 } else data
-              checkLoopBody(body, newData)
+              checkLoopBody(body, emptyList(), newData)
             }
           }
         // in this case we know nothing
@@ -1344,6 +1357,7 @@ private fun SolverState.checkForExpression(
 private fun SolverState.checkWhileExpression(
   condition: Expression,
   body: Expression?,
+  afterBody: List<Expression>,
   data: CheckData
 ): ContSeq<StateAfter> {
   val condName = newName(data.context, "cond", condition)
@@ -1367,7 +1381,7 @@ private fun SolverState.checkWhileExpression(
                 condition,
                 data.branch.get()
               )
-              checkLoopBody(body, data.addBranch(objVar))
+              checkLoopBody(body, afterBody, data.addBranch(objVar))
             }
           }
         // after the loop the condition is false
@@ -1387,22 +1401,30 @@ private fun SolverState.checkWhileExpression(
     }
 }
 
-private fun SolverState.checkLoopBody(body: Expression?, data: CheckData): ContSeq<StateAfter> {
-  return checkExpressionConstraintsWithNewName("loop", body, data).map { stateAfter ->
-    // only keep working on this branch
-    // if we had a 'return' inside
-    // otherwise the other branch is enough
-    // if we decide to abort we need to 'pop',
-    // because the one from 'bracket' won't run
-    when (stateAfter.returnInfo) {
-      is ExplicitLoopReturn -> {
-        prover.pop()
-        abort()
-      }
-      is ExplicitBlockReturn -> stateAfter
-      else -> {
-        prover.pop()
-        abort()
+private fun SolverState.checkLoopBody(
+  body: Expression?,
+  afterBody: List<Expression>,
+  data: CheckData
+): ContSeq<StateAfter> {
+  return checkExpressionConstraintsWithNewName("loop", body, data).flatMap { stateAfter ->
+    // check the additional updates (used when describing "three-piece" for loops)
+    val afterBodyVar = solver.makeObjectVariable(newName(data.context, "afterBody", body))
+    checkBlockExpression(afterBodyVar, afterBody, false, stateAfter.data).map {
+      // only keep working on this branch
+      // if we had a 'return' inside
+      // otherwise the other branch is enough
+      // if we decide to abort we need to 'pop',
+      // because the one from 'bracket' won't run
+      when (stateAfter.returnInfo) {
+        is ExplicitLoopReturn -> {
+          prover.pop()
+          abort()
+        }
+        is ExplicitBlockReturn -> stateAfter
+        else -> {
+          prover.pop()
+          abort()
+        }
       }
     }
   }
@@ -1475,7 +1497,11 @@ private fun SolverState.checkTryExpression(
  * Checks whether the type obtain from an explicit 'throw' matches any of the types in the 'catch'
  * clauses
  */
-fun doesAnyCatchMatch(throwType: Type?, clauses: List<CatchClause>, data: CheckData): Boolean =
+internal fun doesAnyCatchMatch(
+  throwType: Type?,
+  clauses: List<CatchClause>,
+  data: CheckData
+): Boolean =
   clauses.any { clause ->
     val catchType = clause.catchParameter?.type(data.context)
     if (throwType != null && catchType != null) {

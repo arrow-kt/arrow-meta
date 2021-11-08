@@ -59,7 +59,7 @@ public class JavaVariable(private val ctx: AnalysisContext, private val impl: Va
 public class JavaParameter(
   private val ctx: AnalysisContext,
   private val impl: VariableTree,
-  public override val ownerFunction: JavaMethod
+  public override val ownerFunction: JavaMethod?
 ) : Parameter, JavaParameterOrVariable(ctx, impl) {
   override fun hasDefaultValue(): Boolean = impl.initializer != null
   override val defaultValue: Expression?
