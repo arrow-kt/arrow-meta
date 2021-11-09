@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.psiUtil.modalityModifierType
 open class ClassOrObjectScope<out T : KtClassOrObject>(
   override val value: T,
   override val descriptor: ClassDescriptor?,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries, separator = " "),
   val modality: Name? = value.modalityModifierType()?.value?.let(Name::identifier),
   val superTypes: ScopedList<KtSuperTypeListEntry> =
     ScopedList(
