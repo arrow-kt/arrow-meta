@@ -41,7 +41,7 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
 
   public fun type(): Type? =
     when (impl) {
-      is JCTree -> impl.type.modelCautious(ctx)
+      is JCTree -> impl.type?.modelCautious(ctx)
       else -> null
     }
   override fun type(context: ResolutionContext): Type? = type()
