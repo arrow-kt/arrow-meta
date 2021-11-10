@@ -61,12 +61,22 @@ fun Solver.primitiveFormula(
   }
 }
 
+private val comparisonNames: List<FqName> =
+  listOf(
+    "kotlin.Any.equals",
+    "kotlin.Comparable.equals",
+    "kotlin.Comparable.compareTo",
+    ">",
+    ">=",
+    "<",
+    "<=",
+    "==",
+    "!="
+  )
+    .map { FqName(it) }
+
 internal fun CallableDescriptor.isComparison() =
-  (listOf(this) + overriddenDescriptors).any {
-    it.fqNameSafe == FqName("kotlin.Any.equals") ||
-      it.fqNameSafe == FqName("kotlin.Comparable.equals") ||
-      it.fqNameSafe == FqName("kotlin.Comparable.compareTo")
-  }
+  (listOf(this) + overriddenDescriptors).any { comparisonNames.contains(it.fqNameSafe) }
 
 private fun Solver.comparisonFormula(
   context: ResolutionContext,

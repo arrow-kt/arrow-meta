@@ -82,5 +82,7 @@ public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =
       }
     is JCTree.JCNewClass ->
       constructor?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
+    is JCTree.JCIdent ->
+      sym?.let { sym -> JavaResolvedCall(ctx, this, sym, null, emptyList(), emptyList()) }
     else -> null
   }

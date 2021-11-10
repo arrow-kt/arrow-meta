@@ -32,8 +32,8 @@ public open class JavaFunctionDescriptor(
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
   override val dispatchReceiverParameter: ReceiverParameterDescriptor?
     get() =
-      when (impl.receiverType.kind) {
-        TypeKind.NONE -> null
+      when (impl.receiverType?.kind) {
+        null, TypeKind.NONE -> null
         else -> JavaReceiverParameterDescriptor(ctx, impl.receiverType, impl)
       }
   override val typeParameters: List<TypeParameterDescriptor>
