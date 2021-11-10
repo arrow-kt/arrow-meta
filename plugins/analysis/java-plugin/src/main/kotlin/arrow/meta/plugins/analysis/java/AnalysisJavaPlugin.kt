@@ -3,19 +3,20 @@
 package arrow.meta.plugins.analysis.java
 
 import arrow.meta.plugins.analysis.java.ast.JavaResolutionContext
-import arrow.meta.plugins.analysis.java.ast.descriptors.JavaClassDescriptor
+import arrow.meta.plugins.analysis.java.ast.descriptors.JavaDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaFunctionDescriptor
-import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
+import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.OurTreeVisitor
 import arrow.meta.plugins.analysis.java.ast.elements.visitRecursively
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
-import com.sun.source.tree.ClassTree
 import com.sun.source.tree.MethodTree
+import com.sun.source.tree.Tree
 import com.sun.source.util.JavacTask
 import com.sun.source.util.Plugin
 import com.sun.source.util.TaskEvent
@@ -58,15 +59,12 @@ public class AnalysisJavaPlugin : Plugin {
         val ctx = AnalysisContext(task, unit)
         unit.visitRecursively(
           object : OurTreeVisitor<Unit>(Unit) {
-            override fun visitMethod(node: MethodTree, p: Unit?) {
-              val decl: JavaMethod = node.model(ctx)
-              val descr: JavaFunctionDescriptor = ctx.resolver.resolve(node).model(ctx)
-              solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
-            }
-            override fun visitClass(node: ClassTree, p: Unit?) {
-              val decl: JavaClass = node.model(ctx)
-              val descr: JavaClassDescriptor = ctx.resolver.resolve(node).model(ctx)
-              solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
+            override fun defaultAction(node: Tree, p: Unit?) {
+              val decl: JavaElement = node.model(ctx)
+              if (decl is Declaration) {
+                val descr: JavaDescriptor = ctx.resolver.resolve(node).model(ctx)
+                solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
+              }
             }
           }
         )
