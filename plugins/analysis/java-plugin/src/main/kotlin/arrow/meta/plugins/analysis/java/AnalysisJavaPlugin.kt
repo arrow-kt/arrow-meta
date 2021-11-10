@@ -10,6 +10,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.OurTreeVisitor
 import arrow.meta.plugins.analysis.java.ast.elements.visitRecursively
 import arrow.meta.plugins.analysis.java.ast.model
+import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
@@ -60,7 +61,7 @@ public class AnalysisJavaPlugin : Plugin {
         unit.visitRecursively(
           object : OurTreeVisitor<Unit>(Unit) {
             override fun defaultAction(node: Tree, p: Unit?) {
-              val decl: JavaElement = node.model(ctx)
+              val decl: JavaElement? = node.modelCautious(ctx)
               if (decl is Declaration) {
                 val descr: JavaDescriptor = ctx.resolver.resolve(node).model(ctx)
                 solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
