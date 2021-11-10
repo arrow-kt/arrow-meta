@@ -12,7 +12,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.S
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import javax.lang.model.element.Name
 
-public class JavaReference(private val impl: Name, private val parent: Element) :
+public class JavaFakeReference(private val impl: Name, private val parent: Element) :
   SimpleNameExpression {
   override fun getReferencedName(): String = impl.toString()
   override fun getReferencedNameAsName():

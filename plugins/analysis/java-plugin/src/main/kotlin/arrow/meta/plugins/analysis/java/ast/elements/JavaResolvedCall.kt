@@ -66,17 +66,21 @@ public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =
     is JCTree.JCMethodInvocation ->
       when (val m = this.meth) {
         is JCTree.JCMemberReference ->
-          JavaResolvedCall(
-            ctx,
-            this,
-            m.sym,
-            m.qualifierExpression,
-            typeArguments + m.typeArguments,
-            arguments
-          )
-        is JCTree.JCIdent -> JavaResolvedCall(ctx, this, m.sym, null, typeArguments, arguments)
+          m.sym?.let { sym ->
+            JavaResolvedCall(
+              ctx,
+              this,
+              sym,
+              m.qualifierExpression,
+              typeArguments + m.typeArguments,
+              arguments
+            )
+          }
+        is JCTree.JCIdent ->
+          m.sym?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
         else -> null
       }
-    is JCTree.JCNewClass -> JavaResolvedCall(ctx, this, constructor, null, typeArguments, arguments)
+    is JCTree.JCNewClass ->
+      constructor?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
     else -> null
   }

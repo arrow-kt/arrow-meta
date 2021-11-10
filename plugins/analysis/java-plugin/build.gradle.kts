@@ -23,5 +23,6 @@ dependencies {
   testRuntimeOnly(projects.arrowAnalysisTypes)
   testRuntimeOnly(projects.arrowMetaPrelude)
   testRuntimeOnly(projects.arrowAnalysisJavaPlugin)
+  testRuntimeOnly(projects.arrowAnalysisTypes)
   testRuntimeOnly(libs.arrowCore)
 }

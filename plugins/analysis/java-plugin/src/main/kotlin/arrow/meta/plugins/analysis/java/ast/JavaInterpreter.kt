@@ -26,6 +26,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaEmptyBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaEnhancedFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaFor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaIdentifier
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIf
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLiteral
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
@@ -60,6 +61,7 @@ import com.sun.source.tree.EnhancedForLoopTree
 import com.sun.source.tree.ErroneousTree
 import com.sun.source.tree.ExpressionStatementTree
 import com.sun.source.tree.ForLoopTree
+import com.sun.source.tree.IdentifierTree
 import com.sun.source.tree.IfTree
 import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
@@ -158,6 +160,7 @@ public fun <
       }
     is UnaryTree -> JavaUnary(ctx, this) as B
     is BinaryTree -> JavaBinary(ctx, this) as B
+    is IdentifierTree -> JavaIdentifier(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B

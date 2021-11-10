@@ -6,7 +6,17 @@ class AnalysisTests {
 
   @Test
   fun `first test`() {
-    ("HelloWorld" to "final class HelloWorld { public int f(int x) { return x + 1; } }")(
+    ("HelloWorld" to
+      """
+      import static arrow.analysis.RefinementDSLKt.*;
+      
+      final class HelloWorld { 
+        public int f(int x) { 
+          pre(x > 0, () -> "x must be positive");
+          return x + 1;
+        } 
+      }
+    """)(
       withPlugin = {
         succeeded()
         hadWarningContaining("Hello")

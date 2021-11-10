@@ -18,7 +18,7 @@ public open class JavaOperation(private val ctx: AnalysisContext, private val im
   OperationExpression, JavaElement(ctx, impl) {
   protected val operatorName: String = kindNames[impl.kind] ?: "UNKNOWN"
   override val operationReference: SimpleNameExpression
-    get() = JavaReference(ctx.elements.getName(operatorName), this)
+    get() = JavaFakeReference(ctx.elements.getName(operatorName), this)
 }
 
 public class JavaUnary(private val ctx: AnalysisContext, private val impl: UnaryTree) :

@@ -21,12 +21,16 @@ enum class SpecialKind {
 internal val ResolvedCall.specialKind: SpecialKind?
   get() =
     when (resultingDescriptor.fqNameSafe) {
-      FqName("arrow.analysis.pre") -> SpecialKind.Pre
+      FqName("arrow.analysis.pre"), FqName("arrow.analysis.RefinementDSLKt.pre") -> SpecialKind.Pre
       FqName("kotlin.require") -> SpecialKind.Pre
-      FqName("arrow.analysis.post") -> SpecialKind.Post
-      FqName("arrow.analysis.invariant") -> SpecialKind.Invariant
-      FqName("arrow.analysis.unsafeCall") -> SpecialKind.TrustCall
-      FqName("arrow.analysis.unsafeBlock") -> SpecialKind.TrustBlock
+      FqName("arrow.analysis.post"), FqName("arrow.analysis.RefinementDSLKt.post") ->
+        SpecialKind.Post
+      FqName("arrow.analysis.invariant"), FqName("arrow.analysis.RefinementDSLKt.invariant") ->
+        SpecialKind.Invariant
+      FqName("arrow.analysis.unsafeCall"), FqName("arrow.analysis.RefinementDSLKt.unsafeCall") ->
+        SpecialKind.TrustCall
+      FqName("arrow.analysis.unsafeBlock"), FqName("arrow.analysis.RefinementDSLKt.unsafeBlock") ->
+        SpecialKind.TrustBlock
       else -> null
     }
 

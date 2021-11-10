@@ -190,7 +190,8 @@ private fun Element.elementToConstraint(
   val call = getResolvedCall(context)
   val kind = call?.specialKind
   return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
-    val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
+    val predicateArg =
+      call.arg("predicate", context) ?: call.arg("value", context) ?: call.arg("arg0", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
@@ -198,7 +199,8 @@ private fun Element.elementToConstraint(
       solverState.signalParseErrors()
       null
     } else {
-      val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)
+      val msgBody =
+        call.arg("msg", context) ?: call.arg("lazyMessage", context) ?: call.arg("arg1", context)
       val msg =
         if (msgBody is LambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
         else msgBody?.text ?: predicateArg?.text

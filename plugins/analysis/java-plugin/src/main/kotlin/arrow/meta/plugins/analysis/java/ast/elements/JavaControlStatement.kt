@@ -29,14 +29,14 @@ public class JavaReturn(private val ctx: AnalysisContext, private val impl: Retu
 
 public class JavaContinue(ctx: AnalysisContext, private val impl: ContinueTree) :
   ContinueExpression, JavaElement(ctx, impl) {
-  override fun getTargetLabel(): SimpleNameExpression = JavaReference(impl.label, this)
+  override fun getTargetLabel(): SimpleNameExpression = JavaFakeReference(impl.label, this)
   override fun getLabelName(): String = impl.label.toString()
   override fun getLabelNameAsName(): Name = impl.label.name()
 }
 
 public class JavaBreak(ctx: AnalysisContext, private val impl: BreakTree) :
   BreakExpression, JavaElement(ctx, impl) {
-  override fun getTargetLabel(): SimpleNameExpression = JavaReference(impl.label, this)
+  override fun getTargetLabel(): SimpleNameExpression = JavaFakeReference(impl.label, this)
   override fun getLabelName(): String = impl.label.toString()
   override fun getLabelNameAsName(): Name = impl.label.name()
 }
