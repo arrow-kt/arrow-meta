@@ -8,21 +8,26 @@ import com.google.testing.compile.JavaFileObjects
 public operator fun Pair<String, String>.invoke(
   withPlugin: CompilationSubject.() -> Unit,
   withoutPlugin: CompilationSubject.() -> Unit
+) = mapOf(this)(withPlugin, withoutPlugin)
+
+public operator fun Map<String, String>.invoke(
+  withPlugin: CompilationSubject.() -> Unit,
+  withoutPlugin: CompilationSubject.() -> Unit
 ) {
   worker(
     config = { withOptions("-Xplugin:" + AnalysisJavaPlugin.NAME) },
-    file = this,
+    files = this,
     check = withPlugin
   )
-  worker(file = this, check = withoutPlugin)
+  worker(files = this, check = withoutPlugin)
 }
 
 private fun worker(
   config: Compiler.() -> Compiler = { this },
-  file: Pair<String, String>,
+  files: Map<String, String>,
   check: CompilationSubject.() -> Unit
 ): Unit {
   val compiler = Compiler.javac().config()
-  val compilation = compiler.compile(JavaFileObjects.forSourceString(file.first, file.second))
+  val compilation = compiler.compile(files.map { (k, v) -> JavaFileObjects.forSourceString(k, v) })
   assertThat(compilation).check()
 }

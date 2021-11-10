@@ -24,6 +24,16 @@ public abstract class PerKindTaskListener : TaskListener {
   public fun afterGenerate(e: TaskEvent): Unit {}
 }
 
+public fun JavacTask.before(kind: TaskEvent.Kind, run: (TaskEvent, CompilationUnitTree) -> Unit) {
+  addTaskListener(
+    object : TaskListener {
+      override fun started(e: TaskEvent?) {
+        if (e?.kind == kind) run(e, e.compilationUnit)
+      }
+    }
+  )
+}
+
 public fun JavacTask.after(kind: TaskEvent.Kind, run: (TaskEvent, CompilationUnitTree) -> Unit) {
   addTaskListener(
     object : TaskListener {

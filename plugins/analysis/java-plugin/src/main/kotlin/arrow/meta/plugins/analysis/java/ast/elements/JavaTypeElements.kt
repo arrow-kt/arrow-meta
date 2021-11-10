@@ -15,6 +15,9 @@ private constructor(private val ctx: AnalysisContext, private val impl: Tree) :
   override val typeElement: TypeElement
     get() = JavaTypeElement(ctx, impl)
 
+  public val underlyingTree: Tree
+    get() = impl
+
   public companion object {
     public operator fun invoke(ctx: AnalysisContext, impl: Tree): JavaTypeReference? =
       when (impl.kind) {

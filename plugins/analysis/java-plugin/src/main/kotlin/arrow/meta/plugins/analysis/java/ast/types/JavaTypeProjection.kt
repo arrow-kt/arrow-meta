@@ -18,7 +18,7 @@ public class JavaTypeProjection(private val ctx: AnalysisContext, private val ty
     get() =
       ty.visit(
         object : OurTypeVisitor<Boolean>(false) {
-          override fun visitWildcard(t: WildcardType?, p: TypeMirror?): Boolean = true
+          override fun visitWildcard(t: WildcardType?, p: Unit?): Boolean = true
         }
       )
 }

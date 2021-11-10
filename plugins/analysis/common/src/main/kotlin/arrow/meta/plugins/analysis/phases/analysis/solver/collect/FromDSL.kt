@@ -59,9 +59,7 @@ private fun Declaration.constraintsFromGenericDeclaration(
   parameters: List<Parameter>
 ): List<Pair<ResolvedCall, NamedConstraint>> =
   context.run {
-    constraintsDSLElements().toList().mapNotNull {
-      it.elementToConstraint(solverState, context, parameters)
-    }
+    constraintsDSLElements().mapNotNull { it.elementToConstraint(solverState, context, parameters) }
   }
 
 /** Gather constraints for anything which is not a constructor */

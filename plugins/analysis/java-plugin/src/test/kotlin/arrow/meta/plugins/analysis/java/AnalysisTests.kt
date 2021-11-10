@@ -14,4 +14,18 @@ class AnalysisTests {
       withoutPlugin = { succeeded() }
     )
   }
+
+  @Test
+  fun `two files`() {
+    mapOf(
+      "HelloWorld" to "final class HelloWorld { public int f(int x) { return x + 1; } }",
+      "SecondFile" to "final class SecondFile { public int f(int x) { return x + 1; } }"
+    )(
+      withPlugin = {
+        succeeded()
+        hadWarningContaining("Hello")
+      },
+      withoutPlugin = { succeeded() }
+    )
+  }
 }

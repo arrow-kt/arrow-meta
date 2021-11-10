@@ -17,7 +17,7 @@ public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMir
     get() =
       ty.visit(
         object : OurTypeVisitor<ClassDescriptor?>(null) {
-          override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): ClassDescriptor? =
+          override fun visitDeclared(t: DeclaredType?, p: Unit?): ClassDescriptor? =
             t?.asElement()?.model(ctx)
         }
       )
@@ -30,9 +30,9 @@ public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMir
     get() =
       ty.visit(
         object : OurTypeVisitor<List<TypeProjection>>(emptyList()) {
-          override fun visitArray(t: ArrayType?, p: TypeMirror?): List<TypeProjection> =
+          override fun visitArray(t: ArrayType?, p: Unit?): List<TypeProjection> =
             listOfNotNull(t?.componentType).map { JavaTypeProjection(ctx, it) }
-          override fun visitDeclared(t: DeclaredType?, p: TypeMirror?): List<TypeProjection> =
+          override fun visitDeclared(t: DeclaredType?, p: Unit?): List<TypeProjection> =
             t?.typeArguments?.map { JavaTypeProjection(ctx, it) }.orEmpty()
         }
       )
@@ -62,7 +62,7 @@ public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMir
   override fun isTypeParameter(): Boolean =
     ty.visit(
       object : OurTypeVisitor<Boolean>(false) {
-        override fun visitTypeVariable(t: TypeVariable?, p: TypeMirror?): Boolean = true
+        override fun visitTypeVariable(t: TypeVariable?, p: Unit?): Boolean = true
       }
     )
 }
