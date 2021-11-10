@@ -15,11 +15,11 @@ public operator fun Map<String, String>.invoke(
   withoutPlugin: CompilationSubject.() -> Unit
 ) {
   worker(
-    config = { withOptions("-Xplugin:" + AnalysisJavaPlugin.NAME) },
+    config = { withOptions("-parameters", "-Xplugin:" + AnalysisJavaPlugin.NAME) },
     files = this,
     check = withPlugin
   )
-  worker(files = this, check = withoutPlugin)
+  worker(config = { withOptions("-parameters") }, files = this, check = withoutPlugin)
 }
 
 private fun worker(

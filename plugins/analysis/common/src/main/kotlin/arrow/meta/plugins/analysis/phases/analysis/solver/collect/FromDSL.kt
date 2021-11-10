@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Constructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
@@ -190,8 +191,7 @@ private fun Element.elementToConstraint(
   val call = getResolvedCall(context)
   val kind = call?.specialKind
   return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
-    val predicateArg =
-      call.arg("predicate", context) ?: call.arg("value", context) ?: call.arg("arg0", context)
+    val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
@@ -199,12 +199,17 @@ private fun Element.elementToConstraint(
       solverState.signalParseErrors()
       null
     } else {
-      val msgBody =
-        call.arg("msg", context) ?: call.arg("lazyMessage", context) ?: call.arg("arg1", context)
-      val msg =
-        if (msgBody is LambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
-        else msgBody?.text ?: predicateArg?.text
-      msg?.let { call to NamedConstraint(it, result) }
+      val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)
+      when (msgBody) {
+        is LambdaExpression ->
+          when (val body = msgBody.bodyExpression) {
+            is BlockExpression -> body.firstStatement?.text?.trim('"')
+            is Element -> body.text.trim('"')
+            else -> msgBody.text
+          }
+        is Element -> msgBody.text
+        else -> predicateArg?.text
+      }?.let { call to NamedConstraint(it, result) }
     }
   } else {
     null

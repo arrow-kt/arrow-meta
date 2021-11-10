@@ -13,7 +13,7 @@ class AnalysisTests {
       final class HelloWorld { 
         public int f(int x) { 
           pre(x > 0, () -> "x must be positive");
-          return x + 1;
+          return post(x + 1, (r) -> r > 0, () -> "result is positive");
         } 
       }
     """)(

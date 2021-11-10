@@ -4,36 +4,56 @@ package arrow.meta.plugins.analysis.java.ast.elements
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DefaultValueArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgumentName
 import com.sun.source.tree.Tree
 
-public class JavaResolvedValueArgument(
+public class JavaExpressionValueArgument(
   private val ctx: AnalysisContext,
   private val impl: Tree,
   private val descr: ValueParameterDescriptor
-) : ResolvedValueArgument {
+) : ExpressionValueArgument {
+  override val valueArgument: ValueArgument
+    get() = JavaValueArgument(impl.model(ctx), descr)
   override val arguments: List<ValueArgument>
-    get() = listOf(JavaValueArgument(ctx, impl, descr))
+    get() = listOf(valueArgument)
 }
 
-public class JavaValueArgument(
-  private val ctx: AnalysisContext,
-  private val impl: Tree,
+public class JavaDefaultValueArgument(private val descr: ValueParameterDescriptor) :
+  DefaultValueArgument {
+  override val valueArgument: ValueArgument?
+    get() = descr.defaultValue?.let { JavaValueArgument(it, descr) }
+  override val arguments: List<ValueArgument>
+    get() = listOfNotNull(valueArgument)
+}
+
+public open class JavaValueArgument(
+  private val impl: Expression,
   private val descr: ValueParameterDescriptor
 ) : ValueArgument {
   override val argumentExpression: Expression
-    get() = impl.model(ctx)
+    get() = impl
   override fun getArgumentName(): ValueArgumentName = JavaValueArgumentName(descr)
 
   override fun isNamed(): Boolean = false
   override fun isExternal(): Boolean = false
   override val isSpread: Boolean = false
+}
+
+public class JavaLambdaArgument(
+  impl: Expression,
+  descr: ValueParameterDescriptor,
+  private val lambda: LambdaExpression?
+) : LambdaArgument, JavaValueArgument(impl, descr) {
+  override fun getLambdaExpression(): LambdaExpression? = lambda
 }
 
 public class JavaValueArgumentName(private val descr: ValueParameterDescriptor) :

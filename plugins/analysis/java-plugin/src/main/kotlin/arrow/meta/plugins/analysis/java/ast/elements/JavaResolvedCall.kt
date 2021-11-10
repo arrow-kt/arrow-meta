@@ -55,7 +55,13 @@ public class JavaResolvedCall(
       resultingDescriptor
         .valueParameters
         .zip(arguments)
-        .map { (descr, tree) -> descr to JavaResolvedValueArgument(ctx, tree, descr) }
+        .map { (descr, tree) ->
+          descr to
+            when (tree) {
+              null -> JavaDefaultValueArgument(descr)
+              else -> JavaExpressionValueArgument(ctx, tree, descr)
+            }
+        }
         .toMap()
 }
 

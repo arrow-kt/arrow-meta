@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableDeclaration
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DestructuringDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
@@ -25,6 +26,8 @@ public open class JavaParameterOrVariable(
   private val ctx: AnalysisContext,
   private val impl: VariableTree
 ) : CallableDeclaration, JavaElement(ctx, impl) {
+  override val text: String
+    get() = name
 
   override val parents: List<Element>
     get() = ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
@@ -59,7 +62,7 @@ public class JavaVariable(private val ctx: AnalysisContext, private val impl: Va
 public class JavaParameter(
   private val ctx: AnalysisContext,
   private val impl: VariableTree,
-  public override val ownerFunction: JavaMethod?
+  public override val ownerFunction: DeclarationWithBody?
 ) : Parameter, JavaParameterOrVariable(ctx, impl) {
   override fun hasDefaultValue(): Boolean = impl.initializer != null
   override val defaultValue: Expression?

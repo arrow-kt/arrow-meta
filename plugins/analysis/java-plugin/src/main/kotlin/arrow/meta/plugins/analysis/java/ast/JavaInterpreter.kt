@@ -28,6 +28,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaEnhancedFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIdentifier
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIf
+import arrow.meta.plugins.analysis.java.ast.elements.JavaLambda
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLiteral
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.JavaNull
@@ -65,6 +66,7 @@ import com.sun.source.tree.IdentifierTree
 import com.sun.source.tree.IfTree
 import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
+import com.sun.source.tree.LambdaExpressionTree
 import com.sun.source.tree.LiteralTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.ModifiersTree
@@ -127,7 +129,7 @@ public fun <
   when (this) {
     is CompilationUnitTree, is PackageTree, is ModuleTree, is DirectiveTree, is ImportTree -> null
     is ModifiersTree -> null
-    else -> JavaElement(ctx, this) as B
+    else -> this.model<A, B>(ctx)
   }
 
 public fun <
@@ -161,6 +163,7 @@ public fun <
     is UnaryTree -> JavaUnary(ctx, this) as B
     is BinaryTree -> JavaBinary(ctx, this) as B
     is IdentifierTree -> JavaIdentifier(ctx, this) as B
+    is LambdaExpressionTree -> JavaLambda(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B
