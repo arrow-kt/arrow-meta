@@ -63,6 +63,10 @@ internal fun ResolvedCall.allArgumentExpressions(
     }
   ) + valueArgumentExpressions(context)
 
+internal fun ResolvedCall.getReceiverOrFirstArgument(): Expression? =
+  this.getReceiverExpression()
+    ?: this.valueArguments.values.toList().getOrNull(0)?.arguments?.getOrNull(0)?.argumentExpression
+
 /** Get all value arguments for [this] call */
 internal fun ResolvedCall.valueArgumentExpressions(
   context: ResolutionContext

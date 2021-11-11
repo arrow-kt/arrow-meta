@@ -2,15 +2,17 @@
 
 package arrow.meta.plugins.analysis.java
 
-import javax.annotation.processing.AbstractProcessor
+import javax.annotation.processing.Completion
 import javax.annotation.processing.ProcessingEnvironment
+import javax.annotation.processing.Processor
 import javax.annotation.processing.RoundEnvironment
-import javax.annotation.processing.SupportedAnnotationTypes
+import javax.lang.model.SourceVersion
+import javax.lang.model.element.AnnotationMirror
 import javax.lang.model.element.Element
+import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 
-@SupportedAnnotationTypes("*")
-public class AnalysisJavaProcessor : AbstractProcessor() {
+public class AnalysisJavaProcessor : Processor {
 
   public companion object {
     public var instance: AnalysisJavaProcessor? = null
@@ -19,8 +21,11 @@ public class AnalysisJavaProcessor : AbstractProcessor() {
   private var executed = false
   public val todo: MutableList<Element> = mutableListOf()
 
+  override fun getSupportedOptions(): MutableSet<String> = mutableSetOf()
+  override fun getSupportedAnnotationTypes(): MutableSet<String> = mutableSetOf("*")
+  override fun getSupportedSourceVersion(): SourceVersion = SourceVersion.latestSupported()
+
   override fun init(processingEnv: ProcessingEnvironment) {
-    super.init(processingEnv)
     instance = this
   }
 
@@ -37,4 +42,11 @@ public class AnalysisJavaProcessor : AbstractProcessor() {
     f(todo)
     executed = true
   }
+
+  override fun getCompletions(
+    element: Element?,
+    annotation: AnnotationMirror?,
+    member: ExecutableElement?,
+    userText: String?
+  ): MutableIterable<Completion> = mutableListOf()
 }
