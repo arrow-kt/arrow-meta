@@ -26,6 +26,32 @@ import com.sun.source.util.TaskEvent
 import com.sun.tools.javac.api.BasicJavacTask
 import java.util.*
 
+/*
+javac does not guarantee any order between the different files in a project,
+only that for each file you'll get a set of events PARSE, ENTER, ANALYZE, GENERATE.
+This is not great, because we need to process the methods in the ANALYZE stage,
+or otherwise the function calls cannot be resolved to their origins
+(so we don't know whether a certain call is indeed to our `pre` function or to any
+other function with the same name). Furthermore, we need to make the (SMT) checks
+in the ANALYZE stage too, because in the GENERATE phase most of the nice structure
+in the code has already been lowered (for example, lambdas have already been
+turned into classes).
+
+javac does guarantee, though, that annotation processors will be run before any
+other PARSE events, so this seems a way out this mess. Alas, at that point the
+function calls cannot be resolved yet (people often say that annotation processors
+don't have access to the function body, which is not entirely correct, but in any
+case the information we need is not there.)
+
+Our solution is really dirty, but it works. We introduce an annotation processor
+[AnalysisJavaProcessor] whose only task is to gather the elements that are read by
+the compiler, but does nothing at that point. Then, once we are past the ANALYZE
+stage (but before GENERATE), we process that list. javac uses a lot of mutability,
+and in particular the bodies of the functions we gathered will now contain all the
+information we need! Our final hack is to introduce an [executeOnce] function to
+ensure that the processing only happens once in the entire run of the analyzer.
+*/
+
 public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 

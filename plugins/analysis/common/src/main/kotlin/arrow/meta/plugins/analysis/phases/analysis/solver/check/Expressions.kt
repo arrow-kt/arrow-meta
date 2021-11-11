@@ -1417,9 +1417,9 @@ private fun SolverState.checkLoopBody(
       // if we decide to abort we need to 'pop',
       // because the one from 'bracket' won't run
       when (stateAfter.returnInfo) {
-        is ExplicitLoopReturn -> abort()
         is ExplicitBlockReturn -> stateAfter
-        else -> abort()
+        is ExplicitReturn -> abort()
+        is NoReturn -> abort()
       }
     }
   }
