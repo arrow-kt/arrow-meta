@@ -22,53 +22,41 @@ import com.sun.source.util.JavacTask
 import com.sun.source.util.Plugin
 import com.sun.source.util.TaskEvent
 import com.sun.tools.javac.api.BasicJavacTask
-import com.sun.tools.javac.code.Lint
-import com.sun.tools.javac.util.DiagnosticSource
-import com.sun.tools.javac.util.JCDiagnostic
 import java.util.*
 
 public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 
   override fun init(task: JavacTask?, vararg args: String?) {
-    val javaTask = task as BasicJavacTask
-    val ctx = AnalysisContextWithoutResolver(task)
-    ctx.logger.report(
-      ctx.diagnostics.warning(
-        Lint.LintCategory.RAW,
-        DiagnosticSource.NO_SOURCE,
-        JCDiagnostic.SimpleDiagnosticPosition(1),
-        "hello",
-        name
-      )
-    )
-    val solverState = SolverState(NameProvider())
-    task.after(TaskEvent.Kind.ANALYZE) { _, unit ->
-      val ctx = AnalysisContext(task, unit)
-      unit.visitRecursively(
-        object : OurTreeVisitor<Unit>(Unit) {
-          override fun visitMethod(node: MethodTree, p: Unit?) {
-            val decl: JavaMethod = node.model(ctx)
-            val descr: JavaFunctionDescriptor = ctx.resolver.resolve(node).model(ctx)
-            decl.collectConstraintsFromDSL(solverState, JavaResolutionContext(ctx), descr)
-          }
-        }
-      )
-    }
-    task.before(TaskEvent.Kind.GENERATE) { _, unit ->
-      if (!solverState.hadParseErrors()) {
+    (task as? BasicJavacTask)?.let { task ->
+      val solverState = SolverState(NameProvider())
+      task.after(TaskEvent.Kind.ANALYZE) { _, unit ->
         val ctx = AnalysisContext(task, unit)
         unit.visitRecursively(
           object : OurTreeVisitor<Unit>(Unit) {
-            override fun defaultAction(node: Tree, p: Unit?) {
-              val decl: JavaElement? = node.modelCautious(ctx)
-              if (decl is Declaration) {
-                val descr: JavaDescriptor = ctx.resolver.resolve(node).model(ctx)
-                solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
-              }
+            override fun visitMethod(node: MethodTree, p: Unit?) {
+              val decl: JavaMethod = node.model(ctx)
+              val descr: JavaFunctionDescriptor = ctx.resolver.resolve(node).model(ctx)
+              decl.collectConstraintsFromDSL(solverState, JavaResolutionContext(ctx), descr)
             }
           }
         )
+      }
+      task.before(TaskEvent.Kind.GENERATE) { _, unit ->
+        if (!solverState.hadParseErrors()) {
+          val ctx = AnalysisContext(task, unit)
+          unit.visitRecursively(
+            object : OurTreeVisitor<Unit>(Unit) {
+              override fun defaultAction(node: Tree, p: Unit?) {
+                val decl: JavaElement? = node.modelCautious(ctx)
+                if (decl is Declaration) {
+                  val descr: JavaDescriptor = ctx.resolver.resolve(node).model(ctx)
+                  solverState.checkDeclarationConstraints(JavaResolutionContext(ctx), decl, descr)
+                }
+              }
+            }
+          )
+        }
       }
     }
   }

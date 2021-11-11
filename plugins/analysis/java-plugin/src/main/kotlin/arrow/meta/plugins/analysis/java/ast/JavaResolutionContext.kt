@@ -3,6 +3,7 @@
 package arrow.meta.plugins.analysis.java.ast
 
 import arrow.meta.plugins.analysis.java.AnalysisContext
+import arrow.meta.plugins.analysis.java.AnalysisMessages
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.OurTreeVisitor
@@ -19,6 +20,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
 import com.sun.source.tree.MethodInvocationTree
+import com.sun.tools.javac.code.Lint
+import com.sun.tools.javac.main.JavaCompiler
+import com.sun.tools.javac.tree.JCTree
+import com.sun.tools.javac.util.DiagnosticSource
+import com.sun.tools.javac.util.JCDiagnostic
 
 public class JavaResolutionContext(private val ctx: AnalysisContext) : ResolutionContext {
   override val types: Types =
@@ -52,57 +58,65 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
     return elements.toList()
   }
 
-  override fun reportErrorsParsingPredicate(element: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportUnsatCallPre(element: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportInconsistentBodyPre(declaration: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportUnsatBodyPost(declaration: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportInconsistentCallPost(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportInconsistentConditions(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportInconsistentInvariants(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportUnsatInvariants(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportLiskovProblem(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun reportUnsupported(expression: Element, msg: String) {
-    TODO("Not yet implemented")
-  }
-
-  override fun descriptorFor(fqName: FqName): List<DeclarationDescriptor> {
-    TODO("Not yet implemented")
-  }
-
-  override fun descriptorFor(declaration: Declaration): DeclarationDescriptor? {
-    TODO("Not yet implemented")
-  }
-
+  // not available in Java until we have records
   override fun backingPropertyForConstructorParameter(
     parameter: ValueParameterDescriptor
-  ): PropertyDescriptor? {
-    TODO("Not yet implemented")
+  ): PropertyDescriptor? = null
+
+  override fun descriptorFor(fqName: FqName): List<DeclarationDescriptor> {
+    val compiler = JavaCompiler.instance(ctx.context)
+    return listOf(compiler.resolveBinaryNameOrIdent(fqName.name).model(ctx))
   }
+
+  override fun descriptorFor(declaration: Declaration): DeclarationDescriptor? =
+    (declaration as? JavaElement)?.let { ctx.resolver.resolve(it.impl()).model(ctx) }
+
+  private val diagnosticSource: DiagnosticSource
+    get() = DiagnosticSource(ctx.unit.sourceFile, ctx.logger)
+
+  private fun report(element: Element, builder: (JCTree) -> JCDiagnostic) {
+    (element as? JavaElement)?.let { elt ->
+      (elt.impl() as? JCTree)?.let { ctx.logger.report(builder(it)) }
+    }
+  }
+
+  private fun reportError(element: Element, key: String, msg: String): Unit =
+    report(element) {
+      ctx.diagnostics.error(JCDiagnostic.DiagnosticFlag.MANDATORY, diagnosticSource, it, key, msg)
+    }
+
+  private fun reportWarning(element: Element, key: String, msg: String): Unit =
+    report(element) {
+      ctx.diagnostics.warning(Lint.LintCategory.PROCESSING, diagnosticSource, it, key, msg)
+    }
+
+  override fun reportErrorsParsingPredicate(element: Element, msg: String): Unit =
+    reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
+
+  override fun reportUnsatCallPre(element: Element, msg: String): Unit =
+    reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
+
+  override fun reportInconsistentBodyPre(declaration: Element, msg: String): Unit =
+    reportError(declaration, AnalysisMessages.InconsistentBodyPre, msg)
+
+  override fun reportUnsatBodyPost(declaration: Element, msg: String): Unit =
+    reportError(declaration, AnalysisMessages.UnsatBodyPost, msg)
+
+  override fun reportInconsistentCallPost(expression: Element, msg: String): Unit =
+    reportError(expression, AnalysisMessages.InconsistentCallPost, msg)
+
+  override fun reportInconsistentConditions(expression: Element, msg: String): Unit =
+    reportError(expression, AnalysisMessages.InconsistentConditions, msg)
+
+  override fun reportInconsistentInvariants(expression: Element, msg: String): Unit =
+    reportError(expression, AnalysisMessages.InconsistentInvariants, msg)
+
+  override fun reportUnsatInvariants(expression: Element, msg: String): Unit =
+    reportError(expression, AnalysisMessages.UnsatInvariants, msg)
+
+  override fun reportLiskovProblem(expression: Element, msg: String): Unit =
+    reportError(expression, AnalysisMessages.LiskovProblem, msg)
+
+  override fun reportUnsupported(expression: Element, msg: String): Unit =
+    reportWarning(expression, AnalysisMessages.UnsupportedElement, msg)
 }
