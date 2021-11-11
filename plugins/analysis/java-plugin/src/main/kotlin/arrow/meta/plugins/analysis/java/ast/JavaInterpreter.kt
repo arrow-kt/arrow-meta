@@ -149,7 +149,7 @@ public fun <
     is AnnotatedTypeTree,
     is WildcardTree -> JavaTypeReference(ctx, this) as B
     is MethodTree ->
-      if (ctx.resolver.resolve(this).kind == ElementKind.CONSTRUCTOR)
+      if (ctx.resolver.resolve(this)?.kind == ElementKind.CONSTRUCTOR)
         JavaConstructor(ctx, this) as B
       else JavaMethod(ctx, this) as B
     is VariableTree -> JavaVariable(ctx, this) as B

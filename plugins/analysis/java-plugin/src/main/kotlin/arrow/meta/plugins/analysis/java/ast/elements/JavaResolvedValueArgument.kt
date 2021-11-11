@@ -8,8 +8,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ExpressionValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaArgument
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgument

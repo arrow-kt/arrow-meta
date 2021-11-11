@@ -17,7 +17,7 @@ public class Resolver(task: JavaCompiler.CompilationTask, private val unit: Comp
     get() = trees.getElement(TreePath(unit))
 
   public fun path(tree: Tree): TreePath = TreePath.getPath(unit, tree)
-  public fun resolve(tree: Tree): Element = trees.getElement(path(tree))
+  public fun resolve(tree: Tree): Element? = trees.getElement(path(tree))
   public fun resolveType(tree: Tree): TypeMirror? = trees.getTypeMirror(path(tree))
   public fun tree(element: Element): Tree? = trees.getTree(element)
   public fun parent(tree: Tree): Tree? = path(tree).parentPath.leaf

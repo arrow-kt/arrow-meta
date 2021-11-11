@@ -69,10 +69,11 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
   }
 
   override fun descriptorFor(declaration: Declaration): DeclarationDescriptor? =
-    (declaration as? JavaElement)?.let { ctx.resolver.resolve(it.impl()).model(ctx) }
+    (declaration as? JavaElement)?.let { ctx.resolver.resolve(it.impl())?.model(ctx) }
 
   private val diagnosticSource: DiagnosticSource
-    get() = DiagnosticSource(ctx.unit.sourceFile, ctx.logger)
+    get() =
+      ctx.unit?.let { DiagnosticSource(it.sourceFile, ctx.logger) } ?: DiagnosticSource.NO_SOURCE
 
   private fun report(element: Element, builder: (JCTree) -> JCDiagnostic) {
     (element as? JavaElement)?.let { elt ->

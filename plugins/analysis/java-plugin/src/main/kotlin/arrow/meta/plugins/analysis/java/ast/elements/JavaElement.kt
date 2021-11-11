@@ -32,9 +32,9 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
   override fun parents(): List<Element> =
     ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
 
-  override fun location(): CompilerMessageSourceLocation {
+  override fun location(): CompilerMessageSourceLocation? {
     val (start, end) = ctx.resolver.positionOf(impl)
-    return JavaSourceLocation(ctx, start, end)
+    return JavaSourceLocation(ctx.unit, start, end)
   }
 
   override val psiOrParent: Element = this

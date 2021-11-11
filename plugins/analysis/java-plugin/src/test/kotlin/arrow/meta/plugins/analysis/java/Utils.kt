@@ -15,7 +15,10 @@ public operator fun Map<String, String>.invoke(
   withoutPlugin: CompilationSubject.() -> Unit
 ) {
   worker(
-    config = { withOptions("-parameters", "-Xplugin:" + AnalysisJavaPlugin.NAME) },
+    config = {
+      withOptions("-parameters", "-Xplugin:" + AnalysisJavaPlugin.NAME)
+        .withProcessors(AnalysisJavaProcessor())
+    },
     files = this,
     check = withPlugin
   )

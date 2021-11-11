@@ -19,8 +19,8 @@ import com.sun.source.tree.Tree
 import com.sun.source.tree.UnaryTree
 import com.sun.tools.javac.tree.JCTree
 
-public class JavaCall(private val ctx: AnalysisContext, private val impl: MethodInvocationTree)
-  : CallExpression, JavaElement(ctx, impl) {
+public class JavaCall(private val ctx: AnalysisContext, private val impl: MethodInvocationTree) :
+  CallExpression, JavaElement(ctx, impl) {
   override val calleeExpression: Expression?
     get() = this.getResolvedCall()?.getReceiverExpression()
   override val typeArguments: List<TypeProjection>
