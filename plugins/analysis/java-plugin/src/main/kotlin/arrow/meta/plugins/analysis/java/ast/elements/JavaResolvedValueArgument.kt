@@ -48,14 +48,6 @@ public open class JavaValueArgument(
   override val isSpread: Boolean = false
 }
 
-public class JavaLambdaArgument(
-  impl: Expression,
-  descr: ValueParameterDescriptor,
-  private val lambda: LambdaExpression?
-) : LambdaArgument, JavaValueArgument(impl, descr) {
-  override fun getLambdaExpression(): LambdaExpression? = lambda
-}
-
 public class JavaValueArgumentName(private val descr: ValueParameterDescriptor) :
   ValueArgumentName {
   override val asName: Name

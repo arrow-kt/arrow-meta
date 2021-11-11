@@ -5,16 +5,34 @@ package arrow.meta.plugins.analysis.java.ast.elements
 import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionLambdaArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.OperationExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeProjection
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.UnaryExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgument
 import com.sun.source.tree.BinaryTree
+import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.UnaryTree
 import com.sun.tools.javac.tree.JCTree
 
-public open class JavaOperation(private val ctx: AnalysisContext, private val impl: Tree) :
+public class JavaCall(private val ctx: AnalysisContext, private val impl: MethodInvocationTree)
+  : CallExpression, JavaElement(ctx, impl) {
+  override val calleeExpression: Expression?
+    get() = this.getResolvedCall()?.getReceiverExpression()
+  override val typeArguments: List<TypeProjection>
+    get() = impl.typeArguments.mapNotNull { JavaTypeProjection(ctx, it) }
+  override val valueArguments: List<ValueArgument>
+    get() = this.getResolvedCall()?.valueArguments?.flatMap { it.value.arguments }.orEmpty()
+  // Java does not have final block arguments
+  override val lambdaArguments: List<ExpressionLambdaArgument>
+    get() = emptyList()
+}
+
+public open class JavaOperation(private val ctx: AnalysisContext, impl: Tree) :
   OperationExpression, JavaElement(ctx, impl) {
   protected val operatorName: String = kindNames[impl.kind] ?: "UNKNOWN"
   override val operationReference: SimpleNameExpression

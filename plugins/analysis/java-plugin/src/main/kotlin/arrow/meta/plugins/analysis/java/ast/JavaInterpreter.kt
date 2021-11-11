@@ -17,6 +17,7 @@ import arrow.meta.plugins.analysis.java.ast.descriptors.JavaTypeParameterDescrip
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBinary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBreak
+import arrow.meta.plugins.analysis.java.ast.elements.JavaCall
 import arrow.meta.plugins.analysis.java.ast.elements.JavaCase
 import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
 import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
@@ -68,6 +69,7 @@ import com.sun.source.tree.ImportTree
 import com.sun.source.tree.IntersectionTypeTree
 import com.sun.source.tree.LambdaExpressionTree
 import com.sun.source.tree.LiteralTree
+import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.ModifiersTree
 import com.sun.source.tree.ModuleTree
@@ -164,6 +166,7 @@ public fun <
     is BinaryTree -> JavaBinary(ctx, this) as B
     is IdentifierTree -> JavaIdentifier(ctx, this) as B
     is LambdaExpressionTree -> JavaLambda(ctx, this) as B
+    is MethodInvocationTree -> JavaCall(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B
