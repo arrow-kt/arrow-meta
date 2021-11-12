@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DefaultValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AssertExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
@@ -23,6 +24,7 @@ internal val ResolvedCall.specialKind: SpecialKind?
     when (resultingDescriptor.fqNameSafe) {
       FqName("arrow.analysis.pre"), FqName("arrow.analysis.RefinementDSLKt.pre") -> SpecialKind.Pre
       FqName("kotlin.require") -> SpecialKind.Pre
+      FqName(AssertExpression.FAKE_ASSERT_NAME) -> SpecialKind.Pre
       FqName("arrow.analysis.post"), FqName("arrow.analysis.RefinementDSLKt.post") ->
         SpecialKind.Post
       FqName("arrow.analysis.invariant"), FqName("arrow.analysis.RefinementDSLKt.invariant") ->
@@ -37,6 +39,10 @@ internal val ResolvedCall.specialKind: SpecialKind?
 /** Returns `true` if [this] resolved call is calling [kotlin.require] */
 internal fun ResolvedCall.isRequireCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("kotlin.require")
+
+/** Returns `true` if [this] resolved call is calling Java's built-in [assert] */
+internal fun ResolvedCall.isAssertCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName(AssertExpression.FAKE_ASSERT_NAME)
 
 /** Returns 'true' if the resolved call represents `?:` */
 internal fun ResolvedCall.isElvisOperator(): Boolean =

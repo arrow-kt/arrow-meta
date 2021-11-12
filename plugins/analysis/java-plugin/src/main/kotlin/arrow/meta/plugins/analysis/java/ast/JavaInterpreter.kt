@@ -14,6 +14,7 @@ import arrow.meta.plugins.analysis.java.ast.descriptors.JavaPackageDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaParameterDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaSimpleFunctionDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaTypeParameterDescriptor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaAssert
 import arrow.meta.plugins.analysis.java.ast.elements.JavaAssignment
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBinary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
@@ -54,6 +55,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import com.sun.source.tree.AnnotatedTypeTree
 import com.sun.source.tree.ArrayTypeTree
+import com.sun.source.tree.AssertTree
 import com.sun.source.tree.AssignmentTree
 import com.sun.source.tree.BinaryTree
 import com.sun.source.tree.BlockTree
@@ -196,6 +198,7 @@ public fun <
     is CaseTree -> JavaCase(ctx, this) as B
     is LabeledStatementTree -> JavaLabeled(ctx, this) as B
     is AssignmentTree -> JavaAssignment(ctx, this) as B
+    is AssertTree -> JavaAssert(ctx, this) as B
     is ClassTree -> JavaClass(ctx, this) as B
     is SynchronizedTree -> JavaSynchronized(ctx, this) as B
     is EmptyStatementTree -> JavaEmptyBlock(ctx, this) as B

@@ -22,6 +22,23 @@ class AnalysisTests {
   }
 
   @Test
+  fun `first test, ok, using assert`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Example { 
+      public int f(int x) { 
+        assert x > 0 : "x must be positive";
+        return post(x + 1, (r) -> r > 0, () -> "result is positive");
+      } 
+    }
+    """(
+      withPlugin = { succeeded() },
+      withoutPlugin = { succeeded() }
+    )
+  }
+
+  @Test
   fun `first test, fails`() {
     """
     import static arrow.analysis.RefinementDSLKt.*;

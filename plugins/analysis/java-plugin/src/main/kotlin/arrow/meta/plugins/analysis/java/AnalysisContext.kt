@@ -5,6 +5,7 @@ package arrow.meta.plugins.analysis.java
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.tools.javac.api.BasicJavacTask
 import com.sun.tools.javac.code.Symtab
+import com.sun.tools.javac.comp.Modules
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.TreeCopier
 import com.sun.tools.javac.tree.TreeMaker
@@ -25,6 +26,7 @@ public open class AnalysisContextWithoutResolver(
     JavacMessages.instance(context).apply { add(AnalysisMessages::class.qualifiedName) }
   public val diagnostics: JCDiagnostic.Factory = JCDiagnostic.Factory(messages, "arrow-analysis")
   public val symbolTable: Symtab = Symtab.instance(context)
+  public val modules: Modules = Modules.instance(context)
 
   public fun copy(t: JCTree): JCTree {
     val maker = TreeMaker.instance(context)

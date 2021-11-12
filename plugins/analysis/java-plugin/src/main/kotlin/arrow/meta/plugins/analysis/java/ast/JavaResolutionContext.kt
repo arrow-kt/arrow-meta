@@ -19,6 +19,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
+import com.sun.source.tree.AssertTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.tools.javac.code.Lint
 import com.sun.tools.javac.main.JavaCompiler
@@ -57,6 +58,10 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
               )
                 elements.add(node.model(ctx))
             }
+          }
+
+          override fun visitAssert(node: AssertTree, p: Unit?) {
+            elements.add(node.model(ctx))
           }
         }
       )

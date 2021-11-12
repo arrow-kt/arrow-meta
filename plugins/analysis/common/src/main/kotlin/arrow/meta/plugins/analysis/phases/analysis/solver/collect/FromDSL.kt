@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ConstantExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Constructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
@@ -207,6 +208,7 @@ private fun Element.elementToConstraint(
             is Element -> body.text.trim('"')
             else -> msgBody.text
           }
+        is ConstantExpression -> msgBody.text.trim('"')
         is Element -> msgBody.text
         else -> predicateArg?.text
       }?.let { call to NamedConstraint(it, result) }
