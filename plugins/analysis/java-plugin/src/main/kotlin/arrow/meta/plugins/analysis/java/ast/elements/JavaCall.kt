@@ -101,6 +101,7 @@ internal val kindNames: Map<Tree.Kind, String> =
     Tree.Kind.NOT_EQUAL_TO to "EXCLEQ",
     Tree.Kind.AND to "BITAND",
     Tree.Kind.OR to "BITOR",
+    Tree.Kind.XOR to "BITXOR",
     Tree.Kind.CONDITIONAL_AND to "ANDAND",
     Tree.Kind.CONDITIONAL_OR to "OROR"
   )

@@ -18,6 +18,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCa
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AssignmentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BreakExpression
@@ -205,6 +206,7 @@ internal fun SolverState.checkExpressionConstraints(
             }
           }
         }
+        is AssignmentExpression -> checkAssignmentExpression(expression, data)
         is BinaryExpression -> checkBinaryExpression(associatedVarName, expression, data)
         is Function -> checkFunctionDeclarationExpression(expression, data)
         is Declaration ->
@@ -830,6 +832,25 @@ private fun SolverState.checkConstantExpression(
   data.noReturn()
 }
 
+private fun SolverState.checkAssignmentExpression(
+  expression: AssignmentExpression,
+  data: CheckData
+): ContSeq<StateAfter> =
+  when (val left = expression.left) {
+    // this is an assignment to a mutable variable
+    is NameReferenceExpression -> {
+      // we introduce a new name because we don't want to introduce
+      // any additional information about the variable,
+      // we should only have that declared in the invariant
+      val newName = newName(data.context, left.getReferencedName(), left)
+      val invariant = data.varInfo.get(left.getReferencedName())?.invariant
+      checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
+        it.second
+      } // forget about the temporary name
+    }
+    else -> cont { data.noReturn() }
+  }
+
 /** Check special binary cases, and make the other fall-through */
 private fun SolverState.checkBinaryExpression(
   associatedVarName: ObjectFormula,
@@ -840,17 +861,6 @@ private fun SolverState.checkBinaryExpression(
   val left = expression.left
   val right = expression.right
   return when {
-    // this is an assignment to a mutable variable
-    operator == "EQ" && left is NameReferenceExpression -> {
-      // we introduce a new name because we don't want to introduce
-      // any additional information about the variable,
-      // we should only have that declared in the invariant
-      val newName = newName(data.context, left.getReferencedName(), left)
-      val invariant = data.varInfo.get(left.getReferencedName())?.invariant
-      checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
-        it.second
-      } // forget about the temporary name
-    }
     // this is x == null, or x != null
     (operator == "EQEQ" || operator == "EXCLEQ") && right is NullExpression -> {
       val newName = solver.makeObjectVariable(newName(data.context, "checkNull", left))

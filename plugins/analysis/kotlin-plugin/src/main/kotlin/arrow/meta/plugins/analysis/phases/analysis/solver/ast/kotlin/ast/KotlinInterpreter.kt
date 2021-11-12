@@ -51,7 +51,11 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtNamedFunction -> KotlinNamedFunction(this).repr()
     is KtProperty -> KotlinProperty(this).repr()
     is KtParameter -> KotlinParameter(this).repr()
-    is KtBinaryExpression -> KotlinBinaryExpression(this).repr()
+    is KtBinaryExpression ->
+      when (this.operationToken.toString()) {
+        "EQ" -> KotlinAssignmentExpression(this).repr()
+        else -> KotlinBinaryExpression(this).repr()
+      }
     is KtNameReferenceExpression -> KotlinNameReferenceExpression(this).repr()
     is KtConstantExpression ->
       if (this.isNull()) KotlinNullExpression(this).repr()
