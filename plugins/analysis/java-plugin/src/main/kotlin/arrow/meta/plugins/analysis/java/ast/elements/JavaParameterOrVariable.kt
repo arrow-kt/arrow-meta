@@ -21,6 +21,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.VariableDeclaration
 import com.sun.source.tree.VariableTree
+import javax.lang.model.element.Modifier
 
 public open class JavaParameterOrVariable(
   private val ctx: AnalysisContext,
@@ -53,7 +54,8 @@ public open class JavaParameterOrVariable(
 
 public class JavaVariable(private val ctx: AnalysisContext, private val impl: VariableTree) :
   VariableDeclaration, JavaParameterOrVariable(ctx, impl) {
-  override val isVar: Boolean = true
+  override val isVar: Boolean
+    get() = !impl.modifiers.flags.contains(Modifier.FINAL)
   override val initializer: Expression?
     get() = impl.initializer?.model(ctx)
   override fun hasInitializer(): Boolean = impl.initializer != null

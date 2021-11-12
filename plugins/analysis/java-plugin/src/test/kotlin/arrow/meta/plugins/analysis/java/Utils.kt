@@ -5,6 +5,11 @@ import com.google.testing.compile.CompilationSubject.assertThat
 import com.google.testing.compile.Compiler
 import com.google.testing.compile.JavaFileObjects
 
+public operator fun String.invoke(
+  withPlugin: CompilationSubject.() -> Unit,
+  withoutPlugin: CompilationSubject.() -> Unit
+) = ("Example" to this)(withPlugin, withoutPlugin)
+
 public operator fun Pair<String, String>.invoke(
   withPlugin: CompilationSubject.() -> Unit,
   withoutPlugin: CompilationSubject.() -> Unit
