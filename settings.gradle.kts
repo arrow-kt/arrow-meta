@@ -78,3 +78,6 @@ project(":arrow-analysis-example").projectDir = File("plugins/analysis/example")
 
 //includeBuild("arrow-analysis-sample")
 //includeBuild("arrow-proofs-example")
+
+include(":fir-prototype-compiler-plugin")
+project(":fir-prototype-compiler-plugin").projectDir = File("plugins/fir/fir-prototype-compiler-plugin")

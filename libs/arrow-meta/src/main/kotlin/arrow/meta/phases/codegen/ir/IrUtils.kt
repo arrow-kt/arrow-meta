@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -134,17 +135,17 @@ class IrUtils(
   }
 
   fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
-    val irClass = pluginContext.symbols.externalSymbolTable.referenceClass(this)
-    return irClass.constructors.firstOrNull()?.let { irConstructorSymbol ->
-      IrConstructorCallImpl(
+    return pluginContext.referenceConstructors(fqNameSafe).firstOrNull()?.let { irConstructor ->
+      val owner = IrConstructorCallImpl(
         startOffset = UNDEFINED_OFFSET,
         endOffset = UNDEFINED_OFFSET,
-        type = irConstructorSymbol.owner.returnType,
-        symbol = irConstructorSymbol,
-        typeArgumentsCount = irConstructorSymbol.owner.typeParameters.size,
-        valueArgumentsCount = irConstructorSymbol.owner.valueParameters.size,
+        type = irConstructor.owner.returnType,
+        symbol = irConstructor.owner.symbol,
+        typeArgumentsCount = irConstructor.owner.typeParameters.size,
+        valueArgumentsCount = irConstructor.owner.valueParameters.size,
         constructorTypeArgumentsCount = declaredTypeParameters.size
       )
+      owner
     }
   }
 
