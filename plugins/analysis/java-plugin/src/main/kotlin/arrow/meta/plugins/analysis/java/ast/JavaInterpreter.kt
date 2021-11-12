@@ -37,6 +37,8 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaInstanceOf
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLabeled
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLambda
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLiteral
+import arrow.meta.plugins.analysis.java.ast.elements.JavaMemberReference
+import arrow.meta.plugins.analysis.java.ast.elements.JavaMemberSelect
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.JavaNull
 import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
@@ -81,6 +83,8 @@ import com.sun.source.tree.IntersectionTypeTree
 import com.sun.source.tree.LabeledStatementTree
 import com.sun.source.tree.LambdaExpressionTree
 import com.sun.source.tree.LiteralTree
+import com.sun.source.tree.MemberReferenceTree
+import com.sun.source.tree.MemberSelectTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.ModifiersTree
@@ -185,6 +189,8 @@ public fun <
     is InstanceOfTree -> JavaInstanceOf(ctx, this) as B
     is TryTree -> JavaTry(ctx, this) as B
     is CatchTree -> JavaCatch(ctx, this) as B
+    is MemberReferenceTree -> JavaMemberReference(ctx, this) as B
+    is MemberSelectTree -> JavaMemberSelect(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B

@@ -65,35 +65,51 @@ public class JavaResolvedCall(
         .toMap()
 }
 
-public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =
+public fun Tree.resolvedCall(
+  ctx: AnalysisContext,
+  additionalTypeArgs: List<Tree> = emptyList(),
+  additionalArgs: List<Tree> = emptyList()
+): JavaResolvedCall? =
   when (this) {
+    is JCTree.JCMethodInvocation -> // look inside
+    this.meth?.resolvedCall(ctx, additionalTypeArgs + typeArguments, additionalArgs + arguments)
     is JCTree.JCOperatorExpression ->
-      JavaResolvedCall(ctx, this, operator, null, emptyList(), argumentsFromEverywhere)
-    is JCTree.JCMethodInvocation ->
-      when (val m = this.meth) {
-        is JCTree.JCMemberReference ->
-          m.sym.perform { sym ->
-            JavaResolvedCall(
-              ctx,
-              this,
-              sym,
-              m.qualifierExpression,
-              typeArguments + m.typeArguments,
-              arguments
-            )
-          }
-        is JCTree.JCIdent ->
-          m.sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
-        is JCTree.JCFieldAccess ->
-          m.sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
-        else -> null
+      operator.perform {
+        JavaResolvedCall(
+          ctx,
+          this,
+          it,
+          null,
+          additionalTypeArgs,
+          additionalArgs + argumentsFromEverywhere
+        )
+      }
+    is JCTree.JCMemberReference ->
+      sym.perform {
+        JavaResolvedCall(
+          ctx,
+          this,
+          it,
+          qualifierExpression,
+          additionalTypeArgs + typeArguments,
+          additionalArgs
+        )
       }
     is JCTree.JCNewClass ->
-      constructor.perform { sym ->
-        JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments)
+      constructor.perform {
+        JavaResolvedCall(
+          ctx,
+          this,
+          it,
+          null,
+          additionalTypeArgs + typeArguments,
+          additionalArgs + arguments
+        )
       }
+    is JCTree.JCFieldAccess ->
+      sym.perform { JavaResolvedCall(ctx, this, it, null, additionalTypeArgs, additionalArgs) }
     is JCTree.JCIdent ->
-      sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, emptyList(), emptyList()) }
+      sym.perform { JavaResolvedCall(ctx, this, it, null, additionalTypeArgs, additionalArgs) }
     else -> null
   }
 

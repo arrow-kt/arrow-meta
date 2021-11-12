@@ -14,6 +14,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.UnaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgument
 import com.sun.source.tree.BinaryTree
+import com.sun.source.tree.MemberSelectTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.NewClassTree
 import com.sun.source.tree.Tree
@@ -40,6 +41,21 @@ public class JavaConstructorCall(private val ctx: AnalysisContext, private val i
     get() = impl.typeArguments.mapNotNull { JavaTypeProjection(ctx, it) }
   override val valueArguments: List<ValueArgument>
     get() = this.getResolvedCall()?.valueArguments?.flatMap { it.value.arguments }.orEmpty()
+  // Java does not have final block arguments
+  override val lambdaArguments: List<ExpressionLambdaArgument>
+    get() = emptyList()
+}
+
+public class JavaMemberSelect(
+  private val ctx: AnalysisContext,
+  private val impl: MemberSelectTree
+) : CallExpression, JavaElement(ctx, impl) {
+  override val calleeExpression: Expression?
+    get() = impl.expression?.model(ctx)
+  override val typeArguments: List<TypeProjection>
+    get() = emptyList()
+  override val valueArguments: List<ValueArgument>
+    get() = emptyList()
   // Java does not have final block arguments
   override val lambdaArguments: List<ExpressionLambdaArgument>
     get() = emptyList()
