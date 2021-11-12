@@ -15,6 +15,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.U
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ValueArgument
 import com.sun.source.tree.BinaryTree
 import com.sun.source.tree.MethodInvocationTree
+import com.sun.source.tree.NewClassTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.UnaryTree
 import com.sun.tools.javac.tree.JCTree
@@ -32,11 +33,23 @@ public class JavaCall(private val ctx: AnalysisContext, private val impl: Method
     get() = emptyList()
 }
 
+public class JavaConstructorCall(private val ctx: AnalysisContext, private val impl: NewClassTree) :
+  CallExpression, JavaElement(ctx, impl) {
+  override val calleeExpression: Expression? = null
+  override val typeArguments: List<TypeProjection>
+    get() = impl.typeArguments.mapNotNull { JavaTypeProjection(ctx, it) }
+  override val valueArguments: List<ValueArgument>
+    get() = this.getResolvedCall()?.valueArguments?.flatMap { it.value.arguments }.orEmpty()
+  // Java does not have final block arguments
+  override val lambdaArguments: List<ExpressionLambdaArgument>
+    get() = emptyList()
+}
+
 public open class JavaOperation(private val ctx: AnalysisContext, impl: Tree) :
   OperationExpression, JavaElement(ctx, impl) {
   protected val operatorName: String = kindNames[impl.kind] ?: "UNKNOWN"
   override val operationReference: SimpleNameExpression
-    get() = JavaFakeReference(ctx.elements.getName(operatorName), this)
+    get() = JavaFakeReference(ctx.elements.getName(operatorName).toString(), this)
 }
 
 public class JavaUnary(private val ctx: AnalysisContext, private val impl: UnaryTree) :

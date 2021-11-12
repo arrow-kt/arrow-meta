@@ -19,8 +19,10 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaBreak
 import arrow.meta.plugins.analysis.java.ast.elements.JavaCall
 import arrow.meta.plugins.analysis.java.ast.elements.JavaCase
+import arrow.meta.plugins.analysis.java.ast.elements.JavaCatch
 import arrow.meta.plugins.analysis.java.ast.elements.JavaClass
 import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructor
+import arrow.meta.plugins.analysis.java.ast.elements.JavaConstructorCall
 import arrow.meta.plugins.analysis.java.ast.elements.JavaContinue
 import arrow.meta.plugins.analysis.java.ast.elements.JavaDoWhile
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
@@ -29,6 +31,8 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaEnhancedFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaFor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIdentifier
 import arrow.meta.plugins.analysis.java.ast.elements.JavaIf
+import arrow.meta.plugins.analysis.java.ast.elements.JavaInstanceOf
+import arrow.meta.plugins.analysis.java.ast.elements.JavaLabeled
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLambda
 import arrow.meta.plugins.analysis.java.ast.elements.JavaLiteral
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
@@ -39,6 +43,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSwitch
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTernaryConditional
+import arrow.meta.plugins.analysis.java.ast.elements.JavaTry
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.JavaUnary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
@@ -52,6 +57,7 @@ import com.sun.source.tree.BinaryTree
 import com.sun.source.tree.BlockTree
 import com.sun.source.tree.BreakTree
 import com.sun.source.tree.CaseTree
+import com.sun.source.tree.CatchTree
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.tree.ConditionalExpressionTree
@@ -66,13 +72,16 @@ import com.sun.source.tree.ForLoopTree
 import com.sun.source.tree.IdentifierTree
 import com.sun.source.tree.IfTree
 import com.sun.source.tree.ImportTree
+import com.sun.source.tree.InstanceOfTree
 import com.sun.source.tree.IntersectionTypeTree
+import com.sun.source.tree.LabeledStatementTree
 import com.sun.source.tree.LambdaExpressionTree
 import com.sun.source.tree.LiteralTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.ModifiersTree
 import com.sun.source.tree.ModuleTree
+import com.sun.source.tree.NewClassTree
 import com.sun.source.tree.PackageTree
 import com.sun.source.tree.ParameterizedTypeTree
 import com.sun.source.tree.ParenthesizedTree
@@ -81,6 +90,7 @@ import com.sun.source.tree.ReturnTree
 import com.sun.source.tree.SwitchTree
 import com.sun.source.tree.SynchronizedTree
 import com.sun.source.tree.Tree
+import com.sun.source.tree.TryTree
 import com.sun.source.tree.TypeParameterTree
 import com.sun.source.tree.UnaryTree
 import com.sun.source.tree.UnionTypeTree
@@ -166,7 +176,11 @@ public fun <
     is BinaryTree -> JavaBinary(ctx, this) as B
     is IdentifierTree -> JavaIdentifier(ctx, this) as B
     is LambdaExpressionTree -> JavaLambda(ctx, this) as B
+    is NewClassTree -> JavaConstructorCall(ctx, this) as B
     is MethodInvocationTree -> JavaCall(ctx, this) as B
+    is InstanceOfTree -> JavaInstanceOf(ctx, this) as B
+    is TryTree -> JavaTry(ctx, this) as B
+    is CatchTree -> JavaCatch(ctx, this) as B
     // statements
     is ReturnTree -> JavaReturn(ctx, this) as B
     is ContinueTree -> JavaContinue(ctx, this) as B
@@ -178,6 +192,7 @@ public fun <
     is IfTree -> JavaIf(ctx, this) as B
     is SwitchTree -> JavaSwitch(ctx, this) as B
     is CaseTree -> JavaCase(ctx, this) as B
+    is LabeledStatementTree -> JavaLabeled(ctx, this) as B
     is ClassTree -> JavaClass(ctx, this) as B
     is SynchronizedTree -> JavaSynchronized(ctx, this) as B
     is EmptyStatementTree -> JavaEmptyBlock(ctx, this) as B
