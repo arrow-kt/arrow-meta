@@ -16,6 +16,7 @@ import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.utils.FieldProvider
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import arrow.meta.plugins.analysis.smt.utils.ReferencedElement
+import java.util.Locale
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
@@ -94,6 +95,20 @@ data class SolverState(
 
   fun field(field: DeclarationDescriptor, formula: ObjectFormula): ObjectFormula {
     fieldProvider.introduce(field)
-    return solver.field(field.fqNameSafe.name, formula)
+    return solver.field(field.fqNameSafe.asField, formula)
   }
 }
+
+val FqName.asField: String
+  get() {
+    val parts = this.name.split('.')
+    return if (parts.isEmpty()) {
+      this.name
+    } else {
+      var lastPart = parts.last()
+      if (lastPart.startsWith("get")) {
+        lastPart = lastPart.drop(3).replaceFirstChar { it.lowercase(Locale.getDefault()) }
+      }
+      return (parts.dropLast(1) + listOf(lastPart)).joinToString(separator = ".")
+    }
+  }

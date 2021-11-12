@@ -2,6 +2,7 @@ package arrow.meta.plugins.analysis.smt.utils
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.overriddenDescriptors
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.asField
 import arrow.meta.plugins.analysis.smt.Solver
 import org.sosy_lab.java_smt.api.ProverEnvironment
 
@@ -13,7 +14,7 @@ class FieldProvider(
 ) {
 
   fun introduce(descriptor: DeclarationDescriptor): Long {
-    val name = descriptor.fqNameSafe.name
+    val name = descriptor.fqNameSafe.asField
 
     // shortcut, if it's there, just return it
     if (basicFields.containsKey(name)) return basicName(name)
@@ -33,7 +34,7 @@ class FieldProvider(
         overridden.reversed().forEach { introduce(it) }
         // now the map contains the basic one
         // assert that they are equal
-        derivedName(name, topOverriden[0].fqNameSafe.name)
+        derivedName(name, topOverriden[0].fqNameSafe.asField)
       }
       else -> {
         // weird case:
