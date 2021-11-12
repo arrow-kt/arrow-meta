@@ -49,8 +49,14 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
       .visitRecursively(
         object : OurTreeVisitor<Unit>(Unit) {
           override fun visitMethodInvocation(node: MethodInvocationTree, p: Unit?) {
-            val calleeText = node.methodSelect?.toString()
-            if (calleeText == "pre" || calleeText == "post") elements.add(node.model(ctx))
+            node.methodSelect?.toString()?.let { calleeText ->
+              if (calleeText == "pre" ||
+                  calleeText.endsWith(".pre") ||
+                  calleeText == "post" ||
+                  calleeText.endsWith(".post")
+              )
+                elements.add(node.model(ctx))
+            }
           }
         }
       )

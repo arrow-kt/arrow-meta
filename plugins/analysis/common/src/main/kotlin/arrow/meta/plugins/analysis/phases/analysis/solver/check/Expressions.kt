@@ -77,7 +77,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
-import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrFirstArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
@@ -345,9 +345,17 @@ private fun SolverState.checkCallExpression(
     specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
     cont { data.noReturn() }
     specialKind == SpecialKind.Post -> // ignore post arguments
-    checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverOrFirstArgument(), data)
+    checkExpressionConstraints(
+        associatedVarName,
+        resolvedCall.getReceiverOrThisNamedArgument(),
+        data
+      )
     specialKind == SpecialKind.Invariant -> // ignore invariant arguments
-    checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverOrFirstArgument(), data)
+    checkExpressionConstraints(
+        associatedVarName,
+        resolvedCall.getReceiverOrThisNamedArgument(),
+        data
+      )
     specialKind == SpecialKind.TrustCall || specialKind == SpecialKind.TrustBlock -> {
       val arg = resolvedCall.valueArgumentExpressions(data.context).getOrNull(0)
       checkExpressionConstraints(associatedVarName, arg?.expression, data)

@@ -39,7 +39,7 @@ public open class JavaFunctionDescriptor(
   override val typeParameters: List<TypeParameterDescriptor>
     get() = impl.typeParameters.map { it.model(ctx) }
   override val returnType: Type?
-    get() = impl.returnType.modelCautious(ctx)
+    get() = impl.returnType?.modelCautious(ctx)
   override val valueParameters: List<ValueParameterDescriptor>
     get() = impl.parameters.map { it.model(ctx) }
   override val allParameters: List<ParameterDescriptor>

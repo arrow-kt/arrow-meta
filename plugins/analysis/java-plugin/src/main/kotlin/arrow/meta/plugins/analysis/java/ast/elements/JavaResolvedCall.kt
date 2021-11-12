@@ -72,7 +72,7 @@ public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =
     is JCTree.JCMethodInvocation ->
       when (val m = this.meth) {
         is JCTree.JCMemberReference ->
-          m.sym?.let { sym ->
+          m.sym.perform { sym ->
             JavaResolvedCall(
               ctx,
               this,
@@ -83,14 +83,19 @@ public fun Tree.resolvedCall(ctx: AnalysisContext): JavaResolvedCall? =
             )
           }
         is JCTree.JCIdent ->
-          m.sym?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
+          m.sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
         is JCTree.JCFieldAccess ->
-          m.sym?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
+          m.sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
         else -> null
       }
     is JCTree.JCNewClass ->
-      constructor?.let { sym -> JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments) }
+      constructor.perform { sym ->
+        JavaResolvedCall(ctx, this, sym, null, typeArguments, arguments)
+      }
     is JCTree.JCIdent ->
-      sym?.let { sym -> JavaResolvedCall(ctx, this, sym, null, emptyList(), emptyList()) }
+      sym.perform { sym -> JavaResolvedCall(ctx, this, sym, null, emptyList(), emptyList()) }
     else -> null
   }
+
+private fun Symbol?.perform(f: (Symbol) -> JavaResolvedCall) =
+  this?.takeIf { it !is Symbol.TypeSymbol }?.let { f(it) }

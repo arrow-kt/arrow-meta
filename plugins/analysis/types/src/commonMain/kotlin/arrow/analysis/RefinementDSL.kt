@@ -9,6 +9,8 @@ public inline fun <A> A.post(predicate: (A) -> Boolean, msg: () -> String): A {
   return this
 }
 
+public inline fun <A> post(predicate: (A) -> Boolean, msg: () -> String): Unit {}
+
 public inline fun <A> A.invariant(predicate: (A) -> Boolean, msg: () -> String): A {
   require(predicate(this)) { msg() }
   return this

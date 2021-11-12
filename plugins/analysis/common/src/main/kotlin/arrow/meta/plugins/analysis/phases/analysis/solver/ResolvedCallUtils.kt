@@ -63,9 +63,19 @@ internal fun ResolvedCall.allArgumentExpressions(
     }
   ) + valueArgumentExpressions(context)
 
-internal fun ResolvedCall.getReceiverOrFirstArgument(): Expression? =
+/**
+ * this is needed because in Java we call 'post' as > post(thing, predicate, message) whereas in
+ * Kotlin we use it as extension method > thing.post(predicate, message)
+ */
+internal fun ResolvedCall.getReceiverOrThisNamedArgument(): Expression? =
   this.getReceiverExpression()
-    ?: this.valueArguments.values.toList().getOrNull(0)?.arguments?.getOrNull(0)?.argumentExpression
+    ?: this.valueArguments
+      .entries
+      .firstOrNull { (name, resolved) -> name.name.value.contains("this") }
+      ?.value
+      ?.arguments
+      ?.getOrNull(0)
+      ?.argumentExpression
 
 /** Get all value arguments for [this] call */
 internal fun ResolvedCall.valueArgumentExpressions(
