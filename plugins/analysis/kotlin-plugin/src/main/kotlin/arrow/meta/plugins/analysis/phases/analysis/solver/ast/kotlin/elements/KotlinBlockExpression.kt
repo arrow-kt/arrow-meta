@@ -12,4 +12,5 @@ class KotlinBlockExpression(val impl: KtBlockExpression) :
     get() = impl().firstStatement?.model()
   override val statements: List<Expression>
     get() = impl().statements.map { it.model() }
+  override val implicitReturnFromLast: Boolean = true
 }

@@ -18,6 +18,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCa
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AssignmentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BreakExpression
@@ -47,7 +48,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SynchronizedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThreePieceForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
@@ -75,6 +78,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
@@ -138,9 +142,19 @@ internal fun SolverState.checkExpressionConstraints(
           checkExpressionConstraints(associatedVarName, expression.expression, data)
         is AnnotatedExpression ->
           checkExpressionConstraints(associatedVarName, expression.baseExpression, data)
+        is SynchronizedExpression ->
+          checkExpressionConstraintsWithNewName("subject", expression.subject, data)
+            .checkReturnInfo { stateAfter ->
+              checkExpressionConstraints(associatedVarName, expression.block, stateAfter.data)
+            }
         is BlockExpression ->
           inScope(data) { // new variables are local to that block
-            checkBlockExpression(associatedVarName, expression.statements, data)
+            checkBlockExpression(
+              associatedVarName,
+              expression.statements,
+              expression.implicitReturnFromLast,
+              data
+            )
           }
         is ReturnExpression -> checkReturnConstraints(expression, data)
         is BreakExpression, is ContinueExpression -> {
@@ -192,6 +206,7 @@ internal fun SolverState.checkExpressionConstraints(
             }
           }
         }
+        is AssignmentExpression -> checkAssignmentExpression(expression, data)
         is BinaryExpression -> checkBinaryExpression(associatedVarName, expression, data)
         is Function -> checkFunctionDeclarationExpression(expression, data)
         is Declaration ->
@@ -238,19 +253,22 @@ private fun Declaration.isVar(): Boolean =
 private fun SolverState.checkBlockExpression(
   associatedVarName: ObjectFormula,
   expressions: List<Expression>,
+  implicitReturnFromLast: Boolean,
   data: CheckData
 ): ContSeq<StateAfter> =
-  when (expressions.size) {
-    0 -> cont { data.noReturn() }
-    1 -> // this is the last element, so it's the return value of the expression
-    checkExpressionConstraints(associatedVarName, expressions[0], data)
+  when {
+    expressions.isEmpty() -> cont { data.noReturn() }
+    expressions.size == 1 &&
+      implicitReturnFromLast -> // this is the last element, so it's the return value of the
+      // expression
+      checkExpressionConstraints(associatedVarName, expressions[0], data)
     else -> {
       val first = expressions[0]
       val remainder = expressions.drop(1)
       // we need to carefully thread the data in the state,
       // since it holds the information about variables
       checkExpressionConstraintsWithNewName("stmt", first, data).checkReturnInfo { stateAfter ->
-        checkBlockExpression(associatedVarName, remainder, stateAfter.data)
+        checkBlockExpression(associatedVarName, remainder, implicitReturnFromLast, stateAfter.data)
       }
     }
   }
@@ -329,9 +347,17 @@ private fun SolverState.checkCallExpression(
     specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
     cont { data.noReturn() }
     specialKind == SpecialKind.Post -> // ignore post arguments
-    checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+    checkExpressionConstraints(
+        associatedVarName,
+        resolvedCall.getReceiverOrThisNamedArgument(),
+        data
+      )
     specialKind == SpecialKind.Invariant -> // ignore invariant arguments
-    checkExpressionConstraints(associatedVarName, resolvedCall.getReceiverExpression(), data)
+    checkExpressionConstraints(
+        associatedVarName,
+        resolvedCall.getReceiverOrThisNamedArgument(),
+        data
+      )
     specialKind == SpecialKind.TrustCall || specialKind == SpecialKind.TrustBlock -> {
       val arg = resolvedCall.valueArgumentExpressions(data.context).getOrNull(0)
       checkExpressionConstraints(associatedVarName, arg?.expression, data)
@@ -694,16 +720,19 @@ private fun SolverState.checkElvisOperator(
   }
 }
 
-data class CallArgumentsInfo(
+internal data class CallArgumentsInfo(
   val returnOrVariables: Either<ExplicitReturn, List<CallArgumentVariable>>,
   val data: CheckData
 ) {
-  companion object {
+  internal companion object {
     fun init(data: CheckData) = CallArgumentsInfo(emptyList<CallArgumentVariable>().right(), data)
   }
 }
 
-data class CallArgumentVariable(val parameterName: String, val assignedSmtVariable: ObjectFormula)
+internal data class CallArgumentVariable(
+  val parameterName: String,
+  val assignedSmtVariable: ObjectFormula
+)
 
 private fun List<CallArgumentVariable>.toMap() = associate { (name, smt) -> name to smt }
 
@@ -803,6 +832,25 @@ private fun SolverState.checkConstantExpression(
   data.noReturn()
 }
 
+private fun SolverState.checkAssignmentExpression(
+  expression: AssignmentExpression,
+  data: CheckData
+): ContSeq<StateAfter> =
+  when (val left = expression.left) {
+    // this is an assignment to a mutable variable
+    is NameReferenceExpression -> {
+      // we introduce a new name because we don't want to introduce
+      // any additional information about the variable,
+      // we should only have that declared in the invariant
+      val newName = newName(data.context, left.getReferencedName(), left)
+      val invariant = data.varInfo.get(left.getReferencedName())?.invariant
+      checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
+        it.second
+      } // forget about the temporary name
+    }
+    else -> cont { data.noReturn() }
+  }
+
 /** Check special binary cases, and make the other fall-through */
 private fun SolverState.checkBinaryExpression(
   associatedVarName: ObjectFormula,
@@ -813,17 +861,6 @@ private fun SolverState.checkBinaryExpression(
   val left = expression.left
   val right = expression.right
   return when {
-    // this is an assignment to a mutable variable
-    operator == "EQ" && left is NameReferenceExpression -> {
-      // we introduce a new name because we don't want to introduce
-      // any additional information about the variable,
-      // we should only have that declared in the invariant
-      val newName = newName(data.context, left.getReferencedName(), left)
-      val invariant = data.varInfo.get(left.getReferencedName())?.invariant
-      checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
-        it.second
-      } // forget about the temporary name
-    }
     // this is x == null, or x != null
     (operator == "EQEQ" || operator == "EXCLEQ") && right is NullExpression -> {
       val newName = solver.makeObjectVariable(newName(data.context, "checkNull", left))
@@ -1281,9 +1318,18 @@ private fun SolverState.checkLoopExpression(
 ): ContSeq<StateAfter> =
   when (expression) {
     is ForExpression -> checkForExpression(expression.loopParameter, expression.body, data)
+    is ThreePieceForExpression ->
+      inScope(data) {
+        val initVar = solver.makeObjectVariable(newName(data.context, "initializer", expression))
+        checkBlockExpression(initVar, expression.initializer, false, data).flatMap { after ->
+          doOnlyWhenNotNull(expression.condition, data.noReturn()) {
+            checkWhileExpression(it, expression.body, emptyList(), after.data)
+          }
+        }
+      }
     is WhileExpression ->
       doOnlyWhenNotNull(expression.condition, data.noReturn()) {
-        checkWhileExpression(it, expression.body, data)
+        checkWhileExpression(it, expression.body, emptyList(), data)
       }
     is DoWhileExpression -> {
       // remember that do { t } while (condition)
@@ -1291,7 +1337,7 @@ private fun SolverState.checkLoopExpression(
       checkExpressionConstraintsWithNewName("firstIter", expression.body, data).flatMap {
         doOnlyWhenNotNull(expression.condition, data.noReturn()) {
           // do not change the data, since the block goes out of scope
-          checkWhileExpression(it, expression.body, data)
+          checkWhileExpression(it, expression.body, emptyList(), data)
         }
       }
     }
@@ -1318,7 +1364,7 @@ private fun SolverState.checkForExpression(
                   val smtName = newName(data.context, paramName, loopParameter)
                   data.addVarInfo(paramName, smtName, loopParameter, null)
                 } else data
-              checkLoopBody(body, newData)
+              checkLoopBody(body, emptyList(), newData)
             }
           }
         // in this case we know nothing
@@ -1330,6 +1376,7 @@ private fun SolverState.checkForExpression(
 private fun SolverState.checkWhileExpression(
   condition: Expression,
   body: Expression?,
+  afterBody: List<Expression>,
   data: CheckData
 ): ContSeq<StateAfter> {
   val condName = newName(data.context, "cond", condition)
@@ -1353,7 +1400,7 @@ private fun SolverState.checkWhileExpression(
                 condition,
                 data.branch.get()
               )
-              checkLoopBody(body, data.addBranch(objVar))
+              checkLoopBody(body, afterBody, data.addBranch(objVar))
             }
           }
         // after the loop the condition is false
@@ -1373,22 +1420,24 @@ private fun SolverState.checkWhileExpression(
     }
 }
 
-private fun SolverState.checkLoopBody(body: Expression?, data: CheckData): ContSeq<StateAfter> {
-  return checkExpressionConstraintsWithNewName("loop", body, data).map { stateAfter ->
-    // only keep working on this branch
-    // if we had a 'return' inside
-    // otherwise the other branch is enough
-    // if we decide to abort we need to 'pop',
-    // because the one from 'bracket' won't run
-    when (stateAfter.returnInfo) {
-      is ExplicitLoopReturn -> {
-        prover.pop()
-        abort()
-      }
-      is ExplicitBlockReturn -> stateAfter
-      else -> {
-        prover.pop()
-        abort()
+private fun SolverState.checkLoopBody(
+  body: Expression?,
+  afterBody: List<Expression>,
+  data: CheckData
+): ContSeq<StateAfter> {
+  return checkExpressionConstraintsWithNewName("loop", body, data).flatMap { stateAfter ->
+    // check the additional updates (used when describing "three-piece" for loops)
+    val afterBodyVar = solver.makeObjectVariable(newName(data.context, "afterBody", body))
+    checkBlockExpression(afterBodyVar, afterBody, false, stateAfter.data).map {
+      // only keep working on this branch
+      // if we had a 'return' inside
+      // otherwise the other branch is enough
+      // if we decide to abort we need to 'pop',
+      // because the one from 'bracket' won't run
+      when (stateAfter.returnInfo) {
+        is ExplicitBlockReturn -> stateAfter
+        is ExplicitReturn -> abort()
+        is NoReturn -> abort()
       }
     }
   }
@@ -1461,7 +1510,11 @@ private fun SolverState.checkTryExpression(
  * Checks whether the type obtain from an explicit 'throw' matches any of the types in the 'catch'
  * clauses
  */
-fun doesAnyCatchMatch(throwType: Type?, clauses: List<CatchClause>, data: CheckData): Boolean =
+internal fun doesAnyCatchMatch(
+  throwType: Type?,
+  clauses: List<CatchClause>,
+  data: CheckData
+): Boolean =
   clauses.any { clause ->
     val catchType = clause.catchParameter?.type(data.context)
     if (throwType != null && catchType != null) {

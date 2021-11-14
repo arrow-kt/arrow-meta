@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DefaultValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AssertExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
@@ -21,18 +22,27 @@ enum class SpecialKind {
 internal val ResolvedCall.specialKind: SpecialKind?
   get() =
     when (resultingDescriptor.fqNameSafe) {
-      FqName("arrow.analysis.pre") -> SpecialKind.Pre
+      FqName("arrow.analysis.pre"), FqName("arrow.analysis.RefinementDSLKt.pre") -> SpecialKind.Pre
       FqName("kotlin.require") -> SpecialKind.Pre
-      FqName("arrow.analysis.post") -> SpecialKind.Post
-      FqName("arrow.analysis.invariant") -> SpecialKind.Invariant
-      FqName("arrow.analysis.unsafeCall") -> SpecialKind.TrustCall
-      FqName("arrow.analysis.unsafeBlock") -> SpecialKind.TrustBlock
+      FqName(AssertExpression.FAKE_ASSERT_NAME) -> SpecialKind.Pre
+      FqName("arrow.analysis.post"), FqName("arrow.analysis.RefinementDSLKt.post") ->
+        SpecialKind.Post
+      FqName("arrow.analysis.invariant"), FqName("arrow.analysis.RefinementDSLKt.invariant") ->
+        SpecialKind.Invariant
+      FqName("arrow.analysis.unsafeCall"), FqName("arrow.analysis.RefinementDSLKt.unsafeCall") ->
+        SpecialKind.TrustCall
+      FqName("arrow.analysis.unsafeBlock"), FqName("arrow.analysis.RefinementDSLKt.unsafeBlock") ->
+        SpecialKind.TrustBlock
       else -> null
     }
 
 /** Returns `true` if [this] resolved call is calling [kotlin.require] */
 internal fun ResolvedCall.isRequireCall(): Boolean =
   resultingDescriptor.fqNameSafe == FqName("kotlin.require")
+
+/** Returns `true` if [this] resolved call is calling Java's built-in [assert] */
+internal fun ResolvedCall.isAssertCall(): Boolean =
+  resultingDescriptor.fqNameSafe == FqName(AssertExpression.FAKE_ASSERT_NAME)
 
 /** Returns 'true' if the resolved call represents `?:` */
 internal fun ResolvedCall.isElvisOperator(): Boolean =
@@ -58,6 +68,20 @@ internal fun ResolvedCall.allArgumentExpressions(
       ArgumentExpression("this", it, getReceiverExpression())
     }
   ) + valueArgumentExpressions(context)
+
+/**
+ * this is needed because in Java we call 'post' as > post(thing, predicate, message) whereas in
+ * Kotlin we use it as extension method > thing.post(predicate, message)
+ */
+internal fun ResolvedCall.getReceiverOrThisNamedArgument(): Expression? =
+  this.getReceiverExpression()
+    ?: this.valueArguments
+      .entries
+      .firstOrNull { (name, resolved) -> name.name.value.contains("this") }
+      ?.value
+      ?.arguments
+      ?.getOrNull(0)
+      ?.argumentExpression
 
 /** Get all value arguments for [this] call */
 internal fun ResolvedCall.valueArgumentExpressions(

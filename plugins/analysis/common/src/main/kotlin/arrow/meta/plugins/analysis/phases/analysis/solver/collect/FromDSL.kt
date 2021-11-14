@@ -6,6 +6,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ConstantExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Constructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
@@ -59,9 +61,7 @@ private fun Declaration.constraintsFromGenericDeclaration(
   parameters: List<Parameter>
 ): List<Pair<ResolvedCall, NamedConstraint>> =
   context.run {
-    constraintsDSLElements().toList().mapNotNull {
-      it.elementToConstraint(solverState, context, parameters)
-    }
+    constraintsDSLElements().mapNotNull { it.elementToConstraint(solverState, context, parameters) }
   }
 
 /** Gather constraints for anything which is not a constructor */
@@ -201,10 +201,17 @@ private fun Element.elementToConstraint(
       null
     } else {
       val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)
-      val msg =
-        if (msgBody is LambdaExpression) msgBody.bodyExpression?.firstStatement?.text?.trim('"')
-        else msgBody?.text ?: predicateArg?.text
-      msg?.let { call to NamedConstraint(it, result) }
+      when (msgBody) {
+        is LambdaExpression ->
+          when (val body = msgBody.bodyExpression) {
+            is BlockExpression -> body.firstStatement?.text?.trim('"')
+            is Element -> body.text.trim('"')
+            else -> msgBody.text
+          }
+        is ConstantExpression -> msgBody.text.trim('"')
+        is Element -> msgBody.text
+        else -> predicateArg?.text
+      }?.let { call to NamedConstraint(it, result) }
     }
   } else {
     null
