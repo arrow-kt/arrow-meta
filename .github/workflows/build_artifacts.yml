@@ -41,10 +41,10 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '15'
+          java-version: '17'
 
       - name: Build and test with Gradle
-        if: contains(matrix.kotlin, '1.5')
+        if: contains(matrix.kotlin, '1.5') && !contains(matrix.jvm_target, '17')
         run: ./gradlew -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace
 
       - name: Compile with Gradle
