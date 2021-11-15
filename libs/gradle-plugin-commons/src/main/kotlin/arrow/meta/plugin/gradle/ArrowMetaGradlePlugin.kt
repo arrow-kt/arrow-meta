@@ -25,10 +25,12 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   public val dependencies: List<Triple<String, String, String>>
 
+  public val extensionName: String
+
   override fun apply(project: Project): Unit {
     val defaultPath = File("${project.buildDir}/generated/meta/").path
 
-    val extension = project.extensions.create("arrowMeta", ArrowMetaExtension::class.java)
+    val extension = project.extensions.create(extensionName, ArrowMetaExtension::class.java)
     extension.generatedSrcOutputDir.convention(defaultPath)
 
     val properties = Properties()
