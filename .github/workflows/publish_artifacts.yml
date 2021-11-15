@@ -34,8 +34,8 @@ jobs:
 
     - uses: actions/setup-java@v2
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        distribution: 'adopt'
+        java-version: '15'
         cache: 'gradle'
 
     - name: Publish artifacts
