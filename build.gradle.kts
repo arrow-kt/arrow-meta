@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.dokka) apply false
   alias(libs.plugins.arrowGradleConfig.nexus)
   alias(libs.plugins.arrowGradleConfig.formatter)
+  java
 }
 
 allprojects {
@@ -83,5 +84,16 @@ configure(subprojects - project(":arrow-meta-docs")) {
           }
       }
     }
+  }
+}
+
+val toolchain = project.extensions.getByType<JavaToolchainService>()
+allprojects {
+  tasks.withType<JavaCompile>().configureEach {
+    javaCompiler.set(toolchain.compilerFor {
+      val jvmTargetVersion = properties["jvmTargetVersion"].toString()
+      val javaVersion = if (jvmTargetVersion == "1.8") "8" else jvmTargetVersion
+      languageVersion.set(JavaLanguageVersion.of(javaVersion))
+    })
   }
 }
