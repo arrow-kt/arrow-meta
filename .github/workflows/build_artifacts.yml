@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         kotlin: ['1.5.31', '1.6.0-RC2']
-        jvm_target: ['1.8', '11', '17']
+        jvm_target: ['1.8', '11', '15']
 
     steps:
       - uses: actions/checkout@v2
