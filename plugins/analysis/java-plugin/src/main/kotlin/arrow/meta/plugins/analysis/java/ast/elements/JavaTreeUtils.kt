@@ -82,7 +82,7 @@ public fun <R, P> Iterable<Tree>.accept(visitor: TreeVisitor<R, P>, value: P): L
   this.map { it.accept(visitor, value) }
 
 public class RecursiveTreeVisitor<P>(private val underlying: TreeVisitor<Unit, P>) :
-  TreeVisitor<Unit, P> {
+  SimpleTreeVisitor<Unit, P>(Unit) {
   override fun visitAnnotatedType(node: AnnotatedTypeTree?, p: P) {
     node?.annotations?.accept(this, p)
     underlying.visitAnnotatedType(node, p)
