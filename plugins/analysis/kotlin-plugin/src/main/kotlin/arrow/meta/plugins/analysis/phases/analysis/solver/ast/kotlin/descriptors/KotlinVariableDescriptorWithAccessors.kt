@@ -4,10 +4,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptorWithAccessors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 
-fun interface KotlinVariableDescriptorWithAccessors :
-  VariableDescriptorWithAccessors, KotlinVariableDescriptor {
+abstract class KotlinVariableDescriptorWithAccessors(
+  override val impl: org.jetbrains.kotlin.descriptors.VariableDescriptorWithAccessors
+) : VariableDescriptorWithAccessors, KotlinVariableDescriptor(impl) {
 
-  override fun impl(): org.jetbrains.kotlin.descriptors.VariableDescriptorWithAccessors
+  override fun impl(): org.jetbrains.kotlin.descriptors.VariableDescriptorWithAccessors = impl
   override val getter: VariableAccessorDescriptor?
     get() = impl().getter?.model()
   override val isDelegated: Boolean
