@@ -91,7 +91,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result < 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result < 0")
         }
       },
       withoutPlugin = { compiles }
@@ -107,9 +107,8 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains(
-            "declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)"
-          ) && it.contains("in branch: ( ! x > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0") &&
+            it.contains("in branch: !(x > 0)")
         }
       },
       withoutPlugin = { compiles }
@@ -152,7 +151,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0")
         }
       },
       withoutPlugin = { compiles }
@@ -186,7 +185,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0")
         }
       },
       withoutPlugin = { compiles }
