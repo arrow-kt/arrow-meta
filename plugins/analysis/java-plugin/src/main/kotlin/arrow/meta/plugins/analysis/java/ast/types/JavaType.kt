@@ -48,6 +48,7 @@ public class JavaType(private val ctx: AnalysisContext, internal val ty: TypeMir
   override fun isShort(): Boolean = isEqualTo(ctx.symbolTable.shortType)
   override fun isUnsignedNumberType(): Boolean = false // TODO
   override fun isChar(): Boolean = isEqualTo(ctx.symbolTable.charType)
+  override fun isString(): Boolean = isEqualTo(ctx.symbolTable.stringType)
   override fun isAnyOrNullableAny(): Boolean = isEqualTo(ctx.symbolTable.objectType)
 
   override fun isSubtypeOf(other: Type): Boolean {

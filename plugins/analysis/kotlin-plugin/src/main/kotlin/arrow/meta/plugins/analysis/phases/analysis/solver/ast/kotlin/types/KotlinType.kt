@@ -5,6 +5,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.TypeProjection
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.isNullable
@@ -80,4 +81,6 @@ internal class KotlinType(val impl: org.jetbrains.kotlin.types.KotlinType) : Typ
   override fun isUnsignedNumberType(): Boolean = impl.isUnsignedNumberType()
 
   override fun isChar(): Boolean = impl.isChar()
+
+  override fun isString(): Boolean = KotlinBuiltIns.isString(impl)
 }

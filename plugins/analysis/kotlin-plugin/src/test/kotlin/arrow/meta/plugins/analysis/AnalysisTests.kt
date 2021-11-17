@@ -1386,6 +1386,40 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `string literals, fail`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      val result = bar("")
+      """(
+      withPlugin = {
+        failsWith { it.contains("pre-condition `not empty name` is not satisfied in `bar(\"\")`") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `string literals, ok`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      val result = bar("alex")
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1447,6 +1481,16 @@ object ArrayListLaws {
     return ArrayList(initialCapacity)
   }
 }
+"""
+
+private fun stringLaws(): String =
+  """
+@Law
+fun CharSequence.noneLaw(): Boolean =
+  none().post({ it == (length <= 0) }) { "none when length is 0" }
+@Law
+fun CharSequence.isNotEmptyLaw(): Boolean =
+  isNotEmpty().post({ it == (length > 0) }) { "not empty when length is > 0" }
 """
 
 // TODO update arrow dependencies to latest to test validated support

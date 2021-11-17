@@ -12,4 +12,5 @@ dependencies {
   api(libs.arrowCore)
   api(projects.arrowAnalysisTypes)
   api(libs.javaSmt)
+  api(libs.apacheCommonsText)
 }
