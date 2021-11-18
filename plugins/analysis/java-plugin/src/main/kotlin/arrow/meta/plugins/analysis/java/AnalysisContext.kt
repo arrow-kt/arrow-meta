@@ -13,6 +13,7 @@ import com.sun.tools.javac.util.Context
 import com.sun.tools.javac.util.JCDiagnostic
 import com.sun.tools.javac.util.JavacMessages
 import com.sun.tools.javac.util.Log
+import com.sun.tools.javac.util.Names
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
@@ -27,6 +28,7 @@ public open class AnalysisContextWithoutResolver(
   public val diagnostics: JCDiagnostic.Factory = JCDiagnostic.Factory(messages, "arrow-analysis")
   public val symbolTable: Symtab = Symtab.instance(context)
   public val modules: Modules = Modules.instance(context)
+  public val names: Names = Names.instance(context)
 
   public fun copy(t: JCTree): JCTree {
     val maker = TreeMaker.instance(context)
