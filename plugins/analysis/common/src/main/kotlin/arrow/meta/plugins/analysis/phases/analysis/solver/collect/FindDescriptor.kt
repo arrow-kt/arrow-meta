@@ -93,7 +93,7 @@ private fun ResolutionContext.obtainDeclaration(
  * Finds the target of a particular law by looking at its last return, if marked with a
  * [arrow.analysis.Law] annotation.
  */
-private fun SolverState.findDescriptorFromLocalLaw(
+public fun SolverState.findDescriptorFromLocalLaw(
   descriptor: DeclarationDescriptor,
   bindingContext: ResolutionContext
 ): DeclarationDescriptor? {
