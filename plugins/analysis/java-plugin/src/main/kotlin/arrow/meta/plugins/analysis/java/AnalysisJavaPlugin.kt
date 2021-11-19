@@ -5,6 +5,7 @@ package arrow.meta.plugins.analysis.java
 import arrow.meta.plugins.analysis.java.ast.JavaResolutionContext
 import arrow.meta.plugins.analysis.java.ast.addAnn
 import arrow.meta.plugins.analysis.java.ast.annArrays
+import arrow.meta.plugins.analysis.java.ast.annStrings
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaFunctionDescriptor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
@@ -19,6 +20,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromAnnotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.findDescriptorFromLocalLaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
@@ -108,15 +111,8 @@ public class AnalysisJavaPlugin : Plugin {
                 // stage 1a: collect the constraints
                 decl.collectConstraintsFromDSL(this@collectFromDsl, resolutionContext, descr)
                 // stage 1b: add the corresponding annotations
-                val modifiers = node.modifiers as? JCTree.JCModifiers
-                val constraints = getConstraintsFor(descr)
-                if (modifiers != null && constraints != null) {
-                  addConstraints(modifiers, "arrow.analysis.Pre", constraints.pre, ctx)
-                  addConstraints(modifiers, "arrow.analysis.Post", constraints.post, ctx)
-                  if (descr.isALaw()) {
-                    // TODO: add the subject of the law
-                  }
-                  // add to the list of packages with annotations
+                getConstraintsFor(descr)?.let { constraints ->
+                  addConstraintsToDescriptor(node, descr, constraints, ctx, resolutionContext)
                   obtainedPackages.add(descr.containingPackage)
                 }
               }
@@ -131,6 +127,23 @@ public class AnalysisJavaPlugin : Plugin {
       compiler.generate(LinkedList(listOf(Pair(klassEnv, klass))))
     }
   }
+
+  private fun SolverState.addConstraintsToDescriptor(
+    node: MethodTree,
+    descr: JavaFunctionDescriptor,
+    constraints: DeclarationConstraints,
+    ctx: AnalysisContext,
+    resolutionContext: JavaResolutionContext
+  ) =
+    (node.modifiers as? JCTree.JCModifiers)?.let { modifiers ->
+      addConstraints(modifiers, "arrow.analysis.Pre", constraints.pre, ctx)
+      addConstraints(modifiers, "arrow.analysis.Post", constraints.post, ctx)
+      if (descr.isALaw()) {
+        findDescriptorFromLocalLaw(descr, resolutionContext)?.let { subject ->
+          addSubjectConstraint(modifiers, subject.fqNameSafe.name, ctx)
+        }
+      }
+    }
 
   private fun SolverState.addConstraints(
     modifiers: JCTree.JCModifiers,
@@ -152,11 +165,17 @@ public class AnalysisJavaPlugin : Plugin {
     }
   }
 
+  private fun addSubjectConstraint(
+    modifiers: JCTree.JCModifiers,
+    subject: String,
+    ctx: AnalysisContext
+  ): Unit = modifiers.addAnn { ctx.annStrings("arrow.analysis.Subject", subject) }
+
   private fun SolverState.collectFromAnnotations(
     todo: List<Element>,
     ctx: AnalysisContext,
     resolutionContext: JavaResolutionContext
-  ) {
+  ): Unit =
     ctx.elements.allModuleElements.forEach { module ->
       collectConstraintsFromAnnotations(
         todo.map { it.model(ctx) },
@@ -164,7 +183,6 @@ public class AnalysisJavaPlugin : Plugin {
         resolutionContext
       )
     }
-  }
 
   private fun SolverState.checkConstraints(
     unit: CompilationUnitTree,
