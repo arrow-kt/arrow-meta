@@ -79,5 +79,8 @@ project(":arrow-analysis-laws").projectDir = File("plugins/analysis/laws")
 include(":arrow-analysis-example")
 project(":arrow-analysis-example").projectDir = File("plugins/analysis/example")
 
+include(":arrow-analysis-java-example")
+project(":arrow-analysis-java-example").projectDir = File("plugins/analysis/java-example")
+
 //includeBuild("arrow-analysis-sample")
 //includeBuild("arrow-proofs-example")

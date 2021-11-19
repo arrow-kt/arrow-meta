@@ -12,6 +12,7 @@ kotest = "3.4.2"
 javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.5"
 javaCompileTesting = "0.19"
+apacheCommonsText = "1.9"
 
 [libraries]
 arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrow" }
@@ -27,8 +28,8 @@ junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 kotlin-annotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable" }
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler" }
 kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
-kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common" }
-kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
+kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common", version.ref = "kotlin" }
+kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlibJS = { module = "org.jetbrains.kotlin:kotlin-stdlib-js" }
 kotlin-scriptingCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable" }
 kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util" }
@@ -37,6 +38,7 @@ kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-a
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
 javaCompileTesting = { module = "com.google.testing.compile:compile-testing", version.ref = "javaCompileTesting" }
+apacheCommonsText = { module = "org.apache.commons:commons-text", version.ref = "apacheCommonsText" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

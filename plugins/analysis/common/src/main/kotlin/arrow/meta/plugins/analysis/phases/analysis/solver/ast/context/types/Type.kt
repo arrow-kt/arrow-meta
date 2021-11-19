@@ -22,6 +22,7 @@ interface Type : Comparable<Type> {
   fun isShort(): Boolean
   fun isUnsignedNumberType(): Boolean
   fun isChar(): Boolean
+  fun isString(): Boolean
 
   override fun compareTo(other: Type): Int =
     when {

@@ -73,7 +73,9 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtValueArgument -> KotlinValueArgument(this).repr()
     is KtValueArgumentList -> KotlinValueArgumentList(this).repr()
     is KtBlockExpression -> KotlinBlockExpression(this).repr()
-    is KtStringTemplateExpression -> KotlinDefaultExpression(this).repr()
+    is KtStringTemplateExpression ->
+      if (!this.hasInterpolation()) KotlinConstantStringExpression(this).repr()
+      else KotlinDefaultExpression(this).repr()
     is KtReturnExpression -> KotlinReturnExpression(this).repr()
     is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()

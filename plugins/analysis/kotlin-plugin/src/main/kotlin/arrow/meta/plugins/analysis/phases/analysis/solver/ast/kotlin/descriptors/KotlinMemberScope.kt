@@ -22,7 +22,7 @@ fun interface KotlinMemberScope : MemberScope {
   override fun getContributedDescriptors(
     filter: (name: String) -> Boolean
   ): List<DeclarationDescriptor> =
-    impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.asString()) }.map {
+    impl().getContributedDescriptors(DescriptorKindFilter.ALL) { filter(it.toString()) }.map {
       it.model()
     }
 }

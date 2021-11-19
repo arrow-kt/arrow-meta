@@ -103,6 +103,7 @@ import arrow.meta.plugins.analysis.types.asFloatingLiteral
 import arrow.meta.plugins.analysis.types.asIntegerLiteral
 import arrow.meta.plugins.analysis.types.primitiveType
 import arrow.meta.plugins.analysis.types.unwrapIfNullable
+import org.apache.commons.text.StringEscapeUtils
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 // 2.2: expressions
@@ -817,6 +818,24 @@ private fun SolverState.checkConstantExpression(
       expression.text.asFloatingLiteral()?.let {
         solver.rationals { equal(solver.decimalValue(associatedVarName), makeNumber(it)) }
       }
+    PrimitiveType.STRING -> {
+      // record the length of the string
+      StringEscapeUtils.unescapeJava(expression.text.trim('"'))?.let { stringLiteral ->
+        type
+          .descriptor
+          ?.unsubstitutedMemberScope
+          ?.getContributedDescriptors { it == "length" }
+          ?.singleOrNull { it.name.value == "length" && it.isField() }
+          ?.let { lengthDecl ->
+            solver.ints {
+              equal(
+                solver.intValue(field(lengthDecl, associatedVarName)),
+                makeNumber(stringLiteral.length.toLong())
+              )
+            }
+          }
+      }
+    }
     else -> null
   }?.let {
     addConstraint(
