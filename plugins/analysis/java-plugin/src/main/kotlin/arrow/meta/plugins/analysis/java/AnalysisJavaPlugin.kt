@@ -38,7 +38,7 @@ import com.sun.tools.javac.api.BasicJavacTask
 import com.sun.tools.javac.main.JavaCompiler
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.util.Pair
-import java.util.LinkedList
+import java.util.*
 import javax.lang.model.element.Element
 
 /*
@@ -70,16 +70,19 @@ ensure that the processing only happens once in the entire run of the analyzer.
 public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 
+  private var stage1And2Done = false
+
   override fun init(mtask: JavacTask?, vararg args: String?) {
     (mtask as? BasicJavacTask)?.let { task ->
       val solverState = SolverState(NameProvider())
 
       task.after(TaskEvent.Kind.ANALYZE) { _, unit: CompilationUnitTree ->
-        AnalysisJavaProcessor.instance?.let { processor ->
+        task.context.get(AnalysisJavaProcessorKey)?.let { todo ->
           val ctx = AnalysisContext(task, unit)
           val resolutionContext = JavaResolutionContext(ctx)
 
-          processor.executeOnce { todo ->
+          if (!stage1And2Done) {
+            stage1And2Done = true
             // stage 1: collect constraints from DSL
             solverState.collectFromDsl(todo, ctx, resolutionContext)
             // stage 2: collect constraints from annotations

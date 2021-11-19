@@ -27,8 +27,8 @@ junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 kotlin-annotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable" }
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler" }
 kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
-kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common" }
-kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
+kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common", version.ref = "kotlin" }
+kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlibJS = { module = "org.jetbrains.kotlin:kotlin-stdlib-js" }
 kotlin-scriptingCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable" }
 kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util" }

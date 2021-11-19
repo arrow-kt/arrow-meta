@@ -23,8 +23,8 @@ public open class AnalysisContextWithoutResolver(
   public val elements: Elements
 ) {
   public val logger: Log = Log.instance(context)
-  private val messages: JavacMessages =
-    JavacMessages.instance(context).apply { add(AnalysisMessages::class.qualifiedName) }
+  public val messages: JavacMessages =
+    JavacMessages.instance(context).apply { add { AnalysisMessages() } }
   public val diagnostics: JCDiagnostic.Factory = JCDiagnostic.Factory(messages, "arrow-analysis")
   public val symbolTable: Symtab = Symtab.instance(context)
   public val modules: Modules = Modules.instance(context)
