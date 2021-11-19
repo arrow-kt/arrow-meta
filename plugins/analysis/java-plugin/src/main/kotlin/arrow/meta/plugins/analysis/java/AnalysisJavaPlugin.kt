@@ -3,19 +3,30 @@
 package arrow.meta.plugins.analysis.java
 
 import arrow.meta.plugins.analysis.java.ast.JavaResolutionContext
+import arrow.meta.plugins.analysis.java.ast.addAnn
+import arrow.meta.plugins.analysis.java.ast.annArrays
+import arrow.meta.plugins.analysis.java.ast.annStrings
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaDescriptor
 import arrow.meta.plugins.analysis.java.ast.descriptors.JavaFunctionDescriptor
 import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.OurTreeVisitor
 import arrow.meta.plugins.analysis.java.ast.elements.visitRecursively
+import arrow.meta.plugins.analysis.java.ast.hintsPackage
 import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.checkDeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromAnnotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.collectConstraintsFromDSL
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.findDescriptorFromLocalLaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
+import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.tree.MethodTree
@@ -24,7 +35,11 @@ import com.sun.source.util.JavacTask
 import com.sun.source.util.Plugin
 import com.sun.source.util.TaskEvent
 import com.sun.tools.javac.api.BasicJavacTask
+import com.sun.tools.javac.main.JavaCompiler
+import com.sun.tools.javac.tree.JCTree
+import com.sun.tools.javac.util.Pair
 import java.util.*
+import javax.lang.model.element.Element
 
 /*
 javac does not guarantee any order between the different files in a project,
@@ -55,70 +70,146 @@ ensure that the processing only happens once in the entire run of the analyzer.
 public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 
-  override fun init(task: JavacTask?, vararg args: String?) {
-    (task as? BasicJavacTask)?.let { task ->
-      val solverState: SolverState = SolverState(NameProvider())
+  private var stage1And2Done = false
+
+  override fun init(mtask: JavacTask?, vararg args: String?) {
+    (mtask as? BasicJavacTask)?.let { task ->
+      val solverState = SolverState(NameProvider())
 
       task.after(TaskEvent.Kind.ANALYZE) { _, unit: CompilationUnitTree ->
-        AnalysisJavaProcessor.instance?.let { processor ->
+        task.context.get(AnalysisJavaProcessorKey)?.let { todo ->
           val ctx = AnalysisContext(task, unit)
           val resolutionContext = JavaResolutionContext(ctx)
 
-          processor.executeOnce { todo ->
+          if (!stage1And2Done) {
+            stage1And2Done = true
             // stage 1: collect constraints from DSL
-            todo.forEach { descriptor ->
-              ctx
-                .resolver
-                .tree(descriptor)
-                ?.visitRecursively(
-                  object : OurTreeVisitor<Unit>(Unit) {
-                    override fun visitMethod(node: MethodTree, p: Unit?) {
-                      val decl: JavaMethod = node.model(ctx)
-                      ctx.resolver.resolve(node)?.let { elt ->
-                        val descr: JavaFunctionDescriptor = elt.model(ctx)
-                        decl.collectConstraintsFromDSL(
-                          solverState,
-                          JavaResolutionContext(ctx),
-                          descr
-                        )
-                      }
-                    }
-                  }
-                )
-            }
-
+            solverState.collectFromDsl(todo, ctx, resolutionContext)
             // stage 2: collect constraints from annotations
-            ctx.elements.allModuleElements.forEach { module ->
-              solverState.collectConstraintsFromAnnotations(
-                todo.map { it.model(ctx) },
-                module.model(ctx),
-                resolutionContext
-              )
-            }
+            solverState.collectFromAnnotations(todo, ctx, resolutionContext)
           }
-
           // stage 3: check the constraints
-          if (!solverState.hadParseErrors()) {
-            unit.visitRecursively(
-              object : OurTreeVisitor<Unit>(Unit) {
-                override fun defaultAction(node: Tree, p: Unit?) {
-                  val decl: JavaElement? = node.modelCautious(ctx)
-                  if (decl is Declaration) {
-                    ctx.resolver.resolve(node)?.let { elt ->
-                      val descr: JavaDescriptor = elt.model(ctx)
-                      solverState.checkDeclarationConstraints(resolutionContext, decl, descr)
-                    }
-                  }
-                }
-              }
-            )
-          }
+          solverState.checkConstraints(unit, ctx, resolutionContext)
         }
       }
     }
   }
 
+  private fun SolverState.collectFromDsl(
+    todo: List<Element>,
+    ctx: AnalysisContext,
+    resolutionContext: JavaResolutionContext
+  ) {
+    val obtainedPackages = mutableListOf<FqName>()
+    todo.forEach { descriptor ->
+      ctx
+        .resolver
+        .tree(descriptor)
+        ?.visitRecursively(
+          object : OurTreeVisitor<Unit>(Unit) {
+            override fun visitMethod(node: MethodTree, p: Unit?) {
+              val decl: JavaMethod = node.model(ctx)
+              ctx.resolver.resolve(node)?.let { elt ->
+                val descr: JavaFunctionDescriptor = elt.model(ctx)
+                // stage 1a: collect the constraints
+                decl.collectConstraintsFromDSL(this@collectFromDsl, resolutionContext, descr)
+                // stage 1b: add the corresponding annotations
+                getConstraintsFor(descr)?.let { constraints ->
+                  addConstraintsToDescriptor(node, descr, constraints, ctx, resolutionContext)
+                  obtainedPackages.add(descr.containingPackage)
+                }
+              }
+            }
+          }
+        )
+    }
+    // stage 1c: write the final annotation
+    if (obtainedPackages.isNotEmpty()) {
+      val compiler = JavaCompiler.instance(ctx.context)
+      val (klassEnv, klass) = ctx.hintsPackage(obtainedPackages)
+      compiler.generate(LinkedList(listOf(Pair(klassEnv, klass))))
+    }
+  }
+
+  private fun SolverState.addConstraintsToDescriptor(
+    node: MethodTree,
+    descr: JavaFunctionDescriptor,
+    constraints: DeclarationConstraints,
+    ctx: AnalysisContext,
+    resolutionContext: JavaResolutionContext
+  ) =
+    (node.modifiers as? JCTree.JCModifiers)?.let { modifiers ->
+      addConstraints(modifiers, "arrow.analysis.Pre", constraints.pre, ctx)
+      addConstraints(modifiers, "arrow.analysis.Post", constraints.post, ctx)
+      if (descr.isALaw()) {
+        findDescriptorFromLocalLaw(descr, resolutionContext)?.let { subject ->
+          addSubjectConstraint(modifiers, subject.fqNameSafe.name, ctx)
+        }
+      }
+    }
+
+  private fun SolverState.addConstraints(
+    modifiers: JCTree.JCModifiers,
+    type: String,
+    constraints: List<NamedConstraint>,
+    ctx: AnalysisContext
+  ) {
+    if (constraints.isNotEmpty()) {
+      modifiers.addAnn {
+        ctx.annArrays(
+          type,
+          constraints.map { it.msg },
+          constraints.map { it.formula.toString() },
+          constraints.flatMap {
+            solver.formulaManager.fieldNames(it.formula).map { fld -> fld.first }.toSet()
+          }
+        )
+      }
+    }
+  }
+
+  private fun addSubjectConstraint(
+    modifiers: JCTree.JCModifiers,
+    subject: String,
+    ctx: AnalysisContext
+  ): Unit = modifiers.addAnn { ctx.annStrings("arrow.analysis.Subject", subject) }
+
+  private fun SolverState.collectFromAnnotations(
+    todo: List<Element>,
+    ctx: AnalysisContext,
+    resolutionContext: JavaResolutionContext
+  ): Unit =
+    ctx.elements.allModuleElements.forEach { module ->
+      collectConstraintsFromAnnotations(
+        todo.map { it.model(ctx) },
+        module.model(ctx),
+        resolutionContext
+      )
+    }
+
+  private fun SolverState.checkConstraints(
+    unit: CompilationUnitTree,
+    ctx: AnalysisContext,
+    resolutionContext: JavaResolutionContext
+  ) {
+    if (!hadParseErrors()) {
+      unit.visitRecursively(
+        object : OurTreeVisitor<Unit>(Unit) {
+          override fun defaultAction(node: Tree, p: Unit?) {
+            val decl: JavaElement? = node.modelCautious(ctx)
+            if (decl is Declaration) {
+              ctx.resolver.resolve(node)?.let { elt ->
+                val descr: JavaDescriptor = elt.model(ctx)
+                checkDeclarationConstraints(resolutionContext, decl, descr)
+              }
+            }
+          }
+        }
+      )
+    }
+  }
+
   public companion object {
-    public val NAME: String = "ArrowAnalysisJavaPlugin"
+    public const val NAME: String = "ArrowAnalysisJavaPlugin"
   }
 }

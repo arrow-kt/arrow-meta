@@ -2,6 +2,8 @@
 
 package arrow.meta.plugins.analysis.java
 
+import com.sun.tools.javac.processing.JavacProcessingEnvironment
+import com.sun.tools.javac.util.Context
 import javax.annotation.processing.Completion
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -12,13 +14,17 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 
+// The ultimate HACK: all elements of this class are equal across ClassLoaders!!
+// This is needed for the next step to actually find the list of elements
+public object AnalysisJavaProcessorKey : Context.Key<MutableList<Element>>() {
+  override fun equals(other: Any?): Boolean {
+    return other?.javaClass?.name == "arrow.meta.plugins.analysis.java.AnalysisJavaProcessorKey"
+  }
+  override fun hashCode(): Int = 12345
+}
+
 public class AnalysisJavaProcessor : Processor {
 
-  public companion object {
-    public var instance: AnalysisJavaProcessor? = null
-  }
-
-  private var executed = false
   public val todo: MutableList<Element> = mutableListOf()
 
   override fun getSupportedOptions(): MutableSet<String> = mutableSetOf()
@@ -26,7 +32,7 @@ public class AnalysisJavaProcessor : Processor {
   override fun getSupportedSourceVersion(): SourceVersion = SourceVersion.latestSupported()
 
   override fun init(processingEnv: ProcessingEnvironment) {
-    instance = this
+    (processingEnv as? JavacProcessingEnvironment)?.context?.put(AnalysisJavaProcessorKey, todo)
   }
 
   override fun process(
@@ -35,12 +41,6 @@ public class AnalysisJavaProcessor : Processor {
   ): Boolean {
     todo.addAll(roundEnv.rootElements)
     return false
-  }
-
-  public fun executeOnce(f: (List<Element>) -> Unit) {
-    if (executed) return
-    f(todo)
-    executed = true
   }
 
   override fun getCompletions(
