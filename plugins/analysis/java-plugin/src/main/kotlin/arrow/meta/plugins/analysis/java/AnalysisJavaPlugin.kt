@@ -11,6 +11,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaElement
 import arrow.meta.plugins.analysis.java.ast.elements.JavaMethod
 import arrow.meta.plugins.analysis.java.ast.elements.OurTreeVisitor
 import arrow.meta.plugins.analysis.java.ast.elements.visitRecursively
+import arrow.meta.plugins.analysis.java.ast.hintsPackage
 import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
@@ -31,7 +32,10 @@ import com.sun.source.util.JavacTask
 import com.sun.source.util.Plugin
 import com.sun.source.util.TaskEvent
 import com.sun.tools.javac.api.BasicJavacTask
+import com.sun.tools.javac.main.JavaCompiler
 import com.sun.tools.javac.tree.JCTree
+import com.sun.tools.javac.util.Pair
+import java.util.LinkedList
 import javax.lang.model.element.Element
 
 /*
@@ -63,8 +67,8 @@ ensure that the processing only happens once in the entire run of the analyzer.
 public class AnalysisJavaPlugin : Plugin {
   override fun getName(): String = NAME
 
-  override fun init(task: JavacTask?, vararg args: String?) {
-    (task as? BasicJavacTask)?.let { task ->
+  override fun init(mtask: JavacTask?, vararg args: String?) {
+    (mtask as? BasicJavacTask)?.let { task ->
       val solverState = SolverState(NameProvider())
 
       task.after(TaskEvent.Kind.ANALYZE) { _, unit: CompilationUnitTree ->
@@ -113,17 +117,19 @@ public class AnalysisJavaPlugin : Plugin {
                     // TODO: add the subject of the law
                   }
                   // add to the list of packages with annotations
-                  descr.containingPackage?.let { obtainedPackages.add(it) }
+                  obtainedPackages.add(descr.containingPackage)
                 }
               }
             }
           }
         )
     }
-    // write the final annotation
-    /*ctx.context.get(JavaFileManager::class.java)?.let { fileManager ->
-      fileManager.getJavaFileForOutput()
-    }*/
+    // stage 1c: write the final annotation
+    if (obtainedPackages.isNotEmpty()) {
+      val compiler = JavaCompiler.instance(ctx.context)
+      val (klassEnv, klass) = ctx.hintsPackage(obtainedPackages)
+      compiler.generate(LinkedList(listOf(Pair(klassEnv, klass))))
+    }
   }
 
   private fun SolverState.addConstraints(
@@ -183,6 +189,6 @@ public class AnalysisJavaPlugin : Plugin {
   }
 
   public companion object {
-    public val NAME: String = "ArrowAnalysisJavaPlugin"
+    public const val NAME: String = "ArrowAnalysisJavaPlugin"
   }
 }
