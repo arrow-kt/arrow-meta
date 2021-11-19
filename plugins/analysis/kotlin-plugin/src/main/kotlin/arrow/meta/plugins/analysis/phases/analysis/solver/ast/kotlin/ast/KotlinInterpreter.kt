@@ -42,7 +42,11 @@ fun <
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
+    // fallback cases: we sometimes find unknown descriptors
+    // and for those cases we need nothing else than what the
+    // abstract classes provide
     is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) {}).repr()
+    is VariableDescriptor -> (object : KotlinVariableDescriptor(this) {}).repr()
     else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 
@@ -69,7 +73,9 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtValueArgument -> KotlinValueArgument(this).repr()
     is KtValueArgumentList -> KotlinValueArgumentList(this).repr()
     is KtBlockExpression -> KotlinBlockExpression(this).repr()
-    is KtStringTemplateExpression -> KotlinDefaultExpression(this).repr()
+    is KtStringTemplateExpression ->
+      if (!this.hasInterpolation()) KotlinConstantStringExpression(this).repr()
+      else KotlinDefaultExpression(this).repr()
     is KtReturnExpression -> KotlinReturnExpression(this).repr()
     is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()

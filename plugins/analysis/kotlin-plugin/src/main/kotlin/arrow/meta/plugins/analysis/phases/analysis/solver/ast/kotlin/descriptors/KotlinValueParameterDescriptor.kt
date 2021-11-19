@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.resolve.source.getPsi
 
 class KotlinValueParameterDescriptor(
-  val impl: org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-) : ValueParameterDescriptor, KotlinVariableDescriptor, KotlinParameterDescriptor {
+  override val impl: org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+) : ValueParameterDescriptor, KotlinVariableDescriptor(impl), KotlinParameterDescriptor {
   override fun impl(): org.jetbrains.kotlin.descriptors.ValueParameterDescriptor = impl
   override val index: Int
     get() = impl().index

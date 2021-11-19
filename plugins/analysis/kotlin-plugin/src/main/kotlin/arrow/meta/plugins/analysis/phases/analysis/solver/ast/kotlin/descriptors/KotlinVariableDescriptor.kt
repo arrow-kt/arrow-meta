@@ -2,9 +2,12 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptor
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptor
 
-fun interface KotlinVariableDescriptor : VariableDescriptor, KotlinValueDescriptor {
+abstract class KotlinVariableDescriptor(
+  open val impl: org.jetbrains.kotlin.descriptors.VariableDescriptor
+) : VariableDescriptor, KotlinValueDescriptor {
 
-  override fun impl(): org.jetbrains.kotlin.descriptors.VariableDescriptor
+  override fun impl(): org.jetbrains.kotlin.descriptors.VariableDescriptor = impl
+
   override val isVar: Boolean
     get() = impl().isVar
   override val isConst: Boolean
