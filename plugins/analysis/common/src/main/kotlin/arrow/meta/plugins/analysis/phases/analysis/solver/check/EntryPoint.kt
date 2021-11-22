@@ -10,6 +10,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.C
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -57,6 +58,7 @@ public fun SolverState.checkDeclarationConstraints(
         is ClassOrObject ->
           doOnlyWhen(
             !declaration.isInterfaceOrEnum() &&
+              !declaration.isCompanionObject() &&
               declaration.hasPrimaryConstructor() &&
               declaration.primaryConstructor == null &&
               !descriptor.hasPackageWithLawsAnnotation
@@ -85,6 +87,13 @@ private fun ClassOrObject.isInterfaceOrEnum(): Boolean =
     is Class -> this.isInterface() || this.isEnum()
     else -> false
   }
+
+private fun ClassOrObject.isCompanionObject(): Boolean =
+  fqName != null &&
+    this.parents.any { parent ->
+      parent is PureClassOrObject &&
+        parent.companionObjects.any { companion -> fqName == companion?.fqName }
+    }
 
 /**
  * Only elements which are not
