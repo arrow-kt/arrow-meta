@@ -235,7 +235,7 @@ private fun SolverState.fallThrough(
       cont {
         data.context.reportUnsupported(
           expression,
-          ErrorMessages.Unsupported.unsupportedExpression()
+          ErrorMessages.Unsupported.unsupportedExpression(expression)
         )
         StateAfter(NoReturn, data)
       }

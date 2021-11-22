@@ -5,8 +5,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.O
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtObjectLiteralExpression
 
-fun interface KotlinObjectLiteralExpression : ObjectLiteralExpression, KotlinExpression {
-  override fun impl(): KtObjectLiteralExpression
+class KotlinObjectLiteralExpression(val impl: KtObjectLiteralExpression) :
+  ObjectLiteralExpression, KotlinExpression {
+  override fun impl(): KtObjectLiteralExpression = impl
   override val objectDeclaration: ObjectDeclaration
     get() = impl().objectDeclaration.model()
 }

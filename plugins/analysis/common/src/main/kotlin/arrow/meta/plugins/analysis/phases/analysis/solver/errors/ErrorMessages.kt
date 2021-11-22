@@ -87,7 +87,8 @@ object ErrorMessages {
     internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
       "implicit primary constructors are (not yet) supported: `${klass.name}`"
 
-    internal fun unsupportedExpression(): String = "unsupported expression"
+    internal fun unsupportedExpression(element: Element): String =
+      "unsupported expression (${element::class.simpleName})"
   }
 
   /**

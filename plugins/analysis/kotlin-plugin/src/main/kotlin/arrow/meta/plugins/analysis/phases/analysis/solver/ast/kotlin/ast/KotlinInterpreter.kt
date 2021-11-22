@@ -54,6 +54,7 @@ fun <A : KtElement, B : Element> A.model(): B =
   when (this) {
     is KtNamedFunction -> KotlinNamedFunction(this).repr()
     is KtProperty -> KotlinProperty(this).repr()
+    is KtPropertyAccessor -> KotlinPropertyAccessor(this).repr()
     is KtParameter -> KotlinParameter(this).repr()
     is KtBinaryExpression ->
       when (this.operationToken.toString()) {
@@ -68,6 +69,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtEnumEntry -> KotlinEnumEntry(this).repr()
     is KtClass -> KotlinClass(this).repr()
     is KtObjectDeclaration -> KotlinObjectDeclaration(this).repr()
+    is KtObjectLiteralExpression -> KotlinObjectLiteralExpression(this).repr()
     is KtClassBody -> KotlinClassBody(this).repr()
     is KtLambdaExpression -> KotlinLambdaExpression(this).repr()
     is KtValueArgument -> KotlinValueArgument(this).repr()
