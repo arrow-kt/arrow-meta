@@ -29,5 +29,6 @@ public class MetaDefaultErrorMessagesJvm implements DefaultErrorMessages.Extensi
         MAP.put(LiskovProblem, "{0}", RenderString.instance);
         MAP.put(ErrorParsingPredicate, "{0}", RenderString.instance);
         MAP.put(UnsupportedElement, "{0}", RenderString.instance);
+        MAP.put(AnalysisException, "{0}", RenderString.instance);
     }
 }

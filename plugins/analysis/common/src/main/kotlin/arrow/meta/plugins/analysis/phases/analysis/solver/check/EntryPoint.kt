@@ -49,24 +49,32 @@ public fun SolverState.checkDeclarationConstraints(
     // trace
     solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body
-    when (declaration) {
-      is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
-      is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
-      is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
-      is ClassOrObject ->
-        doOnlyWhen(
-          !declaration.isInterfaceOrEnum() &&
-            declaration.hasPrimaryConstructor() &&
-            declaration.primaryConstructor == null &&
-            !descriptor.hasPackageWithLawsAnnotation
-        ) {
-          cont {
-            val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
-            context.reportUnsupported(declaration, msg)
+    try {
+      when (declaration) {
+        is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
+        is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
+        is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
+        is ClassOrObject ->
+          doOnlyWhen(
+            !declaration.isInterfaceOrEnum() &&
+              declaration.hasPrimaryConstructor() &&
+              declaration.primaryConstructor == null &&
+              !descriptor.hasPackageWithLawsAnnotation
+          ) {
+            cont {
+              val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
+              context.reportUnsupported(declaration, msg)
+            }
           }
-        }
-      else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
-    }.drain()
+        else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+      }.drain()
+    } catch (e: IllegalStateException) {
+      val msg = ErrorMessages.Exception.illegalState(solverTrace)
+      context.reportAnalysisException(declaration, msg)
+    } catch (e: Exception) {
+      val msg = ErrorMessages.Exception.otherException(e)
+      context.reportAnalysisException(declaration, msg)
+    }
     // trace
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
   }

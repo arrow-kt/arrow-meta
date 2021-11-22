@@ -1015,8 +1015,12 @@ internal fun SolverState.checkFunctionBody(
             null,
             solver.makeObjectVariable(resultSmtName)
           ) // add the new return point
-      // and now go and check the body
-      checkExpressionConstraints(resultSmtName, body, newData)
+      cont {
+        // and now go and check the body
+        checkExpressionConstraints(resultSmtName, body, newData)
+          .drain() // execute until the end, so any bracket is closed
+        data.noReturn()
+      }
     }
   }
 

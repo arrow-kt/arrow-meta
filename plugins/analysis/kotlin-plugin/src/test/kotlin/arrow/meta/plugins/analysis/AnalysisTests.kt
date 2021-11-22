@@ -208,7 +208,6 @@ class AnalysisTests {
   }
 
   @Test
-  @Disabled // the solver doesn't signal inconsistency
   fun `unreachable code`() {
     """
       ${imports()}
@@ -217,7 +216,7 @@ class AnalysisTests {
         if (x > 0) return 2 else return 3
       }
       """(
-      withPlugin = { failsWith { it.contains("unreachable code due to conflicting conditions") } },
+      withPlugin = { compilesWith { it.contains("unreachable code due to conflicting conditions") } },
       withoutPlugin = { compiles }
     )
   }

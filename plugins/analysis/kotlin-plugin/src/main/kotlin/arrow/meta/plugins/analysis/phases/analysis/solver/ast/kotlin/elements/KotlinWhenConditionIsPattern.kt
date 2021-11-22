@@ -5,8 +5,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.W
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtWhenConditionIsPattern
 
-fun interface KotlinWhenConditionIsPattern : WhenConditionIsPattern, KotlinWhenCondition {
-  override fun impl(): KtWhenConditionIsPattern
+class KotlinWhenConditionIsPattern(val impl: KtWhenConditionIsPattern) :
+  WhenConditionIsPattern, KotlinWhenCondition {
+  override fun impl(): KtWhenConditionIsPattern = impl
   override val isNegated: Boolean
     get() = impl().isNegated
   override val typeReference: TypeReference?

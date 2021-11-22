@@ -6,8 +6,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.W
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtWhenConditionInRange
 
-fun interface KotlinWhenConditionInRange : WhenConditionInRange, KotlinWhenCondition {
-  override fun impl(): KtWhenConditionInRange
+class KotlinWhenConditionInRange(val impl: KtWhenConditionInRange) :
+  WhenConditionInRange, KotlinWhenCondition {
+  override fun impl(): KtWhenConditionInRange = impl
   override val isNegated: Boolean
     get() = impl().isNegated
   override val rangeExpression: Expression?

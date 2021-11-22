@@ -106,7 +106,7 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
     reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
 
   override fun reportUnsatCallPre(element: Element, msg: String): Unit =
-    reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
+    reportError(element, AnalysisMessages.UnsatCallPre, msg)
 
   override fun reportInconsistentBodyPre(declaration: Element, msg: String): Unit =
     reportError(declaration, AnalysisMessages.InconsistentBodyPre, msg)
@@ -115,10 +115,10 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
     reportError(declaration, AnalysisMessages.UnsatBodyPost, msg)
 
   override fun reportInconsistentCallPost(expression: Element, msg: String): Unit =
-    reportError(expression, AnalysisMessages.InconsistentCallPost, msg)
+    reportWarning(expression, AnalysisMessages.InconsistentCallPost, msg)
 
   override fun reportInconsistentConditions(expression: Element, msg: String): Unit =
-    reportError(expression, AnalysisMessages.InconsistentConditions, msg)
+    reportWarning(expression, AnalysisMessages.InconsistentConditions, msg)
 
   override fun reportInconsistentInvariants(expression: Element, msg: String): Unit =
     reportError(expression, AnalysisMessages.InconsistentInvariants, msg)
@@ -131,4 +131,7 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
 
   override fun reportUnsupported(expression: Element, msg: String): Unit =
     reportWarning(expression, AnalysisMessages.UnsupportedElement, msg)
+
+  override fun reportAnalysisException(element: Element, msg: String): Unit =
+    reportError(element, AnalysisMessages.AnalysisException, msg)
 }
