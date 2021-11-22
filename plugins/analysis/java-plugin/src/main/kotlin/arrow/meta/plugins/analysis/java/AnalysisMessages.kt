@@ -33,11 +33,7 @@ public class AnalysisMessages : ListResourceBundle() {
       )
 
     public val Warnings: List<String> =
-      listOf(
-        InconsistentCallPost,
-        InconsistentConditions,
-        UnsupportedElement
-      )
+      listOf(InconsistentCallPost, InconsistentConditions, UnsupportedElement)
   }
 
   // "err" and "warn" come from [DiagnosticType.key]

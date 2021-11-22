@@ -238,8 +238,7 @@ object ErrorMessages {
     internal fun KotlinPrinter.inconsistentDefaultValues(
       declaration: Declaration,
       unsatCore: List<BooleanFormula>
-    ): String =
-      "${declaration.name} has inconsistent default values: ${unsatCore.dumpKotlinLike()}"
+    ): String = "${declaration.name} has inconsistent default values: ${unsatCore.dumpKotlinLike()}"
 
     /**
      * (attached to a particular condition): the body of a branch is never executed, because the
@@ -317,7 +316,8 @@ object ErrorMessages {
 
   object Exception {
     internal fun illegalState(trace: List<String>): String =
-      "illegal state during analysis:\n" + trace.joinToString(separator = System.lineSeparator()) { "  -> $it" }
+      "illegal state during analysis:\n" +
+        trace.joinToString(separator = System.lineSeparator()) { "  -> $it" }
 
     internal fun otherException(e: kotlin.Exception): String =
       "exception during analysis: ${e.localizedMessage}"
@@ -344,8 +344,7 @@ object ErrorMessages {
     }
 
   internal fun KotlinPrinter.branch(conditions: Branch): String =
-    if (conditions.isEmpty()) "main function body"
-    else "in branch: ${conditions.dumpKotlinLike()}"
+    if (conditions.isEmpty()) "main function body" else "in branch: ${conditions.dumpKotlinLike()}"
 
   private fun CompilerMessageSourceLocation.link(): String = "at $path: ($line, $column):"
 }

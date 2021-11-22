@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class AnalysisTests {
@@ -216,7 +215,9 @@ class AnalysisTests {
         if (x > 0) return 2 else return 3
       }
       """(
-      withPlugin = { compilesWith { it.contains("unreachable code due to conflicting conditions") } },
+      withPlugin = {
+        compilesWith { it.contains("unreachable code due to conflicting conditions") }
+      },
       withoutPlugin = { compiles }
     )
   }

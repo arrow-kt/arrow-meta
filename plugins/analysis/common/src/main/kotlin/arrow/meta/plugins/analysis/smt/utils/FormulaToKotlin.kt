@@ -26,12 +26,14 @@ internal class DefaultKotlinPrinter(
 
   override fun Formula.dumpKotlinLike(): String {
     val str = StringBuilder()
-    fmgr.visit(this, KotlinPrintVisitor(fmgr, str, nameProvider, parensContext = false, negatedContext = false))
+    fmgr.visit(
+      this,
+      KotlinPrintVisitor(fmgr, str, nameProvider, parensContext = false, negatedContext = false)
+    )
     return str.toString()
   }
 
-  override fun Formula.dumpKotlinLikeOrRemove(): String? =
-    dumpKotlinLike().takeIf { it != "true" }
+  override fun Formula.dumpKotlinLikeOrRemove(): String? = dumpKotlinLike().takeIf { it != "true" }
 
   private data class KotlinPrintVisitor(
     private val fmgr: FormulaManager,
@@ -104,9 +106,15 @@ internal class DefaultKotlinPrinter(
         }
         Render.Equality -> {
           val leftStringBuilder = StringBuilder()
-          fmgr.visit(pArgs[0], this.copy(out = leftStringBuilder, parensContext = true, negatedContext = false))
+          fmgr.visit(
+            pArgs[0],
+            this.copy(out = leftStringBuilder, parensContext = true, negatedContext = false)
+          )
           val rightStringBuilder = StringBuilder()
-          fmgr.visit(pArgs[1], this.copy(out = rightStringBuilder, parensContext = true, negatedContext = false))
+          fmgr.visit(
+            pArgs[1],
+            this.copy(out = rightStringBuilder, parensContext = true, negatedContext = false)
+          )
 
           if (leftStringBuilder.toString() == rightStringBuilder.toString()) {
             out.append(if (negatedContext) "false" else "true")
