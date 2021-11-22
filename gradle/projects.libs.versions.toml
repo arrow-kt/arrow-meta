@@ -1,5 +1,6 @@
 [versions]
-arrow = "1.0.0"
+arrow = "1.0.1"
+arrowAnk = "1.0.0"
 arrowGradleConfig = "0.5.2-alpha.6"
 assertj = "3.21.0"
 classgraph = "4.8.129"
@@ -15,7 +16,7 @@ javaCompileTesting = "0.19"
 apacheCommonsText = "1.9"
 
 [libraries]
-arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrow" }
+arrowAnkGradle = { module = "io.arrow-kt:arrow-ank-gradle", version.ref = "arrowAnk" }
 arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrowOptics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
