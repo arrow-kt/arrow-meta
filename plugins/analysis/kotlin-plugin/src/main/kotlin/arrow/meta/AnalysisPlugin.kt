@@ -7,3 +7,5 @@ open class AnalysisPlugin : Meta {
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf("Arrow Analysis" { meta(analysisPhases()) })
 }
+
+class AnalysisMetaCliProcessor : MetaCliProcessor("analysis")

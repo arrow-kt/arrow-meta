@@ -37,7 +37,7 @@ tasks.compileKotlinJvm {
     dependsOn(":arrow-analysis-kotlin-plugin:jar")
     freeCompilerArgs = listOf(
       "-Xplugin=$rootDir/plugins/analysis/kotlin-plugin/build/libs/arrow-analysis-kotlin-plugin-1.5.31-SNAPSHOT.jar",
-      "-P", "plugin:arrow.meta.plugin.compiler:generatedSrcOutputDir=$buildDir/generated/meta"
+      "-P", "plugin:arrow.meta.plugin.compiler.analysis:generatedSrcOutputDir=$buildDir/generated/meta"
     )
   }
 }
