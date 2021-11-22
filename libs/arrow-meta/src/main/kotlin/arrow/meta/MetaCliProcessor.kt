@@ -13,7 +13,7 @@ object ArrowMetaConfigurationKeys {
     CompilerConfigurationKey<List<String>>("directory to locate sources")
 }
 
-class MetaCliProcessor : CommandLineProcessor {
+abstract class MetaCliProcessor(private val metaPluginId: String) : CommandLineProcessor {
 
   companion object {
     val ARROW_META_GENERATED_SRC_OUTPUT_DIR =
@@ -27,7 +27,7 @@ class MetaCliProcessor : CommandLineProcessor {
   }
 
   /** The Arrow Meta Compiler Plugin Id */
-  override val pluginId: String = "arrow.meta.plugin.compiler"
+  override val pluginId: String = "arrow.meta.plugin.compiler.$metaPluginId"
 
   override val pluginOptions: Collection<CliOption> = listOf(ARROW_META_GENERATED_SRC_OUTPUT_DIR)
 

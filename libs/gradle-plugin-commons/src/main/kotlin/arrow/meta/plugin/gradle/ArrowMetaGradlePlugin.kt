@@ -25,11 +25,12 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   public val dependencies: List<Triple<String, String, String>>
 
+  private fun extensionName() = "arrow.meta.$pluginId"
+
   override fun apply(project: Project): Unit {
     val defaultPath = File("${project.buildDir}/generated/meta/").path
 
-    val extensionName = "arrow.meta.$pluginId"
-    val extension = project.extensions.create(extensionName, ArrowMetaExtension::class.java)
+    val extension = project.extensions.create(extensionName(), ArrowMetaExtension::class.java)
     extension.generatedSrcOutputDir.convention(defaultPath)
 
     val properties = Properties()
@@ -65,7 +66,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     kotlinCompilation: KotlinCompilation<*>
   ): Provider<List<SubpluginOption>> {
     val project = kotlinCompilation.target.project
-    val extension = project.extensions.getByType(ArrowMetaExtension::class.java)
+    val extension = project.extensions.getByName(extensionName()) as ArrowMetaExtension
     return project.provider {
       listOf(
         SubpluginOption(
