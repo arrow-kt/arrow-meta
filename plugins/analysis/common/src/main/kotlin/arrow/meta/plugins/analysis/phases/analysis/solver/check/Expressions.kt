@@ -22,6 +22,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.A
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BreakExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableReferenceExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CatchClause
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ConstantExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ContinueExpression
@@ -162,6 +163,7 @@ internal fun SolverState.checkExpressionConstraints(
           val withLabel = expression as ExpressionWithLabel
           cont { StateAfter(ExplicitLoopReturn(withLabel.getLabelName()), data) }
         }
+        is CallableReferenceExpression -> cont { data.noReturn() }
         is LambdaExpression -> checkLambda(expression, data)
         is ThrowExpression -> checkThrowConstraints(expression, data)
         is NullExpression -> checkNullExpression(associatedVarName).map { StateAfter(it, data) }
@@ -214,7 +216,7 @@ internal fun SolverState.checkExpressionConstraints(
           // we get additional info about the subject, but it's irrelevant here
           checkNonFunctionDeclarationExpression(expression, data).map { it.second }
         is Expression -> fallThrough(associatedVarName, expression, data)
-        else -> cont { StateAfter(NoReturn, data) }
+        else -> cont { data.noReturn() }
       }
     }
     .onEach {
