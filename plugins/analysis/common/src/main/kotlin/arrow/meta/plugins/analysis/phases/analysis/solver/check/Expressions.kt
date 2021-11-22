@@ -80,6 +80,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedCon
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
+import arrow.meta.plugins.analysis.phases.analysis.solver.hasClassReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
@@ -239,7 +240,7 @@ private fun SolverState.fallThrough(
           expression,
           ErrorMessages.Unsupported.unsupportedExpression(expression)
         )
-        StateAfter(NoReturn, data)
+        data.noReturn()
       }
   }
 
@@ -515,7 +516,7 @@ internal fun SolverState.checkRegularFunctionCall(
     expression,
     resolvedCall,
     receiverName,
-    receiverExpr,
+    receiverExpr, //
     data
   ) { dataAfterReceiver ->
     checkCallArguments(resolvedCall, dataAfterReceiver).map { (returnOrContinue, dataAfterArgs) ->
@@ -593,6 +594,9 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
       solverTrace.add("weird case")
       block(data)
     }
+    (receiverExpr != null) && (resolvedCall?.hasClassReceiver() == true) ->
+      // case in which the receiver is a class
+      block(data)
     (receiverExpr == null) && (resolvedCall?.hasReceiver() == true) ->
       // special case, no receiver, but implicitly it's 'this'
       checkNameExpression(receiverName, "this", data).flatMap { stateAfter ->

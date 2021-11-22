@@ -34,6 +34,8 @@ public class JavaResolvedCall(
       getReceiverExpression()?.let {
         object : ReceiverValue {
           override val type: Type = it.type()!!
+          override val isClassReceiver: Boolean
+            get() = false // TODO check later
         }
       }
   // there are no extension receivers in Java

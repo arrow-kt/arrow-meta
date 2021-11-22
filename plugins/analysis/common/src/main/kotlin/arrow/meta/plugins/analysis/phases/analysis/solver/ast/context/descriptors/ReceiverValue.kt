@@ -4,4 +4,5 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 
 interface ReceiverValue {
   val type: Type
+  val isClassReceiver: Boolean
 }
