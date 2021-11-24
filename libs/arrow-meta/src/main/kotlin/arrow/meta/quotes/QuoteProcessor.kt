@@ -15,7 +15,6 @@ import arrow.meta.phases.evaluateDependsOnRewindableAnalysisPhase
 import java.io.File
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
-import org.jetbrains.kotlin.com.intellij.psi.FileViewProvider
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.stubs.StubTree
 import org.jetbrains.kotlin.psi.KtElement
@@ -229,9 +228,10 @@ fun CompilerContext.changeSource(
 
   return cli {
     MetaKtFile(
-      viewProvider = MetaFileViewProvider(file.manager, virtualFile, newSource),
+      viewProvider =
+        MetaFileViewProvider(file.manager, virtualFile) { it?.also { it.setText(newSource) } },
       isCompiled = false,
-      rootFile = rootFile
+      stubs = file.stubTree
     )
   }
     ?: ide { ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file) }!!
@@ -241,13 +241,12 @@ fun CompilerContext.changeSource(
  * This class is needed to work around a problem with new file creation in Kotlin 1.6.0. In that
  * version the way [getStubTree] works requires the [MetaFileProvider] to point *exactly* to the
  * same file we are analyzing. This is not true in our usage above, since 'virtualFile' points to a
- * different file than the new file being created. The solution is to record the [rootFile] and use
- * it as underlying provider of [getStubTree].
+ * different file than the one being created. The solution is to record the [StubTree] separately.
  */
 class MetaKtFile(
-  viewProvider: FileViewProvider,
+  viewProvider: MetaFileViewProvider,
   isCompiled: Boolean,
-  private val rootFile: KtFile
+  private val stubs: StubTree?
 ) : KtFile(viewProvider, isCompiled) {
-  override fun getStubTree(): StubTree? = rootFile.stubTree
+  override fun getStubTree(): StubTree? = stubs
 }
