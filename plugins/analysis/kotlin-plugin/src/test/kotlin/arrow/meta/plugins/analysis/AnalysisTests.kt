@@ -1362,6 +1362,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `function reference`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun addOne(n: Int): Int = n + 1
+      val problem = emptyList<Int>().map(::addOne).first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `parses predicates, Collection, using annotations`() {
     """
       ${imports()}
