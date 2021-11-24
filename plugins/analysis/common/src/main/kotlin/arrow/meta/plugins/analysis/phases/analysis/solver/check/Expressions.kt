@@ -15,14 +15,15 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AssignmentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BinaryExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BreakExpression
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableReferenceExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CatchClause
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ConstantExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ContinueExpression
@@ -30,6 +31,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.D
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithInitializer
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DoWhileExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DoubleColonExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionWithLabel
@@ -46,6 +48,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.N
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ParenthesizedExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.QualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
@@ -76,11 +79,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.StateAfter
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SubjectCondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.VarInfo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
+import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
-import arrow.meta.plugins.analysis.phases.analysis.solver.hasClassReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
 import arrow.meta.plugins.analysis.phases.analysis.solver.inTrustedEnvironment
 import arrow.meta.plugins.analysis.phases.analysis.solver.isElvisOperator
@@ -164,7 +167,7 @@ internal fun SolverState.checkExpressionConstraints(
           val withLabel = expression as ExpressionWithLabel
           cont { StateAfter(ExplicitLoopReturn(withLabel.getLabelName()), data) }
         }
-        is CallableReferenceExpression -> cont { data.noReturn() }
+        // is CallableReferenceExpression -> data.noReturn { }
         is LambdaExpression -> checkLambda(expression, data)
         is ThrowExpression -> checkThrowConstraints(expression, data)
         is NullExpression -> checkNullExpression(associatedVarName).map { StateAfter(it, data) }
@@ -179,7 +182,7 @@ internal fun SolverState.checkExpressionConstraints(
               checkCallExpression(associatedVarName, expression, resolvedCall, data)
             is ValueDescriptor ->
               checkNameExpression(associatedVarName, expression.getReferencedName(), data)
-            else -> cont { data.noReturn() } // this should not happen
+            else -> data.noReturn {} // this should not happen
           }
         }
         is LabeledExpression -> checkLabeledExpression(associatedVarName, expression, data)
@@ -217,7 +220,7 @@ internal fun SolverState.checkExpressionConstraints(
           // we get additional info about the subject, but it's irrelevant here
           checkNonFunctionDeclarationExpression(expression, data).map { it.second }
         is Expression -> fallThrough(associatedVarName, expression, data)
-        else -> cont { data.noReturn() }
+        else -> data.noReturn {}
       }
     }
     .onEach {
@@ -235,12 +238,23 @@ private fun SolverState.fallThrough(
     is ResolvedCall -> checkCallExpression(associatedVarName, expression, call, data)
     // otherwise, report as unsupported
     else ->
-      cont {
-        data.context.reportUnsupported(
-          expression,
-          ErrorMessages.Unsupported.unsupportedExpression(expression)
-        )
-        data.noReturn()
+      when (val variable = expression.getVariableDescriptor(data.context)) {
+        is VariableDescriptor -> {
+          val receiverExpr =
+            when (expression) {
+              is QualifiedExpression -> expression.receiverExpression
+              is DoubleColonExpression -> expression.receiverExpression
+              else -> null
+            }
+          checkVariableAsFunctionCall(associatedVarName, variable, receiverExpr, expression, data)
+        }
+        else ->
+          data.noReturn {
+            data.context.reportUnsupported(
+              expression,
+              ErrorMessages.Unsupported.unsupportedExpression(expression)
+            )
+          }
       }
   }
 
@@ -261,7 +275,7 @@ private fun SolverState.checkBlockExpression(
   data: CheckData
 ): ContSeq<StateAfter> =
   when {
-    expressions.isEmpty() -> cont { data.noReturn() }
+    expressions.isEmpty() -> data.noReturn {}
     expressions.size == 1 &&
       implicitReturnFromLast -> // this is the last element, so it's the return value of the
       // expression
@@ -349,7 +363,7 @@ private fun SolverState.checkCallExpression(
   val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
   return when {
     specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
-    cont { data.noReturn() }
+    data.noReturn {}
     specialKind == SpecialKind.Post -> // ignore post arguments
     checkExpressionConstraints(
         associatedVarName,
@@ -519,64 +533,116 @@ internal fun SolverState.checkRegularFunctionCall(
     receiverExpr, //
     data
   ) { dataAfterReceiver ->
-    checkCallArguments(resolvedCall, dataAfterReceiver).map { (returnOrContinue, dataAfterArgs) ->
+    checkCallArguments(resolvedCall, dataAfterReceiver).flatMap { (returnOrContinue, dataAfterArgs)
+      ->
       returnOrContinue.fold(
-        { r -> StateAfter(r, dataAfterArgs) },
+        { r -> cont { StateAfter(r, dataAfterArgs) } },
         { argVars ->
           val callConstraints =
-            (getConstraintsFor(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall))
-              ?.let { declInfo ->
-                val completeRenaming =
-                  argVars.toMap() +
-                    (RESULT_VAR_NAME to associatedVarName) +
-                    (THIS_VAR_NAME to receiverName)
-                solver.substituteDeclarationConstraints(declInfo, completeRenaming)
-              }
-          whenNotTrusted(expression, data) {
-            checkCallPreConditionsImplication(
-              callConstraints,
-              data.context,
-              expression,
-              resolvedCall,
-              data.branch.get()
-            )
-          }
-          // add a constraint for fields: result == field(name, value)
-          val descriptor = resolvedCall.resultingDescriptor
-          if (descriptor.isField()) {
-            val fieldConstraint =
-              solver.ints {
-                val argName =
-                  if (resolvedCall.hasReceiver()) receiverName else argVars[0].assignedSmtVariable
-                NamedConstraint(
-                  "${expression.text} == ${descriptor.fqNameSafe.name}($argName)",
-                  equal(associatedVarName, field(descriptor, argName))
+            getConstraintsFor(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall)
+          checkCallableDescriptor(
+            associatedVarName,
+            resolvedCall.resultingDescriptor,
+            callConstraints,
+            argVars,
+            preconditionsCheck = {
+              whenNotTrusted(expression, data) {
+                checkCallPreConditionsImplication(
+                  callConstraints,
+                  data.context,
+                  expression,
+                  resolvedCall,
+                  data.branch.get()
                 )
               }
-            addConstraint(fieldConstraint)
-          }
-          // if the result is not null
-          if (!resolvedCall.getReturnType().isNullable()) {
-            addConstraint(
-              NamedConstraint("$associatedVarName is not null", solver.isNotNull(associatedVarName))
-            )
-          }
-          // there's no point in continuing if we are in an inconsistent position
-          val inconsistentPostConditions =
-            checkCallPostConditionsInconsistencies(
-              callConstraints,
-              data.context,
-              expression,
-              data.branch.get()
-            )
-          ensure(!inconsistentPostConditions)
-          // and we continue as normal
-          dataAfterArgs.noReturn()
+            },
+            resolvedCall.hasReceiver(),
+            receiverName,
+            resolvedCall.getReturnType(),
+            expression,
+            dataAfterArgs
+          )
         }
       )
     }
   }
 }
+
+internal fun SolverState.checkVariableAsFunctionCall(
+  associatedVarName: ObjectFormula,
+  descriptor: VariableDescriptor,
+  receiverExpr: Expression?,
+  expression: Expression,
+  data: CheckData
+): ContSeq<StateAfter> {
+  val receiverName = solver.makeObjectVariable(newName(data.context, THIS_VAR_NAME, receiverExpr))
+  val callConstraints = getConstraintsFor(descriptor)
+  return checkCallableDescriptor(
+    associatedVarName,
+    descriptor,
+    callConstraints,
+    emptyList(),
+    preconditionsCheck = {},
+    receiverExpr != null,
+    receiverName,
+    descriptor.type,
+    expression,
+    data
+  )
+}
+
+/** Checks something similar to a function call, which could also be a variable reference */
+private fun SolverState.checkCallableDescriptor(
+  associatedVarName: ObjectFormula,
+  descriptor: CallableDescriptor,
+  obtainedConstraints: DeclarationConstraints?,
+  argVars: List<CallArgumentVariable>,
+  preconditionsCheck: (DeclarationConstraints?) -> Unit,
+  hasReceiver: Boolean,
+  receiverName: ObjectFormula,
+  returnType: Type,
+  expression: Expression,
+  data: CheckData
+): ContSeq<StateAfter> =
+  ContSeq.unit.map {
+    // rename with the arguments
+    val callConstraints =
+      obtainedConstraints?.let { declInfo ->
+        val completeRenaming =
+          argVars.toMap() + (RESULT_VAR_NAME to associatedVarName) + (THIS_VAR_NAME to receiverName)
+        solver.substituteDeclarationConstraints(declInfo, completeRenaming)
+      }
+    // check any preconditions
+    preconditionsCheck(callConstraints)
+    // add a constraint for fields: result == field(name, value)
+    if (descriptor.isField()) {
+      val fieldConstraint =
+        solver.ints {
+          val argName = if (hasReceiver) receiverName else argVars[0].assignedSmtVariable
+          NamedConstraint(
+            "${expression.text} == ${descriptor.fqNameSafe.name}($argName)",
+            equal(associatedVarName, field(descriptor, argName))
+          )
+        }
+      addConstraint(fieldConstraint)
+    }
+    // if the result is not null
+    if (!returnType.isNullable()) {
+      addConstraint(
+        NamedConstraint("$associatedVarName is not null", solver.isNotNull(associatedVarName))
+      )
+    }
+    // there's no point in continuing if we are in an inconsistent position
+    val inconsistentPostConditions =
+      checkCallPostConditionsInconsistencies(
+        callConstraints,
+        data.context,
+        expression,
+        data.branch.get()
+      )
+    ensure(!inconsistentPostConditions)
+    data.noReturn()
+  }
 
 /** Handles the possibility of a function call being done with ?. */
 private fun SolverState.checkReceiverWithPossibleSafeDot(
@@ -594,9 +660,6 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
       solverTrace.add("weird case")
       block(data)
     }
-    (receiverExpr != null) && (resolvedCall?.hasClassReceiver() == true) ->
-      // case in which the receiver is a class
-      block(data)
     (receiverExpr == null) && (resolvedCall?.hasReceiver() == true) ->
       // special case, no receiver, but implicitly it's 'this'
       checkNameExpression(receiverName, "this", data).flatMap { stateAfter ->
@@ -807,55 +870,56 @@ private fun SolverState.checkConstantExpression(
   associatedVarName: ObjectFormula,
   expression: ConstantExpression,
   data: CheckData
-): ContSeq<StateAfter> = cont {
-  val type = expression.type(data.context)?.unwrapIfNullable()
-  when (type?.primitiveType()) {
-    PrimitiveType.BOOLEAN ->
-      expression.text.toBooleanStrictOrNull()?.let {
-        solver.booleans {
-          if (it) solver.boolValue(associatedVarName) else not(solver.boolValue(associatedVarName))
+): ContSeq<StateAfter> =
+  data.noReturn {
+    val type = expression.type(data.context)?.unwrapIfNullable()
+    when (type?.primitiveType()) {
+      PrimitiveType.BOOLEAN ->
+        expression.text.toBooleanStrictOrNull()?.let {
+          solver.booleans {
+            if (it) solver.boolValue(associatedVarName)
+            else not(solver.boolValue(associatedVarName))
+          }
+        }
+      PrimitiveType.INTEGRAL ->
+        expression.text.asIntegerLiteral()?.let {
+          solver.ints { equal(solver.intValue(associatedVarName), makeNumber(it)) }
+        }
+      PrimitiveType.RATIONAL ->
+        expression.text.asFloatingLiteral()?.let {
+          solver.rationals { equal(solver.decimalValue(associatedVarName), makeNumber(it)) }
+        }
+      PrimitiveType.STRING -> {
+        // record the length of the string
+        StringEscapeUtils.unescapeJava(expression.text.trim('"'))?.let { stringLiteral ->
+          type
+            .descriptor
+            ?.unsubstitutedMemberScope
+            ?.getContributedDescriptors { it == "length" }
+            ?.singleOrNull { it.name.value == "length" && it.isField() }
+            ?.let { lengthDecl ->
+              solver.ints {
+                equal(
+                  solver.intValue(field(lengthDecl, associatedVarName)),
+                  makeNumber(stringLiteral.length.toLong())
+                )
+              }
+            }
         }
       }
-    PrimitiveType.INTEGRAL ->
-      expression.text.asIntegerLiteral()?.let {
-        solver.ints { equal(solver.intValue(associatedVarName), makeNumber(it)) }
-      }
-    PrimitiveType.RATIONAL ->
-      expression.text.asFloatingLiteral()?.let {
-        solver.rationals { equal(solver.decimalValue(associatedVarName), makeNumber(it)) }
-      }
-    PrimitiveType.STRING -> {
-      // record the length of the string
-      StringEscapeUtils.unescapeJava(expression.text.trim('"'))?.let { stringLiteral ->
-        type
-          .descriptor
-          ?.unsubstitutedMemberScope
-          ?.getContributedDescriptors { it == "length" }
-          ?.singleOrNull { it.name.value == "length" && it.isField() }
-          ?.let { lengthDecl ->
-            solver.ints {
-              equal(
-                solver.intValue(field(lengthDecl, associatedVarName)),
-                makeNumber(stringLiteral.length.toLong())
-              )
-            }
-          }
-      }
-    }
-    else -> null
-  }?.let {
-    addConstraint(
-      NamedConstraint(
-        "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
-        it
+      else -> null
+    }?.let {
+      addConstraint(
+        NamedConstraint(
+          "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
+          it
+        )
       )
-    )
-    addConstraint(
-      NamedConstraint("${expression.text} is not null", solver.isNotNull(associatedVarName))
-    )
+      addConstraint(
+        NamedConstraint("${expression.text} is not null", solver.isNotNull(associatedVarName))
+      )
+    }
   }
-  data.noReturn()
-}
 
 private fun SolverState.checkAssignmentExpression(
   expression: AssignmentExpression,
@@ -873,7 +937,7 @@ private fun SolverState.checkAssignmentExpression(
         it.second
       } // forget about the temporary name
     }
-    else -> cont { data.noReturn() }
+    else -> data.noReturn {}
   }
 
 /** Check special binary cases, and make the other fall-through */
@@ -1021,11 +1085,10 @@ internal fun SolverState.checkFunctionBody(
             null,
             solver.makeObjectVariable(resultSmtName)
           ) // add the new return point
-      cont {
+      data.noReturn {
         // and now go and check the body
         checkExpressionConstraints(resultSmtName, body, newData)
           .drain() // execute until the end, so any bracket is closed
-        data.noReturn()
       }
     }
   }
@@ -1138,15 +1201,15 @@ private fun SolverState.checkNameExpression(
   associatedVarName: ObjectFormula,
   referencedName: String,
   data: CheckData
-): ContSeq<StateAfter> = cont {
-  // use the SMT name recorded in the variable info
-  data.varInfo.get(referencedName)?.let {
-    val constraint =
-      solver.objects { equal(associatedVarName, solver.makeObjectVariable(it.smtName)) }
-    addConstraint(NamedConstraint("$associatedVarName = ${it.smtName} (name)", constraint))
+): ContSeq<StateAfter> =
+  data.noReturn {
+    // use the SMT name recorded in the variable info
+    data.varInfo.get(referencedName)?.let {
+      val constraint =
+        solver.objects { equal(associatedVarName, solver.makeObjectVariable(it.smtName)) }
+      addConstraint(NamedConstraint("$associatedVarName = ${it.smtName} (name)", constraint))
+    }
   }
-  data.noReturn()
-}
 
 private fun Expression.computeConditions(): List<Condition> =
   when (this) {
@@ -1205,7 +1268,7 @@ private fun SolverState.checkConditional(
           (cond.condition?.let {
               introduceCondition(solver.makeObjectVariable(conditionVar), subjectVar, cond, newData)
             }
-              ?: cont {
+              ?: newData.noReturn {
                 // if we have no condition, it's equivalent to true
                 addConstraint(
                   NamedConstraint(
@@ -1213,7 +1276,6 @@ private fun SolverState.checkConditional(
                     solver.makeBooleanObjectVariable(conditionVar)
                   )
                 )
-                newData.noReturn()
               })
             .map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
         }
@@ -1261,13 +1323,12 @@ private fun SolverState.introduceCondition(
       when (val check = cond.check) {
         is WhenConditionWithExpression ->
           if (check.expression is NullExpression) {
-            cont {
+            data.noReturn {
               val complete =
                 solver.booleans {
                   equivalence(solver.boolValue(conditionVar), solver.isNull(subjectVar))
                 }
               addConstraint(NamedConstraint("$subjectVar is null (condition)", complete))
-              data.noReturn()
             }
           } else {
             val patternName = newName(data.context, "pattern", check.expression)
@@ -1305,11 +1366,10 @@ private fun SolverState.introduceCondition(
             }
           }
         is WhenConditionIsPattern ->
-          cont {
+          data.noReturn {
             checkIsExpression(conditionVar, check.isNegated, check.typeReference, subjectVar, data)
-            data.noReturn()
           }
-        else -> cont { data.noReturn() }
+        else -> data.noReturn {}
       }
   }
 
@@ -1370,7 +1430,7 @@ private fun SolverState.checkLoopExpression(
         }
       }
     }
-    else -> ContSeq.unit.map { data.noReturn() } // this should not happen
+    else -> data.noReturn {} // this should not happen
   }
 
 private fun SolverState.checkForExpression(
@@ -1398,7 +1458,7 @@ private fun SolverState.checkForExpression(
           }
         // in this case we know nothing
         // after the loop finishes
-        LoopPlace.AFTER_LOOP -> cont { data.noReturn() }
+        LoopPlace.AFTER_LOOP -> data.noReturn {}
       }
     }
 

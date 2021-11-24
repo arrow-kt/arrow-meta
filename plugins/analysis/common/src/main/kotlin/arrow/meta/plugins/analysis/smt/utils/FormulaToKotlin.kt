@@ -123,8 +123,8 @@ internal class DefaultKotlinPrinter(
             out.append(leftStringBuilder)
             out.append(' ')
             out.append(if (negatedContext) negatedName else name)
-            out.append(rightStringBuilder)
             out.append(' ')
+            out.append(rightStringBuilder)
             if (parensContext) out.append(')')
           }
         }

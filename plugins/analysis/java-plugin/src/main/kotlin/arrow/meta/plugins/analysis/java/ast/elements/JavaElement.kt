@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.java.ast.modelCautious
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Annotation
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotationEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
@@ -28,6 +29,8 @@ public open class JavaElement(private val ctx: AnalysisContext, private val impl
 
   public fun getResolvedCall(): ResolvedCall? = impl.resolvedCall(ctx)
   override fun getResolvedCall(context: ResolutionContext): ResolvedCall? = getResolvedCall()
+
+  override fun getVariableDescriptor(context: ResolutionContext): VariableDescriptor? = null
 
   override fun parents(): List<Element> =
     ctx.resolver.parentTrees(impl).mapNotNull { it.modelCautious(ctx) }
