@@ -148,6 +148,7 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(
       is Transform.Remove ->
         dummyFile = changeSource(transform.remove(Converter.convertFile(dummyFile), context))
       is Transform.NewSource -> newSource.addAll(transform.newSource())
+      else -> { /* Do nothing */ }
     }
   }
   return Converter.convertFile(dummyFile) to newSource
