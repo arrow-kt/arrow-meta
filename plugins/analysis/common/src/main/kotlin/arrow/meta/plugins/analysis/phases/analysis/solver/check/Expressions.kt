@@ -168,9 +168,10 @@ internal fun SolverState.checkExpressionConstraints(
           val withLabel = expression as ExpressionWithLabel
           cont { StateAfter(ExplicitLoopReturn(withLabel.getLabelName()), data) }
         }
-        is CallableReferenceExpression -> data.noReturn {
-          // for now we do nothing with function references
-        }
+        is CallableReferenceExpression ->
+          data.noReturn {
+            // for now we do nothing with function references
+          }
         is LambdaExpression -> checkLambda(expression, data)
         is ThrowExpression -> checkThrowConstraints(expression, data)
         is NullExpression -> checkNullExpression(associatedVarName).map { StateAfter(it, data) }
