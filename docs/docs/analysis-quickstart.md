@@ -21,15 +21,33 @@ Open your Gradle build file, and add the following lines:
 <div id="gradle-kotlin" class="tabcontent" markdown="1">
 
 ```kotlin
-// code for build.gradle.kts
+buildscript {
+  repositories {
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
+  }
+  dependencies {
+    classpath("io.arrow-kt.analysis:io.arrow-kt.analysis.gradle.plugin:1.6.0-SNAPSHOT")
+  }
+}
+
+apply(plugin = "io.arrow-kt.analysis")
 ```
 
 </div>
 
 <div id="gradle-groovy" class="tabcontent" markdown="1">
 
-```java
-// code for build.gradle
+```groovy
+buildscript {
+  repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+  }
+  dependencies {
+    classpath 'io.arrow-kt.analysis:io.arrow-kt.analysis.gradle.plugin:1.6.0-SNAPSHOT'
+  }
+}
+
+apply plugin: 'io.arrow-kt.analysis'
 ```
 
 </div>
