@@ -545,14 +545,14 @@ internal fun SolverState.checkRegularFunctionCall(
             resolvedCall.resultingDescriptor,
             callConstraints,
             argVars,
-            preconditionsCheck = {
+            preconditionsCheck = { reworkedConstraints ->
               whenNotTrusted(expression, data) {
                 checkCallPreConditionsImplication(
-                  callConstraints,
-                  data.context,
+                  reworkedConstraints,
+                  dataAfterArgs.context,
                   expression,
                   resolvedCall,
-                  data.branch.get()
+                  dataAfterArgs.branch.get()
                 )
               }
             },
