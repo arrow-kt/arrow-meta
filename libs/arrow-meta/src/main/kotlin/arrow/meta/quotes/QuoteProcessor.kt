@@ -229,8 +229,7 @@ fun CompilerContext.changeSource(
 
   return cli {
     MetaKtFile(
-      viewProvider =
-        MetaFileViewProvider(file.manager, virtualFile) { it?.also { it.setText(newSource) } },
+      viewProvider = MetaFileViewProvider(file.manager, virtualFile, newSource),
       isCompiled = false,
       rootFile = rootFile
     )
