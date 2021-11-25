@@ -58,17 +58,28 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
               setStageAs(module, Stage.Prove) // we end the CollectConstraints phase
               when (result) {
                 AnalysisResult.Retry -> {
-                  // 1. generate the additional file with hints
-                  val path = getOrCreateBaseDirectory(configuration)
-                  hintsFile(path.absolutePath, module, interesting)
-                  setHintsAs(kotlinModule, HintState.NeedsProcessing)
-                  // 2. retry with all the gathered information
-                  org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
-                    bindingTrace.bindingContext,
-                    module,
-                    emptyList(),
-                    listOf(path.absoluteFile)
-                  )
+                  if (interesting.isNotEmpty()) {
+                    // 1. generate the additional file with hints
+                    val path = getOrCreateBaseDirectory(configuration)
+                    hintsFile(path.absolutePath, module, interesting)
+                    setHintsAs(kotlinModule, HintState.NeedsProcessing)
+                    // 2. retry with all the gathered information
+                    org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
+                      bindingTrace.bindingContext,
+                      module,
+                      emptyList(),
+                      listOf(path.absoluteFile)
+                    )
+                  } else {
+                    // no need to create the hints file
+                    setHintsAs(kotlinModule, HintState.Processed)
+                    org.jetbrains.kotlin.analyzer.AnalysisResult.RetryWithAdditionalRoots(
+                      bindingTrace.bindingContext,
+                      module,
+                      emptyList(),
+                      emptyList()
+                    )
+                  }
                 }
                 AnalysisResult.ParsingError ->
                   org.jetbrains.kotlin.analyzer.AnalysisResult.compilationError(

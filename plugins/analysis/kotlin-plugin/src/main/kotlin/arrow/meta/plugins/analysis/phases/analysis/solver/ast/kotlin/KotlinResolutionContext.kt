@@ -64,6 +64,10 @@ class KotlinResolutionContext(
     report(MetaErrors.UnsupportedElement.on(expression.element(), msg))
   }
 
+  override fun reportAnalysisException(element: Element, msg: String) {
+    report(MetaErrors.AnalysisException.on(element.element(), msg))
+  }
+
   override val types: Types =
     object : Types {
       override val nothingType: Type = KotlinType(moduleImpl.builtIns.nothingType)

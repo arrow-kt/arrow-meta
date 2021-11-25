@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class AnalysisTests {
@@ -208,7 +207,6 @@ class AnalysisTests {
   }
 
   @Test
-  @Disabled // the solver doesn't signal inconsistency
   fun `unreachable code`() {
     """
       ${imports()}
@@ -217,7 +215,9 @@ class AnalysisTests {
         if (x > 0) return 2 else return 3
       }
       """(
-      withPlugin = { failsWith { it.contains("unreachable code due to conflicting conditions") } },
+      withPlugin = {
+        compilesWith { it.contains("unreachable code due to conflicting conditions") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1357,6 +1357,20 @@ class AnalysisTests {
       val oki = emptyList<Int>().map { it + 1 }
       """(
       withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `function reference`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun addOne(n: Int): Int = n + 1
+      val problem = emptyList<Int>().map(::addOne).first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
       withoutPlugin = { compiles }
     )
   }

@@ -315,6 +315,7 @@ open class Visitor {
         is Node.Modifier.Lit -> {}
         is Node.Extra.BlankLines -> {}
         is Node.Extra.Comment -> {}
+        is Node.Command -> {}
         null -> TODO()
       }
     }

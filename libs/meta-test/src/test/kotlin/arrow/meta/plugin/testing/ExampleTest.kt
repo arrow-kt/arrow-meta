@@ -2,6 +2,7 @@ package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
 import arrow.meta.plugin.testing.plugins.MetaPlugin
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ExampleTest {
@@ -175,6 +176,7 @@ class ExampleTest {
   }
 
   @Test
+  @Disabled
   fun `allows to test a Meta plugin`() {
     assertThis(
       CompilerTest(

@@ -12,13 +12,14 @@ public interface MetaErrors {
     DiagnosticFactory1<PsiElement, String> InconsistentBodyPre = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsatBodyPost = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsatCallPre = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, String> InconsistentCallPost = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, String> InconsistentConditions = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, String> InconsistentCallPost = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<PsiElement, String> InconsistentConditions = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, String> InconsistentInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsatInvariants = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> LiskovProblem = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> ErrorParsingPredicate = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> UnsupportedElement = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<PsiElement, String> AnalysisException = DiagnosticFactory1.create(ERROR);
 
     /**
      * needed to prevent NPE in

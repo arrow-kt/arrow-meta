@@ -8,31 +8,32 @@ import java.util.ListResourceBundle
 public class AnalysisMessages : ListResourceBundle() {
 
   public companion object {
-    public val InconsistentBodyPre: String = "inconsistent_body_pre"
-    public val UnsatBodyPost: String = "unsat_body_post"
-    public val UnsatCallPre: String = "unsat_call_pre"
-    public val InconsistentCallPost: String = "inconsistent_call_post"
-    public val InconsistentConditions: String = "inconsistent_conditions"
-    public val InconsistentInvariants: String = "inconsistent_invariants"
-    public val UnsatInvariants: String = "unsat_invariants"
-    public val LiskovProblem: String = "liskov_problem"
-    public val ErrorParsingPredicate: String = "error_parsing_predicate"
-    public val UnsupportedElement: String = "unsupported_element"
+    public const val InconsistentBodyPre: String = "inconsistent_body_pre"
+    public const val UnsatBodyPost: String = "unsat_body_post"
+    public const val UnsatCallPre: String = "unsat_call_pre"
+    public const val InconsistentCallPost: String = "inconsistent_call_post"
+    public const val InconsistentConditions: String = "inconsistent_conditions"
+    public const val InconsistentInvariants: String = "inconsistent_invariants"
+    public const val UnsatInvariants: String = "unsat_invariants"
+    public const val LiskovProblem: String = "liskov_problem"
+    public const val ErrorParsingPredicate: String = "error_parsing_predicate"
+    public const val UnsupportedElement: String = "unsupported_element"
+    public const val AnalysisException: String = "analysis_exception"
 
     public val Errors: List<String> =
       listOf(
         InconsistentBodyPre,
         UnsatBodyPost,
         UnsatCallPre,
-        InconsistentCallPost,
-        InconsistentConditions,
         InconsistentInvariants,
         UnsatInvariants,
         LiskovProblem,
-        ErrorParsingPredicate
+        ErrorParsingPredicate,
+        AnalysisException
       )
 
-    public val Warnings: List<String> = listOf(UnsupportedElement)
+    public val Warnings: List<String> =
+      listOf(InconsistentCallPost, InconsistentConditions, UnsupportedElement)
   }
 
   // "err" and "warn" come from [DiagnosticType.key]

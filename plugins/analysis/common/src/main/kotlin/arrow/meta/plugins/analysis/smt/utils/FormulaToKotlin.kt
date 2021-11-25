@@ -9,7 +9,11 @@ import org.sosy_lab.java_smt.api.visitors.DefaultFormulaVisitor
 
 interface KotlinPrinter {
   fun Formula.dumpKotlinLike(): String
+  fun Formula.dumpKotlinLikeOrRemove(): String?
   fun mirroredElement(name: String): ReferencedElement?
+
+  fun List<Formula>.dumpKotlinLike(): String =
+    mapNotNull { it.dumpKotlinLikeOrRemove() }.joinToString()
 }
 
 internal class DefaultKotlinPrinter(
@@ -22,9 +26,14 @@ internal class DefaultKotlinPrinter(
 
   override fun Formula.dumpKotlinLike(): String {
     val str = StringBuilder()
-    fmgr.visit(this, KotlinPrintVisitor(fmgr, str, nameProvider, false, false))
+    fmgr.visit(
+      this,
+      KotlinPrintVisitor(fmgr, str, nameProvider, parensContext = false, negatedContext = false)
+    )
     return str.toString()
   }
+
+  override fun Formula.dumpKotlinLikeOrRemove(): String? = dumpKotlinLike().takeIf { it != "true" }
 
   private data class KotlinPrintVisitor(
     private val fmgr: FormulaManager,
@@ -49,6 +58,7 @@ internal class DefaultKotlinPrinter(
     private enum class Render {
       Negation,
       Postfix,
+      Equality,
       Binary,
       Hidden,
       Field,
@@ -65,10 +75,10 @@ internal class DefaultKotlinPrinter(
         FunctionDeclarationKind.DIV -> Triple(Render.Binary, "/", null)
         FunctionDeclarationKind.MUL -> Triple(Render.Binary, "*", null)
         FunctionDeclarationKind.LT -> Triple(Render.Binary, "<", ">=")
-        FunctionDeclarationKind.LTE -> Triple(Render.Binary, "<=", ">")
+        FunctionDeclarationKind.LTE -> Triple(Render.Equality, "<=", ">")
         FunctionDeclarationKind.GT -> Triple(Render.Binary, ">", "<=")
-        FunctionDeclarationKind.GTE -> Triple(Render.Binary, ">=", "<")
-        FunctionDeclarationKind.EQ -> Triple(Render.Binary, "==", "!=")
+        FunctionDeclarationKind.GTE -> Triple(Render.Equality, ">=", "<")
+        FunctionDeclarationKind.EQ -> Triple(Render.Equality, "==", "!=")
         FunctionDeclarationKind.UF ->
           when (name) {
             Solver.INT_VALUE_NAME -> Triple(Render.Hidden, "", null)
@@ -93,6 +103,30 @@ internal class DefaultKotlinPrinter(
         }
         Render.Negation -> {
           fmgr.visit(pArgs[0], this.copy(negatedContext = !negatedContext))
+        }
+        Render.Equality -> {
+          val leftStringBuilder = StringBuilder()
+          fmgr.visit(
+            pArgs[0],
+            this.copy(out = leftStringBuilder, parensContext = true, negatedContext = false)
+          )
+          val rightStringBuilder = StringBuilder()
+          fmgr.visit(
+            pArgs[1],
+            this.copy(out = rightStringBuilder, parensContext = true, negatedContext = false)
+          )
+
+          if (leftStringBuilder.toString() == rightStringBuilder.toString()) {
+            out.append(if (negatedContext) "false" else "true")
+          } else {
+            if (parensContext) out.append('(')
+            out.append(leftStringBuilder)
+            out.append(' ')
+            out.append(if (negatedContext) negatedName else name)
+            out.append(' ')
+            out.append(rightStringBuilder)
+            if (parensContext) out.append(')')
+          }
         }
         else -> {
           val mustBeNegated = negatedContext && negatedName == null

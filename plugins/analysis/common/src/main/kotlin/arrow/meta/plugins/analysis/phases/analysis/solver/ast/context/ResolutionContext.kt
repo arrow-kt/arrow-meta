@@ -25,6 +25,7 @@ interface ResolutionContext {
   fun reportUnsatInvariants(expression: Element, msg: String)
   fun reportLiskovProblem(expression: Element, msg: String)
   fun reportUnsupported(expression: Element, msg: String)
+  fun reportAnalysisException(element: Element, msg: String)
   fun descriptorFor(fqName: FqName): List<DeclarationDescriptor>
   fun descriptorFor(declaration: Declaration): DeclarationDescriptor?
   fun backingPropertyForConstructorParameter(

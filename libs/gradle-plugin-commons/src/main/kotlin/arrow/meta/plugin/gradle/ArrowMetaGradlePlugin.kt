@@ -6,6 +6,7 @@ import java.util.Properties
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.util.internal.VersionNumber
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -35,9 +36,15 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val kotlinVersion = properties.getProperty("kotlinVersion")
-    if (kotlinVersion != project.getKotlinPluginVersion()) {
-      throw InvalidUserDataException("Use Kotlin $kotlinVersion for this Gradle Plugin")
+    val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(VersionNumber::parse)
+    val projectKotlinVersion: VersionNumber? = VersionNumber.parse(project.getKotlinPluginVersion())
+    if (projectKotlinVersion == null ||
+        requiredKotlinVersion == null ||
+        projectKotlinVersion < requiredKotlinVersion
+    ) {
+      throw InvalidUserDataException(
+        "Use at least Kotlin $requiredKotlinVersion for this Gradle Plugin"
+      )
     }
     project.afterEvaluate { p ->
       dependencies.forEach { (g, a, v) ->
