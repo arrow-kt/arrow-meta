@@ -2,6 +2,8 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.multiplatform)
 }
 
+version = property("projects.analysis_version").toString()
+
 kotlin {
   explicitApiWarning()
 

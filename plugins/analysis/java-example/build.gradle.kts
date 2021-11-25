@@ -2,6 +2,8 @@ plugins {
   `java-library`
 }
 
+version = property("projects.analysis_version").toString()
+
 java {
   toolchain {
     languageVersion.set(JavaLanguageVersion.of(11))

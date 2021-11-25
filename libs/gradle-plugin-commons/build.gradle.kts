@@ -3,6 +3,8 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.publishJvm)
 }
 
+version = property("projects.meta_version").toString()
+
 tasks.processResources {
   filesMatching("**/plugin.properties") {
     filter { it.replace("%compilerPluginVersion%", "$version") }

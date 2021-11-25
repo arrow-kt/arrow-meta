@@ -4,6 +4,8 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.publishGradlePluginX)
 }
 
+version = property("projects.optics_version").toString()
+
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
 }
