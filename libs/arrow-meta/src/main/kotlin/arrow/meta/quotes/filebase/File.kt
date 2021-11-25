@@ -45,7 +45,8 @@ import org.jetbrains.kotlin.psi.stubs.KotlinFileStub
  */
 class File(
   override val value: KtFile,
-  val `@annotations`: ScopedList<KtAnnotationEntry> = ScopedList(value.annotationEntries),
+  val `@annotations`: ScopedList<KtAnnotationEntry> =
+    ScopedList(value.annotationEntries, separator = " "),
   val name: String = value.name,
   val importList: Scope<KtImportList> =
     Scope(value.importList), // TODO KtImportList scope and quote template
