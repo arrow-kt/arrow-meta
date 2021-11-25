@@ -21,15 +21,33 @@ Open your Gradle build file, and add the following lines:
 <div id="gradle-kotlin" class="tabcontent" markdown="1">
 
 ```kotlin
-// code for build.gradle.kts
+buildscript {
+  repositories {
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
+  }
+  dependencies {
+    classpath("io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:1.6.0-SNAPSHOT")
+  }
+}
+
+apply(plugin = "io.arrow-kt.proofs")
 ```
 
 </div>
 
 <div id="gradle-groovy" class="tabcontent" markdown="1">
 
-```java
-// code for build.gradle
+```groovy
+buildscript {
+    repositories {
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+    dependencies {
+        classpath 'io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:1.6.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'io.arrow-kt.proofs'
 ```
 
 </div>
@@ -37,7 +55,7 @@ Open your Gradle build file, and add the following lines:
 
 ## Using proofs
 
-Say something here.
+Using `@Given` and `@Config` you can make your code wonderful.
 
 ## Going further
 

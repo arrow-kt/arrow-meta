@@ -17,14 +17,20 @@ video: WKR384ZeBgk
 
 The Λrrow org bundles independent plugins built with Λrrow meta.
 
-# [Analysis](/analysis-quickstart.html)
+# [Analysis](analysis-quickstart.html)
 
 Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
 
-[Get started with Λrrow Analysis](/analysis-quickstart.html)
+[Get started with Λrrow Analysis](analysis-quickstart.html)
+
+# [Optics](https://arrow-kt.io/docs/optics/)
+
+Λrrow Optics provide a nice DSL to query and transform immutable values. Using Meta we provide automatic generation of the necessary boilerplate.
+
+[Get started with Λrrow Optics](https://arrow-kt.io/docs/optics/)
 
 # [Proofs](/proofs-quickstart.html) 
 
 Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle!
 
-[Get started with Λrrow Proofs](/proofs-quickstart.html)
+[Get started with Λrrow Proofs](proofs-quickstart.html)
