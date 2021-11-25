@@ -2,16 +2,24 @@
 
 package arrow.analysis
 
-public inline fun pre(predicate: Boolean, msg: () -> String): Unit = require(predicate) { msg() }
+public fun interface Messager {
+  public operator fun invoke(): String
+}
 
-public inline fun <A> A.post(predicate: (A) -> Boolean, msg: () -> String): A {
+public fun interface Predicate<A> {
+  public operator fun invoke(value: A): Boolean
+}
+
+public inline fun pre(predicate: Boolean, msg: Messager): Unit = require(predicate) { msg() }
+
+public inline fun <A> A.post(predicate: Predicate<A>, msg: Messager): A {
   require(predicate(this)) { msg() }
   return this
 }
 
-public inline fun <A> post(predicate: (A) -> Boolean, msg: () -> String): Unit {}
+public inline fun <A> post(predicate: Predicate<A>, msg: Messager): Unit {}
 
-public inline fun <A> A.invariant(predicate: (A) -> Boolean, msg: () -> String): A {
+public inline fun <A> A.invariant(predicate: Predicate<A>, msg: Messager): A {
   require(predicate(this)) { msg() }
   return this
 }

@@ -42,7 +42,11 @@ fun <
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
+    // fallback cases: we sometimes find unknown descriptors
+    // and for those cases we need nothing else than what the
+    // abstract classes provide
     is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) {}).repr()
+    is VariableDescriptor -> (object : KotlinVariableDescriptor(this) {}).repr()
     else -> TODO("Missing impl for $this (${this.javaClass.name})")
   }
 
@@ -50,6 +54,7 @@ fun <A : KtElement, B : Element> A.model(): B =
   when (this) {
     is KtNamedFunction -> KotlinNamedFunction(this).repr()
     is KtProperty -> KotlinProperty(this).repr()
+    is KtPropertyAccessor -> KotlinPropertyAccessor(this).repr()
     is KtParameter -> KotlinParameter(this).repr()
     is KtBinaryExpression ->
       when (this.operationToken.toString()) {
@@ -64,12 +69,15 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtEnumEntry -> KotlinEnumEntry(this).repr()
     is KtClass -> KotlinClass(this).repr()
     is KtObjectDeclaration -> KotlinObjectDeclaration(this).repr()
+    is KtObjectLiteralExpression -> KotlinObjectLiteralExpression(this).repr()
     is KtClassBody -> KotlinClassBody(this).repr()
     is KtLambdaExpression -> KotlinLambdaExpression(this).repr()
     is KtValueArgument -> KotlinValueArgument(this).repr()
     is KtValueArgumentList -> KotlinValueArgumentList(this).repr()
     is KtBlockExpression -> KotlinBlockExpression(this).repr()
-    is KtStringTemplateExpression -> KotlinDefaultExpression(this).repr()
+    is KtStringTemplateExpression ->
+      if (!this.hasInterpolation()) KotlinConstantStringExpression(this).repr()
+      else KotlinDefaultExpression(this).repr()
     is KtReturnExpression -> KotlinReturnExpression(this).repr()
     is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()
@@ -94,13 +102,17 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtWhenExpression -> KotlinWhenExpression(this).repr()
     is KtWhenEntry -> KotlinWhenEntry(this).repr()
     is KtWhenConditionWithExpression -> KotlinWhenConditionWithExpression(this).repr()
+    is KtWhenConditionIsPattern -> KotlinWhenConditionIsPattern(this).repr()
+    is KtWhenConditionInRange -> KotlinWhenConditionInRange(this).repr()
     is KtSecondaryConstructor -> KotlinSecondaryConstructor(this).repr()
+    is KtCallableReferenceExpression -> KotlinCallableReferenceExpression(this).repr()
     is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
     is KtConstructorDelegationReferenceExpression ->
       KotlinConstructorDelegationReferenceExpression(this).repr()
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
+    is KtCallableReferenceExpression -> TODO()
     // is KtFile -> KotlinFile(this).repr()
     else ->
       TODO(

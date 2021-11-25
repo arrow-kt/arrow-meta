@@ -6,6 +6,7 @@ import java.util.Properties
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.util.internal.VersionNumber
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -25,19 +26,25 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   public val dependencies: List<Triple<String, String, String>>
 
-  public val extensionName: String
+  private fun extensionName() = "arrow.meta.$pluginId"
 
   override fun apply(project: Project): Unit {
     val defaultPath = File("${project.buildDir}/generated/meta/").path
 
-    val extension = project.extensions.create(extensionName, ArrowMetaExtension::class.java)
+    val extension = project.extensions.create(extensionName(), ArrowMetaExtension::class.java)
     extension.generatedSrcOutputDir.convention(defaultPath)
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val kotlinVersion = properties.getProperty("kotlinVersion")
-    if (kotlinVersion != project.getKotlinPluginVersion()) {
-      throw InvalidUserDataException("Use Kotlin $kotlinVersion for this Gradle Plugin")
+    val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(VersionNumber::parse)
+    val projectKotlinVersion: VersionNumber? = VersionNumber.parse(project.getKotlinPluginVersion())
+    if (projectKotlinVersion == null ||
+        requiredKotlinVersion == null ||
+        projectKotlinVersion < requiredKotlinVersion
+    ) {
+      throw InvalidUserDataException(
+        "Use at least Kotlin $requiredKotlinVersion for this Gradle Plugin"
+      )
     }
     project.afterEvaluate { p ->
       dependencies.forEach { (g, a, v) ->
@@ -66,7 +73,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     kotlinCompilation: KotlinCompilation<*>
   ): Provider<List<SubpluginOption>> {
     val project = kotlinCompilation.target.project
-    val extension = project.extensions.getByType(ArrowMetaExtension::class.java)
+    val extension = project.extensions.getByName(extensionName()) as ArrowMetaExtension
     return project.provider {
       listOf(
         SubpluginOption(
@@ -78,7 +85,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     }
   }
 
-  override fun getCompilerPluginId(): String = "arrow.meta.plugin.compiler"
+  override fun getCompilerPluginId(): String = "arrow.meta.plugin.compiler.$pluginId"
 
   override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
 

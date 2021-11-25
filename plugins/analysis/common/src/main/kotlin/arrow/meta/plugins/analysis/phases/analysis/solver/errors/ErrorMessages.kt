@@ -87,7 +87,8 @@ object ErrorMessages {
     internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
       "implicit primary constructors are (not yet) supported: `${klass.name}`"
 
-    internal fun unsupportedExpression(): String = "unsupported expression"
+    internal fun unsupportedExpression(element: Element): String =
+      "unsupported expression (${element::class.simpleName})"
   }
 
   /**
@@ -238,8 +239,7 @@ object ErrorMessages {
     internal fun KotlinPrinter.inconsistentDefaultValues(
       declaration: Declaration,
       unsatCore: List<BooleanFormula>
-    ): String =
-      "${declaration.name} has inconsistent default values: ${unsatCore.joinToString { it.dumpKotlinLike() }}"
+    ): String = "${declaration.name} has inconsistent default values: ${unsatCore.dumpKotlinLike()}"
 
     /**
      * (attached to a particular condition): the body of a branch is never executed, because the
@@ -264,7 +264,7 @@ object ErrorMessages {
       unsatCore: List<BooleanFormula>,
       branch: Branch
     ): String =
-      """|unreachable code due to conflicting conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}
+      """|unreachable code due to conflicting conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
       """.trimMargin()
 
@@ -276,7 +276,7 @@ object ErrorMessages {
       unsatCore: List<BooleanFormula>,
       branch: Branch
     ): String =
-      """|unreachable code due to post-conditions: ${unsatCore.joinToString { it.dumpKotlinLike() }}
+      """|unreachable code due to post-conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
       """.trimMargin()
 
@@ -298,7 +298,7 @@ object ErrorMessages {
       it: List<BooleanFormula>,
       branch: Branch
     ): String =
-      """|invariants are inconsistent: ${it.joinToString { it.dumpKotlinLike() }}
+      """|invariants are inconsistent: ${it.dumpKotlinLike()}
          |  -> ${branch(branch)}
       """.trimMargin()
   }
@@ -315,13 +315,22 @@ object ErrorMessages {
       """.trimMargin()
   }
 
+  object Exception {
+    internal fun illegalState(trace: List<String>): String =
+      "illegal state during analysis:\n" +
+        trace.joinToString(separator = System.lineSeparator()) { "  -> $it" }
+
+    internal fun otherException(e: kotlin.Exception): String =
+      "exception during analysis: ${e.localizedMessage}"
+  }
+
   internal fun template(constraint: NamedConstraint, solver: Solver): String =
     solver.run {
       val showVariables = extractVariables(constraint.formula)
       showVariables
         .mapNotNull { mirroredElement(it.key) }
         .takeIf { it.isNotEmpty() }
-        ?.joinToString(System.lineSeparator()) { referencedElement ->
+        ?.joinToString(separator = System.lineSeparator()) { referencedElement ->
           val el = referencedElement.element
           val argsMapping = referencedElement.reference
           argsMapping?.let { (param, resolvedArg) ->
@@ -336,8 +345,7 @@ object ErrorMessages {
     }
 
   internal fun KotlinPrinter.branch(conditions: Branch): String =
-    if (conditions.isEmpty()) "main function body"
-    else "in branch: " + conditions.joinToString { it.dumpKotlinLike() }
+    if (conditions.isEmpty()) "main function body" else "in branch: ${conditions.dumpKotlinLike()}"
 
   private fun CompilerMessageSourceLocation.link(): String = "at $path: ($line, $column):"
 }

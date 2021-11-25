@@ -493,7 +493,7 @@ fun getOrCreateBaseDirectory(configuration: CompilerConfiguration?): java.io.Fil
     configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)?.firstOrNull()
       ?: System.getProperty("arrow.meta.generate.source.dir")
   checkNotNull(parentBuildPath) {
-    "Generated sources output dir is not found: ${ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR}"
+    "Generated sources output dir is not found: ${configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)} ${System.getProperty("arrow.meta.generate.source.dir")}"
   }
   val directory = java.io.File("$parentBuildPath")
   directory.mkdirs()

@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kotlin: ['1.5.31', '1.6.0-RC2']
+        kotlin: ['1.6.0']
         jvm_target: ['1.8', '11', '15']
 
     steps:
@@ -44,12 +44,7 @@ jobs:
           java-version: '15'
 
       - name: Build and test with Gradle
-        if: contains(matrix.kotlin, '1.5')
         run: ./gradlew -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace
-
-      - name: Compile with Gradle
-        if: contains(matrix.kotlin, '1.6')
-        run: ./gradlew -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} compileKotlin --scan --stacktrace
 
       - name: Bundle the build report
         if: failure()

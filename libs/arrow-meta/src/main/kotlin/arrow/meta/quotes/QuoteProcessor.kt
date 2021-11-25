@@ -16,6 +16,7 @@ import java.io.File
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalFileSystem
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.local.CoreLocalVirtualFile
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.com.intellij.psi.stubs.StubTree
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
@@ -148,6 +149,9 @@ inline fun <reified K : KtElement> Transform.Many<K>.many(
       is Transform.Remove ->
         dummyFile = changeSource(transform.remove(Converter.convertFile(dummyFile), context))
       is Transform.NewSource -> newSource.addAll(transform.newSource())
+      else -> {
+        /* Do nothing */
+      }
     }
   }
   return Converter.convertFile(dummyFile) to newSource
@@ -223,11 +227,26 @@ fun CompilerContext.changeSource(
       ?: rootFile.virtualFile
 
   return cli {
-    KtFile(
+    MetaKtFile(
       viewProvider =
         MetaFileViewProvider(file.manager, virtualFile) { it?.also { it.setText(newSource) } },
-      isCompiled = false
+      isCompiled = false,
+      stubs = file.stubTree
     )
   }
     ?: ide { ktPsiElementFactory.createAnalyzableFile("_meta_${file.name}", newSource, file) }!!
+}
+
+/**
+ * This class is needed to work around a problem with new file creation in Kotlin 1.6.0. In that
+ * version the way [getStubTree] works requires the [MetaFileProvider] to point *exactly* to the
+ * same file we are analyzing. This is not true in our usage above, since 'virtualFile' points to a
+ * different file than the one being created. The solution is to record the [StubTree] separately.
+ */
+class MetaKtFile(
+  viewProvider: MetaFileViewProvider,
+  isCompiled: Boolean,
+  private val stubs: StubTree?
+) : KtFile(viewProvider, isCompiled) {
+  override fun getStubTree(): StubTree? = stubs
 }

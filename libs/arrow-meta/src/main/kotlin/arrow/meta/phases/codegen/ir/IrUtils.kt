@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -134,8 +135,8 @@ class IrUtils(
   }
 
   fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
-    val irClass = pluginContext.symbols.externalSymbolTable.referenceClass(this)
-    return irClass.constructors.firstOrNull()?.let { irConstructorSymbol ->
+    val irClass = pluginContext.referenceClass(this.fqNameSafe)
+    return irClass!!.constructors.firstOrNull()?.let { irConstructorSymbol ->
       IrConstructorCallImpl(
         startOffset = UNDEFINED_OFFSET,
         endOffset = UNDEFINED_OFFSET,

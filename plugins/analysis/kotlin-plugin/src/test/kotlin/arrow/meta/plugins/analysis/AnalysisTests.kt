@@ -5,7 +5,6 @@ import arrow.meta.plugin.testing.AssertSyntax
 import arrow.meta.plugin.testing.CompilerTest
 import arrow.meta.plugin.testing.assertThis
 import arrow.meta.plugins.newMetaDependencies
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class AnalysisTests {
@@ -91,7 +90,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result < 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result < 0")
         }
       },
       withoutPlugin = { compiles }
@@ -107,9 +106,8 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains(
-            "declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)"
-          ) && it.contains("in branch: ( ! x > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0") &&
+            it.contains("in branch: !(x > 0)")
         }
       },
       withoutPlugin = { compiles }
@@ -152,7 +150,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0")
         }
       },
       withoutPlugin = { compiles }
@@ -186,7 +184,7 @@ class AnalysisTests {
       """(
       withPlugin = {
         failsWith {
-          it.contains("declaration `bar` fails to satisfy the post-condition: (${'$'}result > 0)")
+          it.contains("declaration `bar` fails to satisfy the post-condition: ${'$'}result > 0")
         }
       },
       withoutPlugin = { compiles }
@@ -209,7 +207,6 @@ class AnalysisTests {
   }
 
   @Test
-  @Disabled // the solver doesn't signal inconsistency
   fun `unreachable code`() {
     """
       ${imports()}
@@ -218,7 +215,9 @@ class AnalysisTests {
         if (x > 0) return 2 else return 3
       }
       """(
-      withPlugin = { failsWith { it.contains("unreachable code due to conflicting conditions") } },
+      withPlugin = {
+        compilesWith { it.contains("unreachable code due to conflicting conditions") }
+      },
       withoutPlugin = { compiles }
     )
   }
@@ -1363,6 +1362,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `function reference`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun addOne(n: Int): Int = n + 1
+      val problem = emptyList<Int>().map(::addOne).first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `parses predicates, Collection, using annotations`() {
     """
       ${imports()}
@@ -1383,6 +1396,40 @@ class AnalysisTests {
       val oki = emptyList<Int>().first()
       """(
       withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `string literals, fail`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      val result = bar("")
+      """(
+      withPlugin = {
+        failsWith { it.contains("pre-condition `not empty name` is not satisfied in `bar(\"\")`") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `string literals, ok`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      val result = bar("alex")
+      """(
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }
@@ -1447,6 +1494,16 @@ object ArrayListLaws {
     return ArrayList(initialCapacity)
   }
 }
+"""
+
+private fun stringLaws(): String =
+  """
+@Law
+fun CharSequence.noneLaw(): Boolean =
+  none().post({ it == (length <= 0) }) { "none when length is 0" }
+@Law
+fun CharSequence.isNotEmptyLaw(): Boolean =
+  isNotEmpty().post({ it == (length > 0) }) { "not empty when length is > 0" }
 """
 
 // TODO update arrow dependencies to latest to test validated support

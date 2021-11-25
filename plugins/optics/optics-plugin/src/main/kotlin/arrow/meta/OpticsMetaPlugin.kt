@@ -15,3 +15,5 @@ open class OpticsMetaPlugin : Meta {
       optics
     )
 }
+
+class OpticsMetaCliProcessor : MetaCliProcessor("optics")

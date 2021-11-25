@@ -23,16 +23,25 @@ import arrow.meta.plugins.optics.internals.process
 import arrow.meta.plugins.optics.internals.targets
 import arrow.meta.quotes.Transform
 import arrow.meta.quotes.classDeclaration
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
 val Meta.optics: CliPlugin
   get() = "optics" {
+    val processedDescriptors = mutableListOf<FqName>()
     meta(
       classDeclaration(this, { isOpticsTarget(element) }) { c ->
-        if (c.element.companionObjects.isEmpty())
-          knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
-        val files = ctx.process(listOf(adt(c.element)))
-        Transform.newSources(*files.toTypedArray())
+        val fqName = c.element.fqName ?: c.descriptor?.fqNameSafe
+        if (fqName == null || !processedDescriptors.contains(fqName)) {
+          if (fqName != null) processedDescriptors.add(fqName)
+          if (c.element.companionObjects.isEmpty())
+            knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
+          val files = ctx.process(listOf(adt(c.element)))
+          Transform.newSources(*files.toTypedArray())
+        } else {
+          Transform.Empty
+        }
       }
     )
   }

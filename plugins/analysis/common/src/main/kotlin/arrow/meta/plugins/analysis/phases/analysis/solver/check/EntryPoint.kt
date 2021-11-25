@@ -10,6 +10,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.C
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -49,24 +50,33 @@ public fun SolverState.checkDeclarationConstraints(
     // trace
     solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body
-    when (declaration) {
-      is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
-      is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
-      is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
-      is ClassOrObject ->
-        doOnlyWhen(
-          !declaration.isInterfaceOrEnum() &&
-            declaration.hasPrimaryConstructor() &&
-            declaration.primaryConstructor == null &&
-            !descriptor.hasPackageWithLawsAnnotation
-        ) {
-          cont {
-            val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
-            context.reportUnsupported(declaration, msg)
+    try {
+      when (declaration) {
+        is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
+        is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
+        is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
+        is ClassOrObject ->
+          doOnlyWhen(
+            !declaration.isInterfaceOrEnum() &&
+              !declaration.isCompanionObject() &&
+              declaration.hasPrimaryConstructor() &&
+              declaration.primaryConstructor == null &&
+              !descriptor.hasPackageWithLawsAnnotation
+          ) {
+            cont {
+              val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
+              context.reportUnsupported(declaration, msg)
+            }
           }
-        }
-      else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
-    }.drain()
+        else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+      }.drain()
+    } catch (e: IllegalStateException) {
+      val msg = ErrorMessages.Exception.illegalState(solverTrace)
+      context.reportAnalysisException(declaration, msg)
+    } catch (e: Exception) {
+      val msg = ErrorMessages.Exception.otherException(e)
+      context.reportAnalysisException(declaration, msg)
+    }
     // trace
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
   }
@@ -77,6 +87,13 @@ private fun ClassOrObject.isInterfaceOrEnum(): Boolean =
     is Class -> this.isInterface() || this.isEnum()
     else -> false
   }
+
+private fun ClassOrObject.isCompanionObject(): Boolean =
+  fqName != null &&
+    this.parents.any { parent ->
+      parent is PureClassOrObject &&
+        parent.companionObjects.any { companion -> fqName == companion?.fqName }
+    }
 
 /**
  * Only elements which are not

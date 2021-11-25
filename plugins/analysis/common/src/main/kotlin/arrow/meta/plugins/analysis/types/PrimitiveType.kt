@@ -7,7 +7,8 @@ enum class PrimitiveType {
   BOOLEAN,
   INTEGRAL,
   RATIONAL,
-  CHAR
+  CHAR,
+  STRING
 }
 
 fun Type.unwrapIfNullable(): Type =
@@ -24,6 +25,7 @@ fun Type.primitiveType(): PrimitiveType? =
     isDouble() -> PrimitiveType.RATIONAL
     isFloat() -> PrimitiveType.RATIONAL
     isChar() -> PrimitiveType.CHAR
+    isString() -> PrimitiveType.STRING
     else ->
       when (this.descriptor?.fqNameSafe) {
         FqName("java.math.BigInteger") -> PrimitiveType.INTEGRAL

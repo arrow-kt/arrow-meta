@@ -53,6 +53,10 @@ internal fun ResolvedCall.hasReceiver() =
   this.resultingDescriptor.dispatchReceiverParameter != null ||
     this.resultingDescriptor.extensionReceiverParameter != null
 
+/** Returns 'true' if the only receiver is a class */
+internal fun ResolvedCall.hasClassReceiver() =
+  extensionReceiver == null && dispatchReceiver != null && dispatchReceiver!!.isClassReceiver
+
 /** Information about an argument in a resolved call */
 data class ArgumentExpression(val name: String, val type: Type, val expression: Expression?)
 

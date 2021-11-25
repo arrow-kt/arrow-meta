@@ -35,6 +35,8 @@ public class JavaReceiverParameterDescriptor(
     get() =
       object : ReceiverValue {
         override val type: Type = this@JavaReceiverParameterDescriptor.type
+        override val isClassReceiver: Boolean
+          get() = false // TODO check this later
       }
   override val allParameters: List<ParameterDescriptor> = emptyList()
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
