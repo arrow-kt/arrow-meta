@@ -14,15 +14,15 @@ dependencies {
 
   // Necessary during plugin execution to be found and added for compilation
   api(projects.arrowMeta)
-  api(projects.arrowAnalysisKotlinPlugin)
+  api(projects.arrowAnalysisJavaPlugin)
 }
 
 gradlePlugin {
   plugins {
     create("arrow") {
-      id = "io.arrow-kt.analysis"
-      displayName = "Arrow Analysis Gradle Plugin"
-      implementationClass = "arrow.meta.plugin.gradle.AnalysisGradlePlugin"
+      id = "io.arrow-kt.analysis.java"
+      displayName = "Arrow Analysis Java Gradle Plugin"
+      implementationClass = "arrow.meta.plugin.gradle.AnalysisJavaGradlePlugin"
     }
   }
 }

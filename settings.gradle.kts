@@ -70,8 +70,11 @@ project(":arrow-analysis-kotlin-plugin").projectDir = File("plugins/analysis/kot
 include(":arrow-analysis-java-plugin")
 project(":arrow-analysis-java-plugin").projectDir = File("plugins/analysis/java-plugin")
 
-include(":arrow-analysis-gradle-plugin")
-project(":arrow-analysis-gradle-plugin").projectDir = File("plugins/analysis/gradle-plugin")
+include(":arrow-analysis-kotlin-gradle-plugin")
+project(":arrow-analysis-kotlin-gradle-plugin").projectDir = File("plugins/analysis/kotlin-gradle-plugin")
+
+include(":arrow-analysis-java-gradle-plugin")
+project(":arrow-analysis-java-gradle-plugin").projectDir = File("plugins/analysis/java-gradle-plugin")
 
 include(":arrow-analysis-laws")
 project(":arrow-analysis-laws").projectDir = File("plugins/analysis/laws")
