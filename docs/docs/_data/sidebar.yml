@@ -1,16 +1,13 @@
 options:
+  - title: Overview
+    url: /
+
   - title: Compiler Plugins API
 
     nested_options:
 
-      - title: Overview
-        url: /
-
       - title: Hello World Compiler Plugin
         url: /hello-world.html
-
-      - title: Setup
-        url: /setup.html
 
       - title: Config
         url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/

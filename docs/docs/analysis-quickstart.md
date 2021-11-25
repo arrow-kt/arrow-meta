@@ -65,7 +65,7 @@ Open a new file and write the following line. This code is incorrect because you
 val wrong = emptyList<Int>().get(2)
 ```
 
-Run the analysis by executing the corresponding Gradle task, and (if everything is correctly configured) you should get the following message:
+Run the analysis by executing the corresponding Gradle task (usually `build` or `compileKotlin`), and (if everything is correctly configured) you should get the following message:
 
 ```
 e: Example.kt: (1, 18): pre-condition `index within bounds` is not satisfied in `get(2)`
