@@ -58,6 +58,9 @@ options:
       - title: 3rd-party libraries
         url: /analysis-laws.html
 
+      - title: Java support
+        url: /analysis-java.html
+
   - title: Proofs
 
     nested_options:
