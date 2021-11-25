@@ -5,7 +5,7 @@ title: Analysis - Java support
 
 # Analysis over Java code
 
-Λrrow Analysis has preliminary support for Java. This is still 
+Λrrow Analysis has preliminary support for Java. This is still an alpha feature.
 
 ## Adding the plug-in
 
