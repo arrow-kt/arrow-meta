@@ -26,11 +26,11 @@ buildscript {
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
   }
   dependencies {
-    classpath("io.arrow-kt.analysis:io.arrow-kt.analysis.gradle.plugin:1.6.0-SNAPSHOT")
+    classpath("io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:1.0-SNAPSHOT")
   }
 }
 
-apply(plugin = "io.arrow-kt.analysis")
+apply(plugin = "io.arrow-kt.analysis.kotlin")
 ```
 
 </div>
@@ -43,11 +43,11 @@ buildscript {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
   }
   dependencies {
-    classpath 'io.arrow-kt.analysis:io.arrow-kt.analysis.gradle.plugin:1.6.0-SNAPSHOT'
+    classpath 'io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:1.0-SNAPSHOT'
   }
 }
 
-apply plugin: 'io.arrow-kt.analysis'
+apply plugin: 'io.arrow-kt.analysis.kotlin'
 ```
 
 </div>
