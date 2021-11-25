@@ -38,7 +38,7 @@ class TypeReference(
   val typeElement: Scope<KtTypeElement>? =
     Scope(value?.typeElement), // TODO KtTypeElement scope and quote template
   val `@annotations`: ScopedList<KtAnnotationEntry> =
-    ScopedList(separator = " ", value = value?.annotationEntries.orEmpty())
+    ScopedList(value = value?.annotationEntries.orEmpty(), separator = " ")
 ) : Scope<KtTypeReference>(value) {
   override fun ElementScope.identity(): TypeReference = """$`@annotations`$typeElement""".type
 }

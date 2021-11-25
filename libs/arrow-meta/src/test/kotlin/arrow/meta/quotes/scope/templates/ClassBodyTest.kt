@@ -58,7 +58,18 @@ class ClassBodyTest {
       | }
       | """.source
 
-    val classBodyExpressions = arrayOf(classBodyScopeTest, enumBodyScopeTest, objectBodyScopeTest)
+    private val annotationTest =
+      """
+      | //metadebug
+      | 
+      | @Deprecated("example") @Suppress("UNUSED_WARNINGS")
+      | class AnnotationTest {
+      |   public val x = 0
+      | }
+      """.source
+
+    val classBodyExpressions =
+      arrayOf(classBodyScopeTest, enumBodyScopeTest, objectBodyScopeTest, annotationTest)
   }
 
   @Test
@@ -74,6 +85,11 @@ class ClassBodyTest {
   @Test
   fun `Validate object body scope properties`() {
     validate(objectBodyScopeTest)
+  }
+
+  @Test
+  fun `Validate several annotations for class`() {
+    validate(annotationTest)
   }
 
   private fun validate(source: Code.Source) {
