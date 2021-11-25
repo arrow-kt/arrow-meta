@@ -4,13 +4,17 @@ title: Hello World
 ---
 
 # Hello World Compiler Plugin
-```
-NOTE: This Example is outdated as Arrow Meta will replace the current psi and descriptor based frontend implementations in favor of the FIR model once that becomes stable in the Kotlin compiler.
+
+> In the future Arrow Meta will replace the current PSI and descriptor-based frontend implementations in favor of the FIR model once that becomes stable in the Kotlin compiler (expected around the 1.7 release.)
+
+Let's build a small compiler plug-in which automatically implements the `helloWorld` function. Regardless of their original contents, the function will be replaced with one that prints `Hello Λrrow Meta!`. 
+
+```kotlin:diff
+-fun helloWorld(): Unit = TODO()
++fun helloWorld(): Unit = println("Hello Λrrow Meta!")
 ```
 
-The following example shows a Hello World Compiler Plugin.
-
-The Hello World plugin auto implements the `helloWorld` function by creating a new the Kotlin AST before the compiler proceeds.
+Here's the code that implements such behavior:
 
 ```kotlin
 val Meta.helloWorld: CliPlugin get() =
@@ -20,7 +24,7 @@ val Meta.helloWorld: CliPlugin get() =
         Transform.replace(
           replacing = c,
           newDeclaration = """|fun helloWorld(): Unit =
-                              |  println("Hello ΛRROW Meta!")
+                              |  println("Hello Λrrow Meta!")
                               |""".function(descriptor)
         )
       }
@@ -28,13 +32,6 @@ val Meta.helloWorld: CliPlugin get() =
   }
 ```
 
-For any user code whose function name is `helloWorld`, our compiler plugin will replace the matching function for a
-function that returns Unit and prints our message.
-
-```kotlin:diff
--fun helloWorld(): Unit = TODO()
-+fun helloWorld(): Unit =
-+  println("Hello ΛRROW Meta!")
-```
+Let's disect it. First of all, we indicate that we want our plugin to match functions whose name is `helloWorld`; this is done via `namedFunction` and a predicate to perform the match. The code inside will only run on those elements in your code, which are represented as the `c` parameter in the lambda. Inside that lambda we describe what ought to be done: in this case replace the original element `c` with a new version. In most plugin frameworks you need to build new code piece by piece, but Λrrow Meta contains a _quote_ mechanism which allows you to write the code as it would appear in Kotlin.
 
 Take a look at the [`arrow-meta-examples`](https://github.com/arrow-kt/arrow-meta-examples) repository for more details.
