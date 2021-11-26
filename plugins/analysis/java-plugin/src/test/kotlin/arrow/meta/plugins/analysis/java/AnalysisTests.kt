@@ -269,4 +269,39 @@ class AnalysisTests {
       withoutPlugin = { succeeded() }
     )
   }
+
+  @Test
+  fun `class invariant with assert, on methods, wrong`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private int n;
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      public int getValue() {
+        return n;
+      }
+      
+      {
+        assert this.getValue() >= 0 : "result is positive";
+      }
+      
+      public Positive subtract(Positive other) {
+        return new Positive(this.getValue() - other.getValue());
+      }
+    }
+    """(
+      withPlugin = {
+        failed()
+        hadErrorContaining("pre-condition `value is positive` is not satisfied")
+      },
+      withoutPlugin = { succeeded() }
+    )
+  }
 }
