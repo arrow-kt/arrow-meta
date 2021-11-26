@@ -92,7 +92,7 @@ internal fun <A> SolverState.checkTopLevel(
           declaration.nameAsName?.let { name -> VarInfo("this@$name", THIS_VAR_NAME, declaration) }
         } else null
       // introduce non-nullability and invariants of parameters
-      initialParameters(context, thisParam, valueParams, returnParam) + listOfNotNull(additional)
+      initialParameters(thisParam, valueParams, returnParam) + listOfNotNull(additional)
     } else emptyList()
   val data =
     CheckData(

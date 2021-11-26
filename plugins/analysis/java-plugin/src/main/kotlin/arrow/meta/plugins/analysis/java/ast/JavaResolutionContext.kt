@@ -22,6 +22,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import com.sun.source.tree.AssertTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.tools.javac.code.Lint
+import com.sun.tools.javac.code.Symbol
 import com.sun.tools.javac.main.JavaCompiler
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.util.DiagnosticSource
@@ -74,10 +75,12 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
     parameter: ValueParameterDescriptor
   ): PropertyDescriptor? = null
 
-  override fun descriptorFor(fqName: FqName): List<DeclarationDescriptor> {
-    val compiler = JavaCompiler.instance(ctx.context)
-    return listOf(compiler.resolveBinaryNameOrIdent(fqName.name).model(ctx))
-  }
+  override fun descriptorFor(fqName: FqName): List<DeclarationDescriptor> =
+    JavaCompiler.instance(ctx.context)
+      .resolveBinaryNameOrIdent(fqName.name)
+      .takeIf { it.exists() }
+      ?.let<Symbol, List<DeclarationDescriptor>> { listOf(it.model(ctx)) }
+      .orEmpty()
 
   override fun descriptorFor(declaration: Declaration): DeclarationDescriptor? =
     (declaration as? JavaElement)?.let { ctx.resolver.resolve(it.impl())?.model(ctx) }

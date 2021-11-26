@@ -1,10 +1,12 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.search
 
+import arrow.analysis.post
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
@@ -52,38 +54,38 @@ internal fun SolverState.getImmediateConstraintsFor(
     ?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
 
 /**
- * This combinator allows us to use any of the previous functions, but operating on the primary
- * constructor, from which we usually get post-conditions as invariants
+ * The invariants are found in either:
+ * - the primary constructor (for Kotlin)
+ * - the intersection of all constructors (for Java)
  */
-internal fun <A> SolverState.overType(
-  f: SolverState.(DeclarationDescriptor) -> A?,
-  descriptor: ClassDescriptor
-): A? = descriptor.unsubstitutedPrimaryConstructor?.let { f(it) }
+internal fun SolverState.getPostInvariantsForType(type: ClassDescriptor): List<NamedConstraint>? =
+  when (val primary = type.unsubstitutedPrimaryConstructor) {
+    is ConstructorDescriptor -> getConstraintsFor(primary)?.post
+    else ->
+      type
+        .constructors
+        .map { secondary -> getConstraintsFor(secondary)?.post }
+        .takeIf { list -> list.isNotEmpty() && list.all { it != null } }
+        ?.filterNotNull() // this is a bit redundant, but won't compile otherwise
+        ?.reduce(::intersectNameds)
+        ?.toList()
+  }
 
-/**
- * This combinator allows us to use any of the previous functions, but operating on the primary
- * constructor, from which we usually get post-conditions as invariants
- */
-internal fun <A> SolverState.overType(
-  context: ResolutionContext,
-  f: SolverState.(DeclarationDescriptor) -> A?,
-  type: Type
-): A? = type.descriptor?.let { overType(f, it) }
+internal fun intersectNameds(one: List<NamedConstraint>, other: List<NamedConstraint>) =
+  one.filter { oneElement ->
+    other.any { otherElement ->
+      oneElement.msg == otherElement.msg &&
+        oneElement.formula.toString() == otherElement.formula.toString()
+    }
+  }
 
 /** Obtain the invariants associated with a certain type */
-internal fun SolverState.typeInvariants(
-  context: ResolutionContext,
-  type: Type,
-  resultName: String
-): List<NamedConstraint> = typeInvariants(context, type, solver.makeObjectVariable(resultName))
+internal fun SolverState.typeInvariants(type: Type, resultName: String): List<NamedConstraint> =
+  typeInvariants(type, solver.makeObjectVariable(resultName))
 
-internal fun SolverState.typeInvariants(
-  context: ResolutionContext,
-  type: Type,
-  result: ObjectFormula
-): List<NamedConstraint> {
+internal fun SolverState.typeInvariants(type: Type, result: ObjectFormula): List<NamedConstraint> {
   val invariants =
-    overType(context, { getConstraintsFor(it) }, type)?.post?.let { constraints ->
+    type.descriptor?.let { getPostInvariantsForType(it) }?.let { constraints ->
       // replace $result by new name
       constraints.map {
         NamedConstraint(

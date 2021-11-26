@@ -990,7 +990,7 @@ private fun SolverState.checkIsExpression(
 ) {
   if (!isNegated) {
     val invariants =
-      (data.context.type(typeReference)?.let { typeInvariants(data.context, it, subjectName) })
+      (data.context.type(typeReference)?.let { typeInvariants(it, subjectName) })
       // in the worst case, we know that it is not null
       ?: listOf(NamedConstraint("$associatedVarName is not null", solver.isNotNull(subjectName)))
     invariants.forEach { cstr ->
@@ -1081,7 +1081,7 @@ internal fun SolverState.checkFunctionBody(
         resultType?.let {
           ParamInfo(RESULT_VAR_NAME, resultSmtName, data.context.type(it), wholeExpr)
         }
-      val newParams = initialParameters(data.context, thisParam, valueParams, resultParam)
+      val newParams = initialParameters(thisParam, valueParams, resultParam)
       val newData =
         data
           .addVarInfos(newParams) // add new names from arguments
