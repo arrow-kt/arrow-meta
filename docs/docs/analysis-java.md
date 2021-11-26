@@ -53,7 +53,9 @@ apply plugin: 'io.arrow-kt.analysis.java'
 </div>
 </div>
 
-## Example
+## Examples
+
+### Functions
 
 The usage of Λrrow Analysis in Java code is very similar to Kotlin. Note that you **must** import `pre` and `post` functions using `import static` for them to be considered by the plug-in. Following Kotlin's lead, the messages must be represented as lambdas, as we do below.
 
@@ -68,3 +70,31 @@ public class Example {
     }
 }
 ```
+
+### Class invariants
+
+You can also define invariants for your class. In that case, the invariants go in so-called _instance initializers_, which are just blocks which appear within the class body.
+
+```java
+import static arrow.analysis.RefinementDSLKt.*;
+
+final class Positive {
+    private int n;
+  
+    public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+    }
+  
+    public int getValue() {
+        return n;
+    }
+  
+    {
+        // this is the class invariant
+        assert this.getValue() >= 0 : "value is positive";
+    }
+}
+```
+
+Note that Λrrow Analysis considers parameterless functions starting with `get` as fields. In the snippet above we use `getValue` in that fashion.
