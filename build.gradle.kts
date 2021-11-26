@@ -18,6 +18,8 @@ allprojects {
   group = property("projects.group").toString()
 }
 
+version = property("projects.meta_version").toString()
+
 tasks {
   create<Exec>("generateDoc") {
     commandLine("sh", "gradlew", "dokkaJekyll")
