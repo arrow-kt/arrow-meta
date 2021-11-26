@@ -82,7 +82,7 @@ internal fun <A> SolverState.checkTopLevel(
           ParamInfo(param.name.value, param.name.value, param.type, element)
         }
       val returnParam =
-        descriptor.returnType?.takeIf { it !is ConstructorDescriptor }?.let {
+        descriptor.returnType?.takeIf { descriptor !is ConstructorDescriptor }?.let {
           ParamInfo(RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
         }
       // additional for 'this@info'
