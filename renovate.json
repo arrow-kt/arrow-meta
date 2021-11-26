@@ -11,7 +11,7 @@
       "excludePackageNames": [
         "io.arrow-kt:arrow-ank-gradle"
       ],
-      "matchUpdateTypes",: [
+      "matchUpdateTypes": [
         "major",
         "minor",
         "patch"
