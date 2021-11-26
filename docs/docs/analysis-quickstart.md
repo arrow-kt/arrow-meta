@@ -7,7 +7,7 @@ title: Analysis - Quick Start
 
 Λrrow Analysis introduces new checks in your compilation pipeline, which warn about common mistakes like out of bounds indexing. This Quick Start explains how to set up Λrrow Analysis in your Gradle project, and how to use it to get further insight in your code, and to introduce additional checks in your own functions and classes.
 
-In this Quick Start we assume a Kotlin project, Λrrow Analysis also provides preliminary [support for Java](/analysis-java.html).
+In this Quick Start we assume a Kotlin project, Λrrow Analysis also provides preliminary [support for Java](analysis-java.html).
 
 ## Adding the plug-in
 
@@ -28,7 +28,7 @@ buildscript {
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
   }
   dependencies {
-    classpath("io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:1.0-SNAPSHOT")
+    classpath("io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:2.0-SNAPSHOT")
   }
 }
 
@@ -45,7 +45,7 @@ buildscript {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
   }
   dependencies {
-    classpath 'io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:1.0-SNAPSHOT'
+    classpath 'io.arrow-kt.analysis.kotlin:io.arrow-kt.analysis.kotlin.gradle.plugin:2.0-SNAPSHOT'
   }
 }
 

@@ -3,6 +3,8 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.publishJvm)
 }
 
+version = property("projects.meta_version").toString()
+
 kotlin {
   explicitApiWarning()
 }
