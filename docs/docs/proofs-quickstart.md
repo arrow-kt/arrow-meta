@@ -26,7 +26,7 @@ buildscript {
     maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
   }
   dependencies {
-    classpath("io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:1.6.0-SNAPSHOT")
+    classpath("io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:2.0-SNAPSHOT")
   }
 }
 
@@ -43,7 +43,7 @@ buildscript {
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
     }
     dependencies {
-        classpath 'io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:1.6.0-SNAPSHOT'
+        classpath 'io.arrow-kt.proofs:io.arrow-kt.proofs.gradle.plugin:2.0-SNAPSHOT'
     }
 }
 

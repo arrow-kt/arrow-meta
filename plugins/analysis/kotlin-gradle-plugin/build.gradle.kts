@@ -8,6 +8,9 @@ version = property("projects.analysis_version").toString()
 
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
+  filesMatching("**/analysis.plugin.properties") {
+    filter { it.replace("%analysisPluginVersion%", "$version") }
+  }
 }
 
 dependencies {

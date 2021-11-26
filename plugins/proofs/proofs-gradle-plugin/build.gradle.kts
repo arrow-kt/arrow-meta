@@ -8,6 +8,10 @@ version = property("projects.proofs_version").toString()
 
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
+  filesMatching("**/proofs.plugin.properties") {
+    filter { it.replace("%proofsPluginVersion%", "$version") }
+    filter { it.replace("%metaVersion%", projects.arrowMetaPrelude.version.toString()) }
+  }
 }
 
 gradlePlugin {

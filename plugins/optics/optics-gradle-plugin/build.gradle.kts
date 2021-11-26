@@ -8,6 +8,10 @@ version = property("projects.optics_version").toString()
 
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
+  filesMatching("**/optics.plugin.properties") {
+    filter { it.replace("%opticsPluginVersion%", "$version") }
+    filter { it.replace("%arrowVersion%", libs.versions.arrow.get()) }
+  }
 }
 
 gradlePlugin {

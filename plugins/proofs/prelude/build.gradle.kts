@@ -3,7 +3,7 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.publishMultiplatform)
 }
 
-version = property("projects.proofs_version").toString()
+version = property("projects.meta_version").toString()
 
 kotlin {
   explicitApiWarning()
