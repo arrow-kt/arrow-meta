@@ -155,7 +155,7 @@ class AnalysisTests {
     
     final class Positive {
       
-      private int n;
+      private final int n;
       public int getValue() {
         return n;
       }
@@ -212,7 +212,7 @@ class AnalysisTests {
     
     final class Positive {
       
-      private int n;
+      private final int n;
       public int getValue() {
         return n;
       }
@@ -243,7 +243,7 @@ class AnalysisTests {
     
     final class Positive {
       
-      private int n;
+      private final int n;
       public int getValue() {
         return n;
       }
@@ -277,7 +277,7 @@ class AnalysisTests {
     
     final class Positive {
       
-      private int n;
+      private final int n;
       
       public Positive(int value) {
         pre(value >= 0, () -> "value is positive");
@@ -299,7 +299,7 @@ class AnalysisTests {
     """(
       withPlugin = {
         failed()
-        hadErrorContaining("pre-condition `value is positive` is not satisfied")
+        hadErrorContaining("pre-condition `result is positive` is not satisfied")
       },
       withoutPlugin = { succeeded() }
     )

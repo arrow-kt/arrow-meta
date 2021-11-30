@@ -9,6 +9,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.withAliasUnwrapped
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationContainer
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
@@ -17,7 +18,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.overriddenDescriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.renameConditions
+import arrow.meta.plugins.analysis.phases.analysis.solver.singleFieldGroups
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.asField
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.substituteObjectVariables
 import arrow.meta.plugins.analysis.types.PrimitiveType
@@ -80,10 +83,18 @@ internal fun intersectNameds(one: List<NamedConstraint>, other: List<NamedConstr
   }
 
 /** Obtain the invariants associated with a certain type */
-internal fun SolverState.typeInvariants(type: Type, resultName: String): List<NamedConstraint> =
-  typeInvariants(type, solver.makeObjectVariable(resultName))
+internal fun SolverState.typeInvariants(
+  type: Type,
+  resultName: String,
+  context: ResolutionContext
+): List<NamedConstraint> = typeInvariants(type, solver.makeObjectVariable(resultName), context)
 
-internal fun SolverState.typeInvariants(type: Type, result: ObjectFormula): List<NamedConstraint> {
+internal fun SolverState.typeInvariants(
+  type: Type,
+  result: ObjectFormula,
+  context: ResolutionContext
+): List<NamedConstraint> {
+  // invariants from the type
   val invariants =
     type.descriptor?.let { getPostInvariantsForType(it) }?.let { constraints ->
       // replace $result by new name
@@ -95,14 +106,50 @@ internal fun SolverState.typeInvariants(type: Type, result: ObjectFormula): List
       }
     }
       ?: emptyList()
+  // invariants from property code
+  val fieldEqs = fieldEqualitiesInvariants(type, result, context)
+  // invariants about nullability
   val isNotNull =
     if (!type.isNullable()) {
       listOf(NamedConstraint("$result is not null", solver.isNotNull(result)))
     } else {
       emptyList()
     }
-  return invariants + isNotNull
+  return invariants + fieldEqs + isNotNull
 }
+
+internal fun SolverState.fieldEqualitiesInvariants(
+  type: Type,
+  resultName: String,
+  context: ResolutionContext
+): List<NamedConstraint> =
+  fieldEqualitiesInvariants(type, solver.makeObjectVariable(resultName), context)
+
+/**
+ * Obtains the invariants related to inter-definition of fields and properties See
+ * [singleFieldGroups]
+ */
+internal fun SolverState.fieldEqualitiesInvariants(
+  type: Type,
+  result: ObjectFormula,
+  context: ResolutionContext
+): List<NamedConstraint> =
+  (type.descriptor?.element() as? DeclarationContainer).singleFieldGroups(context).flatMap { set ->
+    when (set.size) {
+      0 -> throw IllegalStateException("empty field group")
+      else -> {
+        val lst = set.toList()
+        val first = lst[0]
+        val rest = lst.drop(1)
+        rest.map {
+          NamedConstraint(
+            "${it.fqNameSafe.asField} is ${first.fqNameSafe.asField}",
+            solver.objects { equal(field(it, result), field(first, result)) }
+          )
+        }
+      }
+    }
+  }
 
 /**
  * Looks up in the solver state previously collected constraints for every declaration the

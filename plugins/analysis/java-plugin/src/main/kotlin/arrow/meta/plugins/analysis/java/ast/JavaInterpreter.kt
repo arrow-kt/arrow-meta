@@ -44,9 +44,11 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaNull
 import arrow.meta.plugins.analysis.java.ast.elements.JavaParenthesized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaReturn
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSingleBlock
+import arrow.meta.plugins.analysis.java.ast.elements.JavaSuper
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSwitch
 import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTernaryConditional
+import arrow.meta.plugins.analysis.java.ast.elements.JavaThis
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTry
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.JavaUnary
@@ -182,7 +184,12 @@ public fun <
       }
     is UnaryTree -> JavaUnary(ctx, this) as B
     is BinaryTree -> JavaBinary(ctx, this) as B
-    is IdentifierTree -> JavaIdentifier(ctx, this) as B
+    is IdentifierTree ->
+      when (this.name) {
+        ctx.names._this -> JavaThis(ctx, this) as B
+        ctx.names._super -> JavaSuper(ctx, this) as B
+        else -> JavaIdentifier(ctx, this) as B
+      }
     is LambdaExpressionTree -> JavaLambda(ctx, this) as B
     is NewClassTree -> JavaConstructorCall(ctx, this) as B
     is MethodInvocationTree -> JavaCall(ctx, this) as B

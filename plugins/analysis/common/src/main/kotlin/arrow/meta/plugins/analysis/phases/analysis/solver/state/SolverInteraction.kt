@@ -55,11 +55,19 @@ internal fun SolverState.checkImplicationOf(
   constraint: NamedConstraint,
   context: ResolutionContext,
   message: (model: Model) -> Unit
+): Boolean = checkImplicationOf(constraint, true, context, message)
+
+internal fun SolverState.checkImplicationOf(
+  constraint: NamedConstraint,
+  addFieldConstraints: Boolean,
+  context: ResolutionContext,
+  message: (model: Model) -> Unit
 ): Boolean = bracket {
   solver.booleans {
     addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula)))
   }
-  additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
+  if (addFieldConstraints)
+    additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
   val unsat = prover.isUnsat
   if (!unsat) {
     message(prover.model)
@@ -146,13 +154,14 @@ internal fun SolverState.checkPreconditionsInconsistencies(
  */
 internal fun SolverState.checkPostConditionsImplication(
   constraints: DeclarationConstraints?,
+  isConstructor: Boolean,
   context: ResolutionContext,
   declaration: Declaration,
   branch: Branch
 ) {
   solver.run {
     constraints?.post?.forEach { postCondition ->
-      checkImplicationOf(postCondition, context) {
+      checkImplicationOf(postCondition, !isConstructor, context) {
         val msg = unsatBodyPost(declaration, postCondition, branch)
         context.reportUnsatBodyPost(declaration, msg)
       }
