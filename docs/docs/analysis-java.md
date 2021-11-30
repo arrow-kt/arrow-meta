@@ -73,13 +73,13 @@ public class Example {
 
 ### Class invariants
 
-You can also define invariants for your class. In that case, the invariants go in so-called _instance initializers_, which are just blocks which appear within the class body.
+You can also define invariants for your class. In that case, the invariants go in so-called _instance initializers_, which are just blocks which appear within the class body. Note that mutable fields are **not** supported, so you need to mark those as `final`.
 
 ```java
 import static arrow.analysis.RefinementDSLKt.*;
 
 final class Positive {
-    private int n;
+    private final int n;
   
     public Positive(int value) {
         pre(value >= 0, () -> "value is positive");
