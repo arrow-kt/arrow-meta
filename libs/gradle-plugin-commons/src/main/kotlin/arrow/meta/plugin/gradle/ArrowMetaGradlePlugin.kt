@@ -33,6 +33,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     val extension = project.extensions.create(extensionName(), ArrowMetaExtension::class.java)
     extension.generatedSrcOutputDir.convention(defaultPath)
+    extension.applyDependencies.convention(true)
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
@@ -47,15 +48,17 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
       )
     }
     project.afterEvaluate { p ->
-      dependencies.forEach { (g, a, v) ->
-        val configuration =
-          if (p.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-            "commonMainImplementation"
-          } else {
-            "implementation"
-          }
+      if (extension.applyDependencies.get()) {
+        dependencies.forEach { (g, a, v) ->
+          val configuration =
+            if (p.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+              "commonMainImplementation"
+            } else {
+              "implementation"
+            }
 
-        p.dependencies.add(configuration, "$g:$a:$v")
+          p.dependencies.add(configuration, "$g:$a:$v")
+        }
       }
     }
 
