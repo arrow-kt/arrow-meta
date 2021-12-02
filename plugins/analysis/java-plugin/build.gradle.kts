@@ -7,7 +7,7 @@ plugins {
 version = property("projects.analysis_version").toString()
 
 kotlin {
-  explicitApiWarning()
+  explicitApi = null
 }
 
 dependencies {

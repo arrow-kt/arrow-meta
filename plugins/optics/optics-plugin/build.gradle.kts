@@ -6,7 +6,7 @@ plugins {
 version = property("projects.optics_version").toString()
 
 kotlin {
-    explicitApiWarning()
+    explicitApi = null
 }
 
 dependencies {
