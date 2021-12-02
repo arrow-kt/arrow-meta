@@ -5,6 +5,7 @@ import arrow.meta.Meta
 import arrow.meta.invoke
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.analysis.isAnnotatedWith
+import arrow.meta.phases.analysis.skipGeneration
 import arrow.meta.plugins.optics.internals.ADT
 import arrow.meta.plugins.optics.internals.IsoTarget
 import arrow.meta.plugins.optics.internals.LensTarget
@@ -32,15 +33,18 @@ val Meta.optics: CliPlugin
     val processedDescriptors = mutableListOf<FqName>()
     meta(
       classDeclaration(this, { isOpticsTarget(element) }) { c ->
-        val fqName = c.element.fqName ?: c.descriptor?.fqNameSafe
-        if (fqName == null || !processedDescriptors.contains(fqName)) {
-          if (fqName != null) processedDescriptors.add(fqName)
-          if (c.element.companionObjects.isEmpty())
-            knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
-          val files = ctx.process(listOf(adt(c.element)))
-          Transform.newSources(*files.toTypedArray())
-        } else {
-          Transform.Empty
+        if (c.descriptor?.skipGeneration() == true) Transform.empty
+        else {
+          val fqName = c.element.fqName ?: c.descriptor?.fqNameSafe
+          if (fqName == null || !processedDescriptors.contains(fqName)) {
+            if (fqName != null) processedDescriptors.add(fqName)
+            if (c.element.companionObjects.isEmpty())
+              knownError(c.element.nameAsSafeName.asString().noCompanion, c.element)
+            val files = ctx.process(listOf(adt(c.element)))
+            Transform.newSources(*files.toTypedArray())
+          } else {
+            Transform.Empty
+          }
         }
       }
     )
