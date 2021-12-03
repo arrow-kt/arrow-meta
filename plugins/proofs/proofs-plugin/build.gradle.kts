@@ -6,7 +6,7 @@ plugins {
 version = property("projects.proofs_version").toString()
 
 kotlin {
-  explicitApiWarning()
+  explicitApi = null
 }
 
 dependencies {
