@@ -19,7 +19,7 @@ internal fun SolverState.initialParameters(
   val things = listOfNotNull(thisParam) + valueParams + listOfNotNull(result)
   return things.mapNotNull { param ->
     param.type?.let { ty ->
-      typeInvariants(context, ty, param.smtName).forEach { addConstraint(it) }
+      typeInvariants(context, ty, param.smtName).forEach { addConstraint(it, context) }
     }
     param.element?.let { element -> VarInfo(param.name, param.smtName, element) }
   }

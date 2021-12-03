@@ -74,7 +74,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ExplicitRe
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ExplicitThrowReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.LoopPlace
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.NoReturn
-import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.Return
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SimpleCondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.StateAfter
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SubjectCondition
@@ -174,7 +173,7 @@ internal fun SolverState.checkExpressionConstraints(
           }
         is LambdaExpression -> checkLambda(expression, data)
         is ThrowExpression -> checkThrowConstraints(expression, data)
-        is NullExpression -> checkNullExpression(associatedVarName).map { StateAfter(it, data) }
+        is NullExpression -> checkNullExpression(associatedVarName, data)
         is ConstantExpression -> checkConstantExpression(associatedVarName, expression, data)
         is ThisExpression ->
           // both 'this' and 'this@name' are available in the variable info
@@ -457,7 +456,7 @@ private fun controlFlowAnyFunction(
         // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run.html
         FqName("kotlin.run") ->
           ControlFlowFn(
-            thisElement,
+            null /* thisElement == null */,
             bodyElement,
             "this",
             ControlFlowFn.ReturnBehavior.RETURNS_BLOCK_RESULT
@@ -505,7 +504,7 @@ private fun SolverState.checkControlFlowFunctionCall(
           val smtName = newName(newData.context, info.argumentName, info.target)
           // add the constraint to make the parameter equal
           val formula = solver.objects { equal(solver.makeObjectVariable(smtName), thisName) }
-          addConstraint(NamedConstraint("introduce argument for lambda", formula))
+          addConstraint(NamedConstraint("introduce argument for lambda", formula), data.context)
           VarInfo(info.argumentName, smtName, info.target, null)
         }
       // check the body in this new context
@@ -628,12 +627,13 @@ private fun SolverState.checkCallableDescriptor(
             equal(associatedVarName, field(descriptor, argName))
           )
         }
-      addConstraint(fieldConstraint)
+      addConstraint(fieldConstraint, data.context)
     }
     // if the result is not null
     if (!returnType.isNullable()) {
       addConstraint(
-        NamedConstraint("$associatedVarName is not null", solver.isNotNull(associatedVarName))
+        NamedConstraint("$associatedVarName is not null", solver.isNotNull(associatedVarName)),
+        data.context
       )
     }
     // there's no point in continuing if we are in an inconsistent position
@@ -858,13 +858,16 @@ private fun SolverState.checkCallArguments(
     .fold(cont { CallArgumentsInfo.init(data) }, ::acc)
 }
 
-private fun SolverState.checkNullExpression(associatedVarName: ObjectFormula): ContSeq<Return> =
-    cont {
-  addConstraint(
-    NamedConstraint("$associatedVarName is null (== null)", solver.isNull(associatedVarName))
-  )
-  NoReturn
-}
+private fun SolverState.checkNullExpression(
+  associatedVarName: ObjectFormula,
+  data: CheckData
+): ContSeq<StateAfter> =
+  data.noReturn {
+    addConstraint(
+      NamedConstraint("$associatedVarName is null (== null)", solver.isNull(associatedVarName)),
+      data.context
+    )
+  }
 
 /**
  * This function produces a constraint that makes the desired variable name equal to the value
@@ -917,10 +920,12 @@ private fun SolverState.checkConstantExpression(
         NamedConstraint(
           "${expression.text} checkConstantExpression $associatedVarName ${expression.text}",
           it
-        )
+        ),
+        data.context
       )
       addConstraint(
-        NamedConstraint("${expression.text} is not null", solver.isNotNull(associatedVarName))
+        NamedConstraint("${expression.text} is not null", solver.isNotNull(associatedVarName)),
+        data.context
       )
     }
   }
@@ -965,7 +970,10 @@ private fun SolverState.checkBinaryExpression(
             else -> null
           }?.let {
             val cstr = solver.booleans { equivalence(solver.boolValue(associatedVarName), it) }
-            addConstraint(NamedConstraint("$associatedVarName is null?", cstr))
+            addConstraint(
+              NamedConstraint("$associatedVarName is null?", cstr),
+              stateAfter.data.context
+            )
           }
           stateAfter
         }
@@ -1002,7 +1010,7 @@ private fun SolverState.checkIsExpression(
             cstr.formula
           )
         )
-      addConstraint(constraint)
+      addConstraint(constraint, data.context)
     }
   }
 }
@@ -1145,7 +1153,8 @@ private fun SolverState.checkNonFunctionDeclarationExpression(
               NamedConstraint(
                 "$declName $smtName = $newVarName",
                 equal(solver.makeObjectVariable(smtName), solver.makeObjectVariable(newVarName))
-              )
+              ),
+              data.context
             )
           }
         }
@@ -1211,7 +1220,10 @@ private fun SolverState.checkNameExpression(
     data.varInfo.get(referencedName)?.let {
       val constraint =
         solver.objects { equal(associatedVarName, solver.makeObjectVariable(it.smtName)) }
-      addConstraint(NamedConstraint("$associatedVarName = ${it.smtName} (name)", constraint))
+      addConstraint(
+        NamedConstraint("$associatedVarName = ${it.smtName} (name)", constraint),
+        data.context
+      )
     }
   }
 
@@ -1278,7 +1290,8 @@ private fun SolverState.checkConditional(
                   NamedConstraint(
                     "check condition branch $conditionVar",
                     solver.makeBooleanObjectVariable(conditionVar)
-                  )
+                  ),
+                  newData.context
                 )
               })
             .map { returnInfo -> Pair(Pair(returnInfo, cond), conditionVar) }
@@ -1332,7 +1345,10 @@ private fun SolverState.introduceCondition(
                 solver.booleans {
                   equivalence(solver.boolValue(conditionVar), solver.isNull(subjectVar))
                 }
-              addConstraint(NamedConstraint("$subjectVar is null (condition)", complete))
+              addConstraint(
+                NamedConstraint("$subjectVar is null (condition)", complete),
+                data.context
+              )
             }
           } else {
             val patternName = newName(data.context, "pattern", check.expression)
@@ -1363,7 +1379,8 @@ private fun SolverState.introduceCondition(
               }?.let {
                 val complete = solver.booleans { equivalence(solver.boolValue(conditionVar), it) }
                 addConstraint(
-                  NamedConstraint("$subjectVar equals $patternName (condition)", complete)
+                  NamedConstraint("$subjectVar equals $patternName (condition)", complete),
+                  data.context
                 )
               }
               data.noReturn()

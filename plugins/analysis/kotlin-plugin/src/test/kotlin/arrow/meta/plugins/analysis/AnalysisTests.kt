@@ -769,6 +769,33 @@ class AnalysisTests {
   }
 
   @Test
+  fun `isEmpty is size == 0, on map`() {
+    """
+      ${imports()}
+      
+      @Law
+      inline fun <E> List<E>.getLaw(index: Int): E {
+        pre(index >= 0 && index < size) { "index within bounds" }
+        return get(index)
+      }
+      
+      @Law
+      inline fun <E> Collection<E>.isEmptyLaw(): Boolean =
+        isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
+      
+      data class Order(val entries: List<Entry>)
+      data class Entry(val id: String, val amount: Int)
+      
+      fun Order.containsSingleValue() =
+        if (entries.isEmpty()) false
+        else entries.all { entry -> entry.id == entries[0].id }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `nullability, predicate with null, 1`() {
     """
       ${imports()}
