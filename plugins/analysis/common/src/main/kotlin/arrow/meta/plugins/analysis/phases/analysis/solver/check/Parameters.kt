@@ -29,7 +29,7 @@ internal fun SolverState.initialParameters(
     param.type?.let { ty ->
       val invariants: (Type, String, ResolutionContext) -> List<NamedConstraint> =
         if (param.thisFromConstructor) this::fieldEqualitiesInvariants else this::typeInvariants
-      invariants(ty, param.smtName, context).forEach { addConstraint(it) }
+      invariants(ty, param.smtName, context).forEach { addConstraint(it, context) }
     }
     param.element?.let { element -> VarInfo(param.name, param.smtName, element) }
   }

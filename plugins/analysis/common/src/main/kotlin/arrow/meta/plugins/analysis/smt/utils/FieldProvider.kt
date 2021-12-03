@@ -9,7 +9,7 @@ import org.sosy_lab.java_smt.api.ProverEnvironment
 class FieldProvider(
   private val solver: Solver,
   private val prover: ProverEnvironment,
-  private val basicFields: MutableMap<String, Long>,
+  internal val basicFields: MutableMap<String, Long>,
   private var current: Long
 ) {
 

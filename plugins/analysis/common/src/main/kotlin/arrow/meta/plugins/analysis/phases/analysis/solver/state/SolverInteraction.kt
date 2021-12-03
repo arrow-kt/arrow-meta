@@ -46,8 +46,8 @@ internal fun SolverState.addAndCheckConsistency(
   context: ResolutionContext,
   message: (unsatCore: List<BooleanFormula>) -> Unit
 ): Boolean {
-  constraints.forEach { addConstraint(it) }
-  additionalFieldConstraints(constraints, context).forEach { addConstraint(it) }
+  constraints.forEach { addConstraint(it, context) }
+  additionalFieldConstraints(constraints, context).forEach { addConstraint(it, context) }
   return checkInconsistency(message)
 }
 
@@ -64,10 +64,10 @@ internal fun SolverState.checkImplicationOf(
   message: (model: Model) -> Unit
 ): Boolean = bracket {
   solver.booleans {
-    addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula)))
+    addConstraint(NamedConstraint("!(${constraint.msg})", not(constraint.formula)), context)
   }
   if (addFieldConstraints)
-    additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it) }
+    additionalFieldConstraints(listOf(constraint), context).forEach { addConstraint(it, context) }
   val unsat = prover.isUnsat
   if (!unsat) {
     message(prover.model)

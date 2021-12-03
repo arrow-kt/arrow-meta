@@ -213,7 +213,8 @@ private fun SolverState.introduceImplicitProperties(
                 field(propertyDescriptor, solver.thisVariable)
               )
             }
-          )
+          ),
+          context
         )
       }
   }
@@ -321,13 +322,13 @@ private fun SolverState.checkLiskovConditions(
     // pre-conditions should be weaker,
     // so the immediate ones should be implied by the overridden ones
     val liskovPreOk = bracket {
-      overriddenConstraints.pre.forEach { addConstraint(it) }
+      overriddenConstraints.pre.forEach { addConstraint(it, context) }
       immediateConstraints.pre.all { checkLiskovWeakerPrecondition(it, context, declaration) }
     }
     // post-conditions should be stronger,
     // so the overridden ones should be implied by the immediate ones
     val liskovPostOk = bracket {
-      immediateConstraints.post.forEach { addConstraint(it) }
+      immediateConstraints.post.forEach { addConstraint(it, context) }
       overriddenConstraints.post.all { checkLiskovStrongerPostcondition(it, context, declaration) }
     }
     // check that both things are OK
