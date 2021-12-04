@@ -159,7 +159,7 @@ internal fun CompilerContext.solverState(context: DeclarationCheckerContext): So
 
 internal fun CompilerContext.solverState(
   module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
-): SolverState? = get(Keys.solverState(KotlinModuleDescriptor(module)))
+): SolverState? = get(Keys.solverState(KotlinModuleDescriptor(configuration, module)))
 
 internal fun CompilerContext.initialize(module: ModuleDescriptor) {
   ensureInitialized(Keys.solverState(module)) { SolverState(NameProvider()) }
