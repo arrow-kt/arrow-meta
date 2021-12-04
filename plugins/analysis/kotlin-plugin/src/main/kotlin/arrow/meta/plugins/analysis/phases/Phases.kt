@@ -30,7 +30,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
     listOf(
       analysis(
         doAnalysis = { _, module, _, _, bindingTrace, _ ->
-          val kotlinModule: KotlinModuleDescriptor = module.model()
+          val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(configuration, module)
           initialize(kotlinModule)
           when (get<HintState>(Keys.hints(kotlinModule))) {
             HintState.NeedsProcessing -> {
@@ -48,7 +48,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         },
         analysisCompleted = { _, module, bindingTrace, files ->
           if (isInStage(module, Stage.CollectConstraints)) {
-            val kotlinModule: KotlinModuleDescriptor = module.model()
+            val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(configuration, module)
             val context = KotlinResolutionContext(bindingTrace, module)
             val solverState = solverState(module)
             if (solverState != null) {
