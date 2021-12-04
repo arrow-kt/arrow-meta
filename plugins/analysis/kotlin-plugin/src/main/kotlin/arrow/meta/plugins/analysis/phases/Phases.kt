@@ -49,7 +49,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         analysisCompleted = { _, module, bindingTrace, files ->
           if (isInStage(module, Stage.CollectConstraints)) {
             val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(configuration, module)
-            val context = KotlinResolutionContext(bindingTrace, module)
+            val context = KotlinResolutionContext(configuration, bindingTrace, module)
             val solverState = solverState(module)
             if (solverState != null) {
               val locals = files.declarationDescriptors(context)
@@ -98,7 +98,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             }
           } else {
             val solverState = solverState(module)
-            solverState?.notifyModuleProcessed(module.model())
+            solverState?.notifyModuleProcessed(KotlinModuleDescriptor(configuration, module))
             null
           }
         },
@@ -108,7 +108,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
-          val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
+          val kotlinContext =
+            KotlinResolutionContext(configuration, context.trace, context.moduleDescriptor)
           val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
           if (decl != null && solverState != null) {
@@ -118,7 +119,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       },
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Prove)) {
-          val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
+          val kotlinContext =
+            KotlinResolutionContext(configuration, context.trace, context.moduleDescriptor)
           val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
           if (decl != null && solverState != null && !solverState.hadParseErrors()) {

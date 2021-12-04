@@ -4,7 +4,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 
 interface DeclarationDescriptor : Named, Annotated {
-  val module: ModuleDescriptor
   val containingDeclaration: DeclarationDescriptor?
   val containingPackage: FqName?
   fun element(): Element?

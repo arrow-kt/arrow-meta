@@ -14,9 +14,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.cfg.getDeclarationDescriptorIncludingConstructors
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -25,6 +27,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 
 class KotlinResolutionContext(
+  private val config: CompilerConfiguration?,
   private val impl: BindingTrace,
   private val moduleImpl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
 ) : ResolutionContext, BindingTrace by impl {
@@ -174,5 +177,5 @@ class KotlinResolutionContext(
       impl.bindingContext.get(BindingContext.VALUE_PARAMETER_AS_PROPERTY, it)?.model()
     }
 
-  override val module: ModuleDescriptor = moduleImpl.model()
+  override val module: ModuleDescriptor = KotlinModuleDescriptor(config, moduleImpl)
 }
