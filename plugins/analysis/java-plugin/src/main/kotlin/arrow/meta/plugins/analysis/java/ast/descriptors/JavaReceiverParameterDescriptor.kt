@@ -7,7 +7,6 @@ import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverValue
@@ -49,8 +48,7 @@ public class JavaReceiverParameterDescriptor(
 
   override val containingDeclaration: DeclarationDescriptor
     get() = enclosing.model(ctx)
-  override val module: ModuleDescriptor
-    get() = containingDeclaration.module
+
   override val containingPackage: FqName?
     get() = containingDeclaration.containingPackage
 

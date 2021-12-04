@@ -10,7 +10,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCa
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.Annotations
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverValue
@@ -96,7 +95,6 @@ public class JavaAssertFakeDescriptor(
 
   override fun annotations(): Annotations = JavaAnnotations(ctx, emptyList())
   override val overriddenDescriptors: Collection<CallableDescriptor> = emptyList()
-  override val module: ModuleDescriptor = ctx.modules.defaultModule.model(ctx)
   override val containingDeclaration: DeclarationDescriptor? = null
   override val containingPackage: FqName? = null
   override fun element(): Element? = null
@@ -134,7 +132,6 @@ public class JavaAssertFakeParameter(
   override val valueParameters: List<ValueParameterDescriptor> = emptyList()
   override val overriddenDescriptors: Collection<CallableDescriptor> = emptyList()
 
-  override val module: ModuleDescriptor = ctx.modules.defaultModule.model(ctx)
   override val containingPackage: FqName? = null
   override fun element(): Element? = null
   override fun annotations(): Annotations = JavaAnnotations(ctx, emptyList())
