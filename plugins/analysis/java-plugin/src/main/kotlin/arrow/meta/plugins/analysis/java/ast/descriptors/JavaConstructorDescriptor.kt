@@ -6,6 +6,7 @@ import arrow.meta.plugins.analysis.java.AnalysisContext
 import arrow.meta.plugins.analysis.java.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ConstructorDescriptor
+import com.sun.tools.javac.code.Symbol
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 
@@ -18,6 +19,6 @@ public class JavaConstructorDescriptor(
   }
 
   override val constructedClass: ClassDescriptor
-    get() = impl.returnType.model(ctx).descriptor!!
+    get() = (impl as? Symbol.MethodSymbol)?.owner?.model(ctx)!!
   override val isPrimary: Boolean = false
 }

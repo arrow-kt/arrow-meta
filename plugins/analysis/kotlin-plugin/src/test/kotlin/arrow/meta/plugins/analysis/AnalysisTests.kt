@@ -1460,6 +1460,51 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `late initialization, without this`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int
+        
+        public constructor() {
+          thing = 0
+          post({ it.thing == 0 }) { "thing is zero" }
+        }
+        
+        /* cannot be in 'init' because it's "too early"
+           and the compiler says 'thing' is not initialized
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+        */
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `late initialization, with this`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int
+        
+        public constructor() {
+          this.thing = 0
+          post({ it.thing == 0 }) { "thing is zero" }
+        }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert

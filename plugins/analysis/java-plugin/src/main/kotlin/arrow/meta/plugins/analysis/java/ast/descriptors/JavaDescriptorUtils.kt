@@ -18,7 +18,12 @@ public val Element.fqName: String
         elts.add(0, current.qualifiedName.toString())
         current = null
       } else {
-        elts.add(0, current.simpleName.toString())
+        val simple = current.simpleName
+        if (simple != null) {
+          elts.add(0, simple.toString())
+        } else {
+          elts.add(0, "")
+        }
         current = current.enclosingElement
       }
     }

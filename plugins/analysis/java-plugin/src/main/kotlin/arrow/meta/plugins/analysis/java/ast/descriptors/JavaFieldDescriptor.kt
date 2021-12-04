@@ -29,7 +29,7 @@ public class JavaFieldDescriptor(
     require(impl.kind == ElementKind.FIELD)
   }
 
-  override val isVar: Boolean = true
+  override val isVar: Boolean = !impl.modifiers.contains(Modifier.FINAL)
   override val isConst: Boolean = impl.constantValue != null
 
   override val type: JavaType
@@ -57,7 +57,7 @@ public class JavaFieldDescriptor(
   override val dispatchReceiverParameter: ReceiverParameterDescriptor?
     get() =
       if (impl.modifiers.contains(Modifier.STATIC)) null
-      else JavaReceiverParameterDescriptor(ctx, type.ty, impl)
+      else JavaReceiverParameterDescriptor(ctx, impl.enclosingClass!!.asType(), impl)
   override val typeParameters: List<TypeParameterDescriptor> = emptyList()
   override val returnType: Type = type
   override val valueParameters: List<ValueParameterDescriptor> = emptyList()
