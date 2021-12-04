@@ -58,83 +58,101 @@ internal fun <A> SolverState.checkTopLevel(
   context: ResolutionContext,
   descriptor: DeclarationDescriptor,
   declaration: Declaration,
+  isConstructor: Boolean,
   resultName: ObjectFormula,
   bodyCheck: (data: CheckData, checkPost: (finalData: CheckData) -> Unit) -> ContSeq<A>
-): ContSeq<A> {
-  // bring the constraints in (if there are any)
-  val constraints =
-    getConstraintsFor(descriptor)?.let {
-      solver.substituteDeclarationConstraints(it, mapOf(RESULT_VAR_NAME to resultName))
-    }
-  // initialize the check data
-  val initialVarInfo =
-    if (descriptor is CallableDescriptor) {
-      val thisParam =
-        (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let {
-          ParamInfo(THIS_VAR_NAME, THIS_VAR_NAME, it.type, declaration)
-        }
-      val valueParams =
-        descriptor.valueParameters.map { param ->
-          val element =
-            (declaration as? DeclarationWithBody)?.valueParameters?.firstOrNull {
-              it?.name == param.name.value
-            }
-          ParamInfo(param.name.value, param.name.value, param.type, element)
-        }
-      val returnParam =
-        descriptor.returnType?.takeIf { it !is ConstructorDescriptor }?.let {
-          ParamInfo(RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
-        }
-      // additional for 'this@info'
-      val additional =
-        if (declaration is NamedDeclaration) {
-          // Add 'this@functionName'
-          declaration.nameAsName?.let { name -> VarInfo("this@$name", THIS_VAR_NAME, declaration) }
-        } else null
-      // introduce non-nullability and invariants of parameters
-      initialParameters(context, thisParam, valueParams, returnParam) + listOfNotNull(additional)
-    } else emptyList()
-  val data =
-    CheckData(
-      context,
-      ReturnPoints.new(declaration, resultName),
-      CurrentVarInfo(initialVarInfo),
-      CurrentBranch.new()
-    )
-  // perform the checks
-  return continuationBracket
-    .map {
-      // check consistency of pre-conditions
-      val inconsistentPreconditions =
-        checkPreconditionsInconsistencies(constraints, data.context, declaration)
-      ensure(!inconsistentPreconditions)
-    }
-    .flatMap { checkDefaultParameters(declaration, data) }
-    .map {
-      // check Liskov conditions
-      val liskovOk = checkLiskovConditions(declaration, descriptor, data.context)
-      ensure(liskovOk)
-    }
-    .flatMap {
-      // check the body
-      bodyCheck(data) { finalData ->
-        // and finally check the post-conditions
-        checkPostConditionsImplication(
-          constraints,
-          finalData.context,
-          declaration,
-          finalData.branch.get()
-        )
+): ContSeq<A> =
+  continuationBracket.flatMap {
+    // bring the constraints in (if there are any)
+    val constraints =
+      getConstraintsFor(descriptor)?.let {
+        solver.substituteDeclarationConstraints(it, mapOf(RESULT_VAR_NAME to resultName))
       }
-    }
-}
+    // initialize the check data
+    val initialVarInfo =
+      if (descriptor is CallableDescriptor) {
+        val thisParam =
+          when (descriptor) {
+            is ConstructorDescriptor ->
+              ParamInfo(
+                THIS_VAR_NAME,
+                THIS_VAR_NAME,
+                descriptor.constructedClass.defaultType,
+                declaration,
+                true
+              )
+            else ->
+              (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let {
+                ParamInfo(THIS_VAR_NAME, THIS_VAR_NAME, it.type, declaration)
+              }
+          }
+        val valueParams =
+          descriptor.valueParameters.map { param ->
+            val element =
+              (declaration as? DeclarationWithBody)?.valueParameters?.firstOrNull {
+                it?.name == param.name.value
+              }
+            ParamInfo(param.name.value, param.name.value, param.type, element)
+          }
+        val returnParam =
+          descriptor.returnType?.takeIf { descriptor !is ConstructorDescriptor }?.let {
+            ParamInfo(RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
+          }
+        // additional for 'this@info'
+        val additional =
+          if (declaration is NamedDeclaration) {
+            // Add 'this@functionName'
+            declaration.nameAsName?.let { name ->
+              VarInfo("this@$name", THIS_VAR_NAME, declaration)
+            }
+          } else null
+        // introduce non-nullability and invariants of parameters
+        initialParameters(thisParam, valueParams, returnParam, context) + listOfNotNull(additional)
+      } else emptyList()
+    val data =
+      CheckData(
+        context,
+        ReturnPoints.new(declaration, resultName),
+        CurrentVarInfo(initialVarInfo),
+        CurrentBranch.new()
+      )
+
+    ContSeq.unit
+      .map {
+        // check consistency of pre-conditions
+        val inconsistentPreconditions =
+          checkPreconditionsInconsistencies(constraints, data.context, declaration)
+        ensure(!inconsistentPreconditions)
+      }
+      .flatMap { checkDefaultParameters(declaration, data) }
+      .map {
+        // check Liskov conditions
+        val liskovOk = checkLiskovConditions(declaration, descriptor, data.context)
+        ensure(liskovOk)
+      }
+      .flatMap {
+        // check the body
+        bodyCheck(data) { finalData ->
+          // and finally check the post-conditions
+          checkPostConditionsImplication(
+            constraints,
+            isConstructor,
+            finalData.context,
+            declaration,
+            finalData.branch.get()
+          )
+        }
+      }
+  }
 
 internal fun SolverState.checkTopLevelDeclarationWithBody(
   context: ResolutionContext,
   descriptor: DeclarationDescriptor,
   declaration: Declaration
 ): ContSeq<Unit> =
-  checkTopLevel(context, descriptor, declaration, solver.resultVariable) { data, checkPost ->
+  checkTopLevel(context, descriptor, declaration, isConstructor = false, solver.resultVariable) {
+    data,
+    checkPost ->
     // only check body when we are not in a @Law
     doOnlyWhen(!descriptor.isALaw()) {
       checkExpressionConstraints(solver.resultVariable, declaration.stableBody(), data).map {
@@ -149,7 +167,9 @@ internal fun SolverState.checkPrimaryConstructor(
   descriptor: DeclarationDescriptor,
   declaration: PrimaryConstructor
 ): ContSeq<Unit> =
-  checkTopLevel(context, descriptor, declaration, solver.thisVariable) { data, checkPost ->
+  checkTopLevel(context, descriptor, declaration, isConstructor = true, solver.thisVariable) {
+    data,
+    checkPost ->
     val klass = declaration.getContainingClassOrObject()
     ContSeq.unit
       .flatMap {
@@ -247,7 +267,9 @@ internal fun SolverState.checkSecondaryConstructor(
   descriptor: DeclarationDescriptor,
   declaration: SecondaryConstructor
 ): ContSeq<Unit> =
-  checkTopLevel(context, descriptor, declaration, solver.thisVariable) { data, checkPost ->
+  checkTopLevel(context, descriptor, declaration, isConstructor = true, solver.thisVariable) {
+    data,
+    checkPost ->
     ContSeq.unit
       .flatMap {
         // delegate into the primary constructor, if available
@@ -274,7 +296,9 @@ internal fun SolverState.checkEnumEntry(
   descriptor: DeclarationDescriptor,
   entry: EnumEntry
 ): ContSeq<Unit> =
-  checkTopLevel(context, descriptor, entry, solver.thisVariable) { data, checkPost ->
+  checkTopLevel(context, descriptor, entry, isConstructor = false, solver.thisVariable) {
+    data,
+    checkPost ->
     ContSeq.unit
       .flatMap {
         // the supertype entries in an enumeration is the enum itself

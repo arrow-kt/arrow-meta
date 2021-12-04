@@ -17,6 +17,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.VariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.AnnotatedExpression
@@ -44,7 +46,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.I
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LabeledExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LoopExpression
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NameReferenceExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NamedDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NullExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
@@ -933,21 +934,61 @@ private fun SolverState.checkConstantExpression(
 private fun SolverState.checkAssignmentExpression(
   expression: AssignmentExpression,
   data: CheckData
-): ContSeq<StateAfter> =
-  when (val left = expression.left) {
-    // this is an assignment to a mutable variable
-    is NameReferenceExpression -> {
-      // we introduce a new name because we don't want to introduce
-      // any additional information about the variable,
-      // we should only have that declared in the invariant
-      val newName = newName(data.context, left.getReferencedName(), left)
-      val invariant = data.varInfo.get(left.getReferencedName())?.invariant
-      checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
-        it.second
-      } // forget about the temporary name
+): ContSeq<StateAfter> {
+
+  // in cases in which we don't do anything special
+  // we simply look at the rhs to check for problems
+  // there, but without assigning it at all
+  fun onlyRhs(): ContSeq<StateAfter> = checkExpressionConstraints("rhs", expression.right, data)
+
+  // early termination if we cannot resolve the left side
+  val left = expression.left ?: return onlyRhs()
+  val leftCall = left.getResolvedCall(data.context)
+  val leftReceiver = leftCall?.getReceiverExpression()
+  return when (val leftDescr = leftCall?.resultingDescriptor) {
+    is LocalVariableDescriptor -> {
+      when {
+        leftDescr.isVar -> { // assignment to mutable variable
+          // we introduce a new name because we don't want to introduce
+          // any additional information about the variable,
+          // we should only have that declared in the invariant
+          val refName = leftDescr.name.toString()
+          val newName = newName(data.context, refName, left)
+          val invariant = data.varInfo.get(refName)?.invariant
+          checkBodyAgainstInvariants(expression, newName, invariant, expression.right, data).map {
+            it.second
+          } // and then we forget about the new name
+        }
+        // no more cases, since by the Kotlin and Java rules
+        // 'val's / 'final var's must be initialized at declaration time
+        else -> null
+      }
     }
-    else -> data.noReturn {}
+    is PropertyDescriptor -> {
+      when {
+        // nothing for variables from properties or fields
+        leftDescr.isVar -> null
+        // the interesting case is when we are initializing
+        // a variable in a constructor
+        leftDescr.dispatchReceiverParameter != null &&
+          leftDescr.isField() &&
+          (leftReceiver == null || leftReceiver is ThisExpression) -> {
+          // here we are
+          data.varInfo.get(THIS_VAR_NAME)?.let { info ->
+            checkExpressionConstraints(
+              field(leftDescr, solver.makeObjectVariable(info.smtName)),
+              expression.right,
+              data
+            )
+          }
+        }
+        else -> null
+      }
+    }
+    else -> null
   }
+    ?: onlyRhs()
+}
 
 /** Check special binary cases, and make the other fall-through */
 private fun SolverState.checkBinaryExpression(
@@ -998,7 +1039,7 @@ private fun SolverState.checkIsExpression(
 ) {
   if (!isNegated) {
     val invariants =
-      (data.context.type(typeReference)?.let { typeInvariants(data.context, it, subjectName) })
+      (data.context.type(typeReference)?.let { typeInvariants(it, subjectName, data.context) })
       // in the worst case, we know that it is not null
       ?: listOf(NamedConstraint("$associatedVarName is not null", solver.isNotNull(subjectName)))
     invariants.forEach { cstr ->
@@ -1089,7 +1130,7 @@ internal fun SolverState.checkFunctionBody(
         resultType?.let {
           ParamInfo(RESULT_VAR_NAME, resultSmtName, data.context.type(it), wholeExpr)
         }
-      val newParams = initialParameters(data.context, thisParam, valueParams, resultParam)
+      val newParams = initialParameters(thisParam, valueParams, resultParam, data.context)
       val newData =
         data
           .addVarInfos(newParams) // add new names from arguments

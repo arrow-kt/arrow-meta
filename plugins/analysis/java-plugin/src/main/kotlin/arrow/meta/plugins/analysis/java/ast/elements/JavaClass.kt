@@ -11,6 +11,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.C
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ModifierList
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
@@ -21,9 +22,23 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Property
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SuperTypeListEntry
+import com.sun.source.tree.BlockTree
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.Tree
+
+public class JavaInstanceInitializer(
+  private val ctx: AnalysisContext,
+  private val impl: BlockTree,
+  override val containingDeclaration: Declaration
+) : AnonymousInitializer, JavaElement(ctx, impl) {
+  override val body: Expression
+    get() = impl.model(ctx)
+  override val name: String?
+    get() = null
+  override val parents: List<Element>
+    get() = listOf(containingDeclaration) + containingDeclaration.parents
+}
 
 public class JavaClass(private val ctx: AnalysisContext, private val impl: ClassTree) :
   Class, JavaElement(ctx, impl) {
@@ -41,8 +56,18 @@ public class JavaClass(private val ctx: AnalysisContext, private val impl: Class
 
   override val superTypeListEntries: List<SuperTypeListEntry>
     get() = (listOfNotNull(impl.extendsClause) + impl.implementsClause).map { it.model(ctx) }
+
+  // instance initializers are blocks which appear at random
   override val declarations: List<Declaration>
-    get() = impl.members.map { it.model(ctx) }
+    get() =
+      impl.members.map {
+        when (it) {
+          is BlockTree -> JavaInstanceInitializer(ctx, it, this)
+          else -> it.model<Tree, Declaration>(ctx)
+        }
+      }
+  override fun getAnonymousInitializers(): List<AnonymousInitializer> =
+    declarations.filterIsInstance<JavaInstanceInitializer>()
 
   override val body: ClassBody
     get() =
@@ -60,7 +85,6 @@ public class JavaClass(private val ctx: AnalysisContext, private val impl: Class
 
   // Java does not have many Kotlin niceties
   override fun getProperties(): List<Property> = emptyList()
-  override fun getAnonymousInitializers(): List<AnonymousInitializer> = emptyList()
   override val companionObjects: List<ObjectDeclaration?> = emptyList()
 
   // we map all Java constructors as "secondary"

@@ -91,7 +91,7 @@ data class SolverState(
     val info = element?.let { ReferencedElement(it, reference, type) }
     val newName = names.recordNewName(prefix, info)
     if (type != null && !type.isNullable()) {
-      typeInvariants(context, type, newName).forEach { addConstraint(it, context) }
+      typeInvariants(type, newName, context).forEach { addConstraint(it, context) }
     }
     return newName
   }

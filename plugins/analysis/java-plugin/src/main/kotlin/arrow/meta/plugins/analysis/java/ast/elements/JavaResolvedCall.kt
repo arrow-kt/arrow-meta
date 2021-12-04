@@ -109,7 +109,7 @@ public fun Tree.resolvedCall(
         )
       }
     is JCTree.JCFieldAccess ->
-      sym.perform { JavaResolvedCall(ctx, this, it, null, additionalTypeArgs, additionalArgs) }
+      sym.perform { JavaResolvedCall(ctx, this, it, selected, additionalTypeArgs, additionalArgs) }
     is JCTree.JCIdent ->
       sym.perform { JavaResolvedCall(ctx, this, it, null, additionalTypeArgs, additionalArgs) }
     else -> null
