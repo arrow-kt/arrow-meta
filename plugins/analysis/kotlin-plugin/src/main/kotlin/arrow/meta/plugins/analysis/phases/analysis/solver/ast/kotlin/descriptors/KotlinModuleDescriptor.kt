@@ -6,13 +6,13 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.File
+import org.jetbrains.kotlin.config.CompilerConfiguration
 
 class KotlinModuleDescriptor(
   val config: CompilerConfiguration?,
-  val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor) :
-  ModuleDescriptor, KotlinDeclarationDescriptor {
+  val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
+) : ModuleDescriptor, KotlinDeclarationDescriptor {
 
   override fun impl(): org.jetbrains.kotlin.descriptors.ModuleDescriptor = impl
 
