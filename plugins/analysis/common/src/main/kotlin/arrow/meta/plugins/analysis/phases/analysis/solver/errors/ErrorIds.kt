@@ -3,7 +3,8 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.errors
 sealed interface ErrorIds {
 
   val name: String
-  val id: String get() = name
+  val id: String
+    get() = name
   val shortDescription: String
 
   enum class Parsing : ErrorIds {
@@ -16,7 +17,8 @@ sealed interface ErrorIds {
     CouldNotResolveSubject;
 
     override val shortDescription: String
-      get() = """
+      get() =
+        """
           These errors arise from `pre`, `post`, or `invariant` blocks which cannot be translated into
           SMT formulae.
          
@@ -36,21 +38,21 @@ sealed interface ErrorIds {
   }
 
   enum class Unsupported : ErrorIds {
-
     UnsupportedImplicitPrimaryConstructor,
     UnsupportedExpression;
 
     override val shortDescription: String
-      get() = """
+      get() =
+        """
         These are warning which are attached to those elements which are not supported by the analysis (yet).
       """.trimIndent()
   }
 
   enum class Unsatisfiability : ErrorIds {
-
     UnsatCallPre {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
           `UnsatCallPre` (attached to the argument): The required pre-conditions for a (method,
           property, function) call are not satisfied.
           
@@ -63,7 +65,8 @@ sealed interface ErrorIds {
     },
     UnsatBodyPost {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
            (attached to the return value)
           
            the post-condition declared in a function body is not true.
@@ -82,7 +85,8 @@ sealed interface ErrorIds {
     },
     UnsatInvariants {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
           (attached to the new value): the invariant declared for a mutable variable is not satisfied
           by the new value.
           
@@ -99,7 +103,8 @@ sealed interface ErrorIds {
     };
 
     override val shortDescription: String
-      get() = """
+      get() =
+        """
           These errors embody the idea that "something should have been true, but it is not." 
       """.trimIndent()
   }
@@ -107,7 +112,8 @@ sealed interface ErrorIds {
   enum class Inconsistency : ErrorIds {
     InconsistentBodyPre {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
            The set of pre-conditions given to the function leaves no possible way to call the function.
            
            For example:
@@ -124,7 +130,8 @@ sealed interface ErrorIds {
     },
     InconsistentDefaultValues {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
            The default values do not satisfy the pre-conditions.
           
            For example:
@@ -139,7 +146,8 @@ sealed interface ErrorIds {
     },
     InconsistentConditions {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
            (attached to a particular condition): the body of a branch is never executed, because the
            condition it hangs upon conflicts with the rest of the information about the function.
            
@@ -160,14 +168,16 @@ sealed interface ErrorIds {
     },
     InconsistentCallPost {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
           (attached to the function call): the post-conditions gathered after calling a function imply
           that this function could not be called at all. _This is really uncommon in practice_.
         """.trimIndent()
     },
     InconsistentInvariants {
       override val shortDescription: String
-        get() = """
+        get() =
+          """
            (attached to a local declaration): there is no way in which the invariant attached to a
            declaration may be satisfied.
           
@@ -184,7 +194,8 @@ sealed interface ErrorIds {
     };
 
     override val shortDescription: String
-      get() = """
+      get() =
+        """
         These errors embody the idea that "there's no possible way in which we may end up in this
         situation." Usually this means that the code is somehow unreachable. There are four cases in
         which this may arise.
@@ -221,4 +232,3 @@ sealed interface ErrorIds {
     }
   }
 }
-

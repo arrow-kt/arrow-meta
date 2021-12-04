@@ -91,9 +91,9 @@ internal fun SolverState.additionalFieldConstraints(
       val descriptor = context.descriptorFor(fqName).getOrNull(0)
       val constraints = singleConstraintsFromFqName(fqName)
       if (descriptor != null &&
-        constraints != null &&
-        constraints.pre.isEmpty() &&
-        constraints.post.size == 1
+          constraints != null &&
+          constraints.pre.isEmpty() &&
+          constraints.post.size == 1
       ) {
         setOf(
           NamedConstraint(

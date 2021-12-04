@@ -21,8 +21,7 @@ class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDe
       FqName(it.asString())
     }
 
-  override fun getBuildDirectory(): File =
-    getOrCreateBaseDirectory(null)
+  override fun getBuildDirectory(): File = getOrCreateBaseDirectory(null)
 
   override val stableName: Name?
     get() = impl().stableName?.let { Name(it.asString()) }

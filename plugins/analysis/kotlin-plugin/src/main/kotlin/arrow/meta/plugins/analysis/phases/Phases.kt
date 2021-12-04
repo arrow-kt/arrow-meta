@@ -88,7 +88,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
                   )
                 }
                 AnalysisResult.Completed -> {
-                  //TODO this is never reached
+                  // TODO this is never reached
                   solverState.notifyModuleProcessed(kotlinModule)
                   null
                 }
@@ -105,7 +105,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       ),
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Init) ||
-          isInStage(context.moduleDescriptor, Stage.CollectConstraints)
+            isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
           val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)

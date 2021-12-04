@@ -20,10 +20,10 @@ import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.utils.FieldProvider
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import arrow.meta.plugins.analysis.smt.utils.ReferencedElement
+import java.io.File
 import java.util.Locale
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
-import java.io.File
 
 data class SolverState(
   val names: NameProvider = NameProvider(),
