@@ -82,6 +82,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
@@ -100,6 +101,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkConditionsI
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariant
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariantConsistency
 import arrow.meta.plugins.analysis.phases.analysis.solver.valueArgumentExpressions
+import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.renameObjectVariables
 import arrow.meta.plugins.analysis.smt.substituteDeclarationConstraints
@@ -253,10 +256,18 @@ private fun SolverState.fallThrough(
         }
         else ->
           data.noReturn {
-            data.context.reportUnsupported(
-              expression,
-              ErrorMessages.Unsupported.unsupportedExpression(expression)
+            val msg = ErrorMessages.Unsupported.unsupportedExpression(expression)
+            reportedErrors.add(
+              ReportedError(
+                ErrorIds.Unsupported.UnsupportedExpression.id,
+                ErrorIds.Unsupported.UnsupportedExpression,
+                expression,
+                msg,
+                SeverityLevel.Error,
+                emptyList()
+              )
             )
+            data.context.reportUnsupported(expression, msg)
           }
       }
   }

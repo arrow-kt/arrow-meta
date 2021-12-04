@@ -15,4 +15,5 @@ dependencies {
   api(projects.arrowAnalysisTypes)
   api(libs.javaSmt)
   api(libs.apacheCommonsText)
+  api(libs.sarif4k)
 }

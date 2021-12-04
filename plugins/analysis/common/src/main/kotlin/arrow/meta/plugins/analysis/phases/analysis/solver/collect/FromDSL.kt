@@ -16,10 +16,13 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.extractSingleVariable
 import kotlin.collections.ArrayList
@@ -149,6 +152,16 @@ private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
                 errorSignaled = true
                 if (raiseErrorWhenUnexpected) {
                   val msg = ErrorMessages.Parsing.unexpectedFieldInitBlock(fieldName)
+                  solverState.reportedErrors.add(
+                    ReportedError(
+                      ErrorIds.Parsing.UnexpectedFieldInitBlock.id,
+                      ErrorIds.Parsing.UnexpectedFieldInitBlock,
+                      call.callElement,
+                      msg,
+                      SeverityLevel.Error,
+                      emptyList()
+                    )
+                  )
                   context.reportErrorsParsingPredicate(call.callElement, msg)
                 }
                 super.visitFunction(f, args, fn)
@@ -196,6 +209,16 @@ private fun Element.elementToConstraint(
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
+      solverState.reportedErrors.add(
+        ReportedError(
+          ErrorIds.Parsing.ErrorParsingPredicate.id,
+          ErrorIds.Parsing.ErrorParsingPredicate,
+          this,
+          msg,
+          SeverityLevel.Error,
+          emptyList()
+        )
+      )
       context.reportErrorsParsingPredicate(this, msg)
       solverState.signalParseErrors()
       null

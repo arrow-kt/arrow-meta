@@ -1,10 +1,12 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 
+import arrow.meta.phases.analysis.getOrCreateBaseDirectory
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import java.io.File
 
 class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDescriptor) :
   ModuleDescriptor, KotlinDeclarationDescriptor {
@@ -18,6 +20,9 @@ class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDe
     impl().getSubPackagesOf(org.jetbrains.kotlin.name.FqName(fqName.name)) { true }.map {
       FqName(it.asString())
     }
+
+  override fun getBuildDirectory(): File =
+    getOrCreateBaseDirectory(null)
 
   override val stableName: Name?
     get() = impl().stableName?.let { Name(it.asString()) }

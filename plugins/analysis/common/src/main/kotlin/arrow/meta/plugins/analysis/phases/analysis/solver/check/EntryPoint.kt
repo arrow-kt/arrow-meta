@@ -12,8 +12,11 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.SeverityLevel
 
 /* [NOTE: which do we use continuations?]
  * It might look odd that we create continuations when checking
@@ -65,6 +68,16 @@ public fun SolverState.checkDeclarationConstraints(
           ) {
             cont {
               val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
+              reportedErrors.add(
+                ReportedError(
+                  ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor.id,
+                  ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor,
+                  declaration,
+                  msg,
+                  SeverityLevel.Error,
+                  emptyList()
+                )
+              )
               context.reportUnsupported(declaration, msg)
             }
           }

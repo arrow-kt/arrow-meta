@@ -28,12 +28,15 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.W
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
 import arrow.meta.plugins.analysis.phases.analysis.solver.resolvedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.boolAnd
@@ -99,6 +102,16 @@ private fun SolverState.expressionToFormula(
         solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
+        reportedErrors.add(
+          ReportedError(
+            ErrorIds.Parsing.UnexpectedReference.id,
+            ErrorIds.Parsing.UnexpectedReference,
+            ex,
+            msg,
+            SeverityLevel.Error,
+            emptyList()
+          )
+        )
         context.reportErrorsParsingPredicate(ex, msg)
         null
       }
@@ -107,6 +120,16 @@ private fun SolverState.expressionToFormula(
         solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
+        reportedErrors.add(
+          ReportedError(
+            ErrorIds.Parsing.UnexpectedReference.id,
+            ErrorIds.Parsing.UnexpectedReference,
+            ex,
+            msg,
+            SeverityLevel.Error,
+            emptyList()
+          )
+        )
         context.reportErrorsParsingPredicate(ex, msg)
         null
       }

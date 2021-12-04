@@ -2,12 +2,9 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin
 
 import arrow.meta.plugins.analysis.errors.MetaErrors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element

@@ -3,6 +3,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.state
 import arrow.meta.continuations.ContSeq
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
@@ -11,6 +12,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
+import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.sarifFileContent
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
 import arrow.meta.plugins.analysis.smt.fieldNames
@@ -20,6 +23,7 @@ import arrow.meta.plugins.analysis.smt.utils.ReferencedElement
 import java.util.Locale
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
+import java.io.File
 
 data class SolverState(
   val names: NameProvider = NameProvider(),
@@ -31,7 +35,8 @@ data class SolverState(
     ),
   val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf(),
-  val fieldProvider: FieldProvider = FieldProvider(solver, prover)
+  val fieldProvider: FieldProvider = FieldProvider(solver, prover),
+  val reportedErrors: MutableSet<ReportedError> = mutableSetOf()
 ) {
 
   private var parseErrors = false
@@ -99,6 +104,19 @@ data class SolverState(
   fun field(field: DeclarationDescriptor, formula: ObjectFormula): ObjectFormula {
     fieldProvider.introduce(field)
     return solver.field(field.fqNameSafe.asField, formula)
+  }
+
+  fun notifyModuleProcessed(moduleDescriptor: ModuleDescriptor) {
+    updateSarifFile(moduleDescriptor)
+  }
+
+  private fun updateSarifFile(moduleDescriptor: ModuleDescriptor) {
+    if (reportedErrors.isNotEmpty()) {
+      val content = sarifFileContent("1.0.0", reportedErrors.toList())
+      val sarifFile = File(moduleDescriptor.getBuildDirectory(), "arrow.analysis.sarif")
+      println("Generating sarif file: $sarifFile")
+      sarifFile.writeText(content)
+    }
   }
 }
 

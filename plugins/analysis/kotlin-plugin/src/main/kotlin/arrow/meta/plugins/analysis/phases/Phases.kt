@@ -81,19 +81,31 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
                     )
                   }
                 }
-                AnalysisResult.ParsingError ->
+                AnalysisResult.ParsingError -> {
+                  solverState.notifyModuleProcessed(kotlinModule)
                   org.jetbrains.kotlin.analyzer.AnalysisResult.compilationError(
                     bindingTrace.bindingContext
                   )
-                AnalysisResult.Completed -> null
+                }
+                AnalysisResult.Completed -> {
+                  //TODO this is never reached
+                  solverState.notifyModuleProcessed(kotlinModule)
+                  null
+                }
               }
-            } else null
-          } else null
+            } else {
+              null
+            }
+          } else {
+            val solverState = solverState(module)
+            solverState?.notifyModuleProcessed(module.model())
+            null
+          }
         },
       ),
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Init) ||
-            isInStage(context.moduleDescriptor, Stage.CollectConstraints)
+          isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
           val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
