@@ -102,8 +102,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkConditionsI
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariant
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariantConsistency
 import arrow.meta.plugins.analysis.phases.analysis.solver.valueArgumentExpressions
-import arrow.meta.plugins.analysis.sarif.ReportedError
-import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.renameObjectVariables
 import arrow.meta.plugins.analysis.smt.substituteDeclarationConstraints
@@ -258,17 +256,7 @@ private fun SolverState.fallThrough(
         else ->
           data.noReturn {
             val msg = ErrorMessages.Unsupported.unsupportedExpression(expression)
-            reportedErrors.add(
-              ReportedError(
-                ErrorIds.Unsupported.UnsupportedExpression.id,
-                ErrorIds.Unsupported.UnsupportedExpression,
-                expression,
-                msg,
-                SeverityLevel.Error,
-                emptyList()
-              )
-            )
-            data.context.reportUnsupported(expression, msg)
+            data.context.handleError(ErrorIds.Unsupported.UnsupportedExpression, expression, msg)
           }
       }
   }

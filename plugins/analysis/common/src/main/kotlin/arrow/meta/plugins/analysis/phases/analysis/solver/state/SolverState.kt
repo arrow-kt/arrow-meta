@@ -11,8 +11,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.sarif.ReportedError
+import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.sarif.sarifFileContent
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
@@ -36,8 +38,12 @@ data class SolverState(
   val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf(),
   val fieldProvider: FieldProvider = FieldProvider(solver, prover),
-  val reportedErrors: MutableSet<ReportedError> = mutableSetOf()
+  private val reportedErrors: MutableSet<ReportedError> = mutableSetOf()
 ) {
+
+  fun notifySarifReport(id: ErrorIds, element: Element, msg: String) {
+    reportedErrors.add(ReportedError(id.id, id, element, msg, SeverityLevel.Error, emptyList()))
+  }
 
   private var parseErrors = false
 

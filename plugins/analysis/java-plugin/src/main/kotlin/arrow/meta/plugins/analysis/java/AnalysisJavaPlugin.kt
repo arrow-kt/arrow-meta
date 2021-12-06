@@ -79,7 +79,7 @@ public class AnalysisJavaPlugin : Plugin {
       task.after(TaskEvent.Kind.ANALYZE) { _, unit: CompilationUnitTree ->
         task.context.get(AnalysisJavaProcessorKey)?.let { todo ->
           val ctx = AnalysisContext(task, unit)
-          val resolutionContext = JavaResolutionContext(ctx)
+          val resolutionContext = JavaResolutionContext(solverState, ctx)
 
           if (!stage1And2Done) {
             stage1And2Done = true

@@ -25,8 +25,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.isLawsType
 import arrow.meta.plugins.analysis.phases.analysis.solver.isLooselyCompatibleWith
 import arrow.meta.plugins.analysis.phases.analysis.solver.renameConditions
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.analysis.sarif.ReportedError
-import arrow.meta.plugins.analysis.sarif.SeverityLevel
 
 /**
  * Depending on the source of the [descriptor] we might need to attach the information to different
@@ -111,17 +109,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
-      reportedErrors.add(
-        ReportedError(
-          ErrorIds.Parsing.LawMustCallFunction.id,
-          ErrorIds.Parsing.LawMustCallFunction,
-          elt,
-          msg,
-          SeverityLevel.Error,
-          emptyList()
-        )
-      )
-      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      bindingContext.handleError(ErrorIds.Parsing.LawMustCallFunction, elt, msg)
       signalParseErrors()
     }
     return null
@@ -139,17 +127,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (!check) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustHaveParametersInOrder()
-      reportedErrors.add(
-        ReportedError(
-          ErrorIds.Parsing.LawMustHaveParametersInOrder.id,
-          ErrorIds.Parsing.LawMustHaveParametersInOrder,
-          elt,
-          msg,
-          SeverityLevel.Error,
-          emptyList()
-        )
-      )
-      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      bindingContext.handleError(ErrorIds.Parsing.LawMustHaveParametersInOrder, elt, msg)
       signalParseErrors()
     }
     return null

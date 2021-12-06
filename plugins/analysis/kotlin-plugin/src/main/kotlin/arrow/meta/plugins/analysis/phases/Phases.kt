@@ -49,8 +49,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         analysisCompleted = { _, module, bindingTrace, files ->
           if (isInStage(module, Stage.CollectConstraints)) {
             val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(configuration, module)
-            val context = KotlinResolutionContext(configuration, bindingTrace, module)
             val solverState = solverState(module)
+            val context = KotlinResolutionContext(solverState, configuration, bindingTrace, module)
             if (solverState != null) {
               val locals = files.declarationDescriptors(context)
               val (result, interesting) =
@@ -108,10 +108,15 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
-          val kotlinContext =
-            KotlinResolutionContext(configuration, context.trace, context.moduleDescriptor)
-          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
+          val kotlinContext =
+            KotlinResolutionContext(
+              solverState,
+              configuration,
+              context.trace,
+              context.moduleDescriptor
+            )
+          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           if (decl != null && solverState != null) {
             decl.collectConstraintsFromDSL(solverState, kotlinContext, descriptor.model())
           }
@@ -119,10 +124,15 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       },
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Prove)) {
-          val kotlinContext =
-            KotlinResolutionContext(configuration, context.trace, context.moduleDescriptor)
-          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
+          val kotlinContext =
+            KotlinResolutionContext(
+              solverState,
+              configuration,
+              context.trace,
+              context.moduleDescriptor
+            )
+          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           if (decl != null && solverState != null && !solverState.hadParseErrors()) {
             solverState.checkDeclarationConstraints(kotlinContext, decl, descriptor.model())
           }

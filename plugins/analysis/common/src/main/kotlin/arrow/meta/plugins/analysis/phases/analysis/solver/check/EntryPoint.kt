@@ -15,8 +15,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.S
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
-import arrow.meta.plugins.analysis.sarif.ReportedError
-import arrow.meta.plugins.analysis.sarif.SeverityLevel
 
 /* [NOTE: which do we use continuations?]
  * It might look odd that we create continuations when checking
@@ -68,27 +66,21 @@ public fun SolverState.checkDeclarationConstraints(
           ) {
             cont {
               val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
-              reportedErrors.add(
-                ReportedError(
-                  ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor.id,
-                  ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor,
-                  declaration,
-                  msg,
-                  SeverityLevel.Error,
-                  emptyList()
-                )
+              context.handleError(
+                ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor,
+                declaration,
+                msg
               )
-              context.reportUnsupported(declaration, msg)
             }
           }
         else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
       }.drain()
     } catch (e: IllegalStateException) {
       val msg = ErrorMessages.Exception.illegalState(solverTrace)
-      context.reportAnalysisException(declaration, msg)
+      context.handleError(ErrorIds.Exception.IllegalState, declaration, msg)
     } catch (e: Exception) {
       val msg = ErrorMessages.Exception.otherException(e)
-      context.reportAnalysisException(declaration, msg)
+      context.handleError(ErrorIds.Exception.OtherException, declaration, msg)
     }
     // trace
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
