@@ -29,7 +29,7 @@ public class JavaModuleDescriptor(
       .map { it.model(ctx) }
 
   override fun getBuildDirectory(): File =
-    TODO("How do we do this in Javac?, Kotlin gets it through Gradle args")
+    File(System.getProperty("arrow.meta.generate.source.dir"))
 
   override val stableName: Name = Name(impl.simpleName.toString())
 }

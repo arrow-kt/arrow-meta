@@ -8,6 +8,5 @@ interface ModuleDescriptor : DeclarationDescriptor {
   fun getPackage(pck: String): PackageViewDescriptor?
   fun getSubPackagesOf(fqName: FqName): List<FqName>
   fun getBuildDirectory(): File
-
   val stableName: Name?
 }

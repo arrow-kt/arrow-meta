@@ -22,7 +22,12 @@ public operator fun Map<String, String>.invoke(
   worker(config = { withOptions("-parameters") }, files = this, check = withoutPlugin)
   worker(
     config = {
-      withOptions("-parameters", "-Xplugin:" + AnalysisJavaPlugin.NAME)
+      withOptions(
+          "-parameters",
+          "-Xplugin:" +
+            AnalysisJavaPlugin.NAME +
+            " generatedSrcOutputDir=${System.getProperty("arrow.meta.generate.source.dir")}"
+        )
         .withProcessors(AnalysisJavaProcessor())
     },
     files = this,

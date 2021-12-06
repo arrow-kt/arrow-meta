@@ -119,7 +119,10 @@ data class SolverState(
   private fun updateSarifFile(moduleDescriptor: ModuleDescriptor) {
     if (reportedErrors.isNotEmpty()) {
       val content = sarifFileContent("1.0.0", reportedErrors.toList())
-      val sarifFile = File(moduleDescriptor.getBuildDirectory(), "arrow.analysis.sarif")
+      val sarifReportFolder = File(moduleDescriptor.getBuildDirectory(), "/reports/sarif")
+      sarifReportFolder.mkdirs()
+      val moduleName = moduleDescriptor.fqNameSafe.toString().ifBlank { "default" }
+      val sarifFile = File(sarifReportFolder, "arrow.analysis.${moduleName}.sarif")
       println("Generating sarif file: $sarifFile")
       sarifFile.writeText(content)
     }

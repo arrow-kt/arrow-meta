@@ -90,6 +90,7 @@ public class AnalysisJavaPlugin : Plugin {
           }
           // stage 3: check the constraints
           solverState.checkConstraints(unit, ctx, resolutionContext)
+          solverState.notifyModuleProcessed(ctx.modules.defaultModule.model(ctx))
         }
       }
     }
