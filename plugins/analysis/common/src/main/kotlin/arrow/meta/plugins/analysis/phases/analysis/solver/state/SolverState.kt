@@ -14,7 +14,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedCon
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.sarif.ReportedError
-import arrow.meta.plugins.analysis.sarif.SeverityLevel
 import arrow.meta.plugins.analysis.sarif.sarifFileContent
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
@@ -42,7 +41,7 @@ data class SolverState(
 ) {
 
   fun notifySarifReport(id: ErrorIds, element: Element, msg: String) {
-    reportedErrors.add(ReportedError(id.id, id, element, msg, SeverityLevel.Error, emptyList()))
+    reportedErrors.add(ReportedError(id.id, id, element, msg, emptyList()))
   }
 
   private var parseErrors = false

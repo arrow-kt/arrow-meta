@@ -1,11 +1,19 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.errors
 
+enum class SeverityLevel {
+  Error,
+  Warning,
+  Info
+}
+
 sealed interface ErrorIds {
 
   val name: String
   val id: String
     get() = name
   val shortDescription: String
+  val level: SeverityLevel
+    get() = SeverityLevel.Error
 
   enum class Parsing : ErrorIds {
     ErrorParsingPredicate,
@@ -46,6 +54,9 @@ sealed interface ErrorIds {
         """
         These are warning which are attached to those elements which are not supported by the analysis (yet).
       """.trimIndent()
+
+    override val level: SeverityLevel
+      get() = SeverityLevel.Warning
   }
 
   enum class Unsatisfiability : ErrorIds {

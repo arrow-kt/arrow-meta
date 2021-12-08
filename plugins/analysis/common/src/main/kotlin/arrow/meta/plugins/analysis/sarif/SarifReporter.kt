@@ -1,6 +1,7 @@
 package arrow.meta.plugins.analysis.sarif
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.SeverityLevel
 import io.github.detekt.sarif4k.ArtifactLocation
 import io.github.detekt.sarif4k.Level
 import io.github.detekt.sarif4k.Location
@@ -35,13 +36,12 @@ fun sarifFileContent(analysisVersion: String, errors: List<ReportedError>): Stri
                     language = "en",
                     name = "Arrow Analysis",
                     rules =
-                      errors.map {
+                      errors.map { it.errorsId }.distinctBy { it.id }.map {
                         ReportingDescriptor(
-                          id = it.errorsId.id,
-                          name = it.errorsId.name,
-                          shortDescription =
-                            MultiformatMessageString(text = it.errorsId.shortDescription),
-                          helpURI = "https://arrow-kt.io/docs/meta/analysis/${it.errorsId.id}.html"
+                          id = it.id,
+                          name = it.name,
+                          shortDescription = MultiformatMessageString(text = it.shortDescription),
+                          helpURI = "https://arrow-kt.io/docs/meta/analysis/${it.id}.html"
                         )
                       },
                     organization = "arrow-kt",
@@ -54,12 +54,6 @@ fun sarifFileContent(analysisVersion: String, errors: List<ReportedError>): Stri
         )
     )
   return SarifSerializer.toJson(sarifSchema210)
-}
-
-enum class SeverityLevel {
-  Error,
-  Warning,
-  Info
 }
 
 fun toResults(errors: List<ReportedError>): List<io.github.detekt.sarif4k.Result> =
@@ -75,7 +69,7 @@ private fun SeverityLevel.toResultLevel(): Level =
 private fun ReportedError.toResult() =
   io.github.detekt.sarif4k.Result(
     ruleID = "arrow.analysis.$id",
-    level = severity.toResultLevel(),
+    level = errorsId.level.toResultLevel(),
     locations =
       (listOf(element.location()) + references.map { it.location() })
         .mapNotNull { it?.toLocation() }
