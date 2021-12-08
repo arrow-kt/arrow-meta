@@ -43,7 +43,7 @@ fun sarifFileContent(
                     rules =
                       errors.map { it.errorsId }.distinctBy { it.id }.map {
                         ReportingDescriptor(
-                          id = it.id,
+                          id = "arrow.analysis.${it.id}",
                           name = it.name,
                           shortDescription = MultiformatMessageString(text = it.shortDescription),
                           helpURI = "https://arrow-kt.io/docs/meta/analysis/${it.id}.html"

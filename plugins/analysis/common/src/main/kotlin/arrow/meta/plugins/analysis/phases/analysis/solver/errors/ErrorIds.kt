@@ -12,25 +12,25 @@ sealed interface ErrorIds {
   val id: String
     get() = name
   val shortDescription: String
+  val fullDescription: String?
+    get() = null
   val level: SeverityLevel
     get() = SeverityLevel.Error
 
   enum class Parsing : ErrorIds {
     ErrorParsingPredicate,
     UnexpectedReference,
-    UnexpectedFieldInitBlock,
-    LawMustCallFunction,
-    LawMustHaveParametersInOrder,
-    SubjectWithoutName,
-    CouldNotResolveSubject;
+    UnexpectedFieldInitBlock;
 
     override val shortDescription: String
+      get() = "The predicate could not be translated into a SMT formula"
+
+    override val fullDescription: String
       get() =
         """
-          These errors arise from `pre`, `post`, or `invariant` blocks which cannot be translated into
-          SMT formulae.
-         
-          For example, we cannot translate method calls to SMT:
+          The corresponding predicate -- in `pre`, `post`, or `invariant` blocks -- could not be
+          translated to a SMT formula, that is, it is not supported by the solver used
+          internally by the analysis. For example, we cannot translate method calls to SMT:
          
           ```kotlin
           fun f(xs: List[String]): String {
@@ -45,15 +45,31 @@ sealed interface ErrorIds {
         """.trimIndent()
   }
 
+  enum class Laws : ErrorIds {
+    LawMustCallFunction,
+    LawMustHaveParametersInOrder,
+    SubjectWithoutName,
+    CouldNotResolveSubject;
+
+    override val shortDescription: String
+      get() = "Incorrect definition of a law"
+
+    override val fullDescription: String
+      get() =
+        """
+          The definition of a law by means of a `@Law` annotation does not satisfy the requirements:
+          
+          - It must call **exactly one** function at the end,
+          - The call must use the parameters **in order**.
+        """.trimIndent()
+  }
+
   enum class Unsupported : ErrorIds {
     UnsupportedImplicitPrimaryConstructor,
     UnsupportedExpression;
 
     override val shortDescription: String
-      get() =
-        """
-        These are warning which are attached to those elements which are not supported by the analysis (yet).
-      """.trimIndent()
+      get() = "This element is not (yet) supported"
 
     override val level: SeverityLevel
       get() = SeverityLevel.Warning
@@ -62,11 +78,12 @@ sealed interface ErrorIds {
   enum class Unsatisfiability : ErrorIds {
     UnsatCallPre {
       override val shortDescription: String
+        get() = "A pre-condition for a (method, property, function) is are not satisfied"
+
+      override val fullDescription: String
         get() =
           """
-          `UnsatCallPre` (attached to the argument): The required pre-conditions for a (method,
-          property, function) call are not satisfied.
-          
+          The required pre-conditions for a (method, property, function) call are not satisfied.
           For example:
           
           ```kotlin
@@ -76,12 +93,12 @@ sealed interface ErrorIds {
     },
     UnsatBodyPost {
       override val shortDescription: String
+        get() = "A post-condition declared in the function body does not hold"
+
+      override val fullDescription: String
         get() =
           """
-           (attached to the return value)
-          
-           the post-condition declared in a function body is not true.
-          
+           The post-condition declared in a function body cannot be proven true.
            For example:
           
            ```kotlin
@@ -96,12 +113,13 @@ sealed interface ErrorIds {
     },
     UnsatInvariants {
       override val shortDescription: String
+        get() = "The invariant declared for a mutable variable is not satisfied by a value"
+
+      override val fullDescription: String
         get() =
           """
-          (attached to the new value): the invariant declared for a mutable variable is not satisfied
-          by the new value.
-          
-          For example:
+          The invariant declared for a mutable variable is not satisfied a value,
+          either the first one or in a new assignment. For example:
           
           ```kotlin
            fun g(): Int {
@@ -112,21 +130,14 @@ sealed interface ErrorIds {
           ```
         """.trimIndent()
     };
-
-    override val shortDescription: String
-      get() =
-        """
-          These errors embody the idea that "something should have been true, but it is not." 
-      """.trimIndent()
   }
 
   enum class Inconsistency : ErrorIds {
     InconsistentBodyPre {
-      override val shortDescription: String
+      override val fullDescription: String
         get() =
           """
            The set of pre-conditions given to the function leaves no possible way to call the function.
-           
            For example:
            
            ```kotlin
@@ -140,11 +151,10 @@ sealed interface ErrorIds {
         """.trimIndent()
     },
     InconsistentDefaultValues {
-      override val shortDescription: String
+      override val fullDescription: String
         get() =
           """
            The default values do not satisfy the pre-conditions.
-          
            For example:
           
            ```kotlin
@@ -156,13 +166,12 @@ sealed interface ErrorIds {
         """.trimIndent()
     },
     InconsistentConditions {
-      override val shortDescription: String
+      override val fullDescription: String
         get() =
           """
-           (attached to a particular condition): the body of a branch is never executed, because the
-           condition it hangs upon conflicts with the rest of the information about the function.
-           
-           For example, if a condition goes against a pre-condition:
+           The body of a branch is never executed, because the condition it hangs upon conflicts
+           with the rest of the information about the function.
+           This may arise, for example, if a condition goes against a pre-condition:
            
            ```kotlin
              fun i(x: Int): Int {
@@ -178,20 +187,19 @@ sealed interface ErrorIds {
         """.trimIndent()
     },
     InconsistentCallPost {
-      override val shortDescription: String
+      override val fullDescription: String
         get() =
           """
-          (attached to the function call): the post-conditions gathered after calling a function imply
-          that this function could not be called at all. _This is really uncommon in practice_.
+          The post-conditions gathered after calling a function imply
+          that this function could not be called at all. 
+          _This is really uncommon in practice_.
         """.trimIndent()
     },
     InconsistentInvariants {
-      override val shortDescription: String
+      override val fullDescription: String
         get() =
           """
-           (attached to a local declaration): there is no way in which the invariant attached to a
-           declaration may be satisfied.
-          
+           There is no way in which the invariant attached to a declaration may be satisfied.
            For example:
           
            ```kotlin
@@ -205,41 +213,43 @@ sealed interface ErrorIds {
     };
 
     override val shortDescription: String
-      get() =
-        """
-        These errors embody the idea that "there's no possible way in which we may end up in this
-        situation." Usually this means that the code is somehow unreachable. There are four cases in
-        which this may arise.
-      """.trimIndent()
+      get() = "Inconsistent set of conditions (usually means unreachable code)"
   }
 
   enum class Liskov : ErrorIds {
     NotWeakerPrecondition {
       override val shortDescription: String
-        get() = """
-          
-        """.trimIndent()
+        get() = "The pre-condition is not weaker than its parent's"
+
+      override val fullDescription: String
+        get() =
+          """
+            The pre-condition of an overriden method must be **weaker** than
+            the one declared in its parent. This guarantees that we can
+            always replace a call to the parent with a call to the child
+            (Liskov Substitution Principle).
+          """.trimIndent()
     },
     NotStrongerPostcondition {
       override val shortDescription: String
-        get() = """
-          
-        """.trimIndent()
+        get() = "The post-condition is not stronger than its parent's"
+
+      override val fullDescription: String
+        get() =
+          """
+            The post-condition of an overriden method must be **stronger** than
+            the one declared in its parent. This guarantees that we can
+            always replace a call to the parent with a call to the child
+            (Liskov Substitution Principle).
+          """.trimIndent()
     }
   }
 
   enum class Exception : ErrorIds {
-    IllegalState {
-      override val shortDescription: String
-        get() = """
-          
-        """.trimIndent()
-    },
-    OtherException {
-      override val shortDescription: String
-        get() = """
-          
-        """.trimIndent()
-    }
+    IllegalState,
+    OtherException;
+
+    override val shortDescription: String
+      get() = "Internal error during analysis"
   }
 }
