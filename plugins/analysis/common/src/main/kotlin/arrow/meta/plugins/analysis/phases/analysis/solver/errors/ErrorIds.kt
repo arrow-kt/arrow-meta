@@ -129,7 +129,7 @@ sealed interface ErrorIds {
            }
           ```
         """.trimIndent()
-    };
+    }
   }
 
   enum class Inconsistency : ErrorIds {
