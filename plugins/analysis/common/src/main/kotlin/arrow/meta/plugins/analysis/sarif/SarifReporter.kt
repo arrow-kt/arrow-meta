@@ -83,6 +83,11 @@ private fun ReportedError.toResult(baseDir: String) =
     message = Message(text = msg)
   )
 
+private fun rel(baseDir: String, path: String): String {
+  val p = Path(path)
+  return if (p.isAbsolute) Path(baseDir).relativize(p).toString() else path
+}
+
 private fun CompilerMessageSourceLocation.toLocation(baseDir: String): Location =
   Location(
     physicalLocation =
@@ -92,6 +97,6 @@ private fun CompilerMessageSourceLocation.toLocation(baseDir: String): Location 
             startLine = line.toLong(),
             startColumn = column.toLong(),
           ),
-        artifactLocation = ArtifactLocation(uri = Path(baseDir).relativize(Path(path)).toString())
+        artifactLocation = ArtifactLocation(uri = rel(baseDir, path))
       )
   )
