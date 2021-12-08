@@ -109,7 +109,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
-      bindingContext.handleError(ErrorIds.Parsing.LawMustCallFunction, elt, msg)
+      bindingContext.handleError(ErrorIds.Laws.LawMustCallFunction, elt, msg)
       signalParseErrors()
     }
     return null
@@ -127,7 +127,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (!check) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustHaveParametersInOrder()
-      bindingContext.handleError(ErrorIds.Parsing.LawMustHaveParametersInOrder, elt, msg)
+      bindingContext.handleError(ErrorIds.Laws.LawMustHaveParametersInOrder, elt, msg)
       signalParseErrors()
     }
     return null

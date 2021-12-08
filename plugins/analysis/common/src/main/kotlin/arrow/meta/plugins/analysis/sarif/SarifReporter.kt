@@ -10,6 +10,7 @@ import io.github.detekt.sarif4k.MultiformatMessageString
 import io.github.detekt.sarif4k.PhysicalLocation
 import io.github.detekt.sarif4k.Region
 import io.github.detekt.sarif4k.ReportingDescriptor
+import io.github.detekt.sarif4k.ResultKind
 import io.github.detekt.sarif4k.Run
 import io.github.detekt.sarif4k.SarifSchema210
 import io.github.detekt.sarif4k.SarifSerializer
@@ -69,11 +70,19 @@ private fun SeverityLevel.toResultLevel(): Level =
     SeverityLevel.Error -> Level.Error
     SeverityLevel.Warning -> Level.Warning
     SeverityLevel.Info -> Level.Note
+    SeverityLevel.Unsupported -> Level.None
+  }
+
+private fun SeverityLevel.toResultKind(): ResultKind =
+  when (this) {
+    SeverityLevel.Unsupported -> ResultKind.NotApplicable
+    else -> ResultKind.Fail
   }
 
 private fun ReportedError.toResult(baseDir: String) =
   io.github.detekt.sarif4k.Result(
     ruleID = "arrow.analysis.$id",
+    kind = errorsId.level.toResultKind(),
     level = errorsId.level.toResultLevel(),
     locations =
       (listOf(element.location()) + references.map { it.location() })

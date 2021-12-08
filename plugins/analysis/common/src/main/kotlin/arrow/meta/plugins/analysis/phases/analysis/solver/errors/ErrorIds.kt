@@ -3,7 +3,8 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.errors
 enum class SeverityLevel {
   Error,
   Warning,
-  Info
+  Info,
+  Unsupported
 }
 
 sealed interface ErrorIds {
@@ -72,7 +73,7 @@ sealed interface ErrorIds {
       get() = "This element is not (yet) supported"
 
     override val level: SeverityLevel
-      get() = SeverityLevel.Warning
+      get() = SeverityLevel.Unsupported
   }
 
   enum class Unsatisfiability : ErrorIds {
