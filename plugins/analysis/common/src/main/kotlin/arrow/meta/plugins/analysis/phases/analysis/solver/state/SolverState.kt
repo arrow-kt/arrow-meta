@@ -21,12 +21,14 @@ import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.utils.FieldProvider
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import arrow.meta.plugins.analysis.smt.utils.ReferencedElement
-import java.io.File
+import java.io.Writer
 import java.util.Locale
 import org.sosy_lab.java_smt.api.ProverEnvironment
 import org.sosy_lab.java_smt.api.SolverContext
 
 data class SolverState(
+  private val baseDirectory: String,
+  private val outputFileCreator: (String) -> Writer,
   val names: NameProvider = NameProvider(),
   val solver: Solver = Solver(names),
   val prover: ProverEnvironment =
@@ -37,7 +39,7 @@ data class SolverState(
   val callableConstraints: MutableMap<FqName, MutableList<DeclarationConstraints>> = mutableMapOf(),
   val solverTrace: MutableList<String> = mutableListOf(),
   val fieldProvider: FieldProvider = FieldProvider(solver, prover),
-  private val reportedErrors: MutableSet<ReportedError> = mutableSetOf()
+  private val reportedErrors: MutableSet<ReportedError> = mutableSetOf(),
 ) {
 
   fun notifySarifReport(id: ErrorIds, element: Element, msg: String) {
@@ -117,13 +119,16 @@ data class SolverState(
 
   private fun updateSarifFile(moduleDescriptor: ModuleDescriptor) {
     if (reportedErrors.isNotEmpty()) {
-      val content = sarifFileContent("1.0.0", reportedErrors.toList())
-      val sarifReportFolder = File(moduleDescriptor.getBuildDirectory(), "/reports/sarif")
-      sarifReportFolder.mkdirs()
+      val content = sarifFileContent(baseDirectory, "1.0.0", reportedErrors.toList())
       val moduleName = moduleDescriptor.fqNameSafe.toString().ifBlank { "default" }
+      val sarifFile = outputFileCreator("reports/sarif/arrow.analysis.${moduleName}.sarif")
+      sarifFile.write(content)
+      /*val sarifReportFolder = File(moduleDescriptor.getBuildDirectory(), "/reports/sarif")
+      sarifReportFolder.mkdirs()
+
       val sarifFile = File(sarifReportFolder, "arrow.analysis.${moduleName}.sarif")
       println("Generating sarif file: $sarifFile")
-      sarifFile.writeText(content)
+      sarifFile.writeText(content)*/
     }
   }
 }

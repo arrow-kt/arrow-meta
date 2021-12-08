@@ -6,7 +6,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
-import java.io.File
 import javax.lang.model.element.ModuleElement
 import javax.lang.model.element.PackageElement
 
@@ -27,9 +26,6 @@ public class JavaModuleDescriptor(
       .filterIsInstance<PackageElement>()
       .filter { it.fqName.startsWith(fqName.name + ".") }
       .map { it.model(ctx) }
-
-  override fun getBuildDirectory(): File =
-    File(System.getProperty("arrow.meta.generate.source.dir"))
 
   override val stableName: Name = Name(impl.simpleName.toString())
 }

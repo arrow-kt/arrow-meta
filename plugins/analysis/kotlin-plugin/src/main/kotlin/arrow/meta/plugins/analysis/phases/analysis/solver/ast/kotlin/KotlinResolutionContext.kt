@@ -20,7 +20,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import org.jetbrains.kotlin.cfg.getDeclarationDescriptorIncludingConstructors
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -30,7 +29,6 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 
 class KotlinResolutionContext(
   private val state: SolverState?,
-  private val config: CompilerConfiguration?,
   private val impl: BindingTrace,
   private val moduleImpl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
 ) : ResolutionContext, BindingTrace by impl {
@@ -207,5 +205,5 @@ class KotlinResolutionContext(
       impl.bindingContext.get(BindingContext.VALUE_PARAMETER_AS_PROPERTY, it)?.model()
     }
 
-  override val module: ModuleDescriptor = KotlinModuleDescriptor(config, moduleImpl)
+  override val module: ModuleDescriptor = KotlinModuleDescriptor(moduleImpl)
 }

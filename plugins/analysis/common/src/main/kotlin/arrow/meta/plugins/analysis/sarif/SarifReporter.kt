@@ -16,8 +16,13 @@ import io.github.detekt.sarif4k.SarifSerializer
 import io.github.detekt.sarif4k.Tool
 import io.github.detekt.sarif4k.ToolComponent
 import io.github.detekt.sarif4k.Version
+import kotlin.io.path.Path
 
-fun sarifFileContent(analysisVersion: String, errors: List<ReportedError>): String {
+fun sarifFileContent(
+  baseDir: String,
+  analysisVersion: String,
+  errors: List<ReportedError>
+): String {
   val sarifSchema210 =
     SarifSchema210(
       schema =
@@ -49,15 +54,15 @@ fun sarifFileContent(analysisVersion: String, errors: List<ReportedError>): Stri
                     version = analysisVersion
                   )
               ),
-            results = toResults(errors)
+            results = toResults(baseDir, errors)
           )
         )
     )
   return SarifSerializer.toJson(sarifSchema210)
 }
 
-fun toResults(errors: List<ReportedError>): List<io.github.detekt.sarif4k.Result> =
-  errors.map(ReportedError::toResult)
+fun toResults(baseDir: String, errors: List<ReportedError>): List<io.github.detekt.sarif4k.Result> =
+  errors.map { it.toResult(baseDir) }
 
 private fun SeverityLevel.toResultLevel(): Level =
   when (this) {
@@ -66,19 +71,19 @@ private fun SeverityLevel.toResultLevel(): Level =
     SeverityLevel.Info -> Level.Note
   }
 
-private fun ReportedError.toResult() =
+private fun ReportedError.toResult(baseDir: String) =
   io.github.detekt.sarif4k.Result(
     ruleID = "arrow.analysis.$id",
     level = errorsId.level.toResultLevel(),
     locations =
       (listOf(element.location()) + references.map { it.location() })
-        .mapNotNull { it?.toLocation() }
+        .mapNotNull { it?.toLocation(baseDir) }
         .toSet()
         .toList(),
     message = Message(text = msg)
   )
 
-private fun CompilerMessageSourceLocation.toLocation() =
+private fun CompilerMessageSourceLocation.toLocation(baseDir: String): Location =
   Location(
     physicalLocation =
       PhysicalLocation(
@@ -87,6 +92,6 @@ private fun CompilerMessageSourceLocation.toLocation() =
             startLine = line.toLong(),
             startColumn = column.toLong(),
           ),
-        artifactLocation = ArtifactLocation(uri = path)
+        artifactLocation = ArtifactLocation(uri = Path(baseDir).relativize(Path(path)).toString())
       )
   )

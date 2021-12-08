@@ -26,6 +26,6 @@ tasks.withType<JavaCompile> {
   })
   options.compilerArgs.addAll(listOf(
     "-parameters",
-    "-Xplugin:ArrowAnalysisJavaPlugin"
+    "-Xplugin:ArrowAnalysisJavaPlugin baseDir=${project.rootProject.rootDir.path}"
   ))
 }

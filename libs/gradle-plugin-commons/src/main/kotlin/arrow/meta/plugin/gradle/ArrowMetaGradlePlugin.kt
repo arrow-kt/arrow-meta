@@ -84,6 +84,10 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
           value =
             "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
         ),
+        SubpluginOption(
+          key = "baseDir",
+          value = kotlinCompilation.target.project.rootProject.rootDir.path
+        )
       )
     }
   }
