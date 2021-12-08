@@ -1,6 +1,7 @@
 plugins {
-  alias(libs.plugins.arrowGradleConfig.jvm)
-  alias(libs.plugins.arrowGradleConfig.publishJvm)
+  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.publish)
 }
 
 version = property("projects.analysis_version").toString()

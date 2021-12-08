@@ -1,6 +1,7 @@
 plugins {
-  alias(libs.plugins.arrowGradleConfig.multiplatform)
-  alias(libs.plugins.arrowGradleConfig.publishMultiplatform)
+  alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.publish)
 }
 
 version = property("projects.meta_version").toString()

@@ -1,7 +1,8 @@
 plugins {
-  alias(libs.plugins.arrowGradleConfig.jvm)
+  alias(libs.plugins.kotlin.jvm)
   `java-gradle-plugin`
-  alias(libs.plugins.arrowGradleConfig.publishGradlePluginX)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.publish)
 }
 
 version = property("projects.optics_version").toString()
