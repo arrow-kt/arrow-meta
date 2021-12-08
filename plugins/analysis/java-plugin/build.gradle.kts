@@ -1,4 +1,5 @@
-@Suppress("DSL_SCOPE_VIOLATION")
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   alias(libs.plugins.arrowGradleConfig.jvm)
   alias(libs.plugins.arrowGradleConfig.publishJvm)
