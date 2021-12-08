@@ -1,6 +1,7 @@
 package arrow.meta.plugins.analysis.sarif
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.SeverityLevel
 import io.github.detekt.sarif4k.ArtifactLocation
 import io.github.detekt.sarif4k.Level
@@ -42,14 +43,10 @@ fun sarifFileContent(
                     language = "en",
                     name = "Arrow Analysis",
                     rules =
-                      errors.map { it.errorsId }.distinctBy { it.id }.map {
-                        ReportingDescriptor(
-                          id = "arrow.analysis.${it.id}",
-                          name = it.name,
-                          shortDescription = MultiformatMessageString(text = it.shortDescription),
-                          helpURI = "https://arrow-kt.io/docs/meta/analysis/${it.id}.html"
-                        )
-                      },
+                      errors
+                        .map(ReportedError::errorsId)
+                        .distinctBy(ErrorIds::id)
+                        .map(ErrorIds::toDescriptor),
                     organization = "arrow-kt",
                     semanticVersion = analysisVersion,
                     version = analysisVersion
@@ -61,6 +58,19 @@ fun sarifFileContent(
     )
   return SarifSerializer.toJson(sarifSchema210)
 }
+
+private fun ErrorIds.toDescriptor(): ReportingDescriptor =
+  ReportingDescriptor(
+    id = "arrow.analysis.$id",
+    name = name,
+    shortDescription = MultiformatMessageString(text = shortDescription),
+    fullDescription =
+      when (val d = fullDescription) {
+        null -> MultiformatMessageString(text = shortDescription)
+        else -> MultiformatMessageString(markdown = d, text = d)
+      },
+    helpURI = "https://arrow-kt.io/docs/meta/analysis/${id}.html"
+  )
 
 fun toResults(baseDir: String, errors: List<ReportedError>): List<io.github.detekt.sarif4k.Result> =
   errors.map { it.toResult(baseDir) }
