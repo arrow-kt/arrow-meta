@@ -123,12 +123,7 @@ data class SolverState(
       val moduleName = moduleDescriptor.fqNameSafe.toString().ifBlank { "default" }
       val sarifFile = outputFileCreator("reports/sarif/arrow.analysis.${moduleName}.sarif")
       sarifFile.write(content)
-      /*val sarifReportFolder = File(moduleDescriptor.getBuildDirectory(), "/reports/sarif")
-      sarifReportFolder.mkdirs()
-
-      val sarifFile = File(sarifReportFolder, "arrow.analysis.${moduleName}.sarif")
-      println("Generating sarif file: $sarifFile")
-      sarifFile.writeText(content)*/
+      sarifFile.flush()
     }
   }
 }
