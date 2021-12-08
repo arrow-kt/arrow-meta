@@ -1,7 +1,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-  alias(libs.plugins.arrowGradleConfig.jvm)
-  alias(libs.plugins.arrowGradleConfig.publishJvm)
+  id(libs.plugins.kotlin.jvm.get().pluginId)
+  alias(libs.plugins.arrowGradleConfig.publish)
 }
 
 version = property("projects.analysis_version").toString()

@@ -42,6 +42,7 @@ apacheCommonsText = { module = "org.apache.commons:commons-text", version.ref = 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 arrowGradleConfig-formatter = { id = "io.arrow-kt.arrow-gradle-config-formatter", version.ref = "arrowGradleConfig" }
 arrowGradleConfig-kotlin = { id = "io.arrow-kt.arrow-gradle-config-kotlin", version.ref = "arrowGradleConfig" }
 arrowGradleConfig-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref = "arrowGradleConfig" }

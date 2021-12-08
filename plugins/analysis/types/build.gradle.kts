@@ -1,5 +1,5 @@
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
+  id(libs.plugins.kotlin.multiplatform.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.kotlin)
   alias(libs.plugins.arrowGradleConfig.publish)
 }
