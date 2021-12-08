@@ -13,6 +13,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedCon
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.Solver
+import arrow.meta.plugins.analysis.smt.fieldNames
 import arrow.meta.plugins.analysis.smt.utils.FieldProvider
 import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import arrow.meta.plugins.analysis.smt.utils.ReferencedElement
@@ -35,7 +36,7 @@ data class SolverState(
 
   private var parseErrors = false
 
-  fun signalParseErrors(): Unit {
+  fun signalParseErrors() {
     parseErrors = true
   }
 
@@ -66,13 +67,15 @@ data class SolverState(
         solverTrace.add("POP (scoped)")
       }
 
-  fun addConstraint(constraint: NamedConstraint) {
+  fun addConstraint(constraint: NamedConstraint, context: ResolutionContext) {
     prover.addConstraint(constraint.formula)
+    // introduce the field names
+    solver.formulaManager.fieldNames(constraint.formula).map { (fieldName, _) ->
+      context.descriptorFor(FqName(fieldName)).getOrNull(0)?.let { descriptor ->
+        fieldProvider.introduce(descriptor)
+      }
+    }
     solverTrace.add("${constraint.msg} : ${constraint.formula}")
-  }
-
-  fun addConstraintWithoutTrace(constraint: NamedConstraint) {
-    prover.addConstraint(constraint.formula)
   }
 
   fun newName(context: ResolutionContext, prefix: String, element: Element?): String =
@@ -88,7 +91,7 @@ data class SolverState(
     val info = element?.let { ReferencedElement(it, reference, type) }
     val newName = names.recordNewName(prefix, info)
     if (type != null && !type.isNullable()) {
-      typeInvariants(context, type, newName).forEach { addConstraint(it) }
+      typeInvariants(type, newName, context).forEach { addConstraint(it, context) }
     }
     return newName
   }

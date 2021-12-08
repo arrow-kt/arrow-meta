@@ -147,4 +147,161 @@ class AnalysisTests {
       withoutPlugin = { succeeded() }
     )
   }
+
+  @Test
+  fun `class invariant`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private final int n;
+      public int getValue() {
+        return n;
+      }
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      {
+        post((Positive r) -> r.getValue() >= 0, () -> "result is positive");
+      }
+    }
+    """(
+      withPlugin = { succeeded() },
+      withoutPlugin = { succeeded() }
+    )
+  }
+
+  @Test
+  fun `class invariant, wrong`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private int n;
+      public int getValue() {
+        return n;
+      }
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      static void main() {
+        Positive x = new Positive(-1);
+      }
+    }
+    """(
+      withPlugin = {
+        failed()
+        hadErrorContaining("pre-condition `value is positive` is not satisfied")
+      },
+      withoutPlugin = { succeeded() }
+    )
+  }
+
+  @Test
+  fun `class invariant, on methods, ok`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private final int n;
+      public int getValue() {
+        return n;
+      }
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      {
+        post((Positive r) -> r.getValue() >= 0, () -> "result is positive");
+      }
+      
+      public Positive add(Positive other) {
+        return new Positive(this.getValue() + other.getValue());
+      }
+    }
+    """(
+      withPlugin = { succeeded() },
+      withoutPlugin = { succeeded() }
+    )
+  }
+
+  @Test
+  fun `class invariant, on methods, wrong`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private final int n;
+      public int getValue() {
+        return n;
+      }
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      {
+        post((Positive r) -> r.getValue() >= 0, () -> "result is positive");
+      }
+      
+      public Positive subtract(Positive other) {
+        return new Positive(this.getValue() - other.getValue());
+      }
+    }
+    """(
+      withPlugin = {
+        failed()
+        hadErrorContaining("pre-condition `value is positive` is not satisfied")
+      },
+      withoutPlugin = { succeeded() }
+    )
+  }
+
+  @Test
+  fun `class invariant with assert, on methods, wrong`() {
+    """
+    import static arrow.analysis.RefinementDSLKt.*;
+    
+    final class Positive {
+      
+      private final int n;
+      
+      public Positive(int value) {
+        pre(value >= 0, () -> "value is positive");
+        this.n = value;
+      }
+      
+      public int getValue() {
+        return n;
+      }
+      
+      {
+        assert this.getValue() >= 0 : "result is positive";
+      }
+      
+      public Positive subtract(Positive other) {
+        return new Positive(this.getValue() - other.getValue());
+      }
+    }
+    """(
+      withPlugin = {
+        failed()
+        hadErrorContaining("pre-condition `result is positive` is not satisfied")
+      },
+      withoutPlugin = { succeeded() }
+    )
+  }
 }

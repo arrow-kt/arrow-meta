@@ -17,6 +17,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.L
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.analysis.phases.analysis.solver.isAssertCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -96,12 +97,14 @@ private fun <A : Constructor<A>> Constructor<A>.constraintsFromConstructor(
   (getContainingClassOrObject().getAnonymousInitializers() + listOf(this))
     .flatMap { it.constraintsFromGenericDeclaration(solverState, context, parameters) }
     .forEach { (call, formula) ->
+      val isRequireOrAssert = call.isRequireCall() || call.isAssertCall()
       if (call.specialKind == SpecialKind.Pre) {
-        rewritePrecondition(solverState, context, !call.isRequireCall(), call, formula.formula)
-          ?.let { preConstraints.add(NamedConstraint(formula.msg, it)) }
+        rewritePrecondition(solverState, context, !isRequireOrAssert, call, formula.formula)?.let {
+          preConstraints.add(NamedConstraint(formula.msg, it))
+        }
       }
-      // in constructors 'require' has a double duty
-      if (call.specialKind == SpecialKind.Post || call.isRequireCall()) {
+      // in constructors 'require' and 'assert' have a double duty
+      if (call.specialKind == SpecialKind.Post || isRequireOrAssert) {
         rewritePostcondition(solverState, formula.formula).let {
           postConstraints.add(NamedConstraint(formula.msg, it))
         }

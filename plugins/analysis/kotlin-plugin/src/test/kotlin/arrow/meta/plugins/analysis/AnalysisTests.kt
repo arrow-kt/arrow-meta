@@ -769,6 +769,33 @@ class AnalysisTests {
   }
 
   @Test
+  fun `isEmpty is size == 0, on map`() {
+    """
+      ${imports()}
+      
+      @Law
+      inline fun <E> List<E>.getLaw(index: Int): E {
+        pre(index >= 0 && index < size) { "index within bounds" }
+        return get(index)
+      }
+      
+      @Law
+      inline fun <E> Collection<E>.isEmptyLaw(): Boolean =
+        isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
+      
+      data class Order(val entries: List<Entry>)
+      data class Entry(val id: String, val amount: Int)
+      
+      fun Order.containsSingleValue() =
+        if (entries.isEmpty()) false
+        else entries.all { entry -> entry.id == entries[0].id }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `nullability, predicate with null, 1`() {
     """
       ${imports()}
@@ -1428,6 +1455,51 @@ class AnalysisTests {
         return 2
       }
       val result = bar("alex")
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `late initialization, without this`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int
+        
+        public constructor() {
+          thing = 0
+          post({ it.thing == 0 }) { "thing is zero" }
+        }
+        
+        /* cannot be in 'init' because it's "too early"
+           and the compiler says 'thing' is not initialized
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+        */
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `late initialization, with this`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int
+        
+        public constructor() {
+          this.thing = 0
+          post({ it.thing == 0 }) { "thing is zero" }
+        }
+      }
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }

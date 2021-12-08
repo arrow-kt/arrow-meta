@@ -84,6 +84,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtDotQualifiedExpression -> KotlinDotQualifiedExpression(this).repr()
     is KtPrefixExpression -> KotlinDefaultExpression(this).repr()
     is KtThisExpression -> KotlinThisExpression(this).repr()
+    is KtSuperExpression -> KotlinSuperExpression(this).repr()
     is KtIfExpression -> KotlinIfExpression(this).repr()
     is KtPrimaryConstructor -> KotlinPrimaryConstructor(this).repr()
     is KtClassInitializer -> KotlinClassInitializer(this).repr()

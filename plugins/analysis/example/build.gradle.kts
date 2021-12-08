@@ -5,7 +5,7 @@ plugins {
 version = property("projects.analysis_version").toString()
 
 kotlin {
-  explicitApiWarning()
+  explicitApi = null
 
   sourceSets {
     commonMain {

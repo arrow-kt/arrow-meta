@@ -14,6 +14,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import com.sun.tools.javac.code.Symbol
+import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.type.TypeKind
 
@@ -32,9 +34,14 @@ public open class JavaFunctionDescriptor(
   override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
   override val dispatchReceiverParameter: ReceiverParameterDescriptor?
     get() =
-      when (impl.receiverType?.kind) {
-        null, TypeKind.NONE -> null
-        else -> JavaReceiverParameterDescriptor(ctx, impl.receiverType, impl)
+      when (impl.kind) {
+        ElementKind.METHOD -> {
+          (impl as Symbol.MethodSymbol).owner.asType()?.let {
+            if (it.kind == null || it.kind == TypeKind.NONE) null
+            else JavaReceiverParameterDescriptor(ctx, it, impl)
+          }
+        }
+        else -> null
       }
   override val typeParameters: List<TypeParameterDescriptor>
     get() = impl.typeParameters.map { it.model(ctx) }

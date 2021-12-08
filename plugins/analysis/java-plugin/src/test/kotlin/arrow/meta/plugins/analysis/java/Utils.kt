@@ -19,6 +19,7 @@ public operator fun Map<String, String>.invoke(
   withPlugin: CompilationSubject.() -> Unit,
   withoutPlugin: CompilationSubject.() -> Unit
 ) {
+  worker(config = { withOptions("-parameters") }, files = this, check = withoutPlugin)
   worker(
     config = {
       withOptions("-parameters", "-Xplugin:" + AnalysisJavaPlugin.NAME)
@@ -27,7 +28,6 @@ public operator fun Map<String, String>.invoke(
     files = this,
     check = withPlugin
   )
-  worker(config = { withOptions("-parameters") }, files = this, check = withoutPlugin)
 }
 
 private fun worker(

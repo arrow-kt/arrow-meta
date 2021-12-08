@@ -5,8 +5,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtSuperExpression
 
-interface KotlinSuperExpression : SuperExpression, KotlinInstanceExpressionWithLabel {
-  override fun impl(): KtSuperExpression
+class KotlinSuperExpression(val impl: KtSuperExpression) :
+  SuperExpression, KotlinInstanceExpressionWithLabel {
+  override fun impl(): KtSuperExpression = impl
   override val superTypeQualifier: TypeReference?
-    get() = impl().superTypeQualifier?.model()
+    get() = impl.superTypeQualifier?.model()
 }
