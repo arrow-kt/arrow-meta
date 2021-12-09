@@ -37,7 +37,7 @@ fun <
     is TypeAliasDescriptor -> KotlinTypeAliasDescriptor(this).repr()
     is ValueParameterDescriptor -> KotlinValueParameterDescriptor(this).repr()
     is ClassConstructorDescriptor -> KotlinConstructorDescriptor(this).repr()
-    is ModuleDescriptor -> KotlinModuleDescriptor(this).repr()
+    // is ModuleDescriptor -> KotlinModuleDescriptor(this).repr()
     is LazyClassReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()

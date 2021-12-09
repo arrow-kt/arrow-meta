@@ -56,3 +56,12 @@ jobs:
         with:
           name: error-report
           path: build-reports.zip
+
+      - name: Bundle SARIF report
+        run: mkdir sarif && find . -name '*.sarif' | xargs -I{} cp "{}" ./sarif/
+
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+        # Path to SARIF file relative to the root of the repository
+          sarif_file: sarif

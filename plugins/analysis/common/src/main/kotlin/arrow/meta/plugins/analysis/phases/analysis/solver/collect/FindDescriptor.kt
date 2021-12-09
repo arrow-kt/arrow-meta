@@ -17,6 +17,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.R
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.isCompatibleWith
@@ -108,7 +109,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (lawCall == null) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustCallFunction()
-      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      bindingContext.handleError(ErrorIds.Laws.LawMustCallFunction, elt, msg)
       signalParseErrors()
     }
     return null
@@ -126,7 +127,7 @@ public fun SolverState.findDescriptorFromLocalLaw(
   if (!check) {
     descriptor.element()?.let { elt ->
       val msg = ErrorMessages.Parsing.lawMustHaveParametersInOrder()
-      bindingContext.reportErrorsParsingPredicate(elt, msg)
+      bindingContext.handleError(ErrorIds.Laws.LawMustHaveParametersInOrder, elt, msg)
       signalParseErrors()
     }
     return null

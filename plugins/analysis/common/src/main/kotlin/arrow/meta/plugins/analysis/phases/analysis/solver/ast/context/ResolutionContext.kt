@@ -10,22 +10,13 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 
 interface ResolutionContext {
   val types: Types
-  fun reportErrorsParsingPredicate(element: Element, msg: String)
+  fun handleError(error: ErrorIds, element: Element, msg: String): Unit
   fun type(typeReference: TypeReference?): Type?
-  fun reportUnsatCallPre(element: Element, msg: String)
   fun Element.constraintsDSLElements(): List<Element>
-  fun reportInconsistentBodyPre(declaration: Element, msg: String)
-  fun reportUnsatBodyPost(declaration: Element, msg: String)
-  fun reportInconsistentCallPost(expression: Element, msg: String)
-  fun reportInconsistentConditions(expression: Element, msg: String)
-  fun reportInconsistentInvariants(expression: Element, msg: String)
-  fun reportUnsatInvariants(expression: Element, msg: String)
-  fun reportLiskovProblem(expression: Element, msg: String)
-  fun reportUnsupported(expression: Element, msg: String)
-  fun reportAnalysisException(element: Element, msg: String)
   fun descriptorFor(fqName: FqName): List<DeclarationDescriptor>
   fun descriptorFor(declaration: Declaration): DeclarationDescriptor?
   fun backingPropertyForConstructorParameter(

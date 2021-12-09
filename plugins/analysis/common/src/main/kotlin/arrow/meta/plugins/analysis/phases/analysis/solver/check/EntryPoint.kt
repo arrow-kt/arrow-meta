@@ -12,6 +12,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 
@@ -65,17 +66,21 @@ public fun SolverState.checkDeclarationConstraints(
           ) {
             cont {
               val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
-              context.reportUnsupported(declaration, msg)
+              context.handleError(
+                ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor,
+                declaration,
+                msg
+              )
             }
           }
         else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
       }.drain()
     } catch (e: IllegalStateException) {
       val msg = ErrorMessages.Exception.illegalState(solverTrace)
-      context.reportAnalysisException(declaration, msg)
+      context.handleError(ErrorIds.Exception.IllegalState, declaration, msg)
     } catch (e: Exception) {
       val msg = ErrorMessages.Exception.otherException(e)
-      context.reportAnalysisException(declaration, msg)
+      context.handleError(ErrorIds.Exception.OtherException, declaration, msg)
     }
     // trace
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
