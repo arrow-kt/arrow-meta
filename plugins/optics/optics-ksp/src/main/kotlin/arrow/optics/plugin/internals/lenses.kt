@@ -10,7 +10,15 @@ internal fun generateLenses(ele: ADT, target: LensTarget) =
   )
 
 private fun String.toUpperCamelCase(): String =
-  split(" ").joinToString("", transform = { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } })
+  split(" ")
+    .joinToString(
+      "",
+      transform = {
+        it.replaceFirstChar {
+          if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+        }
+      }
+    )
 
 private fun processElement(ele: ADT, foci: List<Focus>): String =
   foci.joinToString(separator = "\n") { focus ->
