@@ -83,6 +83,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.noReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.topLevelExpressionToFormula
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.getReceiverOrThisNamedArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasReceiver
@@ -254,10 +255,8 @@ private fun SolverState.fallThrough(
         }
         else ->
           data.noReturn {
-            data.context.reportUnsupported(
-              expression,
-              ErrorMessages.Unsupported.unsupportedExpression(expression)
-            )
+            val msg = ErrorMessages.Unsupported.unsupportedExpression(expression)
+            data.context.handleError(ErrorIds.Unsupported.UnsupportedExpression, expression, msg)
           }
       }
   }

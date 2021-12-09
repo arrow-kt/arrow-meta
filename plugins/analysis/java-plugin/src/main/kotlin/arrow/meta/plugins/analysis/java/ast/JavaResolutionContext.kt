@@ -19,6 +19,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import com.sun.source.tree.AssertTree
 import com.sun.source.tree.MethodInvocationTree
 import com.sun.tools.javac.code.Lint
@@ -28,7 +30,10 @@ import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.util.DiagnosticSource
 import com.sun.tools.javac.util.JCDiagnostic
 
-public class JavaResolutionContext(private val ctx: AnalysisContext) : ResolutionContext {
+public class JavaResolutionContext(
+  private val state: SolverState?,
+  private val ctx: AnalysisContext
+) : ResolutionContext {
   override val types: Types =
     object : Types {
       override val nothingType: Type = ctx.symbolTable.botType.model(ctx)
@@ -70,6 +75,33 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
     return elements.toList()
   }
 
+  override fun handleError(error: ErrorIds, element: Element, msg: String): Unit {
+    when (error) {
+      ErrorIds.Exception.IllegalState -> reportAnalysisException(element, msg)
+      ErrorIds.Exception.OtherException -> reportAnalysisException(element, msg)
+      ErrorIds.Inconsistency.InconsistentBodyPre -> reportInconsistentBodyPre(element, msg)
+      ErrorIds.Inconsistency.InconsistentDefaultValues -> reportInconsistentBodyPre(element, msg)
+      ErrorIds.Inconsistency.InconsistentConditions -> reportInconsistentConditions(element, msg)
+      ErrorIds.Inconsistency.InconsistentCallPost -> reportInconsistentCallPost(element, msg)
+      ErrorIds.Inconsistency.InconsistentInvariants -> reportInconsistentInvariants(element, msg)
+      ErrorIds.Liskov.NotWeakerPrecondition -> reportLiskovProblem(element, msg)
+      ErrorIds.Liskov.NotStrongerPostcondition -> reportLiskovProblem(element, msg)
+      ErrorIds.Parsing.ErrorParsingPredicate -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Parsing.UnexpectedReference -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Parsing.UnexpectedFieldInitBlock -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.LawMustCallFunction -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.LawMustHaveParametersInOrder -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.SubjectWithoutName -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.CouldNotResolveSubject -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Unsatisfiability.UnsatCallPre -> reportUnsatCallPre(element, msg)
+      ErrorIds.Unsatisfiability.UnsatBodyPost -> reportUnsatBodyPost(element, msg)
+      ErrorIds.Unsatisfiability.UnsatInvariants -> reportUnsatInvariants(element, msg)
+      ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor -> reportUnsupported(element, msg)
+      ErrorIds.Unsupported.UnsupportedExpression -> reportUnsupported(element, msg)
+    }
+    state?.notifySarifReport(error, element, msg)
+  }
+
   // not available in Java until we have records
   override fun backingPropertyForConstructorParameter(
     parameter: ValueParameterDescriptor
@@ -105,36 +137,36 @@ public class JavaResolutionContext(private val ctx: AnalysisContext) : Resolutio
       ctx.diagnostics.warning(Lint.LintCategory.PROCESSING, diagnosticSource, it, key, msg)
     }
 
-  override fun reportErrorsParsingPredicate(element: Element, msg: String): Unit =
+  private fun reportErrorsParsingPredicate(element: Element, msg: String): Unit =
     reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
 
-  override fun reportUnsatCallPre(element: Element, msg: String): Unit =
+  private fun reportUnsatCallPre(element: Element, msg: String): Unit =
     reportError(element, AnalysisMessages.UnsatCallPre, msg)
 
-  override fun reportInconsistentBodyPre(declaration: Element, msg: String): Unit =
+  private fun reportInconsistentBodyPre(declaration: Element, msg: String): Unit =
     reportError(declaration, AnalysisMessages.InconsistentBodyPre, msg)
 
-  override fun reportUnsatBodyPost(declaration: Element, msg: String): Unit =
+  private fun reportUnsatBodyPost(declaration: Element, msg: String): Unit =
     reportError(declaration, AnalysisMessages.UnsatBodyPost, msg)
 
-  override fun reportInconsistentCallPost(expression: Element, msg: String): Unit =
+  fun reportInconsistentCallPost(expression: Element, msg: String): Unit =
     reportWarning(expression, AnalysisMessages.InconsistentCallPost, msg)
 
-  override fun reportInconsistentConditions(expression: Element, msg: String): Unit =
+  fun reportInconsistentConditions(expression: Element, msg: String): Unit =
     reportWarning(expression, AnalysisMessages.InconsistentConditions, msg)
 
-  override fun reportInconsistentInvariants(expression: Element, msg: String): Unit =
+  fun reportInconsistentInvariants(expression: Element, msg: String): Unit =
     reportError(expression, AnalysisMessages.InconsistentInvariants, msg)
 
-  override fun reportUnsatInvariants(expression: Element, msg: String): Unit =
+  fun reportUnsatInvariants(expression: Element, msg: String): Unit =
     reportError(expression, AnalysisMessages.UnsatInvariants, msg)
 
-  override fun reportLiskovProblem(expression: Element, msg: String): Unit =
+  fun reportLiskovProblem(expression: Element, msg: String): Unit =
     reportError(expression, AnalysisMessages.LiskovProblem, msg)
 
-  override fun reportUnsupported(expression: Element, msg: String): Unit =
+  fun reportUnsupported(expression: Element, msg: String): Unit =
     reportWarning(expression, AnalysisMessages.UnsupportedElement, msg)
 
-  override fun reportAnalysisException(element: Element, msg: String): Unit =
+  fun reportAnalysisException(element: Element, msg: String): Unit =
     reportError(element, AnalysisMessages.AnalysisException, msg)
 }

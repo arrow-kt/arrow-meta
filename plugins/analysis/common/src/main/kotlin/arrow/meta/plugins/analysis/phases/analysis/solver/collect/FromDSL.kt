@@ -16,6 +16,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.LambdaExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Parameter
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.isAssertCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
@@ -152,7 +153,11 @@ private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
                 errorSignaled = true
                 if (raiseErrorWhenUnexpected) {
                   val msg = ErrorMessages.Parsing.unexpectedFieldInitBlock(fieldName)
-                  context.reportErrorsParsingPredicate(call.callElement, msg)
+                  context.handleError(
+                    ErrorIds.Parsing.UnexpectedFieldInitBlock,
+                    call.callElement,
+                    msg
+                  )
                 }
                 super.visitFunction(f, args, fn)
               }
@@ -199,7 +204,7 @@ private fun Element.elementToConstraint(
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
-      context.reportErrorsParsingPredicate(this, msg)
+      context.handleError(ErrorIds.Parsing.ErrorParsingPredicate, this, msg)
       solverState.signalParseErrors()
       null
     } else {

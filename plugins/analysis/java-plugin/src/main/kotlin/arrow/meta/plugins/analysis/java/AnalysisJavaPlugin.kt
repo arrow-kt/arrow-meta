@@ -27,7 +27,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.isALaw
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.fieldNames
-import arrow.meta.plugins.analysis.smt.utils.NameProvider
 import com.sun.source.tree.CompilationUnitTree
 import com.sun.source.tree.MethodTree
 import com.sun.source.tree.Tree
@@ -38,8 +37,10 @@ import com.sun.tools.javac.api.BasicJavacTask
 import com.sun.tools.javac.main.JavaCompiler
 import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.util.Pair
-import java.util.*
+import java.util.LinkedList
 import javax.lang.model.element.Element
+import javax.tools.JavaFileManager
+import javax.tools.StandardLocation
 
 /*
 javac does not guarantee any order between the different files in a project,
@@ -72,14 +73,19 @@ public class AnalysisJavaPlugin : Plugin {
 
   private var stage1And2Done = false
 
-  override fun init(mtask: JavacTask?, vararg args: String?) {
+  override fun init(mtask: JavacTask?, vararg argsAsString: String?) {
     (mtask as? BasicJavacTask)?.let { task ->
-      val solverState = SolverState(NameProvider())
+      val baseDir = parseArgs(argsAsString).getOrDefault("baseDir", System.getProperty("user.dir"))
+      val createOutputFile = { s: String ->
+        val manager = task.context.get<JavaFileManager>(JavaFileManager::class.java)
+        manager.getFileForOutput(StandardLocation.SOURCE_OUTPUT, "", s, null).openWriter()
+      }
+      val solverState = SolverState(baseDir, createOutputFile)
 
       task.after(TaskEvent.Kind.ANALYZE) { _, unit: CompilationUnitTree ->
         task.context.get(AnalysisJavaProcessorKey)?.let { todo ->
           val ctx = AnalysisContext(task, unit)
-          val resolutionContext = JavaResolutionContext(ctx)
+          val resolutionContext = JavaResolutionContext(solverState, ctx)
 
           if (!stage1And2Done) {
             stage1And2Done = true
@@ -90,10 +96,24 @@ public class AnalysisJavaPlugin : Plugin {
           }
           // stage 3: check the constraints
           solverState.checkConstraints(unit, ctx, resolutionContext)
+          solverState.notifyModuleProcessed(ctx.modules.defaultModule.model(ctx))
         }
       }
     }
   }
+
+  private fun parseArgs(args: Array<out String?>): Map<String, String> =
+    args
+      .filterNotNull()
+      .mapNotNull {
+        if (it.contains('=')) {
+          val r = it.split('=')
+          kotlin.Pair(r[0], r[1])
+        } else {
+          null
+        }
+      }
+      .toMap()
 
   private fun SolverState.collectFromDsl(
     todo: List<Element>,

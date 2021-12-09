@@ -28,6 +28,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.W
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.isField
 import arrow.meta.plugins.analysis.phases.analysis.solver.primitiveFormula
@@ -99,7 +100,7 @@ private fun SolverState.expressionToFormula(
         solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
-        context.reportErrorsParsingPredicate(ex, msg)
+        context.handleError(ErrorIds.Parsing.UnexpectedReference, ex, msg)
         null
       }
     ex is NameReferenceExpression && argCall?.resultingDescriptor is LocalVariableDescriptor ->
@@ -107,7 +108,7 @@ private fun SolverState.expressionToFormula(
         solver.makeObjectVariable(ex.getReferencedName())
       } else {
         val msg = ErrorMessages.Parsing.unexpectedReference(ex.getReferencedName())
-        context.reportErrorsParsingPredicate(ex, msg)
+        context.handleError(ErrorIds.Parsing.UnexpectedReference, ex, msg)
         null
       }
     ex is IfExpression -> {

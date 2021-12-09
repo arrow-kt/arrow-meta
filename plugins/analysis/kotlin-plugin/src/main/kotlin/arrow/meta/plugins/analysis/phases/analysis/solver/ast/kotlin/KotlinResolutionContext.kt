@@ -2,12 +2,9 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin
 
 import arrow.meta.plugins.analysis.errors.MetaErrors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PackageViewDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
@@ -17,7 +14,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Type
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.types.Types
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinModuleDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
+import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import org.jetbrains.kotlin.cfg.getDeclarationDescriptorIncludingConstructors
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -28,43 +28,44 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 
 class KotlinResolutionContext(
+  private val state: SolverState?,
   private val impl: BindingTrace,
   private val moduleImpl: org.jetbrains.kotlin.descriptors.ModuleDescriptor
 ) : ResolutionContext, BindingTrace by impl {
 
-  override fun reportLiskovProblem(expression: Element, msg: String) {
+  fun reportLiskovProblem(expression: Element, msg: String) {
     report(MetaErrors.LiskovProblem.on(expression.element(), msg))
   }
 
-  override fun reportUnsatInvariants(expression: Element, msg: String) {
+  fun reportUnsatInvariants(expression: Element, msg: String) {
     report(MetaErrors.UnsatInvariants.on(expression.element(), msg))
   }
 
-  override fun reportInconsistentInvariants(expression: Element, msg: String) {
+  fun reportInconsistentInvariants(expression: Element, msg: String) {
     report(MetaErrors.InconsistentInvariants.on(expression.element(), msg))
   }
 
-  override fun reportInconsistentConditions(expression: Element, msg: String) {
+  fun reportInconsistentConditions(expression: Element, msg: String) {
     report(MetaErrors.InconsistentConditions.on(expression.element(), msg))
   }
 
-  override fun reportInconsistentCallPost(expression: Element, msg: String) {
+  fun reportInconsistentCallPost(expression: Element, msg: String) {
     report(MetaErrors.InconsistentCallPost.on(expression.element(), msg))
   }
 
-  override fun reportUnsatBodyPost(declaration: Element, msg: String) {
+  private fun reportUnsatBodyPost(declaration: Element, msg: String) {
     report(MetaErrors.UnsatBodyPost.on(declaration.element(), msg))
   }
 
-  override fun reportInconsistentBodyPre(declaration: Element, msg: String) {
+  private fun reportInconsistentBodyPre(declaration: Element, msg: String) {
     report(MetaErrors.InconsistentBodyPre.on(declaration.element(), msg))
   }
 
-  override fun reportUnsupported(expression: Element, msg: String) {
+  fun reportUnsupported(expression: Element, msg: String) {
     report(MetaErrors.UnsupportedElement.on(expression.element(), msg))
   }
 
-  override fun reportAnalysisException(element: Element, msg: String) {
+  fun reportAnalysisException(element: Element, msg: String) {
     report(MetaErrors.AnalysisException.on(element.element(), msg))
   }
 
@@ -98,11 +99,38 @@ class KotlinResolutionContext(
       ?.let { (it.psiOrParent as? KtExpression)?.let { expr -> bindingContext.getType(expr) } }
       ?.let { KotlinType(it) }
 
-  override fun reportErrorsParsingPredicate(element: Element, msg: String) {
+  override fun handleError(error: ErrorIds, element: Element, msg: String): Unit {
+    when (error) {
+      ErrorIds.Exception.IllegalState -> reportAnalysisException(element, msg)
+      ErrorIds.Exception.OtherException -> reportAnalysisException(element, msg)
+      ErrorIds.Inconsistency.InconsistentBodyPre -> reportInconsistentBodyPre(element, msg)
+      ErrorIds.Inconsistency.InconsistentDefaultValues -> reportInconsistentBodyPre(element, msg)
+      ErrorIds.Inconsistency.InconsistentConditions -> reportInconsistentConditions(element, msg)
+      ErrorIds.Inconsistency.InconsistentCallPost -> reportInconsistentCallPost(element, msg)
+      ErrorIds.Inconsistency.InconsistentInvariants -> reportInconsistentInvariants(element, msg)
+      ErrorIds.Liskov.NotWeakerPrecondition -> reportLiskovProblem(element, msg)
+      ErrorIds.Liskov.NotStrongerPostcondition -> reportLiskovProblem(element, msg)
+      ErrorIds.Parsing.ErrorParsingPredicate -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Parsing.UnexpectedReference -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Parsing.UnexpectedFieldInitBlock -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.LawMustCallFunction -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.LawMustHaveParametersInOrder -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.SubjectWithoutName -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Laws.CouldNotResolveSubject -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Unsatisfiability.UnsatCallPre -> reportUnsatCallPre(element, msg)
+      ErrorIds.Unsatisfiability.UnsatBodyPost -> reportUnsatBodyPost(element, msg)
+      ErrorIds.Unsatisfiability.UnsatInvariants -> reportUnsatInvariants(element, msg)
+      ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor -> reportUnsupported(element, msg)
+      ErrorIds.Unsupported.UnsupportedExpression -> reportUnsupported(element, msg)
+    }
+    state?.notifySarifReport(error, element, msg)
+  }
+
+  private fun reportErrorsParsingPredicate(element: Element, msg: String) {
     report(MetaErrors.ErrorParsingPredicate.on(element.element(), msg))
   }
 
-  override fun reportUnsatCallPre(element: Element, msg: String) {
+  private fun reportUnsatCallPre(element: Element, msg: String) {
     report(MetaErrors.UnsatCallPre.on(element.element(), msg))
   }
 
@@ -177,5 +205,5 @@ class KotlinResolutionContext(
       impl.bindingContext.get(BindingContext.VALUE_PARAMETER_AS_PROPERTY, it)?.model()
     }
 
-  override val module: ModuleDescriptor = moduleImpl.model()
+  override val module: ModuleDescriptor = KotlinModuleDescriptor(moduleImpl)
 }

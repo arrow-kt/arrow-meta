@@ -1,5 +1,6 @@
 package arrow.meta.plugins.analysis.phases
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import arrow.meta.Meta
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.Composite
@@ -20,7 +21,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.ir.HintState
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.analysis.phases.ir.hintsFile
-import arrow.meta.plugins.analysis.smt.utils.NameProvider
+import kotlin.io.path.Path
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
@@ -30,7 +31,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
     listOf(
       analysis(
         doAnalysis = { _, module, _, _, bindingTrace, _ ->
-          val kotlinModule: KotlinModuleDescriptor = module.model()
+          val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(module)
           initialize(kotlinModule)
           when (get<HintState>(Keys.hints(kotlinModule))) {
             HintState.NeedsProcessing -> {
@@ -48,9 +49,9 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         },
         analysisCompleted = { _, module, bindingTrace, files ->
           if (isInStage(module, Stage.CollectConstraints)) {
-            val kotlinModule: KotlinModuleDescriptor = module.model()
-            val context = KotlinResolutionContext(bindingTrace, module)
+            val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(module)
             val solverState = solverState(module)
+            val context = KotlinResolutionContext(solverState, bindingTrace, module)
             if (solverState != null) {
               val locals = files.declarationDescriptors(context)
               val (result, interesting) =
@@ -81,14 +82,26 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
                     )
                   }
                 }
-                AnalysisResult.ParsingError ->
+                AnalysisResult.ParsingError -> {
+                  solverState.notifyModuleProcessed(kotlinModule)
                   org.jetbrains.kotlin.analyzer.AnalysisResult.compilationError(
                     bindingTrace.bindingContext
                   )
-                AnalysisResult.Completed -> null
+                }
+                AnalysisResult.Completed -> {
+                  // TODO this is never reached
+                  solverState.notifyModuleProcessed(kotlinModule)
+                  null
+                }
               }
-            } else null
-          } else null
+            } else {
+              null
+            }
+          } else {
+            val solverState = solverState(module)
+            solverState?.notifyModuleProcessed(KotlinModuleDescriptor(module))
+            null
+          }
         },
       ),
       declarationChecker { declaration, descriptor, context ->
@@ -96,9 +109,10 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
             isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
-          val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
-          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
+          val kotlinContext =
+            KotlinResolutionContext(solverState, context.trace, context.moduleDescriptor)
+          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           if (decl != null && solverState != null) {
             decl.collectConstraintsFromDSL(solverState, kotlinContext, descriptor.model())
           }
@@ -106,9 +120,10 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       },
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Prove)) {
-          val kotlinContext = KotlinResolutionContext(context.trace, context.moduleDescriptor)
-          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           val solverState = solverState(context)
+          val kotlinContext =
+            KotlinResolutionContext(solverState, context.trace, context.moduleDescriptor)
+          val decl = declaration.model<KtDeclaration, Declaration>() as? Declaration
           if (decl != null && solverState != null && !solverState.hadParseErrors()) {
             solverState.checkDeclarationConstraints(kotlinContext, decl, descriptor.model())
           }
@@ -150,7 +165,18 @@ internal fun CompilerContext.solverState(
 ): SolverState? = get(Keys.solverState(KotlinModuleDescriptor(module)))
 
 internal fun CompilerContext.initialize(module: ModuleDescriptor) {
-  ensureInitialized(Keys.solverState(module)) { SolverState(NameProvider()) }
+  ensureInitialized(Keys.solverState(module)) {
+    val baseDir =
+      configuration?.get(ArrowMetaConfigurationKeys.BASE_DIR)?.firstOrNull()
+        ?: System.getProperty("user.dir")
+    val createOutputFile = { s: String ->
+      val buildDir = getOrCreateBaseDirectory(configuration)
+      val path = Path(buildDir.path, s)
+      path.parent.toFile().mkdirs()
+      path.toFile().writer()
+    }
+    SolverState(baseDir, createOutputFile)
+  }
   ensureInitialized(Keys.hints(module)) { HintState.NeedsProcessing }
   ensureInitialized(Keys.stage(module)) { Stage.Init }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   alias(libs.plugins.arrowGradleConfig.jvm)
   alias(libs.plugins.arrowGradleConfig.publishJvm)
@@ -15,4 +17,5 @@ dependencies {
   api(projects.arrowAnalysisTypes)
   api(libs.javaSmt)
   api(libs.apacheCommonsText)
+  api(libs.sarif4k)
 }
