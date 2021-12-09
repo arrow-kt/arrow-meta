@@ -1,5 +1,7 @@
 package arrow.optics.plugin.internals
 
+import java.util.Locale
+
 internal fun generateLenses(ele: ADT, target: LensTarget) =
   Snippet(
     `package` = ele.packageName,
@@ -8,7 +10,7 @@ internal fun generateLenses(ele: ADT, target: LensTarget) =
   )
 
 private fun String.toUpperCamelCase(): String =
-  split(" ").joinToString("", transform = String::capitalize)
+  split(" ").joinToString("", transform = { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } })
 
 private fun processElement(ele: ADT, foci: List<Focus>): String =
   foci.joinToString(separator = "\n") { focus ->
