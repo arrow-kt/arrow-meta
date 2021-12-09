@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   `java-library`
 }
@@ -26,6 +28,6 @@ tasks.withType<JavaCompile> {
   })
   options.compilerArgs.addAll(listOf(
     "-parameters",
-    "-Xplugin:ArrowAnalysisJavaPlugin"
+    "-Xplugin:ArrowAnalysisJavaPlugin baseDir=${project.rootProject.rootDir.path}"
   ))
 }

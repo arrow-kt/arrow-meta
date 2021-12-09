@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   `java-gradle-plugin`
@@ -38,4 +40,8 @@ pluginBundle {
   vcsUrl = "https://github.com/arrow-kt/arrow-meta"
   description = "Functional companion to Kotlin's Compiler"
   tags = listOf("kotlin", "compiler", "arrow", "plugin", "meta")
+}
+
+tasks.test {
+  systemProperty("arrow.meta.generate.source.dir", project.buildDir.absolutePath)
 }

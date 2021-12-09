@@ -1,4 +1,5 @@
-@Suppress("DSL_SCOPE_VIOLATION")
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.publish)

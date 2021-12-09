@@ -13,6 +13,7 @@ javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.6"
 javaCompileTesting = "0.19"
 apacheCommonsText = "1.9"
+sarif4k = "0.0.1"
 
 [libraries]
 arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
@@ -38,6 +39,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
 javaCompileTesting = { module = "com.google.testing.compile:compile-testing", version.ref = "javaCompileTesting" }
 apacheCommonsText = { module = "org.apache.commons:commons-text", version.ref = "apacheCommonsText" }
+sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version.ref = "sarif4k" }
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

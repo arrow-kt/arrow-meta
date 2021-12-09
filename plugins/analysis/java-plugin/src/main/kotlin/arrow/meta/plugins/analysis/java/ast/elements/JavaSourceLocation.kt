@@ -21,7 +21,7 @@ public class JavaSourceLocation(
   override val lineContent: String?
     get() = null
   override val path: String
-    get() = unit.sourceFile.name
+    get() = unit.sourceFile.toUri().path
 
   public companion object {
     public operator fun invoke(

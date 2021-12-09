@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.kotlin)
@@ -16,4 +18,5 @@ dependencies {
   api(projects.arrowAnalysisTypes)
   api(libs.javaSmt)
   api(libs.apacheCommonsText)
+  api(libs.sarif4k)
 }
