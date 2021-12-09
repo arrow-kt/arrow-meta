@@ -43,12 +43,15 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.psi.PsiComment
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
@@ -63,6 +66,7 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtExpressionCodeFragment
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunctionTypeReceiver
 import org.jetbrains.kotlin.psi.KtIfExpression
@@ -96,6 +100,8 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.descriptorUtil.platform
+import org.jetbrains.kotlin.resolve.multiplatform.isCommonSource
 
 /** Default impl for element scopes based on the [KtPsiFactory] */
 class DefaultElementScope(
@@ -487,6 +493,10 @@ class DefaultElementScope(
   override val String.classBody: ClassBody
     get() = ClassBody(delegate.createClass("class _ClassBodyScopeArrowMeta ${trimMargin()}").body)
 }
+
+fun DeclarationDescriptor.skipGeneration(): Boolean =
+  platform != CommonPlatforms.defaultCommonPlatform &&
+    (findPsi()?.containingFile as? KtFile)?.isCommonSource == true
 
 fun getOrCreateBaseDirectory(configuration: CompilerConfiguration?): java.io.File {
   val parentBuildPath: String? =
