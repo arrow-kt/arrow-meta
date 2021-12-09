@@ -25,12 +25,9 @@ gradlePlugin {
 }
 
 dependencies {
-  api(projects.arrowGradlePluginCommons)
-  runtimeOnly(libs.classgraph)
-
-  // Necessary during plugin execution to be found and added for compilation
-  api(projects.arrowMeta)
-  api(projects.arrowOpticsPlugin)
+  api(libs.kotlin.gradlePluginX)
+  api(libs.kspGradlePlugin)
+  api(projects.arrowOpticsKsp)
 }
 
 pluginBundle {
