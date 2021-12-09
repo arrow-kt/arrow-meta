@@ -53,6 +53,9 @@ project(":arrow-meta-prelude").projectDir = File("plugins/proofs/prelude")
 include(":arrow-optics-plugin")
 project(":arrow-optics-plugin").projectDir = File("plugins/optics/optics-plugin")
 
+include(":arrow-optics-ksp")
+project(":arrow-optics-ksp").projectDir = File("plugins/optics/optics-ksp")
+
 include(":arrow-optics-gradle-plugin")
 project(":arrow-optics-gradle-plugin").projectDir = File("plugins/optics/optics-gradle-plugin")
 

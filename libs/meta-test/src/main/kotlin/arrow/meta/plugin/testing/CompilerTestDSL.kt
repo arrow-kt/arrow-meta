@@ -1,6 +1,7 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
+import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import java.nio.file.Path
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 
@@ -82,6 +83,10 @@ interface ConfigSyntax {
   fun addCommandLineProcessors(vararg element: CommandLineProcessor): Config =
     Config.Many(listOf(Config.AddCommandLineProcessors(element.toList())))
 
+  /** Adds KSP symbol processors. */
+  fun addSymbolProcessors(vararg element: SymbolProcessorProvider): Config =
+    Config.Many(listOf(Config.AddSymbolProcessors(element.toList())))
+
   /** Adds options for the compiler plugins. */
   fun addPluginOptions(vararg element: PluginOption): Config =
     Config.Many(listOf(Config.AddPluginOptions(element.toList())))
@@ -118,6 +123,8 @@ sealed class Config {
     val commandLineProcessors: List<CommandLineProcessor>
   ) : Config()
   internal data class AddPluginOptions(val pluginOptions: List<PluginOption>) : Config()
+  internal data class AddSymbolProcessors(val symbolProcessors: List<SymbolProcessorProvider>) :
+    Config()
   internal data class Many(val configs: List<Config>) : Config()
   internal object Empty : Config()
 

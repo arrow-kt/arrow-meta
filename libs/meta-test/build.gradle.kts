@@ -30,6 +30,7 @@ dependencies {
       module = libs.kotlin.stdlibJDK8.get().module.name
     )
   }
+  implementation(libs.kotlinCompileTestingKsp)
   implementation(libs.assertj)
   implementation(projects.arrowMeta)
 
