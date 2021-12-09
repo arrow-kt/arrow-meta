@@ -50,9 +50,6 @@ project(":arrow-meta-prelude").projectDir = File("plugins/proofs/prelude")
 
 // Optics
 
-include(":arrow-optics-plugin")
-project(":arrow-optics-plugin").projectDir = File("plugins/optics/optics-plugin")
-
 include(":arrow-optics-ksp")
 project(":arrow-optics-ksp").projectDir = File("plugins/optics/optics-ksp")
 
