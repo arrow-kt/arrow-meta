@@ -14,6 +14,7 @@ javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.6"
 javaCompileTesting = "0.19"
 apacheCommonsText = "1.9"
+kspVersion = "1.6.0-1.0.1"
 sarif4k = "0.0.1"
 
 [libraries]
@@ -39,8 +40,11 @@ kotlin-gradlePluginX = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
 kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
+kotlinCompileTestingKsp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlinCompileTesting" }
 javaCompileTesting = { module = "com.google.testing.compile:compile-testing", version.ref = "javaCompileTesting" }
 apacheCommonsText = { module = "org.apache.commons:commons-text", version.ref = "apacheCommonsText" }
+ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "kspVersion" }
+kspGradlePlugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "kspVersion" }
 sarif4k = { module = "io.github.detekt.sarif4k:sarif4k", version.ref = "sarif4k" }
 
 [plugins]

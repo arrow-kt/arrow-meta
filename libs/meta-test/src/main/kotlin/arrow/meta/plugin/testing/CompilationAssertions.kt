@@ -75,6 +75,8 @@ private val interpreter: (CompilerTest) -> Unit = {
           is Config.AddArguments -> remaining.compilationData(acc.addArguments(config))
           is Config.AddCommandLineProcessors ->
             remaining.compilationData(acc.addCommandLineProcessors(config))
+          is Config.AddSymbolProcessors ->
+            remaining.compilationData(acc.addSymbolProcessors(config))
           is Config.AddPluginOptions -> remaining.compilationData(acc.addPluginOptions(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
@@ -158,6 +160,9 @@ private fun CompilationData.addArguments(config: Config.AddArguments) =
 
 private fun CompilationData.addCommandLineProcessors(config: Config.AddCommandLineProcessors) =
   copy(commandLineProcessors = commandLineProcessors + config.commandLineProcessors)
+
+private fun CompilationData.addSymbolProcessors(config: Config.AddSymbolProcessors) =
+  copy(symbolProcessors = symbolProcessors + config.symbolProcessors)
 
 private fun CompilationData.addPluginOptions(config: Config.AddPluginOptions) =
   copy(pluginOptions = pluginOptions + config.pluginOptions)
