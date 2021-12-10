@@ -77,7 +77,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtBlockExpression -> KotlinBlockExpression(this).repr()
     is KtStringTemplateExpression ->
       if (!this.hasInterpolation()) KotlinConstantStringExpression(this).repr()
-      else KotlinDefaultExpression(this).repr()
+      else KotlinStringTemplateExpression(this).repr()
     is KtReturnExpression -> KotlinReturnExpression(this).repr()
     is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()

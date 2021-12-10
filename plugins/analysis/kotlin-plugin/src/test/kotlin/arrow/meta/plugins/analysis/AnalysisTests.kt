@@ -1462,6 +1462,23 @@ class AnalysisTests {
   }
 
   @Test
+  fun `string templates, fail`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      // we don't know upfront the length of the expression
+      val result = bar("${'$'}{1 + 2}")
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty name` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `late initialization, without this`() {
     """
       ${imports()}

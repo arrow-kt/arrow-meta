@@ -8,6 +8,7 @@ import arrow.meta.continuations.asContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.continuations.nested
+import arrow.meta.continuations.sequence
 import arrow.meta.plugins.analysis.phases.analysis.solver.ArgumentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
@@ -17,6 +18,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableMemberDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.LocalVariableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueDescriptor
@@ -54,6 +56,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Q
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SafeQualifiedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SimpleNameExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.StringTemplateEntryExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.StringTemplateEntryString
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.StringTemplateExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SynchronizedExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThisExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThreePieceForExpression
@@ -176,6 +181,7 @@ internal fun SolverState.checkExpressionConstraints(
         is LambdaExpression -> checkLambda(expression, data)
         is ThrowExpression -> checkThrowConstraints(expression, data)
         is NullExpression -> checkNullExpression(associatedVarName, data)
+        is StringTemplateExpression -> checkStringTemplate(associatedVarName, expression, data)
         is ConstantExpression -> checkConstantExpression(associatedVarName, expression, data)
         is ThisExpression ->
           // both 'this' and 'this@name' are available in the variable info
@@ -899,19 +905,14 @@ private fun SolverState.checkConstantExpression(
       PrimitiveType.STRING -> {
         // record the length of the string
         StringEscapeUtils.unescapeJava(expression.text.trim('"'))?.let { stringLiteral ->
-          type
-            .descriptor
-            ?.unsubstitutedMemberScope
-            ?.getContributedDescriptors { it == "length" }
-            ?.singleOrNull { it.name.value == "length" && it.isField() }
-            ?.let { lengthDecl ->
-              solver.ints {
-                equal(
-                  solver.intValue(field(lengthDecl, associatedVarName)),
-                  makeNumber(stringLiteral.length.toLong())
-                )
-              }
+          type.getLengthField()?.let { lengthDecl ->
+            solver.ints {
+              equal(
+                solver.intValue(field(lengthDecl, associatedVarName)),
+                makeNumber(stringLiteral.length.toLong())
+              )
             }
+          }
         }
       }
       else -> null
@@ -928,6 +929,49 @@ private fun SolverState.checkConstantExpression(
         data.context
       )
     }
+  }
+
+private fun SolverState.checkStringTemplate(
+  associatedVarName: ObjectFormula,
+  expression: StringTemplateExpression,
+  data: CheckData
+): ContSeq<StateAfter> =
+  expression
+    .entries
+    .filterIsInstance<StringTemplateEntryExpression>()
+    .map { checkExpressionConstraints("str", it.expression, data) }
+    .sequence()
+    .flatMap {
+      data.noReturn {
+        val type = expression.type(data.context)?.unwrapIfNullable()
+        val minimalLength =
+          expression.entries.filterIsInstance<StringTemplateEntryString>().sumOf {
+            StringEscapeUtils.unescapeJava(it.string.trim('"')).length
+          }
+        type?.getLengthField()?.let { lengthDecl ->
+          addConstraint(
+            NamedConstraint(
+              "$associatedVarName minimal length",
+              solver.ints {
+                greaterOrEquals(
+                  solver.intValue(field(lengthDecl, associatedVarName)),
+                  makeNumber(minimalLength.toLong())
+                )
+              }
+            ),
+            data.context
+          )
+        }
+        addConstraint(
+          NamedConstraint("${expression.text} is not null", solver.isNotNull(associatedVarName)),
+          data.context
+        )
+      }
+    }
+
+private fun Type.getLengthField(): DeclarationDescriptor? =
+  descriptor?.unsubstitutedMemberScope?.getContributedDescriptors { it == "length" }?.singleOrNull {
+    it.name.value == "length" && it.isField()
   }
 
 private fun SolverState.checkAssignmentExpression(

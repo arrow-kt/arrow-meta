@@ -186,6 +186,9 @@ sealed interface ErrorIds {
              }
            ```
         """.trimIndent()
+
+      override val level: SeverityLevel
+        get() = SeverityLevel.Warning
     },
     InconsistentCallPost {
       override val fullDescription: String
@@ -195,6 +198,9 @@ sealed interface ErrorIds {
           that this function could not be called at all. 
           _This is really uncommon in practice_.
         """.trimIndent()
+
+      override val level: SeverityLevel
+        get() = SeverityLevel.Warning
     },
     InconsistentInvariants {
       override val fullDescription: String
