@@ -36,7 +36,6 @@ fun <
     is ClassDescriptor -> KotlinClassDescriptor(this).repr()
     is TypeAliasDescriptor -> KotlinTypeAliasDescriptor(this).repr()
     is ValueParameterDescriptor -> KotlinValueParameterDescriptor(this).repr()
-    is ClassConstructorDescriptor -> KotlinConstructorDescriptor(this).repr()
     // is ModuleDescriptor -> KotlinModuleDescriptor(this).repr()
     is LazyClassReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
@@ -67,6 +66,7 @@ fun <A : KtElement, B : Element> A.model(): B =
       else KotlinConstantExpression(this).repr()
     is KtCallExpression -> KotlinCallExpression(this).repr()
     is KtEnumEntry -> KotlinEnumEntry(this).repr()
+    is KtTypeAlias -> KotlinTypeAlias(this).repr()
     is KtClass -> KotlinClass(this).repr()
     is KtObjectDeclaration -> KotlinObjectDeclaration(this).repr()
     is KtObjectLiteralExpression -> KotlinObjectLiteralExpression(this).repr()
@@ -113,7 +113,6 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
-    is KtCallableReferenceExpression -> TODO()
     // is KtFile -> KotlinFile(this).repr()
     else ->
       TODO(

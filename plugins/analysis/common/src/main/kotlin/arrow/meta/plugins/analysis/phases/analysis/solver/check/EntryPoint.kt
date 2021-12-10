@@ -1,5 +1,6 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check
 
+import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.cont
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
@@ -12,6 +13,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeAlias
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
@@ -53,6 +55,7 @@ public fun SolverState.checkDeclarationConstraints(
     // now go on and check the body
     try {
       when (declaration) {
+        is TypeAlias -> ContSeq.unit // type alias have no checks
         is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
         is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
         is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
