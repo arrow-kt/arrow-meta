@@ -23,5 +23,5 @@ options:
     - title: Java support
       url: /analysis/java
 
-    - title: GitHub Actions
+    - title: GitHub Actions / SARIF
       url: /analysis/sarif

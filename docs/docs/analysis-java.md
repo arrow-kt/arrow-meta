@@ -6,7 +6,7 @@ permalink: /analysis/java
 
 # Analysis over Java code
 
-Λrrow Analysis has preliminary support for Java. This is still an alpha feature.
+⚠️ **This is still an alpha feature.**
 
 ## Adding the plug-in
 
