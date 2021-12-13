@@ -1,0 +1,12 @@
+content:
+    - title: Arrow Core
+      url: https://arrow-kt.io/docs/core/
+
+    - title: Arrow FX
+      url: https://arrow-kt.io/docs/fx/
+
+    - title: Arrow Optics
+      url: https://arrow-kt.io/docs/optics/dsl/
+
+    - title: Arrow Meta
+      url: https://arrow-kt.io/docs/meta/

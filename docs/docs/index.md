@@ -15,17 +15,17 @@ video: WKR384ZeBgk
 
 > Λrrow Meta is a meta-programming library designed to build compiler plugins for Kotlin.
 
-The [Hello World tutorial](hello-world.html) describes a very simple plugin built with Λrrow Meta. 
+The [Hello World tutorial]({{ '/hello-world' | relative_url }}) describes a very simple plugin built with Λrrow Meta. 
 
 # Built with Meta
 
 The Λrrow org bundles independent plugins built with Λrrow meta.
 
-## [Analysis](analysis-quickstart.html)
+## [Proofs]({{ '/proofs' | relative_url }})
 
-Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
+Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle!
 
-[Get started with Λrrow Analysis](analysis-quickstart.html)
+[Get started with Λrrow Proofs]({{ '/proofs' | relative_url }})
 
 ## [Optics](https://arrow-kt.io/docs/optics/)
 
@@ -33,8 +33,9 @@ The Λrrow org bundles independent plugins built with Λrrow meta.
 
 [Get started with Λrrow Optics](https://arrow-kt.io/docs/optics/)
 
-## [Proofs](/proofs-quickstart.html) 
 
-Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle!
+## [Analysis]({{ '/analysis' | relative_url }})
 
-[Get started with Λrrow Proofs](proofs-quickstart.html)
+Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
+
+[Get started with Λrrow Analysis](analysis-quickstart.html)

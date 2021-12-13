@@ -1,6 +1,7 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - Fields
+permalink: /analysis/fields
 ---
 
 # Fields
@@ -12,7 +13,7 @@ import arrow.analysis.pre
 
 class List<T> {
   val size: Int
-    get() = // complicated computation
+    get() = TODO() // complicated computation
   
   fun get(index: Int): T {
     pre(index >= 0 && index < this.size) { "index within bounds" }
