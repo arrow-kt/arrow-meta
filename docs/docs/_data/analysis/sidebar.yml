@@ -1,0 +1,27 @@
+options:
+    - title: Quick Start
+      url: /analysis
+
+    - title: Pre and post-conditions
+      url: /analysis/conditions
+
+    - title: Control operators (if, when)
+      url: /analysis/control
+
+    - title: Mutability and loops
+      url: /analysis/mutability
+
+    - title: Types and invariants
+      url: /analysis/types
+
+    - title: Fields
+      url: /analysis/fields
+
+    - title: 3rd-party libraries
+      url: /analysis/laws
+
+    - title: Java support
+      url: /analysis/java
+
+    - title: GitHub Actions / SARIF
+      url: /analysis/sarif

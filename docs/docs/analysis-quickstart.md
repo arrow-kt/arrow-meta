@@ -1,13 +1,22 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - Quick Start
+permalink: /analysis
 ---
 
-# Analysis Quick Start
+[![Latest snapshot](https://img.shields.io/maven-metadata/v?color=0576b6&label=latest%20snapshot&metadataUrl=https%3A%2F%2Foss.sonatype.org%2Fservice%2Flocal%2Frepositories%2Fsnapshots%2Fcontent%2Fio%2Farrow-kt%2Farrow-analysis-common%2Fmaven-metadata.xml)](https://oss.sonatype.org/service/local/repositories/snapshots/content/io/arrow-kt/arrow-analysis-common/)
+[![Publish artifacts](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Artifacts/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Artifacts%22)
+[![Publish documentation](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Documentation/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Documentation%22)
+[![Kotlin version badge](https://img.shields.io/badge/kotlin-1.6-blue.svg)](https://kotlinlang.org/docs/whatsnew16.html)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+
+# Λrrow Analysis. Beyond the Compiler
 
 Λrrow Analysis introduces new checks in your compilation pipeline, which warn about common mistakes like out of bounds indexing. This Quick Start explains how to set up Λrrow Analysis in your Gradle project, and how to use it to get further insight in your code, and to introduce additional checks in your own functions and classes.
 
-In this Quick Start we assume a Kotlin project, Λrrow Analysis also provides preliminary [support for Java](analysis-java.html).
+In this Quick Start we assume a Kotlin project, Λrrow Analysis also provides preliminary [support for Java]({{ '/analysis/java' | relative_url }}).
+
+> Λrrow Analysis is built on top of the [Λrrow Meta]({{ '/' | relative_url }}) meta-programming library for the Kotlin compiler.
 
 ## Adding the plug-in
 
