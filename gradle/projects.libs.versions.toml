@@ -28,6 +28,7 @@ intellijOpenApi = { module = "com.intellij:openapi", version.ref = "intellijOpen
 javaAssist = { module = "org.javassist:javassist", version.ref = "javaAssist" }
 javaSmt = { module = "org.sosy-lab:java-smt", version.ref = "javaSmt" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junitEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 kotlin-annotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable" }
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler" }
 kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
