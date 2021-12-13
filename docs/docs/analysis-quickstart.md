@@ -16,7 +16,7 @@ permalink: /analysis
 
 In this Quick Start we assume a Kotlin project, Λrrow Analysis also provides preliminary [support for Java]({{ '/analysis/java' | relative_url }}).
 
-> Λrrow Analysis is built on top of the [Λrrow Meta]({{ '/analysis/java' | relative_url }}) meta-programming library for the Kotlin compiler.
+> Λrrow Analysis is built on top of the [Λrrow Meta]({{ '/' | relative_url }}) meta-programming library for the Kotlin compiler.
 
 ## Adding the plug-in
 
