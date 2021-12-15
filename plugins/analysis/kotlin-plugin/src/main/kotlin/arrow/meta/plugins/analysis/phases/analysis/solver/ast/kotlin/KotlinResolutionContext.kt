@@ -120,7 +120,6 @@ class KotlinResolutionContext(
       ErrorIds.Unsatisfiability.UnsatCallPre -> reportUnsatCallPre(element, msg)
       ErrorIds.Unsatisfiability.UnsatBodyPost -> reportUnsatBodyPost(element, msg)
       ErrorIds.Unsatisfiability.UnsatInvariants -> reportUnsatInvariants(element, msg)
-      ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor -> reportUnsupported(element, msg)
       ErrorIds.Unsupported.UnsupportedExpression -> reportUnsupported(element, msg)
     }
     state?.notifySarifReport(error, element, msg)

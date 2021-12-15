@@ -1176,7 +1176,7 @@ class AnalysisTests {
       val x = A()
       """(
       withPlugin = {
-        compilesWith { it.contains("implicit primary constructors are (not yet) supported") }
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
       },
       withoutPlugin = { compiles }
     )
@@ -1519,6 +1519,70 @@ class AnalysisTests {
       }
       """(
       withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `implicit primary constructor, ok`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int = 0
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `implicit primary constructor, fail`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int = 1
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A()
+      """(
+      withPlugin = {
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `implicit primary constructor on object, fail`() {
+    """
+      ${imports()}
+      
+      object A {
+        val thing: Int = 1
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A.thing
+      """(
+      withPlugin = {
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
+      },
       withoutPlugin = { compiles }
     )
   }
