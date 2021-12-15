@@ -38,4 +38,4 @@ The Λrrow org bundles independent plugins built with Λrrow meta.
 
 Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
 
-[Get started with Λrrow Analysis](analysis-quickstart.html)
+[Get started with Λrrow Analysis]({{ '/analysis' | relative_url }})
