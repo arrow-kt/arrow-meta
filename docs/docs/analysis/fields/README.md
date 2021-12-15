@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Fields
-permalink: /analysis/fields:output_ext
+permalink: /analysis/fields
 ---
 
 # Fields

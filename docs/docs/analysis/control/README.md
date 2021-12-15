@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Control operators
-permalink: /analysis/control:output_ext
+permalink: /analysis/control
 ---
 
 # Control operators

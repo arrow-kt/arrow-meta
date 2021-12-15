@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Pre and post-conditions
-permalink: /analysis/conditions:output_ext
+permalink: /analysis/conditions
 ---
 
 # Pre and post-conditions

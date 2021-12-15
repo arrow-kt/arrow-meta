@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Java support
-permalink: /analysis/java:output_ext
+permalink: /analysis/java
 ---
 
 # Analysis over Java code

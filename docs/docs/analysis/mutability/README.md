@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Mutability and loops
-permalink: /analysis/mutability:output_ext
+permalink: /analysis/mutability
 ---
 
 # Mutability and loops
