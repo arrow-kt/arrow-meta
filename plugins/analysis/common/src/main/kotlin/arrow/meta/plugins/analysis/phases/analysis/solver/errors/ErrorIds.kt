@@ -66,7 +66,6 @@ sealed interface ErrorIds {
   }
 
   enum class Unsupported : ErrorIds {
-    UnsupportedImplicitPrimaryConstructor,
     UnsupportedExpression;
 
     override val shortDescription: String

@@ -1,7 +1,6 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.errors
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CompilerMessageSourceLocation
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
@@ -84,9 +83,6 @@ object ErrorMessages {
    * (yet).
    */
   object Unsupported {
-    internal fun unsupportedImplicitPrimaryConstructor(klass: ClassOrObject): String =
-      "implicit primary constructors are (not yet) supported: `${klass.name}`"
-
     internal fun unsupportedExpression(element: Element): String =
       "unsupported expression (${element::class.simpleName})"
   }

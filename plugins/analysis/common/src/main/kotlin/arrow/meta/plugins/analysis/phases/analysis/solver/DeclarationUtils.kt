@@ -4,9 +4,12 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.Resolution
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Class
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationContainer
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ReturnExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.stableBody
 
@@ -71,3 +74,22 @@ internal fun Declaration.asSingleField(context: ResolutionContext): CallableDesc
 
 private fun Expression.findSingleField(context: ResolutionContext): CallableDescriptor? =
   getResolvedCall(context)?.resultingDescriptor?.takeIf { it.isField() }
+
+private fun ClassOrObject.isInterfaceOrEnum(): Boolean =
+  when (this) {
+    is Class -> this.isInterface() || this.isEnum()
+    else -> false
+  }
+
+private fun ClassOrObject.isCompanionObject(): Boolean =
+  fqName != null &&
+    this.parents.any { parent ->
+      parent is PureClassOrObject &&
+        parent.companionObjects.any { companion -> fqName == companion?.fqName }
+    }
+
+internal fun ClassOrObject.hasImplicitPrimaryConstructor(): Boolean =
+  !isInterfaceOrEnum() &&
+    !isCompanionObject() &&
+    hasPrimaryConstructor() &&
+    primaryConstructor == null
