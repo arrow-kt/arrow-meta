@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: Proofs - Quick Start
-permalink: /proofs
+permalink: /proofs/
 ---
 
 # Proofs Quick Start
