@@ -43,13 +43,13 @@ fun nope2(x: Int): Int {
 // fun List<Int>.mappyWrong() = map { increment(it) }
 fun List<Positive>.mappyOk() = map { increment(it.value) }
 
-fun mappy(xs: List<Int>) = xs.mapNotNull {
-  if (it > 0) Positive(it) else null
-}.mappyOk()
+fun mappy(xs: List<Int>) = xs.mapNotNull { if (it > 0) Positive(it) else null }.mappyOk()
 
 @JvmInline
 value class NonEmptyList<A>(val value: List<A>) {
-  init { require(value.isNotEmpty()) { "not empty"} }
+  init {
+    require(value.isNotEmpty()) { "not empty" }
+  }
 }
 
 fun <A> List<A>.myGet(index: Int): A {
