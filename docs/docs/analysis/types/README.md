@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Types and invariants
-permalink: /analysis/types
+permalink: /analysis/types/
 ---
 
 # Types and invariants

@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Mutability and loops
-permalink: /analysis/mutability
+permalink: /analysis/mutability/
 ---
 
 # Mutability and loops
