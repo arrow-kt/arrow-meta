@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.psiUtil.getValueParameters
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
+import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
  * <code>```"""|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} { $body } """.`class````</code>
@@ -82,7 +83,7 @@ import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
  *           Transform.replace(
  *             replacing = it.element,
  *             newDeclaration =
- *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes"} {
+ *               """|$`@annotations` $kind $name $`(typeParameters)` $`(params)` : $supertypes {
  *                  |  $body
  *                  |  fun void test(): Unit =
  *                  |    println("Implemented by ΛRROW Meta!")
@@ -112,6 +113,7 @@ class ClassDeclaration(
     (when {
       value.isSealed() -> "sealed "
       value.isData() -> "data "
+      value.hasModifier(KtTokens.OPEN_KEYWORD) -> "open "
       else -> "/* empty? */"
     } + value.getClassOrInterfaceKeyword()?.text).let(Name::identifier),
   val `(typeParameters)`: ScopedList<KtTypeParameter> = ScopedList(prefix = "<", value = value.typeParameters, postfix = ">"),
