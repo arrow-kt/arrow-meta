@@ -1,6 +1,7 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - Pre and post-conditions
+permalink: /analysis/conditions
 ---
 
 # Pre and post-conditions

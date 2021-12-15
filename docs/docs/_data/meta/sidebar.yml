@@ -30,37 +30,8 @@ options:
       - title: Testing library API docs
         url: /apidocs/meta-test/
 
-  - title: Analysis
-
-    nested_options:
-
-      - title: Quick Start
-        url: /analysis-quickstart.html
-
-      - title: Pre and post-conditions
-        url: /analysis-conditions.html
-
-      - title: Control operators (if, when)
-        url: /analysis-control.html
-
-      - title: Mutability and loops
-        url: /analysis-mutability.html
-
-      - title: Types and invariants
-        url: /analysis-types.html
-
-      - title: Fields
-        url: /analysis-fields.html
-
-      - title: 3rd-party libraries
-        url: /analysis-laws.html
-
-      - title: Java support
-        url: /analysis-java.html
-
   - title: Proofs
+    url: /proofs
 
-    nested_options:
-
-      - title: Quick Start
-        url: /proofs-quickstart.html
+  - title: Analysis
+    url: /analysis

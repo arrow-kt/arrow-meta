@@ -1,6 +1,7 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - Control operators
+permalink: /analysis/control
 ---
 
 # Control operators

@@ -1,6 +1,7 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - Mutability and loops
+permalink: /analysis/mutability
 ---
 
 # Mutability and loops

@@ -1,6 +1,7 @@
 ---
-layout: docs
+layout: docs-analysis
 title: Analysis - 3rd-party libraries
+permalink: /analysis/laws
 ---
 
 # Integration with 3rd-party libraries

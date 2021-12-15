@@ -1,6 +1,7 @@
 ---
 layout: docs
 title: Hello World
+permalink: /hello-world
 ---
 
 # Hello World Compiler Plugin
