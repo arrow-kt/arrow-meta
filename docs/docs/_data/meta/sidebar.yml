@@ -7,7 +7,7 @@ options:
     nested_options:
 
       - title: Hello World Compiler Plugin
-        url: /hello-world.html
+        url: /hello-world
 
       - title: Config
         url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
