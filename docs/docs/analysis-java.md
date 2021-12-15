@@ -32,6 +32,10 @@ buildscript {
 }
 
 apply(plugin = "io.arrow-kt.analysis.java")
+
+dependencies {
+  implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.0")
+}
 ```
 
 </div>
@@ -49,10 +53,16 @@ buildscript {
 }
 
 apply plugin: 'io.arrow-kt.analysis.java'
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.0'
+}
 ```
 
 </div>
 </div>
+
+Unfortunately, you have to depend on the Kotlin standard library explicitly; otherwise strange errors pop up during the compilation process.
 
 ## Examples
 
