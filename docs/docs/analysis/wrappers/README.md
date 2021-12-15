@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Wrappers
-permalink: /analysis/wrappers
+permalink: /analysis/wrappers/
 ---
 
 # Wrappers
