@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - GitHub Actions / SARIF
-permalink: /analysis/sarif
+permalink: /analysis/sarif:output_ext
 ---
 
 # GitHub Actions / SARIF

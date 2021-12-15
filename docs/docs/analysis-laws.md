@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - 3rd-party libraries
-permalink: /analysis/laws
+permalink: /analysis/laws:output_ext
 ---
 
 # Integration with 3rd-party libraries
