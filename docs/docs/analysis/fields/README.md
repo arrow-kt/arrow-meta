@@ -1,7 +1,7 @@
 ---
 layout: docs-analysis
 title: Analysis - Fields
-permalink: /analysis/fields
+permalink: /analysis/fields/
 ---
 
 # Fields
