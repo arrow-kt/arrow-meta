@@ -14,7 +14,7 @@ javaSmt = "3.11.0"
 kotlinCompileTesting = "1.4.6"
 javaCompileTesting = "0.19"
 apacheCommonsText = "1.9"
-kspVersion = "1.6.0-1.0.1"
+kspVersion = "1.6.0-1.0.2"
 sarif4k = "0.0.1"
 
 [libraries]
