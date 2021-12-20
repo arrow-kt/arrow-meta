@@ -48,6 +48,8 @@ class Positive(val value: Int) {
 }
 ```
 
+Types like `Positive` above are a special case of [wrappers](({{ '/analysis/wrappers' | relative_url }}), a way to attach additional invariants to already existing types (`Int`in this case.)
+
 ## Initializers with `pre` and `post`
 
 Whereas `init` blocks are the preferred way to declare invariants, Λrrow Analysis provides a more fine-grained approach which can be useful in some cases. Remember that an invariant plays two roles: you need them to be true at instantiation time, and you can count on them at usage time; you can decide for an invariant to have only the first role by using `pre` in an initializer or constructor, and to have only the latter role by using `post`. For example, the definition of `Positive` above could be rewritten as:
