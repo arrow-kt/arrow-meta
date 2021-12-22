@@ -35,6 +35,7 @@ internal fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
   preConstraints: ArrayList<NamedConstraint>,
   postConstraints: ArrayList<NamedConstraint>,
+  doesNothingOnEmptyCollection: Boolean,
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
@@ -45,12 +46,22 @@ internal fun SolverState.addConstraints(
   if (lawSubject != null) {
     val renamed =
       solver.renameConditions(
-        DeclarationConstraints(descriptor, preConstraints, postConstraints),
+        DeclarationConstraints(
+          descriptor,
+          preConstraints,
+          postConstraints,
+          doesNothingOnEmptyCollection
+        ),
         lawSubject.withAliasUnwrapped
       )
-    callableConstraints.add(renamed.descriptor, ArrayList(renamed.pre), ArrayList(renamed.post))
+    callableConstraints.add(
+      renamed.descriptor,
+      ArrayList(renamed.pre),
+      ArrayList(renamed.post),
+      doesNothingOnEmptyCollection
+    )
   }
-  callableConstraints.add(descriptor, preConstraints, postConstraints)
+  callableConstraints.add(descriptor, preConstraints, postConstraints, doesNothingOnEmptyCollection)
 }
 
 /** Finds the target of a particular law by looking up its [arrow.analysis.Subject] annotation */
@@ -140,9 +151,8 @@ private fun getReturnedExpressionWithoutPostcondition(
   function: Function,
   bindingContext: ResolutionContext
 ): ResolvedCall? {
-  val lastElement = function.body()?.lastBlockStatementOrThis()
   val lastElementWithoutReturn =
-    when (lastElement) {
+    when (val lastElement = function.body()?.lastBlockStatementOrThis()) {
       is ReturnExpression -> lastElement.returnedExpression
       else -> lastElement
     }
@@ -172,7 +182,8 @@ private fun getReturnedExpressionWithoutPostcondition(
 private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   descriptor: DeclarationDescriptor,
   pre: ArrayList<NamedConstraint>,
-  post: ArrayList<NamedConstraint>
+  post: ArrayList<NamedConstraint>,
+  doesNothingOnEmptyCollection: Boolean
 ) {
   val fqName = descriptor.fqNameSafe
   // create a new one if not existent
@@ -180,10 +191,16 @@ private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   val list = this[fqName]!!
   // see if there's any compatible
   when (val ix = list.indexOfFirst { it.descriptor.isCompatibleWith(descriptor) }) {
-    -1 -> list.add(DeclarationConstraints(descriptor, pre, post))
+    -1 -> list.add(DeclarationConstraints(descriptor, pre, post, doesNothingOnEmptyCollection))
     else -> {
       val previous = list[ix]
-      list[ix] = DeclarationConstraints(descriptor, previous.pre + pre, previous.post + post)
+      list[ix] =
+        DeclarationConstraints(
+          descriptor,
+          previous.pre + pre,
+          previous.post + post,
+          previous.doesNothingOnEmptyCollection || doesNothingOnEmptyCollection
+        )
     }
   }
 }

@@ -37,7 +37,8 @@ fun Solver.renameDeclarationConstraints(
   DeclarationConstraints(
     decl.descriptor,
     decl.pre.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) },
-    decl.post.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) }
+    decl.post.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) },
+    decl.doesNothingOnEmptyCollection
   )
 
 fun Solver.substituteDeclarationConstraints(
@@ -47,7 +48,8 @@ fun Solver.substituteDeclarationConstraints(
   DeclarationConstraints(
     decl.descriptor,
     decl.pre.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) },
-    decl.post.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) }
+    decl.post.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) },
+    decl.doesNothingOnEmptyCollection
   )
 
 fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {

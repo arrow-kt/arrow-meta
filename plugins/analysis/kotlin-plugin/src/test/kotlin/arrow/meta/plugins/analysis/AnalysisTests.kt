@@ -1586,6 +1586,39 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `do nothing on empty lists, without annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `do nothing on empty lists, with annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      @Law @DoesNothingOnEmptyCollection
+      inline fun <E> List<E>.allLaw(predicate: (x: E) -> Boolean): Boolean {
+        return all(predicate)
+      } 
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1603,6 +1636,7 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
+import arrow.analysis.DoesNothingOnEmptyCollection
 import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 

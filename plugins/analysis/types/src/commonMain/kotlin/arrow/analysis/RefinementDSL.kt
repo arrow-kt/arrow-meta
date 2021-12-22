@@ -44,6 +44,9 @@ public annotation class Post(
 /** Annotation to flag ad-hoc refinements over third party functions */
 @Target(AnnotationTarget.FUNCTION) public annotation class Subject(val fqName: String)
 
+/** Annotation to flag functions which do not do anything on empty collections */
+@Target(AnnotationTarget.FUNCTION) public annotation class DoesNothingOnEmptyCollection
+
 /**
  * This is used to mark an object as containing only laws. This way you do not have to write the
  * annotation on every element, and you can group several of them together.

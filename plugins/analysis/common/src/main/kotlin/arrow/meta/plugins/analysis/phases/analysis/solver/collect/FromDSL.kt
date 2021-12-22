@@ -61,6 +61,7 @@ public fun Declaration.collectConstraintsFromDSL(
         descriptor.constructors.single(),
         preConstraints,
         postConstraints,
+        doesNothingOnEmptyCollection = false,
         context
       )
     }
@@ -79,8 +80,18 @@ public fun Declaration.collectConstraintsFromDSL(
         constraintsFromFunctionLike(solverState, context, emptyList())
       else -> Pair(arrayListOf(), arrayListOf())
     }.let { (preConstraints, postConstraints) ->
-      if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
-        solverState.addConstraints(descriptor, preConstraints, postConstraints, context)
+      val doesNothingOnEmptyCollection = descriptor.hasDoesNothingOnEmptyCollectionAnnotation
+      if (preConstraints.isNotEmpty() ||
+          postConstraints.isNotEmpty() ||
+          doesNothingOnEmptyCollection
+      ) {
+        solverState.addConstraints(
+          descriptor,
+          preConstraints,
+          postConstraints,
+          doesNothingOnEmptyCollection,
+          context
+        )
       }
     }
   }

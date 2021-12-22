@@ -542,38 +542,90 @@ internal fun SolverState.checkRegularFunctionCall(
     receiverExpr, //
     data
   ) { dataAfterReceiver ->
-    checkCallArguments(resolvedCall, dataAfterReceiver).flatMap { (returnOrContinue, dataAfterArgs)
-      ->
-      returnOrContinue.fold(
-        { r -> cont { StateAfter(r, dataAfterArgs) } },
-        { argVars ->
-          val callConstraints =
-            getConstraintsFor(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall)
+    val callConstraints =
+      getConstraintsFor(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall)
+    val doesNothingOnEmptyCollection = callConstraints?.doesNothingOnEmptyCollection == true
+    ContSeq {
+      if (doesNothingOnEmptyCollection) yield(true)
+      yield(false)
+    }
+      .flatMap { r -> continuationBracket.map { r } }
+      .flatMap { doesNothingOnEmptyCollectionCase ->
+        if (doesNothingOnEmptyCollectionCase) {
+          // when it does nothing on empty collection, don't even look at arguments
+          // 1. introduce the fact that size is zero
+          receiverExpr?.type(data.context)?.getField("size")?.let { sizeField ->
+            addConstraint(
+              NamedConstraint(
+                "size is zero",
+                solver.ints {
+                  equal(solver.intValue(field(sizeField, receiverName)), makeNumber(0))
+                }
+              ),
+              data.context
+            )
+          }
+          // 2. introduce the postconditions
           checkCallableDescriptor(
             associatedVarName,
             resolvedCall.resultingDescriptor,
             callConstraints,
-            argVars,
-            preconditionsCheck = { reworkedConstraints ->
-              whenNotTrusted(expression, data) {
-                checkCallPreConditionsImplication(
-                  reworkedConstraints,
-                  dataAfterArgs.context,
-                  expression,
-                  resolvedCall,
-                  dataAfterArgs.branch.get()
-                )
-              }
-            },
+            emptyList(), // this assumes that the post-condition does not mention arguments
+            preconditionsCheck = {},
             resolvedCall.hasReceiver(),
             receiverName,
             resolvedCall.getReturnType(),
             expression,
-            dataAfterArgs
+            dataAfterReceiver
           )
+        } else {
+          if (doesNothingOnEmptyCollection) {
+            // in this case we know more information
+            receiverExpr?.type(data.context)?.getField("size")?.let { sizeField ->
+              addConstraint(
+                NamedConstraint(
+                  "size is not zero",
+                  solver.ints {
+                    greaterThan(solver.intValue(field(sizeField, receiverName)), makeNumber(0))
+                  }
+                ),
+                data.context
+              )
+            }
+          }
+          // regular case, check the arguments and move on normally
+          checkCallArguments(resolvedCall, dataAfterReceiver).flatMap {
+            (returnOrContinue, dataAfterArgs) ->
+            returnOrContinue.fold(
+              { r -> cont { StateAfter(r, dataAfterArgs) } },
+              { argVars ->
+                checkCallableDescriptor(
+                  associatedVarName,
+                  resolvedCall.resultingDescriptor,
+                  callConstraints,
+                  argVars,
+                  preconditionsCheck = { reworkedConstraints ->
+                    whenNotTrusted(expression, data) {
+                      checkCallPreConditionsImplication(
+                        reworkedConstraints,
+                        dataAfterArgs.context,
+                        expression,
+                        resolvedCall,
+                        dataAfterArgs.branch.get()
+                      )
+                    }
+                  },
+                  resolvedCall.hasReceiver(),
+                  receiverName,
+                  resolvedCall.getReturnType(),
+                  expression,
+                  dataAfterArgs
+                )
+              }
+            )
+          }
         }
-      )
-    }
+      }
   }
 }
 
@@ -905,7 +957,7 @@ private fun SolverState.checkConstantExpression(
       PrimitiveType.STRING -> {
         // record the length of the string
         StringEscapeUtils.unescapeJava(expression.text.trim('"'))?.let { stringLiteral ->
-          type.getLengthField()?.let { lengthDecl ->
+          type.getField("length")?.let { lengthDecl ->
             solver.ints {
               equal(
                 solver.intValue(field(lengthDecl, associatedVarName)),
@@ -948,7 +1000,7 @@ private fun SolverState.checkStringTemplate(
           expression.entries.filterIsInstance<StringTemplateEntryString>().sumOf {
             StringEscapeUtils.unescapeJava(it.string.trim('"')).length
           }
-        type?.getLengthField()?.let { lengthDecl ->
+        type?.getField("length")?.let { lengthDecl ->
           addConstraint(
             NamedConstraint(
               "$associatedVarName minimal length",
@@ -969,10 +1021,10 @@ private fun SolverState.checkStringTemplate(
       }
     }
 
-private fun Type.getLengthField(): DeclarationDescriptor? =
-  descriptor?.unsubstitutedMemberScope?.getContributedDescriptors { it == "length" }?.singleOrNull {
-    it.name.value == "length" && it.isField()
-  }
+private fun Type.getField(fieldName: String): DeclarationDescriptor? =
+  descriptor?.unsubstitutedMemberScope
+    ?.getContributedDescriptors { it == fieldName }
+    ?.singleOrNull { it.name.value == fieldName && it.isField() }
 
 private fun SolverState.checkAssignmentExpression(
   expression: AssignmentExpression,

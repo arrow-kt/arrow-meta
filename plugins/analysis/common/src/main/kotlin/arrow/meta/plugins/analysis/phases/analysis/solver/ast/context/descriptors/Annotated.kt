@@ -16,4 +16,10 @@ interface Annotated {
 
   val packageWithLawsAnnotation: AnnotationDescriptor?
     get() = annotations().findAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+
+  val hasDoesNothingOnEmptyCollectionAnnotation: Boolean
+    get() = annotations().hasAnnotation(FqName("arrow.analysis.DoesNothingOnEmptyCollection"))
 }
+
+val Annotated.hasInterestingAnnotation: Boolean
+  get() = hasPreOrPostAnnotation || hasPreOrPostAnnotation
