@@ -172,9 +172,19 @@ object CollectionLaws {
     }
   }
   @Law
+  inline fun <E> Collection<E>.dropWhileLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return dropWhile(predicate).post({ it.size <= this.size }) { "bounds for dropWhile" }
+  }
+  @Law
   inline fun <E> Collection<E>.takeLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return take(n).post({ it.size <= this.size && it.size <= n }) { "bounds for take" }
+  }
+  @Law
+  inline fun <E> Collection<E>.takeWhileLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return takeWhile(predicate).post({ it.size <= this.size }) { "bounds for takeWhile" }
   }
 
   @Law
@@ -286,6 +296,50 @@ object CollectionLaws {
     }
   }
 
+  @Law
+  inline fun <A> Collection<A>.forEachLaw(action: (A) -> Unit): Unit {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return forEach(action)
+  }
+  @Law
+  inline fun <A> Collection<A>.forEachIndexedLaw(action: (Int, A) -> Unit): Unit {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return forEachIndexed(action)
+  }
+
+  @Law
+  inline fun <A, C : Collection<A>> C.onEachLaw(action: (A) -> Unit): C {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return onEach(action).post({ it.size == size }) { "onEach does nothing" }
+  }
+  @Law
+  inline fun <A, C : Collection<A>> C.onEachIndexedLaw(action: (Int, A) -> Unit): C {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return onEachIndexed(action).post({ it.size == this.size }) { "onEach does nothing" }
+  }
+
+  @Law
+  inline fun <A, B> Collection<A>.flatMapLaw(transform: (A) -> Iterable<B>): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return flatMap(transform).post({
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) { "size of empty list" }
+  }
+  @Law
+  inline fun <A, B> Collection<A>.flatMapIndexedLaw(
+    transform: (index: Int, A) -> Iterable<B>
+  ): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return flatMapIndexed(transform).post({
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) { "size of empty list" }
+  }
+  @Law
+  inline fun <A> Collection<Collection<A>>.flattenLaw(): List<A> =
+    flatten().post({ if (size <= 0) it.size == 0 else /* true means no info */ true }) {
+      "size of empty list"
+    }
+
   // operations between several collections
   @Law
   inline fun <T> Collection<T>.intersectLaw(other: Collection<T>): Set<T> =
@@ -300,6 +354,25 @@ object CollectionLaws {
     union(other).post({ it.size >= this.size && it.size >= other.size }) {
       "bounds for subtraction"
     }
+
+  // iteration over the list
+  @Law
+  inline fun <T> Collection<T>.allLaw(predicate: (T) -> Boolean): Boolean {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return all(predicate).post({ if (size <= 0) it == true else /* true means no info */ true }) {
+      "true for empty lists"
+    }
+  }
+  @Law
+  inline fun <T> Collection<T>.anyLaw(): Boolean =
+    any().post({ it == (size > 0) }) { "any means at least one element" }
+  @Law
+  inline fun <T> Collection<T>.anyLaw(predicate: (T) -> Boolean): Boolean {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return any(predicate).post({ if (size <= 0) it == false else /* true means no info */ true }) {
+      "false for empty lists"
+    }
+  }
 }
 
 @Laws
