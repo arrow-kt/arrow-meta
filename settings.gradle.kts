@@ -48,11 +48,6 @@ project(":arrow-proofs-gradle-plugin").projectDir = File("plugins/proofs/proofs-
 include(":arrow-meta-prelude")
 project(":arrow-meta-prelude").projectDir = File("plugins/proofs/prelude")
 
-// Optics
-
-include(":arrow-optics-ksp")
-project(":arrow-optics-ksp").projectDir = File("plugins/optics/optics-ksp")
-
 // Analysis
 
 include(":arrow-analysis-types")
