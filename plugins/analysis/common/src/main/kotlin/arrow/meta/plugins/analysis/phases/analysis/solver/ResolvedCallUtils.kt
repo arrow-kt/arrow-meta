@@ -16,7 +16,8 @@ enum class SpecialKind {
   Post,
   Invariant,
   TrustCall,
-  TrustBlock
+  TrustBlock,
+  NotLookArgs
 }
 
 internal val ResolvedCall.specialKind: SpecialKind?
@@ -33,6 +34,8 @@ internal val ResolvedCall.specialKind: SpecialKind?
         SpecialKind.TrustCall
       FqName("arrow.analysis.unsafeBlock"), FqName("arrow.analysis.RefinementDSLKt.unsafeBlock") ->
         SpecialKind.TrustBlock
+      FqName("arrow.analysis.doNotLookAtArgumentsWhen"),
+      FqName("arrow.analysis.RefinementDSLKt.doNotLookAtArgumentsWhen") -> SpecialKind.NotLookArgs
       else -> null
     }
 

@@ -61,7 +61,7 @@ public fun Declaration.collectConstraintsFromDSL(
         descriptor.constructors.single(),
         preConstraints,
         postConstraints,
-        doesNothingOnEmptyCollection = false,
+        arrayListOf(),
         context
       )
     }
@@ -78,18 +78,17 @@ public fun Declaration.collectConstraintsFromDSL(
         constraintsFromFunctionLike(solverState, context, valueParameters.filterNotNull())
       is DeclarationWithInitializer ->
         constraintsFromFunctionLike(solverState, context, emptyList())
-      else -> Pair(arrayListOf(), arrayListOf())
-    }.let { (preConstraints, postConstraints) ->
-      val doesNothingOnEmptyCollection = descriptor.hasDoesNothingOnEmptyCollectionAnnotation
+      else -> Triple(arrayListOf(), arrayListOf(), arrayListOf())
+    }.let { (preConstraints, postConstraints, notLookConstraints) ->
       if (preConstraints.isNotEmpty() ||
           postConstraints.isNotEmpty() ||
-          doesNothingOnEmptyCollection
+          notLookConstraints.isNotEmpty()
       ) {
         solverState.addConstraints(
           descriptor,
           preConstraints,
           postConstraints,
-          doesNothingOnEmptyCollection,
+          notLookConstraints,
           context
         )
       }
@@ -116,17 +115,19 @@ private fun Declaration.constraintsFromFunctionLike(
   solverState: SolverState,
   context: ResolutionContext,
   parameters: List<Parameter>
-): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+): Triple<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
+  val notLookConstraints = arrayListOf<NamedConstraint>()
   constraintsFromGenericDeclaration(solverState, context, parameters).forEach { (call, formula) ->
     when (call.specialKind) {
       SpecialKind.Pre -> preConstraints.add(formula)
       SpecialKind.Post -> postConstraints.add(formula)
+      SpecialKind.NotLookArgs -> notLookConstraints.add(formula)
       else -> {} // do nothing
     }
   }
-  return Pair(preConstraints, postConstraints)
+  return Triple(preConstraints, postConstraints, notLookConstraints)
 }
 
 /**
@@ -138,7 +139,7 @@ private fun <A : Constructor<A>> Constructor<A>?.constraintsFromConstructor(
   context: ResolutionContext,
   parameters: List<Parameter>,
   containingClassOrObject: ClassOrObject
-): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+): Triple<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
   (containingClassOrObject.getAnonymousInitializers() + listOfNotNull(this))
@@ -163,7 +164,7 @@ private fun <A : Constructor<A>> Constructor<A>?.constraintsFromConstructor(
         }
       }
     }
-  return Pair(preConstraints, postConstraints)
+  return Triple(preConstraints, postConstraints, arrayListOf())
 }
 
 /** Turn references to 'field(x, this)' into references to parameter 'x' */
@@ -252,7 +253,8 @@ private fun Element.elementToConstraint(
 ): Pair<ResolvedCall, NamedConstraint>? {
   val call = getResolvedCall(context)
   val kind = call?.specialKind
-  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
+  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post || kind == SpecialKind.NotLookArgs
+  ) {
     val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {

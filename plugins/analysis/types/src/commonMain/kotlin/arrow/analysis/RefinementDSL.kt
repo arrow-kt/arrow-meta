@@ -12,6 +12,8 @@ public fun interface Predicate<A> {
 
 public inline fun pre(predicate: Boolean, msg: Messager): Unit = require(predicate) { msg() }
 
+public inline fun doNotLookAtArgumentsWhen(predicate: Boolean, msg: Messager): Unit = Unit
+
 public inline fun <A> A.post(predicate: Predicate<A>, msg: Messager): A {
   require(predicate(this)) { msg() }
   return this
@@ -38,14 +40,18 @@ public annotation class Post(
   val dependencies: Array<String>
 )
 
+@Target(AnnotationTarget.FUNCTION)
+public annotation class DoNotLookAtArguments(
+  val messages: Array<String>,
+  val formulae: Array<String>,
+  val dependencies: Array<String>
+)
+
 /** Annotation to flag ad-hoc refinements over third party functions */
 @Target(AnnotationTarget.FUNCTION) public annotation class Law
 
 /** Annotation to flag ad-hoc refinements over third party functions */
 @Target(AnnotationTarget.FUNCTION) public annotation class Subject(val fqName: String)
-
-/** Annotation to flag functions which do not do anything on empty collections */
-@Target(AnnotationTarget.FUNCTION) public annotation class DoesNothingOnEmptyCollection
 
 /**
  * This is used to mark an object as containing only laws. This way you do not have to write the

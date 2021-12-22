@@ -101,6 +101,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.search.primitiveConstr
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.phases.analysis.solver.state.addAndCheckConsistency
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkCallPostConditionsInconsistencies
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkCallPreConditionsImplication
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkConditionsInconsistencies
@@ -110,6 +111,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.valueArgumentExpressio
 import arrow.meta.plugins.analysis.smt.ObjectFormula
 import arrow.meta.plugins.analysis.smt.renameObjectVariables
 import arrow.meta.plugins.analysis.smt.substituteDeclarationConstraints
+import arrow.meta.plugins.analysis.smt.substituteObjectVariables
 import arrow.meta.plugins.analysis.types.PrimitiveType
 import arrow.meta.plugins.analysis.types.asFloatingLiteral
 import arrow.meta.plugins.analysis.types.asIntegerLiteral
@@ -371,7 +373,8 @@ private fun SolverState.checkCallExpression(
   val specialKind = resolvedCall.specialKind
   val specialControlFlow = controlFlowAnyFunction(data.context, resolvedCall)
   return when {
-    specialKind == SpecialKind.Pre -> // ignore calls to 'pre'
+    specialKind == SpecialKind.Pre ||
+      specialKind == SpecialKind.NotLookArgs -> // ignore calls to 'pre' or not looking at args
     data.noReturn {}
     specialKind == SpecialKind.Post -> // ignore post arguments
     checkExpressionConstraints(
@@ -544,27 +547,26 @@ internal fun SolverState.checkRegularFunctionCall(
   ) { dataAfterReceiver ->
     val callConstraints =
       getConstraintsFor(resolvedCall) ?: primitiveConstraints(data.context, resolvedCall)
-    val doesNothingOnEmptyCollection = callConstraints?.doesNothingOnEmptyCollection == true
+    val doNotLook = callConstraints?.doNotLookAtArgumentsWhen.orEmpty()
     ContSeq {
-      if (doesNothingOnEmptyCollection) yield(true)
+      if (doNotLook.isNotEmpty()) yield(true)
       yield(false)
     }
       .flatMap { r -> continuationBracket.map { r } }
-      .flatMap { doesNothingOnEmptyCollectionCase ->
-        if (doesNothingOnEmptyCollectionCase) {
-          // when it does nothing on empty collection, don't even look at arguments
-          // 1. introduce the fact that size is zero
-          receiverExpr?.type(data.context)?.getField("size")?.let { sizeField ->
-            addConstraint(
+      .flatMap { doNotLookCase ->
+        if (doNotLookCase) {
+          // case when we do not have to look at arguments
+          // 1. introduce the facts when we do not go
+          val renamedNotLook =
+            doNotLook.map { c ->
               NamedConstraint(
-                "size is zero",
-                solver.ints {
-                  equal(solver.intValue(field(sizeField, receiverName)), makeNumber(0))
-                }
-              ),
-              data.context
-            )
-          }
+                c.msg,
+                solver.substituteObjectVariables(c.formula, mapOf(THIS_VAR_NAME to receiverName))
+              )
+            }
+          addAndCheckConsistency(renamedNotLook, data.context) { /* do nothing on failure */}
+          val dataAfterNotLook =
+            dataAfterReceiver.addBranch(renamedNotLook.map(NamedConstraint::formula))
           // 2. introduce the postconditions
           checkCallableDescriptor(
             associatedVarName,
@@ -576,25 +578,29 @@ internal fun SolverState.checkRegularFunctionCall(
             receiverName,
             resolvedCall.getReturnType(),
             expression,
-            dataAfterReceiver
+            dataAfterNotLook
           )
         } else {
-          if (doesNothingOnEmptyCollection) {
-            // in this case we know more information
-            receiverExpr?.type(data.context)?.getField("size")?.let { sizeField ->
-              addConstraint(
-                NamedConstraint(
-                  "size is not zero",
-                  solver.ints {
-                    greaterThan(solver.intValue(field(sizeField, receiverName)), makeNumber(0))
-                  }
-                ),
-                data.context
-              )
-            }
-          }
+          // introduce the fact that we are looking at the arguments, if present
+          val dataAfterNotLook =
+            if (doNotLook.isNotEmpty()) {
+              val renamedNotLook =
+                doNotLook.map { c ->
+                  NamedConstraint(
+                    "! ${c.msg}",
+                    solver.not(
+                      solver.substituteObjectVariables(
+                        c.formula,
+                        mapOf(THIS_VAR_NAME to receiverName)
+                      )
+                    )
+                  )
+                }
+              addAndCheckConsistency(renamedNotLook, data.context) { /* do nothing on failure */}
+              dataAfterReceiver.addBranch(renamedNotLook.map(NamedConstraint::formula))
+            } else dataAfterReceiver
           // regular case, check the arguments and move on normally
-          checkCallArguments(resolvedCall, dataAfterReceiver).flatMap {
+          checkCallArguments(resolvedCall, dataAfterNotLook).flatMap {
             (returnOrContinue, dataAfterArgs) ->
             returnOrContinue.fold(
               { r -> cont { StateAfter(r, dataAfterArgs) } },

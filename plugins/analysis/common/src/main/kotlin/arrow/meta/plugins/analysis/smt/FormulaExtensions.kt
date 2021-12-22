@@ -33,24 +33,28 @@ internal fun <T : Formula> Solver.substituteObjectVariables(
 fun Solver.renameDeclarationConstraints(
   decl: DeclarationConstraints,
   mapping: Map<String, String>
-): DeclarationConstraints =
-  DeclarationConstraints(
+): DeclarationConstraints {
+  fun go(c: NamedConstraint) = NamedConstraint(c.msg, renameObjectVariables(c.formula, mapping))
+  return DeclarationConstraints(
     decl.descriptor,
-    decl.pre.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) },
-    decl.post.map { NamedConstraint(it.msg, renameObjectVariables(it.formula, mapping)) },
-    decl.doesNothingOnEmptyCollection
+    decl.pre.map(::go),
+    decl.post.map(::go),
+    decl.doNotLookAtArgumentsWhen.map(::go)
   )
+}
 
 fun Solver.substituteDeclarationConstraints(
   decl: DeclarationConstraints,
   mapping: Map<String, ObjectFormula>
-): DeclarationConstraints =
-  DeclarationConstraints(
+): DeclarationConstraints {
+  fun go(c: NamedConstraint) = NamedConstraint(c.msg, substituteObjectVariables(c.formula, mapping))
+  return DeclarationConstraints(
     decl.descriptor,
-    decl.pre.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) },
-    decl.post.map { NamedConstraint(it.msg, substituteObjectVariables(it.formula, mapping)) },
-    decl.doesNothingOnEmptyCollection
+    decl.pre.map(::go),
+    decl.post.map(::go),
+    decl.doNotLookAtArgumentsWhen.map(::go)
   )
+}
 
 fun FormulaManager.fieldNames(f: Formula): Set<Pair<String, ObjectFormula>> {
   val names = mutableSetOf<Pair<String, ObjectFormula>>()

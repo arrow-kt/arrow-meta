@@ -35,7 +35,7 @@ internal fun SolverState.addConstraints(
   descriptor: DeclarationDescriptor,
   preConstraints: ArrayList<NamedConstraint>,
   postConstraints: ArrayList<NamedConstraint>,
-  doesNothingOnEmptyCollection: Boolean,
+  notLookConstraints: ArrayList<NamedConstraint>,
   bindingContext: ResolutionContext
 ) {
   val lawSubject =
@@ -46,22 +46,17 @@ internal fun SolverState.addConstraints(
   if (lawSubject != null) {
     val renamed =
       solver.renameConditions(
-        DeclarationConstraints(
-          descriptor,
-          preConstraints,
-          postConstraints,
-          doesNothingOnEmptyCollection
-        ),
+        DeclarationConstraints(descriptor, preConstraints, postConstraints, notLookConstraints),
         lawSubject.withAliasUnwrapped
       )
     callableConstraints.add(
       renamed.descriptor,
       ArrayList(renamed.pre),
       ArrayList(renamed.post),
-      doesNothingOnEmptyCollection
+      ArrayList(renamed.doNotLookAtArgumentsWhen)
     )
   }
-  callableConstraints.add(descriptor, preConstraints, postConstraints, doesNothingOnEmptyCollection)
+  callableConstraints.add(descriptor, preConstraints, postConstraints, notLookConstraints)
 }
 
 /** Finds the target of a particular law by looking up its [arrow.analysis.Subject] annotation */
@@ -183,7 +178,7 @@ private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   descriptor: DeclarationDescriptor,
   pre: ArrayList<NamedConstraint>,
   post: ArrayList<NamedConstraint>,
-  doesNothingOnEmptyCollection: Boolean
+  doNotLookAtArgumentsWhen: ArrayList<NamedConstraint>
 ) {
   val fqName = descriptor.fqNameSafe
   // create a new one if not existent
@@ -191,7 +186,7 @@ private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
   val list = this[fqName]!!
   // see if there's any compatible
   when (val ix = list.indexOfFirst { it.descriptor.isCompatibleWith(descriptor) }) {
-    -1 -> list.add(DeclarationConstraints(descriptor, pre, post, doesNothingOnEmptyCollection))
+    -1 -> list.add(DeclarationConstraints(descriptor, pre, post, doNotLookAtArgumentsWhen))
     else -> {
       val previous = list[ix]
       list[ix] =
@@ -199,7 +194,7 @@ private fun MutableMap<FqName, MutableList<DeclarationConstraints>>.add(
           descriptor,
           previous.pre + pre,
           previous.post + post,
-          previous.doesNothingOnEmptyCollection || doesNothingOnEmptyCollection
+          previous.doNotLookAtArgumentsWhen + doNotLookAtArgumentsWhen
         )
     }
   }

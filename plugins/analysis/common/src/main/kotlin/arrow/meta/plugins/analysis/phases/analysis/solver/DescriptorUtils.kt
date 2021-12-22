@@ -198,13 +198,13 @@ internal fun Solver.renameConditions(
   val toParams = (to as? CallableDescriptor)?.valueParameters?.map { it.name.value }
   return if (fromParams != null && toParams != null) {
     val renamed = renameDeclarationConstraints(constraints, fromParams.zip(toParams).toMap())
-    DeclarationConstraints(to, renamed.pre, renamed.post, renamed.doesNothingOnEmptyCollection)
+    DeclarationConstraints(to, renamed.pre, renamed.post, renamed.doNotLookAtArgumentsWhen)
   } else {
     DeclarationConstraints(
       to,
       constraints.pre,
       constraints.post,
-      constraints.doesNothingOnEmptyCollection
+      constraints.doNotLookAtArgumentsWhen
     )
   }
 }

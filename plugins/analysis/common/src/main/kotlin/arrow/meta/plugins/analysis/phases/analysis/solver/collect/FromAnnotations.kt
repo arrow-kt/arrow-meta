@@ -86,24 +86,20 @@ internal fun SolverState.addConstraintsFromAnnotations(
       when (ann.fqName) {
         FqName("arrow.analysis.Pre") -> "pre"
         FqName("arrow.analysis.Post") -> "post"
+        FqName("arrow.analysis.DoNotLookAtArguments") -> "doNotLookAtArgumentsWhen"
         else -> null
       }?.let { element -> parseFormula(element, ann, descriptor) }
     }
-  val doesNothingOnEmptyCollection = descriptor.hasDoesNothingOnEmptyCollectionAnnotation
   if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<NamedConstraint>()
     val postConstraints = arrayListOf<NamedConstraint>()
+    val notLookConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
       if (call == "pre") preConstraints.addAll(formula)
       if (call == "post") postConstraints.addAll(formula)
+      if (call == "doNotLookAtArgumentsWhen") notLookConstraints.addAll(formula)
     }
-    addConstraints(
-      descriptor,
-      preConstraints,
-      postConstraints,
-      doesNothingOnEmptyCollection,
-      bindingContext
-    )
+    addConstraints(descriptor, preConstraints, postConstraints, notLookConstraints, bindingContext)
   }
 }
 

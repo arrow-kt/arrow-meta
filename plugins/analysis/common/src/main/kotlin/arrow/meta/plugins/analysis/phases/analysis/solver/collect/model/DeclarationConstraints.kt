@@ -6,6 +6,5 @@ data class DeclarationConstraints(
   val descriptor: DeclarationDescriptor,
   val pre: List<NamedConstraint>,
   val post: List<NamedConstraint>,
-  /** special flag for functions like 'map' */
-  val doesNothingOnEmptyCollection: Boolean
+  val doNotLookAtArgumentsWhen: List<NamedConstraint>
 )

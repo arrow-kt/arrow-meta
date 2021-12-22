@@ -1607,8 +1607,9 @@ class AnalysisTests {
       ${imports()}
       ${collectionListLaws()}
       
-      @Law @DoesNothingOnEmptyCollection
+      @Law
       inline fun <E> List<E>.allLaw(predicate: (x: E) -> Boolean): Boolean {
+        doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
         return all(predicate)
       } 
       
@@ -1636,7 +1637,7 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
-import arrow.analysis.DoesNothingOnEmptyCollection
+import arrow.analysis.doNotLookAtArgumentsWhen
 import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
@@ -1666,6 +1667,9 @@ object ListLaws {
     pre(size >= 1) { "not empty" }
     return first()
   }
+  @Law
+  inline fun <E> List<E>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
 }
 """
 

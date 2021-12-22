@@ -60,7 +60,9 @@ public class JavaResolutionContext(
               if (calleeText == "pre" ||
                   calleeText.endsWith(".pre") ||
                   calleeText == "post" ||
-                  calleeText.endsWith(".post")
+                  calleeText.endsWith(".post") ||
+                  calleeText == "doNotLookAtArgumentsWhen" ||
+                  calleeText.endsWith(".doNotLookAtArgumentsWhen")
               )
                 elements.add(node.model(ctx))
             }
