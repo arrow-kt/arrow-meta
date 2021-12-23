@@ -5,5 +5,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 data class DeclarationConstraints(
   val descriptor: DeclarationDescriptor,
   val pre: List<NamedConstraint>,
-  val post: List<NamedConstraint>
+  val post: List<NamedConstraint>,
+  val doNotLookAtArgumentsWhen: List<NamedConstraint>
 )

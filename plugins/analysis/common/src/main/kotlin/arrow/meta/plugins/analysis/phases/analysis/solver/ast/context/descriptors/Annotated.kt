@@ -16,4 +16,10 @@ interface Annotated {
 
   val packageWithLawsAnnotation: AnnotationDescriptor?
     get() = annotations().findAnnotation(FqName("arrow.analysis.PackagesWithLaws"))
+
+  val hasDoNotLookAtArgumentsAnnotation: Boolean
+    get() = annotations().hasAnnotation(FqName("arrow.analysis.DoNotLookAtArguments"))
 }
+
+val Annotated.hasInterestingAnnotation: Boolean
+  get() = hasPreOrPostAnnotation || hasDoNotLookAtArgumentsAnnotation

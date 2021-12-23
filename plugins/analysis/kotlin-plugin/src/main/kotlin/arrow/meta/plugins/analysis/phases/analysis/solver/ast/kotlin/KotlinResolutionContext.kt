@@ -83,7 +83,8 @@ class KotlinResolutionContext(
     val visitor = callExpressionRecursiveVisitor {
       if (it.calleeExpression?.text == "pre" ||
           it.calleeExpression?.text == "post" ||
-          it.calleeExpression?.text == "require"
+          it.calleeExpression?.text == "require" ||
+          it.calleeExpression?.text == "doNotLookAtArgumentsWhen"
       ) {
         results.add(it)
       }

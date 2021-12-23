@@ -5,6 +5,7 @@ package arrow.analysis.laws.kotlin
 
 import arrow.analysis.Law
 import arrow.analysis.Laws
+import arrow.analysis.doNotLookAtArgumentsWhen
 import arrow.analysis.post
 import arrow.analysis.pre
 
@@ -21,8 +22,10 @@ object CollectionLaws {
   inline fun <E> Collection<E>.countLaw(): Int =
     count().post({ it == this.size }) { "count is size" }
   @Law
-  inline fun <E> Collection<E>.countLaw(predicate: (E) -> Boolean): Int =
-    count(predicate).post({ it <= this.size }) { "count bounded by size" }
+  inline fun <E> Collection<E>.countLaw(predicate: (E) -> Boolean): Int {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return count(predicate).post({ it <= this.size }) { "count bounded by size" }
+  }
 
   @Law
   inline fun <E> Collection<E>.isEmptyLaw(): Boolean =
@@ -101,15 +104,19 @@ object CollectionLaws {
       "bounds for lastIndexOf"
     }
   @Law
-  inline fun <E> Collection<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
-    indexOfFirst(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
+  inline fun <E> Collection<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return indexOfFirst(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
       "bounds for indexOfFirst"
     }
+  }
   @Law
-  inline fun <E> Collection<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
-    indexOfLast(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
+  inline fun <E> Collection<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return indexOfLast(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
       "bounds for indexOfLast"
     }
+  }
 
   @Law
   inline fun <T> Collection<T>.randomLaw(): T {
@@ -127,28 +134,34 @@ object CollectionLaws {
       "size remains after unzip"
     }
   @Law
-  inline fun <T, R> Collection<T>.zipLaw(other: Collection<R>): List<Pair<T, R>> =
-    zip(other).post({ it.size <= this.size && it.size <= other.size }) {
+  inline fun <T, R> Collection<T>.zipLaw(other: Collection<R>): List<Pair<T, R>> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return zip(other).post({ it.size <= this.size && it.size <= other.size }) {
       "size bounded by the smallest"
     }
+  }
   @Law
   inline fun <T, R, V> Collection<T>.zipLaw(
     other: Collection<R>,
     transform: (a: T, b: R) -> V
-  ): List<V> =
-    zip(other, transform).post({ it.size <= this.size && it.size <= other.size }) {
+  ): List<V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return zip(other, transform).post({ it.size <= this.size && it.size <= other.size }) {
       "size bounded by the smallest"
     }
+  }
   @Law
   inline fun <T> Collection<T>.zipWithNextLaw(): List<Pair<T, T>> =
-    zipWithNext().post({ if (this.size == 0) (it.size == 0) else (it.size == this.size - 1) }) {
+    zipWithNext().post({ if (this.size < 2) (it.size == 0) else (it.size == this.size - 1) }) {
       "size is one less"
     }
   @Law
-  inline fun <T, V> Collection<T>.zipWithNextLaw(transform: (a: T, b: T) -> V): List<V> =
-    zipWithNext(transform).post({
-      if (this.size == 0) (it.size == 0) else (it.size == this.size - 1)
+  inline fun <T, V> Collection<T>.zipWithNextLaw(transform: (a: T, b: T) -> V): List<V> {
+    doNotLookAtArgumentsWhen(size < 2) { "empty lists have no elements" }
+    return zipWithNext(transform).post({
+      if (this.size < 2) (it.size == 0) else (it.size == this.size - 1)
     }) { "size bounded by the smallest" }
+  }
 
   // operations which remove things
   @Law
@@ -159,23 +172,39 @@ object CollectionLaws {
     }
   }
   @Law
+  inline fun <E> Collection<E>.dropWhileLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return dropWhile(predicate).post({ it.size <= this.size }) { "bounds for dropWhile" }
+  }
+  @Law
   inline fun <E> Collection<E>.takeLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return take(n).post({ it.size <= this.size && it.size <= n }) { "bounds for take" }
   }
+  @Law
+  inline fun <E> Collection<E>.takeWhileLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return takeWhile(predicate).post({ it.size <= this.size }) { "bounds for takeWhile" }
+  }
 
   @Law
-  inline fun <E> Collection<E>.filterLaw(predicate: (E) -> Boolean): List<E> =
-    filter(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  inline fun <E> Collection<E>.filterLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filter(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  }
   @Law
-  inline fun <E> Collection<E>.filterNotLaw(predicate: (E) -> Boolean): List<E> =
-    filterNot(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  inline fun <E> Collection<E>.filterNotLaw(predicate: (E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filterNot(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  }
   @Law
   inline fun <E> Collection<E?>.filterNotNullLaw(): List<E> =
     filterNotNull().post({ it.size <= this.size }) { "bounds after filter" }
   @Law
-  inline fun <E> Collection<E>.filterIndexedLaw(predicate: (Int, E) -> Boolean): List<E> =
-    filterIndexed(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  inline fun <E> Collection<E>.filterIndexedLaw(predicate: (Int, E) -> Boolean): List<E> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filterIndexed(predicate).post({ it.size <= this.size }) { "bounds after filter" }
+  }
   @Law
   inline fun <reified R> Collection<*>.filterIsInstanceLaw(): List<R> =
     filterIsInstance<R>().post({ it.size <= this.size }) { "bounds after filter" }
@@ -184,8 +213,10 @@ object CollectionLaws {
   inline fun <E> Collection<E>.distinctLaw(): List<E> =
     distinct().post({ it.size <= this.size }) { "size bounded by original " }
   @Law
-  inline fun <T, K> Collection<T>.distinctByLaw(selector: (T) -> K): List<T> =
-    distinctBy(selector).post({ it.size <= this.size }) { "size bounded by original " }
+  inline fun <T, K> Collection<T>.distinctByLaw(selector: (T) -> K): List<T> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return distinctBy(selector).post({ it.size <= this.size }) { "size bounded by original " }
+  }
 
   @Law
   inline fun <E> Collection<E>.plusLaw(element: E): List<E> =
@@ -220,12 +251,19 @@ object CollectionLaws {
   @Law
   inline fun <T, R : Comparable<R>> Collection<T>.sortedByLaw(
     crossinline selector: (T) -> R?
-  ): List<T> = sortedBy(selector).post({ it.size == this.size }) { "size remains after sorting" }
+  ): List<T> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return sortedBy(selector).post({ it.size == this.size }) { "size remains after sorting" }
+  }
   @Law
   inline fun <T, R : Comparable<R>> Collection<T>.sortedByDescendingLaw(
     crossinline selector: (T) -> R?
-  ): List<T> =
-    sortedByDescending(selector).post({ it.size == this.size }) { "size remains after sorting" }
+  ): List<T> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return sortedByDescending(selector).post({ it.size == this.size }) {
+      "size remains after sorting"
+    }
+  }
   @Law
   inline fun <T> Collection<T>.sortedWithLaw(comparator: Comparator<in T>): List<T> =
     sortedWith(comparator).post({ it.size == this.size }) { "size remains after sorting" }
@@ -235,18 +273,72 @@ object CollectionLaws {
     shuffled().post({ it.size == this.size }) { "size remains after shuffle" }
 
   @Law
-  inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> =
-    map(transform).post({ it.size == this.size }) { "size remains after map" }
+  inline fun <A, B> Collection<A>.mapLaw(transform: (A) -> B): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return map(transform).post({ it.size == this.size }) { "size remains after map" }
+  }
   @Law
-  inline fun <A, B> Collection<A>.mapIndexedLaw(transform: (Int, A) -> B): List<B> =
-    mapIndexed(transform).post({ it.size == this.size }) { "size remains after map" }
+  inline fun <A, B> Collection<A>.mapIndexedLaw(transform: (Int, A) -> B): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return mapIndexed(transform).post({ it.size == this.size }) { "size remains after map" }
+  }
 
   @Law
-  inline fun <A, B> Collection<A>.mapNotNullLaw(transform: (A) -> B?): List<B> =
-    mapNotNull(transform).post({ it.size <= this.size }) { "size bounded by original" }
+  inline fun <A, B> Collection<A>.mapNotNullLaw(transform: (A) -> B?): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return mapNotNull(transform).post({ it.size <= this.size }) { "size bounded by original" }
+  }
   @Law
-  inline fun <A, B> Collection<A>.mapIndexedNotNullLaw(transform: (Int, A) -> B?): List<B> =
-    mapIndexedNotNull(transform).post({ it.size == this.size }) { "size bounded by original" }
+  inline fun <A, B> Collection<A>.mapIndexedNotNullLaw(transform: (Int, A) -> B?): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return mapIndexedNotNull(transform).post({ it.size == this.size }) {
+      "size bounded by original"
+    }
+  }
+
+  @Law
+  inline fun <A> Collection<A>.forEachLaw(action: (A) -> Unit): Unit {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return forEach(action)
+  }
+  @Law
+  inline fun <A> Collection<A>.forEachIndexedLaw(action: (Int, A) -> Unit): Unit {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return forEachIndexed(action)
+  }
+
+  @Law
+  inline fun <A, C : Collection<A>> C.onEachLaw(action: (A) -> Unit): C {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return onEach(action).post({ it.size == size }) { "onEach does nothing" }
+  }
+  @Law
+  inline fun <A, C : Collection<A>> C.onEachIndexedLaw(action: (Int, A) -> Unit): C {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return onEachIndexed(action).post({ it.size == this.size }) { "onEach does nothing" }
+  }
+
+  @Law
+  inline fun <A, B> Collection<A>.flatMapLaw(transform: (A) -> Iterable<B>): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return flatMap(transform).post({
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) { "size of empty list" }
+  }
+  @Law
+  inline fun <A, B> Collection<A>.flatMapIndexedLaw(
+    transform: (index: Int, A) -> Iterable<B>
+  ): List<B> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return flatMapIndexed(transform).post({
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) { "size of empty list" }
+  }
+  @Law
+  inline fun <A> Collection<Collection<A>>.flattenLaw(): List<A> =
+    flatten().post({ if (size <= 0) it.size == 0 else /* true means no info */ true }) {
+      "size of empty list"
+    }
 
   // operations between several collections
   @Law
@@ -262,6 +354,25 @@ object CollectionLaws {
     union(other).post({ it.size >= this.size && it.size >= other.size }) {
       "bounds for subtraction"
     }
+
+  // iteration over the list
+  @Law
+  inline fun <T> Collection<T>.allLaw(predicate: (T) -> Boolean): Boolean {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return all(predicate).post({ if (size <= 0) it == true else /* true means no info */ true }) {
+      "true for empty lists"
+    }
+  }
+  @Law
+  inline fun <T> Collection<T>.anyLaw(): Boolean =
+    any().post({ it == (size > 0) }) { "any means at least one element" }
+  @Law
+  inline fun <T> Collection<T>.anyLaw(predicate: (T) -> Boolean): Boolean {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return any(predicate).post({ if (size <= 0) it == false else /* true means no info */ true }) {
+      "false for empty lists"
+    }
+  }
 }
 
 @Laws
@@ -335,15 +446,19 @@ object ListLaws {
   inline fun <E> List<E>.lastIndexLaw(): Int =
     lastIndex.post({ it == size - 1 }) { "last index is size - 1" }
   @Law
-  inline fun <E> List<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int =
-    indexOfFirst(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
+  inline fun <E> List<E>.indexOfFirstLaw(predicate: (x: E) -> Boolean): Int {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return indexOfFirst(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
       "bounds for indexOfFirst"
     }
+  }
   @Law
-  inline fun <E> List<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int =
-    indexOfLast(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
+  inline fun <E> List<E>.indexOfLastLaw(predicate: (x: E) -> Boolean): Int {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return indexOfLast(predicate).post({ if (this.size <= 0) (it == -1) else (it >= -1) }) {
       "bounds for indexOfLast"
     }
+  }
 
   @Law
   inline fun <E> emptyListLaw(): List<E> =
@@ -504,24 +619,36 @@ object MapLaws {
     mutableMapOf(*elements).post({ it.size <= elements.size }) { "literal size" }
 
   @Law
-  inline fun <K, V, R> Map<out K, V>.mapValuesLaw(transform: (Map.Entry<K, V>) -> R): Map<K, R> =
-    mapValues(transform).post({ it.size == this.size }) { "size remains after mapValues" }
+  inline fun <K, V, R> Map<out K, V>.mapValuesLaw(transform: (Map.Entry<K, V>) -> R): Map<K, R> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return mapValues(transform).post({ it.size == this.size }) { "size remains after mapValues" }
+  }
   @Law
-  inline fun <K, V, R> Map<out K, V>.mapKeysLaw(transform: (Map.Entry<K, V>) -> R): Map<R, V> =
-    mapKeys(transform).post({ it.size <= this.size }) { "size bounded after mapKeys" }
+  inline fun <K, V, R> Map<out K, V>.mapKeysLaw(transform: (Map.Entry<K, V>) -> R): Map<R, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return mapKeys(transform).post({ it.size <= this.size }) { "size bounded after mapKeys" }
+  }
 
   @Law
-  inline fun <K, V> Map<out K, V>.filterLaw(predicate: (Map.Entry<K, V>) -> Boolean): Map<K, V> =
-    filter(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  inline fun <K, V> Map<out K, V>.filterLaw(predicate: (Map.Entry<K, V>) -> Boolean): Map<K, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filter(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  }
   @Law
-  inline fun <K, V> Map<out K, V>.filterNotLaw(predicate: (Map.Entry<K, V>) -> Boolean): Map<K, V> =
-    filterNot(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  inline fun <K, V> Map<out K, V>.filterNotLaw(predicate: (Map.Entry<K, V>) -> Boolean): Map<K, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filterNot(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  }
   @Law
-  inline fun <K, V> Map<out K, V>.filterValuesLaw(predicate: (V) -> Boolean): Map<K, V> =
-    filterValues(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  inline fun <K, V> Map<out K, V>.filterValuesLaw(predicate: (V) -> Boolean): Map<K, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filterValues(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  }
   @Law
-  inline fun <K, V> Map<out K, V>.filterKeysLaw(predicate: (K) -> Boolean): Map<K, V> =
-    filterKeys(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  inline fun <K, V> Map<out K, V>.filterKeysLaw(predicate: (K) -> Boolean): Map<K, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return filterKeys(predicate).post({ it.size <= this.size }) { "size bounded after filter" }
+  }
 
   @Law
   inline fun <K, V> Map<out K, V>.plusLaw(pair: Pair<K, V>): Map<K, V> =
@@ -563,14 +690,22 @@ object CollectionConversionsLaws {
   inline fun <K, V> Collection<Pair<K, V>>.toMapLaw(): Map<K, V> =
     toMap().post({ it.size <= this.size }) { "size bounded by collection" }
   @Law
-  inline fun <T, K, V> Collection<T>.associateLaw(transform: (T) -> Pair<K, V>): Map<K, V> =
-    associate(transform).post({ it.size <= this.size }) { "size bounded by collection" }
+  inline fun <T, K, V> Collection<T>.associateLaw(transform: (T) -> Pair<K, V>): Map<K, V> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return associate(transform).post({ it.size <= this.size }) { "size bounded by collection" }
+  }
   @Law
-  inline fun <T, K> Collection<T>.associateByLaw(keySelector: (T) -> K): Map<K, T> =
-    associateBy(keySelector).post({ it.size <= this.size }) { "size bounded by collection" }
+  inline fun <T, K> Collection<T>.associateByLaw(keySelector: (T) -> K): Map<K, T> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return associateBy(keySelector).post({ it.size <= this.size }) { "size bounded by collection" }
+  }
   @Law
-  inline fun <T, K> Collection<K>.associateWithLaw(valueSelector: (K) -> T): Map<K, T> =
-    associateWith(valueSelector).post({ it.size <= this.size }) { "size bounded by collection" }
+  inline fun <T, K> Collection<K>.associateWithLaw(valueSelector: (K) -> T): Map<K, T> {
+    doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+    return associateWith(valueSelector).post({ it.size <= this.size }) {
+      "size bounded by collection"
+    }
+  }
 
   @Law
   inline fun <E> Collection<E>.toListLaw(): List<E> =

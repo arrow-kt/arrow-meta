@@ -12,6 +12,8 @@ public fun interface Predicate<A> {
 
 public inline fun pre(predicate: Boolean, msg: Messager): Unit = require(predicate) { msg() }
 
+public inline fun doNotLookAtArgumentsWhen(predicate: Boolean, msg: Messager): Unit = Unit
+
 public inline fun <A> A.post(predicate: Predicate<A>, msg: Messager): A {
   require(predicate(this)) { msg() }
   return this
@@ -33,6 +35,13 @@ public annotation class Pre(
 
 @Target(AnnotationTarget.FUNCTION)
 public annotation class Post(
+  val messages: Array<String>,
+  val formulae: Array<String>,
+  val dependencies: Array<String>
+)
+
+@Target(AnnotationTarget.FUNCTION)
+public annotation class DoNotLookAtArguments(
   val messages: Array<String>,
   val formulae: Array<String>,
   val dependencies: Array<String>

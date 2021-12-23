@@ -20,6 +20,7 @@ dependencies {
   testImplementation(libs.kotlin.stdlibJDK8)
   testImplementation(libs.junit)
   testImplementation(libs.junitEngine)
+  testImplementation(libs.junitPlatformLauncher)
   testImplementation(projects.arrowMetaTest)
   testRuntimeOnly(projects.arrowMeta)
   testRuntimeOnly(projects.arrowAnalysisTypes)

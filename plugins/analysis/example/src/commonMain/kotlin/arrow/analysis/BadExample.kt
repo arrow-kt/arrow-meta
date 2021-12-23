@@ -85,3 +85,5 @@ fun <A> List<A>.count(): Int {
   }
   return count.post({ it >= 0 }) { "result >= 0" }
 }
+
+fun <A> List<A>.isSingle() = all { it == first() }

@@ -1586,6 +1586,40 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `do nothing on empty lists, without annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `do nothing on empty lists, with annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      @Law
+      inline fun <E> List<E>.allLaw(predicate: (x: E) -> Boolean): Boolean {
+        doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+        return all(predicate)
+      } 
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1603,6 +1637,7 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
+import arrow.analysis.doNotLookAtArgumentsWhen
 import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
@@ -1632,6 +1667,9 @@ object ListLaws {
     pre(size >= 1) { "not empty" }
     return first()
   }
+  @Law
+  inline fun <E> List<E>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
 }
 """
 
