@@ -8,7 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
+import org.jetbrains.kotlin.resolve.calls.util.getType
 
 fun interface KotlinExpression : Expression, KotlinElement {
   override fun impl(): KtExpression

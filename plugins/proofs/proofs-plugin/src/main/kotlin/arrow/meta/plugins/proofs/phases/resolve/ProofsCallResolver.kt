@@ -15,17 +15,16 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.LambdaArgument
 import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.kotlin.resolve.BindingTraceContext
-import org.jetbrains.kotlin.resolve.calls.components.CallableReferenceResolver
 import org.jetbrains.kotlin.resolve.calls.components.InferenceSession
 import org.jetbrains.kotlin.resolve.calls.components.KotlinCallCompleter
 import org.jetbrains.kotlin.resolve.calls.components.KotlinResolutionCallbacks
 import org.jetbrains.kotlin.resolve.calls.components.NewOverloadingConflictResolver
+import org.jetbrains.kotlin.resolve.calls.components.candidate.ResolutionCandidate
 import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
 import org.jetbrains.kotlin.resolve.calls.context.CheckArgumentTypesMode
 import org.jetbrains.kotlin.resolve.calls.model.CallResolutionResult
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCall
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallComponents
-import org.jetbrains.kotlin.resolve.calls.model.KotlinResolutionCandidate
 import org.jetbrains.kotlin.resolve.calls.model.SimpleCandidateFactory
 import org.jetbrains.kotlin.resolve.calls.model.checkCallInvariants
 import org.jetbrains.kotlin.resolve.calls.model.freshReturnType
@@ -49,7 +48,6 @@ class ProofsCallResolver(
   private val towerResolver: TowerResolver,
   private val kotlinCallCompleter: KotlinCallCompleter,
   private val overloadingConflictResolver: NewOverloadingConflictResolver,
-  private val callableReferenceResolver: CallableReferenceResolver,
   private val callComponents: KotlinCallComponents,
   private val psiCallResolver: PSICallResolver
 ) {
@@ -100,8 +98,7 @@ class ProofsCallResolver(
         callComponents,
         scopeTower,
         kotlinCall,
-        resolutionCallbacks,
-        callableReferenceResolver
+        resolutionCallbacks
       )
 
     val resolutionCandidates = map {
@@ -135,7 +132,7 @@ class ProofsCallResolver(
 
   private fun GivenProof.givenCandidate(
     candidateFactory: SimpleCandidateFactory
-  ): KotlinResolutionCandidate =
+  ): ResolutionCandidate =
     candidateFactory.createCandidate(
       towerCandidate = CandidateWithBoundDispatchReceiver(null, callableDescriptor, emptyList()),
       explicitReceiverKind = ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
@@ -146,7 +143,7 @@ class ProofsCallResolver(
     candidateFactory: SimpleCandidateFactory,
     resolutionCallbacks: KotlinResolutionCallbacks,
     expectedType: UnwrappedType?,
-    candidates: Collection<KotlinResolutionCandidate>
+    candidates: Collection<ResolutionCandidate>
   ): CallResolutionResult {
     var refinedCandidates =
       candidates.filter {

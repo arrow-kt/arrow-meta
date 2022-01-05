@@ -3,6 +3,7 @@ package arrow.meta.phases.analysis.diagnostic
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.diagnostics.DiagnosticMarker
 import org.jetbrains.kotlin.diagnostics.ParametrizedDiagnostic
 import org.jetbrains.kotlin.diagnostics.PositioningStrategy
 import org.jetbrains.kotlin.diagnostics.hasSyntaxErrors
@@ -46,13 +47,14 @@ fun KtDeclaration.onPublishedApi(ctx: BindingContext): Pair<KtAnnotationEntry, T
 fun <A : PsiElement> position(
   mark: (A) -> List<TextRange> = { markElement(it) },
   isValid: (A) -> Boolean = { !hasSyntaxErrors(it) },
-  markDiagnostic: (ParametrizedDiagnostic<out A>) -> List<TextRange> = { mark(it.psiElement) }
+  markDiagnostic: (DiagnosticMarker) -> List<TextRange> = { markElement(it.psiElement) }
 ): PositioningStrategy<A> =
   object : PositioningStrategy<A>() {
     override fun mark(element: A): List<TextRange> = mark(element)
 
     override fun isValid(element: A): Boolean = isValid(element)
 
-    override fun markDiagnostic(diagnostic: ParametrizedDiagnostic<out A>): List<TextRange> =
-      markDiagnostic(diagnostic)
+    override fun markDiagnostic(diagnostic: DiagnosticMarker): List<TextRange> {
+      return markDiagnostic(diagnostic)
+    }
   }

@@ -5,9 +5,11 @@ import arrow.meta.internal.Noop
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import arrow.meta.phases.analysis.AnalysisHandler
+import arrow.meta.phases.analysis.CallResolutionInterceptor
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
+import arrow.meta.phases.analysis.TypeResolutionInterceptor
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
@@ -15,13 +17,35 @@ import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.context.ProjectContext
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.incremental.components.LookupLocation
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportInfo
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.BindingTraceContext
+import org.jetbrains.kotlin.resolve.calls.CallResolver
+import org.jetbrains.kotlin.resolve.calls.CandidateResolver
+import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
+import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCallAtom
+import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategy
+import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
+import org.jetbrains.kotlin.resolve.calls.tower.NewResolutionOldInference
+import org.jetbrains.kotlin.resolve.calls.tower.PSICallResolver
 import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppression
+import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly. As part of
@@ -38,10 +62,11 @@ interface AnalysisSyntax {
    */
   fun additionalSources(
     collectAdditionalSourcesAndUpdateConfiguration:
-      CompilerContext.(
-        knownSources: Collection<KtFile>,
-        configuration: CompilerConfiguration,
-        project: Project) -> Collection<KtFile>
+    CompilerContext.(
+      knownSources: Collection<KtFile>,
+      configuration: CompilerConfiguration,
+      project: Project
+    ) -> Collection<KtFile>
   ): CollectAdditionalSources =
     object : CollectAdditionalSources {
       override fun CompilerContext.collectAdditionalSourcesAndUpdateConfiguration(
@@ -50,6 +75,206 @@ interface AnalysisSyntax {
         project: Project
       ): Collection<KtFile> =
         collectAdditionalSourcesAndUpdateConfiguration(knownSources, configuration, project)
+    }
+
+  fun typeResolution(
+    interceptFunctionLiteralDescriptor: CompilerContext.(
+      expression: KtLambdaExpression,
+      context: ExpressionTypingContext,
+      descriptor: AnonymousFunctionDescriptor
+    ) -> AnonymousFunctionDescriptor,
+    interceptType: CompilerContext.(
+      element: KtElement,
+      context: ExpressionTypingContext,
+      resultType: KotlinType
+    ) -> KotlinType
+  ): TypeResolutionInterceptor =
+    object : TypeResolutionInterceptor {
+      override fun CompilerContext.interceptFunctionLiteralDescriptor(
+        expression: KtLambdaExpression,
+        context: ExpressionTypingContext,
+        descriptor: AnonymousFunctionDescriptor
+      ): AnonymousFunctionDescriptor =
+        interceptFunctionLiteralDescriptor(expression, context, descriptor)
+
+
+      override fun CompilerContext.interceptType(
+        element: KtElement,
+        context: ExpressionTypingContext,
+        resultType: KotlinType
+      ): KotlinType =
+        interceptType(element, context, resultType)
+    }
+
+  fun callResolution(
+    interceptResolvedCallAtomCandidate: CompilerContext.(
+      candidateDescriptor: CallableDescriptor,
+      completedCallAtom: ResolvedCallAtom,
+      trace: BindingTrace?,
+      resultSubstitutor: NewTypeSubstitutor?,
+      diagnostics: Collection<KotlinCallDiagnostic>
+    ) -> CallableDescriptor,
+    interceptCandidates: CompilerContext.(
+      candidates: Collection<NewResolutionOldInference.MyCandidate>,
+      context: BasicCallResolutionContext,
+      candidateResolver: CandidateResolver,
+      callResolver: CallResolver,
+      name: Name,
+      kind: NewResolutionOldInference.ResolutionKind,
+      tracing: TracingStrategy
+    ) -> Collection<NewResolutionOldInference.MyCandidate>,
+    interceptFunctionCandidates: CompilerContext.(
+      candidates: Collection<FunctionDescriptor>,
+      scopeTower: ImplicitScopeTower,
+      resolutionContext: BasicCallResolutionContext,
+      resolutionScope: ResolutionScope,
+      callResolver: CallResolver,
+      name: Name,
+      location: LookupLocation
+    ) -> Collection<FunctionDescriptor>,
+    interceptFunctionCandidatesWithReceivers: CompilerContext.(
+      candidates: Collection<FunctionDescriptor>,
+      scopeTower: ImplicitScopeTower,
+      resolutionContext: BasicCallResolutionContext,
+      resolutionScope: ResolutionScope,
+      callResolver: PSICallResolver,
+      name: Name,
+      location: LookupLocation,
+      dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+      extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ) -> Collection<FunctionDescriptor>,
+    interceptVariableCandidates: CompilerContext.(
+      candidates: Collection<VariableDescriptor>,
+      scopeTower: ImplicitScopeTower,
+      resolutionContext: BasicCallResolutionContext,
+      resolutionScope: ResolutionScope,
+      callResolver: CallResolver,
+      name: Name,
+      location: LookupLocation
+    ) -> Collection<VariableDescriptor>,
+    interceptVariableCandidatesWithReceivers: CompilerContext.(
+      candidates: Collection<VariableDescriptor>,
+      scopeTower: ImplicitScopeTower,
+      resolutionContext: BasicCallResolutionContext,
+      resolutionScope: ResolutionScope,
+      callResolver: PSICallResolver,
+      name: Name,
+      location: LookupLocation,
+      dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+      extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ) -> Collection<VariableDescriptor>
+  ): CallResolutionInterceptor =
+    object : CallResolutionInterceptor {
+      override fun CompilerContext.interceptResolvedCallAtomCandidate(
+        candidateDescriptor: CallableDescriptor,
+        completedCallAtom: ResolvedCallAtom,
+        trace: BindingTrace?,
+        resultSubstitutor: NewTypeSubstitutor?,
+        diagnostics: Collection<KotlinCallDiagnostic>
+      ): CallableDescriptor =
+        interceptResolvedCallAtomCandidate(
+          candidateDescriptor,
+          completedCallAtom,
+          trace,
+          resultSubstitutor,
+          diagnostics
+        )
+
+      override fun CompilerContext.interceptCandidates(
+        candidates: Collection<NewResolutionOldInference.MyCandidate>,
+        context: BasicCallResolutionContext,
+        candidateResolver: CandidateResolver,
+        callResolver: CallResolver,
+        name: Name,
+        kind: NewResolutionOldInference.ResolutionKind,
+        tracing: TracingStrategy
+      ): Collection<NewResolutionOldInference.MyCandidate> =
+        interceptCandidates(candidates, context, candidateResolver, callResolver, name, kind, tracing)
+
+      override fun CompilerContext.interceptFunctionCandidates(
+        candidates: Collection<FunctionDescriptor>,
+        scopeTower: ImplicitScopeTower,
+        resolutionContext: BasicCallResolutionContext,
+        resolutionScope: ResolutionScope,
+        callResolver: CallResolver,
+        name: Name,
+        location: LookupLocation
+      ): Collection<FunctionDescriptor> =
+        interceptFunctionCandidates(
+          candidates,
+          scopeTower,
+          resolutionContext,
+          resolutionScope,
+          callResolver,
+          name,
+          location
+        )
+
+      override fun CompilerContext.interceptFunctionCandidates(
+        candidates: Collection<FunctionDescriptor>,
+        scopeTower: ImplicitScopeTower,
+        resolutionContext: BasicCallResolutionContext,
+        resolutionScope: ResolutionScope,
+        callResolver: PSICallResolver,
+        name: Name,
+        location: LookupLocation,
+        dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+      ): Collection<FunctionDescriptor> =
+        interceptFunctionCandidatesWithReceivers(
+          candidates,
+          scopeTower,
+          resolutionContext,
+          resolutionScope,
+          callResolver,
+          name,
+          location,
+          dispatchReceiver,
+          extensionReceiver
+        )
+
+      override fun CompilerContext.interceptVariableCandidates(
+        candidates: Collection<VariableDescriptor>,
+        scopeTower: ImplicitScopeTower,
+        resolutionContext: BasicCallResolutionContext,
+        resolutionScope: ResolutionScope,
+        callResolver: CallResolver,
+        name: Name,
+        location: LookupLocation
+      ): Collection<VariableDescriptor> =
+        interceptVariableCandidates(
+          candidates,
+          scopeTower,
+          resolutionContext,
+          resolutionScope,
+          callResolver,
+          name,
+          location
+        );
+
+      override fun CompilerContext.interceptVariableCandidates(
+        candidates: Collection<VariableDescriptor>,
+        scopeTower: ImplicitScopeTower,
+        resolutionContext: BasicCallResolutionContext,
+        resolutionScope: ResolutionScope,
+        callResolver: PSICallResolver,
+        name: Name,
+        location: LookupLocation,
+        dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+      ): Collection<VariableDescriptor> =
+        interceptVariableCandidatesWithReceivers(
+          candidates,
+          scopeTower,
+          resolutionContext,
+          resolutionScope,
+          callResolver,
+          name,
+          location,
+          dispatchReceiver,
+          extensionReceiver
+        )
+
     }
 
   /**
@@ -62,19 +287,21 @@ interface AnalysisSyntax {
    */
   fun analysis(
     doAnalysis:
-      CompilerContext.(
-        project: Project,
-        module: ModuleDescriptor,
-        projectContext: ProjectContext,
-        files: Collection<KtFile>,
-        bindingTrace: BindingTrace,
-        componentProvider: ComponentProvider) -> AnalysisResult?,
+    CompilerContext.(
+      project: Project,
+      module: ModuleDescriptor,
+      projectContext: ProjectContext,
+      files: Collection<KtFile>,
+      bindingTrace: BindingTrace,
+      componentProvider: ComponentProvider
+    ) -> AnalysisResult?,
     analysisCompleted:
-      CompilerContext.(
-        project: Project,
-        module: ModuleDescriptor,
-        bindingTrace: BindingTrace,
-        files: Collection<KtFile>) -> AnalysisResult? =
+    CompilerContext.(
+      project: Project,
+      module: ModuleDescriptor,
+      bindingTrace: BindingTrace,
+      files: Collection<KtFile>
+    ) -> AnalysisResult? =
       Noop.nullable5()
   ): AnalysisHandler =
     object : AnalysisHandler {

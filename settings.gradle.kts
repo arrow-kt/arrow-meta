@@ -5,6 +5,7 @@ pluginManagement {
   repositories {
     gradlePluginPortal()
     mavenCentral()
+    maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/")
   }
 }
 
@@ -32,18 +33,18 @@ include(":arrow-gradle-plugin-commons")
 project(":arrow-gradle-plugin-commons").projectDir = File("libs/gradle-plugin-commons")
 
 // Docs
-
+//
 include(":arrow-meta-docs")
 project(":arrow-meta-docs").projectDir = File("docs")
 
 //Plugins
 
 // Proofs
-include(":arrow-proofs-plugin")
-project(":arrow-proofs-plugin").projectDir = File("plugins/proofs/proofs-plugin")
+//include(":arrow-proofs-plugin")
+//project(":arrow-proofs-plugin").projectDir = File("plugins/proofs/proofs-plugin")
 
-include(":arrow-proofs-gradle-plugin")
-project(":arrow-proofs-gradle-plugin").projectDir = File("plugins/proofs/proofs-gradle-plugin")
+//include(":arrow-proofs-gradle-plugin")
+//project(":arrow-proofs-gradle-plugin").projectDir = File("plugins/proofs/proofs-gradle-plugin")
 
 include(":arrow-meta-prelude")
 project(":arrow-meta-prelude").projectDir = File("plugins/proofs/prelude")
@@ -70,6 +71,9 @@ project(":arrow-analysis-java-gradle-plugin").projectDir = File("plugins/analysi
 
 include(":arrow-analysis-laws")
 project(":arrow-analysis-laws").projectDir = File("plugins/analysis/laws")
+
+include(":arrow-proofs-test")
+project(":arrow-proofs-test").projectDir = File("plugins/analysis/proofs-test")
 
 include(":arrow-analysis-example")
 project(":arrow-analysis-example").projectDir = File("plugins/analysis/example")

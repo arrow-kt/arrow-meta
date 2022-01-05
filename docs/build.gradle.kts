@@ -2,6 +2,7 @@ import arrow.ank.AnkExtension
 
 buildscript {
   repositories {
+    maven(url = "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/")
     mavenCentral()
   }
   dependencies {

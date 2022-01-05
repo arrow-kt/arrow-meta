@@ -3,6 +3,7 @@ package arrow.meta.plugins.proofs.phases.resolve.scopes
 import arrow.meta.phases.CompilerContext
 import arrow.meta.plugins.proofs.phases.Proof
 import org.jetbrains.kotlin.backend.common.SimpleMemberScope
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -79,4 +80,13 @@ class ProofsScopeTower(
     dispatchReceiver: ReceiverValueWithSmartCastInfo?,
     extensionReceiver: ReceiverValueWithSmartCastInfo?
   ): Collection<VariableDescriptor> = emptyList()
+
+  override val areContextReceiversEnabled: Boolean = true
+
+  override val languageVersionSettings: LanguageVersionSettings =
+    LanguageVersionSettingsImpl.DEFAULT
+
+  override fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo> {
+    TODO("Not yet implemented")
+  }
 }

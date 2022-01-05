@@ -8,6 +8,13 @@ import arrow.analysis.Laws
 import arrow.analysis.post
 import arrow.analysis.pre
 
+object TestType {
+  fun TestTypeResolution(n: () -> Int): Int {
+    val javi = n()
+    return javi
+  }
+}
+
 @Laws
 object ArrayLaws {
   @Law

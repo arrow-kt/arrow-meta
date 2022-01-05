@@ -21,14 +21,86 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.ir.HintState
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.analysis.phases.ir.hintsFile
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocationWithRange
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.incremental.components.LookupLocation
+import org.jetbrains.kotlin.name.Name
 import kotlin.io.path.Path
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.calls.CallResolver
+import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
+import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCallAtom
+import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
+import org.jetbrains.kotlin.resolve.calls.tower.NewResolutionOldInference
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
+import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 
 internal fun Meta.analysisPhases(): ExtensionPhase =
   Composite(
     listOf(
+
+      typeResolution(
+        interceptFunctionLiteralDescriptor = { expression, context, descriptor ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptFunctionLiteralDescriptor:\t ${expression.text}"
+          )
+          descriptor
+        },
+        interceptType = { element, context, resultType ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptType:\t ${element.text}"
+          )
+          resultType
+        }
+      ),
+
+      callResolution(
+        interceptCandidates = { candidates, context, candidateResolver, callResolver, name, kind, tracing ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptCandidates:\t $name. Candidates: ${candidates.kotlinLike()}"
+          )
+          candidates
+        },
+        interceptFunctionCandidates = { candidates, scopeTower, resolutionContext, resolutionScope, callResolver, name, location ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptFunctionCandidates:\t $name. Candidates: ${candidates.kotlinLike()}"
+          )
+          candidates
+        },
+        interceptFunctionCandidatesWithReceivers = { candidates, scopeTower, resolutionContext, resolutionScope, callResolver, name, location, dispatchReceiver, extensionReceiver ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptFunctionCandidatesWithReceivers:\t $name. Candidates: ${candidates.kotlinLike()}"
+          )
+          candidates
+        },
+        interceptResolvedCallAtomCandidate = { candidateDescriptor: CallableDescriptor, completedCallAtom: ResolvedCallAtom, trace: BindingTrace?, resultSubstitutor: NewTypeSubstitutor?, diagnostics: Collection<KotlinCallDiagnostic> ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptResolvedCallAtomCandidate:\t Candidates: ${candidateDescriptor.name}"
+          )
+          candidateDescriptor
+        },
+        interceptVariableCandidates = { candidates: Collection<VariableDescriptor>, scopeTower: ImplicitScopeTower, resolutionContext: BasicCallResolutionContext, resolutionScope: ResolutionScope, callResolver: CallResolver, name: Name, location: LookupLocation ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptVariableCandidates:\t $name. Candidates: ${candidates.kotlinLike()}"
+          )
+          candidates
+        },
+        interceptVariableCandidatesWithReceivers = { candidates, scopeTower, resolutionContext, resolutionScope, callResolver, name, location, dispatchReceiver, extensionReceiver ->
+          messageCollector?.report(CompilerMessageSeverity.WARNING,
+            "interceptVariableCandidatesWithReceivers:\t $name. Candidates: ${candidates.kotlinLike()}"
+          )
+          candidates
+        }
+      ),
+
+
       analysis(
         doAnalysis = { _, module, _, _, bindingTrace, _ ->
           val kotlinModule: KotlinModuleDescriptor = KotlinModuleDescriptor(module)
@@ -106,7 +178,7 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
       ),
       declarationChecker { declaration, descriptor, context ->
         if (isInStage(context.moduleDescriptor, Stage.Init) ||
-            isInStage(context.moduleDescriptor, Stage.CollectConstraints)
+          isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)
           val solverState = solverState(context)
@@ -144,6 +216,12 @@ enum class Stage {
   CollectConstraints,
   Prove
 }
+
+private fun Collection<org.jetbrains.kotlin.descriptors.DeclarationDescriptor>.kotlinLike(): String =
+  joinToString { it.name.toString() }
+
+private fun Collection<NewResolutionOldInference.MyCandidate>.kotlinLike(unit: Unit = Unit): String =
+  joinToString { it.resolvedCall.call.callElement.text }
 
 object Keys {
   fun stage(moduleDescriptor: ModuleDescriptor): String = "Stage-${moduleDescriptor.name}"

@@ -16,10 +16,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
-import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
+import org.jetbrains.kotlin.resolve.calls.util.getReceiverExpression
 
 class KotlinResolvedCall(
   val impl:

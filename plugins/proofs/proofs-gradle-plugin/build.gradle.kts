@@ -30,7 +30,7 @@ dependencies {
 
   // Necessary during plugin execution to be found and added for compilation
   api(projects.arrowMeta)
-  api(projects.arrowProofsPlugin)
+//  api(projects.arrowProofsPlugin)
 }
 
 pluginBundle {
