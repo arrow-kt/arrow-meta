@@ -1620,6 +1620,42 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `empty list, ok`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun <E> List<E>.x(): Int {
+        pre(isEmpty()) { "list is not empty" }
+        return 1
+      }
+
+      val l = listOf<Int>().x()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `empty map, ok`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun <K, V> Map<K, V>.x(): Int {
+        pre(isEmpty()) { "map is not empty" }
+        return 1
+      }
+
+      val l = mapOf<Int, Int>().x()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1661,7 +1697,13 @@ object CollectionLaws {
 object ListLaws {
   @Law
   inline fun <E> emptyListLaw(): List<E> =
-    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
+    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }    
+  @Law
+  inline fun <E> emptyListOfLaw(): List<E> =
+    listOf<E>().post({ it.size == 0 }) { "empty list is empty" }  
+  @Law
+  inline fun <E> listOfLaw(vararg elements: E): List<E> =
+    listOf(*elements).post({ it.size > 0 }) { "literal size" }
   @Law
   inline fun <E> List<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
@@ -1670,6 +1712,17 @@ object ListLaws {
   @Law
   inline fun <E> List<E>.isEmptyLaw(): Boolean =
     isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
+      
+}
+
+@Laws
+object MapLaws {
+  @Law
+  inline fun <K, V> Map<K, V>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
+  @Law
+  inline fun <K, V> emptyMapOfLaw(): Map<K, V> =
+    mapOf<K, V>().post({ it.size == 0 }) { "empty map is empty" }  
 }
 """
 
