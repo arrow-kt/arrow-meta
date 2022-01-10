@@ -534,6 +534,10 @@ object ListLaws {
     pre(n >= 0) { "n must be non-negative" }
     return takeLast(n).post({ it.size <= this.size && it.size <= n }) { "bounds for take" }
   }
+
+  @Law
+  inline fun <E> List<E>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
 }
 
 @Laws
@@ -607,6 +611,9 @@ object MapLaws {
   @Law
   inline fun <K, V> emptyMapLaw(): Map<K, V> =
     emptyMap<K, V>().post({ it.size == 0 }) { "empty map is empty" }
+  @Law
+  inline fun <K, V> emptyMapOfLaw(): Map<K, V> =
+    mapOf<K, V>().post({ it.size == 0 }) { "empty map is empty" }
   @Law
   inline fun <K, V> mapOfLaw(vararg elements: Pair<K, V>): Map<K, V> =
     mapOf(*elements).post({ it.size <= elements.size }) { "literal size" }
