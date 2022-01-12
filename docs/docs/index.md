@@ -15,27 +15,22 @@ video: WKR384ZeBgk
 
 > Λrrow Meta is a meta-programming library designed to build compiler plugins for Kotlin.
 
-The [Hello World tutorial]({{ '/hello-world' | relative_url }}) describes a very simple plugin built with Λrrow Meta. 
+## Built with Meta
 
-# Built with Meta
-
-The Λrrow org bundles independent plugins built with Λrrow meta.
-
-## [Proofs]({{ '/proofs' | relative_url }})
-
-Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle!
-
-[Get started with Λrrow Proofs]({{ '/proofs' | relative_url }})
-
-## [Optics](https://arrow-kt.io/docs/optics/)
-
-Λrrow Optics provide a nice DSL to query and transform immutable values. Using Meta we provide automatic generation of the necessary boilerplate.
-
-[Get started with Λrrow Optics](https://arrow-kt.io/docs/optics/)
-
-
-## [Analysis]({{ '/analysis' | relative_url }})
+### [Analysis]({{ '/analysis' | relative_url }})
 
 Λrrow Analysis extends the capabilities of the Kotlin compiler with compile-time checked pre and post-conditions for functions, and invariants for types and mutable variables. This allows Λrrow Analysis to detect many common types of mistakes (like out-of-bounds indexing), which you can extend with additional checks for your particular domain.
 
 [Get started with Λrrow Analysis]({{ '/analysis' | relative_url }})
+
+## Previously built with Meta
+
+These plug-ins are no longer developed as part of the Λrrow Meta organization.
+
+### [Optics](https://arrow-kt.io/docs/optics/)
+
+[Λrrow Optics](https://arrow-kt.io/docs/optics/) provide a nice DSL to query and transform immutable values. A compiler plug-in to provide automatic generation of the necessary boilerplate was previously built with Meta, but it has been replaced by [KSP](https://github.com/google/ksp).
+
+### Proofs
+
+Λrrow Proofs provides a way to declare contextual values, which are resolved at compile-time by the plug-in. Dependency Injection without the hassle! Λrrow Proofs is no longer in development.

@@ -140,7 +140,6 @@ class IrSyntaxTest {
         ),
       """
         package test
-        import arrow.*
               
         val zero = 0
         

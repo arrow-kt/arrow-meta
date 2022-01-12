@@ -6,7 +6,7 @@ permalink: /proofs/
 
 # Proofs Quick Start
 
-Λrrow Proofs is really great.
+**🛑 The Proofs plug-in is no longer in development. For information about similar projects, please check our channel in the [Kotlin Slack](https://kotlinlang.slack.com/).**
 
 ## Adding the plug-in
 

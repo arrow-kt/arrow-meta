@@ -6,9 +6,6 @@ options:
 
     nested_options:
 
-      - title: Hello World Compiler Plugin
-        url: /hello-world
-
       - title: Config
         url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
 
@@ -21,17 +18,18 @@ options:
       - title: IR Codegen
         url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
 
-      - title: Compiler Plugins Tests
-        url: /apidocs/meta-test/arrow.meta.plugin.testing/assert-this.html
+      - title: API docs
+        url: /apidocs/
 
-      - title: Meta API docs
-        url: /apidocs/arrow-meta/
+  - title: Compiler Plugins Tests
 
-      - title: Testing library API docs
-        url: /apidocs/meta-test/
+    nested_options:
 
-  - title: Proofs
-    url: /proofs
+      - title: Entry point
+        url: /apidocs/arrow-meta-test/arrow.meta.plugin.testing/assert-this.html
+
+      - title: API docs
+        url: /apidocs/arrow-meta-test/arrow.meta.plugin.testing/
 
   - title: Analysis
     url: /analysis

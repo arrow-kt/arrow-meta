@@ -6,7 +6,9 @@ permalink: /hello-world/
 
 # Hello World Compiler Plugin
 
-> In the future Arrow Meta will replace the current PSI and descriptor-based frontend implementations in favor of the FIR model once that becomes stable in the Kotlin compiler (expected around the 1.7 release.)
+**🛑 The quotes system this tutorial is based on is no longer part of Arrow Meta. For information about the library, please check the links in the sidebar, or our channel in the [Kotlin Slack](https://kotlinlang.slack.com/).**
+
+**⚠️ In the future Arrow Meta will replace the current PSI and descriptor-based frontend implementations in favor of the FIR model once that becomes stable in the Kotlin compiler (expected around the 1.7 release.)**
 
 Let's build a small compiler plug-in which automatically implements the `helloWorld` function. Regardless of their original contents, the function will be replaced with one that prints `Hello Λrrow Meta!`. 
 
