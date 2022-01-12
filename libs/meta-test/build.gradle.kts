@@ -36,5 +36,4 @@ dependencies {
 
   testImplementation(libs.kotlin.stdlibJDK8)
   testImplementation(libs.junit)
-  testRuntimeOnly(projects.arrowMetaPrelude)
 }

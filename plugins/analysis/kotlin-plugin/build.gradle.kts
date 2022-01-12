@@ -24,7 +24,6 @@ dependencies {
   testImplementation(projects.arrowMetaTest)
   testRuntimeOnly(projects.arrowMeta)
   testRuntimeOnly(projects.arrowAnalysisTypes)
-  testRuntimeOnly(projects.arrowMetaPrelude)
   testRuntimeOnly(projects.arrowAnalysisKotlinPlugin)
   testRuntimeOnly(libs.arrowCore)
 }

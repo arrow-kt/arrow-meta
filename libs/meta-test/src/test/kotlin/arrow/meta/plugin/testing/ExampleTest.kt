@@ -1,8 +1,6 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
-import arrow.meta.plugin.testing.plugins.MetaPlugin
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ExampleTest {
@@ -171,25 +169,6 @@ class ExampleTest {
           )
         },
         assert = { compiles }
-      )
-    )
-  }
-
-  @Test
-  @Disabled
-  fun `allows to test a Meta plugin`() {
-    assertThis(
-      CompilerTest(
-        config = { metaDependencies + addMetaPlugins(MetaPlugin()) },
-        code = {
-          """
-          | //metadebug
-          | 
-          | fun helloWorld(): String = TODO()
-          | 
-          """.source
-        },
-        assert = { "helloWorld()".source.evalsTo("Hello ΛRROW Meta!") }
       )
     )
   }

@@ -1,23 +1,30 @@
 package arrow.meta.phases.analysis
 
+import arrow.meta.ArrowMetaConfigurationKeys
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.SyntaxTraverser
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.astReplace
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.platform
+import org.jetbrains.kotlin.resolve.multiplatform.isCommonSource
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
@@ -81,14 +88,14 @@ fun <A> List<A>.exists(f: (A, A) -> Boolean): List<Pair<A, List<A>>> =
   }
 
 /**
- * traverse and filters starting from the root node [receiver] down to all it's children and
- * applying [f]
+ * traverse and filters starting from the root node [this] down to all it's children and applying
+ * [f]
  */
 fun <A : PsiElement, B : Any> PsiElement.traverseFilter(on: Class<A>, f: (A) -> B?): List<B> =
   SyntaxTraverser.psiTraverser(this).filter(on).mapNotNull(f).toList()
 
 /**
- * a convenient function that collects all child nodes [A] starting from [receiver] it applies
+ * a convenient function that collects all child nodes [A] starting from [this] it applies
  * [traverseFilter] with the identity function
  */
 fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> = traverseFilter(on) { it }
@@ -187,3 +194,19 @@ val KtClass.companionObject: KtObjectDeclaration?
     declarations
       .singleOrNull { it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }
       .safeAs<KtObjectDeclaration>()
+
+fun DeclarationDescriptor.skipGeneration(): Boolean =
+  platform != CommonPlatforms.defaultCommonPlatform &&
+    (findPsi()?.containingFile as? KtFile)?.isCommonSource == true
+
+fun getOrCreateBaseDirectory(configuration: CompilerConfiguration?): java.io.File {
+  val parentBuildPath: String? =
+    configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)?.firstOrNull()
+      ?: System.getProperty("arrow.meta.generate.source.dir")
+  checkNotNull(parentBuildPath) {
+    "Generated sources output dir is not found: ${configuration?.get(ArrowMetaConfigurationKeys.GENERATED_SRC_OUTPUT_DIR)} ${System.getProperty("arrow.meta.generate.source.dir")}"
+  }
+  val directory = java.io.File("$parentBuildPath")
+  directory.mkdirs()
+  return directory
+}

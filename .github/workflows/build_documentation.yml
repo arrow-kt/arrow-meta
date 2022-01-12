@@ -13,8 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: "Create API Doc and validate"
+    - name: "Create API Doc and validate, step 1"
       run: ./gradlew buildMetaDoc
+
+    - name: "Create API Doc and validate, step 2"
+      run: ./gradlew :arrow-meta:dokkaJekyll :arrow-meta-docs:runAnk
 
     - name: "Build"
       env:

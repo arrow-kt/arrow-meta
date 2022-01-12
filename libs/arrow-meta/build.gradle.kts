@@ -48,5 +48,4 @@ dependencies {
   testRuntimeOnly(libs.arrowOptics) {
     exclude(group = libs.kotlin.stdlibJDK8.get().module.group)
   }
-  testRuntimeOnly(projects.arrowMetaPrelude)
 }

@@ -2,7 +2,6 @@ package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
-import java.nio.file.Path
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 
 /** Represents a dependency from `<artifact-id>:<version>` string. */
@@ -94,14 +93,11 @@ interface ConfigSyntax {
   /** Allows to combine [Config]. */
   operator fun Config.plus(other: Config): List<Config> = listOf(this, other)
 
-  fun prelude(currentVersion: String?): Dependency =
-    Dependency("arrow-meta-prelude:$currentVersion")
-
   fun analysisLib(currentVersion: String?): Dependency =
     Dependency("arrow-analysis-types:$currentVersion")
 
   /**
-   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Prelude
+   * Simplifies the configuration with a default configuration: Arrow Meta Compiler Plugin + Arrow
    * as a dependency.
    */
   val metaDependencies: List<Config>
@@ -109,7 +105,7 @@ interface ConfigSyntax {
       val currentVersion = System.getProperty("CURRENT_VERSION")
       val compilerPlugin =
         CompilerPlugin("Arrow Meta", listOf(Dependency("arrow-meta:$currentVersion")))
-      return addCompilerPlugins(compilerPlugin) + addDependencies(prelude(currentVersion))
+      return listOf(addCompilerPlugins(compilerPlugin))
     }
 }
 
@@ -208,38 +204,6 @@ interface AssertSyntax {
   fun failsWith(f: (String) -> Boolean): Assert.SingleAssert = Assert.FailsWith(f)
 
   /**
-   * Checks that quote output during the compilation matches with the code snippet provided.
-   *
-   * @param source Code snippet with the expected quote output.
-   */
-  fun quoteOutputMatches(source: Code.Source): Assert.SingleAssert =
-    Assert.QuoteOutputMatches(source)
-
-  /**
-   * Checks that quote output during the compilation matches with the code snippet provided for a
-   * specific file.
-   *
-   * @param filename Name of the specific file that will be evaluated.
-   * @param source Code snippet with the expected quote output.
-   */
-  fun quoteFileMatches(filename: String, source: Code.Source): Assert.SingleAssert =
-    Assert.QuoteFileMatches(filename, source)
-
-  /**
-   * Checks that quote output during the compilation matches with the code snippet provided for a
-   * specific file.
-   *
-   * @param filename Name of the specific file that will be evaluated.
-   * @param source Code snippet with the expected quote output.
-   * @param sourcePath Source path of the expected file.
-   */
-  fun quoteFileMatches(
-    filename: String,
-    source: Code.Source,
-    sourcePath: Path
-  ): Assert.SingleAssert = Assert.QuoteFileWithCustomPathMatches(filename, source, sourcePath)
-
-  /**
    * Checks if a code snippet evals to a provided value after the compilation. This operation loads
    * all the generated classes and run the code snippet by reflection.
    *
@@ -271,14 +235,6 @@ sealed class Assert {
   abstract class SingleAssert : Assert()
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
-  internal data class QuoteOutputMatches(val source: Code.Source) : SingleAssert()
-  internal data class QuoteFileMatches(val filename: String, val source: Code.Source) :
-    SingleAssert()
-  internal data class QuoteFileWithCustomPathMatches(
-    val filename: String,
-    val source: Code.Source,
-    val sourcePath: Path
-  ) : SingleAssert()
   internal data class EvalsTo(
     val source: Code.Source,
     val output: Any?,
