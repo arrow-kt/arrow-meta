@@ -1,7 +1,8 @@
 plugins {
-  alias(libs.plugins.arrowGradleConfig.jvm)
+  id(libs.plugins.kotlin.jvm.get().pluginId)
   `java-gradle-plugin`
-  alias(libs.plugins.arrowGradleConfig.publishGradlePluginX)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.publish)
 }
 
 version = property("projects.proofs_version").toString()

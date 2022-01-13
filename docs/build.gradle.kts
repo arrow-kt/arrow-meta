@@ -1,30 +1,18 @@
-import arrow.ank.AnkExtension
-
 buildscript {
   repositories {
     mavenCentral()
   }
-  dependencies {
-    classpath(libs.arrowAnkGradle)
-  }
 }
 
 plugins {
-  alias(libs.plugins.arrowGradleConfig.jvm)
+  id(libs.plugins.kotlin.jvm.get().pluginId)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
 }
-
-apply(plugin = "ank-gradle-plugin")
 
 dependencies {
   runtimeOnly(libs.kotlin.stdlibJDK8)
   runtimeOnly(projects.arrowMeta)
   runtimeOnly(projects.arrowAnalysisTypes)
-}
-
-configure<AnkExtension> {
-  source = file("$projectDir/docs")
-  target = file("$projectDir/build/site")
-  classpath = sourceSets["main"].runtimeClasspath
 }
 
 tasks {

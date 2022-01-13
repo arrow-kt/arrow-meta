@@ -1,7 +1,8 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
 plugins {
-  alias(libs.plugins.arrowGradleConfig.multiplatform)
+  id(libs.plugins.kotlin.multiplatform.get().pluginId)
+  alias(libs.plugins.arrowGradleConfig.kotlin)
 }
 
 version = property("projects.analysis_version").toString()
