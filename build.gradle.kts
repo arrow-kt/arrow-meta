@@ -25,18 +25,11 @@ tasks {
     commandLine("sh", "gradlew", "dokkaJekyll")
   }
 
-  create<Exec>("runValidation") {
-    commandLine("sh", "gradlew", ":arrow-meta-docs:runAnk")
-  }
-
   create("buildMetaDoc") {
     group = "documentation"
     description = "Generates API Doc and validates all the documentation"
     dependsOn("generateDoc")
-    dependsOn("runValidation")
   }
-
-  named("runValidation").get().mustRunAfter("generateDoc")
 }
 
 allprojects {
