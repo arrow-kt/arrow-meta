@@ -22,8 +22,11 @@ jobs:
         java-version: '15'
         cache: 'gradle'
 
-    - name: "Create API Doc and validate"
+    - name: "Create API Doc and validate, step 1"
       run: ./gradlew buildMetaDoc
+
+    - name: "Create API Doc and validate, step 2"
+      run: ./gradlew :arrow-meta:dokkaJekyll :arrow-meta-docs:runAnk
 
     - name: "Build"
       env:
@@ -46,5 +49,5 @@ jobs:
       run: |
         # Waiting for AWS configuration to active this part:
         # aws s3 sync docs/build/_site s3://$S3_BUCKET/$MAYOR_MINOR_VERSION
-        aws s3 sync docs/build/_site s3://$S3_BUCKET/docs/meta
+        aws s3 sync --delete docs/build/_site s3://$S3_BUCKET/docs/meta
         aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_ID --paths "/*"

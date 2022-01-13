@@ -37,9 +37,9 @@ fun sarifFileContent(
               Tool(
                 driver =
                   ToolComponent(
-                    downloadURI = "https://arrow-kt.io/docs/meta/analysis-quickstart.html",
+                    downloadURI = "https://arrow-kt.io/docs/meta/analysis/",
                     fullName = "Arrow Analysis",
-                    informationURI = "https://arrow-kt.io/docs/meta/analysis-quickstart.html",
+                    informationURI = "https://arrow-kt.io/docs/meta/analysis/",
                     language = "en",
                     name = "Arrow Analysis",
                     rules =

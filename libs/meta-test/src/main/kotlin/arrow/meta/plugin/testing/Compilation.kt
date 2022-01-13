@@ -6,6 +6,8 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.PluginOption
 import com.tschuchort.compiletesting.SourceFile
+import com.tschuchort.compiletesting.kspSourcesDir
+import com.tschuchort.compiletesting.symbolProcessorProviders
 import io.github.classgraph.ClassGraph
 import java.io.File
 import java.io.PrintStream
@@ -13,33 +15,61 @@ import org.assertj.core.api.Assertions.assertThat
 
 internal const val DEFAULT_FILENAME = "Source.kt"
 
-internal fun compile(data: CompilationData): Result =
-  KotlinCompilation()
-    .apply {
-      val testSources = workingDir.resolve("sources")
-      System.setProperty("arrow.meta.generate.source.dir", testSources.absolutePath)
-      sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
-      classpaths = data.dependencies.map { classpathOf(it) }
-      pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
-      compilerPlugins = data.metaPlugins
-      jvmTarget = obtainTarget(data)
-      messageOutputStream =
-        object : PrintStream(System.out) {
+internal fun compile(data: CompilationData): Result {
+  val compilation = createKotlinCompilation(data)
+  if (data.symbolProcessors.isEmpty()) {
+    return compilation.compile()
+  } else {
+    // fix problems with double compilation and KSP
+    // as stated in https://github.com/tschuchortdev/kotlin-compile-testing/issues/72
+    val pass1 = compilation.compile()
+    // if the first pass was unsuccessful, return it
+    if (pass1.exitCode != KotlinCompilation.ExitCode.OK) return pass1
+    // return the results of second pass
+    return createKotlinCompilation(data)
+      .apply {
+        sources = compilation.sources + compilation.kspGeneratedSourceFiles
+        symbolProcessorProviders = emptyList()
+      }
+      .compile()
+  }
+}
 
-          private val kotlincErrorRegex = Regex("^e:")
+private fun createKotlinCompilation(data: CompilationData) =
+  KotlinCompilation().apply {
+    val testSources = workingDir.resolve("sources")
+    System.setProperty("arrow.meta.generate.source.dir", testSources.absolutePath)
+    sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
+    classpaths = data.dependencies.map { classpathOf(it) }
+    pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
+    compilerPlugins = data.metaPlugins
+    jvmTarget = obtainTarget(data)
+    messageOutputStream =
+      object : PrintStream(System.out) {
 
-          override fun write(buf: ByteArray, off: Int, len: Int) {
-            val newLine =
-              String(buf, off, len).run { replace(kotlincErrorRegex, "error found:") }.toByteArray()
+        private val kotlincErrorRegex = Regex("^e:")
 
-            super.write(newLine, off, newLine.size)
-          }
+        override fun write(buf: ByteArray, off: Int, len: Int) {
+          val newLine =
+            String(buf, off, len).run { replace(kotlincErrorRegex, "error found:") }.toByteArray()
+
+          super.write(newLine, off, newLine.size)
         }
-      kotlincArguments = data.arguments
-      commandLineProcessors = data.commandLineProcessors
-      pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
-    }
-    .compile()
+      }
+    kotlincArguments = data.arguments
+    commandLineProcessors = data.commandLineProcessors
+    symbolProcessorProviders = data.symbolProcessors
+    pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
+  }
+
+private val KotlinCompilation.kspGeneratedSourceFiles: List<SourceFile>
+  get() =
+    kspSourcesDir
+      .resolve("kotlin")
+      .walk()
+      .filter { it.isFile }
+      .map { SourceFile.fromPath(it.absoluteFile) }
+      .toList()
 
 private fun obtainTarget(data: CompilationData): String =
   data.targetVersion ?: System.getProperty("jvmTargetVersion", "1.8")

@@ -1,0 +1,35 @@
+options:
+  - title: Overview
+    url: /
+
+  - title: Compiler Plugins API
+
+    nested_options:
+
+      - title: Config
+        url: /apidocs/arrow-meta/arrow.meta.dsl.config/-config-syntax/
+
+      - title: Analysis
+        url: /apidocs/arrow-meta/arrow.meta.dsl.analysis/-analysis-syntax/
+
+      - title: Resolution
+        url: /apidocs/arrow-meta/arrow.meta.dsl.resolve/-resolve-syntax/
+
+      - title: IR Codegen
+        url: /apidocs/arrow-meta/arrow.meta.dsl.codegen.ir/-ir-syntax/
+
+      - title: API docs
+        url: /apidocs/
+
+  - title: Compiler Plugins Tests
+
+    nested_options:
+
+      - title: Entry point
+        url: /apidocs/arrow-meta-test/arrow.meta.plugin.testing/assert-this.html
+
+      - title: API docs
+        url: /apidocs/arrow-meta-test/arrow.meta.plugin.testing/
+
+  - title: Analysis
+    url: /analysis

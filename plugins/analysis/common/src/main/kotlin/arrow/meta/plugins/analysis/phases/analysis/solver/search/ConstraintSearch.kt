@@ -1,6 +1,5 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.search
 
-import arrow.analysis.post
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
@@ -54,7 +53,9 @@ internal fun SolverState.getImmediateConstraintsFor(
 ): DeclarationConstraints? =
   callableConstraints[descriptor.withAliasUnwrapped.fqNameSafe]
     ?.firstOrNull { d -> d.descriptor.isCompatibleWith(descriptor) }
-    ?.takeIf { d -> d.pre.isNotEmpty() || d.post.isNotEmpty() }
+    ?.takeIf { d ->
+      d.pre.isNotEmpty() || d.post.isNotEmpty() || d.doNotLookAtArgumentsWhen.isNotEmpty()
+    }
 
 /**
  * The invariants are found in either:
@@ -172,7 +173,8 @@ internal fun SolverState.getOverriddenConstraintsFor(
       DeclarationConstraints(
         descriptor,
         overriddenConstraints.flatMap { it.pre },
-        overriddenConstraints.flatMap { it.post }
+        overriddenConstraints.flatMap { it.post },
+        overriddenConstraints.flatMap { it.doNotLookAtArgumentsWhen }
       )
     }
 
@@ -234,7 +236,7 @@ internal fun SolverState.primitiveConstraints(
         else -> solver.objects { equal(solver.resultVariable, formula as ObjectFormula) }
       }?.let {
         val named = NamedConstraint("checkCallArguments(${descriptor.fqNameSafe})", it)
-        DeclarationConstraints(descriptor, emptyList(), listOf(named))
+        DeclarationConstraints(descriptor, emptyList(), listOf(named), emptyList())
       }
     }
   }

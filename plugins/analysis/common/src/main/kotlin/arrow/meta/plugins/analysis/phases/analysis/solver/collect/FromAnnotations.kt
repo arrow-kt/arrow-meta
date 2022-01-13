@@ -7,6 +7,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.hasInterestingAnnotation
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.gather
@@ -45,7 +46,7 @@ private fun SolverState.collectFromLocalDeclarations(
   localDeclarations: List<DeclarationDescriptor>,
   bindingTrace: ResolutionContext
 ) {
-  localDeclarations.flatMap { it.gather { it.hasPreOrPostAnnotation } }.forEach {
+  localDeclarations.flatMap { it.gather { it.hasInterestingAnnotation } }.forEach {
     addConstraintsFromAnnotations(it, bindingTrace)
   }
 }
@@ -58,7 +59,7 @@ private fun SolverState.collectFromClasspath(
     System.getProperty("ARROW_ANALYSIS_COLLECT_ENTIRE_CLASSPATH", "false").toBooleanStrictOrNull()
       ?: false
   if (collectEntireClasspath) {
-      module.gather(addSubPackages = true) { it.hasPreOrPostAnnotation }
+      module.gather(addSubPackages = true) { it.hasInterestingAnnotation }
     } else {
       // usual case: figure out the right packages from the hints
       val packagesWithLaws =
@@ -71,7 +72,7 @@ private fun SolverState.collectFromClasspath(
             it.packageWithLawsAnnotation?.argumentValueAsArrayOfString("packages").orEmpty()
           }
           .map { FqName(it) }
-      module.gather(packagesWithLaws, addSubPackages = false) { it.hasPreOrPostAnnotation }
+      module.gather(packagesWithLaws, addSubPackages = false) { it.hasInterestingAnnotation }
     }
     .forEach { addConstraintsFromAnnotations(it, bindingTrace) }
 }
@@ -85,17 +86,20 @@ internal fun SolverState.addConstraintsFromAnnotations(
       when (ann.fqName) {
         FqName("arrow.analysis.Pre") -> "pre"
         FqName("arrow.analysis.Post") -> "post"
+        FqName("arrow.analysis.DoNotLookAtArguments") -> "doNotLookAtArgumentsWhen"
         else -> null
       }?.let { element -> parseFormula(element, ann, descriptor) }
     }
   if (constraints.isNotEmpty()) {
     val preConstraints = arrayListOf<NamedConstraint>()
     val postConstraints = arrayListOf<NamedConstraint>()
+    val notLookConstraints = arrayListOf<NamedConstraint>()
     constraints.forEach { (call, formula) ->
       if (call == "pre") preConstraints.addAll(formula)
       if (call == "post") postConstraints.addAll(formula)
+      if (call == "doNotLookAtArgumentsWhen") notLookConstraints.addAll(formula)
     }
-    addConstraints(descriptor, preConstraints, postConstraints, bindingContext)
+    addConstraints(descriptor, preConstraints, postConstraints, notLookConstraints, bindingContext)
   }
 }
 

@@ -62,6 +62,7 @@ jobs:
 
       - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v1
+        continue-on-error: true
         with:
         # Path to SARIF file relative to the root of the repository
           sarif_file: sarif

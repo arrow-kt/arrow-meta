@@ -5,8 +5,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.BlockExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ConstantExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Constructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
@@ -18,6 +20,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedConstraint
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.analysis.phases.analysis.solver.hasImplicitPrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.isAssertCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
@@ -39,18 +42,59 @@ public fun Declaration.collectConstraintsFromDSL(
   solverState: SolverState,
   context: ResolutionContext,
   descriptor: DeclarationDescriptor
-) =
-  when (this) {
-    is Constructor<*> -> constraintsFromConstructor(solverState, context, valueParameters)
-    is DeclarationWithBody ->
-      constraintsFromFunctionLike(solverState, context, valueParameters.filterNotNull())
-    is DeclarationWithInitializer -> constraintsFromFunctionLike(solverState, context, emptyList())
-    else -> Pair(arrayListOf(), arrayListOf())
-  }.let { (preConstraints, postConstraints) ->
+) {
+  if (this is ClassOrObject &&
+      hasImplicitPrimaryConstructor() &&
+      getAnonymousInitializers().isNotEmpty() &&
+      !descriptor.hasPackageWithLawsAnnotation
+  ) {
+    descriptor as ClassDescriptor
+    val (preConstraints, postConstraints) =
+      null.constraintsFromConstructor(
+        solverState,
+        context,
+        getPrimaryConstructorParameterList()?.parameters.orEmpty(),
+        this
+      )
     if (preConstraints.isNotEmpty() || postConstraints.isNotEmpty()) {
-      solverState.addConstraints(descriptor, preConstraints, postConstraints, context)
+      solverState.addConstraints(
+        descriptor.constructors.single(),
+        preConstraints,
+        postConstraints,
+        arrayListOf(),
+        context
+      )
+    }
+  } else {
+    when (this) {
+      is Constructor<*> ->
+        constraintsFromConstructor(
+          solverState,
+          context,
+          valueParameters,
+          getContainingClassOrObject()
+        )
+      is DeclarationWithBody ->
+        constraintsFromFunctionLike(solverState, context, valueParameters.filterNotNull())
+      is DeclarationWithInitializer ->
+        constraintsFromFunctionLike(solverState, context, emptyList())
+      else -> Triple(arrayListOf(), arrayListOf(), arrayListOf())
+    }.let { (preConstraints, postConstraints, notLookConstraints) ->
+      if (preConstraints.isNotEmpty() ||
+          postConstraints.isNotEmpty() ||
+          notLookConstraints.isNotEmpty()
+      ) {
+        solverState.addConstraints(
+          descriptor,
+          preConstraints,
+          postConstraints,
+          notLookConstraints,
+          context
+        )
+      }
     }
   }
+}
 
 /**
  * Obtain all the function calls and corresponding formulae to 'pre', 'post', and 'require' This
@@ -71,38 +115,47 @@ private fun Declaration.constraintsFromFunctionLike(
   solverState: SolverState,
   context: ResolutionContext,
   parameters: List<Parameter>
-): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+): Triple<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
+  val notLookConstraints = arrayListOf<NamedConstraint>()
   constraintsFromGenericDeclaration(solverState, context, parameters).forEach { (call, formula) ->
     when (call.specialKind) {
       SpecialKind.Pre -> preConstraints.add(formula)
       SpecialKind.Post -> postConstraints.add(formula)
+      SpecialKind.NotLookArgs -> notLookConstraints.add(formula)
       else -> {} // do nothing
     }
   }
-  return Pair(preConstraints, postConstraints)
+  return Triple(preConstraints, postConstraints, notLookConstraints)
 }
 
 /**
  * Constructors have some additional requirements, namely the pre- and post-conditions of init
  * blocks should be added to their own list
  */
-private fun <A : Constructor<A>> Constructor<A>.constraintsFromConstructor(
+private fun <A : Constructor<A>> Constructor<A>?.constraintsFromConstructor(
   solverState: SolverState,
   context: ResolutionContext,
-  parameters: List<Parameter>
-): Pair<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
+  parameters: List<Parameter>,
+  containingClassOrObject: ClassOrObject
+): Triple<ArrayList<NamedConstraint>, ArrayList<NamedConstraint>, ArrayList<NamedConstraint>> {
   val preConstraints = arrayListOf<NamedConstraint>()
   val postConstraints = arrayListOf<NamedConstraint>()
-  (getContainingClassOrObject().getAnonymousInitializers() + listOf(this))
+  (containingClassOrObject.getAnonymousInitializers() + listOfNotNull(this))
     .flatMap { it.constraintsFromGenericDeclaration(solverState, context, parameters) }
     .forEach { (call, formula) ->
       val isRequireOrAssert = call.isRequireCall() || call.isAssertCall()
       if (call.specialKind == SpecialKind.Pre) {
-        rewritePrecondition(solverState, context, !isRequireOrAssert, call, formula.formula)?.let {
-          preConstraints.add(NamedConstraint(formula.msg, it))
-        }
+        rewritePrecondition(
+          solverState,
+          context,
+          parameters,
+          !isRequireOrAssert,
+          call,
+          formula.formula
+        )
+          ?.let { preConstraints.add(NamedConstraint(formula.msg, it)) }
       }
       // in constructors 'require' and 'assert' have a double duty
       if (call.specialKind == SpecialKind.Post || isRequireOrAssert) {
@@ -111,13 +164,14 @@ private fun <A : Constructor<A>> Constructor<A>.constraintsFromConstructor(
         }
       }
     }
-  return Pair(preConstraints, postConstraints)
+  return Triple(preConstraints, postConstraints, arrayListOf())
 }
 
 /** Turn references to 'field(x, this)' into references to parameter 'x' */
-private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
+private fun rewritePrecondition(
   solverState: SolverState,
   context: ResolutionContext,
+  parameters: List<Parameter>,
   raiseErrorWhenUnexpected: Boolean,
   call: ResolvedCall,
   formula: BooleanFormula
@@ -137,7 +191,7 @@ private fun <A : Constructor<A>> Constructor<A>.rewritePrecondition(
             val fieldName = args?.getOrNull(0)?.let { mgr.extractSingleVariable(it) }
             val thisName = args?.getOrNull(1)?.let { mgr.extractSingleVariable(it) }
             val paramName =
-              this@rewritePrecondition.valueParameters
+              parameters
                 .firstOrNull { param ->
                   fieldName?.endsWith(".${param.nameAsName?.value}")
                     ?: (param.nameAsName?.value == fieldName)
@@ -199,7 +253,8 @@ private fun Element.elementToConstraint(
 ): Pair<ResolvedCall, NamedConstraint>? {
   val call = getResolvedCall(context)
   val kind = call?.specialKind
-  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post) {
+  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post || kind == SpecialKind.NotLookArgs
+  ) {
     val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {

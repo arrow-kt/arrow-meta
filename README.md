@@ -44,6 +44,7 @@ Pre-requirements: JDK 8
 
 ```
 ./gradlew buildMetaDoc
+./gradlew :arrow-meta:dokkaJekyll :arrow-meta-docs:runAnk
 bundle install --gemfile docs/Gemfile --path vendor/bundle
 BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll serve -s docs/build/site/
 ```

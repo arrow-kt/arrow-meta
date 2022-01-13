@@ -1,0 +1,15 @@
+content:
+    - title: Quickstart
+      url: https://arrow-kt.io/docs/quickstart/
+
+    - title: Core
+      url: https://arrow-kt.io/docs/core/
+
+    - title: FX
+      url: https://arrow-kt.io/docs/fx/
+
+    - title: Optics
+      url: https://arrow-kt.io/docs/optics/dsl/
+
+    - title: Analysis
+      url: https://arrow-kt.io/docs/meta/analysis/

@@ -1,9 +1,5 @@
 package arrow.meta.phases
 
-import arrow.meta.phases.analysis.ElementScope
-import arrow.meta.plugins.proofs.phases.resolve.cache.ProofsCache
-import arrow.meta.quotes.QuoteDefinition
-import arrow.meta.quotes.Scope
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -23,19 +19,15 @@ import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactor
  * will get more services as they become relevant overtime to the development of compiler plugins.
  */
 open class CompilerContext(
-  override val configuration: CompilerConfiguration?,
+  val configuration: CompilerConfiguration?,
   open val project: Project,
   val messageCollector: MessageCollector? = null,
-  val scope: ElementScope = ElementScope.default(configuration, project),
   val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
   val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
-) : ElementScope by scope {
+) {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
   var bindingTrace: BindingTrace? = null
-
-  val quotes: MutableList<QuoteDefinition<out KtElement, out KtElement, out Scope<KtElement>>> =
-    mutableListOf()
 
   val analysedDescriptors: MutableList<DeclarationDescriptor> = mutableListOf()
 
@@ -64,8 +56,6 @@ open class CompilerContext(
   }
 
   inline fun <reified T : Any> get(key: String): T? = sessionData[key] as? T
-
-  val proofCache: ConcurrentHashMap<ModuleDescriptor, ProofsCache> = ConcurrentHashMap()
 }
 
 fun <T> CompilerContext.evaluateDependsOn(

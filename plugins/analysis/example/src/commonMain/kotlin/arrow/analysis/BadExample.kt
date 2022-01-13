@@ -1,5 +1,7 @@
 package arrow.analysis
 
+import kotlin.jvm.JvmInline
+
 // uncomment code to fail gradle build
 // fun bar(x: Int): Int = 1 / x
 fun bar(x: Int): Int {
@@ -15,7 +17,8 @@ fun increment(x: Int): Int {
 
 val example = increment(increment(1))
 
-class Positive(val value: Int) {
+@JvmInline
+value class Positive(val value: Int) {
   init {
     require(value > 0)
   }
@@ -36,6 +39,18 @@ fun nope2(x: Int): Int {
   return if (x < 0) 1 else 2
 }
 */
+
+// fun List<Int>.mappyWrong() = map { increment(it) }
+fun List<Positive>.mappyOk() = map { increment(it.value) }
+
+fun mappy(xs: List<Int>) = xs.mapNotNull { if (it > 0) Positive(it) else null }.mappyOk()
+
+@JvmInline
+value class NonEmptyList<A>(val value: List<A>) {
+  init {
+    require(value.isNotEmpty()) { "not empty" }
+  }
+}
 
 fun <A> List<A>.myGet(index: Int): A {
   pre(index >= 0 && index < this.size) { "index within bounds" }
@@ -70,3 +85,5 @@ fun <A> List<A>.count(): Int {
   }
   return count.post({ it >= 0 }) { "result >= 0" }
 }
+
+fun <A> List<A>.isSingle() = all { it == first() }

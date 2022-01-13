@@ -5,9 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
-fun interface KotlinTypeAlias : TypeAlias, KotlinNamedDeclaration {
-  override fun impl(): KtTypeAlias
-  override fun isTopLevel(): Boolean = impl().isTopLevel()
-
-  override fun getTypeReference(): TypeReference? = impl().getTypeReference()?.model()
+class KotlinTypeAlias(val impl: KtTypeAlias) : TypeAlias, KotlinNamedDeclaration {
+  override fun impl(): KtTypeAlias = impl
+  override fun isTopLevel(): Boolean = impl.isTopLevel()
+  override fun getTypeReference(): TypeReference? = impl.getTypeReference()?.model()
 }

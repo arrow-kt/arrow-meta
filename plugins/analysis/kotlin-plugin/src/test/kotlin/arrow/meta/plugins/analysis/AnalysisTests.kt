@@ -1176,7 +1176,7 @@ class AnalysisTests {
       val x = A()
       """(
       withPlugin = {
-        compilesWith { it.contains("implicit primary constructors are (not yet) supported") }
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
       },
       withoutPlugin = { compiles }
     )
@@ -1462,6 +1462,23 @@ class AnalysisTests {
   }
 
   @Test
+  fun `string templates, fail`() {
+    """
+      ${imports()}
+      ${stringLaws()}
+      fun bar(name: String): Int {
+        pre( name.isNotEmpty() ) { "not empty name" }
+        return 2
+      }
+      // we don't know upfront the length of the expression
+      val result = bar("${'$'}{1 + 2}")
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty name` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `late initialization, without this`() {
     """
       ${imports()}
@@ -1505,6 +1522,140 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `implicit primary constructor, ok`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int = 0
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `implicit primary constructor, fail`() {
+    """
+      ${imports()}
+      
+      class A {
+        val thing: Int = 1
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A()
+      """(
+      withPlugin = {
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `implicit primary constructor on object, fail`() {
+    """
+      ${imports()}
+      
+      object A {
+        val thing: Int = 1
+        
+        init {
+          require(thing == 0) { "thing is zero" }
+        }
+      }
+      
+      val example = A.thing
+      """(
+      withPlugin = {
+        failsWith { it.contains("declaration `A` fails to satisfy the post-condition") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `do nothing on empty lists, without annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `do nothing on empty lists, with annotation`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      @Law
+      inline fun <E> List<E>.allLaw(predicate: (x: E) -> Boolean): Boolean {
+        doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
+        return all(predicate)
+      } 
+      
+      fun List<Int>.containsSingleElement() =
+        this.all { n -> n == first() }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `empty list, ok`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun <E> List<E>.x(): Int {
+        pre(isEmpty()) { "list is not empty" }
+        return 1
+      }
+
+      val l = listOf<Int>().x()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `empty map, ok`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun <K, V> Map<K, V>.x(): Int {
+        pre(isEmpty()) { "map is not empty" }
+        return 1
+      }
+
+      val l = mapOf<Int, Int>().x()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1522,6 +1673,7 @@ import arrow.analysis.Post
 import arrow.analysis.Law
 import arrow.analysis.Laws
 import arrow.analysis.Subject
+import arrow.analysis.doNotLookAtArgumentsWhen
 import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
@@ -1545,12 +1697,32 @@ object CollectionLaws {
 object ListLaws {
   @Law
   inline fun <E> emptyListLaw(): List<E> =
-    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }
+    emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }    
+  @Law
+  inline fun <E> emptyListOfLaw(): List<E> =
+    listOf<E>().post({ it.size == 0 }) { "empty list is empty" }  
+  @Law
+  inline fun <E> listOfLaw(vararg elements: E): List<E> =
+    listOf(*elements).post({ it.size > 0 }) { "literal size" }
   @Law
   inline fun <E> List<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
     return first()
   }
+  @Law
+  inline fun <E> List<E>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
+      
+}
+
+@Laws
+object MapLaws {
+  @Law
+  inline fun <K, V> Map<K, V>.isEmptyLaw(): Boolean =
+    isEmpty().post({ it == (size <= 0) }) { "empty when size is 0" }
+  @Law
+  inline fun <K, V> emptyMapOfLaw(): Map<K, V> =
+    mapOf<K, V>().post({ it.size == 0 }) { "empty map is empty" }  
 }
 """
 

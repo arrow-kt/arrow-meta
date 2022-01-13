@@ -45,6 +45,11 @@ internal fun IrUtils.annotateWithConstraints(solverState: SolverState, fn: IrFun
         postAnnotation(declarationConstraints.post, solverState.solver.formulaManager)?.let {
           fn.addAnnotation(it)
         }
+        notLookAnnotation(
+          declarationConstraints.doNotLookAtArgumentsWhen,
+          solverState.solver.formulaManager
+        )
+          ?.let { fn.addAnnotation(it) }
         if (model.isALaw()) {
           getIrReturnedExpressionWithoutPostcondition(fn)?.let { fnDescriptor ->
             lawSubjectAnnotation(fnDescriptor.withAliasUnwrapped)?.let { fn.addAnnotation(it) }
@@ -112,6 +117,17 @@ private fun IrUtils.postAnnotation(
 ): IrConstructorCall? =
   annotationFromClassId(
     ClassId.fromString("arrow/analysis/Post"),
+    formulae.map { it.msg },
+    formulae.map { it.formula.toString() },
+    formulae.flatMap { manager.fieldNames(it.formula).map { fld -> fld.first }.toSet() }
+  )
+
+private fun IrUtils.notLookAnnotation(
+  formulae: List<NamedConstraint>,
+  manager: FormulaManager
+): IrConstructorCall? =
+  annotationFromClassId(
+    ClassId.fromString("arrow/analysis/DoNotLookAtArguments"),
     formulae.map { it.msg },
     formulae.map { it.formula.toString() },
     formulae.flatMap { manager.fieldNames(it.formula).map { fld -> fld.first }.toSet() }

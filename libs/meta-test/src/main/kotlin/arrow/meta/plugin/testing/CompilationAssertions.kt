@@ -5,7 +5,6 @@ import com.tschuchort.compiletesting.KotlinCompilation.Result
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
 
@@ -75,6 +74,8 @@ private val interpreter: (CompilerTest) -> Unit = {
           is Config.AddArguments -> remaining.compilationData(acc.addArguments(config))
           is Config.AddCommandLineProcessors ->
             remaining.compilationData(acc.addCommandLineProcessors(config))
+          is Config.AddSymbolProcessors ->
+            remaining.compilationData(acc.addSymbolProcessors(config))
           is Config.AddPluginOptions -> remaining.compilationData(acc.addPluginOptions(config))
           is Config.Many -> (config.configs + remaining).compilationData(acc)
           Config.Empty -> remaining.compilationData(acc)
@@ -105,28 +106,12 @@ private val interpreter: (CompilerTest) -> Unit = {
       Assert.CompilationResult.Fails -> assertFails(compilationResult)
       is Assert.CompilesWith -> assertCompilesWith(compilationResult, singleAssert.f)
       is Assert.FailsWith -> assertFailsWith(compilationResult, singleAssert.f)
-      is Assert.QuoteOutputMatches ->
-        assertQuoteOutputMatches(compilationResult, singleAssert.source)
       is Assert.EvalsTo ->
         assertEvalsTo(
           compilationResult,
           singleAssert.source,
           singleAssert.output,
           singleAssert.onError
-        )
-      is Assert.QuoteFileMatches ->
-        assertQuoteFileMatches(
-          compilationResult,
-          singleAssert.filename,
-          singleAssert.source,
-          Paths.get("build", "generated", "source", "kapt", "main")
-        )
-      is Assert.QuoteFileWithCustomPathMatches ->
-        assertQuoteFileMatches(
-          compilationResult,
-          singleAssert.filename,
-          singleAssert.source,
-          singleAssert.sourcePath
         )
       else -> TODO()
     }
@@ -158,6 +143,9 @@ private fun CompilationData.addArguments(config: Config.AddArguments) =
 
 private fun CompilationData.addCommandLineProcessors(config: Config.AddCommandLineProcessors) =
   copy(commandLineProcessors = commandLineProcessors + config.commandLineProcessors)
+
+private fun CompilationData.addSymbolProcessors(config: Config.AddSymbolProcessors) =
+  copy(symbolProcessors = symbolProcessors + config.symbolProcessors)
 
 private fun CompilationData.addPluginOptions(config: Config.AddPluginOptions) =
   copy(pluginOptions = pluginOptions + config.pluginOptions)
@@ -200,31 +188,6 @@ private fun assertFails(compilationResult: Result): Unit {
 private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean): Unit {
   assertFails(compilationResult)
   assertThat(check(compilationResult.messages)).isTrue
-}
-
-private fun assertQuoteOutputMatches(compilationResult: Result, expectedSource: Code.Source): Unit =
-  assertQuoteFileMatches(
-    compilationResult = compilationResult,
-    expectedSource = expectedSource,
-    actualFileName = "$DEFAULT_FILENAME.meta",
-    actualFileDirectoryPath = Paths.get(compilationResult.outputDirectory.parent, "sources")
-  )
-
-private fun assertQuoteFileMatches(
-  compilationResult: Result,
-  actualFileName: String,
-  expectedSource: Code.Source,
-  actualFileDirectoryPath: Path
-): Unit {
-  assertCompiles(compilationResult)
-  val actualSource = actualFileDirectoryPath.resolve(actualFileName).toFile().readText()
-  val actualSourceWithoutCommands = removeCommands(actualSource)
-  val expectedSourceWithoutCommands = removeCommands(expectedSource.text.trimMargin())
-  assertThat(actualSourceWithoutCommands)
-    .`as`(
-      "EXPECTED:${expectedSource.text.trimMargin()}\nACTUAL:$actualSource\nNOTE: Meta commands are skipped in the comparison"
-    )
-    .isEqualToIgnoringWhitespace(expectedSourceWithoutCommands)
 }
 
 private fun removeCommands(actualGeneratedFileContent: String): String =

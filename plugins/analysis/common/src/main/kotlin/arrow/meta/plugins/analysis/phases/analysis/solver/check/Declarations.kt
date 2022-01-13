@@ -19,6 +19,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.D
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DeclarationWithBody
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.DelegatedSuperTypeEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.NamedDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Property
@@ -170,27 +171,52 @@ internal fun SolverState.checkPrimaryConstructor(
   checkTopLevel(context, descriptor, declaration, isConstructor = true, solver.thisVariable) {
     data,
     checkPost ->
-    val klass = declaration.getContainingClassOrObject()
-    ContSeq.unit
-      .flatMap {
-        // introduce 'val' and 'var' from the constructor
-        introduceImplicitProperties(context, klass)
-      }
-      .flatMap {
-        // call the superclass constructors
-        // (this will ultimately check the Liskov for classes)
-        checkSuperTypeEntries(context, klass.superTypeListEntries, data)
-      }
-      .flatMap { checkExpressionConstraints(solver.thisVariable, declaration.bodyExpression, data) }
-      .flatMap { finalState ->
-        checkClassDeclarationInConstructorContext(
-          solver.thisVariable,
-          klass.declarations,
-          finalState.data
-        )
-          .onEach { checkPost(finalState.data) }
-      }
+    postPrimaryConstructor(
+      context,
+      declaration.getContainingClassOrObject(),
+      declaration.bodyExpression,
+      data,
+      checkPost
+    )
   }
+
+internal fun SolverState.checkImplicitPrimaryConstructor(
+  context: ResolutionContext,
+  descriptor: DeclarationDescriptor,
+  klass: ClassOrObject
+): ContSeq<Unit> =
+  checkTopLevel(context, descriptor, klass, isConstructor = true, solver.thisVariable) {
+    data,
+    checkPost ->
+    postPrimaryConstructor(context, klass, null, data, checkPost)
+  }
+
+internal fun SolverState.postPrimaryConstructor(
+  context: ResolutionContext,
+  klass: ClassOrObject,
+  bodyExpression: Expression?,
+  data: CheckData,
+  checkPost: (finalData: CheckData) -> Unit
+): ContSeq<Unit> =
+  ContSeq.unit
+    .flatMap {
+      // introduce 'val' and 'var' from the constructor
+      introduceImplicitProperties(context, klass)
+    }
+    .flatMap {
+      // call the superclass constructors
+      // (this will ultimately check the Liskov for classes)
+      checkSuperTypeEntries(context, klass.superTypeListEntries, data)
+    }
+    .flatMap { checkExpressionConstraints(solver.thisVariable, bodyExpression, data) }
+    .flatMap { finalState ->
+      checkClassDeclarationInConstructorContext(
+        solver.thisVariable,
+        klass.declarations,
+        finalState.data
+      )
+        .onEach { checkPost(finalState.data) }
+    }
 
 private fun SolverState.introduceImplicitProperties(
   context: ResolutionContext,

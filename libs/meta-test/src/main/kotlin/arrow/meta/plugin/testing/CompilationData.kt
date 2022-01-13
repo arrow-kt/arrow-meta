@@ -1,5 +1,6 @@
 package arrow.meta.plugin.testing
 
+import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 
@@ -14,6 +15,7 @@ internal data class CompilationData(
   val sources: List<Code.Source> = emptyList(),
   val arguments: List<String> = emptyList(),
   val commandLineProcessors: List<CommandLineProcessor> = emptyList(),
+  val symbolProcessors: List<SymbolProcessorProvider> = emptyList(),
   val pluginOptions: List<PluginOption> = emptyList(),
   val targetVersion: String? = null
 ) {
@@ -26,6 +28,7 @@ internal data class CompilationData(
       sources = sources + other.sources,
       arguments = arguments + other.arguments,
       commandLineProcessors = commandLineProcessors + other.commandLineProcessors,
+      symbolProcessors = symbolProcessors + other.symbolProcessors,
       pluginOptions = pluginOptions + other.pluginOptions,
       targetVersion = targetVersion ?: other.targetVersion
     )

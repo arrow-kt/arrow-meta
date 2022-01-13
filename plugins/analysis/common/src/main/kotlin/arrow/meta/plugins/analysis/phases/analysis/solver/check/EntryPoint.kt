@@ -1,19 +1,20 @@
 package arrow.meta.plugins.analysis.phases.analysis.solver.check
 
-import arrow.meta.continuations.cont
+import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.doOnlyWhen
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableDeclaration
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Class
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
-import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PureClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeAlias
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
+import arrow.meta.plugins.analysis.phases.analysis.solver.hasImplicitPrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 
 /* [NOTE: which do we use continuations?]
@@ -53,25 +54,16 @@ public fun SolverState.checkDeclarationConstraints(
     // now go on and check the body
     try {
       when (declaration) {
+        is TypeAlias -> ContSeq.unit // type alias have no checks
         is PrimaryConstructor -> checkPrimaryConstructor(context, descriptor, declaration)
         is SecondaryConstructor -> checkSecondaryConstructor(context, descriptor, declaration)
         is EnumEntry -> checkEnumEntry(context, descriptor, declaration)
         is ClassOrObject ->
           doOnlyWhen(
-            !declaration.isInterfaceOrEnum() &&
-              !declaration.isCompanionObject() &&
-              declaration.hasPrimaryConstructor() &&
-              declaration.primaryConstructor == null &&
-              !descriptor.hasPackageWithLawsAnnotation
+            declaration.hasImplicitPrimaryConstructor() && !descriptor.hasPackageWithLawsAnnotation
           ) {
-            cont {
-              val msg = ErrorMessages.Unsupported.unsupportedImplicitPrimaryConstructor(declaration)
-              context.handleError(
-                ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor,
-                declaration,
-                msg
-              )
-            }
+            descriptor as ClassDescriptor
+            checkImplicitPrimaryConstructor(context, descriptor.constructors.single(), declaration)
           }
         else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
       }.drain()
@@ -86,19 +78,6 @@ public fun SolverState.checkDeclarationConstraints(
     solverTrace.add("FINISH ${descriptor.fqNameSafe.name}")
   }
 }
-
-private fun ClassOrObject.isInterfaceOrEnum(): Boolean =
-  when (this) {
-    is Class -> this.isInterface() || this.isEnum()
-    else -> false
-  }
-
-private fun ClassOrObject.isCompanionObject(): Boolean =
-  fqName != null &&
-    this.parents.any { parent ->
-      parent is PureClassOrObject &&
-        parent.companionObjects.any { companion -> fqName == companion?.fqName }
-    }
 
 /**
  * Only elements which are not

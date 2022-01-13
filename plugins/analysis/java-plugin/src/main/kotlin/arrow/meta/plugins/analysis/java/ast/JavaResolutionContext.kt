@@ -60,7 +60,9 @@ public class JavaResolutionContext(
               if (calleeText == "pre" ||
                   calleeText.endsWith(".pre") ||
                   calleeText == "post" ||
-                  calleeText.endsWith(".post")
+                  calleeText.endsWith(".post") ||
+                  calleeText == "doNotLookAtArgumentsWhen" ||
+                  calleeText.endsWith(".doNotLookAtArgumentsWhen")
               )
                 elements.add(node.model(ctx))
             }
@@ -96,7 +98,6 @@ public class JavaResolutionContext(
       ErrorIds.Unsatisfiability.UnsatCallPre -> reportUnsatCallPre(element, msg)
       ErrorIds.Unsatisfiability.UnsatBodyPost -> reportUnsatBodyPost(element, msg)
       ErrorIds.Unsatisfiability.UnsatInvariants -> reportUnsatInvariants(element, msg)
-      ErrorIds.Unsupported.UnsupportedImplicitPrimaryConstructor -> reportUnsupported(element, msg)
       ErrorIds.Unsupported.UnsupportedExpression -> reportUnsupported(element, msg)
     }
     state?.notifySarifReport(error, element, msg)
