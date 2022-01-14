@@ -31,3 +31,7 @@ tasks.withType<JavaCompile> {
     "-Xplugin:ArrowAnalysisJavaPlugin baseDir=${project.rootProject.rootDir.path}"
   ))
 }
+
+// disable publication
+tasks.withType<PublishToMavenLocal>().configureEach { enabled = false }
+tasks.withType<PublishToMavenRepository>().configureEach { enabled = false }
