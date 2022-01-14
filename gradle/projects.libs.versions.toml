@@ -1,6 +1,6 @@
 [versions]
 arrow = "1.0.1"
-arrowGradleConfig = "0.6.0"
+arrowGradleConfig = "0.6.1-rc.5"
 assertj = "3.22.0"
 classgraph = "4.8.138"
 dokka = "1.6.0"
