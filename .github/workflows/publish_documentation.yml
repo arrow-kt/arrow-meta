@@ -37,7 +37,7 @@ jobs:
         MAYOR_MINOR_VERSION=$(grep -e "^projects.version=.*$" gradle.properties | cut -d= -f2 | cut -d. -f1-2)
         echo $MAYOR_MINOR_VERSION
         # bundle exec jekyll build --baseurl /$MAYOR_MINOR_VERSION -s docs -d docs/build/_site
-        BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/build/site -d docs/build/_site
+        BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/docs -d docs/build
 
     - name: "Deploy"
       env:
@@ -48,6 +48,6 @@ jobs:
         AWS_CLOUDFRONT_ID: ${{ secrets.AWS_CLOUDFRONT_ID }}
       run: |
         # Waiting for AWS configuration to active this part:
-        # aws s3 sync docs/build/_site s3://$S3_BUCKET/$MAYOR_MINOR_VERSION
-        aws s3 sync --delete docs/build/_site s3://$S3_BUCKET/docs/meta
+        # aws s3 sync docs/build s3://$S3_BUCKET/$MAYOR_MINOR_VERSION
+        aws s3 sync --delete docs/build s3://$S3_BUCKET/docs/meta
         aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_ID --paths "/*"
