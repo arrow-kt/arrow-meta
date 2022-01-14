@@ -52,6 +52,10 @@ allprojects {
   }
 }
 
+allprojects {
+  extra.set("dokka.outputDirectory", rootDir.resolve("docs/docs/apidocs"))
+}
+
 configure(subprojects - project(":arrow-meta-docs")) {
   apply(plugin = "org.jetbrains.dokka")
   tasks.named<DokkaTask>("dokkaJekyll") {
