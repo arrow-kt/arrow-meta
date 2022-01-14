@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kotlin: ['1.6.0']
+        kotlin: ['1.6.0', '1.6.10']
         jvm_target: ['1.8', '11', '15']
 
     steps:
