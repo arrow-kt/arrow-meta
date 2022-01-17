@@ -93,10 +93,10 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtTypeReference -> KotlinTypeReference(this).repr()
     is KtTryExpression -> KotlinTryExpression(this).repr()
     is KtCatchClause -> KotlinCatchClause(this).repr()
-    is KtSuperTypeCallEntry -> KotlinSuperTypeCallEntry(this).repr()
     is KtConstructorCalleeExpression -> KotlinConstructorCalleeExpression(this).repr()
+    is KtSuperTypeCallEntry -> KotlinSuperTypeCallEntry(this).repr()
+    is KtDelegatedSuperTypeEntry -> KotlinDelegatedSuperTypeEntry(this).repr()
     is KtSuperTypeEntry -> KotlinSuperTypeEntry(this).repr()
-    is KtContainerNode -> KotlinDefaultElement(this).repr()
     is KtWhileExpression -> KotlinWhileExpression(this).repr()
     is KtArrayAccessExpression -> KotlinArrayAccessExpression(this).repr()
     is KtForExpression -> KotlinForExpression(this).repr()
@@ -113,6 +113,9 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
+    is KtContainerNodeForControlStructureBody -> this.expression?.model()
+        ?: KotlinDefaultElement(this).repr()
+    is KtContainerNode -> KotlinDefaultElement(this).repr()
     // is KtFile -> KotlinFile(this).repr()
     else ->
       TODO(
