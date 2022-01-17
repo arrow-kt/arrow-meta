@@ -5,8 +5,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
 
-fun interface KotlinDelegatedSuperTypeEntry : DelegatedSuperTypeEntry, KotlinSuperTypeListEntry {
-  override fun impl(): KtDelegatedSuperTypeEntry
+class KotlinDelegatedSuperTypeEntry(val impl: KtDelegatedSuperTypeEntry) :
+  DelegatedSuperTypeEntry, KotlinSuperTypeListEntry {
+  override fun impl(): KtDelegatedSuperTypeEntry = impl
   override val delegateExpression: Expression?
     get() = impl().delegateExpression?.model()
 }
