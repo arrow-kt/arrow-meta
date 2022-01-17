@@ -317,7 +317,7 @@ object ErrorMessages {
         trace.joinToString(separator = System.lineSeparator()) { "  -> $it" }
 
     internal fun otherException(e: kotlin.Exception): String =
-      "exception during analysis: ${e.localizedMessage}"
+      "exception during analysis: ${e.javaClass.name}\n${e.message}\n${e.stackTraceToString()}"
   }
 
   internal fun template(constraint: NamedConstraint, solver: Solver): String =
