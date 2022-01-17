@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.NamedCon
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.fieldEqualitiesInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
+import arrow.meta.plugins.analysis.smt.Solver
 
 data class ParamInfo(
   val name: String,
@@ -15,7 +16,18 @@ data class ParamInfo(
   val type: Type?,
   val element: Element?,
   val thisFromConstructor: Boolean = false
-)
+) {
+  companion object {
+    public operator fun invoke(
+      solver: Solver,
+      name: String,
+      smtName: String,
+      type: Type?,
+      element: Element?,
+      thisFromConstructor: Boolean = false
+    ): ParamInfo = ParamInfo(name, solver.escape(smtName), type, element, thisFromConstructor)
+  }
+}
 
 /** Record the information about parameters and introduce the corresponding invariants */
 internal fun SolverState.initialParameters(
@@ -31,6 +43,6 @@ internal fun SolverState.initialParameters(
         if (param.thisFromConstructor) this::fieldEqualitiesInvariants else this::typeInvariants
       invariants(ty, param.smtName, context).forEach { addConstraint(it, context) }
     }
-    param.element?.let { element -> VarInfo(param.name, param.smtName, element) }
+    param.element?.let { element -> VarInfo.unsafeCreate(param.name, param.smtName, element) }
   }
 }

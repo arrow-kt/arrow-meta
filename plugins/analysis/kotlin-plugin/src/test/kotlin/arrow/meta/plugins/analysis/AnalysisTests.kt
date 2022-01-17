@@ -1691,6 +1691,33 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `escape known names`() {
+    """
+      ${imports()}
+      
+      fun f(div: Int, floor: Int): Int = div / floor 
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `if without else`() {
+    """
+      ${imports()}
+      
+      fun f(x: Int): Int {
+        if (x > 0) { print("positive") }
+        return x + 1
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert

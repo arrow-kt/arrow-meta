@@ -76,6 +76,7 @@ internal fun <A> SolverState.checkTopLevel(
           when (descriptor) {
             is ConstructorDescriptor ->
               ParamInfo(
+                solver,
                 THIS_VAR_NAME,
                 THIS_VAR_NAME,
                 descriptor.constructedClass.defaultType,
@@ -84,7 +85,7 @@ internal fun <A> SolverState.checkTopLevel(
               )
             else ->
               (descriptor.extensionReceiverParameter ?: descriptor.dispatchReceiverParameter)?.let {
-                ParamInfo(THIS_VAR_NAME, THIS_VAR_NAME, it.type, declaration)
+                ParamInfo(solver, THIS_VAR_NAME, THIS_VAR_NAME, it.type, declaration)
               }
           }
         val valueParams =
@@ -93,18 +94,18 @@ internal fun <A> SolverState.checkTopLevel(
               (declaration as? DeclarationWithBody)?.valueParameters?.firstOrNull {
                 it?.name == param.name.value
               }
-            ParamInfo(param.name.value, param.name.value, param.type, element)
+            ParamInfo(solver, param.name.value, param.name.value, param.type, element)
           }
         val returnParam =
           descriptor.returnType?.takeIf { descriptor !is ConstructorDescriptor }?.let {
-            ParamInfo(RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
+            ParamInfo(solver, RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
           }
         // additional for 'this@info'
         val additional =
           if (declaration is NamedDeclaration) {
             // Add 'this@functionName'
             declaration.nameAsName?.let { name ->
-              VarInfo("this@$name", THIS_VAR_NAME, declaration)
+              VarInfo(solver, "this@$name", THIS_VAR_NAME, declaration)
             }
           } else null
         // introduce non-nullability and invariants of parameters
