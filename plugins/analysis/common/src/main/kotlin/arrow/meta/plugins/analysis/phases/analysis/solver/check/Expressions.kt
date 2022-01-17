@@ -79,6 +79,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ExplicitLo
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ExplicitReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.ExplicitThrowReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.LoopPlace
+import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.MissingElseBlockExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.NoReturn
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.SimpleCondition
 import arrow.meta.plugins.analysis.phases.analysis.solver.check.model.StateAfter
@@ -514,7 +515,7 @@ private fun SolverState.checkControlFlowFunctionCall(
           // add the constraint to make the parameter equal
           val formula = solver.objects { equal(solver.makeObjectVariable(smtName), thisName) }
           addConstraint(NamedConstraint("introduce argument for lambda", formula), data.context)
-          VarInfo(info.argumentName, smtName, info.target, null)
+          VarInfo(solver, info.argumentName, smtName, info.target, null)
         }
       // check the body in this new context
       checkExpressionConstraints(
@@ -1301,7 +1302,8 @@ private fun SolverState.checkNonFunctionDeclarationExpression(
           }
         }
         // update the list of variables in scope
-        val newData = stateAfter.data.addVarInfo(declName, smtName, declaration, invariant?.second)
+        val newData =
+          stateAfter.data.addVarInfo(solver, declName, smtName, declaration, invariant?.second)
         // and then keep going
         Pair(newVarName, stateAfter.withData(newData))
       }
@@ -1372,10 +1374,14 @@ private fun SolverState.checkNameExpression(
 private fun Expression.computeConditions(): List<Condition> =
   when (this) {
     is IfExpression ->
-      listOf(
-        SimpleCondition(condition!!, false, thenExpression!!, thenExpression!!),
-        SimpleCondition(null, true, elseExpression!!, elseExpression!!)
-      )
+      thenExpression?.let { thenExpr ->
+        val elseExpr = elseExpression ?: MissingElseBlockExpression(this, thenExpr)
+        listOf(
+          SimpleCondition(condition!!, false, thenExpr, thenExpr),
+          SimpleCondition(null, true, elseExpr, elseExpr)
+        )
+      }
+        ?: emptyList()
     is WhenExpression -> {
       val subject = subjectExpression
       entries.flatMap { entry ->
@@ -1614,7 +1620,7 @@ private fun SolverState.checkForExpression(
               val newData =
                 if (loopParameter != null && paramName != null) {
                   val smtName = newName(data.context, paramName, loopParameter)
-                  data.addVarInfo(paramName, smtName, loopParameter, null)
+                  data.addVarInfo(solver, paramName, smtName, loopParameter, null)
                 } else data
               checkLoopBody(body, emptyList(), newData)
             }
@@ -1740,7 +1746,7 @@ private fun SolverState.checkTryExpression(
                 checkExpressionConstraints(
                   associatedVarName,
                   it.catchBody,
-                  data.addVarInfo(paramName, smtName, param)
+                  data.addVarInfo(solver, paramName, smtName, param)
                 )
               }
             }

@@ -109,6 +109,30 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   val resultVariable = makeObjectVariable(RESULT_VAR_NAME)
   val thisVariable = makeObjectVariable(THIS_VAR_NAME)
 
+  // From SMTLIB docs
+  private val forbiddenNames: List<String> =
+    listOf(
+      "div",
+      "mod",
+      "abs",
+      "select",
+      "store",
+      "true",
+      "false",
+      "not",
+      "and",
+      "or",
+      "xor",
+      "distinct",
+      "ite"
+    )
+
+  override fun escape(name: String): String =
+    when {
+      name in forbiddenNames -> "$name##"
+      else -> name
+    }.let { formulaManager.escape(it) }
+
   companion object {
 
     operator fun invoke(nameProvider: NameProvider): Solver =
