@@ -3,6 +3,7 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.check.model
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.smt.ObjectFormula
+import arrow.meta.plugins.analysis.smt.Solver
 import org.sosy_lab.java_smt.api.BooleanFormula
 
 data class CheckData(
@@ -18,11 +19,12 @@ data class CheckData(
     this.copy(returnPoints = returnPoints.replaceTopMost(scope, variableName))
 
   fun addVarInfo(
+    solver: Solver,
     name: String,
     smtName: String,
     origin: Element,
     invariant: BooleanFormula? = null
-  ): CheckData = this.copy(varInfo = varInfo.add(name, smtName, origin, invariant))
+  ): CheckData = this.copy(varInfo = varInfo.add(solver, name, smtName, origin, invariant))
 
   fun addVarInfos(vars: List<VarInfo>): CheckData = this.copy(varInfo = varInfo.add(vars))
 
