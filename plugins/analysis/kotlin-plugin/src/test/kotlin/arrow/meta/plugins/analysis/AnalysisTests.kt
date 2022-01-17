@@ -1656,6 +1656,41 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `fun interface exception`() {
+    """
+      ${imports()}
+      
+      fun interface Example {
+        fun helloWorld(content: String): Int
+      }
+      
+      fun example(): Example =
+        Example { content -> content.length }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `weird scoping problem`() {
+    """
+      ${imports()}
+      
+      fun Int.a(a: String): Unit { }
+      
+      fun b(a: Int) {
+        a.apply {
+          a("inline-block address")
+        }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
