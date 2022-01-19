@@ -17,7 +17,6 @@ import arrow.meta.plugins.analysis.smt.intGreaterThanOrEquals
 import arrow.meta.plugins.analysis.smt.intLessThan
 import arrow.meta.plugins.analysis.smt.intLessThanOrEquals
 import arrow.meta.plugins.analysis.smt.intMinus
-import arrow.meta.plugins.analysis.smt.intMultiply
 import arrow.meta.plugins.analysis.smt.intNegate
 import arrow.meta.plugins.analysis.smt.intPlus
 import arrow.meta.plugins.analysis.smt.rationalEquals
