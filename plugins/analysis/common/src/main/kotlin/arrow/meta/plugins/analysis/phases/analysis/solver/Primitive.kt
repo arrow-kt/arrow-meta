@@ -156,7 +156,7 @@ private fun Solver.integralFormula(
         1 -> intNegate(args)
         else -> throw IllegalArgumentException("- with weird # of parameters")
       }
-    "times", "*" -> intMultiply(args)
+    // "times", "*" -> intMultiply(args) // not all SMT solvers support multiplication
     // "div", "/" -> intDivide(args) // not all SMT solvers support div
     "inc",
     "++" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
