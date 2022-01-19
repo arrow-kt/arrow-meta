@@ -4,6 +4,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.N
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 class KotlinNamedFunction(val impl: KtNamedFunction) :
-  NamedFunction, KotlinFunction, KotlinDeclarationWithInitializer {
+  KotlinFunction, NamedFunction, KotlinDeclarationWithInitializer {
   override fun impl(): KtNamedFunction = impl
 }
