@@ -107,6 +107,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtDelegatedSuperTypeEntry -> KotlinDelegatedSuperTypeEntry(this).repr()
     is KtSuperTypeEntry -> KotlinSuperTypeEntry(this).repr()
     is KtWhileExpression -> KotlinWhileExpression(this).repr()
+    is KtDoWhileExpression -> KotlinDoWhileExpression(this).repr()
     is KtArrayAccessExpression -> KotlinArrayAccessExpression(this).repr()
     is KtForExpression -> KotlinForExpression(this).repr()
     is KtWhenExpression -> KotlinWhenExpression(this).repr()
