@@ -64,6 +64,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThreePieceForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TryExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeCastExpresionKind
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeCastExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.VariableDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionIsPattern
@@ -211,6 +213,8 @@ internal fun SolverState.checkExpressionConstraints(
           )
         is LoopExpression -> checkLoopExpression(expression, data)
         is TryExpression -> checkTryExpression(associatedVarName, expression, data)
+        is TypeCastExpression ->
+          checkAsOperator(associatedVarName, expression.kind, expression.left, expression, data)
         is IsExpression -> {
           val subject = expression.leftHandSide
           val subjectName = solver.makeObjectVariable(newName(data.context, "is", subject))
@@ -854,6 +858,59 @@ private fun SolverState.checkElvisOperator(
               ensure(!inconsistent)
             }
             .map { stateAfterLeft.data.addBranch(solver.isNotNull(left)).noReturn() }
+        }
+      }
+  }
+}
+
+private fun SolverState.checkAsOperator(
+  associatedVarName: ObjectFormula,
+  kind: TypeCastExpresionKind,
+  leftExpr: Expression?,
+  whole: Expression,
+  data: CheckData
+): ContSeq<StateAfter> {
+  val leftName = newName(data.context, "left", leftExpr)
+  val left = solver.makeObjectVariable(leftName)
+  return checkExpressionConstraints(leftName, leftExpr, data).checkReturnInfo { stateAfterLeft ->
+    ContSeq {
+      if (kind == TypeCastExpresionKind.QUESTION_TYPE_CAST) yield(true)
+      yield(false)
+    }
+      .flatMap { r -> continuationBracket.map { r } }
+      .flatMap { asFails ->
+        if (asFails) {
+          // one possibility is that 'as?' fails, regardless of what 'left' is
+          val formulaNullResult = solver.isNull(associatedVarName)
+          val nullResult = NamedConstraint("$associatedVarName is null (as?)", formulaNullResult)
+          ContSeq.unit
+            .map {
+              val inconsistent =
+                checkConditionsInconsistencies(
+                  listOf(nullResult),
+                  data.context,
+                  whole,
+                  data.branch.get()
+                )
+              ensure(!inconsistent)
+            }
+            .map { stateAfterLeft.data.addBranch(formulaNullResult).noReturn() }
+        } else {
+          // if 'as' does not fail, then the result is equal to 'left'
+          val formulaEqualsLeft = solver.objects { equal(left, associatedVarName) }
+          val resultEqualsLeft = NamedConstraint("$associatedVarName is $left", formulaEqualsLeft)
+          ContSeq.unit
+            .map {
+              val inconsistent =
+                checkConditionsInconsistencies(
+                  listOf(resultEqualsLeft),
+                  data.context,
+                  whole,
+                  data.branch.get()
+                )
+              ensure(!inconsistent)
+            }
+            .map { stateAfterLeft.data.addBranch(formulaEqualsLeft).noReturn() }
         }
       }
   }
