@@ -1746,7 +1746,7 @@ class AnalysisTests {
       fun f(x: Any): Int = (x as Int) + 1
       fun g(x: Any): Int? = (x as? Int)?.let { it + 1 }
       """(
-      withPlugin = { compiles },
+      withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
     )
   }

@@ -769,7 +769,8 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
                     listOf(nullReceiver, nullResult),
                     dataAfterReceiver.context,
                     receiverExpr!!,
-                    dataAfterReceiver.branch.get()
+                    dataAfterReceiver.branch.get(),
+                    reportIfInconsistent = false
                   )
                 ensure(!inconsistent)
                 dataAfterReceiver.addBranch(solver.isNull(receiverName)).noReturn()
@@ -787,7 +788,8 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
                       listOf(notNullCstr),
                       data.context,
                       rcv,
-                      dataAfterReceiver.branch.get()
+                      dataAfterReceiver.branch.get(),
+                      reportIfInconsistent = false
                     )
                   ensure(!inconsistent)
                   dataAfterReceiver.addBranch(solver.isNotNull(receiverName)).noReturn()
@@ -827,7 +829,8 @@ private fun SolverState.checkElvisOperator(
                   listOf(nullLeft),
                   data.context,
                   leftExpr,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
@@ -853,7 +856,8 @@ private fun SolverState.checkElvisOperator(
                   listOf(notNullLeft, resultIsLeft),
                   data.context,
                   leftExpr,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
@@ -890,7 +894,8 @@ private fun SolverState.checkAsOperator(
                   listOf(nullResult),
                   data.context,
                   whole,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
@@ -906,7 +911,8 @@ private fun SolverState.checkAsOperator(
                   listOf(resultEqualsLeft),
                   data.context,
                   whole,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
@@ -1518,7 +1524,8 @@ private fun SolverState.checkConditional(
                     correspondingVars,
                     data.context,
                     cond.whole,
-                    data.branch.get()
+                    data.branch.get(),
+                    reportIfInconsistent = true
                   )
                 // it only makes sense to continue if we are not consistent
                 ensure(!inconsistentEnvironment)
@@ -1713,7 +1720,8 @@ private fun SolverState.checkWhileExpression(
                 listOf(NamedConstraint("inside the loop, condition is true", objVar)),
                 data.context,
                 condition,
-                data.branch.get()
+                data.branch.get(),
+                reportIfInconsistent = true
               )
               checkLoopBody(body, afterBody, data.addBranch(objVar))
             }
@@ -1726,7 +1734,8 @@ private fun SolverState.checkWhileExpression(
               listOf(NamedConstraint("loop is finished, condition is false", notVar)),
               data.context,
               condition,
-              data.branch.get()
+              data.branch.get(),
+              reportIfInconsistent = true
             )
             // add (not condition) to the data
             data.addBranch(notVar).noReturn()
