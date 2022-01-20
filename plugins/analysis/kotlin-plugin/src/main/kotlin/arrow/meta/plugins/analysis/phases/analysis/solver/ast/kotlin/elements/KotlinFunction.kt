@@ -5,10 +5,14 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtFunction
 
-fun interface KotlinFunction : Function, KotlinDeclarationWithBody, KotlinCallableDeclaration {
+interface KotlinFunction : Function, KotlinDeclarationWithBody, KotlinCallableDeclaration {
   override fun impl(): KtFunction
   override val isLocal: Boolean
     get() = impl().isLocal
   override val valueParameters: List<Parameter>
     get() = impl().valueParameters.map { it.model() }
+}
+
+class KotlinDefaultFunction(val impl: KtFunction) : KotlinFunction {
+  override fun impl(): KtFunction = impl
 }

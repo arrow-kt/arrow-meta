@@ -50,6 +50,7 @@ import arrow.meta.plugins.analysis.java.ast.elements.JavaSynchronized
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTernaryConditional
 import arrow.meta.plugins.analysis.java.ast.elements.JavaThis
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTry
+import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeCast
 import arrow.meta.plugins.analysis.java.ast.elements.JavaTypeReference
 import arrow.meta.plugins.analysis.java.ast.elements.JavaUnary
 import arrow.meta.plugins.analysis.java.ast.elements.JavaVariable
@@ -101,6 +102,7 @@ import com.sun.source.tree.SwitchTree
 import com.sun.source.tree.SynchronizedTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.TryTree
+import com.sun.source.tree.TypeCastTree
 import com.sun.source.tree.TypeParameterTree
 import com.sun.source.tree.UnaryTree
 import com.sun.source.tree.UnionTypeTree
@@ -193,6 +195,7 @@ public fun <
     is LambdaExpressionTree -> JavaLambda(ctx, this) as B
     is NewClassTree -> JavaConstructorCall(ctx, this) as B
     is MethodInvocationTree -> JavaCall(ctx, this) as B
+    is TypeCastTree -> JavaTypeCast(ctx, this) as B
     is InstanceOfTree -> JavaInstanceOf(ctx, this) as B
     is TryTree -> JavaTry(ctx, this) as B
     is CatchTree -> JavaCatch(ctx, this) as B
