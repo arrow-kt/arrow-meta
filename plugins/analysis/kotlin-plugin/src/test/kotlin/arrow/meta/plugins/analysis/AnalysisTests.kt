@@ -1698,6 +1698,25 @@ class AnalysisTests {
       ${imports()}
       
       fun f(div: Int, floor: Int): Int = div / floor 
+    """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `class and element references are recognized`() {
+    """
+      ${imports()}
+      
+      import kotlin.reflect.KClass
+      import kotlin.reflect.KCallable
+      
+      fun <T: Any> f(k: KClass<T>): Int = 3
+      val value = f(String ::class)
+      
+      fun g(k: KCallable<String>): Int = 2
+      val other = g(String::capitalize)
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }
@@ -1713,6 +1732,19 @@ class AnalysisTests {
         if (x > 0) { print("positive") }
         return x + 1
       }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `as expressions`() {
+    """
+      ${imports()}
+      
+      fun f(x: Any): Int = (x as Int) + 1
+      fun g(x: Any): Int? = (x as? Int)?.let { it + 1 }
       """(
       withPlugin = { compilesNoUnreachable },
       withoutPlugin = { compiles }

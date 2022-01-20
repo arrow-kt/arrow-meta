@@ -64,6 +64,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThreePieceForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ThrowExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TryExpression
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeCastExpresionKind
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeCastExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeReference
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.VariableDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.WhenConditionIsPattern
@@ -211,6 +213,8 @@ internal fun SolverState.checkExpressionConstraints(
           )
         is LoopExpression -> checkLoopExpression(expression, data)
         is TryExpression -> checkTryExpression(associatedVarName, expression, data)
+        is TypeCastExpression ->
+          checkAsOperator(associatedVarName, expression.kind, expression.left, expression, data)
         is IsExpression -> {
           val subject = expression.leftHandSide
           val subjectName = solver.makeObjectVariable(newName(data.context, "is", subject))
@@ -765,7 +769,8 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
                     listOf(nullReceiver, nullResult),
                     dataAfterReceiver.context,
                     receiverExpr!!,
-                    dataAfterReceiver.branch.get()
+                    dataAfterReceiver.branch.get(),
+                    reportIfInconsistent = false
                   )
                 ensure(!inconsistent)
                 dataAfterReceiver.addBranch(solver.isNull(receiverName)).noReturn()
@@ -783,7 +788,8 @@ private fun SolverState.checkReceiverWithPossibleSafeDot(
                       listOf(notNullCstr),
                       data.context,
                       rcv,
-                      dataAfterReceiver.branch.get()
+                      dataAfterReceiver.branch.get(),
+                      reportIfInconsistent = false
                     )
                   ensure(!inconsistent)
                   dataAfterReceiver.addBranch(solver.isNotNull(receiverName)).noReturn()
@@ -823,7 +829,8 @@ private fun SolverState.checkElvisOperator(
                   listOf(nullLeft),
                   data.context,
                   leftExpr,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
@@ -849,11 +856,67 @@ private fun SolverState.checkElvisOperator(
                   listOf(notNullLeft, resultIsLeft),
                   data.context,
                   leftExpr,
-                  data.branch.get()
+                  data.branch.get(),
+                  reportIfInconsistent = false
                 )
               ensure(!inconsistent)
             }
             .map { stateAfterLeft.data.addBranch(solver.isNotNull(left)).noReturn() }
+        }
+      }
+  }
+}
+
+private fun SolverState.checkAsOperator(
+  associatedVarName: ObjectFormula,
+  kind: TypeCastExpresionKind,
+  leftExpr: Expression?,
+  whole: Expression,
+  data: CheckData
+): ContSeq<StateAfter> {
+  val leftName = newName(data.context, "left", leftExpr)
+  val left = solver.makeObjectVariable(leftName)
+  return checkExpressionConstraints(leftName, leftExpr, data).checkReturnInfo { stateAfterLeft ->
+    ContSeq {
+      if (kind == TypeCastExpresionKind.QUESTION_TYPE_CAST) yield(true)
+      yield(false)
+    }
+      .flatMap { r -> continuationBracket.map { r } }
+      .flatMap { asFails ->
+        if (asFails) {
+          // one possibility is that 'as?' fails, regardless of what 'left' is
+          val formulaNullResult = solver.isNull(associatedVarName)
+          val nullResult = NamedConstraint("$associatedVarName is null (as?)", formulaNullResult)
+          ContSeq.unit
+            .map {
+              val inconsistent =
+                checkConditionsInconsistencies(
+                  listOf(nullResult),
+                  data.context,
+                  whole,
+                  data.branch.get(),
+                  reportIfInconsistent = false
+                )
+              ensure(!inconsistent)
+            }
+            .map { stateAfterLeft.data.addBranch(formulaNullResult).noReturn() }
+        } else {
+          // if 'as' does not fail, then the result is equal to 'left'
+          val formulaEqualsLeft = solver.objects { equal(left, associatedVarName) }
+          val resultEqualsLeft = NamedConstraint("$associatedVarName is $left", formulaEqualsLeft)
+          ContSeq.unit
+            .map {
+              val inconsistent =
+                checkConditionsInconsistencies(
+                  listOf(resultEqualsLeft),
+                  data.context,
+                  whole,
+                  data.branch.get(),
+                  reportIfInconsistent = false
+                )
+              ensure(!inconsistent)
+            }
+            .map { stateAfterLeft.data.addBranch(formulaEqualsLeft).noReturn() }
         }
       }
   }
@@ -1461,7 +1524,8 @@ private fun SolverState.checkConditional(
                     correspondingVars,
                     data.context,
                     cond.whole,
-                    data.branch.get()
+                    data.branch.get(),
+                    reportIfInconsistent = true
                   )
                 // it only makes sense to continue if we are not consistent
                 ensure(!inconsistentEnvironment)
@@ -1656,7 +1720,8 @@ private fun SolverState.checkWhileExpression(
                 listOf(NamedConstraint("inside the loop, condition is true", objVar)),
                 data.context,
                 condition,
-                data.branch.get()
+                data.branch.get(),
+                reportIfInconsistent = true
               )
               checkLoopBody(body, afterBody, data.addBranch(objVar))
             }
@@ -1669,7 +1734,8 @@ private fun SolverState.checkWhileExpression(
               listOf(NamedConstraint("loop is finished, condition is false", notVar)),
               data.context,
               condition,
-              data.branch.get()
+              data.branch.get(),
+              reportIfInconsistent = true
             )
             // add (not condition) to the data
             data.addBranch(notVar).noReturn()

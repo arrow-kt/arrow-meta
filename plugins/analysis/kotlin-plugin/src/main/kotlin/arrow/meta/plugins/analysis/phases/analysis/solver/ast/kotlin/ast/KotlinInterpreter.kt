@@ -55,12 +55,19 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtProperty -> KotlinProperty(this).repr()
     is KtPropertyAccessor -> KotlinPropertyAccessor(this).repr()
     is KtParameter -> KotlinParameter(this).repr()
+    is KtDestructuringDeclarationEntry -> KotlinDestructuringDeclarationEntry(this).repr()
     is KtBinaryExpression ->
       when (this.operationToken.toString()) {
         "EQ" -> KotlinAssignmentExpression(this).repr()
         else -> KotlinBinaryExpression(this).repr()
       }
+    is KtBinaryExpressionWithTypeRHS ->
+      when (this.operationReference.getReferencedName()) {
+        "as", "as?" -> KotlinTypeCastExpression(this).repr()
+        else -> KotlinDefaultExpression(this).repr()
+      }
     is KtNameReferenceExpression -> KotlinNameReferenceExpression(this).repr()
+    is KtOperationReferenceExpression -> KotlinOperationReferenceExpression(this).repr()
     is KtConstantExpression ->
       if (this.isNull()) KotlinNullExpression(this).repr()
       else KotlinConstantExpression(this).repr()
@@ -82,7 +89,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtParenthesizedExpression -> KotlinParenthesizedExpression(this).repr()
     is KtFunctionLiteral -> KotlinFunctionLiteral(this).repr()
     is KtDotQualifiedExpression -> KotlinDotQualifiedExpression(this).repr()
-    is KtPrefixExpression -> KotlinDefaultExpression(this).repr()
+    is KtUnaryExpression -> KotlinDefaultExpression(this).repr()
     is KtThisExpression -> KotlinThisExpression(this).repr()
     is KtSuperExpression -> KotlinSuperExpression(this).repr()
     is KtIfExpression -> KotlinIfExpression(this).repr()
@@ -93,11 +100,14 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtTypeReference -> KotlinTypeReference(this).repr()
     is KtTryExpression -> KotlinTryExpression(this).repr()
     is KtCatchClause -> KotlinCatchClause(this).repr()
+    is KtClassLiteralExpression -> KotlinClassLiteralExpression(this).repr()
+    is KtCallableReferenceExpression -> KotlinCallableReferenceExpression(this).repr()
     is KtConstructorCalleeExpression -> KotlinConstructorCalleeExpression(this).repr()
     is KtSuperTypeCallEntry -> KotlinSuperTypeCallEntry(this).repr()
     is KtDelegatedSuperTypeEntry -> KotlinDelegatedSuperTypeEntry(this).repr()
     is KtSuperTypeEntry -> KotlinSuperTypeEntry(this).repr()
     is KtWhileExpression -> KotlinWhileExpression(this).repr()
+    is KtDoWhileExpression -> KotlinDoWhileExpression(this).repr()
     is KtArrayAccessExpression -> KotlinArrayAccessExpression(this).repr()
     is KtForExpression -> KotlinForExpression(this).repr()
     is KtWhenExpression -> KotlinWhenExpression(this).repr()
@@ -106,13 +116,14 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtWhenConditionIsPattern -> KotlinWhenConditionIsPattern(this).repr()
     is KtWhenConditionInRange -> KotlinWhenConditionInRange(this).repr()
     is KtSecondaryConstructor -> KotlinSecondaryConstructor(this).repr()
-    is KtCallableReferenceExpression -> KotlinCallableReferenceExpression(this).repr()
     is KtConstructorDelegationCall -> KotlinConstructorDelegationCall(this).repr()
     is KtConstructorDelegationReferenceExpression ->
       KotlinConstructorDelegationReferenceExpression(this).repr()
     is KtSafeQualifiedExpression -> KotlinSafeQualifiedExpression(this).repr()
     is KtSuperTypeList -> KotlinSuperTypeList(this).repr()
     is KtInitializerList -> KotlinInitializerList(this).repr()
+    // fallbacks
+    is KtFunction -> KotlinDefaultFunction(this).repr()
     is KtContainerNodeForControlStructureBody -> this.expression?.model()
         ?: KotlinDefaultElement(this).repr()
     is KtContainerNode -> KotlinDefaultElement(this).repr()

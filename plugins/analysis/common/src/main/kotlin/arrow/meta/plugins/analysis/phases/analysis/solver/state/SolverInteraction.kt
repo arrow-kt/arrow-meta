@@ -209,12 +209,15 @@ internal fun SolverState.checkConditionsInconsistencies(
   formulae: List<NamedConstraint>,
   context: ResolutionContext,
   expression: Element,
-  branch: Branch
+  branch: Branch,
+  reportIfInconsistent: Boolean
 ): Boolean =
   solver.run {
     addAndCheckConsistency(formulae, context) { unsatCore ->
-      val msg = inconsistentConditions(unsatCore, branch)
-      context.handleError(ErrorIds.Inconsistency.InconsistentConditions, expression, msg)
+      if (reportIfInconsistent) {
+        val msg = inconsistentConditions(unsatCore, branch)
+        context.handleError(ErrorIds.Inconsistency.InconsistentConditions, expression, msg)
+      }
     }
   }
 
