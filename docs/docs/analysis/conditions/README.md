@@ -57,17 +57,26 @@ e: `wat` has inconsistent pre-conditions: (x < 0), (x > 0)
 
 Think about it: there's no value that can satisfy the requirements imposed by `wat`. Such a restriction usually points to an error in the specification of the function, since any usage would be completely forbidden otherwise.
 
-### Disabling checks
+## Disabling checks
 
-If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking for a particular function call. 
+If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking in three different ways: `unsafeCall`, `unsafeBlock`, and `@Suppress`. This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks: an exception may be hiding behind that call...
+
+The three aforementioned ways differ in their granularity:
+
+- `unsafeCall` disables checks only for the call *directly nested* within it. If you need to disable a check, this is the recommended choice, because it removes the fewer guarantees.
+- `unsafeBlock` disables checks for everything inside that block. `wrong2` below has two problems, one per call to `increment`; if we had used `unsafeCall` there the innermost `increment` would still be flagged.
+- `@Suppress` can be attached to a declaration to silence an entire type of errors or warnings in their body.
 
 ```kotlin
+import arrow.analysis.unsafeBlock
 import arrow.analysis.unsafeCall
 
-val wrong = unsafeCall(increment(-2))
-```
+val wrong1 = unsafeCall(increment(-2))
+val wrong2 = unsafeBlock { increment(increment(-2)) }
 
-This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks. An exception may be hiding behind that `unsafeCall`...
+@Suppress("UnsatCallPre")
+fun wrong3(): Int = increment(emptyList().first())
+```
 
 ## Post-conditions
 
