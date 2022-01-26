@@ -44,7 +44,7 @@ class MissingElseBlockExpression(val whole: Expression, val thenExpression: Expr
   override val text: String
     get() = "<implicit empty else block>"
 
-  override fun impl(): Any = Unit
+  override fun impl(): Any = whole.impl()
   override val psiOrParent: Element = this
   override fun parents(): List<Element> = thenExpression.parents()
 
