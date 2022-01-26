@@ -100,6 +100,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtTypeReference -> KotlinTypeReference(this).repr()
     is KtTryExpression -> KotlinTryExpression(this).repr()
     is KtCatchClause -> KotlinCatchClause(this).repr()
+    is KtFinallySection -> KotlinFinallySection(this).repr()
     is KtClassLiteralExpression -> KotlinClassLiteralExpression(this).repr()
     is KtCallableReferenceExpression -> KotlinCallableReferenceExpression(this).repr()
     is KtConstructorCalleeExpression -> KotlinConstructorCalleeExpression(this).repr()

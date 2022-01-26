@@ -40,6 +40,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.D
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Expression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ExpressionWithLabel
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FinallySection
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ForExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Function
@@ -212,6 +213,9 @@ internal fun SolverState.checkExpressionConstraints(
             data
           )
         is LoopExpression -> checkLoopExpression(expression, data)
+        is FinallySection ->
+          // use a "fake" block with a single expression
+          checkBlockExpression(associatedVarName, listOf(expression), false, data)
         is TryExpression -> checkTryExpression(associatedVarName, expression, data)
         is TypeCastExpression ->
           checkAsOperator(associatedVarName, expression.kind, expression.left, expression, data)
@@ -292,12 +296,26 @@ private fun SolverState.checkBlockExpression(
 ): ContSeq<StateAfter> =
   when {
     expressions.isEmpty() -> data.noReturn {}
+    // special case for finally { }
+    expressions.firstOrNull() is FinallySection -> {
+      val first = expressions.first() as FinallySection
+      val remainder = expressions.drop(1)
+      checkBlockExpression(associatedVarName, remainder, implicitReturnFromLast, data).onEach {
+        stateAfterRest ->
+        // override the return of the finally with the return of the try or catch
+        doOnlyWhenNotNull(first.finalExpression, data) { finalExpression ->
+          checkExpressionConstraintsWithNewName("finally", finalExpression, data).map {
+            stateAfterRest
+          }
+        }
+      }
+    }
     expressions.size == 1 &&
       implicitReturnFromLast -> // this is the last element, so it's the return value of the
       // expression
       checkExpressionConstraints(associatedVarName, expressions[0], data)
     else -> {
-      val first = expressions[0]
+      val first = expressions.first()
       val remainder = expressions.drop(1)
       // we need to carefully thread the data in the state,
       // since it holds the information about variables
