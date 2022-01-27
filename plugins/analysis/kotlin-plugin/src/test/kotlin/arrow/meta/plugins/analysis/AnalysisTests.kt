@@ -1750,6 +1750,22 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `finally`() {
+    """
+      ${imports()}
+      
+      fun f(x: Int): Int {
+        var n = 1.invariant({ it > 0 }) { "positive" }
+        try { n = 2 } finally { n = 3 }
+        return 2.post({ it > 0 }) { "positive" }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
