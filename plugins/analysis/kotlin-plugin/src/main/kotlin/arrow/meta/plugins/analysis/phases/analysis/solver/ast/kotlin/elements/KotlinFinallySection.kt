@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.F
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtFinallySection
 
-fun interface KotlinFinallySection : FinallySection, KotlinElement {
-  override fun impl(): KtFinallySection
+class KotlinFinallySection(val impl: KtFinallySection) : FinallySection, KotlinElement {
+  override fun impl(): KtFinallySection = impl
   override val finalExpression: BlockExpression
-    get() = impl().finalExpression.model()
+    get() = impl.finalExpression.model()
 }

@@ -5,9 +5,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 
-fun interface KotlinAnnotatedExpression :
+class KotlinAnnotatedExpression(val impl: KtAnnotatedExpression) :
   AnnotatedExpression, KotlinAnnotated, KotlinAnnotationsContainer {
-  override fun impl(): KtAnnotatedExpression
+  override fun impl(): KtAnnotatedExpression = impl
 
   override val baseExpression: Expression?
     get() = impl().baseExpression?.model()

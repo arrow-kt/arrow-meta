@@ -8,6 +8,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.FunctionDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberScope
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ModuleDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
@@ -48,17 +49,22 @@ fun DeclarationDescriptor.isCompatibleWith(other: DeclarationDescriptor): Boolea
     this is CallableDescriptor && other is CallableDescriptor -> {
       // we have to ignore the parameters which come from Laws
       val params1 =
-        this.allParameters.filter { param ->
-          !param.type.descriptor.isLawsType() &&
-            !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-        }
+        this.allParameters
+          .filter { param ->
+            !param.type.descriptor.isLawsType() &&
+              !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+          }
+          .map(ParameterDescriptor::type)
       val params2 =
-        other.allParameters.filter { param ->
-          !param.type.descriptor.isLawsType() &&
-            !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-        }
+        other
+          .allParameters
+          .filter { param ->
+            !param.type.descriptor.isLawsType() &&
+              !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+          }
+          .map(ParameterDescriptor::type)
       params1.size == params2.size &&
-        params1.zip(params2).all { (p1, p2) -> p1.type.isEqualTo(p2.type) }
+        params1.zip(params2).all { (p1, p2) -> p1.isEqualTo(p2) || p1.isTypeParameter() }
     }
     else -> true
   }

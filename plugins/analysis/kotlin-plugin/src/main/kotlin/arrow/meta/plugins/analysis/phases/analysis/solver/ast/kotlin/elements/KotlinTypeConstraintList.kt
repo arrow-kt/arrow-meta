@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeConstraintList
 
-fun interface KotlinTypeConstraintList : TypeConstraintList {
-  fun impl(): KtTypeConstraintList
+class KotlinTypeConstraintList(val impl: KtTypeConstraintList) : TypeConstraintList, KotlinElement {
+  override fun impl(): KtTypeConstraintList = impl
   override val constraints: List<TypeConstraint>
     get() = impl().constraints.map { it.model() }
 }
