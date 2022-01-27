@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeParameterList
 
-fun interface KotlinTypeParameterList : TypeParameterList {
-  fun impl(): KtTypeParameterList
+class KotlinTypeParameterList(val impl: KtTypeParameterList) : TypeParameterList, KotlinElement {
+  override fun impl(): KtTypeParameterList = impl
   override val parameters: List<TypeParameter>
     get() = impl().parameters.map { it.model() }
 }

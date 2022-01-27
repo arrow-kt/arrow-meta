@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 
-fun interface KotlinTypeArgumentList : TypeArgumentList {
-  fun impl(): KtTypeArgumentList
+class KotlinTypeArgumentList(val impl: KtTypeArgumentList) : TypeArgumentList, KotlinElement {
+  override fun impl(): KtTypeArgumentList = impl
   override val arguments: List<TypeProjection>
     get() = impl().arguments.map { it.model() }
 }

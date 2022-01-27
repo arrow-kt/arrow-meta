@@ -7,8 +7,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
-fun interface KotlinAnnotationEntry : AnnotationEntry, KotlinCallElement {
-  override fun impl(): KtAnnotationEntry
+class KotlinAnnotationEntry(val impl: KtAnnotationEntry) : AnnotationEntry, KotlinCallElement {
+  override fun impl(): KtAnnotationEntry = impl
   override val typeReference: TypeReference?
     get() = impl().typeReference?.model()
   override val useSiteTarget: AnnotationUseSiteTarget?

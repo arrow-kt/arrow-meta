@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.types.Variance.INVARIANT
 import org.jetbrains.kotlin.types.Variance.IN_VARIANCE
 import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
 
-fun interface KotlinTypeParameter : TypeParameter {
-  fun impl(): KtTypeParameter
+class KotlinTypeParameter(val impl: KtTypeParameter) : TypeParameter, KotlinNamedDeclaration {
+  override fun impl(): KtTypeParameter = impl
   override val variance: Variance
     get() =
       when (impl().variance) {
