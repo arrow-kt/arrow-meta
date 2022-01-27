@@ -6,8 +6,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtTypeConstraint
 
-fun interface KotlinTypeConstraint : TypeConstraint {
-  fun impl(): KtTypeConstraint
+class KotlinTypeConstraint(val impl: KtTypeConstraint) : TypeConstraint, KotlinElement {
+  override fun impl(): KtTypeConstraint = impl
   override val subjectTypeParameterName: SimpleNameExpression?
     get() = impl().subjectTypeParameterName?.model()
   override val boundTypeReference: TypeReference?

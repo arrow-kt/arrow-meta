@@ -1766,6 +1766,24 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `class with type parameters`() {
+    """
+      ${imports()}
+      
+      data class Thing<A>(val x: A, val n: Int) {
+        init { pre(n > 0) { "n must be positive" } }
+      }
+      
+      val x = Thing(true, -1)
+      """(
+      withPlugin = {
+        failsWith { it.contains("pre-condition `n must be positive` is not satisfied") }
+      },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert

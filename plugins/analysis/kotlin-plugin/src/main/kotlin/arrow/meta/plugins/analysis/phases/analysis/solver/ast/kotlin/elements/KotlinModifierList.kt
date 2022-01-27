@@ -6,8 +6,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.M
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtModifierList
 
-fun interface KotlinModifierList : ModifierList, KotlinAnnotationsContainer {
-  override fun impl(): KtModifierList
+class KotlinModifierList(val impl: KtModifierList) : ModifierList, KotlinAnnotationsContainer {
+  override fun impl(): KtModifierList = impl
   override val annotations: List<Annotation>
     get() = impl().annotations.map { it.model() }
   override val annotationEntries: List<AnnotationEntry>
