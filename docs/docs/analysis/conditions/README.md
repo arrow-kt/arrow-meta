@@ -59,24 +59,33 @@ Think about it: there's no value that can satisfy the requirements imposed by `w
 
 ## Disabling checks
 
-If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking in three different ways: `unsafeCall`, `unsafeBlock`, and `@Suppress`. This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks: an exception may be hiding behind that call...
-
-The three aforementioned ways differ in their granularity:
+If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking. This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks: an exception may be hiding behind that call... Λrrow Analysis gives three different ways to disable checks, depending on the desired level of granularity.
 
 - `unsafeCall` disables checks only for the call *directly nested* within it. If you need to disable a check, this is the recommended choice, because it removes the fewer guarantees.
-- `unsafeBlock` disables checks for everything inside that block. `wrong2` below has two problems, one per call to `increment`; if we had used `unsafeCall` there the innermost `increment` would still be flagged.
-- `@Suppress` can be attached to a declaration to silence an entire type of errors or warnings in their body.
 
-```kotlin
-import arrow.analysis.unsafeBlock
-import arrow.analysis.unsafeCall
+    ```kotlin
+    import arrow.analysis.unsafeCall
+  
+    val wrong1 = unsafeCall(increment(-2)) // no errors reported
+    val wrong2 = unsafeCall(increment(increment(-2)))
+                       //   ^         ^
+                       //   disabled  not disabled
+                       //      error: pre-condition is not satisfied in `increment(-2)`
+    ```
 
-val wrong1 = unsafeCall(increment(-2))
-val wrong2 = unsafeBlock { increment(increment(-2)) }
+- `unsafeBlock` disables checks for everything inside that block. If you want to silence all errors in a function or value declaration, wrap its entire body with `unsafeBlock`.
 
-@Suppress("UnsatCallPre")
-fun wrong3(): Int = increment(emptyList().first())
-```
+    ```kotlin
+    import arrow.analysis.unsafeBlock
+  
+    val wrong3 = unsafeBlock { increment(increment(-2)) } // no errors reported
+    ```
+- `@Suppress` can be attached to a declaration to silence an entire type of errors or warnings in their body. For example, `"UnsatCallPre"` are those errors coming from **unsat**isfied **pre**conditions on **call**s.
+
+    ```kotlin
+    @Suppress("UnsatCallPre")
+    val wrong4: Int = increment(emptyList().first())
+    ```
 
 ## Post-conditions
 
