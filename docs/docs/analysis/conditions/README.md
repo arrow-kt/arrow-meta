@@ -57,17 +57,35 @@ e: `wat` has inconsistent pre-conditions: (x < 0), (x > 0)
 
 Think about it: there's no value that can satisfy the requirements imposed by `wat`. Such a restriction usually points to an error in the specification of the function, since any usage would be completely forbidden otherwise.
 
-### Disabling checks
+## Disabling checks
 
-If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking for a particular function call. 
+If you are completely sure that a pre-condition is satisfied, even though Λrrow Analysis is not able to "see" it, you can disable checking. This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks: an exception may be hiding behind that call... Λrrow Analysis gives three different ways to disable checks, depending on the desired level of granularity.
 
-```kotlin
-import arrow.analysis.unsafeCall
+- `unsafeCall` disables checks only for the call *directly nested* within it. If you need to disable a check, this is the recommended choice, because it removes the fewer guarantees.
 
-val wrong = unsafeCall(increment(-2))
-```
+    ```kotlin
+    import arrow.analysis.unsafeCall
+  
+    val wrong1 = unsafeCall(increment(-2)) // no errors reported
+    val wrong2 = unsafeCall(increment(increment(-2)))
+                       //   ^         ^
+                       //   disabled  not disabled
+                       //      error: pre-condition is not satisfied in `increment(-2)`
+    ```
 
-This case usually arises for data which comes from external input. However, we still encourage you to handle the possibility of failure, instead of blindly disabling the checks. An exception may be hiding behind that `unsafeCall`...
+- `unsafeBlock` disables checks for everything inside that block. If you want to silence all errors in a function or value declaration, wrap its entire body with `unsafeBlock`.
+
+    ```kotlin
+    import arrow.analysis.unsafeBlock
+  
+    val wrong3 = unsafeBlock { increment(increment(-2)) } // no errors reported
+    ```
+- `@Suppress` can be attached to a declaration to silence an entire type of errors or warnings in their body. For example, `"UnsatCallPre"` are those errors coming from **unsat**isfied **pre**conditions on **call**s.
+
+    ```kotlin
+    @Suppress("UnsatCallPre")
+    val wrong4: Int = increment(emptyList().first())
+    ```
 
 ## Post-conditions
 
