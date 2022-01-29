@@ -6,7 +6,7 @@ permalink: /analysis/wrappers/
 
 # Wrappers
 
-Λrrow Analysis supports the addition of [invariants to types](({{ '/analysis/types' | relative_url }}), but what happens when you _already_ have a type and want to add information relative to it? And when may that situation arise?
+Λrrow Analysis supports the addition of [invariants to types]({{ '/analysis/types' | relative_url }}), but what happens when you _already_ have a type and want to add information relative to it? And when may that situation arise?
 
 ## Inline classes
 
