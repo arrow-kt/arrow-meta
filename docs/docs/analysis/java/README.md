@@ -23,11 +23,8 @@ Open your Gradle build file, and add the following lines:
 
 ```kotlin
 buildscript {
-  repositories {
-    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
-  }
   dependencies {
-    classpath("io.arrow-kt.analysis.java:io.arrow-kt.analysis.java.gradle.plugin:2.0-SNAPSHOT")
+    classpath("io.arrow-kt.analysis.java:io.arrow-kt.analysis.java.gradle.plugin:2.0")
   }
 }
 
@@ -44,11 +41,8 @@ dependencies {
 
 ```groovy
 buildscript {
-  repositories {
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-  }
   dependencies {
-    classpath 'io.arrow-kt.analysis.java:io.arrow-kt.analysis.java.gradle.plugin:2.0-SNAPSHOT'
+    classpath 'io.arrow-kt.analysis.java:io.arrow-kt.analysis.java.gradle.plugin:2.0'
   }
 }
 
