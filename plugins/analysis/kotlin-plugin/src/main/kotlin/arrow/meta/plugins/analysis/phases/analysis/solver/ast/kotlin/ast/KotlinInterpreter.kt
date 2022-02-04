@@ -141,6 +141,8 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtContainerNodeForControlStructureBody -> this.expression?.model()
         ?: KotlinDefaultElement(this).repr()
     is KtContainerNode -> KotlinDefaultElement(this).repr()
+    is KtThrowExpression -> this.thrownExpression?.model()
+        ?: KotlinDefaultElement(this).repr()
     // is KtFile -> KotlinFile(this).repr()
     else ->
       TODO(
