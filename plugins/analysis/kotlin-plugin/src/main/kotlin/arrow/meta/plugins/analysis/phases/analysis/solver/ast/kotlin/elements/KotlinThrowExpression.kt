@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.T
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtThrowExpression
 
-fun interface KotlinThrowExpression : ThrowExpression, KotlinExpression {
-  override fun impl(): KtThrowExpression
+class KotlinThrowExpression(val impl: KtThrowExpression) : ThrowExpression, KotlinExpression {
+  override fun impl(): KtThrowExpression = impl
   override val thrownExpression: Expression?
     get() = impl().thrownExpression?.model()
 }

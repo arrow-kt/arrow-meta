@@ -187,15 +187,32 @@ internal fun SolverState.primitiveConstraints(
   val returnTy =
     if (descriptor.isComparison()) PrimitiveType.BOOLEAN
     else descriptor.returnType?.unwrapIfNullable()?.primitiveType()
+  // inference doesn't give us the correct type from call sometimes,
+  // so look also at the given expression and intersect the types
   val dispatch =
     listOfNotNull(descriptor.extensionReceiverParameter, descriptor.dispatchReceiverParameter)
       .map { param ->
-        param.type.unwrapIfNullable().primitiveType()?.let { ty -> Pair(THIS_VAR_NAME, ty) }
+        val tyFromArg = call.getReceiverExpression()?.type(context)
+        val tyFromParam = param.type.unwrapIfNullable()
+        val chosenTy = tyFromArg?.intersectIfPossible(tyFromParam) ?: tyFromParam
+        chosenTy.primitiveType()?.let { ty -> Pair(THIS_VAR_NAME, ty) }
       }
   val argTys =
     dispatch +
       descriptor.valueParameters.map { param ->
-        param.type.unwrapIfNullable().primitiveType()?.let { ty -> Pair(param.name.value, ty) }
+        val tyFromArg =
+          call
+            .valueArguments
+            .filterKeys { it.name == param.name }
+            .values
+            .singleOrNull()
+            ?.arguments
+            ?.singleOrNull()
+            ?.argumentExpression
+            ?.type(context)
+        val tyFromParam = param.type.unwrapIfNullable()
+        val chosenTy = tyFromArg?.intersectIfPossible(tyFromParam) ?: tyFromParam
+        chosenTy.primitiveType()?.let { ty -> Pair(param.name.value, ty) }
       }
   return if (returnTy == null || argTys.any { it == null }) {
     null

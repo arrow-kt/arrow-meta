@@ -2,14 +2,17 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.check
 
 import arrow.meta.continuations.ContSeq
 import arrow.meta.continuations.doOnlyWhen
+import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Declaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.EnumEntry
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.PrimaryConstructor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Property
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.SecondaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.TypeAlias
 import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorIds
@@ -65,7 +68,60 @@ public fun SolverState.checkDeclarationConstraints(
             descriptor as ClassDescriptor
             checkImplicitPrimaryConstructor(context, descriptor.constructors.single(), declaration)
           }
-        else -> checkTopLevelDeclarationWithBody(context, descriptor, declaration)
+        is Property ->
+          when {
+            declaration.stableBody() != null ->
+              checkTopLevelDeclarationWithBody(
+                context,
+                descriptor,
+                declaration,
+                declaration.stableBody()
+              )
+            declaration.delegate != null ->
+              checkTopLevelDeclarationWithBody(
+                context,
+                descriptor,
+                declaration,
+                declaration.delegate?.expression
+              )
+            declaration.getter != null || declaration.setter != null -> {
+              // no body, maybe we have getter and setter
+              descriptor as PropertyDescriptor
+              ContSeq.unit
+                .map {
+                  doOnlyWhenNotNull(declaration.getter, Unit) { getterDecl ->
+                    doOnlyWhenNotNull(descriptor.getter, Unit) { getterDescr ->
+                      checkTopLevelDeclarationWithBody(
+                        context,
+                        getterDescr,
+                        getterDecl,
+                        getterDecl.body()
+                      )
+                    }
+                  }
+                }
+                .map {
+                  doOnlyWhenNotNull(declaration.setter, Unit) { setterDecl ->
+                    doOnlyWhenNotNull(descriptor.setter, Unit) { setterDescr ->
+                      checkTopLevelDeclarationWithBody(
+                        context,
+                        setterDescr,
+                        setterDecl,
+                        setterDecl.body()
+                      )
+                    }
+                  }
+                }
+            }
+            else -> ContSeq.unit
+          }
+        else ->
+          checkTopLevelDeclarationWithBody(
+            context,
+            descriptor,
+            declaration,
+            declaration.stableBody()
+          )
       }.drain()
     } catch (e: IllegalStateException) {
       val msg = ErrorMessages.Exception.illegalState(solverTrace)

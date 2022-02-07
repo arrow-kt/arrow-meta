@@ -20,6 +20,7 @@ sealed interface ErrorIds {
 
   enum class Parsing : ErrorIds {
     ErrorParsingPredicate,
+    WarningParsingPredicate,
     UnexpectedReference,
     UnexpectedFieldInitBlock;
 

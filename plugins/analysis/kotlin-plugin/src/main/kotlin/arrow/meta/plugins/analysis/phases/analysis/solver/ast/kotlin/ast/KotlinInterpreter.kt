@@ -79,6 +79,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtClass -> KotlinClass(this).repr()
     is KtObjectDeclaration -> KotlinObjectDeclaration(this).repr()
     is KtObjectLiteralExpression -> KotlinObjectLiteralExpression(this).repr()
+    is KtPropertyDelegate -> KotlinPropertyDelegate(this).repr()
     is KtClassBody -> KotlinClassBody(this).repr()
     is KtLambdaExpression -> KotlinLambdaExpression(this).repr()
     is KtValueArgument -> KotlinValueArgument(this).repr()
@@ -104,6 +105,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtParameterList -> KotlinParameterList(this).repr()
     is KtIsExpression -> KotlinIsExpression(this).repr()
     is KtTypeReference -> KotlinTypeReference(this).repr()
+    is KtThrowExpression -> KotlinThrowExpression(this).repr()
     is KtTryExpression -> KotlinTryExpression(this).repr()
     is KtCatchClause -> KotlinCatchClause(this).repr()
     is KtFinallySection -> KotlinFinallySection(this).repr()
@@ -141,6 +143,8 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtContainerNodeForControlStructureBody -> this.expression?.model()
         ?: KotlinDefaultElement(this).repr()
     is KtContainerNode -> KotlinDefaultElement(this).repr()
+    // final fallback for expressions
+    is KtExpression -> KotlinDefaultExpression(this).repr()
     // is KtFile -> KotlinFile(this).repr()
     else ->
       TODO(

@@ -5,8 +5,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.P
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.ast.model
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 
-fun interface KotlinPropertyDelegate : PropertyDelegate, KotlinElement {
-  override fun impl(): KtPropertyDelegate
+class KotlinPropertyDelegate(val impl: KtPropertyDelegate) : PropertyDelegate, KotlinElement {
+  override fun impl(): KtPropertyDelegate = impl
   override val expression: Expression?
     get() = impl().expression?.model()
 }
