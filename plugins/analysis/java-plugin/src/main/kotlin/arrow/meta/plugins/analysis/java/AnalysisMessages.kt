@@ -17,6 +17,7 @@ public class AnalysisMessages : ListResourceBundle() {
     public const val UnsatInvariants: String = "unsat_invariants"
     public const val LiskovProblem: String = "liskov_problem"
     public const val ErrorParsingPredicate: String = "error_parsing_predicate"
+    public const val WarningParsingPredicate: String = "warning_parsing_predicate"
     public const val UnsupportedElement: String = "unsupported_element"
     public const val AnalysisException: String = "analysis_exception"
 
@@ -33,7 +34,12 @@ public class AnalysisMessages : ListResourceBundle() {
       )
 
     public val Warnings: List<String> =
-      listOf(InconsistentCallPost, InconsistentConditions, UnsupportedElement)
+      listOf(
+        InconsistentCallPost,
+        InconsistentConditions,
+        UnsupportedElement,
+        WarningParsingPredicate
+      )
   }
 
   // "err" and "warn" come from [DiagnosticType.key]

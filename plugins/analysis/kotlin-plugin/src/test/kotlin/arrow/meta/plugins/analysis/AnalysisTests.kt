@@ -53,6 +53,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `bad predicate, in require`() {
+    """
+      ${imports()}
+      fun bar(): Int {
+        require( "a" == "b" ) { "wrong" }
+        return 1
+      }
+      """(
+      withPlugin = { compilesWith { it.contains("not parse predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}
