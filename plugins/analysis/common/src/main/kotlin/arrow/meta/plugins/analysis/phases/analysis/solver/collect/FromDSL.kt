@@ -259,8 +259,13 @@ private fun Element.elementToConstraint(
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
-      context.handleError(ErrorIds.Parsing.ErrorParsingPredicate, this, msg)
-      solverState.signalParseErrors()
+      if (call.isRequireCall() || call.isAssertCall()) {
+        // for built-ins only issue a warning
+        context.handleError(ErrorIds.Parsing.WarningParsingPredicate, this, msg)
+      } else {
+        context.handleError(ErrorIds.Parsing.ErrorParsingPredicate, this, msg)
+        solverState.signalParseErrors()
+      }
       null
     } else {
       val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)

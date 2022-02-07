@@ -53,6 +53,20 @@ class AnalysisTests {
   }
 
   @Test
+  fun `bad predicate, in require`() {
+    """
+      ${imports()}
+      fun bar(): Int {
+        require( "a" == "b" ) { "wrong" }
+        return 1
+      }
+      """(
+      withPlugin = { compilesWith { it.contains("not parse predicate") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
   fun `inconsistent preconditions`() {
     """
       ${imports()}
@@ -1784,6 +1798,65 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `delegated property, ok`() {
+    """
+      ${imports()}
+      
+      val p by lazy { object : Any() {} }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `delegated property, wrong`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val p: Int by lazy { emptyList<Int>().first() }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `throw does not break`() {
+    """
+      ${imports()}
+      
+      fun f(n: Int) = when {
+        n > 0 -> n + 1
+        else -> throw IllegalArgumentException("positive")
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `issue #1002`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun domain(value: String): String? {
+        val parts = value.split("@") // no pattern matching in kotlin :((((
+        return if (parts.size != 2)
+            null
+        else
+            parts[1]
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1840,6 +1913,11 @@ object ListLaws {
   @Law
   inline fun <E> List<E>.isEmptyLaw(): Boolean =
     isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
+  @Law
+  inline fun <E> List<E>.getLaw(index: Int): E {
+    pre(index >= 0 && index < size) { "index within bounds" }
+    return get(index)
+  }
       
 }
 

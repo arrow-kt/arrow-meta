@@ -89,6 +89,7 @@ public class JavaResolutionContext(
       ErrorIds.Liskov.NotWeakerPrecondition -> reportLiskovProblem(element, msg)
       ErrorIds.Liskov.NotStrongerPostcondition -> reportLiskovProblem(element, msg)
       ErrorIds.Parsing.ErrorParsingPredicate -> reportErrorsParsingPredicate(element, msg)
+      ErrorIds.Parsing.WarningParsingPredicate -> reportWarningsParsingPredicate(element, msg)
       ErrorIds.Parsing.UnexpectedReference -> reportErrorsParsingPredicate(element, msg)
       ErrorIds.Parsing.UnexpectedFieldInitBlock -> reportErrorsParsingPredicate(element, msg)
       ErrorIds.Laws.LawMustCallFunction -> reportErrorsParsingPredicate(element, msg)
@@ -140,6 +141,9 @@ public class JavaResolutionContext(
 
   private fun reportErrorsParsingPredicate(element: Element, msg: String): Unit =
     reportError(element, AnalysisMessages.ErrorParsingPredicate, msg)
+
+  private fun reportWarningsParsingPredicate(element: Element, msg: String): Unit =
+    reportWarning(element, AnalysisMessages.WarningParsingPredicate, msg)
 
   private fun reportUnsatCallPre(element: Element, msg: String): Unit =
     reportError(element, AnalysisMessages.UnsatCallPre, msg)

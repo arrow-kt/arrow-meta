@@ -22,6 +22,7 @@ import arrow.meta.plugins.analysis.phases.ir.HintState
 import arrow.meta.plugins.analysis.phases.ir.annotateWithConstraints
 import arrow.meta.plugins.analysis.phases.ir.hintsFile
 import kotlin.io.path.Path
+import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
@@ -56,6 +57,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
               val locals = files.declarationDescriptors(context)
               val (result, interesting) =
                 solverState.collectConstraintsFromAnnotations(locals, kotlinModule, context)
+              val currentParseWarnings = bindingTrace.bindingContext.diagnostics.toList()
+              setParseWarningsAs(module, currentParseWarnings)
               setStageAs(module, Stage.Prove) // we end the CollectConstraints phase
               when (result) {
                 AnalysisResult.Retry -> {
@@ -98,6 +101,11 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
               null
             }
           } else {
+            // HACK: because diagnostics are cleared after retrying
+            //       we keep them in a temporary place and re-issue them
+            if (isInStage(module, Stage.Prove)) {
+              getParseWarnings(module)?.forEach { bindingTrace.report(it) }
+            }
             val solverState = solverState(module)
             solverState?.notifyModuleProcessed(KotlinModuleDescriptor(module))
             null
@@ -155,6 +163,12 @@ object Keys {
     "SolverState-${moduleDescriptor.name}"
 
   fun hints(module: ModuleDescriptor): String = "arrow-analysis-hint-${module.name}"
+
+  fun parseWarnings(module: ModuleDescriptor): String =
+    "arrow-analysis-parse-warnings-${module.name}"
+
+  fun parseWarnings(module: org.jetbrains.kotlin.descriptors.ModuleDescriptor): String =
+    "arrow-analysis-parse-warnings-${module.name}"
 }
 
 internal fun CompilerContext.solverState(context: DeclarationCheckerContext): SolverState? =
@@ -179,6 +193,7 @@ internal fun CompilerContext.initialize(module: ModuleDescriptor) {
   }
   ensureInitialized(Keys.hints(module)) { HintState.NeedsProcessing }
   ensureInitialized(Keys.stage(module)) { Stage.Init }
+  ensureInitialized(Keys.parseWarnings(module)) { emptyList<Diagnostic>() }
 }
 
 internal inline fun <reified A : Any> CompilerContext.ensureInitialized(
@@ -213,3 +228,14 @@ private fun CompilerContext.setStageAs(
 ) {
   set(Keys.stage(module), stage)
 }
+
+private fun CompilerContext.setParseWarningsAs(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor,
+  warnings: List<Diagnostic>
+) {
+  set(Keys.parseWarnings(module), warnings)
+}
+
+private fun CompilerContext.getParseWarnings(
+  module: org.jetbrains.kotlin.descriptors.ModuleDescriptor
+) = get<List<Diagnostic>>(Keys.parseWarnings(module))
