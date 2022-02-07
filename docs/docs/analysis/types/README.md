@@ -47,8 +47,7 @@ class Positive(val value: Int) {
   constructor() : this(0) { }
 }
 ```
-
-Types like `Positive` above are a special case of [wrappers](({{ '/analysis/wrappers' | relative_url }}), a way to attach additional invariants to already existing types (`Int`in this case.)
+Types like `Positive` above are a special case of [wrappers]({{ '/analysis/wrappers' | relative_url }}), a way to attach additional invariants to already existing types (`Int`in this case.)
 
 ## Initializers with `pre` and `post`
 
