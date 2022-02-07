@@ -150,15 +150,15 @@ internal fun <A> SolverState.checkTopLevel(
 internal fun SolverState.checkTopLevelDeclarationWithBody(
   context: ResolutionContext,
   descriptor: DeclarationDescriptor,
-  declaration: Declaration
+  declaration: Declaration,
+  body: Expression?
 ): ContSeq<Unit> =
   checkTopLevel(context, descriptor, declaration, isConstructor = false, solver.resultVariable) {
     data,
     checkPost ->
     // only check body when we are not in a @Law
     doOnlyWhen(!descriptor.isALaw()) {
-      checkExpressionConstraints(solver.resultVariable, declaration.stableBody(), data).map {
-        finalState ->
+      checkExpressionConstraints(solver.resultVariable, body, data).map { finalState ->
         checkPost(finalState.data)
       }
     }

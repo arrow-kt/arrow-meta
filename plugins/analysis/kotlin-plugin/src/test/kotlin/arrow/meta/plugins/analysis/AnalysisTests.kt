@@ -1784,6 +1784,31 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `delegated property, ok`() {
+    """
+      ${imports()}
+      
+      val p by lazy { object : Any() {} }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `delegated property, wrong`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val p: Int by lazy { emptyList<Int>().first() }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
