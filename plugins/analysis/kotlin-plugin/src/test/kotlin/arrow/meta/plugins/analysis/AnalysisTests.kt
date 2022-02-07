@@ -1809,6 +1809,21 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `throw does not break`() {
+    """
+      ${imports()}
+      
+      fun f(n: Int) = when {
+        n > 0 -> n + 1
+        else -> throw IllegalArgumentException("positive")
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert

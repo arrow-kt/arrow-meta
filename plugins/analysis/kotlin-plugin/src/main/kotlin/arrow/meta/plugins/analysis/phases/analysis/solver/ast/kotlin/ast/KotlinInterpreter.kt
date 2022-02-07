@@ -105,6 +105,7 @@ fun <A : KtElement, B : Element> A.model(): B =
     is KtParameterList -> KotlinParameterList(this).repr()
     is KtIsExpression -> KotlinIsExpression(this).repr()
     is KtTypeReference -> KotlinTypeReference(this).repr()
+    is KtThrowExpression -> KotlinThrowExpression(this).repr()
     is KtTryExpression -> KotlinTryExpression(this).repr()
     is KtCatchClause -> KotlinCatchClause(this).repr()
     is KtFinallySection -> KotlinFinallySection(this).repr()
