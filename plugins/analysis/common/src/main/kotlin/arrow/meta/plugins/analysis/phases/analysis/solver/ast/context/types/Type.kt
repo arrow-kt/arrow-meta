@@ -30,4 +30,11 @@ interface Type : Comparable<Type> {
       other.isSubtypeOf(this) -> 1
       else -> 0
     }
+
+  fun intersectIfPossible(other: Type): Type? =
+    when {
+      other.isSubtypeOf(this) -> other
+      this.isSubtypeOf(other) -> this
+      else -> null
+    }
 }

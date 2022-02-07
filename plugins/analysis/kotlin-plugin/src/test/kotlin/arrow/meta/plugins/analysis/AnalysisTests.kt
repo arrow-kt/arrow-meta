@@ -1838,6 +1838,25 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `issue #1002`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      fun domain(value: String): String? {
+        val parts = value.split("@") // no pattern matching in kotlin :((((
+        return if (parts.size != 2)
+            null
+        else
+            parts[1]
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1894,6 +1913,11 @@ object ListLaws {
   @Law
   inline fun <E> List<E>.isEmptyLaw(): Boolean =
     isEmpty().post({ it == (size <= 0) }) { "empty list has size 0" }
+  @Law
+  inline fun <E> List<E>.getLaw(index: Int): E {
+    pre(index >= 0 && index < size) { "index within bounds" }
+    return get(index)
+  }
       
 }
 
