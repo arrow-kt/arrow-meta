@@ -2,7 +2,6 @@ package arrow.meta.plugins.analysis.phases.analysis.solver.collect
 
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
-import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
@@ -23,6 +22,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.errors.ErrorMessages
 import arrow.meta.plugins.analysis.phases.analysis.solver.hasImplicitPrimaryConstructor
 import arrow.meta.plugins.analysis.phases.analysis.solver.isAssertCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.isRequireCall
+import arrow.meta.plugins.analysis.phases.analysis.solver.singleArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.smt.Solver
@@ -255,7 +255,7 @@ private fun Element.elementToConstraint(
   val kind = call?.specialKind
   return if (kind == SpecialKind.Pre || kind == SpecialKind.Post || kind == SpecialKind.NotLookArgs
   ) {
-    val predicateArg = call.arg("predicate", context) ?: call.arg("value", context)
+    val predicateArg = call.singleArg("predicate", context) ?: call.singleArg("value", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)
     if (result == null) {
       val msg = ErrorMessages.Parsing.errorParsingPredicate(predicateArg)
@@ -268,7 +268,7 @@ private fun Element.elementToConstraint(
       }
       null
     } else {
-      val msgBody = call.arg("msg", context) ?: call.arg("lazyMessage", context)
+      val msgBody = call.singleArg("msg", context) ?: call.singleArg("lazyMessage", context)
       when (msgBody) {
         is LambdaExpression ->
           when (val body = msgBody.bodyExpression) {

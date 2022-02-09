@@ -1857,6 +1857,58 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `issue #997, part 1`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val ok = listOf(1).first()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `issue #997, part 2`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val ok = listOf(1, 2).first()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `issue #997, part 3`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val ok = listOf<Int>().first()
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `issue #997, part 4`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      val ok = listOf(-1).map { it + 1 }.first()
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -1901,10 +1953,13 @@ object ListLaws {
     emptyList<E>().post({ it.size == 0 }) { "empty list is empty" }    
   @Law
   inline fun <E> emptyListOfLaw(): List<E> =
-    listOf<E>().post({ it.size == 0 }) { "empty list is empty" }  
+    listOf<E>().post({ it.size == 0 }) { "empty list is empty" }
+  @Law
+  inline fun <E> singletonListLaw(element: E): List<E> =
+    listOf(element).post({ it.size == 1 }) { "singleton list has size 1" }
   @Law
   inline fun <E> listOfLaw(vararg elements: E): List<E> =
-    listOf(*elements).post({ it.size > 0 }) { "literal size" }
+    listOf(*elements).post({ it.size == elements.size }) { "literal size" }
   @Law
   inline fun <E> List<E>.firstLaw(): E {
     pre(size >= 1) { "not empty" }
@@ -1918,7 +1973,6 @@ object ListLaws {
     pre(index >= 0 && index < size) { "index within bounds" }
     return get(index)
   }
-      
 }
 
 @Laws
