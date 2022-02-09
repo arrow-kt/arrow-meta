@@ -61,7 +61,13 @@ internal fun ResolvedCall.hasClassReceiver() =
   extensionReceiver == null && dispatchReceiver != null && dispatchReceiver!!.isClassReceiver
 
 /** Information about an argument in a resolved call */
-data class ArgumentExpression(val name: String, val type: Type, val expression: Expression?)
+data class ArgumentExpression(
+  val name: String,
+  val type: Type,
+  val isVarArg: Boolean,
+  val isSpread: Boolean,
+  val expression: List<Expression>
+)
 
 /**
  * Get all argument expressions for [this] call including extension receiver, dispatch receiver, and
@@ -72,7 +78,13 @@ internal fun ResolvedCall.allArgumentExpressions(
 ): List<ArgumentExpression> =
   listOfNotNull(
     (dispatchReceiver ?: extensionReceiver)?.type?.let {
-      ArgumentExpression("this", it, getReceiverExpression())
+      ArgumentExpression(
+        "this",
+        it,
+        isVarArg = false,
+        isSpread = false,
+        listOfNotNull(getReceiverExpression())
+      )
     }
   ) + valueArgumentExpressions(context)
 
@@ -84,7 +96,7 @@ internal fun ResolvedCall.getReceiverOrThisNamedArgument(): Expression? =
   this.getReceiverExpression()
     ?: this.valueArguments
       .entries
-      .firstOrNull { (name, resolved) -> name.name.value.contains("this") }
+      .firstOrNull { (name, _) -> name.name.value.contains("this") }
       ?.value
       ?.arguments
       ?.getOrNull(0)
@@ -94,7 +106,7 @@ internal fun ResolvedCall.getReceiverOrThisNamedArgument(): Expression? =
 internal fun ResolvedCall.valueArgumentExpressions(
   context: ResolutionContext
 ): List<ArgumentExpression> =
-  valueArguments.flatMap { (param, resolvedArg) ->
+  valueArguments.mapNotNull { (param, resolvedArg) ->
     val containingType =
       if (param.type.isTypeParameter() || param.type.isAnyOrNullableAny())
         (param.containingDeclaration?.containingDeclaration as? ClassDescriptor)?.defaultType
@@ -102,21 +114,36 @@ internal fun ResolvedCall.valueArgumentExpressions(
       else param.type
     when {
       resolvedArg is DefaultValueArgument && resolvedArg.valueArgument == null ->
-        listOfNotNull(
-          param.defaultValue?.let { defaultValue ->
-            ArgumentExpression(param.name.value, containingType, defaultValue)
-          }
-        )
-      else ->
-        resolvedArg.arguments.map {
-          ArgumentExpression(param.name.value, containingType, it.argumentExpression)
+        param.defaultValue?.let { defaultValue ->
+          ArgumentExpression(
+            param.name.value,
+            containingType,
+            isVarArg = param.varargElementType != null,
+            isSpread = false,
+            listOf(defaultValue)
+          )
         }
+      else ->
+        ArgumentExpression(
+          param.name.value,
+          containingType,
+          isVarArg = param.varargElementType != null,
+          isSpread = resolvedArg.arguments.singleOrNull()?.isSpread ?: false,
+          resolvedArg.arguments.mapNotNull { it.argumentExpression }
+        )
     }
   }
 
 /** Obtains the expression from the argument with a given [argumentName] */
-internal fun ResolvedCall.arg(argumentName: String, context: ResolutionContext): Expression? =
+internal fun ResolvedCall.arg(argumentName: String, context: ResolutionContext): List<Expression>? =
   allArgumentExpressions(context).find { it.name == argumentName }?.expression
+
+/**
+ * Obtains the expression from the argument with a given [argumentName], which should not be a
+ * vararg
+ */
+internal fun ResolvedCall.singleArg(argumentName: String, context: ResolutionContext): Expression? =
+  allArgumentExpressions(context).find { it.name == argumentName }?.expression?.singleOrNull()
 
 /**
  * Obtains the [ResolvedValueArgument] information for the argument with the given [argumentName]

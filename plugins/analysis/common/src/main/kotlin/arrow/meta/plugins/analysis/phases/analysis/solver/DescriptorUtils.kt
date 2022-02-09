@@ -12,6 +12,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ReceiverParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.TypeAliasDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ValueParameterDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.FqName
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Name
 import arrow.meta.plugins.analysis.phases.analysis.solver.collect.model.DeclarationConstraints
@@ -49,22 +50,19 @@ fun DeclarationDescriptor.isCompatibleWith(other: DeclarationDescriptor): Boolea
     this is CallableDescriptor && other is CallableDescriptor -> {
       // we have to ignore the parameters which come from Laws
       val params1 =
-        this.allParameters
-          .filter { param ->
-            !param.type.descriptor.isLawsType() &&
-              !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-          }
-          .map(ParameterDescriptor::type)
+        this.allParameters.filter { param ->
+          !param.type.descriptor.isLawsType() &&
+            !(this is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+        }
       val params2 =
-        other
-          .allParameters
-          .filter { param ->
-            !param.type.descriptor.isLawsType() &&
-              !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
-          }
-          .map(ParameterDescriptor::type)
+        other.allParameters.filter { param ->
+          !param.type.descriptor.isLawsType() &&
+            !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
+        }
       params1.size == params2.size &&
-        params1.zip(params2).all { (p1, p2) -> p1.isEqualTo(p2) || p1.isTypeParameter() }
+        params1.zip(params2).all { (p1, p2) ->
+          sameVarity(p1, p2) && (p1.type.isEqualTo(p2.type) || p1.type.isTypeParameter())
+        }
     }
     else -> true
   }
@@ -88,8 +86,16 @@ fun DeclarationDescriptor.isLooselyCompatibleWith(other: DeclarationDescriptor):
             !(other is ConstructorDescriptor && param is ReceiverParameterDescriptor)
         }
       params1.size == params2.size &&
-        params1.zip(params2).all { (p1, p2) -> p2.type.isSubtypeOf(p1.type) }
+        params1.zip(params2).all { (p1, p2) -> sameVarity(p1, p2) && p2.type.isSubtypeOf(p1.type) }
     }
+    else -> true
+  }
+
+fun sameVarity(p1: ParameterDescriptor, p2: ParameterDescriptor): Boolean =
+  when {
+    p1 is ValueParameterDescriptor && p2 is ValueParameterDescriptor ->
+      (p1.varargElementType == null && p2.varargElementType == null) ||
+        (p1.varargElementType != null && p2.varargElementType != null)
     else -> true
   }
 

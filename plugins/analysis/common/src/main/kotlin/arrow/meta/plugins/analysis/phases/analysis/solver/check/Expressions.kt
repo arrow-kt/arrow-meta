@@ -13,7 +13,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ArgumentExpression
 import arrow.meta.plugins.analysis.phases.analysis.solver.RESULT_VAR_NAME
 import arrow.meta.plugins.analysis.phases.analysis.solver.SpecialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.THIS_VAR_NAME
-import arrow.meta.plugins.analysis.phases.analysis.solver.arg
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolvedCall
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.CallableDescriptor
@@ -103,6 +102,7 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.referencedArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.getConstraintsFor
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.primitiveConstraints
 import arrow.meta.plugins.analysis.phases.analysis.solver.search.typeInvariants
+import arrow.meta.plugins.analysis.phases.analysis.solver.singleArg
 import arrow.meta.plugins.analysis.phases.analysis.solver.specialKind
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.SolverState
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.addAndCheckConsistency
@@ -413,13 +413,13 @@ private fun SolverState.checkCallExpression(
       )
     specialKind == SpecialKind.TrustCall || specialKind == SpecialKind.TrustBlock -> {
       val arg = resolvedCall.valueArgumentExpressions(data.context).getOrNull(0)
-      checkExpressionConstraints(associatedVarName, arg?.expression, data)
+      checkExpressionConstraints(associatedVarName, arg?.expression?.singleOrNull(), data)
     }
     specialControlFlow != null ->
       checkControlFlowFunctionCall(associatedVarName, expression, specialControlFlow, data)
     resolvedCall.isElvisOperator() ->
-      doOnlyWhenNotNull(resolvedCall.arg("left", data.context), data.noReturn()) { left ->
-        doOnlyWhenNotNull(resolvedCall.arg("right", data.context), data.noReturn()) { right ->
+      doOnlyWhenNotNull(resolvedCall.singleArg("left", data.context), data.noReturn()) { left ->
+        doOnlyWhenNotNull(resolvedCall.singleArg("right", data.context), data.noReturn()) { right ->
           checkElvisOperator(associatedVarName, left, right, data)
         }
       }
@@ -435,8 +435,9 @@ private fun controlFlowAnyFunction(
   context: ResolutionContext,
   resolvedCall: ResolvedCall
 ): ControlFlowFn? {
-  val thisElement = resolvedCall.arg("this", context) ?: resolvedCall.arg("receiver", context)
-  val blockElement = resolvedCall.arg("block", context) as? LambdaExpression
+  val thisElement =
+    resolvedCall.singleArg("this", context) ?: resolvedCall.singleArg("receiver", context)
+  val blockElement = resolvedCall.singleArg("block", context) as? LambdaExpression
   val bodyElement = blockElement?.bodyExpression
   return if (blockElement != null && bodyElement != null) {
     if (thisElement != null) {
@@ -949,6 +950,15 @@ internal data class CallArgumentsInfo(
   }
 }
 
+internal data class CallVarArgumentsInfo(
+  val returnOrVariables: Either<ExplicitReturn, List<ObjectFormula>>,
+  val data: CheckData
+) {
+  internal companion object {
+    fun init(data: CheckData) = CallVarArgumentsInfo(emptyList<ObjectFormula>().right(), data)
+  }
+}
+
 internal data class CallArgumentVariable(
   val parameterName: String,
   val assignedSmtVariable: ObjectFormula
@@ -974,6 +984,29 @@ private fun SolverState.checkCallArguments(
   //   and in that case we stop the check of any more arguments
   //   (stopping there is important, since introducing additional constraints from
   //    other arguments may not be right in the general case)
+
+  // version for varargs
+  fun accVarArg(
+    upToNow: ContSeq<CallVarArgumentsInfo>,
+    expr: Expression
+  ): ContSeq<CallVarArgumentsInfo> =
+    upToNow.flatMap { (result, data) ->
+      result.fold(
+        { r -> cont { CallVarArgumentsInfo(r.left(), data) } },
+        { argsUpToNow ->
+          val referencedElement = resolvedCall.referencedArg(expr)
+          val argUniqueName =
+            solver.makeObjectVariable(newName(data.context, "vararg", expr, referencedElement))
+          checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s ->
+            CallVarArgumentsInfo(r.left(), s.data)
+          }) { s ->
+            cont { CallVarArgumentsInfo((argsUpToNow + listOf(argUniqueName)).right(), s.data) }
+          }
+        }
+      )
+    }
+
+  // version for regular parameters
   fun acc(
     upToNow: ContSeq<CallArgumentsInfo>,
     current: ArgumentExpression
@@ -982,23 +1015,56 @@ private fun SolverState.checkCallArguments(
       result.fold(
         { r -> cont { CallArgumentsInfo(r.left(), data) } },
         { argsUpToNow ->
-          val (name, _, expr) = current
-          val referencedElement = resolvedCall.referencedArg(expr)
-          val argUniqueName =
-            solver.makeObjectVariable(newName(data.context, name, expr, referencedElement))
-          checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s ->
-            CallArgumentsInfo(r.left(), s.data)
-          }) { s ->
-            cont {
-              CallArgumentsInfo(
-                (argsUpToNow + listOf(CallArgumentVariable(name, argUniqueName))).right(),
-                s.data
+          val (name, ty, isVarArg, isSpread, maybeMultipleExpr) = current
+          if (isVarArg && !isSpread) {
+            maybeMultipleExpr.fold(cont { CallVarArgumentsInfo.init(data) }, ::accVarArg).flatMap {
+              (returnOrVar, data) ->
+              returnOrVar.fold(
+                { r -> cont { CallArgumentsInfo(r.left(), data) } },
+                { _ -> // we don't really care about the names of the generated variables
+                  cont {
+                    // record the length of the array
+                    val allArgsUniqueName =
+                      solver.makeObjectVariable(newName(data.context, name, null))
+                    ty.getField("size")?.let { sizeDecl ->
+                      solver
+                        .ints {
+                          equal(
+                            solver.intValue(field(sizeDecl, allArgsUniqueName)),
+                            makeNumber(maybeMultipleExpr.size.toLong())
+                          )
+                        }
+                        .let { addConstraint(NamedConstraint("vararg length", it), data.context) }
+                    }
+                    // return as usual
+                    CallArgumentsInfo(
+                      (argsUpToNow + listOf(CallArgumentVariable(name, allArgsUniqueName))).right(),
+                      data
+                    )
+                  }
+                }
               )
+            }
+          } else {
+            val expr = maybeMultipleExpr.singleOrNull()
+            val referencedElement = resolvedCall.referencedArg(expr)
+            val argUniqueName =
+              solver.makeObjectVariable(newName(data.context, name, expr, referencedElement))
+            checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s ->
+              CallArgumentsInfo(r.left(), s.data)
+            }) { s ->
+              cont {
+                CallArgumentsInfo(
+                  (argsUpToNow + listOf(CallArgumentVariable(name, argUniqueName))).right(),
+                  s.data
+                )
+              }
             }
           }
         }
       )
     }
+
   return resolvedCall
     .valueArgumentExpressions(data.context)
     .fold(cont { CallArgumentsInfo.init(data) }, ::acc)
@@ -1423,7 +1489,7 @@ private fun SolverState.obtainInvariant(
   expression
     .getResolvedCall(data.context)
     ?.takeIf { it.specialKind == SpecialKind.Invariant }
-    ?.arg("predicate", data.context)
+    ?.singleArg("predicate", data.context)
     ?.let { expr: Expression ->
       topLevelExpressionToFormula(expr, data.context, emptyList(), true)?.let { formula ->
         expr to formula

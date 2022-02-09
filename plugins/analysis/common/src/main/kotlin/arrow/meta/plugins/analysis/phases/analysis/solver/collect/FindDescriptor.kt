@@ -125,10 +125,11 @@ public fun SolverState.findDescriptorFromLocalLaw(
   val arguments = lawCall.allArgumentExpressions(bindingContext).map { it.expression }
   val check =
     parameters.zip(arguments).all { (param, arg) ->
-      (param is ReceiverParameterDescriptor && (arg == null || arg is ThisExpression)) ||
+      (param is ReceiverParameterDescriptor &&
+        (arg.isEmpty() || arg.singleOrNull() is ThisExpression)) ||
         (param is ValueParameterDescriptor &&
-          arg is NameReferenceExpression &&
-          arg.getReferencedNameAsName() == param.name)
+          arg.singleOrNull() is NameReferenceExpression &&
+          (arg.single() as NameReferenceExpression).getReferencedNameAsName() == param.name)
     }
   if (!check) {
     descriptor.element()?.let { elt ->

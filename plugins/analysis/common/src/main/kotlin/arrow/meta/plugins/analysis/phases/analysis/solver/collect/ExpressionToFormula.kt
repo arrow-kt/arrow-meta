@@ -157,7 +157,10 @@ private fun SolverState.expressionToFormula(
       }
     // fall-through case
     argCall != null -> {
-      val args = argCall.allArgumentExpressions(context).map { (_, ty, e) -> Pair(ty, recur(e)) }
+      val args =
+        argCall.allArgumentExpressions(context).flatMap { (_, ty, _, _, e) ->
+          e.map { Pair(ty, recur(it)) }
+        }
       val wrappedArgs =
         args.takeIf { args.all { it.second != null } }?.map { (ty, e) -> solver.wrap(e!!, ty) }
       wrappedArgs?.let { solver.primitiveFormula(context, argCall, it) }
