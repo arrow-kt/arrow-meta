@@ -6,7 +6,6 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.E
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.*
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.elements.*
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.psi.*
@@ -14,14 +13,11 @@ import org.jetbrains.kotlin.psi.psiUtil.isNull
 
 /* ktlint-enable no-wildcard-imports */
 
-private fun <
-  A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A.repr():
-  B = this as B
-
+@Suppress("UNUSED_PARAMETER", "UNCHECKED_CAST")
 private fun <A : DeclarationDescriptor, B : DeclarationDescriptor> A.repr(unit: Unit = Unit): B =
   this as B
 
-fun <A : Element, B : Element> A.repr(): B = this as B
+@Suppress("UNCHECKED_CAST") fun <A : Element, B : Element> A.repr(): B = this as B
 
 fun <
   A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A.model():
@@ -36,17 +32,18 @@ fun <
     is ClassDescriptor -> KotlinClassDescriptor(this).repr()
     is TypeAliasDescriptor -> KotlinTypeAliasDescriptor(this).repr()
     is ValueParameterDescriptor -> KotlinValueParameterDescriptor(this).repr()
-    // is ModuleDescriptor -> KotlinModuleDescriptor(this).repr()
-    is LazyClassReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
+    is ModuleDescriptor -> KotlinModuleDescriptor(this).repr()
     is ReceiverParameterDescriptor -> KotlinReceiverParameterDescriptor(this).repr()
     is LocalVariableDescriptor -> KotlinLocalVariableDescriptor(this).repr()
     is PackageFragmentDescriptor -> KotlinPackageFragmentDescriptor(this).repr()
     // fallback cases: we sometimes find unknown descriptors
     // and for those cases we need nothing else than what the
     // abstract classes provide
-    is FunctionDescriptor -> (object : KotlinFunctionDescriptor(this) {}).repr()
-    is VariableDescriptor -> (object : KotlinVariableDescriptor(this) {}).repr()
-    else -> TODO("Missing impl for $this (${this.javaClass.name})")
+    is FunctionDescriptor -> KotlinDefaultFunctionDescriptor(this).repr()
+    is VariableDescriptor -> KotlinDefaultVariableDescriptor(this).repr()
+    is DeclarationDescriptorWithVisibility ->
+      KotlinDefaultDeclarationDescriptorWithVisibility(this).repr()
+    else -> KotlinDefaultDeclarationDescriptor(this).repr()
   }
 
 fun <A : KtElement, B : Element> A.model(): B =
@@ -152,4 +149,4 @@ fun <A : KtElement, B : Element> A.model(): B =
       )
   }
 
-fun <A : Element, B : KtElement> A.element(): B = impl() as B
+@Suppress("UNCHECKED_CAST") fun <A : Element, B : KtElement> A.element(): B = impl() as B

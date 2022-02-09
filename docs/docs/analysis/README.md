@@ -60,6 +60,20 @@ apply plugin: 'io.arrow-kt.analysis.kotlin'
 
 This adds both the Kotlin compiler plug-in -- which performs the checks -- and the pre and post-conditions for the Kotlin standard library. You are ready to get your first analysis results.
 
+### Λrrow Analysis + Android
+
+If you want to use the plug-in in an Android project, you may run into [this Kotlin compiler issue](https://youtrack.jetbrains.com/issue/KT-38576), characterized by the following error message:
+
+```
+java.lang.AssertionError: Duplicated JavaClassDescriptor ... reported to IC
+```
+
+To solve this problem you have to disable precise Java tracking, by adding the following line in your `gradle.properties` file:
+
+```kotlin
+kotlin.incremental.usePreciseJavaTracking=false
+```
+
 ## Running the analysis
 
 Open a new file and write the following line. This code is incorrect because you want to obtain the third element of an empty list.

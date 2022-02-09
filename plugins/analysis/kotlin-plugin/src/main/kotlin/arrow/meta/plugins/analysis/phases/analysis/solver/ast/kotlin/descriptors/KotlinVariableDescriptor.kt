@@ -15,3 +15,6 @@ abstract class KotlinVariableDescriptor(
   override val isLateInit: Boolean
     get() = impl().isLateInit
 }
+
+class KotlinDefaultVariableDescriptor(impl: org.jetbrains.kotlin.descriptors.VariableDescriptor) :
+  KotlinVariableDescriptor(impl)

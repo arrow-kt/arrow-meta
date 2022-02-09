@@ -30,3 +30,9 @@ fun interface KotlinDeclarationDescriptor : DeclarationDescriptor {
   override val name: Name
     get() = Name(impl().name.asString())
 }
+
+class KotlinDefaultDeclarationDescriptor(
+  val impl: org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+) : KotlinDeclarationDescriptor {
+  override fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptor = impl
+}
