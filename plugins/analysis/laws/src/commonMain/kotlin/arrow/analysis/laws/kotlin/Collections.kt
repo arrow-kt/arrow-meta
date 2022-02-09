@@ -472,6 +472,9 @@ object ListLaws {
       "empty iff element is null"
     }
   @Law
+  inline fun <E> singletonListOfLaw(element: E): List<E> =
+    listOf(element).post({ it.size == 1 }) { "singleton list has size 1" }
+  @Law
   inline fun <E> listOfLaw(vararg elements: E): List<E> =
     listOf(*elements).post({ it.size == elements.size }) { "literal size" }
   @Law
