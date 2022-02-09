@@ -11,7 +11,7 @@ class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDe
 
   override fun impl(): org.jetbrains.kotlin.descriptors.ModuleDescriptor = impl
 
-  override fun getPackage(pck: String): PackageViewDescriptor? =
+  override fun getPackage(pck: String): PackageViewDescriptor =
     impl().getPackage(org.jetbrains.kotlin.name.FqName(pck)).model()
 
   override fun getSubPackagesOf(fqName: FqName): List<FqName> =

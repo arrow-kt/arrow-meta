@@ -29,3 +29,6 @@ abstract class KotlinFunctionDescriptor(
   override val isSuspend: Boolean
     get() = impl().isSuspend
 }
+
+class KotlinDefaultFunctionDescriptor(impl: org.jetbrains.kotlin.descriptors.FunctionDescriptor) :
+  KotlinFunctionDescriptor(impl)

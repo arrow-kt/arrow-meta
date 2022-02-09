@@ -9,3 +9,9 @@ fun interface KotlinDeclarationDescriptorWithVisibility :
   override val visibility: Visibility
     get() = KotlinVisibility { impl().visibility.delegate }
 }
+
+class KotlinDefaultDeclarationDescriptorWithVisibility(
+  val impl: org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+) : KotlinDeclarationDescriptorWithVisibility {
+  override fun impl(): org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility = impl
+}
