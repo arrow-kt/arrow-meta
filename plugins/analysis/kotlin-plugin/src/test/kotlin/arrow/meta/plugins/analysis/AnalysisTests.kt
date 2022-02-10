@@ -1909,6 +1909,24 @@ class AnalysisTests {
       withoutPlugin = { compiles }
     )
   }
+
+  @Test
+  fun `expect and actual`() {
+    """
+      ${imports()}
+      ${collectionListLaws()}
+      
+      expect class Thing
+      
+      actual class Thing {
+        val problem: Int = emptyList<Int>().first()
+      }
+      """(
+      withPlugin = { failsWith { it.contains("pre-condition `not empty` is not satisfied") } },
+      withoutPlugin = { compiles },
+      isMultiplatform = true
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert
@@ -2013,12 +2031,13 @@ fun CharSequence.isNotEmptyLaw(): Boolean =
 // TODO update arrow dependencies to latest to test validated support
 private operator fun String.invoke(
   withPlugin: AssertSyntax.() -> Assert,
-  withoutPlugin: AssertSyntax.() -> Assert
+  withoutPlugin: AssertSyntax.() -> Assert,
+  isMultiplatform: Boolean = false
 ) {
   assertThis(
     CompilerTest(
       config = {
-        newMetaDependencies() // +
+        newMetaDependencies() + listOf(addArguments("-Xmulti-platform")).filter { isMultiplatform }
         // addPluginOptions(PluginOption("arrow.meta.plugin.compiler", "generatedSrcOutputDir",
         // "value"))
       },
@@ -2028,7 +2047,10 @@ private operator fun String.invoke(
   )
   assertThis(
     CompilerTest(
-      config = { listOf(addDependencies(analysisLib(System.getProperty("CURRENT_VERSION")))) },
+      config = {
+        listOf(addDependencies(analysisLib(System.getProperty("CURRENT_VERSION")))) +
+          listOf(addArguments("-Xmulti-platform")).filter { isMultiplatform }
+      },
       code = { this@invoke.source },
       assert = { withoutPlugin() }
     )
