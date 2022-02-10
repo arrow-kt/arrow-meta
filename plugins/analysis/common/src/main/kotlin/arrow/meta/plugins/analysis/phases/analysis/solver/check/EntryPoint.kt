@@ -6,6 +6,7 @@ import arrow.meta.continuations.doOnlyWhenNotNull
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.ResolutionContext
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.ClassDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.DeclarationDescriptor
+import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.MemberDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.descriptors.PropertyDescriptor
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.CallableDeclaration
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.ClassOrObject
@@ -51,7 +52,7 @@ public fun SolverState.checkDeclarationConstraints(
   declaration: Declaration,
   descriptor: DeclarationDescriptor
 ) {
-  if (!hadParseErrors() && declaration.shouldBeAnalyzed()) {
+  if (!hadParseErrors() && declaration.shouldBeAnalyzed() && descriptor.shouldBeAnalyzed()) {
     // trace
     solverTrace.add("CHECKING ${descriptor.fqNameSafe.name}")
     // now go on and check the body
@@ -142,3 +143,9 @@ public fun SolverState.checkDeclarationConstraints(
  * - or constructors (b/c they are handled at the level of class)
  */
 private fun Declaration.shouldBeAnalyzed() = !(this.parents.any { it is CallableDeclaration })
+
+private fun DeclarationDescriptor.shouldBeAnalyzed() =
+  when (this) {
+    is MemberDescriptor -> !isExpect && !isExternal
+    else -> true
+  }
