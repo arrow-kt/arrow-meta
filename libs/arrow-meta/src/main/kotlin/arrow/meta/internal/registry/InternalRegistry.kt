@@ -1,3 +1,5 @@
+@file:Suppress("INVISIBLE_REFERENCE")
+
 package arrow.meta.internal.registry
 
 import arrow.meta.CliPlugin
@@ -13,9 +15,11 @@ import arrow.meta.phases.analysis.AnalysisContext.popAnalysisPhase
 import arrow.meta.phases.analysis.AnalysisContext.pushAnalysisPhase
 import arrow.meta.phases.analysis.AnalysisContext.willRewind
 import arrow.meta.phases.analysis.AnalysisHandler
+import arrow.meta.phases.analysis.CallResolutionInterceptor
 import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
+import arrow.meta.phases.analysis.TypeResolutionInterceptor
 import arrow.meta.phases.codegen.asm.ClassBuilder
 import arrow.meta.phases.codegen.asm.Codegen
 import arrow.meta.phases.codegen.ir.IRGeneration
@@ -45,6 +49,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.useInstance
 import org.jetbrains.kotlin.context.ProjectContext
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
@@ -56,24 +61,43 @@ import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.extensions.CollectAdditionalSourcesExtension
 import org.jetbrains.kotlin.extensions.CompilerConfigurationExtension
 import org.jetbrains.kotlin.extensions.DeclarationAttributeAltererExtension
 import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+import org.jetbrains.kotlin.extensions.internal.CallResolutionInterceptorExtension
+import org.jetbrains.kotlin.extensions.internal.CandidateInterceptor
+import org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints
+import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptor as KTypeResolutionInterceptor
+import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptorExtension as KTypeResolutionInterceptorExtension
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportInfo
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.calls.CallResolver
+import org.jetbrains.kotlin.resolve.calls.CandidateResolver
+import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
+import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
+import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCallAtom
+import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategy
+import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
+import org.jetbrains.kotlin.resolve.calls.tower.NewResolutionOldInference
+import org.jetbrains.kotlin.resolve.calls.tower.PSICallResolver
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.extensions.ExtraImportsProviderExtension
@@ -83,11 +107,15 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtens
 import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
 import org.jetbrains.kotlin.resolve.lazy.declarations.ClassMemberDeclarationProvider
 import org.jetbrains.kotlin.resolve.lazy.declarations.PackageMemberDeclarationProvider
+import org.jetbrains.kotlin.resolve.scopes.ResolutionScope
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScope
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
 import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
+import org.jetbrains.kotlin.types.typeUtil.builtIns
 
 interface InternalRegistry : ConfigSyntax {
 
@@ -132,6 +160,7 @@ interface InternalRegistry : ConfigSyntax {
     registerMetaComponents(project, configuration)
   }
 
+  @OptIn(InternalNonStableExtensionPoints::class)
   fun registerMetaComponents(
     project: Project,
     configuration: CompilerConfiguration,
@@ -180,6 +209,8 @@ interface InternalRegistry : ConfigSyntax {
             is SyntheticResolver -> registerSyntheticResolver(project, this, ctx)
             is IRGeneration -> registerIRGeneration(project, this, ctx)
             is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
+            is TypeResolutionInterceptor -> registerTypeResolutionInterceptor(project, this, ctx)
+            is CallResolutionInterceptor -> registerCallResolutionInterceptor(project, this, ctx)
             // is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
             else ->
               ctx.messageCollector?.report(
@@ -236,6 +267,150 @@ interface InternalRegistry : ConfigSyntax {
           phase.run { ctx.createPreprocessedLightFile(file) }
 
         override fun isPassThrough(): Boolean = phase.run { ctx.isPassThrough() }
+      }
+    )
+  }
+
+  @OptIn(InternalNonStableExtensionPoints::class)
+  fun registerTypeResolutionInterceptor(
+    project: Project,
+    phase: arrow.meta.phases.analysis.TypeResolutionInterceptor,
+    ctx: CompilerContext
+  ) {
+    KTypeResolutionInterceptor.registerExtension(
+      project,
+      object : KTypeResolutionInterceptorExtension {
+        override fun interceptFunctionLiteralDescriptor(
+          expression: KtLambdaExpression,
+          context: ExpressionTypingContext,
+          descriptor: AnonymousFunctionDescriptor
+        ): AnonymousFunctionDescriptor =
+          phase.run {
+            ctx.interceptFunctionLiteralDescriptor(expression, context, descriptor)
+          }
+
+
+        override fun interceptType(
+          element: KtElement,
+          context: ExpressionTypingContext,
+          resultType: KotlinType
+        ): KotlinType =
+          phase.run {
+            ctx.interceptType(element, context, resultType)
+          }
+      }
+    )
+  }
+
+  @OptIn(InternalNonStableExtensionPoints::class)
+  fun registerCallResolutionInterceptor(
+    project: Project,
+    phase: CallResolutionInterceptor,
+    ctx: CompilerContext
+  ) {
+    CandidateInterceptor.registerExtension(
+      project,
+      object : CallResolutionInterceptorExtension {
+
+        override fun interceptCandidates(
+          candidates: Collection<NewResolutionOldInference.MyCandidate>,
+          context: BasicCallResolutionContext,
+          candidateResolver: CandidateResolver,
+          callResolver: CallResolver,
+          name: Name,
+          kind: NewResolutionOldInference.ResolutionKind,
+          tracing: TracingStrategy
+        ): Collection<NewResolutionOldInference.MyCandidate> = phase.run {
+          ctx.interceptCandidates(candidates, context, candidateResolver, callResolver, name, kind, tracing)
+        }
+
+        override fun interceptFunctionCandidates(
+          candidates: Collection<FunctionDescriptor>,
+          scopeTower: ImplicitScopeTower,
+          resolutionContext: BasicCallResolutionContext,
+          resolutionScope: ResolutionScope,
+          callResolver: CallResolver,
+          name: Name,
+          location: LookupLocation
+        ): Collection<FunctionDescriptor> = phase.run {
+          ctx.interceptFunctionCandidates(
+            candidates,
+            scopeTower,
+            resolutionContext,
+            resolutionScope,
+            callResolver,
+            name,
+            location
+          )
+        }
+
+        override fun interceptFunctionCandidates(
+          candidates: Collection<FunctionDescriptor>,
+          scopeTower: ImplicitScopeTower,
+          resolutionContext: BasicCallResolutionContext,
+          resolutionScope: ResolutionScope,
+          callResolver: PSICallResolver,
+          name: Name,
+          location: LookupLocation,
+          dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+          extensionReceiver: ReceiverValueWithSmartCastInfo?
+        ): Collection<FunctionDescriptor> = phase.run {
+          ctx.interceptFunctionCandidates(
+            candidates,
+            scopeTower,
+            resolutionContext,
+            resolutionScope,
+            callResolver,
+            name,
+            location,
+            dispatchReceiver,
+            extensionReceiver
+          )
+        }
+
+        override fun interceptVariableCandidates(
+          candidates: Collection<VariableDescriptor>,
+          scopeTower: ImplicitScopeTower,
+          resolutionContext: BasicCallResolutionContext,
+          resolutionScope: ResolutionScope,
+          callResolver: CallResolver,
+          name: Name,
+          location: LookupLocation
+        ): Collection<VariableDescriptor> = phase.run {
+          ctx.interceptVariableCandidates(
+            candidates,
+            scopeTower,
+            resolutionContext,
+            resolutionScope,
+            callResolver,
+            name,
+            location
+          )
+        }
+
+        override fun interceptVariableCandidates(
+          candidates: Collection<VariableDescriptor>,
+          scopeTower: ImplicitScopeTower,
+          resolutionContext: BasicCallResolutionContext,
+          resolutionScope: ResolutionScope,
+          callResolver: PSICallResolver,
+          name: Name,
+          location: LookupLocation,
+          dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+          extensionReceiver: ReceiverValueWithSmartCastInfo?
+        ): Collection<VariableDescriptor> = phase.run {
+          ctx.interceptVariableCandidates(
+            candidates,
+            scopeTower,
+            resolutionContext,
+            resolutionScope,
+            callResolver,
+            name,
+            location,
+            dispatchReceiver,
+            extensionReceiver
+          )
+        }
       }
     )
   }

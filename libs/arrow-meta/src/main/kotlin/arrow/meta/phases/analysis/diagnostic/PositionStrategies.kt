@@ -52,7 +52,4 @@ fun <A : PsiElement> position(
     override fun mark(element: A): List<TextRange> = mark(element)
 
     override fun isValid(element: A): Boolean = isValid(element)
-
-    override fun markDiagnostic(diagnostic: ParametrizedDiagnostic<out A>): List<TextRange> =
-      markDiagnostic(diagnostic)
   }
