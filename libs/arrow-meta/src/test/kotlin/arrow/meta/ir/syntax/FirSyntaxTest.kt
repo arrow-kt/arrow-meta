@@ -10,14 +10,15 @@ class FirSyntaxTest {
 
   @Test
   fun `Test FIR Syntax`() {
-    testFirVisit("""
-      private class Pepe
-      val x = Pepe::class::visibility.toString()
-      """.trimIndent()) { "x".source.evalsTo("PUBLIC") }
+    val source = """
+        class Pepe
+        val x = Pepe::class.isOpen
+      """
+    testFirVisit(source) { "x".source.evalsTo(true) }
   }
 }
 
-private fun testFirVisit(src: String = "", assert: CompilerTest.Companion.() -> Assert): Unit =
+private fun testFirVisit(src: String, assert: CompilerTest.Companion.() -> Assert): Unit =
   assertThis(
     CompilerTest(
       config = {
@@ -27,8 +28,3 @@ private fun testFirVisit(src: String = "", assert: CompilerTest.Companion.() -> 
       assert = assert
     )
   )
-
-fun ble() {
-  class Pepe
-  Pepe::class::visibility.toString()
-}
