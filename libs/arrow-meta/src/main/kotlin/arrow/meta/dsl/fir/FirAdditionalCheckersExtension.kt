@@ -24,8 +24,39 @@ import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirTypeAliasChecke
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirTypeParameterChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirValueParameterChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.ExpressionCheckers
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirAnnotationCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirAnnotationChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirArrayOfCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirBasicExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirBlockChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirCallableReferenceAccessChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirCheckNotNullCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirClassReferenceExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirConstExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirDoWhileLoopChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirElvisExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirEqualityOperatorCallChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirFunctionCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirGetClassCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirLogicExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirLoopExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirLoopJumpChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirQualifiedAccessChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirQualifiedAccessExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirResolvedQualifierChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirReturnExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirSafeCallExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirStringConcatenationCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirThisReceiverExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirTryExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirTypeOperatorCallChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirVariableAssignmentChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirWhenExpressionChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirWhileLoopChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.type.FirTypeChecker
+import org.jetbrains.kotlin.fir.analysis.checkers.type.FirTypeRefChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.type.TypeCheckers
 import org.jetbrains.kotlin.fir.analysis.extensions.FirAdditionalCheckersExtension
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
@@ -52,6 +83,37 @@ fun FirContext.additionalCheckers(
   enumEntryCheckers: Set<FirEnumEntryChecker> = emptySet(),
   anonymousObjectCheckers: Set<FirAnonymousObjectChecker> = emptySet(),
   anonymousInitializerCheckers: Set<FirAnonymousInitializerChecker> = emptySet(),
+  annotationCallCheckers: Set<FirAnnotationCallChecker> = emptySet(),
+  annotationCheckers: Set<FirAnnotationChecker> = emptySet(),
+  arrayOfCallCheckers: Set<FirArrayOfCallChecker> = emptySet(),
+  basicExpressionCheckers: Set<FirBasicExpressionChecker> = emptySet(),
+  blockCheckers: Set<FirBlockChecker> = emptySet(),
+  callCheckers: Set<FirCallChecker> = emptySet(),
+  callableReferenceAccessCheckers: Set<FirCallableReferenceAccessChecker> = emptySet(),
+  checkNotNullCallCheckers: Set<FirCheckNotNullCallChecker> = emptySet(),
+  classReferenceExpressionCheckers: Set<FirClassReferenceExpressionChecker> = emptySet(),
+  constExpressionCheckers: Set<FirConstExpressionChecker> = emptySet(),
+  doWhileLoopCheckers: Set<FirDoWhileLoopChecker> = emptySet(),
+  elvisExpressionCheckers: Set<FirElvisExpressionChecker> = emptySet(),
+  equalityOperatorCallCheckers: Set<FirEqualityOperatorCallChecker> = emptySet(),
+  functionCallCheckers: Set<FirFunctionCallChecker> = emptySet(),
+  getClassCallCheckers: Set<FirGetClassCallChecker> = emptySet(),
+  logicExpressionCheckers: Set<FirLogicExpressionChecker> = emptySet(),
+  loopExpressionCheckers: Set<FirLoopExpressionChecker> = emptySet(),
+  loopJumpCheckers: Set<FirLoopJumpChecker> = emptySet(),
+  qualifiedAccessCheckers: Set<FirQualifiedAccessChecker> = emptySet(),
+  qualifiedAccessExpressionCheckers: Set<FirQualifiedAccessExpressionChecker> = emptySet(),
+  resolvedQualifierCheckers: Set<FirResolvedQualifierChecker> = emptySet(),
+  returnExpressionCheckers: Set<FirReturnExpressionChecker> = emptySet(),
+  safeCallExpressionCheckers: Set<FirSafeCallExpressionChecker> = emptySet(),
+  stringConcatenationCallCheckers: Set<FirStringConcatenationCallChecker> = emptySet(),
+  thisReceiverExpressionCheckers: Set<FirThisReceiverExpressionChecker> = emptySet(),
+  tryExpressionCheckers: Set<FirTryExpressionChecker> = emptySet(),
+  typeOperatorCallCheckers: Set<FirTypeOperatorCallChecker> = emptySet(),
+  variableAssignmentCheckers: Set<FirVariableAssignmentChecker> = emptySet(),
+  whenExpressionCheckers: Set<FirWhenExpressionChecker> = emptySet(),
+  whileLoopCheckers: Set<FirWhileLoopChecker> = emptySet(),
+  typeRefCheckers: Set<FirTypeRefChecker> = emptySet(),
 ): FirAdditionalCheckersExtension =
   object : FirAdditionalCheckersExtension(firSession) {
     override val declarationCheckers: DeclarationCheckers =
@@ -82,10 +144,60 @@ fun FirContext.additionalCheckers(
         override val anonymousInitializerCheckers: Set<FirAnonymousInitializerChecker> =
           anonymousInitializerCheckers
       }
-    override val expressionCheckers: ExpressionCheckers
-      get() = super.expressionCheckers
-    override val typeCheckers: TypeCheckers
-      get() = super.typeCheckers
+    override val expressionCheckers: ExpressionCheckers =
+      object : ExpressionCheckers() {
+        override val annotationCallCheckers: Set<FirAnnotationCallChecker> = annotationCallCheckers
+        override val annotationCheckers: Set<FirAnnotationChecker> = annotationCheckers
+        override val arrayOfCallCheckers: Set<FirArrayOfCallChecker> = arrayOfCallCheckers
+        override val basicExpressionCheckers: Set<FirBasicExpressionChecker> =
+          basicExpressionCheckers
+        override val blockCheckers: Set<FirBlockChecker> = blockCheckers
+        override val callCheckers: Set<FirCallChecker> = callCheckers
+        override val callableReferenceAccessCheckers: Set<FirCallableReferenceAccessChecker> =
+          callableReferenceAccessCheckers
+        override val checkNotNullCallCheckers: Set<FirCheckNotNullCallChecker> =
+          checkNotNullCallCheckers
+        override val classReferenceExpressionCheckers: Set<FirClassReferenceExpressionChecker> =
+          classReferenceExpressionCheckers
+        override val constExpressionCheckers: Set<FirConstExpressionChecker> =
+          constExpressionCheckers
+        override val doWhileLoopCheckers: Set<FirDoWhileLoopChecker> = doWhileLoopCheckers
+        override val elvisExpressionCheckers: Set<FirElvisExpressionChecker> =
+          elvisExpressionCheckers
+        override val equalityOperatorCallCheckers: Set<FirEqualityOperatorCallChecker> =
+          equalityOperatorCallCheckers
+        override val functionCallCheckers: Set<FirFunctionCallChecker> = functionCallCheckers
+        override val getClassCallCheckers: Set<FirGetClassCallChecker> = getClassCallCheckers
+        override val logicExpressionCheckers: Set<FirLogicExpressionChecker> =
+          logicExpressionCheckers
+        override val loopExpressionCheckers: Set<FirLoopExpressionChecker> = loopExpressionCheckers
+        override val loopJumpCheckers: Set<FirLoopJumpChecker> = loopJumpCheckers
+        override val qualifiedAccessCheckers: Set<FirQualifiedAccessChecker> =
+          qualifiedAccessCheckers
+        override val qualifiedAccessExpressionCheckers: Set<FirQualifiedAccessExpressionChecker> =
+          qualifiedAccessExpressionCheckers
+        override val resolvedQualifierCheckers: Set<FirResolvedQualifierChecker> =
+          resolvedQualifierCheckers
+        override val returnExpressionCheckers: Set<FirReturnExpressionChecker> =
+          returnExpressionCheckers
+        override val safeCallExpressionCheckers: Set<FirSafeCallExpressionChecker> =
+          safeCallExpressionCheckers
+        override val stringConcatenationCallCheckers: Set<FirStringConcatenationCallChecker> =
+          stringConcatenationCallCheckers
+        override val thisReceiverExpressionCheckers: Set<FirThisReceiverExpressionChecker> =
+          thisReceiverExpressionCheckers
+        override val tryExpressionCheckers: Set<FirTryExpressionChecker> = tryExpressionCheckers
+        override val typeOperatorCallCheckers: Set<FirTypeOperatorCallChecker> =
+          typeOperatorCallCheckers
+        override val variableAssignmentCheckers: Set<FirVariableAssignmentChecker> =
+          variableAssignmentCheckers
+        override val whenExpressionCheckers: Set<FirWhenExpressionChecker> = whenExpressionCheckers
+        override val whileLoopCheckers: Set<FirWhileLoopChecker> = whileLoopCheckers
+      }
+    override val typeCheckers: TypeCheckers =
+      object : TypeCheckers() {
+        override val typeRefCheckers: Set<FirTypeRefChecker> = typeRefCheckers
+      }
   }
 
 fun <D : FirDeclaration> declarationChecker(
@@ -98,7 +210,7 @@ fun <D : FirDeclaration> declarationChecker(
     }
   }
 
-fun <E : FirStatement> firExpressionChecker(
+fun <E : FirStatement> expressionChecker(
   check: (expression: E, context: CheckerContext, reporter: DiagnosticReporter) -> Unit,
 ): FirExpressionChecker<E> =
   object : FirExpressionChecker<E>() {
@@ -108,7 +220,7 @@ fun <E : FirStatement> firExpressionChecker(
     }
   }
 
-fun <T : FirTypeRef> firTypeChecker(
+fun <T : FirTypeRef> typeChecker(
   check: (typeRef: T, context: CheckerContext, reporter: DiagnosticReporter) -> Unit,
 ): FirTypeChecker<T> =
   object : FirTypeChecker<T>() {
