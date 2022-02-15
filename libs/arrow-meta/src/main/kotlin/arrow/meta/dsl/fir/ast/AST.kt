@@ -1,10 +1,14 @@
 package arrow.meta.dsl.fir.ast
 
+import arrow.meta.Meta
+import arrow.meta.dsl.fir.FirContext
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
+import org.jetbrains.kotlin.fir.expressions.FirStatement
+import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import kotlin.reflect.KClass
 
 data class NameFilter<D : FirElement>(val node: Element<D>, val declarationClass: KClass<D>, val name: String) {
@@ -52,6 +56,8 @@ val flow =
   Files.classes.properties["x"]
 
 
+
+
 /**
  * - files
  *  - declarations
@@ -95,3 +101,21 @@ val flow =
  *        - expressions
  *  -
  */
+
+annotation class contextual
+
+@contextual fun foo(): Int = 0
+
+fun <A> resolve(f: Nothing.() -> A): A =
+  TODO()
+
+fun <A> resolve(): A =
+  TODO()
+
+fun Int.program(): Int =
+  this
+
+fun main() {
+  val result: Int =
+    resolve { program() }
+}
