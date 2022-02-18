@@ -12,8 +12,11 @@ class ContextTest {
     givenTest(
       source =
         """
-        fun Int.program(): Int = this  
+        @contextual fun n(): Int = 0  
+          
+        fun Int.program(): String = "oops"  
         val result = resolve { program() }
+        
       """,
       expected = "result" to 0
     )
@@ -37,10 +40,28 @@ class ContextTest {
       """
     assertThis(
       CompilerTest(
-        config = { newMetaDependencies() },
+        config = { listOf(addArguments("-Xuse-fir")) + newMetaDependencies() },
         code = { codeSnippet.source },
         assert = { allOf(expected.first.source.evalsTo(expected.second)) }
       )
     )
   }
+}
+
+fun <A> resolve(f: Nothing.() -> A): A = TODO()
+fun <A> resolve(): A = TODO()
+val resolve: Nothing get() = TODO()
+
+fun Int.program(n: Int = resolve): String = "oops"
+
+class Activity {
+  val n: Int = resolve()
+
+  fun onCreate() {
+  }
+}
+
+
+fun main() {
+  resolve { program() }
 }
