@@ -14,11 +14,11 @@ class ContextTest {
         """
         @contextual fun n(): Int = 0  
           
-        fun Int.program(): String = "oops"  
+        fun Int.program(): Int = this + 1  
         val result = resolve { program() }
         
       """,
-      expected = "result" to 0
+      expected = "result" to 1
     )
   }
 

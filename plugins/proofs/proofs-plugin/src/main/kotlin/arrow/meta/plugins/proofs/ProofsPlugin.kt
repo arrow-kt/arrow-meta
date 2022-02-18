@@ -51,13 +51,14 @@ val Meta.typeProofs: CliPlugin
                     val targetFnCall = returnEx.result as FirFunctionCall
                     val targetRef = targetFnCall.calleeReference as? FirResolvedNamedReference
                     val targetFn = targetRef?.resolvedSymbol?.fir
-                    val targetSymbol = targetFn?.symbol as FirFunctionSymbol<FirFunction>
-                    val receiverType = targetSymbol.fir.receiverTypeRef?.coneType
+                    val targetSymbol = targetFn?.symbol as? FirFunctionSymbol<FirFunction>
+                    val receiverType = targetSymbol?.fir?.receiverTypeRef?.coneType
                     // here in need to know the most specific `candidate` from `receiverType`
-                    val candidates = proofs.find(receiverType)
-                    if (proof == null) {
+//                    val candidates = proofs.find(receiverType)
+//                     if(proof == null) {
                       // if no candidate is found report it
-                    }
+//                    }
+                    println()
                   }
                 }
               }
