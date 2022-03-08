@@ -61,7 +61,7 @@ jobs:
         run: mkdir sarif && find . -name '*.sarif' | xargs -I{} cp "{}" ./sarif/
 
       - name: Upload SARIF report
-        uses: github/codeql-action/upload-sarif@v1.1.3
+        uses: github/codeql-action/upload-sarif@v1.1.4
         continue-on-error: true
         with:
         # Path to SARIF file relative to the root of the repository
