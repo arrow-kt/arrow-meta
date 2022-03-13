@@ -25,7 +25,6 @@ import arrow.meta.plugins.analysis.smt.rationalGreaterThanOrEquals
 import arrow.meta.plugins.analysis.smt.rationalLessThan
 import arrow.meta.plugins.analysis.smt.rationalLessThanOrEquals
 import arrow.meta.plugins.analysis.smt.rationalMinus
-import arrow.meta.plugins.analysis.smt.rationalMultiply
 import arrow.meta.plugins.analysis.smt.rationalNegate
 import arrow.meta.plugins.analysis.smt.rationalPlus
 import arrow.meta.plugins.analysis.types.PrimitiveType
@@ -184,7 +183,7 @@ private fun Solver.rationalFormula(
         1 -> rationalNegate(args)
         else -> throw IllegalArgumentException("- with weird # of parameters")
       }
-    "times", "*" -> rationalMultiply(args)
+    // "times", "*" -> rationalMultiply(args) // not all SMT solvers support multiplication
     // "div", "/" -> rationalDivide(args) // not all SMT solvers support div
     "inc",
     "++" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
