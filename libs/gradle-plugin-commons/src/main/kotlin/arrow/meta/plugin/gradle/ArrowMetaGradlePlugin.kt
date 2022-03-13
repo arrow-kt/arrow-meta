@@ -2,11 +2,11 @@ package arrow.meta.plugin.gradle
 
 import io.github.classgraph.ClassGraph
 import java.io.File
+import java.lang.module.ModuleDescriptor.Version
 import java.util.Properties
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
-import org.gradle.util.internal.VersionNumber
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
@@ -37,8 +37,8 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
-    val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(VersionNumber::parse)
-    val projectKotlinVersion: VersionNumber? = VersionNumber.parse(project.getKotlinPluginVersion())
+    val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(Version::parse)
+    val projectKotlinVersion: Version? = Version.parse(project.getKotlinPluginVersion())
     if (projectKotlinVersion == null ||
         requiredKotlinVersion == null ||
         projectKotlinVersion < requiredKotlinVersion
