@@ -16,10 +16,10 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.descriptors.KotlinResolvedValueArgument
 import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.KotlinType
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
-import org.jetbrains.kotlin.resolve.calls.callUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 
 class KotlinResolvedCall(
   val impl:
@@ -34,7 +34,17 @@ class KotlinResolvedCall(
   override val callElement: Element
     get() = impl().call.callElement.model()
 
-  override fun getReceiverExpression(): Expression? = impl().getReceiverExpression()?.model()
+  override fun getReceiverExpression(): Expression? =
+    impl()
+      .let {
+        // do not use .getReceiverExpression() directly,
+        // because it's in different packages on each version
+        // and leads to NoSuchMethodError exceptions (see #1014)
+        (it.extensionReceiver as? ExpressionReceiver)
+          ?: (it.dispatchReceiver as? ExpressionReceiver)
+      }
+      ?.expression
+      ?.model()
 
   override fun getReturnType(): Type = KotlinType(impl().getReturnType())
 
