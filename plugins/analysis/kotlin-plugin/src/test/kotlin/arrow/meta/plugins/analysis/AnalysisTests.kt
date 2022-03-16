@@ -1927,6 +1927,22 @@ class AnalysisTests {
       isMultiplatform = true
     )
   }
+
+  @Test
+  fun `field named field (issue #1031)`() {
+    """
+      ${imports()}
+      
+      data class Field(val key: String, val value: String)
+      
+      private fun List<Int>.findField(tag: String, field: String): Field? =
+         Field(tag, field)
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles },
+      isMultiplatform = true
+    )
+  }
 }
 
 private val AssertSyntax.compilesNoUnreachable: Assert.SingleAssert

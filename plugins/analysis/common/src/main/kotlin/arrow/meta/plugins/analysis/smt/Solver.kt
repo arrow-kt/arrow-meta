@@ -109,9 +109,9 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   val resultVariable = makeObjectVariable(RESULT_VAR_NAME)
   val thisVariable = makeObjectVariable(THIS_VAR_NAME)
 
-  // From SMTLIB docs
   private val forbiddenNames: List<String> =
     listOf(
+      // From SMTLIB docs
       "div",
       "mod",
       "abs",
@@ -124,7 +124,13 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
       "or",
       "xor",
       "distinct",
-      "ite"
+      "ite",
+      // from our own internal names
+      INT_VALUE_NAME,
+      BOOL_VALUE_NAME,
+      DECIMAL_VALUE_NAME,
+      FIELD_FUNCTION_NAME,
+      IS_NULL_FUNCTION_NAME
     )
 
   override fun escape(name: String): String =
