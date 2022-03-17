@@ -4,9 +4,8 @@ plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.kotlin)
   alias(libs.plugins.arrowGradleConfig.publish)
+  alias(libs.plugins.arrowGradleConfig.versioning)
 }
-
-version = property("projects.analysis_version").toString()
 
 kotlin {
   explicitApi = null
@@ -14,7 +13,7 @@ kotlin {
 
 dependencies {
   compileOnly(libs.kotlin.stdlibJDK8)
-  implementation(projects.arrowMeta)
+  implementation(libs.arrowMeta)
   implementation(projects.arrowAnalysisTypes)
   implementation(projects.arrowAnalysisCommon)
 
@@ -22,8 +21,8 @@ dependencies {
   testImplementation(libs.junit)
   testImplementation(libs.junitEngine)
   testImplementation(libs.junitPlatformLauncher)
-  testImplementation(projects.arrowMetaTest)
-  testRuntimeOnly(projects.arrowMeta)
+  testImplementation(libs.arrowMetaTest)
+  testRuntimeOnly(libs.arrowMeta)
   testRuntimeOnly(projects.arrowAnalysisTypes)
   testRuntimeOnly(projects.arrowAnalysisKotlinPlugin)
   testRuntimeOnly(libs.arrowCore)

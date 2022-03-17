@@ -3,9 +3,9 @@
 plugins {
   id(libs.plugins.kotlin.multiplatform.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.formatter)
 }
 
-version = property("projects.analysis_version").toString()
 
 kotlin {
   explicitApi = null

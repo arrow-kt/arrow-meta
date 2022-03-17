@@ -2,9 +2,8 @@
 
 plugins {
   `java-library`
+  alias(libs.plugins.arrowGradleConfig.versioning)
 }
-
-version = property("projects.analysis_version").toString()
 
 java {
   toolchain {

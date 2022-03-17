@@ -4,10 +4,9 @@ plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   `java-gradle-plugin`
   alias(libs.plugins.arrowGradleConfig.kotlin)
+  alias(libs.plugins.arrowGradleConfig.formatter)
   alias(libs.plugins.arrowGradleConfig.publish)
 }
-
-version = property("projects.analysis_version").toString()
 
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
@@ -17,11 +16,11 @@ tasks.processResources {
 }
 
 dependencies {
-  api(projects.arrowGradlePluginCommons)
+  api(libs.arrowGradlePluginCommons)
   runtimeOnly(libs.classgraph)
 
   // Necessary during plugin execution to be found and added for compilation
-  api(projects.arrowMeta)
+  api(libs.arrowMeta)
   api(projects.arrowAnalysisKotlinPlugin)
 }
 

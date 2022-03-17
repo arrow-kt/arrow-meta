@@ -5,9 +5,8 @@ plugins {
   `java-gradle-plugin`
   alias(libs.plugins.arrowGradleConfig.kotlin)
   alias(libs.plugins.arrowGradleConfig.publish)
+  alias(libs.plugins.arrowGradleConfig.versioning)
 }
-
-version = property("projects.analysis_version").toString()
 
 tasks.processResources {
   duplicatesStrategy = DuplicatesStrategy.WARN
@@ -17,11 +16,11 @@ tasks.processResources {
 }
 
 dependencies {
-  api(projects.arrowGradlePluginCommons)
+  api(libs.arrowGradlePluginCommons)
   runtimeOnly(libs.classgraph)
 
   // Necessary during plugin execution to be found and added for compilation
-  api(projects.arrowMeta)
+  api(libs.arrowMeta)
   api(projects.arrowAnalysisJavaPlugin)
 }
 
