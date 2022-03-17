@@ -67,7 +67,11 @@ public fun SolverState.checkDeclarationConstraints(
             declaration.hasImplicitPrimaryConstructor() && !descriptor.hasPackageWithLawsAnnotation
           ) {
             descriptor as ClassDescriptor
-            checkImplicitPrimaryConstructor(context, descriptor.constructors.single(), declaration)
+            checkImplicitPrimaryConstructor(
+              context,
+              descriptor.constructors.single { it.isPrimary },
+              declaration
+            )
           }
         is Property ->
           when {
