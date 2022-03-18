@@ -1,6 +1,7 @@
 [versions]
 arrow = "1.0.1"
 arrowGradleConfig = "0.10.0"
+arrowAnalysis = "2.0.2-SNAPSHOT"
 assertj = "3.22.0"
 classgraph = "4.8.141"
 dokka = "1.6.0"
@@ -20,6 +21,7 @@ sarif4k = "0.0.1"
 arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrowOptics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
+arrowAnalysisTypes = { module = "io.arrow-kt:arrow-analysis-types", version.ref = "arrowAnalysis" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 intellijOpenApi = { module = "com.intellij:openapi", version.ref = "intellijOpenApi" }
