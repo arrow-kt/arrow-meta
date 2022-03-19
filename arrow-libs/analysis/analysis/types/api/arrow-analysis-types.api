@@ -1,0 +1,50 @@
+public abstract interface annotation class arrow/analysis/DoNotLookAtArguments : java/lang/annotation/Annotation {
+	public abstract fun dependencies ()[Ljava/lang/String;
+	public abstract fun formulae ()[Ljava/lang/String;
+	public abstract fun messages ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class arrow/analysis/Law : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class arrow/analysis/Laws : java/lang/annotation/Annotation {
+}
+
+public abstract interface class arrow/analysis/Messager {
+	public abstract fun invoke ()Ljava/lang/String;
+}
+
+public abstract interface annotation class arrow/analysis/PackagesWithLaws : java/lang/annotation/Annotation {
+	public abstract fun packages ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class arrow/analysis/Post : java/lang/annotation/Annotation {
+	public abstract fun dependencies ()[Ljava/lang/String;
+	public abstract fun formulae ()[Ljava/lang/String;
+	public abstract fun messages ()[Ljava/lang/String;
+}
+
+public abstract interface annotation class arrow/analysis/Pre : java/lang/annotation/Annotation {
+	public abstract fun dependencies ()[Ljava/lang/String;
+	public abstract fun formulae ()[Ljava/lang/String;
+	public abstract fun messages ()[Ljava/lang/String;
+}
+
+public abstract interface class arrow/analysis/Predicate {
+	public abstract fun invoke (Ljava/lang/Object;)Z
+}
+
+public final class arrow/analysis/RefinementDSLKt {
+	public static final fun doNotLookAtArgumentsWhen (ZLarrow/analysis/Messager;)V
+	public static final fun invariant (Ljava/lang/Object;Larrow/analysis/Predicate;Larrow/analysis/Messager;)Ljava/lang/Object;
+	public static final fun post (Larrow/analysis/Predicate;Larrow/analysis/Messager;)V
+	public static final fun post (Ljava/lang/Object;Larrow/analysis/Predicate;Larrow/analysis/Messager;)Ljava/lang/Object;
+	public static final fun pre (ZLarrow/analysis/Messager;)V
+	public static final fun unsafeBlock (Lkotlin/jvm/functions/Function0;)Ljava/lang/Object;
+	public static final fun unsafeCall (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface annotation class arrow/analysis/Subject : java/lang/annotation/Annotation {
+	public abstract fun fqName ()Ljava/lang/String;
+}
+

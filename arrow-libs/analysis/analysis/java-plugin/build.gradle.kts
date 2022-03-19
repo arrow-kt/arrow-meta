@@ -4,6 +4,7 @@ plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.publish)
   alias(libs.plugins.arrowGradleConfig.versioning)
+  alias(libs.plugins.kotlin.binaryCompatibilityValidator)
 }
 
 kotlin {

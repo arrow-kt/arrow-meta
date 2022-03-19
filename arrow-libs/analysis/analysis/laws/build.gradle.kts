@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.publish)
   alias(libs.plugins.arrowGradleConfig.versioning)
   alias(libs.plugins.arrowGradleConfig.formatter)
+  alias(libs.plugins.kotlin.binaryCompatibilityValidator)
 }
 
 kotlin {

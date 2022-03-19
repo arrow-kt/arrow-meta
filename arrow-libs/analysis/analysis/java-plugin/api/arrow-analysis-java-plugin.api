@@ -1,0 +1,1177 @@
+public final class arrow/meta/plugins/analysis/java/AnalysisContext : arrow/meta/plugins/analysis/java/AnalysisContextWithoutResolver {
+	public static final field Companion Larrow/meta/plugins/analysis/java/AnalysisContext$Companion;
+	public fun <init> (Lcom/sun/tools/javac/util/Context;Ljavax/lang/model/util/Types;Ljavax/lang/model/util/Elements;Lcom/sun/source/tree/CompilationUnitTree;Larrow/meta/plugins/analysis/java/Resolver;)V
+	public final fun getResolver ()Larrow/meta/plugins/analysis/java/Resolver;
+	public final fun getUnit ()Lcom/sun/source/tree/CompilationUnitTree;
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisContext$Companion {
+	public final fun invoke (Lcom/sun/tools/javac/api/BasicJavacTask;Lcom/sun/source/tree/CompilationUnitTree;)Larrow/meta/plugins/analysis/java/AnalysisContext;
+}
+
+public class arrow/meta/plugins/analysis/java/AnalysisContextWithoutResolver {
+	public static final field Companion Larrow/meta/plugins/analysis/java/AnalysisContextWithoutResolver$Companion;
+	public fun <init> (Lcom/sun/tools/javac/util/Context;Ljavax/lang/model/util/Types;Ljavax/lang/model/util/Elements;)V
+	public final fun copy (Lcom/sun/tools/javac/tree/JCTree;)Lcom/sun/tools/javac/tree/JCTree;
+	public final fun getContext ()Lcom/sun/tools/javac/util/Context;
+	public final fun getDiagnostics ()Lcom/sun/tools/javac/util/JCDiagnostic$Factory;
+	public final fun getElements ()Ljavax/lang/model/util/Elements;
+	public final fun getLogger ()Lcom/sun/tools/javac/util/Log;
+	public final fun getMessages ()Lcom/sun/tools/javac/util/JavacMessages;
+	public final fun getModules ()Lcom/sun/tools/javac/comp/Modules;
+	public final fun getNames ()Lcom/sun/tools/javac/util/Names;
+	public final fun getSymbolTable ()Lcom/sun/tools/javac/code/Symtab;
+	public final fun getTypes ()Ljavax/lang/model/util/Types;
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisContextWithoutResolver$Companion {
+	public final fun invoke (Lcom/sun/tools/javac/api/BasicJavacTask;)Larrow/meta/plugins/analysis/java/AnalysisContextWithoutResolver;
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisJavaPlugin : com/sun/source/util/Plugin {
+	public static final field Companion Larrow/meta/plugins/analysis/java/AnalysisJavaPlugin$Companion;
+	public static final field NAME Ljava/lang/String;
+	public fun <init> ()V
+	public fun getName ()Ljava/lang/String;
+	public fun init (Lcom/sun/source/util/JavacTask;[Ljava/lang/String;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisJavaPlugin$Companion {
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisJavaProcessor : javax/annotation/processing/Processor {
+	public fun <init> ()V
+	public fun getCompletions (Ljavax/lang/model/element/Element;Ljavax/lang/model/element/AnnotationMirror;Ljavax/lang/model/element/ExecutableElement;Ljava/lang/String;)Ljava/lang/Iterable;
+	public fun getSupportedAnnotationTypes ()Ljava/util/Set;
+	public fun getSupportedOptions ()Ljava/util/Set;
+	public fun getSupportedSourceVersion ()Ljavax/lang/model/SourceVersion;
+	public final fun getTodo ()Ljava/util/List;
+	public fun init (Ljavax/annotation/processing/ProcessingEnvironment;)V
+	public fun process (Ljava/util/Set;Ljavax/annotation/processing/RoundEnvironment;)Z
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisJavaProcessorKey : com/sun/tools/javac/util/Context$Key {
+	public static final field INSTANCE Larrow/meta/plugins/analysis/java/AnalysisJavaProcessorKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisMessages : java/util/ListResourceBundle {
+	public static final field AnalysisException Ljava/lang/String;
+	public static final field Companion Larrow/meta/plugins/analysis/java/AnalysisMessages$Companion;
+	public static final field ErrorParsingPredicate Ljava/lang/String;
+	public static final field InconsistentBodyPre Ljava/lang/String;
+	public static final field InconsistentCallPost Ljava/lang/String;
+	public static final field InconsistentConditions Ljava/lang/String;
+	public static final field InconsistentInvariants Ljava/lang/String;
+	public static final field LiskovProblem Ljava/lang/String;
+	public static final field UnsatBodyPost Ljava/lang/String;
+	public static final field UnsatCallPre Ljava/lang/String;
+	public static final field UnsatInvariants Ljava/lang/String;
+	public static final field UnsupportedElement Ljava/lang/String;
+	public static final field WarningParsingPredicate Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public final class arrow/meta/plugins/analysis/java/AnalysisMessages$Companion {
+	public final fun getErrors ()Ljava/util/List;
+	public final fun getWarnings ()Ljava/util/List;
+}
+
+public abstract class arrow/meta/plugins/analysis/java/PerKindTaskListener : com/sun/source/util/TaskListener {
+	public fun <init> ()V
+	public final fun afterAnalyze (Lcom/sun/source/util/TaskEvent;)V
+	public final fun afterEnter (Lcom/sun/source/util/TaskEvent;)V
+	public final fun afterGenerate (Lcom/sun/source/util/TaskEvent;)V
+	public final fun afterParse (Lcom/sun/source/util/TaskEvent;)V
+	public fun finished (Lcom/sun/source/util/TaskEvent;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/Resolver {
+	public fun <init> (Ljavax/tools/JavaCompiler$CompilationTask;Lcom/sun/source/tree/CompilationUnitTree;)V
+	public final fun getTopElement ()Ljavax/lang/model/element/Element;
+	public final fun parent (Lcom/sun/source/tree/Tree;)Lcom/sun/source/tree/Tree;
+	public final fun parentElements (Lcom/sun/source/tree/Tree;)Ljava/lang/Iterable;
+	public final fun parentTrees (Lcom/sun/source/tree/Tree;)Ljava/lang/Iterable;
+	public final fun path (Lcom/sun/source/tree/Tree;)Lcom/sun/source/util/TreePath;
+	public final fun positionOf (Lcom/sun/source/tree/Tree;)Lkotlin/Pair;
+	public final fun resolve (Lcom/sun/source/tree/Tree;)Ljavax/lang/model/element/Element;
+	public final fun resolveType (Lcom/sun/source/tree/Tree;)Ljavax/lang/model/type/TypeMirror;
+	public final fun tree (Ljavax/lang/model/element/Element;)Lcom/sun/source/tree/Tree;
+}
+
+public final class arrow/meta/plugins/analysis/java/TaskListenerKt {
+	public static final fun after (Lcom/sun/source/util/JavacTask;Lcom/sun/source/util/TaskEvent$Kind;Lkotlin/jvm/functions/Function2;)V
+	public static final fun before (Lcom/sun/source/util/JavacTask;Lcom/sun/source/util/TaskEvent$Kind;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/AnnotationUtilsKt {
+	public static final fun addAnn (Lcom/sun/tools/javac/tree/JCTree$JCModifiers;Lcom/sun/tools/javac/tree/JCTree$JCAnnotation;)V
+	public static final fun addAnn (Lcom/sun/tools/javac/tree/JCTree$JCModifiers;Lkotlin/jvm/functions/Function0;)V
+	public static final fun annArrays (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/lang/String;[Ljava/util/List;)Lcom/sun/tools/javac/tree/JCTree$JCAnnotation;
+	public static final fun annStrings (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/lang/String;[Ljava/lang/String;)Lcom/sun/tools/javac/tree/JCTree$JCAnnotation;
+	public static final fun hintsClass (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;)Lcom/sun/tools/javac/tree/JCTree$JCClassDecl;
+	public static final fun hintsPackage (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;)Lkotlin/Pair;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/JavaInterpreterKt {
+	public static final fun fqName (Ljavax/lang/model/element/Name;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public static final fun model (Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/java/AnalysisContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public static final fun model (Ljavax/lang/model/element/Element;Larrow/meta/plugins/analysis/java/AnalysisContext;)Larrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptor;
+	public static final fun model (Ljavax/lang/model/type/TypeMirror;Larrow/meta/plugins/analysis/java/AnalysisContext;)Larrow/meta/plugins/analysis/java/ast/types/JavaType;
+	public static final fun modelCautious (Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/java/AnalysisContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public static final fun modelCautious (Ljavax/lang/model/type/TypeMirror;Larrow/meta/plugins/analysis/java/AnalysisContext;)Larrow/meta/plugins/analysis/java/ast/types/JavaType;
+	public static final fun name (Ljavax/lang/model/element/Name;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/JavaResolutionContext : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext {
+	public fun <init> (Larrow/meta/plugins/analysis/phases/analysis/solver/state/SolverState;Larrow/meta/plugins/analysis/java/AnalysisContext;)V
+	public fun backingPropertyForConstructorParameter (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/PropertyDescriptor;
+	public fun constraintsDSLElements (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;)Ljava/util/List;
+	public fun descriptorFor (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Declaration;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;
+	public fun descriptorFor (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;)Ljava/util/List;
+	public fun getModule ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ModuleDescriptor;
+	public fun getTypes ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Types;
+	public fun handleError (Larrow/meta/plugins/analysis/phases/analysis/solver/errors/ErrorIds;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportAnalysisException (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportInconsistentCallPost (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportInconsistentConditions (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportInconsistentInvariants (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportLiskovProblem (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportUnsatInvariants (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public final fun reportUnsupported (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;Ljava/lang/String;)V
+	public fun type (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaAnnotationDescriptor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/AnnotationMirror;)V
+	public fun argumentValueAsArrayOfString (Ljava/lang/String;)Ljava/util/List;
+	public fun argumentValueAsString (Ljava/lang/String;)Ljava/lang/String;
+	public fun getAllValueArguments ()Ljava/util/Map;
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaAnnotations : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Annotations {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;)V
+	public fun findAnnotation (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor;
+	public synthetic fun getImpl ()Ljava/lang/Object;
+	public fun getImpl ()Ljava/util/List;
+	public fun hasAnnotation (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;)Z
+	public fun isEmpty ()Z
+	public fun iterable ()Ljava/lang/Iterable;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaClassDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/TypeElement;)V
+	public fun getCompanionObjectDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor;
+	public fun getCompleteUnsubstitutedScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getConstructors ()Ljava/util/Collection;
+	public fun getDeclaredTypeParameters ()Ljava/util/List;
+	public fun getDefaultType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor$ClassKind;
+	public fun getSealedSubclasses ()Ljava/util/Collection;
+	public fun getStaticScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getSuperTypes ()Ljava/util/Collection;
+	public fun getThisAsReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getTypeConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeConstructor;
+	public fun getUnsubstitutedInnerClassesScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getUnsubstitutedMemberScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getUnsubstitutedPrimaryConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ConstructorDescriptor;
+	public fun isCompanionObject ()Z
+	public fun isData ()Z
+	public fun isEnumEntry ()Z
+	public fun isFun ()Z
+	public fun isInline ()Z
+	public fun isInner ()Z
+	public fun isValue ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaConstructorDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaFunctionDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ConstructorDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/ExecutableElement;)V
+	public fun getConstructedClass ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor;
+	public fun isPrimary ()Z
+}
+
+public class arrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/Element;)V
+	public fun annotations ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Annotations;
+	public fun element ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getContainingDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;
+	public fun getContainingPackage ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getFqNameSafe ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getHasDoNotLookAtArgumentsAnnotation ()Z
+	public fun getHasPackageWithLawsAnnotation ()Z
+	public fun getHasPreOrPostAnnotation ()Z
+	public fun getName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getPackageWithLawsAnnotation ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor;
+	public synthetic fun impl ()Ljava/lang/Object;
+	public fun impl ()Ljavax/lang/model/element/Element;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptorUtilsKt {
+	public static final fun getEnclosingClass (Ljavax/lang/model/element/Element;)Ljavax/lang/model/element/TypeElement;
+	public static final fun getFqName (Ljavax/lang/model/element/Element;)Ljava/lang/String;
+	public static final fun getParametersFromEverywhere (Ljavax/lang/model/element/Element;)Ljava/util/List;
+	public static final fun getTypeParametersFromEverywhere (Ljavax/lang/model/element/Element;)Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaEnumConstantDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+	public fun getCompanionObjectDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor;
+	public fun getCompleteUnsubstitutedScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getConstructors ()Ljava/util/Collection;
+	public fun getDeclaredTypeParameters ()Ljava/util/List;
+	public fun getDefaultType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor$ClassKind;
+	public fun getSealedSubclasses ()Ljava/util/Collection;
+	public fun getStaticScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getSuperTypes ()Ljava/util/Collection;
+	public fun getThisAsReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getTypeConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeConstructor;
+	public fun getUnsubstitutedInnerClassesScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getUnsubstitutedMemberScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+	public fun getUnsubstitutedPrimaryConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ConstructorDescriptor;
+	public fun isCompanionObject ()Z
+	public fun isData ()Z
+	public fun isEnumEntry ()Z
+	public fun isFun ()Z
+	public fun isInline ()Z
+	public fun isInner ()Z
+	public fun isValue ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaFieldDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/PropertyDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+	public fun getAccessors ()Ljava/util/List;
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getBackingField ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/FieldDescriptor;
+	public fun getDelegateField ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/FieldDescriptor;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getGetter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/VariableAccessorDescriptor;
+	public fun getKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/CallableMemberDescriptor$Kind;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getSetter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/VariableAccessorDescriptor;
+	public fun getType ()Larrow/meta/plugins/analysis/java/ast/types/JavaType;
+	public synthetic fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun isConst ()Z
+	public fun isDelegated ()Z
+	public fun isLateInit ()Z
+	public fun isSetterProjectedOut ()Z
+	public fun isVar ()Z
+}
+
+public class arrow/meta/plugins/analysis/java/ast/descriptors/JavaFunctionDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/FunctionDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/ExecutableElement;)V
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/CallableMemberDescriptor$Kind;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun isInfix ()Z
+	public fun isInline ()Z
+	public fun isOperator ()Z
+	public fun isSuspend ()Z
+	public fun isTailrec ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaLocalVariableDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaVariableDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/LocalVariableDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+}
+
+public class arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/Element;)V
+	public fun getModality ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Modality;
+	public fun getVisibility ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Visibility;
+	public fun isActual ()Z
+	public fun isExpect ()Z
+	public fun isExternal ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberScope : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/Collection;)V
+	public fun getClassifierNames ()Ljava/util/Set;
+	public fun getContributedDescriptors (Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+	public fun getFunctionNames ()Ljava/util/Set;
+	public fun getVariableNames ()Ljava/util/Set;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaModuleDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ModuleDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/ModuleElement;)V
+	public fun getPackage (Ljava/lang/String;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/PackageViewDescriptor;
+	public fun getStableName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getSubPackagesOf (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;)Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaPackageDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/PackageFragmentDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/PackageViewDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/PackageElement;)V
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getMemberScope ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/MemberScope;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaParameterDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaVariableDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+	public fun declaresDefaultValue ()Z
+	public fun getDefaultValue ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getIndex ()I
+	public fun getVarargElementType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun isCrossinline ()Z
+	public fun isNoinline ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaReceiverParameterDescriptor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/type/TypeMirror;Ljavax/lang/model/element/Element;)V
+	public fun annotations ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Annotations;
+	public fun element ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getContainingDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;
+	public fun getContainingPackage ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getFqNameSafe ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getHasDoNotLookAtArgumentsAnnotation ()Z
+	public fun getHasPackageWithLawsAnnotation ()Z
+	public fun getHasPreOrPostAnnotation ()Z
+	public fun getName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getPackageWithLawsAnnotation ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValue ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverValue;
+	public fun getValueParameters ()Ljava/util/List;
+	public synthetic fun impl ()Ljava/lang/Object;
+	public fun impl ()Ljavax/lang/model/type/TypeMirror;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaSimpleFunctionDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaFunctionDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/SimpleFunctionDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/ExecutableElement;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/descriptors/JavaTypeParameterDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeParameterDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/TypeParameterElement;)V
+	public fun getDefaultType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getIndex ()I
+	public fun getTypeConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeConstructor;
+	public fun getUpperBounds ()Ljava/util/List;
+	public fun getVariance ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Variance;
+	public fun isCapturedFromOuterDeclaration ()Z
+	public fun isReified ()Z
+}
+
+public class arrow/meta/plugins/analysis/java/ast/descriptors/JavaValueDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaMemberDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValueParameters ()Ljava/util/List;
+}
+
+public class arrow/meta/plugins/analysis/java/ast/descriptors/JavaVariableDescriptor : arrow/meta/plugins/analysis/java/ast/descriptors/JavaValueDescriptor, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/VariableDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/VariableElement;)V
+	public fun isConst ()Z
+	public fun isLateInit ()Z
+	public fun isVar ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaAssert : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/AssertExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/AssertTree;)V
+	public fun getCondition ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getDetail ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getResolvedCall (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaAssertFakeCall : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/AssertTree;)V
+	public fun getCallElement ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getDispatchReceiver ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverValue;
+	public fun getExtensionReceiver ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverValue;
+	public fun getReceiverExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getResultingDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/CallableDescriptor;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeArguments ()Ljava/util/Map;
+	public fun getValueArguments ()Ljava/util/Map;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaAssertFakeDescriptor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/CallableDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Z)V
+	public fun annotations ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Annotations;
+	public fun element ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getContainingDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;
+	public fun getContainingPackage ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getFqNameSafe ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getHasDoNotLookAtArgumentsAnnotation ()Z
+	public fun getHasPackageWithLawsAnnotation ()Z
+	public fun getHasPreOrPostAnnotation ()Z
+	public final fun getMessageParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;
+	public fun getName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getPackageWithLawsAnnotation ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor;
+	public final fun getPredicateParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun impl ()Ljava/lang/Object;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaAssertFakeParameter : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;ILjava/lang/String;Ljavax/lang/model/type/TypeMirror;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;)V
+	public fun annotations ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/Annotations;
+	public fun declaresDefaultValue ()Z
+	public fun element ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getAllParameters ()Ljava/util/List;
+	public fun getContainingDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DeclarationDescriptor;
+	public fun getContainingPackage ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getDefaultValue ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getDispatchReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getExtensionReceiverParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverParameterDescriptor;
+	public fun getFqNameSafe ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getHasDoNotLookAtArgumentsAnnotation ()Z
+	public fun getHasPackageWithLawsAnnotation ()Z
+	public fun getHasPreOrPostAnnotation ()Z
+	public fun getIndex ()I
+	public fun getName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getOverriddenDescriptors ()Ljava/util/Collection;
+	public fun getPackageWithLawsAnnotation ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/AnnotationDescriptor;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun getVarargElementType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun impl ()Ljava/lang/Object;
+	public fun isConst ()Z
+	public fun isCrossinline ()Z
+	public fun isLateInit ()Z
+	public fun isNoinline ()Z
+	public fun isVar ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaAssignment : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/AssignmentExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/AssignmentTree;)V
+	public fun getLeft ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getOperationToken ()Ljava/lang/String;
+	public fun getOperationTokenRpr ()Ljava/lang/String;
+	public fun getRight ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaBinary : arrow/meta/plugins/analysis/java/ast/elements/JavaOperation, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BinaryExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/BinaryTree;)V
+	public fun getLeft ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationToken ()Ljava/lang/String;
+	public fun getOperationTokenRpr ()Ljava/lang/String;
+	public fun getRight ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaBlock : arrow/meta/plugins/analysis/java/ast/elements/JavaBlockParent, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/BlockTree;)V
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaBlockParent : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;Lcom/sun/source/tree/Tree;)V
+	public fun getFirstStatement ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getImplicitReturnFromLast ()Z
+	public fun getStatements ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaBreak : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BreakExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/BreakTree;)V
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaCall : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CallExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/MethodInvocationTree;)V
+	public fun getCalleeExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getLambdaArguments ()Ljava/util/List;
+	public fun getTypeArguments ()Ljava/util/List;
+	public fun getValueArguments ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaCase : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/WhenEntry {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/CaseTree;)V
+	public fun getConditions ()Ljava/util/List;
+	public fun getExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun isElse ()Z
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaCatch : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CatchClause {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/CatchTree;)V
+	public fun getCatchBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getCatchParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Parameter;
+	public fun getParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParameterList;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaClass : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Class {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ClassTree;)V
+	public fun getAnonymousInitializers ()Ljava/util/List;
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ClassBody;
+	public fun getCompanionObjects ()Ljava/util/List;
+	public fun getDeclarations ()Ljava/util/List;
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getName ()Ljava/lang/String;
+	public fun getNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getNameAsSafeName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getParents ()Ljava/util/List;
+	public fun getPrimaryConstructor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/PrimaryConstructor;
+	public fun getPrimaryConstructorModifierList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ModifierList;
+	public fun getPrimaryConstructorParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParameterList;
+	public fun getPrimaryConstructorParameters ()Ljava/util/List;
+	public fun getProperties ()Ljava/util/List;
+	public fun getSecondaryConstructors ()Ljava/util/List;
+	public fun getSuperTypeListEntries ()Ljava/util/List;
+	public fun hasExplicitPrimaryConstructor ()Z
+	public fun hasPrimaryConstructor ()Z
+	public fun isAnnotation ()Z
+	public fun isData ()Z
+	public fun isEnum ()Z
+	public fun isInline ()Z
+	public fun isInner ()Z
+	public fun isInterface ()Z
+	public fun isLocal ()Z
+	public fun isSealed ()Z
+	public fun isTopLevel ()Z
+	public fun isValue ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaCompoundAssignment : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/AssignmentExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/CompoundAssignmentTree;)V
+	public fun getLeft ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getOperationToken ()Ljava/lang/String;
+	public fun getOperationTokenRpr ()Ljava/lang/String;
+	public fun getRight ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaCompoundAssignmentRHS : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BinaryExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/CompoundAssignmentTree;)V
+	public fun getLeft ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getOperationToken ()Ljava/lang/String;
+	public fun getOperationTokenRpr ()Ljava/lang/String;
+	public fun getRight ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public abstract class arrow/meta/plugins/analysis/java/ast/elements/JavaConditional : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/IfExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/ExpressionTree;Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/Tree;)V
+	public fun getCondition ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getElseExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getThenExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaConstructor : arrow/meta/plugins/analysis/java/ast/elements/JavaMethod, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SecondaryConstructor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/MethodTree;)V
+	public fun getContainingClassOrObject ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ClassOrObject;
+	public fun getDelegationCall ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ConstructorDelegationCall;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaConstructorCall : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CallExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/NewClassTree;)V
+	public fun getCalleeExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getLambdaArguments ()Ljava/util/List;
+	public fun getTypeArguments ()Ljava/util/List;
+	public fun getValueArguments ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaContinue : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ContinueExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ContinueTree;)V
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaDefaultValueArgument : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/DefaultValueArgument {
+	public fun <init> (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;)V
+	public fun getArguments ()Ljava/util/List;
+	public fun getValueArgument ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ValueArgument;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaDoWhile : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DoWhileExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/DoWhileLoopTree;)V
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getCondition ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaElement : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ModifierListOwner {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;)V
+	public fun getAnnotationEntries ()Ljava/util/List;
+	public fun getAnnotations ()Ljava/util/List;
+	public fun getModifierList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ModifierList;
+	public fun getPsiOrParent ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public final fun getResolvedCall ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall;
+	public fun getResolvedCall (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall;
+	public fun getText ()Ljava/lang/String;
+	public fun getVariableDescriptor (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/VariableDescriptor;
+	public fun impl ()Lcom/sun/source/tree/Tree;
+	public synthetic fun impl ()Ljava/lang/Object;
+	public fun lastBlockStatementOrThis ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun location ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CompilerMessageSourceLocation;
+	public fun parents ()Ljava/util/List;
+	public final fun type ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun type (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaElementUtilsKt {
+	public static final fun fqName (Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/java/AnalysisContext;)Ljava/lang/String;
+	public static final fun getArgumentsFromEverywhere (Lcom/sun/source/tree/ExpressionTree;)Ljava/util/List;
+	public static final fun getName (Lcom/sun/source/tree/Tree;)Ljava/lang/String;
+	public static final fun getTypeArgumentsFromEverywhere (Lcom/sun/source/tree/ExpressionTree;)Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaEmptyBlock : arrow/meta/plugins/analysis/java/ast/elements/JavaBlockParent, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/EmptyStatementTree;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaEnhancedFor : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ForExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/EnhancedForLoopTree;)V
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getDestructuringDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DestructuringDeclaration;
+	public fun getLoopParameter ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Parameter;
+	public fun getLoopRange ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaExpressionValueArgument : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ExpressionValueArgument {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;)V
+	public fun getArguments ()Ljava/util/List;
+	public fun getValueArgument ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ValueArgument;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaFakeReference : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression {
+	public fun <init> (Ljava/lang/String;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;)V
+	public fun getPsiOrParent ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getReferencedName ()Ljava/lang/String;
+	public fun getReferencedNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getResolvedCall (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall;
+	public fun getText ()Ljava/lang/String;
+	public fun getVariableDescriptor (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/VariableDescriptor;
+	public fun impl ()Ljava/lang/Object;
+	public fun lastBlockStatementOrThis ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun location ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CompilerMessageSourceLocation;
+	public fun parents ()Ljava/util/List;
+	public fun type (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolutionContext;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaFinally : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FinallySection {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/TryTree;)V
+	public fun getFinalExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaFor : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ThreePieceForExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ForLoopTree;)V
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getCondition ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getInitializer ()Ljava/util/List;
+	public fun getUpdate ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaIdentifier : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/NameReferenceExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/IdentifierTree;)V
+	public fun getReferencedName ()Ljava/lang/String;
+	public fun getReferencedNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaIf : arrow/meta/plugins/analysis/java/ast/elements/JavaConditional {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/IfTree;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaInstanceInitializer : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/AnonymousInitializer {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/BlockTree;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Declaration;)V
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getContainingDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Declaration;
+	public fun getName ()Ljava/lang/String;
+	public fun getParents ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaInstanceOf : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/IsExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/InstanceOfTree;)V
+	public fun getLeftHandSide ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun isNegated ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaLabeled : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/LabeledExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/LabeledStatementTree;)V
+	public fun getBaseExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaLambda : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DeclarationWithBody, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FunctionLiteral, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/LambdaExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/LambdaExpressionTree;)V
+	public fun body ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getBodyBlockExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression;
+	public fun getBodyExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getFunctionLiteral ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FunctionLiteral;
+	public fun getName ()Ljava/lang/String;
+	public fun getNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getNameAsSafeName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getParents ()Ljava/util/List;
+	public fun getReceiverTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getTypeConstraintList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeConstraintList;
+	public fun getTypeConstraints ()Ljava/util/List;
+	public fun getTypeParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeParameterList;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getValueParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParameterList;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun hasBlockBody ()Z
+	public fun hasBody ()Z
+	public fun hasDeclaredReturnType ()Z
+	public fun hasParameterSpecification ()Z
+	public fun isLocal ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaLiteral : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ConstantExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/LiteralTree;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaMemberReference : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CallableReferenceExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/MemberReferenceTree;)V
+	public fun getCallableReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getHasQuestionMarks ()Z
+	public fun getReceiverExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun isEmptyLHS ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaMemberSelect : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CallExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/MemberSelectTree;)V
+	public fun getCalleeExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getLambdaArguments ()Ljava/util/List;
+	public fun getTypeArguments ()Ljava/util/List;
+	public fun getValueArguments ()Ljava/util/List;
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaMethod : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/NamedFunction {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/MethodTree;)V
+	public fun body ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getBodyBlockExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression;
+	public fun getBodyExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getInitializer ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getName ()Ljava/lang/String;
+	public fun getNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getNameAsSafeName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getParents ()Ljava/util/List;
+	public fun getReceiverTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getTypeConstraintList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeConstraintList;
+	public fun getTypeConstraints ()Ljava/util/List;
+	public fun getTypeParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeParameterList;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getValueParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParameterList;
+	public fun getValueParameters ()Ljava/util/List;
+	public fun hasBlockBody ()Z
+	public fun hasBody ()Z
+	public fun hasDeclaredReturnType ()Z
+	public fun hasInitializer ()Z
+	public fun isLocal ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaNull : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/NullExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/LiteralTree;)V
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaOperation : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/OperationExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;)V
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	protected final fun getOperatorName ()Ljava/lang/String;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaParameter : arrow/meta/plugins/analysis/java/ast/elements/JavaParameterOrVariable, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Parameter {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/VariableTree;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DeclarationWithBody;)V
+	public fun getDefaultValue ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getDestructuringDeclaration ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DestructuringDeclaration;
+	public fun getOwnerFunction ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/DeclarationWithBody;
+	public fun hasDefaultValue ()Z
+	public fun hasValOrVar ()Z
+	public fun isCatchParameter ()Z
+	public fun isLoopParameter ()Z
+	public fun isMutable ()Z
+	public fun isVarArg ()Z
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaParameterOrVariable : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CallableDeclaration {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/VariableTree;)V
+	public fun getFqName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FqName;
+	public fun getName ()Ljava/lang/String;
+	public fun getNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getNameAsSafeName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getParents ()Ljava/util/List;
+	public fun getReceiverTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getText ()Ljava/lang/String;
+	public fun getTypeConstraintList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeConstraintList;
+	public fun getTypeConstraints ()Ljava/util/List;
+	public fun getTypeParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeParameterList;
+	public fun getTypeParameters ()Ljava/util/List;
+	public fun getTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getValueParameterList ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParameterList;
+	public fun getValueParameters ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaParenthesized : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ParenthesizedExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ParenthesizedTree;)V
+	public fun getExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaResolvedCall : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/ResolvedCall {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;Lcom/sun/tools/javac/code/Symbol;Lcom/sun/source/tree/Tree;Ljava/util/List;Ljava/util/List;)V
+	public fun getCallElement ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Element;
+	public fun getDispatchReceiver ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverValue;
+	public fun getExtensionReceiver ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ReceiverValue;
+	public fun getReceiverExpression ()Larrow/meta/plugins/analysis/java/ast/elements/JavaElement;
+	public synthetic fun getReceiverExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getResultingDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/CallableDescriptor;
+	public fun getReturnType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun getTypeArguments ()Ljava/util/Map;
+	public fun getValueArguments ()Ljava/util/Map;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaResolvedCallKt {
+	public static final fun resolvedCall (Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;Ljava/util/List;)Larrow/meta/plugins/analysis/java/ast/elements/JavaResolvedCall;
+	public static synthetic fun resolvedCall$default (Lcom/sun/source/tree/Tree;Larrow/meta/plugins/analysis/java/AnalysisContext;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Larrow/meta/plugins/analysis/java/ast/elements/JavaResolvedCall;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaReturn : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ReturnExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ReturnTree;)V
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getLabeledExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getReturnedExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSingleBlock : arrow/meta/plugins/analysis/java/ast/elements/JavaBlockParent, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ExpressionStatementTree;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSourceLocation : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/CompilerMessageSourceLocation {
+	public static final field Companion Larrow/meta/plugins/analysis/java/ast/elements/JavaSourceLocation$Companion;
+	public fun <init> (Lcom/sun/source/tree/CompilationUnitTree;JJ)V
+	public fun getColumn ()I
+	public fun getColumnEnd ()I
+	public fun getLine ()I
+	public fun getLineContent ()Ljava/lang/String;
+	public fun getLineEnd ()I
+	public fun getPath ()Ljava/lang/String;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSourceLocation$Companion {
+	public final fun invoke (Lcom/sun/source/tree/CompilationUnitTree;JJ)Larrow/meta/plugins/analysis/java/ast/elements/JavaSourceLocation;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSuper : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SuperExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/IdentifierTree;)V
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getSuperTypeQualifier ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSwitch : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/WhenExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/SwitchTree;)V
+	public fun getElseExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getEntries ()Ljava/util/List;
+	public fun getSubjectExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getSubjectVariable ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Property;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaSynchronized : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SynchronizedExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/SynchronizedTree;)V
+	public fun getBlock ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression;
+	public fun getSubject ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTernaryConditional : arrow/meta/plugins/analysis/java/ast/elements/JavaConditional {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/ConditionalExpressionTree;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaThis : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ThisExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/IdentifierTree;)V
+	public fun getLabelName ()Ljava/lang/String;
+	public fun getLabelNameAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getTargetLabel ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTreeUtilsKt {
+	public static final fun accept (Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/TreeVisitor;Ljava/lang/Object;)Ljava/lang/Object;
+	public static final fun accept (Ljava/lang/Iterable;Lcom/sun/source/tree/TreeVisitor;Ljava/lang/Object;)Ljava/util/List;
+	public static final fun visit (Lcom/sun/source/tree/Tree;Lcom/sun/source/util/SimpleTreeVisitor;)Ljava/lang/Object;
+	public static final fun visitRecursively (Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/TreeVisitor;)V
+	public static final fun visitRecursively (Lcom/sun/source/tree/Tree;Lcom/sun/source/tree/TreeVisitor;Ljava/lang/Object;)V
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaTry : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TryExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/TryTree;)V
+	public fun getCatchClauses ()Ljava/util/List;
+	public fun getFinallyBlock ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/FinallySection;
+	public fun getTryBlock ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/BlockExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeCast : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeCastExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/TypeCastTree;)V
+	public fun getKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeCastExpresionKind;
+	public fun getLeft ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getOperationReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+	public fun getOperationToken ()Ljava/lang/String;
+	public fun getRight ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeElement : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeElement {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;)V
+	public fun getTypeArgumentsAsTypes ()Ljava/util/List;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeParameter : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeParameter {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/TypeParameterTree;)V
+	public fun getExtendsBounds ()Ljava/util/List;
+	public fun getVariance ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Variance;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeProjection : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeProjection {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;)V
+	public fun getProjectionKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ProjectionKind;
+	public fun getTypeReference ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeReference : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeReference {
+	public static final field Companion Larrow/meta/plugins/analysis/java/ast/elements/JavaTypeReference$Companion;
+	public synthetic fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getTypeElement ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/TypeElement;
+	public final fun getUnderlyingTree ()Lcom/sun/source/tree/Tree;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaTypeReference$Companion {
+	public final fun invoke (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/Tree;)Larrow/meta/plugins/analysis/java/ast/elements/JavaTypeReference;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaUnary : arrow/meta/plugins/analysis/java/ast/elements/JavaOperation, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/UnaryExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/UnaryTree;)V
+	public fun getBaseExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public class arrow/meta/plugins/analysis/java/ast/elements/JavaValueArgument : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ValueArgument {
+	public fun <init> (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;)V
+	public fun getArgumentExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getArgumentName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ValueArgumentName;
+	public fun isExternal ()Z
+	public fun isNamed ()Z
+	public fun isSpread ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaValueArgumentName : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/ValueArgumentName {
+	public fun <init> (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ValueParameterDescriptor;)V
+	public fun getAsName ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Name;
+	public fun getReferenceExpression ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/SimpleNameExpression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaVariable : arrow/meta/plugins/analysis/java/ast/elements/JavaParameterOrVariable, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/VariableDeclaration {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/VariableTree;)V
+	public fun getInitializer ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun hasInitializer ()Z
+	public fun isVar ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/JavaWhile : arrow/meta/plugins/analysis/java/ast/elements/JavaElement, arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/WhileExpression {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Lcom/sun/source/tree/WhileLoopTree;)V
+	public fun getBody ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+	public fun getCondition ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/elements/Expression;
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/elements/RecursiveTreeVisitor : com/sun/source/util/SimpleTreeVisitor {
+	public fun <init> (Lcom/sun/source/tree/TreeVisitor;)V
+	public synthetic fun visitAnnotatedType (Lcom/sun/source/tree/AnnotatedTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitAnnotatedType (Lcom/sun/source/tree/AnnotatedTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitAnnotation (Lcom/sun/source/tree/AnnotationTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitAnnotation (Lcom/sun/source/tree/AnnotationTree;Ljava/lang/Object;)V
+	public synthetic fun visitArrayAccess (Lcom/sun/source/tree/ArrayAccessTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitArrayAccess (Lcom/sun/source/tree/ArrayAccessTree;Ljava/lang/Object;)V
+	public synthetic fun visitArrayType (Lcom/sun/source/tree/ArrayTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitArrayType (Lcom/sun/source/tree/ArrayTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitAssert (Lcom/sun/source/tree/AssertTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitAssert (Lcom/sun/source/tree/AssertTree;Ljava/lang/Object;)V
+	public synthetic fun visitAssignment (Lcom/sun/source/tree/AssignmentTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitAssignment (Lcom/sun/source/tree/AssignmentTree;Ljava/lang/Object;)V
+	public synthetic fun visitBinary (Lcom/sun/source/tree/BinaryTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitBinary (Lcom/sun/source/tree/BinaryTree;Ljava/lang/Object;)V
+	public synthetic fun visitBlock (Lcom/sun/source/tree/BlockTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitBlock (Lcom/sun/source/tree/BlockTree;Ljava/lang/Object;)V
+	public synthetic fun visitBreak (Lcom/sun/source/tree/BreakTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitBreak (Lcom/sun/source/tree/BreakTree;Ljava/lang/Object;)V
+	public synthetic fun visitCase (Lcom/sun/source/tree/CaseTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCase (Lcom/sun/source/tree/CaseTree;Ljava/lang/Object;)V
+	public synthetic fun visitCatch (Lcom/sun/source/tree/CatchTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCatch (Lcom/sun/source/tree/CatchTree;Ljava/lang/Object;)V
+	public synthetic fun visitClass (Lcom/sun/source/tree/ClassTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitClass (Lcom/sun/source/tree/ClassTree;Ljava/lang/Object;)V
+	public synthetic fun visitCompilationUnit (Lcom/sun/source/tree/CompilationUnitTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCompilationUnit (Lcom/sun/source/tree/CompilationUnitTree;Ljava/lang/Object;)V
+	public synthetic fun visitCompoundAssignment (Lcom/sun/source/tree/CompoundAssignmentTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCompoundAssignment (Lcom/sun/source/tree/CompoundAssignmentTree;Ljava/lang/Object;)V
+	public synthetic fun visitConditionalExpression (Lcom/sun/source/tree/ConditionalExpressionTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitConditionalExpression (Lcom/sun/source/tree/ConditionalExpressionTree;Ljava/lang/Object;)V
+	public synthetic fun visitContinue (Lcom/sun/source/tree/ContinueTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitContinue (Lcom/sun/source/tree/ContinueTree;Ljava/lang/Object;)V
+	public synthetic fun visitDoWhileLoop (Lcom/sun/source/tree/DoWhileLoopTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitDoWhileLoop (Lcom/sun/source/tree/DoWhileLoopTree;Ljava/lang/Object;)V
+	public synthetic fun visitEmptyStatement (Lcom/sun/source/tree/EmptyStatementTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitEmptyStatement (Lcom/sun/source/tree/EmptyStatementTree;Ljava/lang/Object;)V
+	public synthetic fun visitEnhancedForLoop (Lcom/sun/source/tree/EnhancedForLoopTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitEnhancedForLoop (Lcom/sun/source/tree/EnhancedForLoopTree;Ljava/lang/Object;)V
+	public synthetic fun visitErroneous (Lcom/sun/source/tree/ErroneousTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitErroneous (Lcom/sun/source/tree/ErroneousTree;Ljava/lang/Object;)V
+	public synthetic fun visitExports (Lcom/sun/source/tree/ExportsTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitExports (Lcom/sun/source/tree/ExportsTree;Ljava/lang/Object;)V
+	public synthetic fun visitExpressionStatement (Lcom/sun/source/tree/ExpressionStatementTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitExpressionStatement (Lcom/sun/source/tree/ExpressionStatementTree;Ljava/lang/Object;)V
+	public synthetic fun visitForLoop (Lcom/sun/source/tree/ForLoopTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitForLoop (Lcom/sun/source/tree/ForLoopTree;Ljava/lang/Object;)V
+	public synthetic fun visitIdentifier (Lcom/sun/source/tree/IdentifierTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitIdentifier (Lcom/sun/source/tree/IdentifierTree;Ljava/lang/Object;)V
+	public synthetic fun visitIf (Lcom/sun/source/tree/IfTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitIf (Lcom/sun/source/tree/IfTree;Ljava/lang/Object;)V
+	public synthetic fun visitImport (Lcom/sun/source/tree/ImportTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitImport (Lcom/sun/source/tree/ImportTree;Ljava/lang/Object;)V
+	public synthetic fun visitInstanceOf (Lcom/sun/source/tree/InstanceOfTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitInstanceOf (Lcom/sun/source/tree/InstanceOfTree;Ljava/lang/Object;)V
+	public synthetic fun visitIntersectionType (Lcom/sun/source/tree/IntersectionTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitIntersectionType (Lcom/sun/source/tree/IntersectionTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitLabeledStatement (Lcom/sun/source/tree/LabeledStatementTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitLabeledStatement (Lcom/sun/source/tree/LabeledStatementTree;Ljava/lang/Object;)V
+	public synthetic fun visitLambdaExpression (Lcom/sun/source/tree/LambdaExpressionTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitLambdaExpression (Lcom/sun/source/tree/LambdaExpressionTree;Ljava/lang/Object;)V
+	public synthetic fun visitLiteral (Lcom/sun/source/tree/LiteralTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitLiteral (Lcom/sun/source/tree/LiteralTree;Ljava/lang/Object;)V
+	public synthetic fun visitMemberReference (Lcom/sun/source/tree/MemberReferenceTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitMemberReference (Lcom/sun/source/tree/MemberReferenceTree;Ljava/lang/Object;)V
+	public synthetic fun visitMemberSelect (Lcom/sun/source/tree/MemberSelectTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitMemberSelect (Lcom/sun/source/tree/MemberSelectTree;Ljava/lang/Object;)V
+	public synthetic fun visitMethod (Lcom/sun/source/tree/MethodTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitMethod (Lcom/sun/source/tree/MethodTree;Ljava/lang/Object;)V
+	public synthetic fun visitMethodInvocation (Lcom/sun/source/tree/MethodInvocationTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitMethodInvocation (Lcom/sun/source/tree/MethodInvocationTree;Ljava/lang/Object;)V
+	public synthetic fun visitModifiers (Lcom/sun/source/tree/ModifiersTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitModifiers (Lcom/sun/source/tree/ModifiersTree;Ljava/lang/Object;)V
+	public synthetic fun visitModule (Lcom/sun/source/tree/ModuleTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitModule (Lcom/sun/source/tree/ModuleTree;Ljava/lang/Object;)V
+	public synthetic fun visitNewArray (Lcom/sun/source/tree/NewArrayTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitNewArray (Lcom/sun/source/tree/NewArrayTree;Ljava/lang/Object;)V
+	public synthetic fun visitNewClass (Lcom/sun/source/tree/NewClassTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitNewClass (Lcom/sun/source/tree/NewClassTree;Ljava/lang/Object;)V
+	public synthetic fun visitOpens (Lcom/sun/source/tree/OpensTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitOpens (Lcom/sun/source/tree/OpensTree;Ljava/lang/Object;)V
+	public synthetic fun visitOther (Lcom/sun/source/tree/Tree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitOther (Lcom/sun/source/tree/Tree;Ljava/lang/Object;)V
+	public synthetic fun visitPackage (Lcom/sun/source/tree/PackageTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitPackage (Lcom/sun/source/tree/PackageTree;Ljava/lang/Object;)V
+	public synthetic fun visitParameterizedType (Lcom/sun/source/tree/ParameterizedTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitParameterizedType (Lcom/sun/source/tree/ParameterizedTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitParenthesized (Lcom/sun/source/tree/ParenthesizedTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitParenthesized (Lcom/sun/source/tree/ParenthesizedTree;Ljava/lang/Object;)V
+	public synthetic fun visitPrimitiveType (Lcom/sun/source/tree/PrimitiveTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitPrimitiveType (Lcom/sun/source/tree/PrimitiveTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitProvides (Lcom/sun/source/tree/ProvidesTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitProvides (Lcom/sun/source/tree/ProvidesTree;Ljava/lang/Object;)V
+	public synthetic fun visitRequires (Lcom/sun/source/tree/RequiresTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitRequires (Lcom/sun/source/tree/RequiresTree;Ljava/lang/Object;)V
+	public synthetic fun visitReturn (Lcom/sun/source/tree/ReturnTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitReturn (Lcom/sun/source/tree/ReturnTree;Ljava/lang/Object;)V
+	public synthetic fun visitSwitch (Lcom/sun/source/tree/SwitchTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitSwitch (Lcom/sun/source/tree/SwitchTree;Ljava/lang/Object;)V
+	public synthetic fun visitSynchronized (Lcom/sun/source/tree/SynchronizedTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitSynchronized (Lcom/sun/source/tree/SynchronizedTree;Ljava/lang/Object;)V
+	public synthetic fun visitThrow (Lcom/sun/source/tree/ThrowTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitThrow (Lcom/sun/source/tree/ThrowTree;Ljava/lang/Object;)V
+	public synthetic fun visitTry (Lcom/sun/source/tree/TryTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitTry (Lcom/sun/source/tree/TryTree;Ljava/lang/Object;)V
+	public synthetic fun visitTypeCast (Lcom/sun/source/tree/TypeCastTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitTypeCast (Lcom/sun/source/tree/TypeCastTree;Ljava/lang/Object;)V
+	public synthetic fun visitTypeParameter (Lcom/sun/source/tree/TypeParameterTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitTypeParameter (Lcom/sun/source/tree/TypeParameterTree;Ljava/lang/Object;)V
+	public synthetic fun visitUnary (Lcom/sun/source/tree/UnaryTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitUnary (Lcom/sun/source/tree/UnaryTree;Ljava/lang/Object;)V
+	public synthetic fun visitUnionType (Lcom/sun/source/tree/UnionTypeTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitUnionType (Lcom/sun/source/tree/UnionTypeTree;Ljava/lang/Object;)V
+	public synthetic fun visitUses (Lcom/sun/source/tree/UsesTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitUses (Lcom/sun/source/tree/UsesTree;Ljava/lang/Object;)V
+	public synthetic fun visitVariable (Lcom/sun/source/tree/VariableTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitVariable (Lcom/sun/source/tree/VariableTree;Ljava/lang/Object;)V
+	public synthetic fun visitWhileLoop (Lcom/sun/source/tree/WhileLoopTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitWhileLoop (Lcom/sun/source/tree/WhileLoopTree;Ljava/lang/Object;)V
+	public synthetic fun visitWildcard (Lcom/sun/source/tree/WildcardTree;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitWildcard (Lcom/sun/source/tree/WildcardTree;Ljava/lang/Object;)V
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/types/JavaType : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/type/TypeMirror;)V
+	public fun compareTo (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun getArguments ()Ljava/util/List;
+	public fun getDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassDescriptor;
+	public fun getUnwrappedNotNullableType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun intersectIfPossible (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;)Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun isAnyOrNullableAny ()Z
+	public fun isBoolean ()Z
+	public fun isByte ()Z
+	public fun isChar ()Z
+	public fun isDouble ()Z
+	public fun isEqualTo (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;)Z
+	public fun isFloat ()Z
+	public fun isInt ()Z
+	public fun isLong ()Z
+	public fun isMarkedNullable ()Z
+	public fun isNullable ()Z
+	public fun isShort ()Z
+	public fun isString ()Z
+	public fun isSubtypeOf (Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;)Z
+	public fun isTypeParameter ()Z
+	public fun isUnsignedNumberType ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/types/JavaTypeConstructor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeConstructor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/TypeElement;)V
+	public fun getDeclarationDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassifierDescriptor;
+	public fun getParameters ()Ljava/util/List;
+	public fun getSupertypes ()Ljava/util/Collection;
+	public fun isDenotable ()Z
+	public fun isFinal ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/types/JavaTypeParameterConstructor : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/TypeConstructor {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/element/TypeParameterElement;)V
+	public fun getDeclarationDescriptor ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/descriptors/ClassifierDescriptor;
+	public fun getParameters ()Ljava/util/List;
+	public fun getSupertypes ()Ljava/util/Collection;
+	public fun isDenotable ()Z
+	public fun isFinal ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/types/JavaTypeProjection : arrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/TypeProjection {
+	public fun <init> (Larrow/meta/plugins/analysis/java/AnalysisContext;Ljavax/lang/model/type/TypeMirror;)V
+	public fun getProjectionKind ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Variance;
+	public fun getType ()Larrow/meta/plugins/analysis/phases/analysis/solver/ast/context/types/Type;
+	public fun isStarProjection ()Z
+}
+
+public final class arrow/meta/plugins/analysis/java/ast/types/JavaTypeUtilsKt {
+	public static final fun allSupertypes (Ljavax/lang/model/type/TypeMirror;Larrow/meta/plugins/analysis/java/AnalysisContext;)Ljava/util/Set;
+	public static final fun visit (Ljavax/lang/model/type/TypeMirror;Ljavax/lang/model/util/SimpleTypeVisitor9;)Ljava/lang/Object;
+}
+

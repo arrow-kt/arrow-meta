@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.kotlin)
   alias(libs.plugins.arrowGradleConfig.formatter)
   alias(libs.plugins.arrowGradleConfig.publish)
+  alias(libs.plugins.kotlin.binaryCompatibilityValidator)
 }
 
 tasks.processResources {
