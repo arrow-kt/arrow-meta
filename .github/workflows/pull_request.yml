@@ -28,6 +28,11 @@ jobs:
           distribution: 'adopt'
           java-version: '15'
 
+      - name: Build and test with Gradle
+        uses: gradle/gradle-build-action@v2.1.4
+        with:
+          arguments: -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace
+
       - name: Upload reports
         uses: actions/upload-artifact@v3.0.0
         with:
