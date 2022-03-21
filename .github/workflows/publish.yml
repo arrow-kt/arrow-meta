@@ -101,20 +101,6 @@ jobs:
           !contains(needs.build.outputs.analysis-version, 'rc')
         run: ./gradlew --full-stacktrace publishToSonatype closeAndReleaseSonatypeStagingRepository
 
-      - name: Publish alpha/beta/rc gradle plugins
-        if: |
-          contains(needs.build.outputs.analysis-version, 'alpha') ||
-          contains(needs.build.outputs.analysis-version, 'beta') ||
-          contains(needs.build.outputs.analysis-version, 'rc')
-        run: ./gradlew --full-stacktrace publishPlugins
-
-      - name: Publish final gradle plugins
-        if: |
-          !contains(needs.build.outputs.analysis-version, 'alpha') &&
-          !contains(needs.build.outputs.analysis-version, 'beta') &&
-          !contains(needs.build.outputs.analysis-version, 'rc')
-        run: ./gradlew --full-stacktrace publishPlugins
-
       - name: Stop Gradle daemons
         run: ./gradlew --stop
 
