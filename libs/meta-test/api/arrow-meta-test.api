@@ -1,0 +1,177 @@
+public abstract class arrow/meta/plugin/testing/Assert {
+}
+
+public abstract class arrow/meta/plugin/testing/Assert$SingleAssert : arrow/meta/plugin/testing/Assert {
+	public fun <init> ()V
+}
+
+public abstract interface class arrow/meta/plugin/testing/AssertSyntax {
+	public abstract fun allOf (Ljava/util/List;)Larrow/meta/plugin/testing/Assert;
+	public abstract fun allOf ([Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+	public abstract fun compilesWith (Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun evalsTo (Larrow/meta/plugin/testing/Code$Source;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun failsWith (Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun getCompiles ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun getEmptyAssert ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun getFails ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public abstract fun getSource (Ljava/lang/String;)Larrow/meta/plugin/testing/Code$Source;
+	public abstract fun plus (Larrow/meta/plugin/testing/Assert$SingleAssert;Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+}
+
+public final class arrow/meta/plugin/testing/AssertSyntax$DefaultImpls {
+	public static fun allOf (Larrow/meta/plugin/testing/AssertSyntax;Ljava/util/List;)Larrow/meta/plugin/testing/Assert;
+	public static fun allOf (Larrow/meta/plugin/testing/AssertSyntax;[Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+	public static fun compilesWith (Larrow/meta/plugin/testing/AssertSyntax;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public static fun evalsTo (Larrow/meta/plugin/testing/AssertSyntax;Larrow/meta/plugin/testing/Code$Source;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public static synthetic fun evalsTo$default (Larrow/meta/plugin/testing/AssertSyntax;Larrow/meta/plugin/testing/Code$Source;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public static fun failsWith (Larrow/meta/plugin/testing/AssertSyntax;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public static fun getSource (Larrow/meta/plugin/testing/AssertSyntax;Ljava/lang/String;)Larrow/meta/plugin/testing/Code$Source;
+	public static fun plus (Larrow/meta/plugin/testing/AssertSyntax;Larrow/meta/plugin/testing/Assert$SingleAssert;Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+}
+
+public abstract class arrow/meta/plugin/testing/Code {
+}
+
+public final class arrow/meta/plugin/testing/Code$Source : arrow/meta/plugin/testing/Code {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Larrow/meta/plugin/testing/Code$Source;
+	public static synthetic fun copy$default (Larrow/meta/plugin/testing/Code$Source;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Larrow/meta/plugin/testing/Code$Source;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFilename ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class arrow/meta/plugin/testing/CodeSyntax {
+	public abstract fun getEmptyCode ()Larrow/meta/plugin/testing/Code;
+	public abstract fun sources (Ljava/util/List;)Larrow/meta/plugin/testing/Code;
+	public abstract fun sources ([Larrow/meta/plugin/testing/Code$Source;)Larrow/meta/plugin/testing/Code;
+}
+
+public final class arrow/meta/plugin/testing/CodeSyntax$DefaultImpls {
+	public static fun sources (Larrow/meta/plugin/testing/CodeSyntax;Ljava/util/List;)Larrow/meta/plugin/testing/Code;
+	public static fun sources (Larrow/meta/plugin/testing/CodeSyntax;[Larrow/meta/plugin/testing/Code$Source;)Larrow/meta/plugin/testing/Code;
+}
+
+public final class arrow/meta/plugin/testing/CompilationAssertionsKt {
+	public static final fun assertThis (Larrow/meta/plugin/testing/CompilerTest;)V
+}
+
+public final class arrow/meta/plugin/testing/CompilerPlugin {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Larrow/meta/plugin/testing/CompilerPlugin;
+	public static synthetic fun copy$default (Larrow/meta/plugin/testing/CompilerPlugin;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Larrow/meta/plugin/testing/CompilerPlugin;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDependencies ()Ljava/util/List;
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class arrow/meta/plugin/testing/CompilerTest {
+	public static final field Companion Larrow/meta/plugin/testing/CompilerTest$Companion;
+	public fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function1;
+	public final fun component2 ()Lkotlin/jvm/functions/Function1;
+	public final fun component3 ()Lkotlin/jvm/functions/Function1;
+	public final fun copy (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/CompilerTest;
+	public static synthetic fun copy$default (Larrow/meta/plugin/testing/CompilerTest;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Larrow/meta/plugin/testing/CompilerTest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAssert ()Lkotlin/jvm/functions/Function1;
+	public final fun getCode ()Lkotlin/jvm/functions/Function1;
+	public final fun getConfig ()Lkotlin/jvm/functions/Function1;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class arrow/meta/plugin/testing/CompilerTest$Companion : arrow/meta/plugin/testing/AssertSyntax, arrow/meta/plugin/testing/CodeSyntax, arrow/meta/plugin/testing/ConfigSyntax {
+	public fun addArguments ([Ljava/lang/String;)Larrow/meta/plugin/testing/Config;
+	public fun addCommandLineProcessors ([Lorg/jetbrains/kotlin/compiler/plugin/CommandLineProcessor;)Larrow/meta/plugin/testing/Config;
+	public fun addCompilerPlugins ([Larrow/meta/plugin/testing/CompilerPlugin;)Larrow/meta/plugin/testing/Config;
+	public fun addDependencies ([Larrow/meta/plugin/testing/Dependency;)Larrow/meta/plugin/testing/Config;
+	public fun addMetaPlugins ([Larrow/meta/Meta;)Larrow/meta/plugin/testing/Config;
+	public fun addPluginOptions ([Larrow/meta/plugin/testing/PluginOption;)Larrow/meta/plugin/testing/Config;
+	public fun addSymbolProcessors ([Lcom/google/devtools/ksp/processing/SymbolProcessorProvider;)Larrow/meta/plugin/testing/Config;
+	public fun allOf (Ljava/util/List;)Larrow/meta/plugin/testing/Assert;
+	public fun allOf ([Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+	public fun analysisLib (Ljava/lang/String;)Larrow/meta/plugin/testing/Dependency;
+	public fun compilesWith (Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun evalsTo (Larrow/meta/plugin/testing/Code$Source;Ljava/lang/Object;Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun failsWith (Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun getCompiles ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun getEmptyAssert ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun getEmptyCode ()Larrow/meta/plugin/testing/Code;
+	public fun getEmptyConfig ()Larrow/meta/plugin/testing/Config;
+	public fun getFails ()Larrow/meta/plugin/testing/Assert$SingleAssert;
+	public fun getMetaDependencies ()Ljava/util/List;
+	public fun getSource (Ljava/lang/String;)Larrow/meta/plugin/testing/Code$Source;
+	public final fun invoke (Lkotlin/jvm/functions/Function1;)Larrow/meta/plugin/testing/CompilerTest;
+	public fun plus (Larrow/meta/plugin/testing/Assert$SingleAssert;Larrow/meta/plugin/testing/Assert$SingleAssert;)Larrow/meta/plugin/testing/Assert;
+	public fun plus (Larrow/meta/plugin/testing/Config;Larrow/meta/plugin/testing/Config;)Ljava/util/List;
+	public fun sources (Ljava/util/List;)Larrow/meta/plugin/testing/Code;
+	public fun sources ([Larrow/meta/plugin/testing/Code$Source;)Larrow/meta/plugin/testing/Code;
+}
+
+public abstract class arrow/meta/plugin/testing/Config {
+}
+
+public abstract interface class arrow/meta/plugin/testing/ConfigSyntax {
+	public abstract fun addArguments ([Ljava/lang/String;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addCommandLineProcessors ([Lorg/jetbrains/kotlin/compiler/plugin/CommandLineProcessor;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addCompilerPlugins ([Larrow/meta/plugin/testing/CompilerPlugin;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addDependencies ([Larrow/meta/plugin/testing/Dependency;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addMetaPlugins ([Larrow/meta/Meta;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addPluginOptions ([Larrow/meta/plugin/testing/PluginOption;)Larrow/meta/plugin/testing/Config;
+	public abstract fun addSymbolProcessors ([Lcom/google/devtools/ksp/processing/SymbolProcessorProvider;)Larrow/meta/plugin/testing/Config;
+	public abstract fun analysisLib (Ljava/lang/String;)Larrow/meta/plugin/testing/Dependency;
+	public abstract fun getEmptyConfig ()Larrow/meta/plugin/testing/Config;
+	public abstract fun getMetaDependencies ()Ljava/util/List;
+	public abstract fun plus (Larrow/meta/plugin/testing/Config;Larrow/meta/plugin/testing/Config;)Ljava/util/List;
+}
+
+public final class arrow/meta/plugin/testing/ConfigSyntax$DefaultImpls {
+	public static fun addArguments (Larrow/meta/plugin/testing/ConfigSyntax;[Ljava/lang/String;)Larrow/meta/plugin/testing/Config;
+	public static fun addCommandLineProcessors (Larrow/meta/plugin/testing/ConfigSyntax;[Lorg/jetbrains/kotlin/compiler/plugin/CommandLineProcessor;)Larrow/meta/plugin/testing/Config;
+	public static fun addCompilerPlugins (Larrow/meta/plugin/testing/ConfigSyntax;[Larrow/meta/plugin/testing/CompilerPlugin;)Larrow/meta/plugin/testing/Config;
+	public static fun addDependencies (Larrow/meta/plugin/testing/ConfigSyntax;[Larrow/meta/plugin/testing/Dependency;)Larrow/meta/plugin/testing/Config;
+	public static fun addMetaPlugins (Larrow/meta/plugin/testing/ConfigSyntax;[Larrow/meta/Meta;)Larrow/meta/plugin/testing/Config;
+	public static fun addPluginOptions (Larrow/meta/plugin/testing/ConfigSyntax;[Larrow/meta/plugin/testing/PluginOption;)Larrow/meta/plugin/testing/Config;
+	public static fun addSymbolProcessors (Larrow/meta/plugin/testing/ConfigSyntax;[Lcom/google/devtools/ksp/processing/SymbolProcessorProvider;)Larrow/meta/plugin/testing/Config;
+	public static fun analysisLib (Larrow/meta/plugin/testing/ConfigSyntax;Ljava/lang/String;)Larrow/meta/plugin/testing/Dependency;
+	public static fun getMetaDependencies (Larrow/meta/plugin/testing/ConfigSyntax;)Ljava/util/List;
+	public static fun plus (Larrow/meta/plugin/testing/ConfigSyntax;Larrow/meta/plugin/testing/Config;Larrow/meta/plugin/testing/Config;)Ljava/util/List;
+}
+
+public final class arrow/meta/plugin/testing/Dependency {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Larrow/meta/plugin/testing/Dependency;
+	public static synthetic fun copy$default (Larrow/meta/plugin/testing/Dependency;Ljava/lang/String;ILjava/lang/Object;)Larrow/meta/plugin/testing/Dependency;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMavenCoordinates ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class arrow/meta/plugin/testing/PluginOption {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Larrow/meta/plugin/testing/PluginOption;
+	public static synthetic fun copy$default (Larrow/meta/plugin/testing/PluginOption;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Larrow/meta/plugin/testing/PluginOption;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getPluginId ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

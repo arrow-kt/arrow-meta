@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.dokka) apply false
   alias(libs.plugins.arrowGradleConfig.nexus)
   alias(libs.plugins.arrowGradleConfig.formatter)
+  alias(libs.plugins.arrowGradleConfig.versioning)
   java
 }
 
@@ -17,8 +18,6 @@ allprojects {
 
   group = property("projects.group").toString()
 }
-
-version = property("projects.meta_version").toString()
 
 tasks {
   create<Exec>("generateDoc") {

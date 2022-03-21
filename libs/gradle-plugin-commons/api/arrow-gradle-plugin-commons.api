@@ -1,0 +1,29 @@
+public abstract interface class arrow/meta/plugin/gradle/ArrowMetaExtension {
+	public abstract fun getApplyDependencies ()Lorg/gradle/api/provider/Property;
+	public abstract fun getGeneratedSrcOutputDir ()Lorg/gradle/api/provider/Property;
+}
+
+public abstract interface class arrow/meta/plugin/gradle/ArrowMetaGradlePlugin : org/jetbrains/kotlin/gradle/plugin/KotlinCompilerPluginSupportPlugin {
+	public abstract fun addMetaDependency (Lorg/gradle/api/Project;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun apply (Lorg/gradle/api/Project;)V
+	public abstract fun applyToCompilation (Lorg/jetbrains/kotlin/gradle/plugin/KotlinCompilation;)Lorg/gradle/api/provider/Provider;
+	public abstract fun getArtifactId ()Ljava/lang/String;
+	public abstract fun getCompilerPluginId ()Ljava/lang/String;
+	public abstract fun getDependencies ()Ljava/util/List;
+	public abstract fun getGroupId ()Ljava/lang/String;
+	public abstract fun getPluginArtifact ()Lorg/jetbrains/kotlin/gradle/plugin/SubpluginArtifact;
+	public abstract fun getPluginId ()Ljava/lang/String;
+	public abstract fun getVersion ()Ljava/lang/String;
+	public abstract fun isApplicable (Lorg/jetbrains/kotlin/gradle/plugin/KotlinCompilation;)Z
+}
+
+public final class arrow/meta/plugin/gradle/ArrowMetaGradlePlugin$DefaultImpls {
+	public static fun addMetaDependency (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;Lorg/gradle/api/Project;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static fun apply (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;Lorg/gradle/api/Project;)V
+	public static fun applyToCompilation (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;Lorg/jetbrains/kotlin/gradle/plugin/KotlinCompilation;)Lorg/gradle/api/provider/Provider;
+	public static fun getCompilerPluginId (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;)Ljava/lang/String;
+	public static fun getPluginArtifact (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;)Lorg/jetbrains/kotlin/gradle/plugin/SubpluginArtifact;
+	public static fun getPluginArtifactForNative (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;)Lorg/jetbrains/kotlin/gradle/plugin/SubpluginArtifact;
+	public static fun isApplicable (Larrow/meta/plugin/gradle/ArrowMetaGradlePlugin;Lorg/jetbrains/kotlin/gradle/plugin/KotlinCompilation;)Z
+}
+
