@@ -25,7 +25,7 @@ jobs:
           java-version: '15'
 
       - name: Gradle build
-        run: ./gradlew --full-stacktrace build "-Psemver.stage=alpha"
+        run: ./gradlew --full-stacktrace build "-Psemver.stage=alpha" -x apiCheck
 
       - name: Stop Gradle daemons
         run: ./gradlew --stop
