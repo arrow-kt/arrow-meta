@@ -4,6 +4,7 @@
 [![Publish documentation](https://github.com/arrow-kt/arrow-meta/workflows/Publish%20Documentation/badge.svg)](https://github.com/arrow-kt/arrow-meta/actions?query=workflow%3A%22Publish+Documentation%22)
 [![Kotlin version badge](https://img.shields.io/badge/kotlin-1.6-blue.svg)](https://kotlinlang.org/docs/whatsnew16.html)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Maven Central](https://img.shields.io/maven-central/v/io.arrow-kt/arrow-meta?color=4caf50&label=latest%20release)](https://maven-badges.herokuapp.com/maven-central/io.arrow-kt/arrow-meta)
 
 Functional companion to Kotlin's Compiler
 
