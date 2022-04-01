@@ -793,16 +793,6 @@ public abstract interface class arrow/meta/phases/analysis/PreprocessedVirtualFi
 	public abstract fun isPassThrough (Larrow/meta/phases/CompilerContext;)Z
 }
 
-public final class arrow/meta/phases/analysis/diagnostic/PositionStrategiesKt {
-	public static final field onIdentifyingElement Lorg/jetbrains/kotlin/diagnostics/PositioningStrategy;
-	public static final field onNavigationElement Lorg/jetbrains/kotlin/diagnostics/PositioningStrategy;
-	public static final field onPublishedInternalOrphan Lorg/jetbrains/kotlin/diagnostics/PositioningStrategy;
-	public static final fun onPublishedApi (Lorg/jetbrains/kotlin/psi/KtDeclaration;Lorg/jetbrains/kotlin/resolve/BindingContext;)Lkotlin/Pair;
-	public static final fun position (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lorg/jetbrains/kotlin/diagnostics/PositioningStrategy;
-	public static synthetic fun position$default (Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lorg/jetbrains/kotlin/diagnostics/PositioningStrategy;
-	public static final fun publishedApiAnnotation (Lorg/jetbrains/kotlin/psi/KtDeclaration;)Lorg/jetbrains/kotlin/psi/KtAnnotationEntry;
-}
-
 public abstract interface class arrow/meta/phases/codegen/asm/ClassBuilder : arrow/meta/phases/ExtensionPhase {
 	public abstract fun interceptClassBuilder (Larrow/meta/phases/CompilerContext;Lorg/jetbrains/kotlin/codegen/ClassBuilderFactory;Lorg/jetbrains/kotlin/resolve/BindingContext;Lorg/jetbrains/kotlin/diagnostics/DiagnosticSink;)Lorg/jetbrains/kotlin/codegen/ClassBuilderFactory;
 }
@@ -912,6 +902,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public final fun irCall (Lorg/jetbrains/kotlin/descriptors/CallableDescriptor;)Lorg/jetbrains/kotlin/ir/expressions/IrExpression;
 	public final fun irConstructorCall (Lorg/jetbrains/kotlin/descriptors/ClassDescriptor;)Lorg/jetbrains/kotlin/ir/expressions/IrConstructorCall;
 	public final fun irGetterCall (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;)Lorg/jetbrains/kotlin/ir/expressions/IrCall;
+	public fun isAnonymous (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isAnyConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isArrayOrNullableArray (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isCapturedDynamic (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
@@ -938,6 +929,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun isLocalType (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isMarkedNullable (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isMarkedNullable (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
+	public fun isNotNullTypeParameter (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isNothing (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isNothingConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isNullableAny (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
@@ -990,6 +982,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun referenceProperty (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrPropertySymbol;
 	public fun referenceProperty (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;Lkotlin/jvm/functions/Function0;)Lorg/jetbrains/kotlin/ir/declarations/IrProperty;
 	public fun referencePropertyFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrPropertySymbol;
+	public fun referenceScopedTypeParameter (Lorg/jetbrains/kotlin/descriptors/TypeParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
 	public fun referenceScript (Lorg/jetbrains/kotlin/descriptors/ScriptDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrScriptSymbol;
 	public fun referenceSimpleFunction (Lorg/jetbrains/kotlin/descriptors/FunctionDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
 	public fun referenceSimpleFunctionFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
@@ -998,6 +991,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun referenceTypeParameter (Lorg/jetbrains/kotlin/descriptors/TypeParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
 	public fun referenceValueParameter (Lorg/jetbrains/kotlin/descriptors/ParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrValueParameterSymbol;
 	public fun referenceVariable (Lorg/jetbrains/kotlin/descriptors/VariableDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrVariableSymbol;
+	public fun replaceType (Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun size (Lorg/jetbrains/kotlin/types/model/TypeArgumentListMarker;)I
 	public final fun substitutedIrTypes (Lorg/jetbrains/kotlin/descriptors/CallableDescriptor;Lorg/jetbrains/kotlin/resolve/calls/inference/components/NewTypeSubstitutorByConstructorMap;)Ljava/util/List;
 	public fun substitutionSupertypePolicy (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Lorg/jetbrains/kotlin/types/TypeCheckerState$SupertypesPolicy;
@@ -1012,6 +1006,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun typeDepth (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)I
 	public fun typeDepth (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)I
 	public fun unlistFunction (Lorg/jetbrains/kotlin/ir/declarations/IrFunction;)V
+	public fun unwrapStubTypeVariableConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;
 	public fun upperBound (Lorg/jetbrains/kotlin/types/model/FlexibleTypeMarker;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
 	public fun upperBoundCount (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;)I
 	public fun upperBoundIfFlexible (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
