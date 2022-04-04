@@ -112,9 +112,8 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkConditionsI
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariant
 import arrow.meta.plugins.analysis.phases.analysis.solver.state.checkInvariantConsistency
 import arrow.meta.plugins.analysis.phases.analysis.solver.valueArgumentExpressions
-import arrow.meta.plugins.analysis.smt.ObjectFormula
+import arrow.meta.plugins.analysis.smt.*
 import arrow.meta.plugins.analysis.smt.renameObjectVariables
-import arrow.meta.plugins.analysis.smt.substituteDeclarationConstraints
 import arrow.meta.plugins.analysis.smt.substituteObjectVariables
 import arrow.meta.plugins.analysis.types.PrimitiveType
 import arrow.meta.plugins.analysis.types.asFloatingLiteral
@@ -1266,6 +1265,27 @@ private fun SolverState.checkBinaryExpression(
             )
           }
           stateAfter
+        }
+      }
+    }
+    (operator == "ANDAND" || operator == "OROR") -> {
+      val lhs = solver.makeObjectVariable(newName(data.context, "left", left))
+      val rhs = solver.makeObjectVariable(newName(data.context, "right", right))
+      checkExpressionConstraints(lhs, left, data).checkReturnInfo { stateAfterLhs ->
+        checkExpressionConstraints(rhs, right, data).checkReturnInfo { stateAfterRhs ->
+          cont {
+            when (operator) {
+              "ANDAND" -> solver.boolAnd(listOf(solver.boolValue(lhs), solver.boolValue(rhs)))
+              "OROR" -> solver.boolOr(listOf(solver.boolValue(lhs), solver.boolValue(rhs)))
+              else -> null
+            }?.let {
+              addConstraint(
+                NamedConstraint("boolean operator $operator", it),
+                stateAfterRhs.data.context
+              )
+            }
+            stateAfterRhs
+          }
         }
       }
     }

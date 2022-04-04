@@ -1939,8 +1939,65 @@ class AnalysisTests {
          Field(tag, field)
       """(
       withPlugin = { compilesNoUnreachable },
-      withoutPlugin = { compiles },
-      isMultiplatform = true
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `double conditional, part 1 (issue #31)`() {
+    """
+      ${imports()}
+      
+      @JvmInline
+      value class String5till10(val value: String) {
+        init {
+          require(value.length >= 5) { "String should be minimal 5 characters" }
+          require(value.length <= 10) { "String should be maximum 10 characters" }
+        }
+      }
+      
+      fun getRandomString(): String = "hello!"
+      
+      // This works
+      fun f() {
+        val value = getRandomString()
+        if (value.length > 6) {
+          if (value.length < 10) {
+            String5till10(value)
+          }
+        }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
+    )
+  }
+
+  @Test
+  fun `double conditional, part 2 (issue #31)`() {
+    """
+      ${imports()}
+      
+      @JvmInline
+      value class String5till10(val value: String) {
+        init {
+          require(value.length >= 5) { "String should be minimal 5 characters" }
+          require(value.length <= 10) { "String should be maximum 10 characters" }
+        }
+      }
+      
+      fun getRandomString(): String = "hello!"
+      
+      // This does not
+      fun f() {
+        val value = getRandomString()
+        if (value.length > 6 && value.length < 10) {
+          String5till10(value)
+        }
+      }
+      """(
+      withPlugin = { compilesNoUnreachable },
+      withoutPlugin = { compiles }
     )
   }
 }
