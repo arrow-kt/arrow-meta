@@ -998,8 +998,8 @@ private fun SolverState.checkCallArguments(
           val argUniqueName =
             solver.makeObjectVariable(newName(data.context, "vararg", expr, referencedElement))
           checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s ->
-            CallVarArgumentsInfo(r.left(), s.data)
-          }) { s ->
+              CallVarArgumentsInfo(r.left(), s.data)
+            }) { s ->
             cont { CallVarArgumentsInfo((argsUpToNow + listOf(argUniqueName)).right(), s.data) }
           }
         }
@@ -1051,8 +1051,8 @@ private fun SolverState.checkCallArguments(
             val argUniqueName =
               solver.makeObjectVariable(newName(data.context, name, expr, referencedElement))
             checkExpressionConstraints(argUniqueName, expr, data).checkReturnInfo({ r, s ->
-              CallArgumentsInfo(r.left(), s.data)
-            }) { s ->
+                CallArgumentsInfo(r.left(), s.data)
+              }) { s ->
               cont {
                 CallArgumentsInfo(
                   (argsUpToNow + listOf(CallArgumentVariable(name, argUniqueName))).right(),

@@ -148,13 +148,13 @@ private fun <A : Constructor<A>> Constructor<A>?.constraintsFromConstructor(
       val isRequireOrAssert = call.isRequireCall() || call.isAssertCall()
       if (call.specialKind == SpecialKind.Pre) {
         rewritePrecondition(
-          solverState,
-          context,
-          parameters,
-          !isRequireOrAssert,
-          call,
-          formula.formula
-        )
+            solverState,
+            context,
+            parameters,
+            !isRequireOrAssert,
+            call,
+            formula.formula
+          )
           ?.let { preConstraints.add(NamedConstraint(formula.msg, it)) }
       }
       // in constructors 'require' and 'assert' have a double duty

@@ -46,9 +46,9 @@ internal fun IrUtils.annotateWithConstraints(solverState: SolverState, fn: IrFun
           fn.addAnnotation(it)
         }
         notLookAnnotation(
-          declarationConstraints.doNotLookAtArgumentsWhen,
-          solverState.solver.formulaManager
-        )
+            declarationConstraints.doNotLookAtArgumentsWhen,
+            solverState.solver.formulaManager
+          )
           ?.let { fn.addAnnotation(it) }
         if (model.isALaw()) {
           getIrReturnedExpressionWithoutPostcondition(fn)?.let { fnDescriptor ->

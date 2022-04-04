@@ -103,25 +103,25 @@ object MathLaws {
   @Law
   inline fun signTopLevelLaw(x: Double): Double =
     sign(x).post({
-      it >= -1.0 &&
-        it <= 1.0 &&
-        when {
-          x == 0.0 -> it == 0.0
-          x > 0.0 -> it == 1.0
-          else -> it == -1.0
-        }
-    }) { "sign bounds + definition" }
+        it >= -1.0 &&
+          it <= 1.0 &&
+          when {
+            x == 0.0 -> it == 0.0
+            x > 0.0 -> it == 1.0
+            else -> it == -1.0
+          }
+      }) { "sign bounds + definition" }
   @Law
   inline fun signTopLevelLaw(x: Float): Float =
     sign(x).post({
-      it >= -1.0F &&
-        it <= 1.0F &&
-        when {
-          x == 0.0F -> it == 0.0F
-          x > 0.0F -> it == 1.0F
-          else -> it == -1.0F
-        }
-    }) { "sign bounds + definition" }
+        it >= -1.0F &&
+          it <= 1.0F &&
+          when {
+            x == 0.0F -> it == 0.0F
+            x > 0.0F -> it == 1.0F
+            else -> it == -1.0F
+          }
+      }) { "sign bounds + definition" }
 
   @Law
   inline fun maxLaw(a: Int, b: Int): Int =

@@ -212,10 +212,10 @@ internal fun SolverState.postPrimaryConstructor(
     .flatMap { checkExpressionConstraints(solver.thisVariable, bodyExpression, data) }
     .flatMap { finalState ->
       checkClassDeclarationInConstructorContext(
-        solver.thisVariable,
-        klass.declarations,
-        finalState.data
-      )
+          solver.thisVariable,
+          klass.declarations,
+          finalState.data
+        )
         .onEach { checkPost(finalState.data) }
     }
 
@@ -310,10 +310,10 @@ internal fun SolverState.checkSecondaryConstructor(
       }
       .flatMap { stateAfterPrimaryConstructorCall ->
         checkExpressionConstraints(
-          solver.thisVariable,
-          declaration.bodyExpression,
-          stateAfterPrimaryConstructorCall.data
-        )
+            solver.thisVariable,
+            declaration.bodyExpression,
+            stateAfterPrimaryConstructorCall.data
+          )
           .map { finalState -> checkPost(finalState.data) }
       }
   }

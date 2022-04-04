@@ -61,16 +61,16 @@ fun Solver.primitiveFormula(
 
 private val comparisonNames: List<FqName> =
   listOf(
-    "kotlin.Any.equals",
-    "kotlin.Comparable.equals",
-    "kotlin.Comparable.compareTo",
-    ">",
-    ">=",
-    "<",
-    "<=",
-    "==",
-    "!="
-  )
+      "kotlin.Any.equals",
+      "kotlin.Comparable.equals",
+      "kotlin.Comparable.compareTo",
+      ">",
+      ">=",
+      "<",
+      "<=",
+      "==",
+      "!="
+    )
     .map { FqName(it) }
 
 internal fun CallableDescriptor.isComparison() =

@@ -81,9 +81,9 @@ class Solver(context: SolverContext, nameProvider: NameProvider) :
   }
 
   fun decimalValue(formula: ObjectFormula): NumeralFormula.RationalFormula =
-      uninterpretedFunctions {
-    callUF(decimalValueFun, formula)
-  }
+    uninterpretedFunctions {
+      callUF(decimalValueFun, formula)
+    }
 
   fun field(fieldName: String, formula: ObjectFormula): ObjectFormula = uninterpretedFunctions {
     callUF(fieldFun, integerFormulaManager.makeVariable(fieldName), formula)

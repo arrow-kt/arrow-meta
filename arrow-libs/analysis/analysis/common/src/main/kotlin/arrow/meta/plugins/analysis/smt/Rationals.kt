@@ -22,35 +22,35 @@ internal fun Solver.rationalPlus(args: List<Formula>): NumeralFormula.RationalFo
 }
 
 internal fun Solver.rationalNegate(args: List<Formula>): NumeralFormula.RationalFormula? =
-    rationals {
-  if (args.size == 1) {
-    negate(args.rational().first())
-  } else null
-}
+  rationals {
+    if (args.size == 1) {
+      negate(args.rational().first())
+    } else null
+  }
 
 internal fun Solver.rationalMinus(args: List<Formula>): NumeralFormula.RationalFormula? =
-    rationals {
-  if (args.size == 2) {
-    val (left, right) = args.rational()
-    subtract(left, right)
-  } else null
-}
+  rationals {
+    if (args.size == 2) {
+      val (left, right) = args.rational()
+      subtract(left, right)
+    } else null
+  }
 
 internal fun Solver.rationalDivide(args: List<Formula>): NumeralFormula.RationalFormula? =
-    rationals {
-  if (args.size == 2) {
-    val (left, right) = args.rational()
-    divide(left, right)
-  } else null
-}
+  rationals {
+    if (args.size == 2) {
+      val (left, right) = args.rational()
+      divide(left, right)
+    } else null
+  }
 
 internal fun Solver.rationalMultiply(args: List<Formula>): NumeralFormula.RationalFormula? =
-    rationals {
-  if (args.size == 2) {
-    val (left, right) = args.rational()
-    multiply(left, right)
-  } else null
-}
+  rationals {
+    if (args.size == 2) {
+      val (left, right) = args.rational()
+      multiply(left, right)
+    } else null
+  }
 
 internal fun Solver.rationalGreaterThan(args: List<Formula>): BooleanFormula? = rationals {
   if (args.size == 2) {
