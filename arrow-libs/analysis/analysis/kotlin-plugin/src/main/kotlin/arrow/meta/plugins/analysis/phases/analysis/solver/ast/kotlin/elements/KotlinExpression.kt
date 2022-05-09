@@ -9,7 +9,9 @@ import arrow.meta.plugins.analysis.phases.analysis.solver.ast.kotlin.types.Kotli
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.psiUtil.lastBlockStatementOrThis
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
+import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 
+@OptIn(IDEAPluginsCompatibilityAPI::class)
 fun interface KotlinExpression : Expression, KotlinElement {
   override fun impl(): KtExpression
   override fun type(context: ResolutionContext): Type? =
