@@ -1,9 +1,9 @@
 package arrow.meta.phases.resolve
 
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
+import org.jetbrains.kotlin.types.TypeAttributes
 import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
@@ -32,7 +32,7 @@ val KotlinType.unwrappedNotNullableType: UnwrappedType
 fun KotlinType.intersection(vararg other: KotlinType): KotlinType {
   val constructor = IntersectionTypeConstructor(listOf(this) + other.toList())
   return KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(
-    Annotations.EMPTY,
+    TypeAttributes.Empty,
     constructor,
     emptyList(),
     false,

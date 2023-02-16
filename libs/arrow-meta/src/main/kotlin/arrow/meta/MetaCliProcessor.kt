@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
@@ -15,6 +16,7 @@ object ArrowMetaConfigurationKeys {
     CompilerConfigurationKey<List<String>>("base directory")
 }
 
+@OptIn(ExperimentalCompilerApi::class)
 abstract class MetaCliProcessor(private val metaPluginId: String) : CommandLineProcessor {
 
   companion object {

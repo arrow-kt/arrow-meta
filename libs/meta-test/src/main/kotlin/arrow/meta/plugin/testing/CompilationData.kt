@@ -3,11 +3,13 @@ package arrow.meta.plugin.testing
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 /**
  * Compilation data is a Monoid that can accumulate in its element as it's composed and merged with
  * other CompilationData elements
  */
+@OptIn(ExperimentalCompilerApi::class)
 internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
   val metaPlugins: List<ComponentRegistrar> = emptyList(),

@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package arrow.meta.plugin.testing
 
 import arrow.meta.Meta
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 /** Represents a dependency from `<artifact-id>:<version>` string. */
 data class Dependency(val mavenCoordinates: String)

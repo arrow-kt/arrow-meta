@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package arrow.meta.plugin.testing
 
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode
@@ -7,6 +9,8 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Paths
 import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import java.util.*
 
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
@@ -172,20 +176,20 @@ private fun assertEvalsTo(
   }
 }
 
-private fun assertCompiles(compilationResult: Result): Unit {
+private fun assertCompiles(compilationResult: Result) {
   assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
 }
 
-private fun assertCompilesWith(compilationResult: Result, check: (String) -> Boolean): Unit {
+private fun assertCompilesWith(compilationResult: Result, check: (String) -> Boolean) {
   assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
   assertThat(check(compilationResult.messages)).isTrue
 }
 
-private fun assertFails(compilationResult: Result): Unit {
+private fun assertFails(compilationResult: Result) {
   assertThat(compilationResult.exitCode).isNotEqualTo(ExitCode.OK)
 }
 
-private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean): Unit {
+private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean) {
   assertFails(compilationResult)
   assertThat(check(compilationResult.messages)).isTrue
 }
@@ -206,11 +210,11 @@ private fun call(className: String, expression: String, classesDirectory: File):
   val resultForMethodCall: Any? =
     classLoader.loadClass(fullClassName).getMethod(method).invoke(null)
   return when {
-    property.isNullOrBlank() -> resultForMethodCall
+    property.isBlank() -> resultForMethodCall
     else ->
       resultForMethodCall
         ?.javaClass
-        ?.getMethod("get${property.capitalize()}")
+        ?.getMethod("get${property.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}")
         ?.invoke(resultForMethodCall)
   }
 }

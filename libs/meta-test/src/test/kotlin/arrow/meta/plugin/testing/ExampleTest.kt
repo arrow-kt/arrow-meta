@@ -1,8 +1,10 @@
 package arrow.meta.plugin.testing
 
 import arrow.meta.plugin.testing.Code.Source
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 
+@OptIn(ExperimentalCompilerApi::class)
 class ExampleTest {
 
   @Test

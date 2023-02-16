@@ -2,7 +2,9 @@ package arrow.meta.plugin.testing
 
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
+@OptIn(ExperimentalCompilerApi::class)
 class ExampleCommandLineProcessor : CommandLineProcessor {
 
   companion object {

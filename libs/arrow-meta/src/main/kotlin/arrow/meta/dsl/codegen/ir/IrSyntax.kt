@@ -89,7 +89,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 /**
  * The codegen phase is where the compiler emits bytecode and metadata for the different platforms
  * the Kotlin language targets. In this phase, by default, the compiler would go into ASM codegen
- * for the JVM, or into IR codegen if IR is enabled. [IR] is the Intermediate Representation format
+ * for the JVM, or into IR codegen if IR is enabled. IR is the Intermediate Representation format
  * the new Kotlin compiler backend targets.
  */
 interface IrSyntax {
@@ -153,10 +153,10 @@ interface IrSyntax {
       IrGeneration { compilerContext, moduleFragment, pluginContext ->
     moduleFragment.transformChildren(
       object : IrElementTransformer<Unit> {
-        override fun visitDeclaration(expression: IrDeclarationBase, data: Unit): IrStatement =
-          expression.transformChildren(this, Unit).let {
-            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-              ?: super.visitDeclaration(expression, data)
+        override fun visitDeclaration(declaration: IrDeclarationBase, data: Unit): IrStatement =
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration)
+              ?: super.visitDeclaration(declaration, data)
           }
       },
       Unit
@@ -167,10 +167,10 @@ interface IrSyntax {
       IrGeneration { compilerContext, moduleFragment, pluginContext ->
     moduleFragment.transformChildren(
       object : IrElementTransformer<Unit> {
-        override fun visitClass(expression: IrClass, data: Unit): IrStatement =
-          expression.transformChildren(this, Unit).let {
-            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-              ?: super.visitClass(expression, data)
+        override fun visitClass(declaration: IrClass, data: Unit): IrStatement =
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration)
+              ?: super.visitClass(declaration, data)
           }
       },
       Unit
@@ -181,10 +181,10 @@ interface IrSyntax {
       IrGeneration { compilerContext, moduleFragment, pluginContext ->
     moduleFragment.transformChildren(
       object : IrElementTransformer<Unit> {
-        override fun visitFunction(expression: IrFunction, data: Unit): IrStatement =
-          expression.transformChildren(this, Unit).let {
-            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-              ?: super.visitFunction(expression, data)
+        override fun visitFunction(declaration: IrFunction, data: Unit): IrStatement =
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration)
+              ?: super.visitFunction(declaration, data)
           }
       },
       Unit
@@ -459,7 +459,7 @@ interface IrSyntax {
       IrGeneration { compilerContext, moduleFragment, pluginContext ->
     moduleFragment.transformChildren(
       object : IrElementTransformer<Unit> {
-        override fun <T> visitConst(expression: IrConst<T>, data: Unit): IrExpression =
+        override fun visitConst(expression: IrConst<*>, data: Unit): IrExpression =
           expression.transformChildren(this, Unit).let {
             f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
               ?: super.visitConst(expression, data)
@@ -1180,12 +1180,12 @@ interface IrSyntax {
     moduleFragment.transformChildren(
       object : IrElementTransformer<Unit> {
         override fun visitErrorDeclaration(
-          expression: IrErrorDeclaration,
+          declaration: IrErrorDeclaration,
           data: Unit
         ): IrStatement =
-          expression.transformChildren(this, Unit).let {
-            f(IrUtils(pluginContext, compilerContext, moduleFragment), expression)
-              ?: super.visitErrorDeclaration(expression, data)
+          declaration.transformChildren(this, Unit).let {
+            f(IrUtils(pluginContext, compilerContext, moduleFragment), declaration)
+              ?: super.visitErrorDeclaration(declaration, data)
           }
       },
       Unit

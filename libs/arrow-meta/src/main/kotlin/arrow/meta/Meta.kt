@@ -6,6 +6,7 @@ import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
 data class Plugin<A>(val name: String, val meta: A.() -> List<ExtensionPhase>)
@@ -73,6 +74,7 @@ operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): 
  * through delegation to [MetaPluginSyntax] and providing the internal implementation to the
  * compiler subscriptions via [InternalRegistry]
  */
+@OptIn(ExperimentalCompilerApi::class)
 interface Meta : ComponentRegistrar, MetaPluginSyntax, InternalRegistry {
 
   /**
