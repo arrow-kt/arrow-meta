@@ -194,7 +194,8 @@ interface InternalRegistry : ConfigSyntax {
   }
 
   fun registerSyntheticScopeProviderIfNeeded(project: Project) {
-    if (!project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)
+    if (
+      !project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)
     ) {
       SyntheticScopeProviderExtension.registerExtensionPoint(project)
     }

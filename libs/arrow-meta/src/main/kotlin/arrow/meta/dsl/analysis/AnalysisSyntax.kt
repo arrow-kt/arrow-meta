@@ -39,9 +39,8 @@ interface AnalysisSyntax {
   fun additionalSources(
     collectAdditionalSourcesAndUpdateConfiguration:
       CompilerContext.(
-        knownSources: Collection<KtFile>,
-        configuration: CompilerConfiguration,
-        project: Project) -> Collection<KtFile>
+        knownSources: Collection<KtFile>, configuration: CompilerConfiguration, project: Project
+      ) -> Collection<KtFile>
   ): CollectAdditionalSources =
     object : CollectAdditionalSources {
       override fun CompilerContext.collectAdditionalSourcesAndUpdateConfiguration(
@@ -68,13 +67,15 @@ interface AnalysisSyntax {
         projectContext: ProjectContext,
         files: Collection<KtFile>,
         bindingTrace: BindingTrace,
-        componentProvider: ComponentProvider) -> AnalysisResult?,
+        componentProvider: ComponentProvider
+      ) -> AnalysisResult?,
     analysisCompleted:
       CompilerContext.(
         project: Project,
         module: ModuleDescriptor,
         bindingTrace: BindingTrace,
-        files: Collection<KtFile>) -> AnalysisResult? =
+        files: Collection<KtFile>
+      ) -> AnalysisResult? =
       Noop.nullable5()
   ): AnalysisHandler =
     object : AnalysisHandler {
@@ -148,8 +149,7 @@ interface AnalysisSyntax {
               .java
               .getDeclaredField("mutableDiagnostics")
               .also { it.isAccessible = true }
-              .get(bindingTrace) as
-              MutableDiagnosticsWithSuppression
+              .get(bindingTrace) as MutableDiagnosticsWithSuppression
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf(f)
           null
@@ -172,8 +172,7 @@ interface AnalysisSyntax {
               .java
               .getDeclaredField("mutableDiagnostics")
               .also { it.isAccessible = true }
-              .get(bindingTrace) as
-              MutableDiagnosticsWithSuppression
+              .get(bindingTrace) as MutableDiagnosticsWithSuppression
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf { f(bindingTrace, it) }
           null

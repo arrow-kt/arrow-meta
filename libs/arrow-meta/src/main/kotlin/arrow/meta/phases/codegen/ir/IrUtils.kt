@@ -172,8 +172,8 @@ class IrUtils(
         }
       },
       data
-    ) as
-      IrStatement
+    )
+      as IrStatement
 }
 
 inline fun <reified E, B> IrElement.filterMap(
@@ -238,10 +238,9 @@ private fun IrSimpleFunction.substitutedValueParameters(
     val type = it.type
     it to
       (type.takeIf { t -> !t.isTypeParameter() }
-        ?: typeParameters.firstOrNull { typeParam -> typeParam.defaultType == type }?.let {
-          typeParam ->
-          call.getTypeArgument(typeParam.index)
-        }
+        ?: typeParameters
+          .firstOrNull { typeParam -> typeParam.defaultType == type }
+          ?.let { typeParam -> call.getTypeArgument(typeParam.index) }
           ?: type // Could not resolve the substituted KotlinType
       )
   }

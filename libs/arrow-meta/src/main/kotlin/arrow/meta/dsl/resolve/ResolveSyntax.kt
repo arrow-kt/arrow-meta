@@ -49,7 +49,8 @@ interface ResolveSyntax {
         containingDeclaration: DeclarationDescriptor?,
         currentModality: Modality,
         bindingContext: BindingContext,
-        isImplicitModality: Boolean) -> Modality?
+        isImplicitModality: Boolean
+      ) -> Modality?
   ): DeclarationAttributeAlterer =
     object : DeclarationAttributeAlterer {
       override fun CompilerContext.refineDeclarationModality(
@@ -82,7 +83,8 @@ interface ResolveSyntax {
         storageManager: StorageManager,
         trace: BindingTrace,
         moduleInfo: ModuleInfo?,
-        lookupTracker: LookupTracker) -> PackageFragmentProvider?
+        lookupTracker: LookupTracker
+      ) -> PackageFragmentProvider?
   ): PackageProvider =
     object : PackageProvider {
       override fun CompilerContext.getPackageFragmentProvider(
@@ -116,41 +118,41 @@ interface ResolveSyntax {
       Noop.nullable2(),
     syntheticConstructors:
       CompilerContext.(classifierDescriptors: Collection<DeclarationDescriptor>) -> Collection<
-          FunctionDescriptor> =
+          FunctionDescriptor
+        > =
       Noop.emptyCollection2(),
     syntheticConstructorsForName:
       CompilerContext.(
-        contributedClassifier: ClassifierDescriptor,
-        location: LookupLocation) -> Collection<FunctionDescriptor> =
+        contributedClassifier: ClassifierDescriptor, location: LookupLocation
+      ) -> Collection<FunctionDescriptor> =
       Noop.emptyCollection3(),
     syntheticExtensionProperties:
       CompilerContext.(
-        receiverTypes: Collection<KotlinType>,
-        location: LookupLocation) -> Collection<PropertyDescriptor> =
+        receiverTypes: Collection<KotlinType>, location: LookupLocation
+      ) -> Collection<PropertyDescriptor> =
       Noop.emptyCollection3(),
     syntheticExtensionPropertiesForName:
       CompilerContext.(
-        receiverTypes: Collection<KotlinType>,
-        name: Name,
-        location: LookupLocation) -> Collection<PropertyDescriptor> =
+        receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation
+      ) -> Collection<PropertyDescriptor> =
       Noop.emptyCollection4(),
     syntheticMemberFunctions:
       CompilerContext.(receiverTypes: Collection<KotlinType>) -> Collection<FunctionDescriptor> =
       Noop.emptyCollection2(),
     syntheticMemberFunctionsForName:
       CompilerContext.(
-        receiverTypes: Collection<KotlinType>,
-        name: Name,
-        location: LookupLocation) -> Collection<FunctionDescriptor> =
+        receiverTypes: Collection<KotlinType>, name: Name, location: LookupLocation
+      ) -> Collection<FunctionDescriptor> =
       Noop.emptyCollection4(),
     syntheticStaticFunctions:
       CompilerContext.(functionDescriptors: Collection<DeclarationDescriptor>) -> Collection<
-          FunctionDescriptor> =
+          FunctionDescriptor
+        > =
       Noop.emptyCollection2(),
     syntheticStaticFunctionsForName:
       CompilerContext.(
-        contributedFunctions: Collection<FunctionDescriptor>,
-        location: LookupLocation) -> Collection<FunctionDescriptor> =
+        contributedFunctions: Collection<FunctionDescriptor>, location: LookupLocation
+      ) -> Collection<FunctionDescriptor> =
       Noop.emptyCollection3()
   ): ExtensionPhase =
     object : SyntheticScopeProvider {
@@ -213,8 +215,8 @@ interface ResolveSyntax {
   fun syntheticResolver(
     addSyntheticSupertypes:
       CompilerContext.(
-        thisDescriptor: ClassDescriptor,
-        supertypes: MutableList<KotlinType>) -> Unit =
+        thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>
+      ) -> Unit =
       Noop.effect3,
     /**
      * For a given package fragment, it iterates over all the package declaration, allowing the user
@@ -228,7 +230,8 @@ interface ResolveSyntax {
         name: Name,
         ctx: LazyClassContext,
         declarationProvider: PackageMemberDeclarationProvider,
-        result: MutableSet<ClassDescriptor>) -> Unit =
+        result: MutableSet<ClassDescriptor>
+      ) -> Unit =
       Noop.effect6,
     generateSyntheticClasses:
       CompilerContext.(
@@ -236,7 +239,8 @@ interface ResolveSyntax {
         name: Name,
         ctx: LazyClassContext,
         declarationProvider: ClassMemberDeclarationProvider,
-        result: MutableSet<ClassDescriptor>) -> Unit =
+        result: MutableSet<ClassDescriptor>
+      ) -> Unit =
       Noop.effect6,
     generateSyntheticMethods:
       CompilerContext.(
@@ -244,7 +248,8 @@ interface ResolveSyntax {
         name: Name,
         bindingContext: BindingContext,
         fromSupertypes: List<SimpleFunctionDescriptor>,
-        result: MutableCollection<SimpleFunctionDescriptor>) -> Unit =
+        result: MutableCollection<SimpleFunctionDescriptor>
+      ) -> Unit =
       Noop.effect6,
     generateSyntheticProperties:
       CompilerContext.(
@@ -252,13 +257,15 @@ interface ResolveSyntax {
         name: Name,
         bindingContext: BindingContext,
         fromSupertypes: ArrayList<PropertyDescriptor>,
-        result: MutableSet<PropertyDescriptor>) -> Unit =
+        result: MutableSet<PropertyDescriptor>
+      ) -> Unit =
       Noop.effect6,
     generateSyntheticSecondaryConstructors:
       CompilerContext.(
         thisDescriptor: ClassDescriptor,
         bindingContext: BindingContext,
-        result: MutableCollection<ClassConstructorDescriptor>) -> Unit =
+        result: MutableCollection<ClassConstructorDescriptor>
+      ) -> Unit =
       Noop.effect4,
     getSyntheticCompanionObjectNameIfNeeded:
       CompilerContext.(thisDescriptor: ClassDescriptor) -> Name? =

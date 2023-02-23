@@ -51,8 +51,8 @@ fun KtClass.sealedSubclasses(): List<SealedSubclass> =
 
 fun List<KtDeclaration>.sealedVariants(superKt: KtClass): List<SealedSubclass> =
   filter {
-    (it is KtClassOrObject) && it.getSuperNames().contains(superKt.nameAsSafeName.identifier)
-  }
+      (it is KtClassOrObject) && it.getSuperNames().contains(superKt.nameAsSafeName.identifier)
+    }
     .map { it as KtClassOrObject }
     .map {
       SealedSubclass(
@@ -69,9 +69,9 @@ fun KtClass.outerSealedSubclasses(): List<SealedSubclass> =
 
 val KtClass.renderTypeParameters: List<String>
   get() =
-    typeParameters.map { it.nameAsSafeName.identifier }.map {
-      it.replace("out ", "").replace("in ", "")
-    }
+    typeParameters
+      .map { it.nameAsSafeName.identifier }
+      .map { it.replace("out ", "").replace("in ", "") }
 
 /**
  * From Eugenio's https://github.com/Takhion/kotlin-metadata If this [isNotBlank] then it adds the

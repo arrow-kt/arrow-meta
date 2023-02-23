@@ -8,9 +8,9 @@ import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import java.util.*
 
 private const val META_PREFIX = "//meta"
 private const val METHOD_CALL = "[^(]+\\(\\)(\\.\\S+)?"
@@ -214,7 +214,9 @@ private fun call(className: String, expression: String, classesDirectory: File):
     else ->
       resultForMethodCall
         ?.javaClass
-        ?.getMethod("get${property.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}")
+        ?.getMethod(
+          "get${property.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
+        )
         ?.invoke(resultForMethodCall)
   }
 }
@@ -238,8 +240,8 @@ private fun eval(
 
 private fun getFullClassName(classesDirectory: File, className: String): String =
   Files.walk(Paths.get(classesDirectory.toURI()))
-      .filter { it.toFile().name == "$className.class" }
-      .toArray()[0]
+    .filter { it.toFile().name == "$className.class" }
+    .toArray()[0]
     .toString()
     .removePrefix(classesDirectory.absolutePath + File.separator)
     .removeSuffix(".class")
