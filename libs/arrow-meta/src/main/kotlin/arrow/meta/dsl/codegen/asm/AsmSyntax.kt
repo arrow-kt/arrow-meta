@@ -24,14 +24,12 @@ interface AsmSyntax {
   fun codegen(
     applyFunction:
       CompilerContext.(
-        receiver: StackValue,
-        resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context) -> StackValue?,
+        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context
+      ) -> StackValue?,
     applyProperty:
       CompilerContext.(
-        receiver: StackValue,
-        resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context) -> StackValue?,
+        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context
+      ) -> StackValue?,
     generateClassSyntheticParts: CompilerContext.(codegen: ImplementationBodyCodegen) -> Unit
   ): Codegen =
     object : Codegen {

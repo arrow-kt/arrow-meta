@@ -192,7 +192,8 @@ class IrSyntaxTest {
             9 - 6
           }
         }
-    """.trimIndent()
+    """.trimIndent(
+      )
     )
   }
 }

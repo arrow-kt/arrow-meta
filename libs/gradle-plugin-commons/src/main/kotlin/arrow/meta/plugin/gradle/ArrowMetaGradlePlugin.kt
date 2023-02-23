@@ -39,7 +39,8 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(Version::parse)
     val projectKotlinVersion: Version? = Version.parse(project.getKotlinPluginVersion())
-    if (projectKotlinVersion == null ||
+    if (
+      projectKotlinVersion == null ||
         requiredKotlinVersion == null ||
         projectKotlinVersion < requiredKotlinVersion
     ) {

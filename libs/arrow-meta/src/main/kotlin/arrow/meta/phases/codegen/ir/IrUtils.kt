@@ -1,3 +1,5 @@
+@file:OptIn(ObsoleteDescriptorBasedAPI::class)
+
 package arrow.meta.phases.codegen.ir
 
 import arrow.meta.internal.Noop
@@ -10,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFactory
@@ -43,7 +46,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -135,7 +138,7 @@ class IrUtils(
   }
 
   fun ClassDescriptor.irConstructorCall(): IrConstructorCall? {
-    val irClass = pluginContext.referenceClass(this.fqNameSafe)
+    val irClass = this.classId?.let { pluginContext.referenceClass(it) }
     return irClass!!.constructors.firstOrNull()?.let { irConstructorSymbol ->
       IrConstructorCallImpl(
         startOffset = UNDEFINED_OFFSET,
@@ -169,8 +172,8 @@ class IrUtils(
         }
       },
       data
-    ) as
-      IrStatement
+    )
+      as IrStatement
 }
 
 inline fun <reified E, B> IrElement.filterMap(
@@ -235,10 +238,9 @@ private fun IrSimpleFunction.substitutedValueParameters(
     val type = it.type
     it to
       (type.takeIf { t -> !t.isTypeParameter() }
-        ?: typeParameters.firstOrNull { typeParam -> typeParam.defaultType == type }?.let {
-          typeParam ->
-          call.getTypeArgument(typeParam.index)
-        }
+        ?: typeParameters
+          .firstOrNull { typeParam -> typeParam.defaultType == type }
+          ?.let { typeParam -> call.getTypeArgument(typeParam.index) }
           ?: type // Could not resolve the substituted KotlinType
       )
   }

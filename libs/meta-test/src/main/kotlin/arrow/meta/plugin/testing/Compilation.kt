@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 package arrow.meta.plugin.testing
 
 import com.tschuchort.compiletesting.KotlinCompilation
@@ -12,6 +10,7 @@ import io.github.classgraph.ClassGraph
 import java.io.File
 import java.io.PrintStream
 import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 internal const val DEFAULT_FILENAME = "Source.kt"
 
@@ -35,6 +34,7 @@ internal fun compile(data: CompilationData): Result {
   }
 }
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun createKotlinCompilation(data: CompilationData) =
   KotlinCompilation().apply {
     val testSources = workingDir.resolve("sources")
@@ -94,7 +94,7 @@ private fun dependenciesMatch(classpath: File, dependency: String): Boolean {
 }
 
 private fun sanitizeClassPathFileName(dep: String): String =
-  buildList<Char> {
+  buildList {
       var skip = false
       add(dep.first())
       dep.reduce { a, b ->

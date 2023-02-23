@@ -54,13 +54,14 @@ interface ConfigSyntax {
   fun storageComponent(
     registerModuleComponents:
       CompilerContext.(
-        container: StorageComponentContainer,
-        moduleDescriptor: ModuleDescriptor) -> Unit,
+        container: StorageComponentContainer, moduleDescriptor: ModuleDescriptor
+      ) -> Unit,
     check:
       CompilerContext.(
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext) -> Unit =
+        context: DeclarationCheckerContext
+      ) -> Unit =
       Noop.effect4
   ): arrow.meta.phases.config.StorageComponentContainer =
     object : arrow.meta.phases.config.StorageComponentContainer {
@@ -85,7 +86,8 @@ interface ConfigSyntax {
       CompilerContext.(
         declaration: KtDeclaration,
         descriptor: DeclarationDescriptor,
-        context: DeclarationCheckerContext) -> Unit
+        context: DeclarationCheckerContext
+      ) -> Unit
   ): arrow.meta.phases.config.StorageComponentContainer = storageComponent(Noop.effect3, check)
 
   /**
@@ -107,7 +109,8 @@ interface ConfigSyntax {
       CompilerContext.(
         resolvedCall: ResolvedCall<*>,
         reportOn: org.jetbrains.kotlin.com.intellij.psi.PsiElement,
-        context: CallCheckerContext) -> Unit
+        context: CallCheckerContext
+      ) -> Unit
   ): arrow.meta.phases.config.StorageComponentContainer =
     storageComponent(
       registerModuleComponents = { container, _ ->

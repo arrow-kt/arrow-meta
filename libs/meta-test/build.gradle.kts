@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.arrowGradleConfig.kotlin)
@@ -16,7 +18,7 @@ dependencies {
 
   implementation(libs.kotlin.compilerEmbeddable)
   implementation(libs.kotlin.annotationProcessingEmbeddable)
-  implementation(libs.kotlinCompileTesting) {
+  implementation(files("../../vendor/kotlin-compile-testing-1.4.10-SNAPSHOT.jar")) /* {
     exclude(group = libs.classgraph.get().module.group, module = libs.classgraph.get().module.name)
     exclude(
       group = libs.kotlin.compilerEmbeddable.get().module.group,
@@ -30,10 +32,13 @@ dependencies {
       group = libs.kotlin.stdlibJDK8.get().module.group,
       module = libs.kotlin.stdlibJDK8.get().module.name
     )
-  }
-  implementation(libs.kotlinCompileTestingKsp)
+  } */
+  implementation(files("../../vendor/kotlin-compile-testing-ksp-1.4.10-SNAPSHOT.jar"))
   implementation(libs.assertj)
   implementation(projects.arrowMeta)
+  implementation(libs.ksp.api)
+  implementation(libs.ksp.lib)
+  implementation(libs.okio)
 
   testImplementation(libs.kotlin.stdlibJDK8)
   testImplementation(libs.junit)
