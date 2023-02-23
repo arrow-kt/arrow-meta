@@ -82,7 +82,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '15'
+          java-version: '17'
           cache: 'gradle'
 
       - name: Publish alpha/beta/rc artifacts
