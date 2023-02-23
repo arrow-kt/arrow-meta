@@ -15,8 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kotlin: [ '1.6.0', '1.6.10', '1.6.20' ]
-        jvm_target: [ '1.8', '11', '15' ]
+        jvm_target: [ '1.8', '11', '17' ]
 
     steps:
       - uses: actions/checkout@v3.0.0
@@ -26,12 +25,12 @@ jobs:
       - uses: actions/setup-java@v3.0.0
         with:
           distribution: 'adopt'
-          java-version: '15'
+          java-version: '17'
 
       - name: Build and test with Gradle
         uses: gradle/gradle-build-action@v2.1.5
         with:
-          arguments: -PkotlinVersion=${{ matrix.kotlin }} -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace -x apiCheck
+          arguments: -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace -x apiCheck
 
       - name: Upload reports
         uses: actions/upload-artifact@v3.0.0
