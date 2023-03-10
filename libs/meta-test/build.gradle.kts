@@ -18,7 +18,7 @@ dependencies {
 
   implementation(libs.kotlin.compilerEmbeddable)
   implementation(libs.kotlin.annotationProcessingEmbeddable)
-  implementation(files("../../vendor/kotlin-compile-testing-1.4.10-SNAPSHOT.jar")) /* {
+  implementation(libs.kotlinCompileTesting) {
     exclude(group = libs.classgraph.get().module.group, module = libs.classgraph.get().module.name)
     exclude(
       group = libs.kotlin.compilerEmbeddable.get().module.group,
@@ -32,8 +32,8 @@ dependencies {
       group = libs.kotlin.stdlibJDK8.get().module.group,
       module = libs.kotlin.stdlibJDK8.get().module.name
     )
-  } */
-  implementation(files("../../vendor/kotlin-compile-testing-ksp-1.4.10-SNAPSHOT.jar"))
+  }
+  implementation(libs.kotlinCompileTestingKsp)
   implementation(libs.assertj)
   implementation(projects.arrowMeta)
   implementation(libs.ksp.api)
