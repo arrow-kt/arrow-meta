@@ -77,5 +77,6 @@ jobs:
           JEKYLL_ENV: production
         run: |
           sudo gem install bundler
-          bundle install --gemfile docs/Gemfile --path vendor/bundle
+          bundle config set --local path 'vendor/bundle'
+          bundle install --gemfile docs/Gemfile
           BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/docs -d docs/build
