@@ -28,17 +28,17 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   private fun extensionName() = "arrow.meta.$pluginId"
 
-  override fun apply(project: Project): Unit {
-    val defaultPath = File("${project.buildDir}/generated/meta/").path
+  override fun apply(target: Project) {
+    val defaultPath = File("${target.buildDir}/generated/meta/").path
 
-    val extension = project.extensions.create(extensionName(), ArrowMetaExtension::class.java)
+    val extension = target.extensions.create(extensionName(), ArrowMetaExtension::class.java)
     extension.generatedSrcOutputDir.convention(defaultPath)
     extension.applyDependencies.convention(true)
 
     val properties = Properties()
     properties.load(this.javaClass.getResourceAsStream("plugin.properties"))
     val requiredKotlinVersion = properties.getProperty("kotlinVersion")?.let(Version::parse)
-    val projectKotlinVersion: Version? = Version.parse(project.getKotlinPluginVersion())
+    val projectKotlinVersion: Version? = Version.parse(target.getKotlinPluginVersion())
     if (
       projectKotlinVersion == null ||
         requiredKotlinVersion == null ||
@@ -48,7 +48,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
         "Use at least Kotlin $requiredKotlinVersion for this Gradle Plugin"
       )
     }
-    project.afterEvaluate { p ->
+    target.afterEvaluate { p ->
       if (extension.applyDependencies.get()) {
         dependencies.forEach { (g, a, v) ->
           val configuration =
@@ -63,7 +63,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
       }
     }
 
-    project.afterEvaluate { p ->
+    target.afterEvaluate { p ->
       p.extensions.findByType(KotlinProjectExtension::class.java)?.sourceSets?.all { sourceSet ->
         sourceSet.kotlin.srcDirs("${extension.generatedSrcOutputDir.get()}/${sourceSet.name}/")
       }
@@ -83,7 +83,7 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
         SubpluginOption(
           key = "generatedSrcOutputDir",
           value =
-            "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSetName}/kotlin"
+            "${extension.generatedSrcOutputDir.get()}/${kotlinCompilation.defaultSourceSet.name}/kotlin"
         ),
         SubpluginOption(
           key = "baseDir",

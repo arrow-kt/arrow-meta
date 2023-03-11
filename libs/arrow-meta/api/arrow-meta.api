@@ -4,135 +4,19 @@ public final class arrow/meta/ArrowMetaConfigurationKeys {
 	public final fun getGENERATED_SRC_OUTPUT_DIR ()Lorg/jetbrains/kotlin/config/CompilerConfigurationKey;
 }
 
-public abstract interface class arrow/meta/Meta : arrow/meta/dsl/MetaPluginSyntax, arrow/meta/internal/registry/InternalRegistry, org/jetbrains/kotlin/compiler/plugin/ComponentRegistrar {
+public abstract class arrow/meta/Meta : org/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar, arrow/meta/dsl/MetaPluginSyntax, arrow/meta/internal/registry/InternalRegistry {
+	public fun <init> ()V
+	public fun getSupportsK2 ()Z
 	public abstract fun intercept (Larrow/meta/phases/CompilerContext;)Ljava/util/List;
-	public abstract fun registerProjectComponents (Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
-}
-
-public final class arrow/meta/Meta$DefaultImpls {
-	public static fun IrGeneration (Larrow/meta/Meta;Larrow/meta/dsl/codegen/ir/IrSyntax;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun additionalSources (Larrow/meta/Meta;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/analysis/CollectAdditionalSources;
-	public static fun analysis (Larrow/meta/Meta;Lkotlin/jvm/functions/Function7;Lkotlin/jvm/functions/Function5;)Larrow/meta/phases/analysis/AnalysisHandler;
-	public static fun callChecker (Larrow/meta/Meta;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public static fun codegen (Larrow/meta/Meta;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/asm/Codegen;
-	public static fun compilerContextService (Larrow/meta/Meta;)Larrow/meta/phases/config/StorageComponentContainer;
-	public static fun declarationAttributeAlterer (Larrow/meta/Meta;Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/DeclarationAttributeAlterer;
-	public static fun declarationChecker (Larrow/meta/Meta;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public static fun enableIr (Larrow/meta/Meta;)Larrow/meta/phases/ExtensionPhase;
-	public static fun extraImports (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/ExtraImports;
-	public static fun irAnonymousInitializer (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBlock (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBlockBody (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBody (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBranch (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBreak (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irBreakContinue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irCall (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irCallableReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irCatch (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irClass (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irClassReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irComposite (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irConst (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irConstructor (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irConstructorCall (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irContainerExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irContinue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDeclaration (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDeclarationReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDelegatingConstructorCall (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDoWhileLoop (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDump (Larrow/meta/Meta;Larrow/meta/Meta;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDumpKotlinLike (Larrow/meta/Meta;Larrow/meta/Meta;Lorg/jetbrains/kotlin/ir/util/KotlinLikeDumpOptions;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDynamicExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDynamicMemberExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irDynamicOperatorExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irElseBranch (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irEnumConstructorCall (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irEnumEntry (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irErrorCallExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irErrorDeclaration (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irErrorExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irExpressionBody (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irField (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irFieldAccess (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irFile (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irFunction (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irFunctionAccess (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irFunctionReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irGetClass (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irGetEnumValue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irGetField (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irGetObjectValue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irGetValue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irInstanceInitializerCall (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irLocalDelegatedProperty (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irLocalDelegatedPropertyReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irLoop (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irMemberAccess (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irModuleFragment (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irProperty (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irPropertyReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irReturn (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSetField (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSetValue (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSimpleFunction (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSingletonReference (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSpreadElement (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irStringConcatenation (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSuspendableExpression (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSuspensionPoint (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irSyntheticBody (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irThrow (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irTry (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irTypeAlias (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irTypeOperator (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irTypeParameter (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irValueAccess (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irValueParameter (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irVararg (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irVariable (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irWhen (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun irWhileLoop (Larrow/meta/Meta;Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public static fun meta (Larrow/meta/Meta;[Larrow/meta/phases/ExtensionPhase;)Ljava/util/List;
-	public static fun packageFragmentProvider (Larrow/meta/Meta;Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/PackageProvider;
-	public static fun packageFragmentProvider (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/PackageProvider;Larrow/meta/phases/CompilerContext;)V
-	public static fun preprocessedVirtualFileFactory (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;
-	public static fun registerAnalysisHandler (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/AnalysisHandler;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerClassBuilder (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/ClassBuilder;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCodegen (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/Codegen;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCollectAdditionalSources (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/CollectAdditionalSources;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCompilerConfiguration (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/Config;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerDeclarationAttributeAlterer (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/DeclarationAttributeAlterer;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerExtraImports (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/ExtraImports;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerIRGeneration (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/ir/IRGeneration;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerMetaAnalyzer (Larrow/meta/Meta;)Larrow/meta/phases/ExtensionPhase;
-	public static fun registerMetaComponents (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerPreprocessedVirtualFileFactory (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerProjectComponents (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
-	public static fun registerStorageComponentContainer (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/StorageComponentContainer;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticResolver (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticResolver;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticScopeProvider (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticScopeProvider;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticScopeProviderIfNeeded (Larrow/meta/Meta;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;)V
-	public static fun storageComponent (Larrow/meta/Meta;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public static fun suppressDiagnostic (Larrow/meta/Meta;Lkotlin/jvm/functions/Function1;)Larrow/meta/phases/ExtensionPhase;
-	public static fun suppressDiagnosticWithTrace (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/ExtensionPhase;
-	public static fun syntheticResolver (Larrow/meta/Meta;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/resolve/synthetics/SyntheticResolver;
-	public static fun syntheticScopes (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/ExtensionPhase;
-	public static fun updateConfig (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/config/Config;
+	public fun registerExtensions (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
 }
 
 public abstract class arrow/meta/MetaCliProcessor : org/jetbrains/kotlin/compiler/plugin/CommandLineProcessor {
 	public static final field Companion Larrow/meta/MetaCliProcessor$Companion;
 	public fun <init> (Ljava/lang/String;)V
-	public fun appendList (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/config/CompilerConfigurationKey;Ljava/lang/Object;)V
-	public fun appendList (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/config/CompilerConfigurationKey;Ljava/util/List;)V
-	public fun applyOptionsFrom (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Ljava/util/Map;Ljava/util/Collection;)V
 	public fun getPluginId ()Ljava/lang/String;
 	public fun getPluginOptions ()Ljava/util/Collection;
 	public fun processOption (Lorg/jetbrains/kotlin/compiler/plugin/AbstractCliOption;Ljava/lang/String;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
-	public fun processOption (Lorg/jetbrains/kotlin/compiler/plugin/CliOption;Ljava/lang/String;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
 }
 
 public final class arrow/meta/MetaCliProcessor$Companion {
@@ -256,12 +140,14 @@ public final class arrow/meta/dsl/MetaPluginSyntax$DefaultImpls {
 }
 
 public abstract interface class arrow/meta/dsl/analysis/AnalysisSyntax {
-	public abstract fun additionalSources (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/analysis/CollectAdditionalSources;
-	public abstract fun analysis (Lkotlin/jvm/functions/Function7;Lkotlin/jvm/functions/Function5;)Larrow/meta/phases/analysis/AnalysisHandler;
-	public abstract fun extraImports (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/ExtraImports;
-	public abstract fun preprocessedVirtualFileFactory (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;
-	public abstract fun suppressDiagnostic (Lkotlin/jvm/functions/Function1;)Larrow/meta/phases/ExtensionPhase;
-	public abstract fun suppressDiagnosticWithTrace (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/ExtensionPhase;
+	public fun additionalSources (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/analysis/CollectAdditionalSources;
+	public fun analysis (Lkotlin/jvm/functions/Function7;Lkotlin/jvm/functions/Function5;)Larrow/meta/phases/analysis/AnalysisHandler;
+	public static synthetic fun analysis$default (Larrow/meta/dsl/analysis/AnalysisSyntax;Lkotlin/jvm/functions/Function7;Lkotlin/jvm/functions/Function5;ILjava/lang/Object;)Larrow/meta/phases/analysis/AnalysisHandler;
+	public fun extraImports (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/ExtraImports;
+	public fun preprocessedVirtualFileFactory (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;
+	public static synthetic fun preprocessedVirtualFileFactory$default (Larrow/meta/dsl/analysis/AnalysisSyntax;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;
+	public fun suppressDiagnostic (Lkotlin/jvm/functions/Function1;)Larrow/meta/phases/ExtensionPhase;
+	public fun suppressDiagnosticWithTrace (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/ExtensionPhase;
 }
 
 public final class arrow/meta/dsl/analysis/AnalysisSyntax$DefaultImpls {
@@ -359,7 +245,7 @@ public final class arrow/meta/dsl/codegen/CodegenSyntax$DefaultImpls {
 }
 
 public abstract interface class arrow/meta/dsl/codegen/asm/AsmSyntax {
-	public abstract fun codegen (Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/asm/Codegen;
+	public fun codegen (Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/asm/Codegen;
 }
 
 public final class arrow/meta/dsl/codegen/asm/AsmSyntax$DefaultImpls {
@@ -367,82 +253,83 @@ public final class arrow/meta/dsl/codegen/asm/AsmSyntax$DefaultImpls {
 }
 
 public abstract interface class arrow/meta/dsl/codegen/ir/IrSyntax {
-	public abstract fun IrGeneration (Larrow/meta/dsl/codegen/ir/IrSyntax;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irAnonymousInitializer (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBlock (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBlockBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBranch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBreak (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irBreakContinue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irCallableReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irCatch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irClass (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irClassReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irComposite (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irConst (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irConstructor (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irContainerExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irContinue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDeclaration (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDeclarationReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDelegatingConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDoWhileLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDump (Larrow/meta/Meta;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDumpKotlinLike (Larrow/meta/Meta;Lorg/jetbrains/kotlin/ir/util/KotlinLikeDumpOptions;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDynamicExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDynamicMemberExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irDynamicOperatorExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irElseBranch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irEnumConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irEnumEntry (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irErrorCallExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irErrorDeclaration (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irErrorExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irExpressionBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irFieldAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irFile (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irFunction (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irFunctionAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irFunctionReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irGetClass (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irGetEnumValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irGetField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irGetObjectValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irGetValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irInstanceInitializerCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irLocalDelegatedProperty (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irLocalDelegatedPropertyReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irMemberAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irModuleFragment (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irProperty (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irPropertyReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irReturn (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSetField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSetValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSimpleFunction (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSingletonReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSpreadElement (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irStringConcatenation (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSuspendableExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSuspensionPoint (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irSyntheticBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irThrow (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irTry (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irTypeAlias (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irTypeOperator (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irTypeParameter (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irValueAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irValueParameter (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irVararg (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irVariable (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irWhen (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
-	public abstract fun irWhileLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun IrGeneration (Larrow/meta/dsl/codegen/ir/IrSyntax;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irAnonymousInitializer (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBlock (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBlockBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBranch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBreak (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irBreakContinue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irCallableReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irCatch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irClass (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irClassReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irComposite (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irConst (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irConstructor (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irContainerExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irContinue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDeclaration (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDeclarationReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDelegatingConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDoWhileLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDump (Larrow/meta/Meta;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDumpKotlinLike (Larrow/meta/Meta;Lorg/jetbrains/kotlin/ir/util/KotlinLikeDumpOptions;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public static synthetic fun irDumpKotlinLike$default (Larrow/meta/dsl/codegen/ir/IrSyntax;Larrow/meta/Meta;Lorg/jetbrains/kotlin/ir/util/KotlinLikeDumpOptions;ILjava/lang/Object;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDynamicExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDynamicMemberExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irDynamicOperatorExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irElseBranch (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irEnumConstructorCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irEnumEntry (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irErrorCallExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irErrorDeclaration (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irErrorExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irExpressionBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irFieldAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irFile (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irFunction (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irFunctionAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irFunctionReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irGetClass (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irGetEnumValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irGetField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irGetObjectValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irGetValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irInstanceInitializerCall (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irLocalDelegatedProperty (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irLocalDelegatedPropertyReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irMemberAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irModuleFragment (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irProperty (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irPropertyReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irReturn (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSetField (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSetValue (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSimpleFunction (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSingletonReference (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSpreadElement (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irStringConcatenation (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSuspendableExpression (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSuspensionPoint (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irSyntheticBody (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irThrow (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irTry (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irTypeAlias (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irTypeOperator (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irTypeParameter (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irValueAccess (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irValueParameter (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irVararg (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irVariable (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irWhen (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
+	public fun irWhileLoop (Larrow/meta/Meta;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/codegen/ir/IRGeneration;
 }
 
 public final class arrow/meta/dsl/codegen/ir/IrSyntax$DefaultImpls {
@@ -526,11 +413,12 @@ public final class arrow/meta/dsl/codegen/ir/IrSyntax$DefaultImpls {
 }
 
 public abstract interface class arrow/meta/dsl/config/ConfigSyntax {
-	public abstract fun callChecker (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public abstract fun declarationChecker (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public abstract fun enableIr ()Larrow/meta/phases/ExtensionPhase;
-	public abstract fun storageComponent (Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
-	public abstract fun updateConfig (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/config/Config;
+	public fun callChecker (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
+	public fun declarationChecker (Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
+	public fun enableIr ()Larrow/meta/phases/ExtensionPhase;
+	public fun storageComponent (Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
+	public static synthetic fun storageComponent$default (Larrow/meta/dsl/config/ConfigSyntax;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;ILjava/lang/Object;)Larrow/meta/phases/config/StorageComponentContainer;
+	public fun updateConfig (Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/config/Config;
 }
 
 public final class arrow/meta/dsl/config/ConfigSyntax$DefaultImpls {
@@ -548,10 +436,12 @@ public final class arrow/meta/dsl/platform/PlatformKt {
 }
 
 public abstract interface class arrow/meta/dsl/resolve/ResolveSyntax {
-	public abstract fun declarationAttributeAlterer (Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/DeclarationAttributeAlterer;
-	public abstract fun packageFragmentProvider (Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/PackageProvider;
-	public abstract fun syntheticResolver (Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/resolve/synthetics/SyntheticResolver;
-	public abstract fun syntheticScopes (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/ExtensionPhase;
+	public fun declarationAttributeAlterer (Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/DeclarationAttributeAlterer;
+	public fun packageFragmentProvider (Lkotlin/jvm/functions/Function7;)Larrow/meta/phases/resolve/PackageProvider;
+	public fun syntheticResolver (Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/resolve/synthetics/SyntheticResolver;
+	public static synthetic fun syntheticResolver$default (Larrow/meta/dsl/resolve/ResolveSyntax;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function6;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Larrow/meta/phases/resolve/synthetics/SyntheticResolver;
+	public fun syntheticScopes (Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)Larrow/meta/phases/ExtensionPhase;
+	public static synthetic fun syntheticScopes$default (Larrow/meta/dsl/resolve/ResolveSyntax;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Larrow/meta/phases/ExtensionPhase;
 }
 
 public final class arrow/meta/dsl/resolve/ResolveSyntax$DefaultImpls {
@@ -628,26 +518,27 @@ public final class arrow/meta/internal/UtilsKt {
 }
 
 public abstract interface class arrow/meta/internal/registry/InternalRegistry : arrow/meta/dsl/config/ConfigSyntax {
-	public abstract fun compilerContextService ()Larrow/meta/phases/config/StorageComponentContainer;
+	public fun compilerContextService ()Larrow/meta/phases/config/StorageComponentContainer;
 	public abstract fun intercept (Larrow/meta/phases/CompilerContext;)Ljava/util/List;
-	public abstract fun meta ([Larrow/meta/phases/ExtensionPhase;)Ljava/util/List;
-	public abstract fun packageFragmentProvider (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/PackageProvider;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerAnalysisHandler (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/AnalysisHandler;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerClassBuilder (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/ClassBuilder;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerCodegen (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/Codegen;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerCollectAdditionalSources (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/CollectAdditionalSources;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerCompilerConfiguration (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/Config;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerDeclarationAttributeAlterer (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/DeclarationAttributeAlterer;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerExtraImports (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/ExtraImports;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerIRGeneration (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/ir/IRGeneration;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerMetaAnalyzer ()Larrow/meta/phases/ExtensionPhase;
-	public abstract fun registerMetaComponents (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerPreprocessedVirtualFileFactory (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerProjectComponents (Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
-	public abstract fun registerStorageComponentContainer (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/StorageComponentContainer;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerSyntheticResolver (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticResolver;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerSyntheticScopeProvider (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticScopeProvider;Larrow/meta/phases/CompilerContext;)V
-	public abstract fun registerSyntheticScopeProviderIfNeeded (Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;)V
+	public fun meta ([Larrow/meta/phases/ExtensionPhase;)Ljava/util/List;
+	public fun packageFragmentProvider (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/PackageProvider;Larrow/meta/phases/CompilerContext;)V
+	public fun registerAnalysisHandler (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/AnalysisHandler;Larrow/meta/phases/CompilerContext;)V
+	public fun registerClassBuilder (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/asm/ClassBuilder;Larrow/meta/phases/CompilerContext;)V
+	public fun registerCodegen (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/asm/Codegen;Larrow/meta/phases/CompilerContext;)V
+	public fun registerCollectAdditionalSources (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/CollectAdditionalSources;Larrow/meta/phases/CompilerContext;)V
+	public fun registerCompilerConfiguration (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/config/Config;Larrow/meta/phases/CompilerContext;)V
+	public fun registerDeclarationAttributeAlterer (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/DeclarationAttributeAlterer;Larrow/meta/phases/CompilerContext;)V
+	public fun registerExtraImports (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/ExtraImports;Larrow/meta/phases/CompilerContext;)V
+	public fun registerIRGeneration (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/ir/IRGeneration;Larrow/meta/phases/CompilerContext;)V
+	public fun registerMetaAnalyzer ()Larrow/meta/phases/ExtensionPhase;
+	public fun registerMetaComponents (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;)V
+	public static synthetic fun registerMetaComponents$default (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;ILjava/lang/Object;)V
+	public fun registerPreprocessedVirtualFileFactory (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;Larrow/meta/phases/CompilerContext;)V
+	public fun registerProjectComponents (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
+	public fun registerStorageComponentContainer (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/config/StorageComponentContainer;Larrow/meta/phases/CompilerContext;)V
+	public fun registerSyntheticResolver (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/synthetics/SyntheticResolver;Larrow/meta/phases/CompilerContext;)V
+	public fun registerSyntheticScopeProvider (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/synthetics/SyntheticScopeProvider;Larrow/meta/phases/CompilerContext;)V
+	public fun registerSyntheticScopeProviderIfNeeded (Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;)V
 }
 
 public final class arrow/meta/internal/registry/InternalRegistry$DefaultImpls {
@@ -656,24 +547,24 @@ public final class arrow/meta/internal/registry/InternalRegistry$DefaultImpls {
 	public static fun declarationChecker (Larrow/meta/internal/registry/InternalRegistry;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
 	public static fun enableIr (Larrow/meta/internal/registry/InternalRegistry;)Larrow/meta/phases/ExtensionPhase;
 	public static fun meta (Larrow/meta/internal/registry/InternalRegistry;[Larrow/meta/phases/ExtensionPhase;)Ljava/util/List;
-	public static fun packageFragmentProvider (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/PackageProvider;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerAnalysisHandler (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/AnalysisHandler;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerClassBuilder (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/ClassBuilder;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCodegen (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/asm/Codegen;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCollectAdditionalSources (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/CollectAdditionalSources;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerCompilerConfiguration (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/Config;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerDeclarationAttributeAlterer (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/DeclarationAttributeAlterer;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerExtraImports (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/ExtraImports;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerIRGeneration (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/codegen/ir/IRGeneration;Larrow/meta/phases/CompilerContext;)V
+	public static fun packageFragmentProvider (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/PackageProvider;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerAnalysisHandler (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/AnalysisHandler;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerClassBuilder (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/asm/ClassBuilder;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerCodegen (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/asm/Codegen;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerCollectAdditionalSources (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/CollectAdditionalSources;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerCompilerConfiguration (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/config/Config;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerDeclarationAttributeAlterer (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/DeclarationAttributeAlterer;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerExtraImports (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/ExtraImports;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerIRGeneration (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/codegen/ir/IRGeneration;Larrow/meta/phases/CompilerContext;)V
 	public static fun registerMetaAnalyzer (Larrow/meta/internal/registry/InternalRegistry;)Larrow/meta/phases/ExtensionPhase;
-	public static fun registerMetaComponents (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;)V
-	public static synthetic fun registerMetaComponents$default (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;ILjava/lang/Object;)V
-	public static fun registerPreprocessedVirtualFileFactory (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerProjectComponents (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
-	public static fun registerStorageComponentContainer (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/config/StorageComponentContainer;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticResolver (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticResolver;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticScopeProvider (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Larrow/meta/phases/resolve/synthetics/SyntheticScopeProvider;Larrow/meta/phases/CompilerContext;)V
-	public static fun registerSyntheticScopeProviderIfNeeded (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;)V
+	public static fun registerMetaComponents (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;)V
+	public static synthetic fun registerMetaComponents$default (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/config/CompilerConfiguration;Larrow/meta/phases/CompilerContext;ILjava/lang/Object;)V
+	public static fun registerPreprocessedVirtualFileFactory (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/analysis/PreprocessedVirtualFileFactory;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerProjectComponents (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Lorg/jetbrains/kotlin/com/intellij/mock/MockProject;Lorg/jetbrains/kotlin/config/CompilerConfiguration;)V
+	public static fun registerStorageComponentContainer (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/config/StorageComponentContainer;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerSyntheticResolver (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/synthetics/SyntheticResolver;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerSyntheticScopeProvider (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;Larrow/meta/phases/resolve/synthetics/SyntheticScopeProvider;Larrow/meta/phases/CompilerContext;)V
+	public static fun registerSyntheticScopeProviderIfNeeded (Larrow/meta/internal/registry/InternalRegistry;Lorg/jetbrains/kotlin/compiler/plugin/CompilerPluginRegistrar$ExtensionStorage;)V
 	public static fun storageComponent (Larrow/meta/internal/registry/InternalRegistry;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function4;)Larrow/meta/phases/config/StorageComponentContainer;
 	public static fun updateConfig (Larrow/meta/internal/registry/InternalRegistry;Lkotlin/jvm/functions/Function2;)Larrow/meta/phases/config/Config;
 }
@@ -686,22 +577,18 @@ public final class arrow/meta/internal/registry/InternalRegistry$DelegatingContr
 }
 
 public class arrow/meta/phases/CompilerContext {
-	public fun <init> (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/cli/common/messages/MessageCollector;Lorg/jetbrains/kotlin/psi/KtPsiFactory;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;Lorg/jetbrains/kotlin/cli/common/messages/MessageCollector;Lorg/jetbrains/kotlin/psi/KtPsiFactory;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/cli/common/messages/MessageCollector;)V
+	public synthetic fun <init> (Lorg/jetbrains/kotlin/config/CompilerConfiguration;Lorg/jetbrains/kotlin/cli/common/messages/MessageCollector;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAnalysedDescriptors ()Ljava/util/List;
 	public final fun getAnalysisPhaseCanBeRewind ()Ljava/util/concurrent/atomic/AtomicBoolean;
 	public final fun getAnalysisPhaseWasRewind ()Ljava/util/concurrent/atomic/AtomicBoolean;
-	public final fun getBindingTrace ()Lorg/jetbrains/kotlin/resolve/BindingTrace;
 	public final fun getComponentProvider ()Lorg/jetbrains/kotlin/container/ComponentProvider;
 	public final fun getConfiguration ()Lorg/jetbrains/kotlin/config/CompilerConfiguration;
 	public final fun getCtx ()Larrow/meta/phases/CompilerContext;
-	public final fun getEval ()Lkotlin/jvm/functions/Function1;
-	public final fun getKtPsiElementFactory ()Lorg/jetbrains/kotlin/psi/KtPsiFactory;
 	public final fun getMessageCollector ()Lorg/jetbrains/kotlin/cli/common/messages/MessageCollector;
 	public final fun getModule ()Lorg/jetbrains/kotlin/descriptors/ModuleDescriptor;
-	public fun getProject ()Lorg/jetbrains/kotlin/com/intellij/openapi/project/Project;
+	public final fun getSessionData ()Ljava/util/concurrent/ConcurrentHashMap;
 	public final fun set (Ljava/lang/String;Ljava/lang/Object;)V
-	public final fun setBindingTrace (Lorg/jetbrains/kotlin/resolve/BindingTrace;)V
 	public final fun setComponentProvider (Lorg/jetbrains/kotlin/container/ComponentProvider;)V
 	public final fun setModule (Lorg/jetbrains/kotlin/descriptors/ModuleDescriptor;)V
 }
@@ -746,7 +633,7 @@ public abstract interface class arrow/meta/phases/analysis/CollectAdditionalSour
 public abstract interface class arrow/meta/phases/analysis/Eq {
 	public static final field Companion Larrow/meta/phases/analysis/Eq$Companion;
 	public abstract fun eqv (Ljava/lang/Object;Ljava/lang/Object;)Z
-	public abstract fun neqv (Ljava/lang/Object;Ljava/lang/Object;)Z
+	public fun neqv (Ljava/lang/Object;Ljava/lang/Object;)Z
 }
 
 public final class arrow/meta/phases/analysis/Eq$Companion {
@@ -839,7 +726,6 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun createEnumEntry (IILorg/jetbrains/kotlin/ir/declarations/IrDeclarationOrigin;Lorg/jetbrains/kotlin/ir/symbols/IrEnumEntrySymbol;Lorg/jetbrains/kotlin/name/Name;)Lorg/jetbrains/kotlin/ir/declarations/IrEnumEntry;
 	public fun createErrorDeclaration (IILorg/jetbrains/kotlin/descriptors/DeclarationDescriptor;)Lorg/jetbrains/kotlin/ir/declarations/IrErrorDeclaration;
 	public fun createErrorType (Ljava/lang/String;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
-	public fun createErrorTypeWithCustomConstructor (Ljava/lang/String;Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;
 	public fun createExpressionBody (IILkotlin/jvm/functions/Function1;)Lorg/jetbrains/kotlin/ir/expressions/IrExpressionBody;
 	public fun createExpressionBody (IILorg/jetbrains/kotlin/ir/expressions/IrExpression;)Lorg/jetbrains/kotlin/ir/expressions/IrExpressionBody;
 	public fun createExpressionBody (Lorg/jetbrains/kotlin/ir/expressions/IrExpression;)Lorg/jetbrains/kotlin/ir/expressions/IrExpressionBody;
@@ -856,6 +742,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun createTypeAlias (IILorg/jetbrains/kotlin/ir/symbols/IrTypeAliasSymbol;Lorg/jetbrains/kotlin/name/Name;Lorg/jetbrains/kotlin/descriptors/DescriptorVisibility;Lorg/jetbrains/kotlin/ir/types/IrType;ZLorg/jetbrains/kotlin/ir/declarations/IrDeclarationOrigin;)Lorg/jetbrains/kotlin/ir/declarations/IrTypeAlias;
 	public fun createTypeArgument (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;Lorg/jetbrains/kotlin/types/model/TypeVariance;)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun createTypeParameter (IILorg/jetbrains/kotlin/ir/declarations/IrDeclarationOrigin;Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;Lorg/jetbrains/kotlin/name/Name;IZLorg/jetbrains/kotlin/types/Variance;)Lorg/jetbrains/kotlin/ir/declarations/IrTypeParameter;
+	public fun createUninferredType (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;
 	public fun createValueParameter (IILorg/jetbrains/kotlin/ir/declarations/IrDeclarationOrigin;Lorg/jetbrains/kotlin/ir/symbols/IrValueParameterSymbol;Lorg/jetbrains/kotlin/name/Name;ILorg/jetbrains/kotlin/ir/types/IrType;Lorg/jetbrains/kotlin/ir/types/IrType;ZZZZ)Lorg/jetbrains/kotlin/ir/declarations/IrValueParameter;
 	public fun enterScope (Lorg/jetbrains/kotlin/ir/declarations/IrDeclaration;)V
 	public fun enterScope (Lorg/jetbrains/kotlin/ir/symbols/IrSymbol;)V
@@ -863,12 +750,13 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun findCommonIntegerLiteralTypesSuperType (Ljava/util/List;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
 	public fun get (Lorg/jetbrains/kotlin/types/model/TypeArgumentListMarker;I)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun getAnnotationFirstArgumentValue (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;Lorg/jetbrains/kotlin/name/FqName;)Ljava/lang/Object;
-	public fun getAnnotations (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Ljava/util/List;
 	public fun getArgument (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;I)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun getArgumentOrNull (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;I)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun getArguments (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Ljava/util/List;
+	public fun getAttributes (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Ljava/util/List;
 	public fun getClassFqNameUnsafe (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Lorg/jetbrains/kotlin/name/FqNameUnsafe;
 	public final fun getCompilerContext ()Larrow/meta/phases/CompilerContext;
+	public fun getCustomAttributes (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Ljava/util/List;
 	public fun getIrBuiltIns ()Lorg/jetbrains/kotlin/ir/IrBuiltIns;
 	public final fun getModuleFragment ()Lorg/jetbrains/kotlin/ir/declarations/IrModuleFragment;
 	public fun getName (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;)Lorg/jetbrains/kotlin/name/Name;
@@ -891,9 +779,11 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun getUnsubstitutedUnderlyingType (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;
 	public fun getUpperBound (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;I)Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;
 	public fun getUpperBounds (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;)Ljava/util/List;
+	public fun getValueClassProperties (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Ljava/util/List;
 	public fun getVariance (Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;)Lorg/jetbrains/kotlin/types/model/TypeVariance;
 	public fun getVariance (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;)Lorg/jetbrains/kotlin/types/model/TypeVariance;
 	public fun hasAnnotation (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;Lorg/jetbrains/kotlin/name/FqName;)Z
+	public fun hasCustomAttributes (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun hasFlexibleNullability (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun hasRecursiveBounds (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun identicalArguments (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
@@ -910,6 +800,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun isClassType (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
 	public fun isClassTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isCommonFinalClassConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
+	public fun isDefinitelyClassTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isDefinitelyNotNullType (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isDenotable (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isDynamic (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
@@ -921,6 +812,8 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun isFlexibleNothing (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isInlineClass (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isInnerClass (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
+	public fun isIntegerConstantOperatorTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
+	public fun isIntegerLiteralConstantTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isIntegerLiteralType (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
 	public fun isIntegerLiteralTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isInterface (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
@@ -929,6 +822,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun isLocalType (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isMarkedNullable (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isMarkedNullable (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
+	public fun isMultiFieldValueClass (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isNotNullTypeParameter (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isNothing (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isNothingConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
@@ -945,6 +839,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun isStubType (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
 	public fun isStubTypeForBuilderInference (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
 	public fun isStubTypeForVariableInSubtyping (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Z
+	public fun isTypeParameterTypeConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isTypeVariableType (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
 	public fun isUnderKotlinPackage (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Z
 	public fun isUninferredParameter (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Z
@@ -965,32 +860,34 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun nullableNothingType ()Lorg/jetbrains/kotlin/ir/types/IrSimpleType;
 	public synthetic fun nullableNothingType ()Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
 	public fun original (Lorg/jetbrains/kotlin/types/model/DefinitelyNotNullTypeMarker;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
+	public fun originalIfDefinitelyNotNullable (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
 	public fun parametersCount (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)I
 	public synthetic fun possibleIntegerTypes (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Ljava/util/Collection;
 	public fun possibleIntegerTypes (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Ljava/util/Set;
 	public fun projection (Lorg/jetbrains/kotlin/types/model/CapturedTypeConstructorMarker;)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun referenceClass (Lorg/jetbrains/kotlin/descriptors/ClassDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrClassSymbol;
-	public fun referenceClassFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrClassSymbol;
+	public fun referenceClass (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrClassSymbol;
 	public fun referenceConstructor (Lorg/jetbrains/kotlin/descriptors/ClassConstructorDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrConstructorSymbol;
-	public fun referenceConstructorFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrConstructorSymbol;
+	public fun referenceConstructor (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrConstructorSymbol;
 	public fun referenceDeclaredFunction (Lorg/jetbrains/kotlin/descriptors/FunctionDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
 	public fun referenceEnumEntry (Lorg/jetbrains/kotlin/descriptors/ClassDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrEnumEntrySymbol;
-	public fun referenceEnumEntryFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrEnumEntrySymbol;
+	public fun referenceEnumEntry (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrEnumEntrySymbol;
 	public fun referenceField (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrFieldSymbol;
-	public fun referenceFieldFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrFieldSymbol;
-	public fun referenceGlobalTypeParameterFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
+	public fun referenceField (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrFieldSymbol;
 	public fun referenceProperty (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrPropertySymbol;
 	public fun referenceProperty (Lorg/jetbrains/kotlin/descriptors/PropertyDescriptor;Lkotlin/jvm/functions/Function0;)Lorg/jetbrains/kotlin/ir/declarations/IrProperty;
-	public fun referencePropertyFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrPropertySymbol;
+	public fun referenceProperty (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrPropertySymbol;
 	public fun referenceScopedTypeParameter (Lorg/jetbrains/kotlin/descriptors/TypeParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
 	public fun referenceScript (Lorg/jetbrains/kotlin/descriptors/ScriptDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrScriptSymbol;
 	public fun referenceSimpleFunction (Lorg/jetbrains/kotlin/descriptors/FunctionDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
-	public fun referenceSimpleFunctionFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
+	public fun referenceSimpleFunction (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrSimpleFunctionSymbol;
 	public fun referenceTypeAlias (Lorg/jetbrains/kotlin/descriptors/TypeAliasDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeAliasSymbol;
-	public fun referenceTypeAliasFromLinker (Lorg/jetbrains/kotlin/ir/util/IdSignature;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeAliasSymbol;
+	public fun referenceTypeAlias (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrTypeAliasSymbol;
 	public fun referenceTypeParameter (Lorg/jetbrains/kotlin/descriptors/TypeParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
+	public fun referenceTypeParameter (Lorg/jetbrains/kotlin/ir/util/IdSignature;Z)Lorg/jetbrains/kotlin/ir/symbols/IrTypeParameterSymbol;
 	public fun referenceValueParameter (Lorg/jetbrains/kotlin/descriptors/ParameterDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrValueParameterSymbol;
 	public fun referenceVariable (Lorg/jetbrains/kotlin/descriptors/VariableDescriptor;)Lorg/jetbrains/kotlin/ir/symbols/IrVariableSymbol;
+	public fun replaceCustomAttributes (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;Ljava/util/List;)Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;
 	public fun replaceType (Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)Lorg/jetbrains/kotlin/types/model/TypeArgumentMarker;
 	public fun size (Lorg/jetbrains/kotlin/types/model/TypeArgumentListMarker;)I
 	public final fun substitutedIrTypes (Lorg/jetbrains/kotlin/descriptors/CallableDescriptor;Lorg/jetbrains/kotlin/resolve/calls/inference/components/NewTypeSubstitutorByConstructorMap;)Ljava/util/List;
@@ -1005,7 +902,7 @@ public final class arrow/meta/phases/codegen/ir/IrUtils : org/jetbrains/kotlin/i
 	public fun typeConstructor (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;
 	public fun typeDepth (Lorg/jetbrains/kotlin/types/model/KotlinTypeMarker;)I
 	public fun typeDepth (Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;)I
-	public fun unlistFunction (Lorg/jetbrains/kotlin/ir/declarations/IrFunction;)V
+	public fun unionTypeAttributes (Ljava/util/List;)Ljava/util/List;
 	public fun unwrapStubTypeVariableConstructor (Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;)Lorg/jetbrains/kotlin/types/model/TypeConstructorMarker;
 	public fun upperBound (Lorg/jetbrains/kotlin/types/model/FlexibleTypeMarker;)Lorg/jetbrains/kotlin/types/model/SimpleTypeMarker;
 	public fun upperBoundCount (Lorg/jetbrains/kotlin/types/model/TypeParameterMarker;)I

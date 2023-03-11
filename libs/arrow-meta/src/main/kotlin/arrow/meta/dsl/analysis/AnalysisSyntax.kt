@@ -136,14 +136,13 @@ interface AnalysisSyntax {
    * emitted diagnostic is suppressed and removed from the [BindingTrace]. This will cause the
    * [Diagnostic] to not be considered in further compilation phases.
    */
-  @Suppress("UNCHECKED_CAST")
   fun suppressDiagnostic(f: (Diagnostic) -> Boolean): ExtensionPhase =
     cli {
       analysis(
-        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+        doAnalysis = { _, _, _, _, _, _ ->
           null
         },
-        analysisCompleted = { project, module, bindingTrace, files ->
+        analysisCompleted = { _, _, bindingTrace, _ ->
           val diagnostics: MutableDiagnosticsWithSuppression =
             BindingTraceContext::class
               .java
@@ -159,14 +158,13 @@ interface AnalysisSyntax {
       ?: ExtensionPhase.Empty
 
   /** @see [suppressDiagnostic] including access to the [BindingTrace] */
-  @Suppress("UNCHECKED_CAST")
   fun suppressDiagnosticWithTrace(f: BindingTrace.(Diagnostic) -> Boolean): ExtensionPhase =
     cli {
       analysis(
-        doAnalysis = { project, module, projectContext, files, bindingTrace, componentProvider ->
+        doAnalysis = { _, _, _, _, _, _ ->
           null
         },
-        analysisCompleted = { project, module, bindingTrace, files ->
+        analysisCompleted = { _, _, bindingTrace, _ ->
           val diagnostics: MutableDiagnosticsWithSuppression =
             BindingTraceContext::class
               .java

@@ -2,7 +2,7 @@ package arrow.meta.plugin.testing
 
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 /**
@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 @OptIn(ExperimentalCompilerApi::class)
 internal data class CompilationData(
   val compilerPlugins: List<String> = emptyList(),
-  val metaPlugins: List<ComponentRegistrar> = emptyList(),
+  val metaPlugins: List<CompilerPluginRegistrar> = emptyList(),
   val dependencies: List<String> = emptyList(),
   val sources: List<Code.Source> = emptyList(),
   val arguments: List<String> = emptyList(),

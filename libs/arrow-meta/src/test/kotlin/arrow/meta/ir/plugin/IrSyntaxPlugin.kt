@@ -82,7 +82,7 @@ import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
 
-open class IrSyntaxPlugin : Meta {
+open class IrSyntaxPlugin : Meta() {
   override fun intercept(ctx: CompilerContext): List<CliPlugin> =
     listOf(
       "IrSyntaxPlugin" {

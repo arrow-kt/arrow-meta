@@ -41,6 +41,8 @@ import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.useInstance
@@ -89,16 +91,16 @@ import org.jetbrains.kotlin.synthetic.JavaSyntheticPropertiesScope
 import org.jetbrains.kotlin.synthetic.SyntheticScopeProviderExtension
 import org.jetbrains.kotlin.types.KotlinType
 
+@OptIn(ExperimentalCompilerApi::class)
 interface InternalRegistry : ConfigSyntax {
 
   fun intercept(ctx: CompilerContext): List<CliPlugin>
 
   fun meta(vararg phases: ExtensionPhase): List<ExtensionPhase> = phases.toList()
 
-  private fun registerPostAnalysisContextEnrichment(project: Project, ctx: CompilerContext) {
+  private fun CompilerPluginRegistrar.ExtensionStorage.registerPostAnalysisContextEnrichment(ctx: CompilerContext) {
     cli {
       AnalysisHandlerExtension.registerExtension(
-        project,
         object : AnalysisHandlerExtension {
           override fun doAnalysis(
             project: Project,
@@ -127,17 +129,16 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
     ide { println("registerProjectComponents!!!! CALLED in IDEA!!!! something is wrong.") }
-    registerMetaComponents(project, configuration)
+    registerMetaComponents(configuration)
   }
 
-  fun registerMetaComponents(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerMetaComponents(
     configuration: CompilerConfiguration,
     context: CompilerContext? = null
   ) {
-    cli { registerSyntheticScopeProviderIfNeeded(project) }
+    cli { registerSyntheticScopeProviderIfNeeded() }
     val ctx: CompilerContext =
       if (context != null) {
         context
@@ -145,9 +146,9 @@ interface InternalRegistry : ConfigSyntax {
         val messageCollector: MessageCollector? = cli {
           configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         }
-        CompilerContext(configuration, project, messageCollector)
+        CompilerContext(configuration, messageCollector)
       }
-    registerPostAnalysisContextEnrichment(project, ctx)
+    registerPostAnalysisContextEnrichment(ctx)
 
     // TODO: Pending fix https://github.com/gradle/gradle/issues/14727
     //    println("System.properties are: " + System.getProperties().map {
@@ -160,26 +161,26 @@ interface InternalRegistry : ConfigSyntax {
     (initialPhases + intercept(ctx)).forEach { plugin ->
       println("Registering Cli plugin: $plugin extensions: ${plugin.meta}")
       plugin.meta.invoke(ctx).forEach { currentPhase ->
-        fun ExtensionPhase.registerPhase(): Unit {
+        fun ExtensionPhase.registerPhase() {
           when (this) {
             // Empty & Composite allow for composing ExtensionPhases
             is ExtensionPhase.Empty -> Unit
             is Composite -> phases.map(ExtensionPhase::registerPhase)
-            is CollectAdditionalSources -> registerCollectAdditionalSources(project, this, ctx)
-            is Config -> registerCompilerConfiguration(project, this, ctx)
-            is ExtraImports -> registerExtraImports(project, this, ctx)
+            is CollectAdditionalSources -> registerCollectAdditionalSources(this, ctx)
+            is Config -> registerCompilerConfiguration(this, ctx)
+            is ExtraImports -> registerExtraImports(this, ctx)
             is PreprocessedVirtualFileFactory ->
-              registerPreprocessedVirtualFileFactory(project, this, ctx)
-            is StorageComponentContainer -> registerStorageComponentContainer(project, this, ctx)
-            is AnalysisHandler -> registerAnalysisHandler(project, this, ctx)
-            is ClassBuilder -> registerClassBuilder(project, this, ctx)
-            is Codegen -> registerCodegen(project, this, ctx)
+              registerPreprocessedVirtualFileFactory(this, ctx)
+            is StorageComponentContainer -> registerStorageComponentContainer(this, ctx)
+            is AnalysisHandler -> registerAnalysisHandler(this, ctx)
+            is ClassBuilder -> registerClassBuilder(this, ctx)
+            is Codegen -> registerCodegen(this, ctx)
             is DeclarationAttributeAlterer ->
-              registerDeclarationAttributeAlterer(project, this, ctx)
-            is PackageProvider -> packageFragmentProvider(project, this, ctx)
-            is SyntheticResolver -> registerSyntheticResolver(project, this, ctx)
-            is IRGeneration -> registerIRGeneration(project, this, ctx)
-            is SyntheticScopeProvider -> registerSyntheticScopeProvider(project, this, ctx)
+              registerDeclarationAttributeAlterer(this, ctx)
+            is PackageProvider -> packageFragmentProvider(this, ctx)
+            is SyntheticResolver -> registerSyntheticResolver(this, ctx)
+            is IRGeneration -> registerIRGeneration(this, ctx)
+            is SyntheticScopeProvider -> registerSyntheticScopeProvider(this, ctx)
             // is DiagnosticsSuppressor -> registerDiagnosticSuppressor(project, this, ctx)
             else ->
               ctx.messageCollector?.report(
@@ -193,12 +194,12 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun registerSyntheticScopeProviderIfNeeded(project: Project) {
-    if (
+  fun CompilerPluginRegistrar.ExtensionStorage.registerSyntheticScopeProviderIfNeeded() {
+    /*if (
       !project.extensionArea.hasExtensionPoint(SyntheticScopeProviderExtension.extensionPointName)
     ) {
       SyntheticScopeProviderExtension.registerExtensionPoint(project)
-    }
+    }*/
   }
 
   // TODO: Pending fix https://github.com/gradle/gradle/issues/14727
@@ -212,9 +213,8 @@ interface InternalRegistry : ConfigSyntax {
 
   fun registerMetaAnalyzer(): ExtensionPhase = ExtensionPhase.Empty
 
-  fun registerExtraImports(project: Project, phase: ExtraImports, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerExtraImports(phase: ExtraImports, ctx: CompilerContext) {
     ExtraImportsProviderExtension.registerExtension(
-      project,
       object : ExtraImportsProviderExtension {
         override fun getExtraImports(ktFile: KtFile): Collection<KtImportInfo> =
           phase.run { ctx.extraImports(ktFile) }
@@ -222,13 +222,11 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerPreprocessedVirtualFileFactory(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerPreprocessedVirtualFileFactory(
     phase: PreprocessedVirtualFileFactory,
     ctx: CompilerContext
   ) {
     PreprocessedVirtualFileFactoryExtension.registerExtension(
-      project,
       object : PreprocessedVirtualFileFactoryExtension {
         override fun createPreprocessedFile(file: VirtualFile?): VirtualFile? =
           phase.run { ctx.createPreprocessedFile(file) }
@@ -241,13 +239,11 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerSyntheticScopeProvider(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerSyntheticScopeProvider(
     phase: SyntheticScopeProvider,
     ctx: CompilerContext
   ) {
     SyntheticScopeProviderExtension.registerExtension(
-      project,
       object : SyntheticScopeProviderExtension {
         override fun getScopes(
           moduleDescriptor: ModuleDescriptor,
@@ -313,13 +309,11 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerIRGeneration(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerIRGeneration(
     phase: IRGeneration,
     compilerContext: CompilerContext
   ) {
     IrGenerationExtension.registerExtension(
-      project,
       object : IrGenerationExtension {
         override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
           phase.run { compilerContext.generate(moduleFragment, pluginContext) }
@@ -328,13 +322,11 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerSyntheticResolver(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerSyntheticResolver(
     phase: SyntheticResolver,
     compilerContext: CompilerContext
   ) {
     SyntheticResolveExtension.registerExtension(
-      project,
       object : SyntheticResolveExtension {
         override fun addSyntheticSupertypes(
           thisDescriptor: ClassDescriptor,
@@ -434,9 +426,8 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun packageFragmentProvider(project: Project, phase: PackageProvider, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.packageFragmentProvider(phase: PackageProvider, ctx: CompilerContext) {
     PackageFragmentProviderExtension.registerExtension(
-      project,
       object : PackageFragmentProviderExtension {
         override fun getPackageFragmentProvider(
           project: Project,
@@ -461,13 +452,11 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerDeclarationAttributeAlterer(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerDeclarationAttributeAlterer(
     phase: DeclarationAttributeAlterer,
     ctx: CompilerContext
   ) {
     DeclarationAttributeAltererExtension.registerExtension(
-      project,
       object : DeclarationAttributeAltererExtension {
         override fun refineDeclarationModality(
           modifierListOwner: KtModifierListOwner,
@@ -490,9 +479,8 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerCodegen(project: Project, phase: Codegen, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerCodegen(phase: Codegen, ctx: CompilerContext) {
     ExpressionCodegenExtension.registerExtension(
-      project,
       object : ExpressionCodegenExtension {
         override fun applyFunction(
           receiver: StackValue,
@@ -517,25 +505,21 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerStorageComponentContainer(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerStorageComponentContainer(
     phase: StorageComponentContainer,
     ctx: CompilerContext
   ) {
     StorageComponentContainerContributor.registerExtension(
-      project,
       DelegatingContributor(phase, ctx)
     )
   }
 
-  fun registerCollectAdditionalSources(
-    project: Project,
+  fun CompilerPluginRegistrar.ExtensionStorage.registerCollectAdditionalSources(
     phase: CollectAdditionalSources,
     ctx: CompilerContext
   ) {
     cli {
       CollectAdditionalSourcesExtension.registerExtension(
-        project,
         object : CollectAdditionalSourcesExtension {
           override fun collectAdditionalSourcesAndUpdateConfiguration(
             knownSources: Collection<KtFile>,
@@ -554,11 +538,10 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun registerAnalysisHandler(project: Project, phase: AnalysisHandler, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerAnalysisHandler(phase: AnalysisHandler, ctx: CompilerContext) {
     phase.pushAnalysisPhase()
     cli {
       AnalysisHandlerExtension.registerExtension(
-        project,
         object : AnalysisHandlerExtension {
           override fun analysisCompleted(
             project: Project,
@@ -609,9 +592,8 @@ interface InternalRegistry : ConfigSyntax {
     }
   }
 
-  fun registerClassBuilder(project: Project, phase: ClassBuilder, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerClassBuilder(phase: ClassBuilder, ctx: CompilerContext) {
     ClassBuilderInterceptorExtension.registerExtension(
-      project,
       object : ClassBuilderInterceptorExtension {
         override fun interceptClassBuilderFactory(
           interceptedFactory: ClassBuilderFactory,
@@ -623,9 +605,8 @@ interface InternalRegistry : ConfigSyntax {
     )
   }
 
-  fun registerCompilerConfiguration(project: Project, phase: Config, ctx: CompilerContext) {
+  fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerConfiguration(phase: Config, ctx: CompilerContext) {
     CompilerConfigurationExtension.registerExtension(
-      project,
       object : CompilerConfigurationExtension {
         override fun updateConfiguration(configuration: CompilerConfiguration) {
           phase.run { ctx.updateConfiguration(configuration) }
@@ -657,7 +638,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(
-      registerModuleComponents = { container, moduleDescriptor -> container.useInstance(this) },
-      check = { declaration, descriptor, context -> }
+      registerModuleComponents = { container, _ -> container.useInstance(this) },
+      check = { _, _, _ -> }
     )
 }
