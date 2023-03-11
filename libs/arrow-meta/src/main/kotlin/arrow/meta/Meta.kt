@@ -95,5 +95,4 @@ abstract class Meta : CompilerPluginRegistrar(), MetaPluginSyntax, InternalRegis
   override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
     registerMetaComponents(configuration)
   }
-
 }

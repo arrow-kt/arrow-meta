@@ -139,9 +139,7 @@ interface AnalysisSyntax {
   fun suppressDiagnostic(f: (Diagnostic) -> Boolean): ExtensionPhase =
     cli {
       analysis(
-        doAnalysis = { _, _, _, _, _, _ ->
-          null
-        },
+        doAnalysis = { _, _, _, _, _, _ -> null },
         analysisCompleted = { _, _, bindingTrace, _ ->
           val diagnostics: MutableDiagnosticsWithSuppression =
             BindingTraceContext::class
@@ -161,9 +159,7 @@ interface AnalysisSyntax {
   fun suppressDiagnosticWithTrace(f: BindingTrace.(Diagnostic) -> Boolean): ExtensionPhase =
     cli {
       analysis(
-        doAnalysis = { _, _, _, _, _, _ ->
-          null
-        },
+        doAnalysis = { _, _, _, _, _, _ -> null },
         analysisCompleted = { _, _, bindingTrace, _ ->
           val diagnostics: MutableDiagnosticsWithSuppression =
             BindingTraceContext::class

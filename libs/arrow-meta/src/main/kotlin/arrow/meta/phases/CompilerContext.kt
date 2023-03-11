@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
 
 /**
  * The Compiler Context represents the environment received by all plugins. The Compiler Context
@@ -19,8 +18,8 @@ open class CompilerContext(
   val configuration: CompilerConfiguration?,
   // open val project: Project,
   val messageCollector: MessageCollector? = null,
-  // val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
-  // val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
+// val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
+// val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
 ) {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
