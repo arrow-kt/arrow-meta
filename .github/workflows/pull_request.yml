@@ -78,5 +78,5 @@ jobs:
         run: |
           sudo gem install bundler
           bundle config set --local path 'vendor/bundle'
-          bundle install --gemfile docs/Gemfile
+          sudo bundle install --gemfile docs/Gemfile
           BUNDLE_GEMFILE=docs/Gemfile bundle exec jekyll build -b /docs/meta -s docs/docs -d docs/build
