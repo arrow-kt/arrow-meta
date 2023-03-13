@@ -1,7 +1,7 @@
 [versions]
 arrow = "1.1.5"
 arrowGradleConfig = "0.11.0"
-arrowAnalysis = "2.0.2-SNAPSHOT"
+arrowAnalysis = "2.0.2"
 assertj = "3.24.2"
 classgraph = "4.8.157"
 dokka = "1.8.10"
@@ -14,10 +14,10 @@ kotlinCompileTesting = "1.5.0"
 javaCompileTesting = "0.21.0"
 apacheCommonsText = "1.10.0"
 sarif4k = "0.3.0"
-kotlinBinaryCompatibilityValidator = "0.12.1"
+kotlinBinaryCompatibilityValidator = "0.13.0"
 detekt = "1.22.0"
 ksp = "1.8.10-1.0.9"
-okio = "3.2.0"
+okio = "3.3.0"
 
 [libraries]
 arrowAnnotations = { module = "io.arrow-kt:arrow-annotations", version.ref = "arrow" }
