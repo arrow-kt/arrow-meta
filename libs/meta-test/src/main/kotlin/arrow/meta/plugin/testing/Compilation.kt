@@ -42,7 +42,7 @@ private fun createKotlinCompilation(data: CompilationData) =
     sources = data.sources.map { SourceFile.kotlin(it.filename, it.text.trimMargin()) }
     classpaths = data.dependencies.map { classpathOf(it) }
     pluginClasspaths = data.compilerPlugins.map { classpathOf(it) }
-    compilerPlugins = data.metaPlugins
+    compilerPluginRegistrars = data.metaPlugins
     jvmTarget = obtainTarget(data)
     messageOutputStream =
       object : PrintStream(System.out) {

@@ -1231,13 +1231,13 @@ interface IrSyntax {
     )
   }
 
-  fun Meta.irDump(): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
+  fun Meta.irDump(): IRGeneration = IrGeneration { _, moduleFragment, _ ->
     println(moduleFragment.dump())
   }
 
   fun Meta.irDumpKotlinLike(
     options: KotlinLikeDumpOptions = KotlinLikeDumpOptions()
-  ): IRGeneration = IrGeneration { compilerContext, moduleFragment, pluginContext ->
+  ): IRGeneration = IrGeneration { _, moduleFragment, _ ->
     println(moduleFragment.dumpKotlinLike(options))
   }
 }

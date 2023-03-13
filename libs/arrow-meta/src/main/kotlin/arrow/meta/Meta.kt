@@ -4,8 +4,7 @@ import arrow.meta.dsl.MetaPluginSyntax
 import arrow.meta.internal.registry.InternalRegistry
 import arrow.meta.phases.CompilerContext
 import arrow.meta.phases.ExtensionPhase
-import org.jetbrains.kotlin.com.intellij.mock.MockProject
-import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
@@ -75,7 +74,7 @@ operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): 
  * compiler subscriptions via [InternalRegistry]
  */
 @OptIn(ExperimentalCompilerApi::class)
-interface Meta : ComponentRegistrar, MetaPluginSyntax, InternalRegistry {
+abstract class Meta : CompilerPluginRegistrar(), MetaPluginSyntax, InternalRegistry {
 
   /**
    * The [Meta] plugin supports N numbers of local and remote sub [CliPlugin] that provide a [List]
@@ -89,11 +88,11 @@ interface Meta : ComponentRegistrar, MetaPluginSyntax, InternalRegistry {
    * Users may override [intercept] to add further plugins or programmatically remove some of the
    * predefined ones in their custom [CliPlugin]
    */
-  override fun intercept(ctx: CompilerContext): List<CliPlugin>
+  abstract override fun intercept(ctx: CompilerContext): List<CliPlugin>
 
-  /** CLI Compiler [ComponentRegistrar] entry point. */
-  override fun registerProjectComponents(
-    project: MockProject,
-    configuration: CompilerConfiguration
-  ) = super.registerProjectComponents(project, configuration)
+  override val supportsK2: Boolean = false
+
+  override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+    registerMetaComponents(configuration)
+  }
 }

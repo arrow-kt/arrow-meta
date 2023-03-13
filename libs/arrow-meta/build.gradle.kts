@@ -13,7 +13,7 @@ kotlin {
 }
 
 tasks.compileKotlin {
-  kotlinOptions.freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xjvm-default=enable")
+  kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 }
 
 dependencies {
