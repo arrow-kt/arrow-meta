@@ -38,7 +38,6 @@ dependencies {
   implementation(projects.arrowMeta)
   implementation(libs.ksp.api)
   implementation(libs.ksp.lib)
-  implementation(libs.okio)
 
   testImplementation(libs.kotlin.stdlibJDK8)
   testImplementation(libs.junit)

@@ -1,3 +1,5 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 buildscript {
   repositories {
     mavenCentral()
@@ -12,7 +14,6 @@ plugins {
 dependencies {
   runtimeOnly(libs.kotlin.stdlibJDK8)
   runtimeOnly(projects.arrowMeta)
-  runtimeOnly(libs.arrowAnalysisTypes)
 }
 
 tasks {
