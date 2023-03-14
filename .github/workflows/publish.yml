@@ -126,7 +126,8 @@ jobs:
           JEKYLL_ENV: production
         run: |
           sudo gem install bundler
-          bundle install --gemfile docs/Gemfile --path vendor/bundle
+          bundle config set --local path 'vendor/bundle'
+          sudo bundle install --gemfile docs/Gemfile
           MAYOR_MINOR_VERSION=${{ needs.build.outputs.analysis-version }}
           echo $MAYOR_MINOR_VERSION
           # bundle exec jekyll build --baseurl /$MAYOR_MINOR_VERSION -s docs -d docs/build/_site

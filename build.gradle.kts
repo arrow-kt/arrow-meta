@@ -31,6 +31,10 @@ tasks {
   }
 }
 
+task("docsJar") {
+  dependsOn(tasks.getByPath(":arrow-gradle-plugin-commons:dokkaHtml"))
+}
+
 allprojects {
   this.tasks.withType<Test>() {
     useJUnitPlatform()
