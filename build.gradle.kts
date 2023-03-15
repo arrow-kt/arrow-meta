@@ -31,8 +31,17 @@ tasks {
   }
 }
 
+// declare Dokka implicit dependencies
+val libNames = listOf("arrow-meta", "arrow-meta-test", "arrow-gradle-plugin-commons")
 task("docsJar") {
-  dependsOn(tasks.getByPath(":arrow-gradle-plugin-commons:dokkaHtml"))
+  libNames.forEach {
+    dependsOn(tasks.getByPath(":${it}:dokkaHtml"))
+  }
+}
+libNames.forEach { task ->
+  libNames.forEach {
+    tasks.getByPath(":${task}:docsJar").dependsOn(":${it}:dokkaHtml")
+  }
 }
 
 allprojects {
