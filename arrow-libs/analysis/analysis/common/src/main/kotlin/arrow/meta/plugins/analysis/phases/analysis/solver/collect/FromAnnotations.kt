@@ -46,9 +46,9 @@ private fun SolverState.collectFromLocalDeclarations(
   localDeclarations: List<DeclarationDescriptor>,
   bindingTrace: ResolutionContext
 ) {
-  localDeclarations.flatMap { it.gather { it.hasInterestingAnnotation } }.forEach {
-    addConstraintsFromAnnotations(it, bindingTrace)
-  }
+  localDeclarations
+    .flatMap { it.gather { it.hasInterestingAnnotation } }
+    .forEach { addConstraintsFromAnnotations(it, bindingTrace) }
 }
 
 private fun SolverState.collectFromClasspath(
@@ -67,7 +67,9 @@ private fun SolverState.collectFromClasspath(
           .gather(
             initialPackages = listOf(FqName("arrow.analysis.hints")),
             addSubPackages = false
-          ) { it.hasPackageWithLawsAnnotation }
+          ) {
+            it.hasPackageWithLawsAnnotation
+          }
           .flatMap {
             it.packageWithLawsAnnotation?.argumentValueAsArrayOfString("packages").orEmpty()
           }
@@ -141,7 +143,8 @@ internal fun SolverState.parseFormula(
     """
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
-  """.trimIndent()
+  """.trimIndent(
+    )
   val fullString = "$params\n$deps\n$rest\n(assert $formula)"
   return solver.parse(fullString)
 }

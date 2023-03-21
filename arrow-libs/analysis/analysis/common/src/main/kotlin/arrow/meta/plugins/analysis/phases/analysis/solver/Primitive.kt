@@ -81,54 +81,60 @@ private fun Solver.comparisonFormula(
   resolvedCall: ResolvedCall,
   args: List<Formula>
 ): BooleanFormula? =
-  resolvedCall.allArgumentExpressions(context).takeIf { it.size == 2 }?.let {
-    val ty1 = it[0].type.unwrapIfNullable().primitiveType()
-    val ty2 = it[1].type.unwrapIfNullable().primitiveType()
-    val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
-    when {
-      ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->
+  resolvedCall
+    .allArgumentExpressions(context)
+    .takeIf { it.size == 2 }
+    ?.let {
+      val ty1 = it[0].type.unwrapIfNullable().primitiveType()
+      val ty2 = it[1].type.unwrapIfNullable().primitiveType()
+      val op = (resolvedCall.callElement as? BinaryExpression)?.operationToken
+      when {
+        ty1 == PrimitiveType.BOOLEAN && ty2 == PrimitiveType.BOOLEAN ->
+          when (op) {
+            "==" -> boolEquivalence(args)
+            "!=" -> boolEquivalence(args)?.let { f -> not(f) }
+            else -> null
+          }
+        ty1 == PrimitiveType.INTEGRAL && ty2 == PrimitiveType.INTEGRAL ->
+          when (op) {
+            "==" -> intEquals(args)
+            "!=" -> intEquals(args)?.let { f -> not(f) }
+            ">" -> intGreaterThan(args)
+            ">=" -> intGreaterThanOrEquals(args)
+            "<" -> intLessThan(args)
+            "<=" -> intLessThanOrEquals(args)
+            else -> null
+          }
+        ty1 == PrimitiveType.RATIONAL && ty2 == PrimitiveType.RATIONAL ->
+          when (op) {
+            "==" -> rationalEquals(args)
+            "!=" -> rationalEquals(args)?.let { f -> not(f) }
+            ">" -> rationalGreaterThan(args)
+            ">=" -> rationalGreaterThanOrEquals(args)
+            "<" -> rationalLessThan(args)
+            "<=" -> rationalLessThanOrEquals(args)
+            else -> null
+          }
+        ty1 == null && ty2 == null -> // equality on objects
         when (op) {
-          "==" -> boolEquivalence(args)
-          "!=" -> boolEquivalence(args)?.let { f -> not(f) }
-          else -> null
-        }
-      ty1 == PrimitiveType.INTEGRAL && ty2 == PrimitiveType.INTEGRAL ->
-        when (op) {
-          "==" -> intEquals(args)
-          "!=" -> intEquals(args)?.let { f -> not(f) }
-          ">" -> intGreaterThan(args)
-          ">=" -> intGreaterThanOrEquals(args)
-          "<" -> intLessThan(args)
-          "<=" -> intLessThanOrEquals(args)
-          else -> null
-        }
-      ty1 == PrimitiveType.RATIONAL && ty2 == PrimitiveType.RATIONAL ->
-        when (op) {
-          "==" -> rationalEquals(args)
-          "!=" -> rationalEquals(args)?.let { f -> not(f) }
-          ">" -> rationalGreaterThan(args)
-          ">=" -> rationalGreaterThanOrEquals(args)
-          "<" -> rationalLessThan(args)
-          "<=" -> rationalLessThanOrEquals(args)
-          else -> null
-        }
-      ty1 == null && ty2 == null -> // equality on objects
-      when (op) {
-          "==" -> intEquals(args)
-          else -> null
-        }
-      else -> null
+            "==" -> intEquals(args)
+            else -> null
+          }
+        else -> null
+      }
     }
-  }
 
 private fun Solver.booleanFormula(
   descriptor: CallableDescriptor,
   args: List<Formula>
 ): BooleanFormula? =
   when (descriptor.fqNameSafe) {
-    FqName("kotlin.Boolean.not"), FqName("!") -> boolNot(args)
-    FqName("kotlin.Boolean.and"), FqName("&&") -> boolAnd(args)
-    FqName("kotlin.Boolean.or"), FqName("||") -> boolOr(args)
+    FqName("kotlin.Boolean.not"),
+    FqName("!") -> boolNot(args)
+    FqName("kotlin.Boolean.and"),
+    FqName("&&") -> boolAnd(args)
+    FqName("kotlin.Boolean.or"),
+    FqName("||") -> boolOr(args)
     FqName("kotlin.Boolean.xor") -> boolXor(args)
     else -> null
   }
@@ -158,7 +164,8 @@ private fun Solver.integralFormula(
     // "div", "/" -> intDivide(args) // not all SMT solvers support div
     "inc",
     "++" -> intPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "dec", "--" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec",
+    "--" -> intMinus(args + listOf(integerFormulaManager.makeNumber(1)))
     else -> null
   }
 
@@ -187,6 +194,7 @@ private fun Solver.rationalFormula(
     // "div", "/" -> rationalDivide(args) // not all SMT solvers support div
     "inc",
     "++" -> rationalPlus(args + listOf(integerFormulaManager.makeNumber(1)))
-    "dec", "--" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
+    "dec",
+    "--" -> rationalMinus(args + listOf(integerFormulaManager.makeNumber(1)))
     else -> null
   }

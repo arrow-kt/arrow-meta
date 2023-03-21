@@ -44,7 +44,8 @@ sealed interface ErrorIds {
           The compiler won't catch these errors in its own analysis phase (like it would do with a
           type error), since this is perfectly good code. However, it seems desirable for the
           programmer to know that a particular language feature cannot be used in these blocks.
-        """.trimIndent()
+        """.trimIndent(
+        )
   }
 
   enum class Laws : ErrorIds {
@@ -63,7 +64,8 @@ sealed interface ErrorIds {
           
           - It must call **exactly one** function at the end,
           - The call must use the parameters **in order**.
-        """.trimIndent()
+        """.trimIndent(
+        )
   }
 
   enum class Unsupported : ErrorIds {
@@ -90,7 +92,8 @@ sealed interface ErrorIds {
           ```kotlin
             val wrong = 1 / 0  // does not satisfy '0 != 0' in Int.div law
           ```
-        """.trimIndent()
+        """.trimIndent(
+          )
     },
     UnsatBodyPost {
       override val shortDescription: String
@@ -110,7 +113,8 @@ sealed interface ErrorIds {
              // does not satisfy 'x + x > 1'
            }
            ```
-        """.trimIndent()
+        """.trimIndent(
+          )
     },
     UnsatInvariants {
       override val shortDescription: String
@@ -129,7 +133,8 @@ sealed interface ErrorIds {
              ...
            }
           ```
-        """.trimIndent()
+        """.trimIndent(
+          )
     }
   }
 
@@ -149,7 +154,8 @@ sealed interface ErrorIds {
               ...
             }
            ```
-        """.trimIndent()
+        """.trimIndent(
+          )
     },
     InconsistentDefaultValues {
       override val fullDescription: String
@@ -164,7 +170,8 @@ sealed interface ErrorIds {
               ...
             }
            ```
-        """.trimIndent()
+        """.trimIndent(
+          )
     },
     InconsistentConditions {
       override val fullDescription: String
@@ -185,7 +192,8 @@ sealed interface ErrorIds {
                }
              }
            ```
-        """.trimIndent()
+        """.trimIndent(
+          )
 
       override val level: SeverityLevel
         get() = SeverityLevel.Warning
@@ -197,7 +205,8 @@ sealed interface ErrorIds {
           The post-conditions gathered after calling a function imply
           that this function could not be called at all. 
           _This is really uncommon in practice_.
-        """.trimIndent()
+        """.trimIndent(
+          )
 
       override val level: SeverityLevel
         get() = SeverityLevel.Warning
@@ -216,7 +225,8 @@ sealed interface ErrorIds {
             }
           
            ```  
-        """.trimIndent()
+        """.trimIndent(
+          )
     };
 
     override val shortDescription: String
@@ -235,7 +245,8 @@ sealed interface ErrorIds {
             the one declared in its parent. This guarantees that we can
             always replace a call to the parent with a call to the child
             (Liskov Substitution Principle).
-          """.trimIndent()
+          """.trimIndent(
+          )
     },
     NotStrongerPostcondition {
       override val shortDescription: String
@@ -248,7 +259,8 @@ sealed interface ErrorIds {
             the one declared in its parent. This guarantees that we can
             always replace a call to the parent with a call to the child
             (Liskov Substitution Principle).
-          """.trimIndent()
+          """.trimIndent(
+          )
     }
   }
 

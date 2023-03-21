@@ -159,8 +159,10 @@ object CollectionLaws {
   inline fun <T, V> Collection<T>.zipWithNextLaw(transform: (a: T, b: T) -> V): List<V> {
     doNotLookAtArgumentsWhen(size < 2) { "empty lists have no elements" }
     return zipWithNext(transform).post({
-        if (this.size < 2) (it.size == 0) else (it.size == this.size - 1)
-      }) { "size bounded by the smallest" }
+      if (this.size < 2) (it.size == 0) else (it.size == this.size - 1)
+    }) {
+      "size bounded by the smallest"
+    }
   }
 
   // operations which remove things
@@ -322,8 +324,10 @@ object CollectionLaws {
   inline fun <A, B> Collection<A>.flatMapLaw(transform: (A) -> Iterable<B>): List<B> {
     doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
     return flatMap(transform).post({
-        if (size <= 0) it.size == 0 else /* true means no info */ true
-      }) { "size of empty list" }
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) {
+      "size of empty list"
+    }
   }
   @Law
   inline fun <A, B> Collection<A>.flatMapIndexedLaw(
@@ -331,8 +335,10 @@ object CollectionLaws {
   ): List<B> {
     doNotLookAtArgumentsWhen(isEmpty()) { "empty lists have no elements" }
     return flatMapIndexed(transform).post({
-        if (size <= 0) it.size == 0 else /* true means no info */ true
-      }) { "size of empty list" }
+      if (size <= 0) it.size == 0 else /* true means no info */ true
+    }) {
+      "size of empty list"
+    }
   }
   @Law
   inline fun <A> Collection<Collection<A>>.flattenLaw(): List<A> =
@@ -529,8 +535,10 @@ object ListLaws {
   inline fun <E> List<E>.dropLastLaw(n: Int): List<E> {
     pre(n >= 0) { "n must be non-negative" }
     return dropLast(n).post({
-        if (this.size <= n) (it.size == 0) else (it.size == this.size - n)
-      }) { "bounds for drop" }
+      if (this.size <= n) (it.size == 0) else (it.size == this.size - n)
+    }) {
+      "bounds for drop"
+    }
   }
   @Law
   inline fun <E> List<E>.takeLastLaw(n: Int): List<E> {

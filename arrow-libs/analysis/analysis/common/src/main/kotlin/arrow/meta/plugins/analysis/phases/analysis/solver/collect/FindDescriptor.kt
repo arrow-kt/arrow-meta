@@ -87,13 +87,15 @@ private fun ResolutionContext.obtainDeclaration(
   // the type either strictly checks
   // or we need to look for the best match
   return current.firstOrNull { it.isCompatibleWith(compatibleWith) }
-    ?: current.filter { it.isLooselyCompatibleWith(compatibleWith) }.minWithOrNull { o1, o2 ->
-      when {
-        o1.isLooselyCompatibleWith(o2) -> -1
-        o2.isLooselyCompatibleWith(o1) -> 1
-        else -> 0
+    ?: current
+      .filter { it.isLooselyCompatibleWith(compatibleWith) }
+      .minWithOrNull { o1, o2 ->
+        when {
+          o1.isLooselyCompatibleWith(o2) -> -1
+          o2.isLooselyCompatibleWith(o1) -> 1
+          else -> 0
+        }
       }
-    }
 }
 
 /**

@@ -15,9 +15,9 @@ class KotlinModuleDescriptor(val impl: org.jetbrains.kotlin.descriptors.ModuleDe
     impl().getPackage(org.jetbrains.kotlin.name.FqName(pck)).model()
 
   override fun getSubPackagesOf(fqName: FqName): List<FqName> =
-    impl().getSubPackagesOf(org.jetbrains.kotlin.name.FqName(fqName.name)) { true }.map {
-      FqName(it.asString())
-    }
+    impl()
+      .getSubPackagesOf(org.jetbrains.kotlin.name.FqName(fqName.name)) { true }
+      .map { FqName(it.asString()) }
 
   override val stableName: Name?
     get() = impl().stableName?.let { Name(it.asString()) }

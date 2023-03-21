@@ -92,8 +92,10 @@ object CharSequenceLaws {
   @Law
   inline fun CharSequence.indexOfLawChar(element: Char, startIndex: Int, ignoreCase: Boolean): Int =
     indexOf(element, startIndex, ignoreCase).post({
-        if (this.length <= 0) (it == -1) else (it >= -1)
-      }) { "bounds for indexOf" }
+      if (this.length <= 0) (it == -1) else (it >= -1)
+    }) {
+      "bounds for indexOf"
+    }
   @Law
   inline fun CharSequence.indexOfLawString(
     element: String,
@@ -101,8 +103,10 @@ object CharSequenceLaws {
     ignoreCase: Boolean
   ): Int =
     indexOf(element, startIndex, ignoreCase).post({
-        if (this.length <= 0) (it == -1) else (it >= -1)
-      }) { "bounds for indexOf" }
+      if (this.length <= 0) (it == -1) else (it >= -1)
+    }) {
+      "bounds for indexOf"
+    }
   @Law
   inline fun CharSequence.lastIndexOfLawChar(
     element: Char,
@@ -110,8 +114,10 @@ object CharSequenceLaws {
     ignoreCase: Boolean
   ): Int =
     lastIndexOf(element, startIndex, ignoreCase).post({
-        if (this.length <= 0) (it == -1) else (it >= -1)
-      }) { "bounds for lastIndexOf" }
+      if (this.length <= 0) (it == -1) else (it >= -1)
+    }) {
+      "bounds for lastIndexOf"
+    }
   @Law
   inline fun CharSequence.lastIndexOfLawString(
     element: String,
@@ -119,8 +125,10 @@ object CharSequenceLaws {
     ignoreCase: Boolean
   ): Int =
     lastIndexOf(element, startIndex, ignoreCase).post({
-        if (this.length <= 0) (it == -1) else (it >= -1)
-      }) { "bounds for lastIndexOf" }
+      if (this.length <= 0) (it == -1) else (it >= -1)
+    }) {
+      "bounds for lastIndexOf"
+    }
   @Law
   inline fun CharSequence.indexOfFirstLaw(predicate: (x: Char) -> Boolean): Int =
     indexOfFirst(predicate).post({ if (this.length <= 0) (it == -1) else (it >= -1) }) {
@@ -166,8 +174,10 @@ object CharSequenceLaws {
   inline fun CharSequence.dropLaw(n: Int): CharSequence {
     pre(n >= 0) { "n must be non-negative" }
     return drop(n).post({
-        if (this.length <= n) (it.length == 0) else (it.length == this.length - n)
-      }) { "bounds for drop" }
+      if (this.length <= n) (it.length == 0) else (it.length == this.length - n)
+    }) {
+      "bounds for drop"
+    }
   }
   @Law
   inline fun CharSequence.takeLaw(n: Int): CharSequence {
@@ -178,8 +188,10 @@ object CharSequenceLaws {
   inline fun CharSequence.dropLastLaw(n: Int): CharSequence {
     pre(n >= 0) { "n must be non-negative" }
     return dropLast(n).post({
-        if (this.length <= n) (it.length == 0) else (it.length == this.length - n)
-      }) { "bounds for drop" }
+      if (this.length <= n) (it.length == 0) else (it.length == this.length - n)
+    }) {
+      "bounds for drop"
+    }
   }
   @Law
   inline fun CharSequence.takeLastLaw(n: Int): CharSequence {
@@ -239,9 +251,11 @@ object StringLaws {
   @Law
   inline fun String.plusLaw(other: CharSequence?): String =
     plus(other).post({
-        when {
-          other == null -> it.length == this.length
-          else -> it.length == this.length + other.length
-        }
-      }) { "concatenation adds lengths" }
+      when {
+        other == null -> it.length == this.length
+        else -> it.length == this.length + other.length
+      }
+    }) {
+      "concatenation adds lengths"
+    }
 }

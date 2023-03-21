@@ -113,7 +113,8 @@ internal fun Meta.analysisPhases(): ExtensionPhase =
         },
       ),
       declarationChecker { declaration, descriptor, context ->
-        if (isInStage(context.moduleDescriptor, Stage.Init) ||
+        if (
+          isInStage(context.moduleDescriptor, Stage.Init) ||
             isInStage(context.moduleDescriptor, Stage.CollectConstraints)
         ) {
           setStageAs(context.moduleDescriptor, Stage.CollectConstraints)

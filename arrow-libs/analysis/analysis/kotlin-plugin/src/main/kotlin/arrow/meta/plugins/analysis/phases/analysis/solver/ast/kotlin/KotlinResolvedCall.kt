@@ -24,12 +24,14 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 class KotlinResolvedCall(
   val impl:
     org.jetbrains.kotlin.resolve.calls.model.ResolvedCall<
-      out org.jetbrains.kotlin.descriptors.CallableDescriptor>
+      out org.jetbrains.kotlin.descriptors.CallableDescriptor
+    >
 ) : ResolvedCall {
 
   fun impl():
     org.jetbrains.kotlin.resolve.calls.model.ResolvedCall<
-      out org.jetbrains.kotlin.descriptors.CallableDescriptor> = impl
+      out org.jetbrains.kotlin.descriptors.CallableDescriptor
+    > = impl
 
   override val callElement: Element
     get() = impl().call.callElement.model()

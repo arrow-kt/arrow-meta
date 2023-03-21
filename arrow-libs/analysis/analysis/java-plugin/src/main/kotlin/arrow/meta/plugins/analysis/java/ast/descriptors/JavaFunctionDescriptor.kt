@@ -58,8 +58,7 @@ public open class JavaFunctionDescriptor(
         null -> emptyList()
         else ->
           klass.asType().allSupertypes(ctx).flatMap { parent ->
-            ctx
-              .types
+            ctx.types
               .asElement(parent)
               ?.enclosedElements
               .orEmpty()

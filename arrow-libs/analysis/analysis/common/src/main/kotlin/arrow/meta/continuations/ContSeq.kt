@@ -50,8 +50,8 @@ sealed class ContSeq<out A> {
    */
   fun <B> map(f: suspend ContSyntax.(A) -> B): ContSeq<B> = ContSeq {
     // Weird hack for RestrictSuspension
-    val f = f as suspend ContSeqSyntax<B>.(A) -> B
-    forEach { a -> yield(f(a)) }
+    val g = f as suspend ContSeqSyntax<B>.(A) -> B
+    forEach { a -> yield(g(a)) }
   }
 
   /** Side-effecting version of map */
@@ -223,7 +223,8 @@ private class ContSeqBuilder<T> : ContSeqSyntax<T>, Iterator<T>, Continuation<Un
             nextIterator = null
           }
         State_Done -> return false
-        State_Ready, State_ManyReady -> return true
+        State_Ready,
+        State_ManyReady -> return true
         else -> throw exceptionalState()
       }
 
@@ -236,7 +237,8 @@ private class ContSeqBuilder<T> : ContSeqSyntax<T>, Iterator<T>, Continuation<Un
 
   override fun next(): T =
     when (state) {
-      State_NotReady, State_ManyNotReady -> nextNotReady()
+      State_NotReady,
+      State_ManyNotReady -> nextNotReady()
       State_ManyReady -> {
         state = State_ManyNotReady
         nextIterator!!.next()

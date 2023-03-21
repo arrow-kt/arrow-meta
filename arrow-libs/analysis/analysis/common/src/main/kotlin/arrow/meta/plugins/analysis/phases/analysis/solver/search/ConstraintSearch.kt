@@ -66,8 +66,7 @@ internal fun SolverState.getPostInvariantsForType(type: ClassDescriptor): List<N
   when (val primary = type.unsubstitutedPrimaryConstructor) {
     is ConstructorDescriptor -> getConstraintsFor(primary)?.post
     else ->
-      type
-        .constructors
+      type.constructors
         .map { secondary -> getConstraintsFor(secondary)?.post }
         .takeIf { list -> list.isNotEmpty() && list.all { it != null } }
         ?.filterNotNull() // this is a bit redundant, but won't compile otherwise
@@ -97,15 +96,17 @@ internal fun SolverState.typeInvariants(
 ): List<NamedConstraint> {
   // invariants from the type
   val invariants =
-    type.descriptor?.let { getPostInvariantsForType(it) }?.let { constraints ->
-      // replace $result by new name
-      constraints.map {
-        NamedConstraint(
-          "${it.msg} (invariant from $type)",
-          solver.substituteObjectVariables(it.formula, mapOf(RESULT_VAR_NAME to result))
-        )
+    type.descriptor
+      ?.let { getPostInvariantsForType(it) }
+      ?.let { constraints ->
+        // replace $result by new name
+        constraints.map {
+          NamedConstraint(
+            "${it.msg} (invariant from $type)",
+            solver.substituteObjectVariables(it.formula, mapOf(RESULT_VAR_NAME to result))
+          )
+        }
       }
-    }
       ?: emptyList()
   // invariants from property code
   val fieldEqs = fieldEqualitiesInvariants(type, result, context)
@@ -159,8 +160,7 @@ internal fun SolverState.fieldEqualitiesInvariants(
 internal fun SolverState.getOverriddenConstraintsFor(
   descriptor: DeclarationDescriptor
 ): DeclarationConstraints? =
-  descriptor
-    .withAliasUnwrapped
+  descriptor.withAliasUnwrapped
     .overriddenDescriptors()
     ?.mapNotNull { overriddenDescriptor -> getConstraintsFor(overriddenDescriptor) }
     ?.takeIf { it.isNotEmpty() }
@@ -201,8 +201,7 @@ internal fun SolverState.primitiveConstraints(
     dispatch +
       descriptor.valueParameters.map { param ->
         val tyFromArg =
-          call
-            .valueArguments
+          call.valueArguments
             .filterKeys { it.name == param.name }
             .values
             .singleOrNull()

@@ -98,7 +98,8 @@ internal class DefaultKotlinPrinter(
     ): Void? {
       val (render, name, negatedName) = pFunctionDeclaration.toKotlin()
       when (render) {
-        Render.Hidden, Render.Unsupported -> {
+        Render.Hidden,
+        Render.Unsupported -> {
           pArgs.forEach { arg -> fmgr.visit(arg, this) }
         }
         Render.Negation -> {

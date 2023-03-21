@@ -43,7 +43,8 @@ public fun Declaration.collectConstraintsFromDSL(
   context: ResolutionContext,
   descriptor: DeclarationDescriptor
 ) {
-  if (this is ClassOrObject &&
+  if (
+    this is ClassOrObject &&
       hasImplicitPrimaryConstructor() &&
       getAnonymousInitializers().isNotEmpty() &&
       !descriptor.hasPackageWithLawsAnnotation
@@ -80,7 +81,8 @@ public fun Declaration.collectConstraintsFromDSL(
         constraintsFromFunctionLike(solverState, context, emptyList())
       else -> Triple(arrayListOf(), arrayListOf(), arrayListOf())
     }.let { (preConstraints, postConstraints, notLookConstraints) ->
-      if (preConstraints.isNotEmpty() ||
+      if (
+        preConstraints.isNotEmpty() ||
           postConstraints.isNotEmpty() ||
           notLookConstraints.isNotEmpty()
       ) {
@@ -253,7 +255,8 @@ private fun Element.elementToConstraint(
 ): Pair<ResolvedCall, NamedConstraint>? {
   val call = getResolvedCall(context)
   val kind = call?.specialKind
-  return if (kind == SpecialKind.Pre || kind == SpecialKind.Post || kind == SpecialKind.NotLookArgs
+  return if (
+    kind == SpecialKind.Pre || kind == SpecialKind.Post || kind == SpecialKind.NotLookArgs
   ) {
     val predicateArg = call.singleArg("predicate", context) ?: call.singleArg("value", context)
     val result = solverState.topLevelExpressionToFormula(predicateArg, context, parameters, false)

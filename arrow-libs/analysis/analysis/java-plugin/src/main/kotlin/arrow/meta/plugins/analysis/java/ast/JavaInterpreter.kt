@@ -1,4 +1,4 @@
-@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE", "UNCHECKED_CAST")
 
 package arrow.meta.plugins.analysis.java.ast
 
@@ -126,8 +126,8 @@ public fun <A : Element, B : JavaDescriptor> A.model(ctx: AnalysisContext): B =
     is PackageElement -> JavaPackageDescriptor(ctx, this) as B
     is VariableElement ->
       when (this.kind) {
-        ElementKind.PARAMETER, ElementKind.EXCEPTION_PARAMETER ->
-          JavaParameterDescriptor(ctx, this) as B
+        ElementKind.PARAMETER,
+        ElementKind.EXCEPTION_PARAMETER -> JavaParameterDescriptor(ctx, this) as B
         ElementKind.LOCAL_VARIABLE -> JavaLocalVariableDescriptor(ctx, this) as B
         ElementKind.FIELD -> JavaFieldDescriptor(ctx, this) as B
         ElementKind.ENUM_CONSTANT -> JavaEnumConstantDescriptor(ctx, this) as B
@@ -137,7 +137,8 @@ public fun <A : Element, B : JavaDescriptor> A.model(ctx: AnalysisContext): B =
       when (this.kind) {
         ElementKind.METHOD -> JavaSimpleFunctionDescriptor(ctx, this) as B
         ElementKind.CONSTRUCTOR -> JavaConstructorDescriptor(ctx, this) as B
-        ElementKind.STATIC_INIT, ElementKind.INSTANCE_INIT -> TODO("not yet supported")
+        ElementKind.STATIC_INIT,
+        ElementKind.INSTANCE_INIT -> TODO("not yet supported")
         else -> throw IllegalArgumentException("incorrect ExecutableElement case")
       }
     is TypeElement -> JavaClassDescriptor(ctx, this) as B
@@ -146,21 +147,21 @@ public fun <A : Element, B : JavaDescriptor> A.model(ctx: AnalysisContext): B =
   }
 
 public fun <
-  A : Tree,
-  B : arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element> A.modelCautious(
-  ctx: AnalysisContext
-): B? =
+  A : Tree, B : arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element> A
+  .modelCautious(ctx: AnalysisContext): B? =
   when (this) {
-    is CompilationUnitTree, is PackageTree, is ModuleTree, is DirectiveTree, is ImportTree -> null
+    is CompilationUnitTree,
+    is PackageTree,
+    is ModuleTree,
+    is DirectiveTree,
+    is ImportTree -> null
     is ModifiersTree -> null
     else -> this.model<A, B>(ctx)
   }
 
 public fun <
-  A : Tree,
-  B : arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element> A.model(
-  ctx: AnalysisContext
-): B =
+  A : Tree, B : arrow.meta.plugins.analysis.phases.analysis.solver.ast.context.elements.Element> A
+  .model(ctx: AnalysisContext): B =
   when (this) {
     is ArrayTypeTree,
     is ParameterizedTypeTree,

@@ -14,7 +14,10 @@ fun interface KotlinDeclaration : Declaration, KotlinExpression, KotlinModifierL
     get() = impl().name
   override val parents: List<Element>
     get() =
-      impl().parents.filter { it !is KtFile }.filterIsInstance<KtElement>().toList().map {
-        it.model()
-      }
+      impl()
+        .parents
+        .filter { it !is KtFile }
+        .filterIsInstance<KtElement>()
+        .toList()
+        .map { it.model() }
 }

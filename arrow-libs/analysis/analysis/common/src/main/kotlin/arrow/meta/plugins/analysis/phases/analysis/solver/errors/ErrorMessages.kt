@@ -126,7 +126,8 @@ object ErrorMessages {
          |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
          |  -> ${template(callPreCondition, this)}
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
 
     /**
      * (attached to the return value)
@@ -151,7 +152,8 @@ object ErrorMessages {
     ): String =
       """|declaration `${declaration.name}` fails to satisfy the post-condition: ${postCondition.formula.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
 
     /**
      * (attached to the new value): the invariant declared for a mutable variable is not satisfied
@@ -177,7 +179,8 @@ object ErrorMessages {
       """|invariants are not satisfied in `${expression.text}`
          |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
   }
 
   /**
@@ -262,7 +265,8 @@ object ErrorMessages {
     ): String =
       """|unreachable code due to conflicting conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
 
     /**
      * (attached to the function call): the post-conditions gathered after calling a function imply
@@ -274,7 +278,8 @@ object ErrorMessages {
     ): String =
       """|unreachable code due to post-conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
 
     /**
      * (attached to a local declaration): there is no way in which the invariant attached to a
@@ -296,19 +301,22 @@ object ErrorMessages {
     ): String =
       """|invariants are inconsistent: ${it.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin()
+      """.trimMargin(
+      )
   }
 
   object Liskov {
     internal fun KotlinPrinter.notWeakerPrecondition(constraint: NamedConstraint): String =
       """|pre-condition `${constraint.msg}` is not weaker than those from overridden members
          |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
-      """.trimMargin()
+      """.trimMargin(
+      )
 
     internal fun KotlinPrinter.notStrongerPostcondition(constraint: NamedConstraint): String =
       """|post-condition `${constraint.msg}` from overridden member is not satisfied
          |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
-      """.trimMargin()
+      """.trimMargin(
+      )
   }
 
   object Exception {
@@ -329,7 +337,7 @@ object ErrorMessages {
         ?.joinToString(separator = System.lineSeparator()) { referencedElement ->
           val el = referencedElement.element
           val argsMapping = referencedElement.reference
-          argsMapping?.let { (param, resolvedArg) ->
+          argsMapping?.let { (param, _) ->
             val paramPsi = param.element()
             val location = paramPsi?.let { paramPsi.location() }
             "`${el.text}` bound to param `${param.name}` in `${param.containingDeclaration?.fqNameSafe}` ${location?.link() ?: ""}"

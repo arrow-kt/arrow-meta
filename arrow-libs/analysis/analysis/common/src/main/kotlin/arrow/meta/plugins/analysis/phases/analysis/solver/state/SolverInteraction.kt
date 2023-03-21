@@ -81,14 +81,14 @@ internal fun SolverState.additionalFieldConstraints(
   formulae: Iterable<NamedConstraint>,
   context: ResolutionContext
 ): Set<NamedConstraint> =
-  solver
-    .formulaManager
+  solver.formulaManager
     .fieldNames(formulae.map { it.formula })
     .flatMap { (fieldName, appliedTo) ->
       val fqName = FqName(fieldName)
       val descriptor = context.descriptorFor(fqName).getOrNull(0)
       val constraints = singleConstraintsFromFqName(fqName)
-      if (descriptor != null &&
+      if (
+        descriptor != null &&
           constraints != null &&
           constraints.pre.isEmpty() &&
           constraints.post.size == 1

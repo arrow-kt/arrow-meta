@@ -19,9 +19,8 @@ private fun <A : DeclarationDescriptor, B : DeclarationDescriptor> A.repr(unit: 
 
 @Suppress("UNCHECKED_CAST") fun <A : Element, B : Element> A.repr(): B = this as B
 
-fun <
-  A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A.model():
-  B =
+fun <A : org.jetbrains.kotlin.descriptors.DeclarationDescriptor, B : DeclarationDescriptor> A
+  .model(): B =
   when (this) {
     is SimpleFunctionDescriptor -> KotlinSimpleFunctionDescriptor(this).repr()
     is TypeAliasConstructorDescriptor -> KotlinTypeAliasConstructorDescriptor(this).repr()
@@ -61,7 +60,8 @@ fun <A : KtElement, B : Element> A.model(): B =
       }
     is KtBinaryExpressionWithTypeRHS ->
       when (this.operationReference.getReferencedName()) {
-        "as", "as?" -> KotlinTypeCastExpression(this).repr()
+        "as",
+        "as?" -> KotlinTypeCastExpression(this).repr()
         else -> KotlinDefaultExpression(this).repr()
       }
     is KtNameReferenceExpression -> KotlinNameReferenceExpression(this).repr()

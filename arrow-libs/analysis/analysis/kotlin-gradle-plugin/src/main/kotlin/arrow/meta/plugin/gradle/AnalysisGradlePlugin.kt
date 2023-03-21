@@ -15,7 +15,8 @@ public class AnalysisGradlePlugin : ArrowMetaGradlePlugin {
 
   override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean =
     // do not run on test targets
-    if (kotlinCompilation.compilationName.endsWith(
+    if (
+      kotlinCompilation.compilationName.endsWith(
         KotlinCompilation.TEST_COMPILATION_NAME,
         ignoreCase = true
       )

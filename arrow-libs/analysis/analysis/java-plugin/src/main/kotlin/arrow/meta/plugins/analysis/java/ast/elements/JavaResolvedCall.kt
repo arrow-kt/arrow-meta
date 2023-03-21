@@ -47,15 +47,13 @@ public class JavaResolvedCall(
 
   override val typeArguments: Map<TypeParameterDescriptor, Type>
     get() =
-      resultingDescriptor
-        .typeParameters
+      resultingDescriptor.typeParameters
         .zip(typeArgs)
         .map { (descr, tree) -> descr to ctx.resolver.resolveType(tree)!!.model(ctx) }
         .toMap()
   override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     get() =
-      resultingDescriptor
-        .valueParameters
+      resultingDescriptor.valueParameters
         .zip(arguments)
         .map { (descr, tree) ->
           descr to

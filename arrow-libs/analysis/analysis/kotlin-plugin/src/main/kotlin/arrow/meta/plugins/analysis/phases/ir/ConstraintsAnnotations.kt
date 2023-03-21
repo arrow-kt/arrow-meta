@@ -34,7 +34,8 @@ import org.sosy_lab.java_smt.api.FormulaManager
 internal fun IrUtils.annotateWithConstraints(solverState: SolverState, fn: IrFunction) {
   if (!solverState.hadParseErrors()) {
     val model =
-      fn.toIrBasedDescriptor()
+      fn
+        .toIrBasedDescriptor()
         .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
     val declarationConstraints = solverState.getConstraintsFor(model)
     if (declarationConstraints != null) {
@@ -86,8 +87,7 @@ private fun getIrReturnedExpressionWithoutPostcondition(function: IrFunction): F
     is IrMemberAccessExpression<*> ->
       when (val symbol = veryLast.symbol) {
         is IrFunctionSymbol ->
-          symbol
-            .owner
+          symbol.owner
             .toIrBasedDescriptor()
             .model<org.jetbrains.kotlin.descriptors.FunctionDescriptor, FunctionDescriptor>()
         else -> null
@@ -179,8 +179,7 @@ private fun IrUtils.annotation(
   }
 
 private fun IrUtils.arrayOfStrings(values: List<String>): IrVarargImpl? =
-  moduleFragment
-    .descriptor
+  moduleFragment.descriptor
     .getPackage(FqName("kotlin"))
     .memberScope
     .getContributedDescriptors { it.asString() == "arrayOf" }

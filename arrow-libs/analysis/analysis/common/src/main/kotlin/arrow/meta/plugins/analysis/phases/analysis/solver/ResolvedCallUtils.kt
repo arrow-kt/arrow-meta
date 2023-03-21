@@ -23,17 +23,18 @@ enum class SpecialKind {
 internal val ResolvedCall.specialKind: SpecialKind?
   get() =
     when (resultingDescriptor.fqNameSafe) {
-      FqName("arrow.analysis.pre"), FqName("arrow.analysis.RefinementDSLKt.pre") -> SpecialKind.Pre
+      FqName("arrow.analysis.pre"),
+      FqName("arrow.analysis.RefinementDSLKt.pre") -> SpecialKind.Pre
       FqName("kotlin.require") -> SpecialKind.Pre
       FqName(AssertExpression.FAKE_ASSERT_NAME) -> SpecialKind.Pre
-      FqName("arrow.analysis.post"), FqName("arrow.analysis.RefinementDSLKt.post") ->
-        SpecialKind.Post
-      FqName("arrow.analysis.invariant"), FqName("arrow.analysis.RefinementDSLKt.invariant") ->
-        SpecialKind.Invariant
-      FqName("arrow.analysis.unsafeCall"), FqName("arrow.analysis.RefinementDSLKt.unsafeCall") ->
-        SpecialKind.TrustCall
-      FqName("arrow.analysis.unsafeBlock"), FqName("arrow.analysis.RefinementDSLKt.unsafeBlock") ->
-        SpecialKind.TrustBlock
+      FqName("arrow.analysis.post"),
+      FqName("arrow.analysis.RefinementDSLKt.post") -> SpecialKind.Post
+      FqName("arrow.analysis.invariant"),
+      FqName("arrow.analysis.RefinementDSLKt.invariant") -> SpecialKind.Invariant
+      FqName("arrow.analysis.unsafeCall"),
+      FqName("arrow.analysis.RefinementDSLKt.unsafeCall") -> SpecialKind.TrustCall
+      FqName("arrow.analysis.unsafeBlock"),
+      FqName("arrow.analysis.RefinementDSLKt.unsafeBlock") -> SpecialKind.TrustBlock
       FqName("arrow.analysis.doNotLookAtArgumentsWhen"),
       FqName("arrow.analysis.RefinementDSLKt.doNotLookAtArgumentsWhen") -> SpecialKind.NotLookArgs
       else -> null
@@ -94,8 +95,7 @@ internal fun ResolvedCall.allArgumentExpressions(
  */
 internal fun ResolvedCall.getReceiverOrThisNamedArgument(): Expression? =
   this.getReceiverExpression()
-    ?: this.valueArguments
-      .entries
+    ?: this.valueArguments.entries
       .firstOrNull { (name, _) -> name.name.value.contains("this") }
       ?.value
       ?.arguments

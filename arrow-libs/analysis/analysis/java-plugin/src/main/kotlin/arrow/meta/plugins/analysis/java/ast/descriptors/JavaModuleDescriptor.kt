@@ -14,15 +14,13 @@ public class JavaModuleDescriptor(
   private val impl: ModuleElement
 ) : JavaDescriptor(ctx, impl), ModuleDescriptor {
   override fun getPackage(pck: String): PackageViewDescriptor? =
-    impl
-      .enclosedElements
+    impl.enclosedElements
       .filterIsInstance<PackageElement>()
       .firstOrNull { it.fqName == pck }
       ?.model(ctx)
 
   override fun getSubPackagesOf(fqName: FqName): List<FqName> =
-    impl
-      .enclosedElements
+    impl.enclosedElements
       .filterIsInstance<PackageElement>()
       .filter { it.fqName.startsWith(fqName.name + ".") }
       .map { it.model(ctx) }

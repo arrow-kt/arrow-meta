@@ -19,4 +19,5 @@ dependencies {
   api(libs.javaSmt)
   api(libs.apacheCommonsText)
   api(libs.sarif4k)
+  implementation(libs.kotlinx.serialization.core)
 }

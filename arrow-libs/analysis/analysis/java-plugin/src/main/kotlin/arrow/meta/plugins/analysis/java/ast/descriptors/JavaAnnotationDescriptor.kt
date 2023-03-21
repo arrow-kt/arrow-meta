@@ -17,8 +17,7 @@ public class JavaAnnotationDescriptor(
 ) : AnnotationDescriptor {
   private val inside: Map<String, AnnotationValue>
     get() =
-      ctx
-        .elements
+      ctx.elements
         .getElementValuesWithDefaults(impl)
         .map { (k, v) -> k.simpleName.toString() to v }
         .toMap()

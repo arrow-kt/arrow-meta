@@ -65,7 +65,9 @@ object MathLaws {
           this > 0 -> it == 1
           else -> it == -1
         }
-    }) { "sign bounds + definition" }
+    }) {
+      "sign bounds + definition"
+    }
   @Law
   inline fun Long.signLaw(): Int =
     sign.post({
@@ -76,7 +78,9 @@ object MathLaws {
           this > 0L -> it == 1
           else -> it == -1
         }
-    }) { "sign bounds + definition" }
+    }) {
+      "sign bounds + definition"
+    }
   @Law
   inline fun Double.signLaw(): Double =
     sign.post({
@@ -87,7 +91,9 @@ object MathLaws {
           this > 0.0 -> it == 1.0
           else -> it == -1.0
         }
-    }) { "sign bounds + definition" }
+    }) {
+      "sign bounds + definition"
+    }
   @Law
   inline fun Float.signLaw(): Float =
     sign.post({
@@ -98,30 +104,36 @@ object MathLaws {
           this > 0.0F -> it == 1.0F
           else -> it == -1.0F
         }
-    }) { "sign bounds + definition" }
+    }) {
+      "sign bounds + definition"
+    }
 
   @Law
   inline fun signTopLevelLaw(x: Double): Double =
     sign(x).post({
-        it >= -1.0 &&
-          it <= 1.0 &&
-          when {
-            x == 0.0 -> it == 0.0
-            x > 0.0 -> it == 1.0
-            else -> it == -1.0
-          }
-      }) { "sign bounds + definition" }
+      it >= -1.0 &&
+        it <= 1.0 &&
+        when {
+          x == 0.0 -> it == 0.0
+          x > 0.0 -> it == 1.0
+          else -> it == -1.0
+        }
+    }) {
+      "sign bounds + definition"
+    }
   @Law
   inline fun signTopLevelLaw(x: Float): Float =
     sign(x).post({
-        it >= -1.0F &&
-          it <= 1.0F &&
-          when {
-            x == 0.0F -> it == 0.0F
-            x > 0.0F -> it == 1.0F
-            else -> it == -1.0F
-          }
-      }) { "sign bounds + definition" }
+      it >= -1.0F &&
+        it <= 1.0F &&
+        when {
+          x == 0.0F -> it == 0.0F
+          x > 0.0F -> it == 1.0F
+          else -> it == -1.0F
+        }
+    }) {
+      "sign bounds + definition"
+    }
 
   @Law
   inline fun maxLaw(a: Int, b: Int): Int =

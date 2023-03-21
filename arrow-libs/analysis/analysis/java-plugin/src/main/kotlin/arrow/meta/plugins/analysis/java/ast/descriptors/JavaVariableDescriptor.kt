@@ -13,7 +13,8 @@ public open class JavaVariableDescriptor(ctx: AnalysisContext, private val impl:
   override val isVar: Boolean
     get() =
       when (impl.kind) {
-        ElementKind.LOCAL_VARIABLE, ElementKind.FIELD -> true
+        ElementKind.LOCAL_VARIABLE,
+        ElementKind.FIELD -> true
         else -> false
       }
   override val isConst: Boolean = impl.constantValue != null

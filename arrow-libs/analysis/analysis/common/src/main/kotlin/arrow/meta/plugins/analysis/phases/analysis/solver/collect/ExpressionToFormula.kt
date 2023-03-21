@@ -87,9 +87,9 @@ private fun SolverState.expressionToFormula(
     ex is LambdaExpression -> recur(ex.bodyExpression)
     // basic blocks
     ex is BlockExpression ->
-      ex.statements.mapNotNull { recur(it) as? BooleanFormula }.let { conditions ->
-        solver.boolAndList(conditions)
-      }
+      ex.statements
+        .mapNotNull { recur(it) as? BooleanFormula }
+        .let { conditions -> solver.boolAndList(conditions) }
     ex is ConstantExpression -> ex.type(context)?.let { ty -> solver.makeConstant(ty, ex) }
     ex is ThisExpression -> // reference to this
     solver.makeObjectVariable("this")
@@ -190,12 +190,14 @@ private fun SolverState.fieldFormula(
   descriptor: CallableDescriptor,
   args: List<Pair<Type, Formula?>>
 ): ObjectFormula? =
-  descriptor.takeIf { it.isField() }?.let {
-    // create a field, the 'this' may be missing
-    val thisExpression =
-      (args.getOrNull(0)?.second as? ObjectFormula) ?: solver.makeObjectVariable("this")
-    field(descriptor, thisExpression)
-  }
+  descriptor
+    .takeIf { it.isField() }
+    ?.let {
+      // create a field, the 'this' may be missing
+      val thisExpression =
+        (args.getOrNull(0)?.second as? ObjectFormula) ?: solver.makeObjectVariable("this")
+      field(descriptor, thisExpression)
+    }
 
 /**
  * Turns a named constant expression into a smt [Formula] represented as a constant declared in the
@@ -219,8 +221,8 @@ internal fun Element.isResultReference(bindingContext: ResolutionContext): Boole
     val expArg = parent.resolvedArg("predicate") as? ExpressionValueArgument
     val lambdaArg =
       (expArg?.valueArgument as? ExpressionLambdaArgument)?.getLambdaExpression()
-        ?: (expArg?.valueArgument as? ExpressionResolvedValueArgument)?.argumentExpression as?
-          LambdaExpression
+        ?: (expArg?.valueArgument as? ExpressionResolvedValueArgument)?.argumentExpression
+          as? LambdaExpression
     val params =
       lambdaArg?.functionLiteral?.valueParameters?.map { it.text }.orEmpty() + listOf("it")
     this.text in params.distinct()
@@ -228,7 +230,9 @@ internal fun Element.isResultReference(bindingContext: ResolutionContext): Boole
     ?: false
 
 internal fun Element.getPostOrInvariantParent(bindingContext: ResolutionContext): ResolvedCall? =
-  this.parents().mapNotNull { it.getResolvedCall(bindingContext) }.firstOrNull { call ->
-    val kind = call.specialKind
-    kind == SpecialKind.Post || kind == SpecialKind.Invariant
-  }
+  this.parents()
+    .mapNotNull { it.getResolvedCall(bindingContext) }
+    .firstOrNull { call ->
+      val kind = call.specialKind
+      kind == SpecialKind.Post || kind == SpecialKind.Invariant
+    }

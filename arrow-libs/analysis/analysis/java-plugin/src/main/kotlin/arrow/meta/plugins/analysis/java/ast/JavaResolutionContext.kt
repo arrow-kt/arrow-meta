@@ -57,7 +57,8 @@ public class JavaResolutionContext(
         object : OurTreeVisitor<Unit>(Unit) {
           override fun visitMethodInvocation(node: MethodInvocationTree, p: Unit?) {
             node.methodSelect?.toString()?.let { calleeText ->
-              if (calleeText == "pre" ||
+              if (
+                calleeText == "pre" ||
                   calleeText.endsWith(".pre") ||
                   calleeText == "post" ||
                   calleeText.endsWith(".post") ||
@@ -120,8 +121,7 @@ public class JavaResolutionContext(
     (declaration as? JavaElement)?.let { ctx.resolver.resolve(it.impl())?.model(ctx) }
 
   private val diagnosticSource: DiagnosticSource
-    get() =
-      ctx.unit?.let { DiagnosticSource(it.sourceFile, ctx.logger) } ?: DiagnosticSource.NO_SOURCE
+    get() = DiagnosticSource(ctx.unit.sourceFile, ctx.logger)
 
   private fun report(element: Element, builder: (JCTree) -> JCDiagnostic) {
     (element as? JavaElement)?.let { elt ->

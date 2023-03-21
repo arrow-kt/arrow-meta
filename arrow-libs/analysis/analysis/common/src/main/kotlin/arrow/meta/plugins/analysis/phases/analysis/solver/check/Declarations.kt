@@ -97,9 +97,9 @@ internal fun <A> SolverState.checkTopLevel(
             ParamInfo(solver, param.name.value, param.name.value, param.type, element)
           }
         val returnParam =
-          descriptor.returnType?.takeIf { descriptor !is ConstructorDescriptor }?.let {
-            ParamInfo(solver, RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration)
-          }
+          descriptor.returnType
+            ?.takeIf { descriptor !is ConstructorDescriptor }
+            ?.let { ParamInfo(solver, RESULT_VAR_NAME, RESULT_VAR_NAME, it, declaration) }
         // additional for 'this@info'
         val additional =
           if (declaration is NamedDeclaration) {
@@ -226,25 +226,27 @@ private fun SolverState.introduceImplicitProperties(
   // if we have 'var' or 'var' in the parameters,
   // we need to assign them to fields
   // when the constructor is primary
-  klass.primaryConstructorParameters.filter { it.hasValOrVar() }.forEach { param ->
-    (context.descriptorFor(param) as? ValueParameterDescriptor)
-      ?.let { context.backingPropertyForConstructorParameter(it) }
-      ?.let { propertyDescriptor ->
-        val paramName = param.nameAsName?.value ?: THIS_VAR_NAME
-        addConstraint(
-          NamedConstraint(
-            "definition of property $paramName",
-            solver.objects {
-              equal(
-                solver.makeObjectVariable(paramName),
-                field(propertyDescriptor, solver.thisVariable)
-              )
-            }
-          ),
-          context
-        )
-      }
-  }
+  klass.primaryConstructorParameters
+    .filter { it.hasValOrVar() }
+    .forEach { param ->
+      (context.descriptorFor(param) as? ValueParameterDescriptor)
+        ?.let { context.backingPropertyForConstructorParameter(it) }
+        ?.let { propertyDescriptor ->
+          val paramName = param.nameAsName?.value ?: THIS_VAR_NAME
+          addConstraint(
+            NamedConstraint(
+              "definition of property $paramName",
+              solver.objects {
+                equal(
+                  solver.makeObjectVariable(paramName),
+                  field(propertyDescriptor, solver.thisVariable)
+                )
+              }
+            ),
+            context
+          )
+        }
+    }
 }
 
 private fun SolverState.checkSuperTypeEntries(
@@ -373,8 +375,7 @@ private fun SolverState.checkDefaultParameters(
   when (declaration) {
     is DeclarationWithBody ->
       scopedBracket {
-        declaration
-          .valueParameters
+        declaration.valueParameters
           .filterNotNull()
           .mapNotNull { param ->
             val name = param.name

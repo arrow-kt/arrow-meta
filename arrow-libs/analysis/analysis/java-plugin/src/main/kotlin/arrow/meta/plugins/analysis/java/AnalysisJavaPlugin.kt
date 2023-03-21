@@ -122,8 +122,7 @@ public class AnalysisJavaPlugin : Plugin {
   ) {
     val obtainedPackages = mutableListOf<FqName>()
     todo.forEach { descriptor ->
-      ctx
-        .resolver
+      ctx.resolver
         .tree(descriptor)
         ?.visitRecursively(
           object : OurTreeVisitor<Unit>(Unit) {

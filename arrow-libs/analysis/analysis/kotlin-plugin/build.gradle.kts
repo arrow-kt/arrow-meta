@@ -27,4 +27,7 @@ dependencies {
   testRuntimeOnly(projects.arrowAnalysisTypes)
   testRuntimeOnly(projects.arrowAnalysisKotlinPlugin)
   testRuntimeOnly(libs.arrowCore)
+
+  testImplementation(libs.ksp.api)
+  testImplementation(libs.ksp.lib)
 }

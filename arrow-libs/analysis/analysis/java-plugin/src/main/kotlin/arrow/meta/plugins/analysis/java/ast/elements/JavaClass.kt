@@ -75,9 +75,9 @@ public class JavaClass(private val ctx: AnalysisContext, private val impl: Class
         override val anonymousInitializers: List<AnonymousInitializer> = emptyList()
         override val properties: List<Property> = emptyList()
         override val functions: List<NamedFunction> =
-          this@JavaClass.declarations.mapNotNull { it as? JavaMethod }.filter {
-            it !is JavaConstructor
-          }
+          this@JavaClass.declarations
+            .mapNotNull { it as? JavaMethod }
+            .filter { it !is JavaConstructor }
         override val enumEntries: List<EnumEntry> = emptyList() // TODO
         override val allCompanionObjects: List<ObjectDeclaration> = emptyList()
         override val declarations: List<Declaration> = this@JavaClass.declarations
