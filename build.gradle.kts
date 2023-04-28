@@ -1,4 +1,6 @@
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -94,16 +96,5 @@ configure(subprojects - project(":arrow-meta-docs")) {
           }
       }
     }
-  }
-}
-
-val toolchain = project.extensions.getByType<JavaToolchainService>()
-allprojects {
-  tasks.withType<JavaCompile>().configureEach {
-    javaCompiler.set(toolchain.compilerFor {
-      val jvmTargetVersion = properties["jvmTargetVersion"].toString()
-      val javaVersion = if (jvmTargetVersion == "1.8") "8" else jvmTargetVersion
-      languageVersion.set(JavaLanguageVersion.of(javaVersion))
-    })
   }
 }

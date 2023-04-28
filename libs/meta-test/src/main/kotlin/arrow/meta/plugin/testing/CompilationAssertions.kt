@@ -28,7 +28,6 @@ private const val VARIABLE = "[^(]+"
  * developed by [Thilo Schuchort](https://github.com/tschuchortdev).
  *
  * Main schema:
- *
  * ```
  *  assertThis(
  *      CompilerTest(
@@ -43,7 +42,6 @@ private const val VARIABLE = "[^(]+"
  * (`code`). Then, the expected behavior (`assert`) will be checked.
  *
  * For instance:
- *
  * ```
  *  assertThis(
  *      CompilerTest(
@@ -58,7 +56,7 @@ private const val VARIABLE = "[^(]+"
  * ```
  *
  * @param compilerTest necessary data to run the compilation, source code to be compiled and
- * expected behavior
+ *   expected behavior
  * @see [CompilerTest]
  */
 fun assertThis(compilerTest: CompilerTest): Unit = compilerTest.run(interpreter)

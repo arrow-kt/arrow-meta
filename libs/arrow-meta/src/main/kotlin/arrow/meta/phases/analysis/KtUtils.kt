@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeProjection
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun KtDeclarationWithBody.body(): KtExpression? = bodyExpression ?: bodyBlockExpression
 
@@ -146,9 +145,10 @@ fun resolveFunctionTypeEq(): Eq<KotlinType> = Eq { t1, t2 ->
  *   intersect(typeConstructorEq(), types).isNotEmpty()
  * //sampleEnd
  * ```
- * @see [org.jetbrains.kotlin.types.TypeUtils] for more abstractions
+ *
  * @param eq can be define for e.g.: [TypeConstructor], [MemberScope] or typeArguments List<
- * [TypeProjection]>, etc.
+ *   [TypeProjection]>, etc.
+ * @see [org.jetbrains.kotlin.types.TypeUtils] for more abstractions
  * @see functionTypeEq
  */
 fun <C : CallableDescriptor> C.intersect(
@@ -163,8 +163,9 @@ fun <C : CallableDescriptor> C.intersect(
 /**
  * given [eq] this function returns a List of [KotlinType] that are contained by both [list] and
  * [other]
+ *
  * @param eq can be defined for [TypeConstructor], [MemberScope] or typeArguments List<
- * [TypeProjection]>, etc.
+ *   [TypeProjection]>, etc.
  * @see intersect
  */
 fun <D : DeclarationDescriptor> D.intersect(
@@ -191,9 +192,8 @@ fun KtAnnotated.isAnnotatedWith(regex: Regex): Boolean =
 
 val KtClass.companionObject: KtObjectDeclaration?
   get() =
-    declarations
-      .singleOrNull { it.safeAs<KtObjectDeclaration>()?.isCompanion() == true }
-      .safeAs<KtObjectDeclaration>()
+    declarations.singleOrNull { (it as? KtObjectDeclaration)?.isCompanion() == true }
+      as? KtObjectDeclaration
 
 fun DeclarationDescriptor.skipGeneration(): Boolean =
   platform != CommonPlatforms.defaultCommonPlatform &&
