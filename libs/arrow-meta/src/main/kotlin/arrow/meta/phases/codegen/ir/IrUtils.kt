@@ -48,7 +48,6 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstituto
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrUtils(
   val pluginContext: IrPluginContext,
@@ -227,8 +226,7 @@ fun IrMemberAccessExpression<*>.getTypeSubstitutionMap(
   container.allTypeParameters.withIndex().associate { it.value to getTypeArgument(it.index)!! }
 
 val IrMemberAccessExpression<*>.typeSubstitutions: Map<IrTypeParameter, IrType>
-  get() =
-    symbol.owner.safeAs<IrTypeParametersContainer>()?.let(::getTypeSubstitutionMap) ?: emptyMap()
+  get() = (symbol.owner as? IrTypeParametersContainer)?.let(::getTypeSubstitutionMap) ?: emptyMap()
 
 /** returns a Pair of the descriptor and it's substituted KotlinType at the call-site */
 private fun IrSimpleFunction.substitutedValueParameters(

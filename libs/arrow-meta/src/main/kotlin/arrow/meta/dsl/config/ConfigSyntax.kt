@@ -30,6 +30,7 @@ interface ConfigSyntax {
    *
    * @updateConfiguration enables a DSL using [CompilerContext], and it can update
    * [CompilerConfiguration] through its mutable API.
+   *
    * @return [Config] [ExtensionPhase].
    */
   fun updateConfig(

@@ -10,6 +10,12 @@ plugins {
 
 kotlin {
   explicitApi = null
+
+  val jvmTargetVersion = properties["jvmTargetVersion"].toString()
+  val javaVersion = if (jvmTargetVersion == "1.8") "8" else jvmTargetVersion
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(javaVersion))
+  }
 }
 
 tasks.compileKotlin {

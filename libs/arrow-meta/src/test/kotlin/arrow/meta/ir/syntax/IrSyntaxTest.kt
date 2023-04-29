@@ -137,7 +137,7 @@ class IrSyntaxTest {
         // TODO: IrErrorDeclaration::class.java,
         // TODO: IrErrorExpression::class.java,
         // TODO: IrErrorCallExpression::class.java
-        ),
+      ),
       """
         package test
               
@@ -192,8 +192,8 @@ class IrSyntaxTest {
             9 - 6
           }
         }
-    """.trimIndent(
-      )
+    """
+        .trimIndent()
     )
   }
 }

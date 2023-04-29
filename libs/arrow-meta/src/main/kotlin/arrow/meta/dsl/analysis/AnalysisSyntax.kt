@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.resolve.diagnostics.MutableDiagnosticsWithSuppressio
 /**
  * The Analysis phase determines if the parsed AST type checks and resolves properly. As part of
  * this phase, we have access to events happening before and after resolution. Before resolution, we
- * are given the chance to modify the compiler trees in the form of `KtElement` via the [Quote
- * Template System].
+ * are given the chance to modify the compiler trees in the form of `KtElement` via the
+ * [Quote Template System].
  */
 interface AnalysisSyntax {
 

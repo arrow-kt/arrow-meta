@@ -180,7 +180,6 @@ interface AssertSyntax {
    * property.
    *
    * For instance:
-   *
    * ```
    * compilesWith { it.contains("Unsafe operation") }
    * ```
@@ -197,7 +196,6 @@ interface AssertSyntax {
    * checked by a provided function.
    *
    * For instance:
-   *
    * ```
    * failsWith { it.contains("Expecting a top level declaration") }
    * ```

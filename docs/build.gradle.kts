@@ -11,6 +11,16 @@ plugins {
   alias(libs.plugins.arrowGradleConfig.kotlin)
 }
 
+kotlin {
+  explicitApi = null
+
+  val jvmTargetVersion = properties["jvmTargetVersion"].toString()
+  val javaVersion = if (jvmTargetVersion == "1.8") "8" else jvmTargetVersion
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(javaVersion))
+  }
+}
+
 dependencies {
   runtimeOnly(libs.kotlin.stdlibJDK8)
   runtimeOnly(projects.arrowMeta)

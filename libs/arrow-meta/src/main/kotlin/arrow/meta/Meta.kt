@@ -45,9 +45,11 @@ typealias CliPlugin = Plugin<CompilerContext>
 
 /**
  * Enables syntactic sugar for plugin creation via: "pluginId" { meta(
+ *
  * ```
  *    ..phases
  * ```
+ *
  * ) }
  */
 operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): CliPlugin =
@@ -59,7 +61,6 @@ operator fun String.invoke(phases: CompilerContext.() -> List<ExtensionPhase>): 
  *
  * Plugin authors are encouraged to define [CliPlugin] extensions by making them part of the [Meta]
  * receiver:
- *
  * ```kotlin
  * val Meta.helloWorld: CliPlugin get() =
  *   "Hello World" {

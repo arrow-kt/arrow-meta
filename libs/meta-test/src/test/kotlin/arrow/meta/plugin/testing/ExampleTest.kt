@@ -16,7 +16,8 @@ class ExampleTest {
         | fun hello(): String =
         |   "Hello world!"
         | 
-        """.source
+        """
+            .source
         },
         assert = { compiles }
       )
@@ -32,7 +33,8 @@ class ExampleTest {
         | fun hello(): String =
         |   "Hello world!"
         | 
-        """.source
+        """
+            .source
         },
         assert = { "hello()".source.evalsTo("Hello world!") }
       )
@@ -50,7 +52,8 @@ class ExampleTest {
         | fun hello(): String =
         |   "Hello world!"
         | 
-        """.source
+        """
+            .source
         },
         assert = { "hello()".source.evalsTo("Hello world!") }
       )
@@ -61,10 +64,13 @@ class ExampleTest {
   fun `check that fails`() {
     assertThis(
       CompilerTest(
-        code = { """
+        code = {
+          """
         | classsss Error
         | 
-        """.source },
+        """
+            .source
+        },
         assert = { fails }
       )
     )
@@ -74,10 +80,13 @@ class ExampleTest {
   fun `check that emits an error diagnostic when compilation fails`() {
     assertThis(
       CompilerTest(
-        code = { """
+        code = {
+          """
         | classsss Error
         | 
-        """.source },
+        """
+            .source
+        },
         assert = { failsWith { it.contains("Expecting a top level declaration") } }
       )
     )
@@ -92,7 +101,8 @@ class ExampleTest {
         | 
         | val x: String = "Hello world!"
         | 
-        """.source
+        """
+            .source
         },
         assert = { "x".source.evalsTo("Hello world!") }
       )
@@ -109,7 +119,8 @@ class ExampleTest {
         | 
         | val x: String = "Hello world!"
         | 
-        """.source
+        """
+            .source
         },
         assert = { "x".source.evalsTo("Hello world!") }
       )
@@ -162,12 +173,14 @@ class ExampleTest {
           |
           | val x: String = "hello world!"
           | 
-          """.source,
+          """
+              .source,
             """
           |
           | val y: String = "HELLO WORLD!"
           | 
-          """.source
+          """
+              .source
           )
         },
         assert = { compiles }
@@ -185,7 +198,8 @@ class ExampleTest {
           | 
           | fun helloWorld(): String = "Hello World!"
           | 
-          """.source
+          """
+            .source
         },
         assert = { compiles }
       )
@@ -213,7 +227,8 @@ class ExampleTest {
           | 
           | fun helloWorld(): String = "Hello World!"
           | 
-          """.source
+          """
+            .source
         },
         assert = { compiles }
       )
@@ -230,7 +245,8 @@ class ExampleTest {
           | 
           | fun helloWorld(): String = "Hello World!"
           | 
-          """.source
+          """
+            .source
         },
         assert = {
           failsWith {
@@ -258,7 +274,8 @@ class ExampleTest {
           | 
           | fun helloWorld(): String = "Hello World!"
           | 
-          """.source
+          """
+            .source
         },
         assert = {
           failsWith {

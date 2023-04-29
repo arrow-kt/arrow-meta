@@ -2,8 +2,8 @@ package arrow.meta.plugin.gradle
 
 import io.github.classgraph.ClassGraph
 import java.io.File
-import java.lang.module.ModuleDescriptor.Version
 import java.util.Properties
+import kotlin.math.max
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -123,5 +123,28 @@ public interface ArrowMetaGradlePlugin : KotlinCompilerPluginSupportPlugin {
 
   private companion object {
     private const val VERSION_KEY = "compilerPluginVersion"
+  }
+
+  private data class Version(val components: List<Int>) : Comparable<Version> {
+    override fun compareTo(other: Version): Int =
+      compareComponents(this.components, other.components)
+
+    private fun compareComponents(x: List<Int>, y: List<Int>): Int {
+      val maxComponent = max(x.size, y.size)
+      for (i in 0 until maxComponent) {
+        val xComponent = x.getOrElse(i) { 0 }
+        val yComponent = y.getOrElse(i) { 0 }
+        if (xComponent != yComponent) return (xComponent - yComponent)
+      }
+      // if we get there, that means they're equal
+      return 0
+    }
+
+    companion object {
+      fun parse(version: String): Version? {
+        val elements = version.split('.', '-', '+').map { it.toIntOrNull() }
+        return if (elements.any { it == null }) null else Version(elements.filterNotNull())
+      }
+    }
   }
 }
