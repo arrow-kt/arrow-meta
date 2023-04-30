@@ -143,7 +143,7 @@ public fun SolverState.checkDeclarationConstraints(
 /**
  * Only elements which are not
  * - inside another "callable declaration" (function, property, etc.) (b/c this is not yet
- * supported)
+ *   supported)
  * - or constructors (b/c they are handled at the level of class)
  */
 private fun Declaration.shouldBeAnalyzed() = !(this.parents.any { it is CallableDeclaration })

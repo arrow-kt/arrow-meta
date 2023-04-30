@@ -32,8 +32,8 @@ fun hints(descriptor: ModuleDescriptor, packages: Set<FqName>): String {
          |
          |@PackagesWithLaws([$packageList])
          |class hints_$hintPackageName { }
-         |""".trimMargin(
-  )
+         |"""
+    .trimMargin()
 }
 
 enum class HintState {

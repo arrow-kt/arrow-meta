@@ -31,6 +31,7 @@ import org.sosy_lab.java_smt.api.Model
  * // c -> h()
  * // d -> f(g(2), h())
  * ```
+ *
  * We can leverage this information to write better error messages. If we have a constraint which
  * states b > 0, we can replace it with g(2) > 0.
  */
@@ -41,7 +42,6 @@ object ErrorMessages {
    * SMT formulae.
    *
    * For example, we cannot translate method calls to SMT:
-   *
    * ```kotlin
    * fun f(xs: List[String]): String {
    *   pre({ !xs.get(0).isEmpty() }) { ... }
@@ -95,14 +95,13 @@ object ErrorMessages {
    *
    * See [arrow.meta.plugins.analysis.phases.analysis.solver.checkImplicationOf] for the code which
    * produces the errors.
-   *
    * - The _one_ constraint name and Boolean formula which could not be satisfied.
    * - A _counter-example_ (also called a _model_), which is an assignment of values to
-   * variableswhich show a specific instance in which the constraint is false.
+   *   variableswhich show a specific instance in which the constraint is false.
    * - In the `f` function above in the `UnsatBodyPost` epigraph, one such counter-example is `x ==
-   * 0`, since in that case `0 + 0 > 1` is false.
+   *   0`, since in that case `0 + 0 > 1` is false.
    * - By looking at the values of the model for the arguments, we can derive one specific trace for
-   * which the function fails.
+   *   which the function fails.
    */
   object Unsatisfiability {
 
@@ -111,7 +110,6 @@ object ErrorMessages {
      * property, function) call are not satisfied.
      *
      * For example:
-     *
      * ```kotlin
      *   val wrong = 1 / 0  // does not satisfy '0 != 0' in Int.div law
      * ```
@@ -126,8 +124,8 @@ object ErrorMessages {
          |  -> unsatisfiable constraint: `${callPreCondition.formula.dumpKotlinLike()}`
          |  -> ${template(callPreCondition, this)}
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
 
     /**
      * (attached to the return value)
@@ -135,7 +133,6 @@ object ErrorMessages {
      * the post-condition declared in a function body is not true.
      *
      * For example:
-     *
      * ```kotlin
      * fun f(x: Int): Int {
      *   pre(x >= 0) { "non-negative" }
@@ -152,15 +149,14 @@ object ErrorMessages {
     ): String =
       """|declaration `${declaration.name}` fails to satisfy the post-condition: ${postCondition.formula.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
 
     /**
      * (attached to the new value): the invariant declared for a mutable variable is not satisfied
      * by the new value.
      *
      * For example:
-     *
      * ```kotlin
      *  fun g(): Int {
      *    var r = 1.invariant({ it > 0 }) { "it > 0" }
@@ -179,8 +175,8 @@ object ErrorMessages {
       """|invariants are not satisfied in `${expression.text}`
          |  -> unsatisfiable constraint: `${constraint.formula.dumpKotlinLike()}`
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
   }
 
   /**
@@ -205,7 +201,6 @@ object ErrorMessages {
      * The set of pre-conditions given to the function leaves no possible way to call the function.
      *
      * For example:
-     *
      * ```kotlin
      *  fun h(x: Int): Int {
      *    pre({ x > 0 }) { "greater than 0" }
@@ -226,7 +221,6 @@ object ErrorMessages {
      * The default values do not satisfy the pre-conditions.
      *
      * For example:
-     *
      * ```kotlin
      *  fun h(x: Int = 0): Int {
      *    pre({ x > 0 }) { "greater than 0" }
@@ -245,7 +239,6 @@ object ErrorMessages {
      * condition it hangs upon conflicts with the rest of the information about the function.
      *
      * For example, if a condition goes against a pre-condition:
-     *
      * ```kotlin
      *   fun i(x: Int): Int {
      *     pre({ x > 0 }) { "greater than 0" }
@@ -265,8 +258,8 @@ object ErrorMessages {
     ): String =
       """|unreachable code due to conflicting conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
 
     /**
      * (attached to the function call): the post-conditions gathered after calling a function imply
@@ -278,15 +271,14 @@ object ErrorMessages {
     ): String =
       """|unreachable code due to post-conditions: ${unsatCore.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
 
     /**
      * (attached to a local declaration): there is no way in which the invariant attached to a
      * declaration may be satisfied.
      *
      * For example:
-     *
      * ```kotlin
      *  fun j(x: Int): Int {
      *    pre({ x > 0 }) { "greater than 0" }
@@ -301,22 +293,22 @@ object ErrorMessages {
     ): String =
       """|invariants are inconsistent: ${it.dumpKotlinLike()}
          |  -> ${branch(branch)}
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
   }
 
   object Liskov {
     internal fun KotlinPrinter.notWeakerPrecondition(constraint: NamedConstraint): String =
       """|pre-condition `${constraint.msg}` is not weaker than those from overridden members
          |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
 
     internal fun KotlinPrinter.notStrongerPostcondition(constraint: NamedConstraint): String =
       """|post-condition `${constraint.msg}` from overridden member is not satisfied
          |  -> problematic constraint: `${constraint.formula.dumpKotlinLike()}`
-      """.trimMargin(
-      )
+      """
+        .trimMargin()
   }
 
   object Exception {

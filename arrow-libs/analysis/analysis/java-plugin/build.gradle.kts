@@ -9,6 +9,9 @@ plugins {
 
 kotlin {
   explicitApi = null
+  jvmToolchain {
+    (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+  }
 }
 
 dependencies {

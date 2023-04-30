@@ -143,8 +143,8 @@ internal fun SolverState.parseFormula(
     """
     (declare-fun this () $VALUE_TYPE)
     (declare-fun $RESULT_VAR_NAME () $VALUE_TYPE)
-  """.trimIndent(
-    )
+  """
+      .trimIndent()
   val fullString = "$params\n$deps\n$rest\n(assert $formula)"
   return solver.parse(fullString)
 }

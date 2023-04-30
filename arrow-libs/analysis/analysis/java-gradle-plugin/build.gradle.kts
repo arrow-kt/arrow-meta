@@ -16,6 +16,13 @@ tasks.processResources {
   }
 }
 
+kotlin {
+  explicitApi = null
+  jvmToolchain {
+    (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(11))
+  }
+}
+
 dependencies {
   api(libs.arrowGradlePluginCommons)
   runtimeOnly(libs.classgraph)
