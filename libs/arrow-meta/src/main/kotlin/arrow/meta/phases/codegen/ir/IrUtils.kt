@@ -70,7 +70,9 @@ class IrUtils(
   fun CallableDescriptor.irCall(): IrExpression =
     when (this) {
       is PropertyDescriptor -> {
-        val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
+        // warning: Please use IR declaration properties and not its descriptor properties
+        val irField =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
         irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
           irSimpleFunctionSymbol ->
           IrCallImpl(
@@ -85,7 +87,9 @@ class IrUtils(
           ?: TODO("Unsupported irCall for $this")
       }
       is ClassConstructorDescriptor -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceConstructor(this)
+        // warning: Please use IR declaration properties and not its descriptor properties
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceConstructor(this)
         IrConstructorCallImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
@@ -108,7 +112,11 @@ class IrUtils(
         )
       }
       is FakeCallableDescriptorForObject -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceClass(classDescriptor)
+        // warning: Please use IR declaration properties and not its descriptor properties
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceClass(
+            classDescriptor
+          )
         IrGetObjectValueImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
@@ -122,7 +130,8 @@ class IrUtils(
     }
 
   fun PropertyDescriptor.irGetterCall(): IrCall? {
-    val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
+    // warning: Please use IR declaration properties and not its descriptor properties
+    val irField = pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
     return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
       irSimpleFunctionSymbol ->
       IrCallImpl(

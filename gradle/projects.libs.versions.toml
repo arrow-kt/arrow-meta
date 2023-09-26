@@ -7,12 +7,12 @@ dokka = "1.8.10"
 intellijOpenApi = "7.0.3"
 javaAssist = "3.29.2-GA"
 junit = "5.9.2"
-kotlin = "1.8.21"
-kotlinCompileTesting = "1.5.0"
+kotlin = "1.9.20-Beta2"
+kotlinCompileTesting = "1.5.1-SNAPSHOT"
 javaCompileTesting = "0.21.0"
 kotlinBinaryCompatibilityValidator = "0.13.0"
 detekt = "1.22.0"
-ksp = "1.8.21-1.0.11"
+ksp = "1.9.20-Beta2-1.0.13"
 
 [libraries]
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -31,7 +31,7 @@ kotlin-stdlibCommon = { module = "org.jetbrains.kotlin:kotlin-stdlib-common", ve
 kotlin-stdlibJDK8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlibJS = { module = "org.jetbrains.kotlin:kotlin-stdlib-js" }
 kotlin-scriptingCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable" }
-kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util" }
+kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util", version="1.8.22" }
 kotlin-gradlePluginX = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
 kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }

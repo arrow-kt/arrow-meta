@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package arrow.meta.plugin.testing
 
 import com.tschuchort.compiletesting.KotlinCompilation
@@ -34,7 +36,6 @@ internal fun compile(data: CompilationData): Result {
   }
 }
 
-@OptIn(ExperimentalCompilerApi::class)
 private fun createKotlinCompilation(data: CompilationData) =
   KotlinCompilation().apply {
     val testSources = workingDir.resolve("sources")
