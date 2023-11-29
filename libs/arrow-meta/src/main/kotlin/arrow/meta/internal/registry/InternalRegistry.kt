@@ -17,6 +17,7 @@ import arrow.meta.phases.analysis.CollectAdditionalSources
 import arrow.meta.phases.analysis.ExtraImports
 import arrow.meta.phases.analysis.PreprocessedVirtualFileFactory
 import arrow.meta.phases.codegen.asm.ClassBuilder
+import arrow.meta.phases.codegen.asm.ClassGeneration
 import arrow.meta.phases.codegen.asm.Codegen
 import arrow.meta.phases.codegen.ir.IRGeneration
 import arrow.meta.phases.config.Config
@@ -35,7 +36,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory
 import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
 import org.jetbrains.kotlin.codegen.StackValue
-import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
@@ -179,6 +179,7 @@ interface InternalRegistry : ConfigSyntax {
             is AnalysisHandler -> registerAnalysisHandler(this, ctx)
             is ClassBuilder -> registerClassBuilder(this, ctx)
             is Codegen -> registerCodegen(this, ctx)
+            is ClassGeneration -> TODO("ClassGeneration phase is not supported")
             is DeclarationAttributeAlterer -> registerDeclarationAttributeAlterer(this, ctx)
             is PackageProvider -> packageFragmentProvider(this, ctx)
             is SyntheticResolver -> registerSyntheticResolver(this, ctx)
@@ -609,8 +610,11 @@ interface InternalRegistry : ConfigSyntax {
     phase: ClassBuilder,
     ctx: CompilerContext
   ) {
-    ClassBuilderInterceptorExtension.registerExtension(
-      object : ClassBuilderInterceptorExtension {
+    @Suppress("DEPRECATION_ERROR")
+    org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension.registerExtension(
+      object :
+        @Suppress("DEPRECATION_ERROR")
+        org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension {
         override fun interceptClassBuilderFactory(
           interceptedFactory: ClassBuilderFactory,
           bindingContext: BindingContext,
