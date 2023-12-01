@@ -8,7 +8,7 @@ intellijOpenApi = "7.0.3"
 javaAssist = "3.29.2-GA"
 junit = "5.9.2"
 kotlin = "1.9.21"
-kotlinCompileTesting = "1.5.0"
+kotlinCompileTesting = "0.4.0"
 javaCompileTesting = "0.21.0"
 kotlinBinaryCompatibilityValidator = "0.13.0"
 detekt = "1.22.0"
@@ -35,8 +35,8 @@ kotlin-scriptUtil = { module = "org.jetbrains.kotlin:kotlin-script-util", versio
 kotlin-gradlePluginX = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
 kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
-kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
-kotlinCompileTestingKsp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlinCompileTesting" }
+kotlinCompileTesting = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlinCompileTesting" }
+kotlinCompileTestingKsp = { module = "dev.zacsweers.kctfork:ksp", version.ref = "kotlinCompileTesting" }
 javaCompileTesting = { module = "com.google.testing.compile:compile-testing", version.ref = "javaCompileTesting" }
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 ksp-lib = { module = "com.google.devtools.ksp:symbol-processing", version.ref = "ksp" }
