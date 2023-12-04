@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerDesc.signatureString
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFactory
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -35,7 +34,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.ir.util.constructors
@@ -73,7 +71,8 @@ class IrUtils(
   fun CallableDescriptor.irCall(): IrExpression =
     when (this) {
       is PropertyDescriptor -> {
-        val irField = pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
+        val irField =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
         irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
           irSimpleFunctionSymbol ->
           IrCallImpl(
@@ -88,7 +87,8 @@ class IrUtils(
           ?: TODO("Unsupported irCall for $this")
       }
       is ClassConstructorDescriptor -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceConstructor(this)
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceConstructor(this)
         IrConstructorCallImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
@@ -111,7 +111,10 @@ class IrUtils(
         )
       }
       is FakeCallableDescriptorForObject -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceClass(classDescriptor)
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceClass(
+            classDescriptor
+          )
         IrGetObjectValueImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,

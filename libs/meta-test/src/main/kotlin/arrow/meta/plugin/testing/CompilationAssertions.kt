@@ -23,7 +23,8 @@ private const val VARIABLE = "[^(]+"
  * Running the compilation from the provided configuration and getting the results (status, classes,
  * and output messages) is possible thanks to
  * [Kotlin Compile Testing](https://github.com/ZacSweers/kotlin-compile-testing), a library
- * developed by [Thilo Schuchort](https://github.com/tschuchortdev), and forked by [ZacSweers](https://github.com/ZacSweers).
+ * developed by [Thilo Schuchort](https://github.com/tschuchortdev), and forked by
+ * [ZacSweers](https://github.com/ZacSweers).
  *
  * Main schema:
  * ```
