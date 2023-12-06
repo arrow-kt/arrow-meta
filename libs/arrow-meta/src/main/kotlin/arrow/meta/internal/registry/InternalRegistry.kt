@@ -30,6 +30,8 @@ import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.jvm.extensions.ClassGenerator
+import org.jetbrains.kotlin.backend.jvm.extensions.ClassGeneratorExtension
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -66,6 +68,7 @@ import org.jetbrains.kotlin.extensions.PreprocessedVirtualFileFactoryExtension
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -179,7 +182,7 @@ interface InternalRegistry : ConfigSyntax {
             is AnalysisHandler -> registerAnalysisHandler(this, ctx)
             is ClassBuilder -> registerClassBuilder(this, ctx)
             is Codegen -> registerCodegen(this, ctx)
-            is ClassGeneration -> TODO("ClassGeneration phase is not supported")
+            is ClassGeneration -> registerClassGenerator(this, ctx)
             is DeclarationAttributeAlterer -> registerDeclarationAttributeAlterer(this, ctx)
             is PackageProvider -> packageFragmentProvider(this, ctx)
             is SyntheticResolver -> registerSyntheticResolver(this, ctx)
@@ -604,6 +607,20 @@ interface InternalRegistry : ConfigSyntax {
         }
       )
     }
+  }
+
+  fun CompilerPluginRegistrar.ExtensionStorage.registerClassGenerator(
+    phase: ClassGeneration,
+    ctx: CompilerContext
+  ) {
+    ClassGeneratorExtension.registerExtension(
+      object : ClassGeneratorExtension {
+        override fun generateClass(
+          generator: ClassGenerator,
+          declaration: IrClass?
+        ): ClassGenerator = phase.run { ctx.interceptClassGenerator(generator, declaration) }
+      }
+    )
   }
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerClassBuilder(
