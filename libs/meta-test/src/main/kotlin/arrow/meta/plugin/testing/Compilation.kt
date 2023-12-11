@@ -1,7 +1,7 @@
 package arrow.meta.plugin.testing
 
+import com.tschuchort.compiletesting.CompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.KotlinCompilation.Result
 import com.tschuchort.compiletesting.PluginOption
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.kspSourcesDir
@@ -14,7 +14,8 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
 internal const val DEFAULT_FILENAME = "Source.kt"
 
-internal fun compile(data: CompilationData): Result {
+@OptIn(ExperimentalCompilerApi::class)
+internal fun compile(data: CompilationData): CompilationResult {
   val compilation = createKotlinCompilation(data)
   if (data.symbolProcessors.isEmpty()) {
     return compilation.compile()
@@ -62,6 +63,7 @@ private fun createKotlinCompilation(data: CompilationData) =
     pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
   }
 
+@OptIn(ExperimentalCompilerApi::class)
 private val KotlinCompilation.kspGeneratedSourceFiles: List<SourceFile>
   get() =
     kspSourcesDir

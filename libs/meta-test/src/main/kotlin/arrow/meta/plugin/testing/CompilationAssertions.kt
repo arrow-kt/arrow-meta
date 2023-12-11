@@ -1,9 +1,7 @@
-@file:OptIn(ExperimentalCompilerApi::class)
-
 package arrow.meta.plugin.testing
 
+import com.tschuchort.compiletesting.CompilationResult
 import com.tschuchort.compiletesting.KotlinCompilation.ExitCode
-import com.tschuchort.compiletesting.KotlinCompilation.Result
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -24,8 +22,9 @@ private const val VARIABLE = "[^(]+"
  *
  * Running the compilation from the provided configuration and getting the results (status, classes,
  * and output messages) is possible thanks to
- * [Kotlin Compile Testing](https://github.com/tschuchortdev/kotlin-compile-testing), a library
- * developed by [Thilo Schuchort](https://github.com/tschuchortdev).
+ * [Kotlin Compile Testing](https://github.com/ZacSweers/kotlin-compile-testing), a library
+ * developed by [Thilo Schuchort](https://github.com/tschuchortdev), and forked by
+ * [ZacSweers](https://github.com/ZacSweers).
  *
  * Main schema:
  * ```
@@ -61,6 +60,7 @@ private const val VARIABLE = "[^(]+"
  */
 fun assertThis(compilerTest: CompilerTest): Unit = compilerTest.run(interpreter)
 
+@OptIn(ExperimentalCompilerApi::class)
 private val interpreter: (CompilerTest) -> Unit = {
   tailrec fun List<Config>.compilationData(
     acc: CompilationData = CompilationData.empty
@@ -101,7 +101,7 @@ private val interpreter: (CompilerTest) -> Unit = {
         )
     }
 
-  fun runAssert(singleAssert: Assert.SingleAssert, compilationResult: Result): Unit =
+  fun runAssert(singleAssert: Assert.SingleAssert, compilationResult: CompilationResult): Unit =
     when (singleAssert) {
       Assert.Empty -> println("Assertions not found")
       Assert.CompilationResult.Compiles -> assertCompiles(compilationResult)
@@ -128,32 +128,40 @@ private val interpreter: (CompilerTest) -> Unit = {
   }
 }
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addDependencies(config: Config.AddDependencies) =
   copy(dependencies = dependencies + config.dependencies.map { it.mavenCoordinates })
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addCompilerPlugins(config: Config.AddCompilerPlugins) =
   copy(
     compilerPlugins =
       compilerPlugins + config.plugins.flatMap { it.dependencies.map { it.mavenCoordinates } }
   )
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addMetaPlugins(config: Config.AddMetaPlugins) =
   copy(metaPlugins = metaPlugins + config.plugins)
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addArguments(config: Config.AddArguments) =
   copy(arguments = arguments + config.arguments)
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addCommandLineProcessors(config: Config.AddCommandLineProcessors) =
   copy(commandLineProcessors = commandLineProcessors + config.commandLineProcessors)
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addSymbolProcessors(config: Config.AddSymbolProcessors) =
   copy(symbolProcessors = symbolProcessors + config.symbolProcessors)
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun CompilationData.addPluginOptions(config: Config.AddPluginOptions) =
   copy(pluginOptions = pluginOptions + config.pluginOptions)
 
+@OptIn(ExperimentalCompilerApi::class)
 private fun assertEvalsTo(
-  compilationResult: Result,
+  compilationResult: CompilationResult,
   source: Code.Source,
   output: Any?,
   onError: (Throwable) -> Any?
@@ -174,20 +182,24 @@ private fun assertEvalsTo(
   }
 }
 
-private fun assertCompiles(compilationResult: Result) {
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertCompiles(compilationResult: CompilationResult) {
   assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
 }
 
-private fun assertCompilesWith(compilationResult: Result, check: (String) -> Boolean) {
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertCompilesWith(compilationResult: CompilationResult, check: (String) -> Boolean) {
   assertThat(compilationResult.exitCode).isEqualTo(ExitCode.OK)
   assertThat(check(compilationResult.messages)).isTrue
 }
 
-private fun assertFails(compilationResult: Result) {
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertFails(compilationResult: CompilationResult) {
   assertThat(compilationResult.exitCode).isNotEqualTo(ExitCode.OK)
 }
 
-private fun assertFailsWith(compilationResult: Result, check: (String) -> Boolean) {
+@OptIn(ExperimentalCompilerApi::class)
+private fun assertFailsWith(compilationResult: CompilationResult, check: (String) -> Boolean) {
   assertFails(compilationResult)
   assertThat(check(compilationResult.messages)).isTrue
 }
