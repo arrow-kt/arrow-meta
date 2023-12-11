@@ -20,7 +20,6 @@ dependencyResolutionManagement {
     mavenLocal {
       content {
         includeGroup("io.arrow-kt")
-        includeGroup("com.github.tschuchortdev")
       }
     }
     mavenCentral()
