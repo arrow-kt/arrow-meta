@@ -1,18 +1,18 @@
 [versions]
-arrow = "1.2.0-RC"
-arrowGradleConfig = "0.12.0-rc.3"
-assertj = "3.24.2"
-classgraph = "4.8.157"
+arrow = "1.2.3"
+arrowGradleConfig = "0.12.0-rc.24"
+assertj = "3.25.3"
+classgraph = "4.8.168"
 dokka = "1.8.10"
 intellijOpenApi = "7.0.3"
-javaAssist = "3.29.2-GA"
-junit = "5.9.2"
+javaAssist = "3.30.2-GA"
+junit = "5.10.2"
 kotlin = "1.8.21"
 kotlinCompileTesting = "1.5.0"
 javaCompileTesting = "0.21.0"
-kotlinBinaryCompatibilityValidator = "0.13.0"
-detekt = "1.22.0"
-ksp = "1.8.21-1.0.11"
+kotlinBinaryCompatibilityValidator = "0.14.0"
+detekt = "1.23.6"
+ksp = "1.9.23-1.0.19"
 
 [libraries]
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
