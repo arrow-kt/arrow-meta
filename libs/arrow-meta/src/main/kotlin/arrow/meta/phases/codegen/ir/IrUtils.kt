@@ -67,10 +67,12 @@ class IrUtils(
 
   fun KotlinType.toIrType(): IrType = typeTranslator.translateType(this)
 
+  @OptIn(ObsoleteDescriptorBasedAPI::class)
   fun CallableDescriptor.irCall(): IrExpression =
     when (this) {
       is PropertyDescriptor -> {
-        val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
+        val irField =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
         irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
           irSimpleFunctionSymbol ->
           IrCallImpl(
@@ -85,7 +87,8 @@ class IrUtils(
           ?: TODO("Unsupported irCall for $this")
       }
       is ClassConstructorDescriptor -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceConstructor(this)
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceConstructor(this)
         IrConstructorCallImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
@@ -108,7 +111,10 @@ class IrUtils(
         )
       }
       is FakeCallableDescriptorForObject -> {
-        val irSymbol = pluginContext.symbols.externalSymbolTable.referenceClass(classDescriptor)
+        val irSymbol =
+          pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceClass(
+            classDescriptor
+          )
         IrGetObjectValueImpl(
           startOffset = UNDEFINED_OFFSET,
           endOffset = UNDEFINED_OFFSET,
@@ -121,8 +127,10 @@ class IrUtils(
       }
     }
 
+  @OptIn(ObsoleteDescriptorBasedAPI::class)
   fun PropertyDescriptor.irGetterCall(): IrCall? {
-    val irField = pluginContext.symbols.externalSymbolTable.referenceField(this)
+    this.backingField
+    val irField = pluginContext.symbols.externalSymbolTable.descriptorExtension.referenceField(this)
     return irField.owner.correspondingPropertySymbol?.owner?.getter?.symbol?.let {
       irSimpleFunctionSymbol ->
       IrCallImpl(

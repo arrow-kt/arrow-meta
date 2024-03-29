@@ -13,11 +13,6 @@ plugins {
 }
 
 allprojects {
-  repositories {
-    mavenCentral()
-    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
-  }
-
   group = property("projects.group").toString()
 }
 

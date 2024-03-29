@@ -15,6 +15,16 @@ dependencyResolutionManagement {
       kotlinVersion?.let { version("kotlin", it) }
     }
   }
+
+  repositories {
+    mavenLocal {
+      content {
+        includeGroup("io.arrow-kt")
+      }
+    }
+    mavenCentral()
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
+  }
 }
 
 rootProject.name = "arrow-meta-workspace"
