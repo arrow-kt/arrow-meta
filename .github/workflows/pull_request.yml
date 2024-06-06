@@ -17,11 +17,11 @@ jobs:
         jvm_target: [ '1.8', '11', '17' ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -32,7 +32,7 @@ jobs:
           arguments: -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace -x apiCheck
 
       - name: Upload reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: 'reports-${{ matrix.os }}'
           path: '**/build/reports/**'
@@ -42,7 +42,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
         run: ./gradlew --stop
 
       - name: "Commit new API files"
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update API files
           file_pattern: /**/api/*.api
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "Create API Doc and validate, step 1"
         run: ./gradlew buildMetaDoc
