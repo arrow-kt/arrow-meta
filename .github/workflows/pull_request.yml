@@ -27,7 +27,7 @@ jobs:
           java-version: '17'
 
       - name: Build and test with Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: -PjvmTargetVersion=${{ matrix.jvm_target }} build --scan --stacktrace -x apiCheck
 
@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: apiDump
 
