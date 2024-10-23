@@ -7,12 +7,12 @@ dokka = "1.8.10"
 intellijOpenApi = "7.0.3"
 javaAssist = "3.29.2-GA"
 junit = "5.9.2"
-kotlin = "1.9.21"
+kotlin = "2.0.21"
 kotlinCompileTesting = "0.4.0"
 javaCompileTesting = "0.21.0"
 kotlinBinaryCompatibilityValidator = "0.13.0"
 detekt = "1.22.0"
-ksp = "1.9.21-1.0.15"
+ksp = "2.0.21-1.0.26"
 
 [libraries]
 arrowCore = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
