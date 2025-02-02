@@ -14,12 +14,12 @@ import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 interface StorageComponentContainer : ExtensionPhase {
   fun CompilerContext.registerModuleComponents(
     container: org.jetbrains.kotlin.container.StorageComponentContainer,
-    moduleDescriptor: ModuleDescriptor
+    moduleDescriptor: ModuleDescriptor,
   ): Unit
 
   fun CompilerContext.check(
     declaration: KtDeclaration,
     descriptor: DeclarationDescriptor,
-    context: DeclarationCheckerContext
+    context: DeclarationCheckerContext,
   ): Unit
 }

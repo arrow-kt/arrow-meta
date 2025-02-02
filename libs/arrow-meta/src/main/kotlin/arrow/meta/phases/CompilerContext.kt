@@ -18,8 +18,9 @@ open class CompilerContext(
   val configuration: CompilerConfiguration?,
   // open val project: Project,
   val messageCollector: MessageCollector? = null,
-// val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
-// val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it) }
+  // val ktPsiElementFactory: KtPsiFactory = KtPsiFactory(project, false),
+  // val eval: (String) -> Any? = { KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine.eval(it)
+  // }
 ) {
   private var md: ModuleDescriptor? = null
   private var cp: ComponentProvider? = null
@@ -56,7 +57,7 @@ open class CompilerContext(
 
 fun <T> CompilerContext.evaluateDependsOn(
   noRewindablePhase: () -> T?,
-  rewindablePhase: (Boolean) -> T?
+  rewindablePhase: (Boolean) -> T?,
 ): T? {
   if (!analysisPhaseCanBeRewind.get()) return noRewindablePhase()
   return rewindablePhase(analysisPhaseWasRewind.get())
@@ -65,7 +66,7 @@ fun <T> CompilerContext.evaluateDependsOn(
 fun <T> CompilerContext.evaluateDependsOnRewindableAnalysisPhase(evaluation: () -> T?): T? =
   evaluateDependsOn(
     noRewindablePhase = evaluation,
-    rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null }
+    rewindablePhase = { wasRewind -> if (wasRewind) evaluation() else null },
   )
 
 inline fun <reified D : DeclarationDescriptor> KtElement.findInAnalysedDescriptors(

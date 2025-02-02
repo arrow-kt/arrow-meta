@@ -91,7 +91,7 @@ abstract class Meta : CompilerPluginRegistrar(), MetaPluginSyntax, InternalRegis
    */
   abstract override fun intercept(ctx: CompilerContext): List<CliPlugin>
 
-  override val supportsK2: Boolean = false
+  override val supportsK2: Boolean = true
 
   override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
     registerMetaComponents(configuration)

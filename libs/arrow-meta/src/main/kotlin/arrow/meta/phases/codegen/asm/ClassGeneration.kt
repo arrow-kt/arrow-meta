@@ -14,6 +14,6 @@ interface ClassGeneration : ExtensionPhase {
   @OptIn(ObsoleteDescriptorBasedAPI::class)
   fun CompilerContext.interceptClassGenerator(
     generator: ClassGenerator,
-    declaration: IrClass?
+    declaration: IrClass?,
   ): ClassGenerator
 }

@@ -18,7 +18,7 @@ fun <C : MutableCollection<in T>, T> Iterable<T?>.filterNotNullTo(destination: C
 
 inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.mapNotNullTo(
   destination: C,
-  transform: (T) -> R?
+  transform: (T) -> R?,
 ): C {
   forEach { element -> transform(element)?.let { destination.add(it) } }
   return destination
@@ -30,7 +30,7 @@ inline fun <T, R> Iterable<T>.mapNotNull(transform: (T) -> R?): List<R> {
 
 inline fun <K, V, R, C : MutableCollection<in R>> Map<out K, V>.mapNotNullTo(
   destination: C,
-  transform: (Map.Entry<K, V>) -> R?
+  transform: (Map.Entry<K, V>) -> R?,
 ): C {
   forEach { element -> transform(element)?.let { destination.add(it) } }
   return destination
@@ -43,7 +43,7 @@ inline fun <K, V, R> Map<out K, V>.mapNotNull(transform: (Map.Entry<K, V>) -> R?
 data class SealedSubclass(
   val simpleName: Name,
   val fqName: FqName?,
-  val typeVariables: List<String>
+  val typeVariables: List<String>,
 )
 
 fun KtClass.sealedSubclasses(): List<SealedSubclass> =
@@ -58,7 +58,7 @@ fun List<KtDeclaration>.sealedVariants(superKt: KtClass): List<SealedSubclass> =
       SealedSubclass(
         simpleName = it.nameAsSafeName,
         fqName = it.fqName,
-        typeVariables = if (it is KtClass) it.renderTypeParameters else emptyList()
+        typeVariables = if (it is KtClass) it.renderTypeParameters else emptyList(),
       )
     }
 

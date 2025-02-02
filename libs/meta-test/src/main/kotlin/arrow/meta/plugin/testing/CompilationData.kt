@@ -19,7 +19,7 @@ internal data class CompilationData(
   val commandLineProcessors: List<CommandLineProcessor> = emptyList(),
   val symbolProcessors: List<SymbolProcessorProvider> = emptyList(),
   val pluginOptions: List<PluginOption> = emptyList(),
-  val targetVersion: String? = null
+  val targetVersion: String? = null,
 ) {
 
   operator fun plus(other: CompilationData): CompilationData =
@@ -32,7 +32,7 @@ internal data class CompilationData(
       commandLineProcessors = commandLineProcessors + other.commandLineProcessors,
       symbolProcessors = symbolProcessors + other.symbolProcessors,
       pluginOptions = pluginOptions + other.pluginOptions,
-      targetVersion = targetVersion ?: other.targetVersion
+      targetVersion = targetVersion ?: other.targetVersion,
     )
 
   companion object {

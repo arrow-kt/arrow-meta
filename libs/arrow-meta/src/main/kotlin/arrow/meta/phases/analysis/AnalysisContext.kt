@@ -15,10 +15,13 @@ internal object AnalysisContext {
   private val pluginAnalysisExtensionQueue: Queue<PluginAnalysisExtension> = LinkedList()
 
   fun AnalysisHandler.pushAnalysisPhase(): Boolean = pluginAnalysisExtensionQueue.offer(0)
+
   fun AnalysisHandler.popAnalysisPhase(): Unit {
     if (pluginAnalysisExtensionQueue.isNotEmpty()) pluginAnalysisExtensionQueue.remove()
   }
+
   fun AnalysisHandler.willRewind(rewind: Boolean): Unit = willRewind.set(rewind)
+
   fun AnalysisHandler.canRewind(): Boolean =
     willRewind.get() && pluginAnalysisExtensionQueue.isEmpty()
 }

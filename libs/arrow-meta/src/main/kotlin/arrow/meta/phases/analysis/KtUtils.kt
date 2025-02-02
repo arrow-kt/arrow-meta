@@ -101,6 +101,7 @@ fun <A : PsiElement> PsiElement.sequence(on: Class<A>): List<A> = traverseFilter
 
 interface Eq<A> { // from arrow
   fun A.eqv(other: A): Boolean
+
   fun A.neqv(other: A): Boolean = !eqv(other)
 
   companion object {
@@ -153,7 +154,7 @@ fun resolveFunctionTypeEq(): Eq<KotlinType> = Eq { t1, t2 ->
  */
 fun <C : CallableDescriptor> C.intersect(
   eq: Eq<KotlinType>,
-  types: KotlinBuiltIns.() -> List<KotlinType>
+  types: KotlinBuiltIns.() -> List<KotlinType>,
 ): List<KotlinType> =
   eq.run {
     returnType?.let { result: KotlinType -> builtIns.types().filter { it.eqv(result) } }
@@ -171,7 +172,7 @@ fun <C : CallableDescriptor> C.intersect(
 fun <D : DeclarationDescriptor> D.intersect(
   eq: Eq<KotlinType>,
   list: List<KotlinType>,
-  other: KotlinBuiltIns.() -> List<KotlinType>
+  other: KotlinBuiltIns.() -> List<KotlinType>,
 ): List<KotlinType> =
   eq.run {
     val set = list.toMutableList()

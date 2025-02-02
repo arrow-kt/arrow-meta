@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.com.intellij.psi.SingleRootFileViewProvider
 class MetaFileViewProvider(
   psiManager: PsiManager,
   virtualFile: VirtualFile,
-  val transformation: (Document?) -> Document?
+  val transformation: (Document?) -> Document?,
 ) : SingleRootFileViewProvider(psiManager, virtualFile) {
   override fun getDocument(): Document? = transformation(super.getDocument())
 }

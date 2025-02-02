@@ -17,7 +17,7 @@ data class CompilerPlugin(
   val name: String,
 
   /** List of necessary dependencies to use that plugin during the compilation. */
-  val dependencies: List<Dependency>
+  val dependencies: List<Dependency>,
 )
 
 internal typealias CompilerTestInterpreter = (CompilerTest) -> Unit
@@ -46,7 +46,7 @@ data class CompilerTest(
    *
    * @see [AssertSyntax]
    */
-  val assert: Companion.() -> Assert
+  val assert: Companion.() -> Assert,
 ) {
   internal fun run(interpret: CompilerTestInterpreter): Unit = interpret(this)
 
@@ -115,16 +115,24 @@ interface ConfigSyntax {
 /** Represents the different types of [Config] which will be managed. */
 sealed class Config {
   internal data class AddCompilerPlugins(val plugins: List<CompilerPlugin>) : Config()
+
   internal data class AddMetaPlugins(val plugins: List<Meta>) : Config()
+
   internal data class AddDependencies(val dependencies: List<Dependency>) : Config()
+
   internal data class AddArguments(val arguments: List<String>) : Config()
+
   internal data class AddCommandLineProcessors(
     val commandLineProcessors: List<CommandLineProcessor>
   ) : Config()
+
   internal data class AddPluginOptions(val pluginOptions: List<PluginOption>) : Config()
+
   internal data class AddSymbolProcessors(val symbolProcessors: List<SymbolProcessorProvider>) :
     Config()
+
   internal data class Many(val configs: List<Config>) : Config()
+
   internal object Empty : Config()
 
   internal companion object : ConfigSyntax {
@@ -153,7 +161,7 @@ sealed class Code {
     /** Necessary filename to identify different code snippets. */
     val filename: String = DEFAULT_FILENAME,
     /** Content of code snippet. */
-    val text: String
+    val text: String,
   ) : Code()
 
   /** It's possible to provide one or several sources to be compiled */
@@ -212,7 +220,7 @@ interface AssertSyntax {
    */
   fun Code.Source.evalsTo(
     value: Any?,
-    onError: (Throwable) -> Any? = { throw it }
+    onError: (Throwable) -> Any? = { throw it },
   ): Assert.SingleAssert = Assert.EvalsTo(this, value, onError)
 
   /** Returns a Source object from a String. */
@@ -234,17 +242,22 @@ interface AssertSyntax {
 sealed class Assert {
 
   abstract class SingleAssert : Assert()
+
   internal data class Many(val asserts: List<SingleAssert>) : Assert()
 
   internal data class EvalsTo(
     val source: Code.Source,
     val output: Any?,
-    val onError: (Throwable) -> Any?
+    val onError: (Throwable) -> Any?,
   ) : SingleAssert()
+
   internal data class FailsWith(val f: (String) -> Boolean) : SingleAssert()
+
   internal data class CompilesWith(val f: (String) -> Boolean) : SingleAssert()
+
   internal sealed class CompilationResult : SingleAssert() {
     object Compiles : CompilationResult()
+
     object Fails : CompilationResult()
   }
 

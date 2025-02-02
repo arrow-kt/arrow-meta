@@ -19,7 +19,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { compiles }
+        assert = { compiles },
       )
     )
   }
@@ -36,7 +36,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { "hello()".source.evalsTo("Hello world!") }
+        assert = { "hello()".source.evalsTo("Hello world!") },
       )
     )
   }
@@ -55,7 +55,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { "hello()".source.evalsTo("Hello world!") }
+        assert = { "hello()".source.evalsTo("Hello world!") },
       )
     )
   }
@@ -71,7 +71,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { fails }
+        assert = { fails },
       )
     )
   }
@@ -87,7 +87,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { failsWith { it.contains("Expecting a top level declaration") } }
+        assert = { failsWith { it.contains("Expecting a top level declaration") } },
       )
     )
   }
@@ -104,7 +104,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { "x".source.evalsTo("Hello world!") }
+        assert = { "x".source.evalsTo("Hello world!") },
       )
     )
   }
@@ -122,7 +122,7 @@ class ExampleTest {
         """
             .source
         },
-        assert = { "x".source.evalsTo("Hello world!") }
+        assert = { "x".source.evalsTo("Hello world!") },
       )
     )
   }
@@ -140,7 +140,7 @@ class ExampleTest {
               |
               | val x: String = "hello world!"
               | 
-              """
+              """,
             ),
             Source(
               filename = "UpperCase.kt",
@@ -149,16 +149,16 @@ class ExampleTest {
               |
               | val y: String = "HELLO WORLD!"
               | 
-              """
-            )
+              """,
+            ),
           )
         },
         assert = {
           allOf(
             Source(filename = "LowerCaseKt", text = "x").evalsTo("hello world!"),
-            Source(filename = "UpperCaseKt", text = "y").evalsTo("HELLO WORLD!")
+            Source(filename = "UpperCaseKt", text = "y").evalsTo("HELLO WORLD!"),
           )
-        }
+        },
       )
     )
   }
@@ -180,10 +180,10 @@ class ExampleTest {
           | val y: String = "HELLO WORLD!"
           | 
           """
-              .source
+              .source,
           )
         },
-        assert = { compiles }
+        assert = { compiles },
       )
     )
   }
@@ -201,7 +201,7 @@ class ExampleTest {
           """
             .source
         },
-        assert = { compiles }
+        assert = { compiles },
       )
     )
   }
@@ -217,9 +217,9 @@ class ExampleTest {
               PluginOption(
                 ExampleCommandLineProcessor().pluginId,
                 ExampleCommandLineProcessor.CLI_OPTION.optionName,
-                "value"
+                "value",
               )
-            )
+            ),
           )
         },
         code = {
@@ -230,7 +230,7 @@ class ExampleTest {
           """
             .source
         },
-        assert = { compiles }
+        assert = { compiles },
       )
     )
   }
@@ -252,7 +252,7 @@ class ExampleTest {
           failsWith {
             it.contains("Unsupported plugin option") && it.contains("plugin.id:key=value")
           }
-        }
+        },
       )
     )
   }
@@ -266,7 +266,7 @@ class ExampleTest {
             addCommandLineProcessors(ExampleCommandLineProcessor()),
             addPluginOptions(
               PluginOption(ExampleCommandLineProcessor().pluginId, "wrongKey", "value")
-            )
+            ),
           )
         },
         code = {
@@ -282,7 +282,7 @@ class ExampleTest {
             it.contains("Unsupported plugin option") &&
               it.contains("${ExampleCommandLineProcessor().pluginId}:wrongKey=value")
           }
-        }
+        },
       )
     )
   }

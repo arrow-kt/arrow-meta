@@ -29,7 +29,7 @@ internal fun compile(data: CompilationData): CompilationResult {
     return createKotlinCompilation(data)
       .apply {
         sources = compilation.sources + compilation.kspGeneratedSourceFiles
-        symbolProcessorProviders = emptyList()
+        symbolProcessorProviders = mutableListOf()
       }
       .compile()
   }
@@ -59,7 +59,7 @@ private fun createKotlinCompilation(data: CompilationData) =
       }
     kotlincArguments = data.arguments
     commandLineProcessors = data.commandLineProcessors
-    symbolProcessorProviders = data.symbolProcessors
+    symbolProcessorProviders = data.symbolProcessors.toMutableList()
     pluginOptions = data.pluginOptions.map { PluginOption(it.pluginId, it.key, it.value) }
   }
 
@@ -70,7 +70,7 @@ private val KotlinCompilation.kspGeneratedSourceFiles: List<SourceFile>
       .resolve("kotlin")
       .walk()
       .filter { it.isFile }
-      .map { SourceFile.fromPath(it.absoluteFile) }
+      .map { SourceFile.new(it.absoluteFile.name, it.absoluteFile.readText()) }
       .toList()
 
 private fun obtainTarget(data: CompilationData): String =

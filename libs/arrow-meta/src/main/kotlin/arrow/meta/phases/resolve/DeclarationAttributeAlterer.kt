@@ -16,6 +16,6 @@ interface DeclarationAttributeAlterer : ExtensionPhase {
     declaration: DeclarationDescriptor?,
     containingDeclaration: DeclarationDescriptor?,
     currentModality: Modality,
-    isImplicitModality: Boolean
+    isImplicitModality: Boolean,
   ): Modality?
 }

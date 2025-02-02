@@ -26,7 +26,7 @@ abstract class MetaCliProcessor(private val metaPluginId: String) : CommandLineP
         "arrow-meta-gen-src-output-dir",
         "Directory to locate generated sources",
         required = false,
-        allowMultipleOccurrences = false
+        allowMultipleOccurrences = false,
       )
     val ARROW_META_BASE_DIR =
       CliOption(
@@ -34,7 +34,7 @@ abstract class MetaCliProcessor(private val metaPluginId: String) : CommandLineP
         "arrow-meta-base-dir",
         "Base directory from where the plugin is run",
         required = false,
-        allowMultipleOccurrences = false
+        allowMultipleOccurrences = false,
       )
   }
 
@@ -47,7 +47,7 @@ abstract class MetaCliProcessor(private val metaPluginId: String) : CommandLineP
   override fun processOption(
     option: AbstractCliOption,
     value: String,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
   ) =
     when (option.optionName) {
       "generatedSrcOutputDir" ->
