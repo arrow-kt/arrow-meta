@@ -24,25 +24,25 @@ interface AsmSyntax {
   fun codegen(
     applyFunction:
       CompilerContext.(
-        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context
+        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context,
       ) -> StackValue?,
     applyProperty:
       CompilerContext.(
-        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context
+        receiver: StackValue, resolvedCall: ResolvedCall<*>, c: ExpressionCodegenExtension.Context,
       ) -> StackValue?,
-    generateClassSyntheticParts: CompilerContext.(codegen: ImplementationBodyCodegen) -> Unit
+    generateClassSyntheticParts: CompilerContext.(codegen: ImplementationBodyCodegen) -> Unit,
   ): Codegen =
     object : Codegen {
       override fun CompilerContext.applyFunction(
         receiver: StackValue,
         resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context
+        c: ExpressionCodegenExtension.Context,
       ): StackValue? = applyFunction(receiver, resolvedCall, c)
 
       override fun CompilerContext.applyProperty(
         receiver: StackValue,
         resolvedCall: ResolvedCall<*>,
-        c: ExpressionCodegenExtension.Context
+        c: ExpressionCodegenExtension.Context,
       ): StackValue? = applyProperty(receiver, resolvedCall, c)
 
       override fun CompilerContext.generateClassSyntheticParts(codegen: ImplementationBodyCodegen) =

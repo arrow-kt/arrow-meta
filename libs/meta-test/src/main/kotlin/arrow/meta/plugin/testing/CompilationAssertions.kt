@@ -113,7 +113,7 @@ private val interpreter: (CompilerTest) -> Unit = {
           compilationResult,
           singleAssert.source,
           singleAssert.output,
-          singleAssert.onError
+          singleAssert.onError,
         )
       else -> TODO()
     }
@@ -164,7 +164,7 @@ private fun assertEvalsTo(
   compilationResult: CompilationResult,
   source: Code.Source,
   output: Any?,
-  onError: (Throwable) -> Any?
+  onError: (Throwable) -> Any?,
 ) {
   assertCompiles(compilationResult)
   val className = source.filename.replace(".kt", "Kt")
@@ -235,7 +235,7 @@ private fun eval(
   className: String,
   expression: String,
   classesDirectory: File,
-  onError: (Throwable) -> Any?
+  onError: (Throwable) -> Any?,
 ): Any? {
   val classLoader = URLClassLoader(arrayOf(classesDirectory.toURI().toURL()))
   val fullClassName = getFullClassName(classesDirectory, className)

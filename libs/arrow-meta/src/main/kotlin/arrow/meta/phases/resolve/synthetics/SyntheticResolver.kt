@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.types.KotlinType
 interface SyntheticResolver : ExtensionPhase {
   fun CompilerContext.addSyntheticSupertypes(
     thisDescriptor: ClassDescriptor,
-    supertypes: MutableList<KotlinType>
+    supertypes: MutableList<KotlinType>,
   ): Unit
 
   fun CompilerContext.generateSyntheticClasses(
@@ -29,7 +29,7 @@ interface SyntheticResolver : ExtensionPhase {
     name: Name,
     ctx: LazyClassContext,
     declarationProvider: ClassMemberDeclarationProvider,
-    result: MutableSet<ClassDescriptor>
+    result: MutableSet<ClassDescriptor>,
   ): Unit
 
   fun CompilerContext.generatePackageSyntheticClasses(
@@ -37,7 +37,7 @@ interface SyntheticResolver : ExtensionPhase {
     name: Name,
     ctx: LazyClassContext,
     declarationProvider: PackageMemberDeclarationProvider,
-    result: MutableSet<ClassDescriptor>
+    result: MutableSet<ClassDescriptor>,
   ): Unit
 
   fun CompilerContext.generateSyntheticMethods(
@@ -45,7 +45,7 @@ interface SyntheticResolver : ExtensionPhase {
     name: Name,
     bindingContext: BindingContext,
     fromSupertypes: List<SimpleFunctionDescriptor>,
-    result: MutableCollection<SimpleFunctionDescriptor>
+    result: MutableCollection<SimpleFunctionDescriptor>,
   ): Unit
 
   fun CompilerContext.generateSyntheticProperties(
@@ -53,7 +53,7 @@ interface SyntheticResolver : ExtensionPhase {
     name: Name,
     bindingContext: BindingContext,
     fromSupertypes: ArrayList<PropertyDescriptor>,
-    result: MutableSet<PropertyDescriptor>
+    result: MutableSet<PropertyDescriptor>,
   ): Unit
 
   fun CompilerContext.getSyntheticCompanionObjectNameIfNeeded(
@@ -67,6 +67,6 @@ interface SyntheticResolver : ExtensionPhase {
   fun CompilerContext.generateSyntheticSecondaryConstructors(
     thisDescriptor: ClassDescriptor,
     bindingContext: BindingContext,
-    result: MutableCollection<ClassConstructorDescriptor>
+    result: MutableCollection<ClassConstructorDescriptor>,
   ): Unit
 }

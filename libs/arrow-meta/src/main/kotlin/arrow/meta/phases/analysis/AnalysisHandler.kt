@@ -21,13 +21,13 @@ interface AnalysisHandler : ExtensionPhase {
     projectContext: ProjectContext,
     files: Collection<KtFile>,
     bindingTrace: BindingTrace,
-    componentProvider: ComponentProvider
+    componentProvider: ComponentProvider,
   ): AnalysisResult?
 
   fun CompilerContext.analysisCompleted(
     project: Project,
     module: ModuleDescriptor,
     bindingTrace: BindingTrace,
-    files: Collection<KtFile>
+    files: Collection<KtFile>,
   ): AnalysisResult?
 }

@@ -14,6 +14,6 @@ interface CollectAdditionalSources : ExtensionPhase {
   fun CompilerContext.collectAdditionalSourcesAndUpdateConfiguration(
     knownSources: Collection<KtFile>,
     configuration: CompilerConfiguration,
-    project: Project
+    project: Project,
   ): Collection<KtFile>
 }

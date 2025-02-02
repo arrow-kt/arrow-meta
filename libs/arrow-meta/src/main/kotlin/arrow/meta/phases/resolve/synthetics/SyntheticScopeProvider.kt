@@ -19,35 +19,43 @@ interface SyntheticScopeProvider : ExtensionPhase {
   fun CompilerContext.syntheticConstructor(
     constructor: ConstructorDescriptor
   ): ConstructorDescriptor?
+
   fun CompilerContext.syntheticConstructors(
     classifierDescriptors: Collection<DeclarationDescriptor>
   ): Collection<FunctionDescriptor>
+
   fun CompilerContext.syntheticConstructors(
     contributedClassifier: ClassifierDescriptor,
-    location: LookupLocation
+    location: LookupLocation,
   ): Collection<FunctionDescriptor>
+
   fun CompilerContext.syntheticExtensionProperties(
     receiverTypes: Collection<KotlinType>,
-    location: LookupLocation
+    location: LookupLocation,
   ): Collection<PropertyDescriptor>
+
   fun CompilerContext.syntheticExtensionProperties(
     receiverTypes: Collection<KotlinType>,
     name: Name,
-    location: LookupLocation
+    location: LookupLocation,
   ): Collection<PropertyDescriptor>
+
   fun CompilerContext.syntheticMemberFunctions(
     receiverTypes: Collection<KotlinType>
   ): Collection<FunctionDescriptor>
+
   fun CompilerContext.syntheticMemberFunctions(
     receiverTypes: Collection<KotlinType>,
     name: Name,
-    location: LookupLocation
+    location: LookupLocation,
   ): Collection<FunctionDescriptor>
+
   fun CompilerContext.syntheticStaticFunctions(
     functionDescriptors: Collection<DeclarationDescriptor>
   ): Collection<FunctionDescriptor>
+
   fun CompilerContext.syntheticStaticFunctions(
     contributedFunctions: Collection<FunctionDescriptor>,
-    location: LookupLocation
+    location: LookupLocation,
   ): Collection<FunctionDescriptor>
 }

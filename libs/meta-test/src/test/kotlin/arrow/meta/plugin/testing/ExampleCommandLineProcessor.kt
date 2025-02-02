@@ -14,7 +14,7 @@ class ExampleCommandLineProcessor : CommandLineProcessor {
         "<key>",
         description = "example",
         required = false,
-        allowMultipleOccurrences = false
+        allowMultipleOccurrences = false,
       )
   }
 

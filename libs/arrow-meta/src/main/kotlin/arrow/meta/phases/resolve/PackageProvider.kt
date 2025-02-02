@@ -21,6 +21,6 @@ interface PackageProvider : ExtensionPhase {
     storageManager: StorageManager,
     trace: BindingTrace,
     moduleInfo: ModuleInfo?,
-    lookupTracker: LookupTracker
+    lookupTracker: LookupTracker,
   ): PackageFragmentProvider?
 }

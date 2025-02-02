@@ -36,6 +36,6 @@ fun KotlinType.intersection(vararg other: KotlinType): KotlinType {
     constructor,
     emptyList(),
     false,
-    constructor.createScopeForKotlinType()
+    constructor.createScopeForKotlinType(),
   )
 }

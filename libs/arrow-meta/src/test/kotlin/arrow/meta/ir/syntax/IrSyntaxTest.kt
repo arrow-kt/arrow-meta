@@ -193,7 +193,7 @@ class IrSyntaxTest {
           }
         }
     """
-        .trimIndent()
+        .trimIndent(),
     )
   }
 }
@@ -205,6 +205,6 @@ private fun <A : IrElement> testIrVisit(elements: List<Class<out A>>, src: Strin
     CompilerTest(
       config = { metaDependencies + addMetaPlugins(IrSyntaxPlugin()) },
       code = { src.source },
-      assert = { allOf(elements.map { element -> failsWith { it.contains(visits(element)) } }) }
+      assert = { allOf(elements.map { element -> failsWith { it.contains(visits(element)) } }) },
     )
   )

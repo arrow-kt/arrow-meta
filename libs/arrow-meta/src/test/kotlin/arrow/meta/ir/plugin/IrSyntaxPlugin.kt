@@ -159,7 +159,7 @@ open class IrSyntaxPlugin : Meta() {
           irDynamicMemberExpression(irVisit(IrDynamicMemberExpression::class.java)),
           irErrorDeclaration(irVisit(IrErrorDeclaration::class.java)),
           irErrorExpression(irVisit(IrErrorExpression::class.java)),
-          irErrorCallExpression(irVisit(IrErrorCallExpression::class.java))
+          irErrorCallExpression(irVisit(IrErrorCallExpression::class.java)),
         )
       }
     )

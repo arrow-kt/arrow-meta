@@ -15,13 +15,13 @@ interface Codegen : ExtensionPhase {
   fun CompilerContext.applyFunction(
     receiver: StackValue,
     resolvedCall: ResolvedCall<*>,
-    c: ExpressionCodegenExtension.Context
+    c: ExpressionCodegenExtension.Context,
   ): StackValue?
 
   fun CompilerContext.applyProperty(
     receiver: StackValue,
     resolvedCall: ResolvedCall<*>,
-    c: ExpressionCodegenExtension.Context
+    c: ExpressionCodegenExtension.Context,
   ): StackValue?
 
   fun CompilerContext.generateClassSyntheticParts(codegen: ImplementationBodyCodegen): Unit

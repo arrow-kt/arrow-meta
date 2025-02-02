@@ -39,14 +39,14 @@ interface AnalysisSyntax {
   fun additionalSources(
     collectAdditionalSourcesAndUpdateConfiguration:
       CompilerContext.(
-        knownSources: Collection<KtFile>, configuration: CompilerConfiguration, project: Project
+        knownSources: Collection<KtFile>, configuration: CompilerConfiguration, project: Project,
       ) -> Collection<KtFile>
   ): CollectAdditionalSources =
     object : CollectAdditionalSources {
       override fun CompilerContext.collectAdditionalSourcesAndUpdateConfiguration(
         knownSources: Collection<KtFile>,
         configuration: CompilerConfiguration,
-        project: Project
+        project: Project,
       ): Collection<KtFile> =
         collectAdditionalSourcesAndUpdateConfiguration(knownSources, configuration, project)
     }
@@ -67,16 +67,16 @@ interface AnalysisSyntax {
         projectContext: ProjectContext,
         files: Collection<KtFile>,
         bindingTrace: BindingTrace,
-        componentProvider: ComponentProvider
+        componentProvider: ComponentProvider,
       ) -> AnalysisResult?,
     analysisCompleted:
       CompilerContext.(
         project: Project,
         module: ModuleDescriptor,
         bindingTrace: BindingTrace,
-        files: Collection<KtFile>
+        files: Collection<KtFile>,
       ) -> AnalysisResult? =
-      Noop.nullable5()
+      Noop.nullable5(),
   ): AnalysisHandler =
     object : AnalysisHandler {
       override fun CompilerContext.doAnalysis(
@@ -85,7 +85,7 @@ interface AnalysisSyntax {
         projectContext: ProjectContext,
         files: Collection<KtFile>,
         bindingTrace: BindingTrace,
-        componentProvider: ComponentProvider
+        componentProvider: ComponentProvider,
       ): AnalysisResult? {
         return doAnalysis(project, module, projectContext, files, bindingTrace, componentProvider)
       }
@@ -94,14 +94,14 @@ interface AnalysisSyntax {
         project: Project,
         module: ModuleDescriptor,
         bindingTrace: BindingTrace,
-        files: Collection<KtFile>
+        files: Collection<KtFile>,
       ): AnalysisResult? = analysisCompleted(project, module, bindingTrace, files)
     }
 
   fun preprocessedVirtualFileFactory(
     createPreprocessedFile: CompilerContext.(file: VirtualFile?) -> VirtualFile?,
     createPreprocessedLightFile: CompilerContext.(file: LightVirtualFile?) -> LightVirtualFile? =
-      Noop.nullable2()
+      Noop.nullable2(),
   ): PreprocessedVirtualFileFactory =
     object : PreprocessedVirtualFileFactory {
       override fun CompilerContext.isPassThrough(): Boolean = false
@@ -150,10 +150,9 @@ interface AnalysisSyntax {
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf(f)
           null
-        }
+        },
       )
-    }
-      ?: ExtensionPhase.Empty
+    } ?: ExtensionPhase.Empty
 
   /** @see [suppressDiagnostic] including access to the [BindingTrace] */
   fun suppressDiagnosticWithTrace(f: BindingTrace.(Diagnostic) -> Boolean): ExtensionPhase =
@@ -170,8 +169,7 @@ interface AnalysisSyntax {
           val mutableDiagnostics = diagnostics.getOwnDiagnostics() as ArrayList<Diagnostic>
           mutableDiagnostics.removeIf { f(bindingTrace, it) }
           null
-        }
+        },
       )
-    }
-      ?: ExtensionPhase.Empty
+    } ?: ExtensionPhase.Empty
 }

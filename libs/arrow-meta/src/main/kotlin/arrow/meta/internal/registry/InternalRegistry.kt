@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.jvm.extensions.ClassGenerator
 import org.jetbrains.kotlin.backend.jvm.extensions.ClassGeneratorExtension
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.ClassBuilderFactory
@@ -45,6 +44,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.useInstance
@@ -113,7 +113,7 @@ interface InternalRegistry : ConfigSyntax {
             projectContext: ProjectContext,
             files: Collection<KtFile>,
             bindingTrace: BindingTrace,
-            componentProvider: ComponentProvider
+            componentProvider: ComponentProvider,
           ): AnalysisResult? {
             ctx.module = module
             ctx.componentProvider = componentProvider
@@ -124,7 +124,7 @@ interface InternalRegistry : ConfigSyntax {
             project: Project,
             module: ModuleDescriptor,
             bindingTrace: BindingTrace,
-            files: Collection<KtFile>
+            files: Collection<KtFile>,
           ): AnalysisResult? {
             ctx.module = module
             return super.analysisCompleted(project, module, bindingTrace, files)
@@ -136,7 +136,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerProjectComponents(
     project: MockProject,
-    configuration: CompilerConfiguration
+    configuration: CompilerConfiguration,
   ) {
     ide { println("registerProjectComponents!!!! CALLED in IDEA!!!! something is wrong.") }
     registerMetaComponents(configuration)
@@ -144,7 +144,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerMetaComponents(
     configuration: CompilerConfiguration,
-    context: CompilerContext? = null
+    context: CompilerContext? = null,
   ) {
     cli { registerSyntheticScopeProviderIfNeeded() }
     val ctx: CompilerContext =
@@ -152,7 +152,7 @@ interface InternalRegistry : ConfigSyntax {
         context
       } else {
         val messageCollector: MessageCollector? = cli {
-          configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+          configuration.get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
         }
         CompilerContext(configuration, messageCollector)
       }
@@ -192,7 +192,7 @@ interface InternalRegistry : ConfigSyntax {
             else ->
               ctx.messageCollector?.report(
                 CompilerMessageSeverity.ERROR,
-                "Unsupported extension phase: $this"
+                "Unsupported extension phase: $this",
               )
           }
         }
@@ -222,7 +222,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerExtraImports(
     phase: ExtraImports,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     ExtraImportsProviderExtension.registerExtension(
       object : ExtraImportsProviderExtension {
@@ -234,7 +234,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerPreprocessedVirtualFileFactory(
     phase: PreprocessedVirtualFileFactory,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     PreprocessedVirtualFileFactoryExtension.registerExtension(
       object : PreprocessedVirtualFileFactoryExtension {
@@ -251,13 +251,13 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerSyntheticScopeProvider(
     phase: SyntheticScopeProvider,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     SyntheticScopeProviderExtension.registerExtension(
       object : SyntheticScopeProviderExtension {
         override fun getScopes(
           moduleDescriptor: ModuleDescriptor,
-          javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope
+          javaSyntheticPropertiesScope: JavaSyntheticPropertiesScope,
         ): List<SyntheticScope> =
           phase.run {
             listOf(
@@ -273,20 +273,20 @@ interface InternalRegistry : ConfigSyntax {
 
                 override fun getSyntheticConstructors(
                   contributedClassifier: ClassifierDescriptor,
-                  location: LookupLocation
+                  location: LookupLocation,
                 ): Collection<FunctionDescriptor> =
                   phase.run { ctx.syntheticConstructors(contributedClassifier, location) }
 
                 override fun getSyntheticExtensionProperties(
                   receiverTypes: Collection<KotlinType>,
-                  location: LookupLocation
+                  location: LookupLocation,
                 ): Collection<PropertyDescriptor> =
                   phase.run { ctx.syntheticExtensionProperties(receiverTypes, location) }
 
                 override fun getSyntheticExtensionProperties(
                   receiverTypes: Collection<KotlinType>,
                   name: Name,
-                  location: LookupLocation
+                  location: LookupLocation,
                 ): Collection<PropertyDescriptor> =
                   phase.run { ctx.syntheticExtensionProperties(receiverTypes, name, location) }
 
@@ -298,7 +298,7 @@ interface InternalRegistry : ConfigSyntax {
                 override fun getSyntheticMemberFunctions(
                   receiverTypes: Collection<KotlinType>,
                   name: Name,
-                  location: LookupLocation
+                  location: LookupLocation,
                 ): Collection<FunctionDescriptor> =
                   phase.run { ctx.syntheticMemberFunctions(receiverTypes, name, location) }
 
@@ -309,7 +309,7 @@ interface InternalRegistry : ConfigSyntax {
 
                 override fun getSyntheticStaticFunctions(
                   contributedFunctions: Collection<FunctionDescriptor>,
-                  location: LookupLocation
+                  location: LookupLocation,
                 ): Collection<FunctionDescriptor> =
                   phase.run { ctx.syntheticStaticFunctions(contributedFunctions, location) }
               }
@@ -321,7 +321,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerIRGeneration(
     phase: IRGeneration,
-    compilerContext: CompilerContext
+    compilerContext: CompilerContext,
   ) {
     IrGenerationExtension.registerExtension(
       object : IrGenerationExtension {
@@ -334,13 +334,13 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerSyntheticResolver(
     phase: SyntheticResolver,
-    compilerContext: CompilerContext
+    compilerContext: CompilerContext,
   ) {
     SyntheticResolveExtension.registerExtension(
       object : SyntheticResolveExtension {
         override fun addSyntheticSupertypes(
           thisDescriptor: ClassDescriptor,
-          supertypes: MutableList<KotlinType>
+          supertypes: MutableList<KotlinType>,
         ) {
           phase.run { compilerContext.addSyntheticSupertypes(thisDescriptor, supertypes) }
         }
@@ -350,7 +350,7 @@ interface InternalRegistry : ConfigSyntax {
           name: Name,
           ctx: LazyClassContext,
           declarationProvider: ClassMemberDeclarationProvider,
-          result: MutableSet<ClassDescriptor>
+          result: MutableSet<ClassDescriptor>,
         ) {
           phase.run {
             compilerContext.generateSyntheticClasses(
@@ -358,7 +358,7 @@ interface InternalRegistry : ConfigSyntax {
               name,
               ctx,
               declarationProvider,
-              result
+              result,
             )
           }
         }
@@ -368,7 +368,7 @@ interface InternalRegistry : ConfigSyntax {
           name: Name,
           ctx: LazyClassContext,
           declarationProvider: PackageMemberDeclarationProvider,
-          result: MutableSet<ClassDescriptor>
+          result: MutableSet<ClassDescriptor>,
         ) {
           phase.run {
             compilerContext.generatePackageSyntheticClasses(
@@ -376,7 +376,7 @@ interface InternalRegistry : ConfigSyntax {
               name,
               ctx,
               declarationProvider,
-              result
+              result,
             )
           }
         }
@@ -386,7 +386,7 @@ interface InternalRegistry : ConfigSyntax {
           name: Name,
           bindingContext: BindingContext,
           fromSupertypes: List<SimpleFunctionDescriptor>,
-          result: MutableCollection<SimpleFunctionDescriptor>
+          result: MutableCollection<SimpleFunctionDescriptor>,
         ) {
           phase.run {
             compilerContext.generateSyntheticMethods(
@@ -394,7 +394,7 @@ interface InternalRegistry : ConfigSyntax {
               name,
               bindingContext,
               fromSupertypes,
-              result
+              result,
             )
           }
         }
@@ -404,7 +404,7 @@ interface InternalRegistry : ConfigSyntax {
           name: Name,
           bindingContext: BindingContext,
           fromSupertypes: ArrayList<PropertyDescriptor>,
-          result: MutableSet<PropertyDescriptor>
+          result: MutableSet<PropertyDescriptor>,
         ) {
           phase.run {
             compilerContext.generateSyntheticProperties(
@@ -412,7 +412,7 @@ interface InternalRegistry : ConfigSyntax {
               name,
               bindingContext,
               fromSupertypes,
-              result
+              result,
             )
           }
         }
@@ -438,7 +438,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.packageFragmentProvider(
     phase: PackageProvider,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     PackageFragmentProviderExtension.registerExtension(
       object : PackageFragmentProviderExtension {
@@ -448,7 +448,7 @@ interface InternalRegistry : ConfigSyntax {
           storageManager: StorageManager,
           trace: BindingTrace,
           moduleInfo: ModuleInfo?,
-          lookupTracker: LookupTracker
+          lookupTracker: LookupTracker,
         ): PackageFragmentProvider? {
           return phase.run {
             ctx.getPackageFragmentProvider(
@@ -457,7 +457,7 @@ interface InternalRegistry : ConfigSyntax {
               storageManager,
               trace,
               moduleInfo,
-              lookupTracker
+              lookupTracker,
             )
           }
         }
@@ -467,7 +467,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerDeclarationAttributeAlterer(
     phase: DeclarationAttributeAlterer,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     DeclarationAttributeAltererExtension.registerExtension(
       object : DeclarationAttributeAltererExtension {
@@ -476,7 +476,7 @@ interface InternalRegistry : ConfigSyntax {
           declaration: DeclarationDescriptor?,
           containingDeclaration: DeclarationDescriptor?,
           currentModality: Modality,
-          isImplicitModality: Boolean
+          isImplicitModality: Boolean,
         ): Modality? {
           return phase.run {
             ctx.refineDeclarationModality(
@@ -484,7 +484,7 @@ interface InternalRegistry : ConfigSyntax {
               declaration,
               containingDeclaration,
               currentModality,
-              isImplicitModality
+              isImplicitModality,
             )
           }
         }
@@ -494,14 +494,14 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerCodegen(
     phase: Codegen,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     ExpressionCodegenExtension.registerExtension(
       object : ExpressionCodegenExtension {
         override fun applyFunction(
           receiver: StackValue,
           resolvedCall: ResolvedCall<*>,
-          c: ExpressionCodegenExtension.Context
+          c: ExpressionCodegenExtension.Context,
         ): StackValue? {
           return phase.run { ctx.applyFunction(receiver, resolvedCall, c) }
         }
@@ -509,7 +509,7 @@ interface InternalRegistry : ConfigSyntax {
         override fun applyProperty(
           receiver: StackValue,
           resolvedCall: ResolvedCall<*>,
-          c: ExpressionCodegenExtension.Context
+          c: ExpressionCodegenExtension.Context,
         ): StackValue? {
           return phase.run { ctx.applyProperty(receiver, resolvedCall, c) }
         }
@@ -523,14 +523,14 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerStorageComponentContainer(
     phase: StorageComponentContainer,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     StorageComponentContainerContributor.registerExtension(DelegatingContributor(phase, ctx))
   }
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerCollectAdditionalSources(
     phase: CollectAdditionalSources,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     cli {
       CollectAdditionalSourcesExtension.registerExtension(
@@ -538,13 +538,13 @@ interface InternalRegistry : ConfigSyntax {
           override fun collectAdditionalSourcesAndUpdateConfiguration(
             knownSources: Collection<KtFile>,
             configuration: CompilerConfiguration,
-            project: Project
+            project: Project,
           ): Collection<KtFile> =
             phase.run {
               ctx.collectAdditionalSourcesAndUpdateConfiguration(
                 knownSources,
                 configuration,
-                project
+                project,
               )
             }
         }
@@ -554,7 +554,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerAnalysisHandler(
     phase: AnalysisHandler,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     phase.pushAnalysisPhase()
     cli {
@@ -564,7 +564,7 @@ interface InternalRegistry : ConfigSyntax {
             project: Project,
             module: ModuleDescriptor,
             bindingTrace: BindingTrace,
-            files: Collection<KtFile>
+            files: Collection<KtFile>,
           ): AnalysisResult? =
             phase.run {
               popAnalysisPhase()
@@ -578,7 +578,7 @@ interface InternalRegistry : ConfigSyntax {
                     bindingTrace.bindingContext,
                     module,
                     emptyList(),
-                    emptyList()
+                    emptyList(),
                   )
                 }
                 else -> null
@@ -591,7 +591,7 @@ interface InternalRegistry : ConfigSyntax {
             projectContext: ProjectContext,
             files: Collection<KtFile>,
             bindingTrace: BindingTrace,
-            componentProvider: ComponentProvider
+            componentProvider: ComponentProvider,
           ): AnalysisResult? {
             return phase.run {
               ctx.doAnalysis(
@@ -600,7 +600,7 @@ interface InternalRegistry : ConfigSyntax {
                 projectContext,
                 files,
                 bindingTrace,
-                componentProvider
+                componentProvider,
               )
             }
           }
@@ -611,13 +611,13 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerClassGenerator(
     phase: ClassGeneration,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     ClassGeneratorExtension.registerExtension(
       object : ClassGeneratorExtension {
         override fun generateClass(
           generator: ClassGenerator,
-          declaration: IrClass?
+          declaration: IrClass?,
         ): ClassGenerator = phase.run { ctx.interceptClassGenerator(generator, declaration) }
       }
     )
@@ -625,7 +625,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerClassBuilder(
     phase: ClassBuilder,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     @Suppress("DEPRECATION_ERROR")
     org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension.registerExtension(
@@ -635,7 +635,7 @@ interface InternalRegistry : ConfigSyntax {
         override fun interceptClassBuilderFactory(
           interceptedFactory: ClassBuilderFactory,
           bindingContext: BindingContext,
-          diagnostics: DiagnosticSink
+          diagnostics: DiagnosticSink,
         ): ClassBuilderFactory =
           phase.run { ctx.interceptClassBuilder(interceptedFactory, bindingContext, diagnostics) }
       }
@@ -644,7 +644,7 @@ interface InternalRegistry : ConfigSyntax {
 
   fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerConfiguration(
     phase: Config,
-    ctx: CompilerContext
+    ctx: CompilerContext,
   ) {
     CompilerConfigurationExtension.registerExtension(
       object : CompilerConfigurationExtension {
@@ -661,7 +661,7 @@ interface InternalRegistry : ConfigSyntax {
     override fun registerModuleComponents(
       container: org.jetbrains.kotlin.container.StorageComponentContainer,
       platform: TargetPlatform,
-      moduleDescriptor: ModuleDescriptor
+      moduleDescriptor: ModuleDescriptor,
     ) {
       phase.run { ctx.registerModuleComponents(container, moduleDescriptor) }
       container.useInstance(
@@ -669,7 +669,7 @@ interface InternalRegistry : ConfigSyntax {
           override fun check(
             declaration: KtDeclaration,
             descriptor: DeclarationDescriptor,
-            context: DeclarationCheckerContext
+            context: DeclarationCheckerContext,
           ): Unit = phase.run { ctx.check(declaration, descriptor, context) }
         }
       )
@@ -679,6 +679,6 @@ interface InternalRegistry : ConfigSyntax {
   fun compilerContextService(): StorageComponentContainer =
     storageComponent(
       registerModuleComponents = { container, _ -> container.useInstance(this) },
-      check = { _, _, _ -> }
+      check = { _, _, _ -> },
     )
 }

@@ -14,6 +14,6 @@ interface ClassBuilder : ExtensionPhase {
   fun CompilerContext.interceptClassBuilder(
     interceptedFactory: ClassBuilderFactory,
     bindingContext: BindingContext,
-    diagnostics: DiagnosticSink
+    diagnostics: DiagnosticSink,
   ): ClassBuilderFactory
 }
